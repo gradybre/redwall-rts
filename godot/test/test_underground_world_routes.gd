@@ -58,6 +58,26 @@ class RefusingLocations extends Locations:
 		return code
 
 
+class PreparedEndpointBinding extends Binding:
+	## Mutate the real sealed companion after Routes read its endpoints, never supply synthetic geometry success.
+	var fault: int = 0
+
+	func edge_refusal(edge: Routes.Edge, route_token: int, space_token: int, location_token: int) -> StringName:
+		"""Exercise exact cold, full-generation and geometry pins inside the original real edge callback."""
+		if location_token == 0 or fault == 0: return super.edge_refusal(edge, route_token, space_token, location_token)
+		var locations: Locations = _locations_ref.get_ref() as Locations
+		var saved: int = locations._cold_token if fault == 1 else (locations._stage.i32[edge.from_location.x] \
+			if fault == 2 else locations._stage.i64[Locations.GEOMETRY_REVISION * locations._capacity + edge.from_location.x])
+		if fault == 1: locations._cold_token += 1
+		elif fault == 2: locations._stage.i32[edge.from_location.x] += 1
+		else: locations._stage.i64[Locations.GEOMETRY_REVISION * locations._capacity + edge.from_location.x] += 1
+		var code: StringName = super.edge_refusal(edge, route_token, space_token, location_token)
+		if fault == 1: locations._cold_token = saved
+		elif fault == 2: locations._stage.i32[edge.from_location.x] = saved
+		else: locations._stage.i64[Locations.GEOMETRY_REVISION * locations._capacity + edge.from_location.x] = saved
+		return code
+
+
 class ReenteringTerrain extends Terrain:
 	## A negative-only callback probe delegates every physical decision to the real terrain implementation.
 	var target: WeakRef = null
@@ -154,6 +174,21 @@ func test_union_coverage_requires_every_interior_point_not_corners() -> void:
 	assert_equal(proof.error, &"", "missing coverage is distinct from exhausted work allowance")
 	assert_equal(proof.count, 1, "one exact uncovered slab remains")
 	assert_equal(proof.fragments.slice(0, 6), PackedInt32Array([5, 0, 0, 6, 10, 10]), "exact missing interior")
+
+
+func test_pending_bearer_overlap_has_no_unscoped_profile_or_air_exception() -> void:
+	"""A matching numeric profile cannot exempt a generic obstacle, unfinished volume or unsupported air."""
+	var binding: Binding = Binding.new()
+	binding._bounds = PackedInt32Array([0, 0, 0, 10, 10, 10])
+	binding._descriptor.profile_id = 2
+	for role: int in [Space.OBSTACLE, Space.UNFINISHED]:
+		binding._proof = _proof([PackedInt32Array([0, 0, 0, 10, 10, 10])], PackedInt32Array([role]))
+		assert_true(binding._body_blocked(Vector3i.ZERO, Vector3i(0, 0, -1)), "actual blocker remains without original START")
+		binding._proof.start(binding._bounds)
+		assert_true(binding._subtract_pending_bearer(Vector3i.ZERO, Vector3i(0, 0, -1)), "nonqualified proof simply retains air")
+		assert_equal(binding._proof.count, 1, "no generic subtraction")
+		assert_equal(binding._proof.fragments.slice(0, 6), binding._bounds, "full requested volume remains")
+		assert_equal(binding._proof.error, &"", "missing qualification is not fake budget exhaustion")
 
 
 func test_adjacent_half_open_volumes_cover_without_gaps_or_double_faces() -> void:
@@ -403,7 +438,7 @@ func _actual_catalog(domain: Space.Domain) -> void:
 
 func _actual_binding() -> void:
 	"""Configure the concrete provider before the actual graph, without a synthetic permission callback."""
-	_binding = Binding.new()
+	_binding = PreparedEndpointBinding.new()
 	var config: Binding.Configuration = Binding.Configuration.new()
 	config.routes = _routes
 	config.owner = _owner
@@ -1004,6 +1039,127 @@ func test_actual_short_source_reload_holds_original_progress_and_pose() -> void:
 	var state: PackedInt64Array = PackedInt64Array([21, 22, 23, 24])
 	assert_true(_routes.source_state_into(_worker, _source_job, 10, 1, 3, state) != &"", "old repeated tuple is not current authority")
 	assert_equal(state, PackedInt64Array([21, 22, 23, 24]), "refused caller output unchanged")
+
+
+func _narrow_source_location(point: Vector3i, height: int = 1036) -> Vector2i:
+	"""Publish the complete forward/back source envelope before any route mask, through the real Location owner."""
+	var row: Locations.Record = Locations.Record.new()
+	row.point = point; row.section = _floor; row.level = 0; row.role = Locations.ROLE_WORK
+	row.envelope = PackedInt32Array([point.x - 445, point.y, point.z - 732,
+		point.x + 910, point.y + height, point.z + 346])
+	row.support = PackedInt32Array([point.x - 274, point.y - 1, point.z - 274,
+		point.x + 299, point.y, point.z + 249])
+	var cold: int = _budget.acquire(Budget.COLD_BYTES)
+	var token: int = _locations.begin_prepare(cold).token
+	var added: Locations.Result = _locations.stage_add(token, row)
+	assert_equal(added.error, &"", "actual complete narrow envelope")
+	assert_equal(_locations.seal(token), &"", "ordinary geometry remains completely qualified")
+	assert_true(_locations.publish(token), "actual endpoint publication")
+	assert_equal(_budget.release(cold), &"", "original Location lease released")
+	return added.location
+
+
+func _source_z_edge(first: Vector2i, last: Vector2i, a: Vector3i, b: Vector3i) -> Routes.Edge:
+	"""The ordinary real edge carries no profile filter, flag or hidden movement permission."""
+	var edge: Routes.Edge = _edge()
+	edge.from_location = first; edge.to_location = last
+	edge.points = PackedInt32Array([a.x, a.y, a.z, b.x, b.y, b.z])
+	edge.length_u = absi(a.z - b.z)
+	return edge
+
+
+func test_initial_masks_include_complete_endpoint_body_tool_and_stance() -> void:
+	"""Selected forward2/back6 fit from original publication; the broader all-yaw12 never receives a bit."""
+	_turn_source_case = 3
+	_actual_fixture()
+	var h: Vector3i = Vector3i(X + 512, 512, Z + 1024)
+	var g: Vector3i = h + Vector3i(0, 0, 1024)
+	var station: Vector2i = _narrow_source_location(h)
+	var gateway: Vector2i = _location(g)
+	var token: int = _begin()
+	var forward: Routes.Result = _routes.stage_add(token, _source_z_edge(gateway, station, g, h))
+	var backward: Routes.Result = _routes.stage_add(token, _source_z_edge(station, gateway, h, g))
+	assert_equal(forward.error, &"", "real forward source and both endpoints fit")
+	assert_equal(backward.error, &"", "real reverse source and both endpoints fit")
+	assert_equal(_binding.seal(token), &"", "original complete masks seal")
+	assert_equal(_binding.publish(token), &"", "no mask deletion after publication")
+	_end(token)
+	assert_equal(_binding.static_profile_edge_refusal(forward.ref, 2, 1, 3), &"", "exact yaw0 forward source")
+	assert_equal(_binding.static_profile_edge_refusal(backward.ref, 6, 1, 3), &"", "same body yaw and opposite path")
+	for edge: Vector2i in [forward.ref, backward.ref]:
+		assert_equal(_binding.static_profile_edge_refusal(edge, 12, 1, 3), &"WORLD_ROUTE_CERTIFICATE_STALE",
+			"wide ground never qualified the narrow endpoint")
+
+
+func test_original_sealed_location_candidate_recompiles_complete_endpoint_masks() -> void:
+	"""The nested actual route observer must read its exact sealed companion, without enabling general callbacks."""
+	_turn_source_case = 3
+	_actual_fixture()
+	var h: Vector3i = Vector3i(X + 512, 512, Z + 1024)
+	var g: Vector3i = h + Vector3i(0, 0, 1024)
+	var station: Vector2i = _narrow_source_location(h)
+	var gateway: Vector2i = _location(g)
+	var token: int = _begin()
+	var forward: Routes.Result = _routes.stage_add(token, _source_z_edge(gateway, station, g, h))
+	var backward: Routes.Result = _routes.stage_add(token, _source_z_edge(station, gateway, h, g))
+	assert_equal(forward.error, &"", "real forward initial edge")
+	assert_equal(backward.error, &"", "real reverse initial edge")
+	assert_equal(_binding.seal(token), &"", "initial masks seal")
+	assert_equal(_binding.publish(token), &"", "initial graph publishes")
+	_end(token)
+	_lease = _budget.acquire(Budget.COLD_BYTES)
+	var companion: Locations.Result = _locations.begin_prepare(_lease)
+	assert_equal(companion.error, &"", "original actual Location candidate")
+	assert_equal(_locations.seal(companion.token), &"", "sealed companion before graph refresh")
+	var graph: Routes.Result = _binding.begin_prepare(_lease, 0, companion.token)
+	assert_equal(graph.error, &"", "actual paired graph candidate")
+	assert_equal(_routes.stage_refresh(graph.token, forward.ref), &"", "forward source survives exact sealed companion callback")
+	assert_equal(_routes.stage_refresh(graph.token, backward.ref), &"", "backward source survives exact sealed companion callback")
+	assert_equal(_binding.seal(graph.token), &"", "all complete masks and source guards remain sealed")
+	_binding.abort(graph.token)
+	assert_true(_locations.abort(companion.token), "both candidates remain independently abortable")
+	assert_equal(_budget.release(_lease), &"", "original paired cold lease released")
+	_lease = 0
+
+
+func test_prepared_endpoint_observer_rejects_late_original_tuple_drift() -> void:
+	"""A valid pre-observer route packet cannot hide replacement cold metadata, stale generation or stage revision."""
+	_actual_fixture()
+	for fault: int in range(1, 4):
+		_lease = _budget.acquire(Budget.COLD_BYTES)
+		var companion: Locations.Result = _locations.begin_prepare(_lease)
+		assert_equal(companion.error, &"", "real reusable Location preparation")
+		assert_equal(_locations.seal(companion.token), &"", "exact sealed candidate")
+		var graph: Routes.Result = _binding.begin_prepare(_lease, 0, companion.token)
+		assert_equal(graph.error, &"", "real graph preparation")
+		var sentinel: Locations.Record = Locations.Record.new()
+		sentinel.point = Vector3i(71, 72, 73)
+		assert_true(Binding._prepared_endpoint_into(_binding, _first, sentinel) != &"", "reader cannot escape the original edge callback")
+		assert_equal(sentinel.point, Vector3i(71, 72, 73), "refused borrowed output unchanged")
+		(_binding as PreparedEndpointBinding).fault = fault
+		assert_equal(_routes.stage_add(graph.token, _edge()).error, &"WORLD_ROUTE_NO_FITTING_PROFILE",
+			"late actual companion drift refuses before any mask publication")
+		(_binding as PreparedEndpointBinding).fault = 0
+		assert_equal(_binding._stage.generations[0], 0, "no candidate certificate issued")
+		assert_equal(_routes.last_published_token(), 0, "actual graph remains unpublished")
+		_binding.abort(graph.token)
+		assert_true(_locations.abort(companion.token), "original Location candidate released")
+		assert_equal(_budget.release(_lease), &"", "original cold scope remains owned and retryable")
+		_lease = 0
+
+
+func test_initial_mask_refuses_endpoint_missing_one_unit_of_high_held_pick() -> void:
+	"""The pick's BODY/TURN rows remain complete even though the lower body fits the narrow endpoint."""
+	_turn_source_case = 3
+	_actual_fixture()
+	var h: Vector3i = Vector3i(X + 512, 512, Z + 1024)
+	var g: Vector3i = h + Vector3i(0, 0, 1024)
+	var station: Vector2i = _narrow_source_location(h, 1035)
+	var gateway: Vector2i = _location(g)
+	var token: int = _begin()
+	assert_equal(_routes.stage_add(token, _source_z_edge(gateway, station, g, h)).error,
+		&"WORLD_ROUTE_NO_FITTING_PROFILE", "one missing high-pick plane prevents initial eligibility")
+	_end(token)
 
 
 func _turn_route_image() -> PackedByteArray:

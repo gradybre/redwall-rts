@@ -9,6 +9,7 @@ const Locations := preload("res://scripts/core/underground_locations.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const AssemblySource := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
 const AssemblyPhysical := preload("res://data/underground/mole-worker/qualified-assembly-v1/physical_certificate.gd")
+const AssemblyEndpoint := preload("res://data/underground/mole-worker/qualified-assembly-v1/endpoint_certificate.gd")
 const Workpieces := preload("res://scripts/core/underground_connector_workpieces.gd")
 const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Levels := preload("res://scripts/core/underground_level_catalog.gd")
@@ -862,12 +863,105 @@ func _profile_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
 	if Routes.ShortStep.uses(_profiles) and Routes.ShortStep.is_short(profile):
 		code = Routes.ShortStep.span_refusal(profile, _point(edge, 0), _point(edge, edge.point_count - 1), edge.point_count, _pace.value)
 		if code != &"": return code
+	code = _profile_endpoint_refusal(edge.from_location, _point(edge, 0))
+	if code == &"": code = _profile_endpoint_refusal(edge.to_location, _point(edge, edge.point_count - 1))
+	return _profile_segments_refusal(edge) if code == &"" else code
+
+
+func _profile_endpoint_refusal(location: Vector2i, point: Vector3i) -> StringName:
+	"""A source mask never promises arrival at an endpoint which cannot contain its full body and held tool."""
+	if not _proof.spend(Locations.PREPARED_OBSERVATION_CHECKS): return _proof.error
+	var code: StringName = _prepared_endpoint_into(self, location, _endpoint) \
+		if _location_token != 0 else _locations().read_location_into(location, _endpoint)
+	if code != &"": return code
+	if _endpoint.world != _domain._world \
+			or _endpoint.geometry_revision != (_target_revision if _location_token != 0 else _base_revision) \
+			or _endpoint.point != point or _endpoint.payload_revision <= 0:
+		return &"WORLD_ROUTE_ENDPOINT_STALE"
+	for ordinal: int in _descriptor.box_count:
+		if not _proof.spend(1 + _descriptor.box_count): return _proof.error
+		code = _profile_box_into(ordinal, _body)
+		if code == &"": code = _compiled_endpoint_box_refusal(point)
+		if code != &"": return code
+	return &""
+
+
+static func _prepared_endpoint_into(actual: RefCounted, location: Vector2i, out: Locations.Record) -> StringName:
+	"""Only this original edge observer can borrow its sealed companion; the general Location reader stays strict."""
+	if actual == null or actual._locations_ref == null or actual._routes_ref == null \
+			or out == null or out.envelope.size() != 6 or out.support.size() != 6: return REFUSE_CONTEXT
+	var locations: Locations = actual._locations_ref.get_ref() as Locations
+	var graph: Routes = actual._routes_ref.get_ref() as Routes
+	var code: StringName = Locations._route_observation_binding_refusal(locations, graph)
+	if code == &"": code = _prepared_endpoint_scope(actual, locations, graph)
+	if code != &"": return code
+	var bank: Locations.Bank = locations._stage
+	var capacity: int = locations._capacity
+	if location.x < 0 or location.x >= capacity or location.y <= 0 or bank.present[location.x] != 1 \
+			or bank.i32[Locations.GENERATION * capacity + location.x] != location.y:
+		return &"LOCATION_STALE"
+	if bank.i64[Locations.PAYLOAD_REVISION * capacity + location.x] <= 0 \
+			or bank.i64[Locations.GEOMETRY_REVISION * capacity + location.x] != actual._target_revision:
+		return &"LOCATION_GEOMETRY_STALE"
+	Locations._copy_route_observation(locations, bank, location.x, out)
+	return &""
+
+
+static func _prepared_endpoint_scope(actual: RefCounted, locations: Locations, graph: Routes) -> StringName:
+	"""The original callback and all original three-owner transaction tokens are checked without changing a latch."""
+	if not actual._compiling or actual._opening or actual._publishing or actual._reading or actual._sealed \
+			or actual._proof == null or graph._bindings != actual or not graph._in_callback \
+			or graph._callback_reentered or graph._searching or graph._sealed or graph._operation_error != &"" \
+			or graph._token <= 0 or graph._token != actual._route_token \
+			or locations._in_retention or locations._retention_reentered or not locations._sealed \
+			or locations._token <= 0 or locations._token != actual._location_token \
+			or locations._token != graph._location_token: return &"LOCATION_TOKEN_STALE"
+	if locations._remaining < 0: return &"LOCATION_OPERATION_BUDGET"
+	if not Locations._route_observation_shape_matches(locations): return &"LOCATION_OBSERVATION_SHAPE"
+	if locations._cold != actual._budget or locations._cold_token <= 0 \
+			or locations._cold_token != actual._cold_token or locations._cold_token != graph._cold_token \
+			or locations._cold._token != locations._cold_token or locations._cold._used < Budget.COLD_BYTES:
+		return &"LOCATION_TOKEN_STALE"
+	return _prepared_endpoint_geometry(actual, locations, graph)
+
+
+static func _prepared_endpoint_geometry(actual: RefCounted, locations: Locations, graph: Routes) -> StringName:
+	"""Equal target revisions cannot substitute a foreign original Space candidate or an aborted companion."""
+	var owner: Owner = locations._owner
+	if actual._owner_ref == null or actual._owner_ref.get_ref() != owner or owner._ready_error != &"" \
+			or locations._owner_token != actual._space_token or locations._owner_token != graph._space_token \
+			or owner._stage_token != locations._owner_token or (locations._owner_token != 0 and not owner._sealed):
+		return &"LOCATION_GEOMETRY_STALE"
+	if locations._base_geometry_revision <= 0 or locations._base_geometry_revision != actual._base_revision \
+			or locations._base_geometry_revision != graph._base_geometry_revision \
+			or locations._target_geometry_revision != actual._target_revision \
+			or locations._target_geometry_revision != graph._target_geometry_revision \
+			or owner._header[17] != locations._base_geometry_revision \
+			or locations._target_geometry_revision != (owner._s_header[17] if locations._owner_token != 0 else owner._header[17]):
+		return &"LOCATION_GEOMETRY_STALE"
+	return &""
+
+
+func _compiled_endpoint_box_refusal(point: Vector3i) -> StringName:
+	"""Initial masks use the same positive body and complete negative stance semantics as actual admission."""
+	if _body.role != Profiles.STANCE_SUPPORT and _body.role != Profiles.BODY_HELD_LOAD \
+			and _body.role != Profiles.TURN_RECOVERY: return &""
+	var code: StringName = _sweep_into(_body, point, point, _bounds)
+	if code != &"": return code
+	if _body.role == Profiles.STANCE_SUPPORT:
+		return &"" if Space.contains_box(_endpoint.support, _bounds) else &"WORLD_ROUTE_ENDPOINT_SUPPORT"
+	return &"" if _endpoint_body_contained(point) else &"WORLD_ROUTE_ENDPOINT_BODY"
+
+
+func _profile_segments_refusal(edge: Routes.Edge) -> StringName:
+	"""Every full segment still receives the original heading, stance, matter and coverage proof."""
+	var code: StringName = &""
 	for segment: int in edge.point_count - 1:
 		if not _proof.spend():
 			return _proof.error
 		var first: Vector3i = _point(edge, segment)
 		var last: Vector3i = _point(edge, segment + 1)
-		var policy: int = Profiles.selection_policy_leaf(_profiles, profile, _descriptor.profile_revision, _content_revision)
+		var policy: int = Profiles.selection_policy_leaf(_profiles, _descriptor.profile_id, _descriptor.profile_revision, _content_revision)
 		var backward: bool = policy == Profiles.POLICY_READY_BACKWARD or policy == Profiles.POLICY_SHORT_BACKWARD
 		var heading: int = (_descriptor.yaw + 32768) % 65536 if backward else _descriptor.yaw
 		if _descriptor.yaw_kind != Profiles.YAW_ALL \
@@ -908,9 +1002,45 @@ func _profile_segment_refusal(first: Vector3i, last: Vector3i) -> StringName:
 			code = _terrain.exclusions_refusal(_bounds)
 		if code != &"":
 			return code
-		if _proof.blocked(_bounds, true) or not _body_covered(first, last) or not _solid_contacts_covered(first, last):
+		if _body_blocked(first, last) or not _body_covered(first, last) or not _solid_contacts_covered(first, last):
 			return _proof.error if _proof.error != &"" else REFUSE_COVERAGE
 	return &""
+
+
+func _body_blocked(first: Vector3i, last: Vector3i) -> bool:
+	"""The exact pending bearer may use its complete source proof; every other original blocker still refuses."""
+	for row: int in _proof.image.volumes.role.size():
+		if not _proof.spend(): return true
+		var role: int = _proof.image.volumes.role[row]
+		if role == Space.FLOOR_DATUM or role == Space.SUPPORTED_VOID or role == Space.SUPPORT or role == Space.DRY_SOLID:
+			continue
+		_proof.read_box(row, _proof.box)
+		if Space.overlaps(_bounds, _proof.box) and _pending_span_refusal(first, last, row) != &"": return true
+	return false
+
+
+func _pending_span_refusal(first: Vector3i, last: Vector3i, row: int) -> StringName:
+	"""No new permission is retained: recheck the original START scope and full source after every observer."""
+	if _installation == null or (_descriptor.profile_id != 2 and _descriptor.profile_id != 6) \
+			or _proof.image.volumes.role[row] != Space.OBSTACLE: return REFUSE_COVERAGE
+	if not _proof.spend(4096): return _proof.error
+	return AssemblyEndpoint.prepared_span_refusal(self, first, last, row)
+
+
+func _subtract_pending_bearer(first: Vector3i, last: Vector3i) -> bool:
+	"""Subtract only the named prism from remaining conservative air, never from footing or foreign matter."""
+	if _proof.count == 0 or _installation == null: return true
+	for row: int in _proof.image.volumes.role.size():
+		if not _proof.spend(): return false
+		if _proof.image.volumes.role[row] != Space.OBSTACLE: continue
+		_proof.read_box(row, _proof.cover)
+		if not Space.overlaps(_bounds, _proof.cover): continue
+		if _pending_span_refusal(first, last, row) != &"":
+			if _proof.error != &"": return false
+			continue
+		if not _proof.subtract_cover(): return false
+		if _proof.count == 0: return true
+	return true
 
 
 func _solid_contacts_covered(first: Vector3i, last: Vector3i) -> bool:
@@ -965,6 +1095,7 @@ func _body_covered(first: Vector3i, last: Vector3i) -> bool:
 	_proof.start(_bounds)
 	if not _proof.subtract_role(Space.SUPPORTED_VOID):
 		return false
+	if not _subtract_pending_bearer(first, last): return false
 	for ordinal: int in _descriptor.box_count:
 		if _proof.count == 0:
 			return true

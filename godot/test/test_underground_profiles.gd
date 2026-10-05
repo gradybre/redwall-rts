@@ -19,6 +19,7 @@ const Buildings := preload("res://scripts/core/buildings.gd")
 const StockAge := preload("res://scripts/core/stock_age.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const AssemblySource := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
+const EndpointCertificate := preload("res://data/underground/mole-worker/qualified-assembly-v1/endpoint_certificate.gd")
 const ShortStep := preload("res://data/underground/mole-worker/work-step-v1/source_program.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const FILE_PATH: String = "user://test-underground-profiles-only.bin"
@@ -93,6 +94,84 @@ func test_actual_handling_source_checks_every_descriptor_box_and_digest_word() -
 		assert_equal(AssemblySource.profile_refusal(_profiles, 29, 1, 4), &"ASSEMBLY_SOURCE_PROFILE", "source digest byte %d" % byte)
 		_profiles._live.sources[byte] ^= 1
 		assert_equal(AssemblySource.profile_refusal(_profiles, 29, 1, 4), &"", "digest restoration")
+
+
+func test_prepared_endpoint_certificate_retains_complete_source_envelope_and_footing() -> void:
+	"""Every actual source word fits the proposed endpoint; no caller bool, clipping or new profile is used."""
+	_profiles = Profiles.new()
+	assert_equal(_profiles.configure(30, 281, 2, Profiles.ARENA_BYTES), &"", "actual source bank")
+	assert_equal(_bind(_profiles), &"", "original owners")
+	assert_equal(_profiles.load_file("res://data/underground/mole-worker/qualified-assembly-v1/diagnostic-profile-1/mole-worker.ugprof",
+		"17d9c229fdfe8ad1923f004db136653ab9834994ba946061be38ec7a2c862ff9", 4), &"", "exact source input")
+	assert_equal(EndpointCertificate._profiles_refusal(_profiles, 4), &"", "all four complete descriptors and digests")
+	for profile: int in [2, 6, 16, 29]: _endpoint_source_boxes(profile)
+	_profiles._live.sources[32] ^= 1
+	assert_true(EndpointCertificate._profiles_refusal(_profiles, 4) != &"", "handling digest cannot drift")
+	_profiles._live.sources[32] ^= 1
+	_profiles._live.boxes[4 * _profiles._box_capacity + 16] += 1
+	assert_true(EndpointCertificate._profiles_refusal(_profiles, 4) != &"", "complete forward high-pick geometry cannot drift")
+	_profiles._live.boxes[4 * _profiles._box_capacity + 16] -= 1
+	assert_true(EndpointCertificate._profiles_refusal(_profiles, 3) != &"", "old repeated content is not this source")
+	assert_equal(EndpointCertificate._profiles_refusal(_profiles, 4), &"", "unchanged source retries")
+	assert_equal(EndpointCertificate.prepared_record_refusal(null, null, null, 0), EndpointCertificate.REFUSE,
+		"source metadata grants no prepared owner, payment or clearance")
+
+
+func _endpoint_source_boxes(profile: int) -> void:
+	"""Check all BODY/TURN/STANCE words against their complete source-derived endpoint bounds."""
+	var descriptor: Profiles.Descriptor = Profiles.Descriptor.new()
+	var box: Profiles.Box = Profiles.Box.new()
+	assert_equal(_profiles.descriptor_into(profile, 4, descriptor), &"", "actual exact source descriptor")
+	for ordinal: int in descriptor.box_count:
+		assert_equal(_profiles.box_into(profile, 1, 4, ordinal, box), &"", "whole source box")
+		if box.role != Profiles.BODY_HELD_LOAD and box.role != Profiles.TURN_RECOVERY and box.role != Profiles.STANCE_SUPPORT:
+			continue
+		for axis: int in 3:
+			if box.role == Profiles.STANCE_SUPPORT or box.high.y <= 0:
+				assert_true(box.low[axis] >= EndpointCertificate._support_word(axis), "complete below-floor low")
+				assert_true(box.high[axis] <= EndpointCertificate._support_word(axis + 3), "complete below-floor high")
+			else:
+				assert_true(box.low[axis] >= EndpointCertificate._envelope_word(axis), "complete positive low")
+				assert_true(box.high[axis] <= EndpointCertificate._envelope_word(axis + 3), "complete positive high")
+
+
+func test_pending_bearer_span_uses_complete_forward_and_backward_source_only() -> void:
+	"""Source components remain diagnostic; complete prepared owners and an actual paid operation are separately required."""
+	_profiles = Profiles.new()
+	assert_equal(_profiles.configure(30, 281, 2, Profiles.ARENA_BYTES), &"", "actual source capacity")
+	assert_equal(_bind(_profiles), &"", "original owners")
+	assert_equal(_profiles.load_file("res://data/underground/mole-worker/qualified-assembly-v1/diagnostic-profile-1/mole-worker.ugprof",
+		"17d9c229fdfe8ad1923f004db136653ab9834994ba946061be38ec7a2c862ff9", 4), &"", "exact source input")
+	_span_source_words(2)
+	_span_source_words(6)
+	var root: Vector3i = Vector3i(-832, 0, 512)
+	assert_true(EndpointCertificate._span_points_match(2, root, root + Vector3i(0, 0, 4096), root), "full forward prefix")
+	assert_true(EndpointCertificate._span_points_match(6, root, root, root + Vector3i(0, 0, 4096)), "full reverse prefix")
+	assert_false(EndpointCertificate._span_points_match(2, root, root, root + Vector3i(0, 0, 1)), "forward cannot reverse")
+	assert_false(EndpointCertificate._span_points_match(6, root, root, root + Vector3i(1, 0, 1)), "no lateral shortcut")
+	assert_false(EndpointCertificate._span_points_match(6, root, root, root + Vector3i(0, 1, 1)), "no step or stair")
+	assert_false(EndpointCertificate._span_points_match(6, root, root - Vector3i(0, 0, 1), root), "no unproved negative root")
+	assert_false(EndpointCertificate._span_points_match(6, root, root, root + Vector3i(0, 0, 4097)), "finite root interval")
+	assert_false(EndpointCertificate._span_points_match(12, root, root, root + Vector3i(0, 0, 1024)), "no automatic turn")
+	assert_equal(EndpointCertificate.prepared_span_refusal(null, root, root + Vector3i(0, 0, 1), 0),
+		EndpointCertificate.REFUSE, "source math alone grants no paid scope")
+
+
+func _span_source_words(profile: int) -> void:
+	"""Actual admitted source bytes, not a hand-authored substitute, exercise the full descriptor and each role."""
+	var descriptor: Profiles.Descriptor = Profiles.Descriptor.new()
+	var box: Profiles.Box = Profiles.Box.new()
+	assert_equal(_profiles.descriptor_into(profile, 4, descriptor), &"", "real source descriptor")
+	assert_true(EndpointCertificate._span_descriptor_matches(descriptor, 4), "all descriptor fields match")
+	descriptor.box_count -= 1
+	assert_false(EndpointCertificate._span_descriptor_matches(descriptor, 4), "cannot omit the held pick")
+	descriptor.box_count += 1
+	for ordinal: int in descriptor.box_count:
+		assert_equal(_profiles.box_into(profile, 1, 4, ordinal, box), &"", "actual source primitive")
+		assert_equal(EndpointCertificate._span_body_matches(box), box.role != Profiles.STANCE_SUPPORT,
+			"stance cannot receive an air certificate")
+		box.high.x += 1
+		assert_false(EndpointCertificate._span_body_matches(box), "changed primitive cannot receive certificate")
 
 
 func before_each() -> void:

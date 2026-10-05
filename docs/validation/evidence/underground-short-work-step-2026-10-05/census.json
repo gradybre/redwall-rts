@@ -1,0 +1,40 @@
+{
+  "source_only": true,
+  "current_joint_terms": {
+    "paired_profiles": 19224,
+    "profile_controls": 32768,
+    "levels": 2292,
+    "paired_motion": 141720,
+    "decode": 4096,
+    "motion_caller": 176,
+    "motion_helpers": 4096,
+    "motion_native_provisional": 32768,
+    "session": 1536,
+    "retirement": 8192
+  },
+  "prospective_configuration": {
+    "profiles": 28,
+    "boxes": 264,
+    "sources": 1
+  },
+  "current_paired_profile_bytes": 19224,
+  "prospective_paired_profile_bytes": 20400,
+  "paired_delta": 1176,
+  "before_new_controls": 248044,
+  "reservation": 262144,
+  "remaining_before_new_controls": 14100,
+  "actual_new_runtime_bytes": 0,
+  "actual_runtime_source_files_added": 0,
+  "proposal_admitted": false,
+  "new_runtime_controls_measured_or_reserved": false,
+  "presentation_actor_image_delta": 0,
+  "new_per_resident_columns": 0,
+  "offline_endpoint_bank_bytes": 31705344,
+  "offline_selected_copy_upper_bound": 6164928,
+  "scope": "No claim that this arithmetic accounts for future canonical dispatch or native headers. Current Profiles/Levels/Motion/Session/retirement terms remain charged exactly once.",
+  "input_sha256": {
+    "docs/validation/evidence/underground-short-work-step-2026-10-05/source-3/result/step-program.json": "fff35c8c2ead2f43a68a242ca3ac156f9348af1880a00dd7ebbb16aaa1f476a0",
+    "docs/planning/underground_memory_pack.json": "3116b4ecfb33041fea2ad6b7412bfd2d3ee6a6f6b579f67b867b4b65a6b8f0bc",
+    "docs/validation/evidence/underground-short-work-step-2026-10-05/census.py": "efc1baf18ce15d6bffbe5f3a8a1791c565c5f2531bd06a074f849936545e0fb0"
+  }
+}

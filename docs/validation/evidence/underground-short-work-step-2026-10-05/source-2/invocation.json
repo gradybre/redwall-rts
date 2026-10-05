@@ -1,0 +1,36 @@
+{
+  "commands": [
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-short-work-step/godot/data/underground/mole-worker/work-step-v1/test_short_step.py"
+      ],
+      "exit_code": 0,
+      "elapsed_s": 0.15431600017473102
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-short-work-step/godot/data/underground/mole-worker/work-step-v1/compile_short_step.py",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-short-work-step/docs/validation/evidence/underground-short-work-step-2026-10-05/source-2/result"
+      ],
+      "exit_code": 0,
+      "elapsed_s": 5.18574291607365
+    }
+  ],
+  "source_pins": {
+    "godot/data/underground/mole-worker/work-step-v1/compile_short_step.py": "da946a7f35ac5614982c44ee97b138362450cc332d403554a4aa0aea366aeff4",
+    "godot/data/underground/mole-worker/work-step-v1/reference_program.py": "2bb38604eda0a5ac1b2b18d25273d44b5ebc24f5628ab3119728ffab8dbca4d7",
+    "godot/data/underground/mole-worker/work-step-v1/test_short_step.py": "a444ff7f44f04e5db408c2d5b12e0354ce73cb6a4e6b4a529a38b1213da6b67d"
+  },
+  "source_unchanged": true,
+  "head": "ebdd5daa2b723a63dd71e2018d2bed9b279cf894",
+  "python": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
+  "platform": "darwin",
+  "offline_child_maxrss": 130367488,
+  "maxrss_unit": "bytes",
+  "engine_runs": 0,
+  "runtime_qualification": false
+}

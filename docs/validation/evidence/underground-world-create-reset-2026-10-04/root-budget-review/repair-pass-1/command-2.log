@@ -1,0 +1,9 @@
+{
+  "scope": "Own temporary source copies only; no gameplay or engine execution.",
+  "wrapper_sha256": "8385448b27b69cb4fa05e967ebc1494e1e69d4d1ac4978e848953d828c77949c",
+  "outer_source_sha_unchanged": true,
+  "original_controls": 5673,
+  "mutated_controls": null,
+  "mutant_was_accepted": false,
+  "refusal": "reviewed host retirement witness changed: docs/validation/evidence/underground-world-retirement-2026-10-04/census.py"
+}

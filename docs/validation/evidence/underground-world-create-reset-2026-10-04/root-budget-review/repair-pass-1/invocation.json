@@ -1,0 +1,29 @@
+{
+  "commands": [
+    {
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+        "-B",
+        "tools/test_underground_memory_budget.py",
+        "RetirementWitnessTests",
+        "JointPackTests.test_ui_reset_reuses_current_host_reservation_without_an_additional_bank",
+        "JointPackTests.test_ui_current_text_mutation_is_not_replaced_with_disk_source"
+      ],
+      "cwd": "/Users/brendan/Developer/redwall-rts-codex-ug-integration",
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-create-reset/docs/validation/evidence/underground-world-create-reset-2026-10-04/root-budget-review/reproduce_transitive_gap.py",
+        "--wrapper",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/tools/underground_retirement_memory.py",
+        "--expect-refusal"
+      ],
+      "cwd": "/Users/brendan/Developer/redwall-rts-codex-ug-world-create-reset",
+      "exit_code": 0
+    }
+  ],
+  "source_unchanged": true
+}

@@ -1,0 +1,13 @@
+{
+  "scope": "In-memory indexed source mutation only; no GDScript or engine execution.",
+  "cached_host_sha_left_unchanged": true,
+  "ui_composed_host_frame_before": 9,
+  "ui_composed_host_frame_after": 17,
+  "current_index_used_in_ui_composition": true,
+  "control_bytes": 5995,
+  "helper_bytes": 1882,
+  "global_total": 99999806,
+  "global_headroom": 194,
+  "joint": 246868,
+  "runtime_qualified": false
+}

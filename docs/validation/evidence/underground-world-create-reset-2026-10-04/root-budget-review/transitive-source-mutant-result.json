@@ -1,0 +1,7 @@
+{
+  "method": "All foreign files read only. Exact copies plus one own-scratch transitive producer mutation and its self-declared manifest hash.",
+  "outer_source_sha_unchanged": true,
+  "original_controls": 5673,
+  "mutated_controls": 72,
+  "mutant_was_accepted": true
+}

@@ -1,0 +1,44 @@
+{
+  "verdict": "ACCEPTED_SCOPED_SOURCE_ACCOUNTING",
+  "reviewed_current_delta_sha256": {
+    "tools/underground_retirement_memory.py": "8385448b27b69cb4fa05e967ebc1494e1e69d4d1ac4978e848953d828c77949c",
+    "tools/underground_ui_reset_memory.py": "bf770512d174df316ef3403c19384509d84af9fe221e543a0df3c60216cd361b",
+    "tools/underground_memory_budget.py": "ae522e5efd1f549934752713091a7201292ab8e8f52bed8918cf68dea9673038",
+    "tools/test_underground_memory_budget.py": "760b81af0cacd1f9ba3ea95c5e2add4c360ab9aa460c296c70926bb9ab8dcf4e"
+  },
+  "earlier_snapshot": "current-pass-1/source-before.json",
+  "finding": {
+    "severity": "MEDIUM",
+    "status": "CLOSED",
+    "original_wrapper_sha256": "f06437b9ef11cd346e83000d99b3498b37807f871ea7e1ee33bb19566483426c",
+    "original_copied_mutant_accepted": true,
+    "corrected_copied_mutant_accepted": false
+  },
+  "independent_checks": {
+    "pre_repair_full_memory_tests": 229,
+    "new_targeted_tests": 6,
+    "actual_original_memory_artifact_check": "PASS",
+    "ready07": "PASS",
+    "original_gap_reproduction": "PASS_EXPECTED_HISTORICAL_ACCEPTANCE",
+    "corrected_gap_reproduction": "PASS_EXPECTED_REFUSAL",
+    "indexed_host_frame_probe": [
+      9,
+      17
+    ],
+    "foreign_source_writes": false,
+    "engine_run": false
+  },
+  "accounting": {
+    "controls": 5995,
+    "control_ceiling": 6144,
+    "helpers": 1882,
+    "helper_ceiling": 2048,
+    "retirement_reserve": 8192,
+    "profile_joint": 246868,
+    "profile_ceiling": 262144,
+    "global_total": 99999806,
+    "global_headroom": 194,
+    "native_measured": false,
+    "runtime_qualified": false
+  }
+}

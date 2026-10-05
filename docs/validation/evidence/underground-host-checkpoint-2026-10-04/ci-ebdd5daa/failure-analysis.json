@@ -1,0 +1,149 @@
+{
+  "head": "ebdd5daa2b723a63dd71e2018d2bed9b279cf894",
+  "run": 37250182343,
+  "outcome": "FAILED",
+  "suite_files": 402,
+  "counts": {
+    "tests": 11156,
+    "assertions": 1026335,
+    "failures": 9,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 272,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "shards": [
+    {
+      "index": 0,
+      "counts": {
+        "tests": 1433,
+        "assertions": 96873,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 213,
+        "tolerated": 0,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "failures": []
+    },
+    {
+      "index": 1,
+      "counts": {
+        "tests": 1483,
+        "assertions": 370046,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 1,
+        "tolerated": 2,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "failures": []
+    },
+    {
+      "index": 2,
+      "counts": {
+        "tests": 1396,
+        "assertions": 73448,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 0,
+        "tolerated": 1,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "failures": []
+    },
+    {
+      "index": 3,
+      "counts": {
+        "tests": 1276,
+        "assertions": 81789,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 27,
+        "tolerated": 179,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "failures": []
+    },
+    {
+      "index": 4,
+      "counts": {
+        "tests": 1556,
+        "assertions": 65031,
+        "failures": 9,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 1,
+        "tolerated": 54,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "failures": [
+        {
+          "assertions": 119,
+          "failures": 9,
+          "suite": "test_underground_support_clearance.gd",
+          "tests": 9,
+          "usec": 1322913
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "counts": {
+        "tests": 1621,
+        "assertions": 85694,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 25,
+        "tolerated": 0,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "failures": []
+    },
+    {
+      "index": 6,
+      "counts": {
+        "tests": 1303,
+        "assertions": 122931,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 1,
+        "tolerated": 90,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "failures": []
+    },
+    {
+      "index": 7,
+      "counts": {
+        "tests": 1088,
+        "assertions": 130523,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 4,
+        "tolerated": 27,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "failures": []
+    }
+  ],
+  "strict_guard_refusal": "unclean test result: {'tests': 1556, 'assertions': 65031, 'failures': 9, 'unexpected_errors': 0, 'unexpected_warnings': 0, 'expected': 1, 'tolerated': 54, 'leaked_objects': 0, 'leaked_resources': 0}",
+  "scope": "Descriptive failure analysis only. No missing shard report was generated or success gate bypassed. Original seven successful reports and all eight raw logs/manifests retained."
+}

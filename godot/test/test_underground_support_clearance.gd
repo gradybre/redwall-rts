@@ -5,6 +5,7 @@ extends "res://test/framework/test_case.gd"
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Published := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
 const Pins := preload("res://data/underground/mole-worker/profile-publication-v1/catalog_source.gd")
+const CurrentPins := preload("res://data/underground/mole-worker/profile-publication-v3/catalog_source.gd")
 const Entry := preload("res://scripts/core/underground_entry_bindings.gd")
 const Placements := preload("res://scripts/core/underground_connector_placements.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
@@ -34,11 +35,13 @@ var _surface: SurfaceFixture = null
 
 
 func before_each() -> void:
-	"""Read the unchanged accepted wire through the actual loader, separately from current runtime closure."""
+	"""Load the current publication's unchanged geometry, separately from current runtime closure."""
 	_profiles = Profiles.new()
-	assert_equal(_profiles.configure(18, 194, 1, Published.PAIRED_BANK_BYTES + Published.CONTROL_RESERVE), &"", "exact finite source bank")
-	assert_equal(FileAccess.get_sha256(Published.WIRE_PATH), Pins.WIRE_SHA, "immutable historical publication")
-	assert_equal(_profiles.load_file(Published.WIRE_PATH, Pins.WIRE_SHA, 1), &"", "actual unchanged profile wire")
+	assert_equal(_profiles.configure(Published.PROFILE_COUNT, Published.BOX_COUNT, 1,
+		Published.PAIRED_BANK_BYTES + Published.CONTROL_RESERVE), &"", "exact finite source bank")
+	assert_equal(FileAccess.get_sha256(Published.WIRE_PATH), CurrentPins.WIRE_SHA, "exact current publication")
+	assert_equal(_profiles.load_file(Published.WIRE_PATH, CurrentPins.WIRE_SHA, Published.CONTENT_REVISION),
+		&"", "actual current profile wire")
 	assert_equal(Published.catalog_refusal(_profiles), &"", "all published rows, boxes and flags still exact")
 	_bounds = Bounds.new()
 	_bounds._entry_placements = Placements.new()
@@ -170,14 +173,16 @@ func test_obstacle_in_overhanging_tool_air_refuses_without_changing_footing() ->
 
 func test_exact_install_stance_keeps_raised_contact_and_full_air_separate() -> void:
 	"""Historical INSTALL geometry retains its actual128u contact; this change grants no WIP target permission."""
-	var record: Locations.Record = _record(5)
+	var profile: int = Published.profile_id(5, 0)
+	var record: Locations.Record = _record(profile)
 	assert_equal(record.support, PackedInt32Array([-274, -1, -169, 299, 0, 174]), "573 by343 source stance")
 	var descriptor: Profiles.Descriptor = Profiles.Descriptor.new()
-	assert_equal(_profiles.descriptor_into(5, 1, descriptor), &"", "exact immutable INSTALL row")
+	assert_equal(_profiles.descriptor_into(profile, Published.CONTENT_REVISION, descriptor), &"", "exact immutable INSTALL row")
 	var box: Profiles.Box = Profiles.Box.new()
 	var contacts: int = 0
 	for ordinal: int in descriptor.box_count:
-		assert_equal(_profiles.box_into(5, 1, 1, ordinal, box), &"", "complete published source box")
+		assert_equal(_profiles.box_into(profile, Published.PROFILE_REVISION, Published.CONTENT_REVISION,
+			ordinal, box), &"", "complete published source box")
 		if box.role != Profiles.CONTACT_POINT: continue
 		contacts += 1
 		assert_equal(box.low.y, 128, "raised contact cannot be projected to the floor")
@@ -215,7 +220,9 @@ func test_renewed_catalog_accepts_current_sources_and_rejects_historical_pins() 
 	if historical_index < 0: return
 	assert_equal(Published._source_refusal(current_contacts.get_source_code(), Pins.DIGESTS[historical_index]),
 		&"MOLE_CATALOG_SOURCE_DRIFT", "unchanged production guard refuses the superseded historical source pin")
-	assert_equal(Published.catalog_refusal(_profiles), &"", "the original artifact was never rewritten")
+	assert_equal(Published.catalog_refusal(_profiles), &"", "current catalog remains exact")
+	assert_equal(FileAccess.get_sha256("res://data/underground/mole-worker/profile-publication-v1/mole-worker.ugprof"),
+		Pins.WIRE_SHA, "the original artifact was never rewritten")
 
 
 func test_late_actual_tree_in_tool_overhang_refuses_before_surface_publication() -> void:

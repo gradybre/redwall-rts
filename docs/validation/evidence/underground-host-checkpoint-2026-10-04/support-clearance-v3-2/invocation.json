@@ -1,0 +1,39 @@
+{
+  "head": "e6d5c1dfb24febbdb19879e9ab33a740d02967d3",
+  "scope": "Focused integration, not the required full no-argument milestone suite.",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 12.065,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "201/402",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-checkpoint-2026-10-04/support-clearance-v3-2"
+      ],
+      "exit_code": 0,
+      "seconds": 5.081,
+      "log": "test_underground_support_clearance.gd.log"
+    }
+  ],
+  "assets_present_before": true,
+  "completed_suites": [
+    "test_underground_support_clearance.gd"
+  ],
+  "project_restored": true,
+  "assets_restored": true,
+  "source_unchanged": true,
+  "exit_code": 0
+}

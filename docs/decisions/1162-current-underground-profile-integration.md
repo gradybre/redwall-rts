@@ -106,3 +106,18 @@ Whole-room progression still needs newly reachable contact publication, actual
 host operational mounting and demo construction input. Furnishing workflows,
 composed persistence,1280×720 workflow review and256-resident qualification
 remain governed by the queue, not inferred from this source publication.
+
+## Full-suite fixture correction
+
+The first complete CI checkpoint at ebdd5daa exposed a missed historical
+support-clearance fixture migration: all9 tests still configured18/194 at
+content1 against the current26/250 content2 wire, and INSTALL still named old
+row5. Other shards and all independent gates passed. The tests now load the
+actual current publication and map INSTALL through its public role selector,
+while retaining the exact support/air/contact and late-obstacle assertions.
+The old v1 wire hash and source-drift negative remain explicit. No production
+consumer or gate was changed. Independent review and strict focused9/138/0
+with all diagnostics/leaks0 and analyzer0/1 are retained under
+`underground-host-checkpoint-2026-10-04/support-clearance-v3-2/`; the failed
+first correction and full CI evidence remain beside it. Complete corrected
+local/CI qualification is still required.

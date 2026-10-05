@@ -247,7 +247,6 @@ class RoomMemoryWitnessTests(unittest.TestCase):
         old = json.loads((room.ROOT / row["previous_manifest"]["path"]).read_bytes())
         sources = dict(old["sources"])
         sources["ui_manager"] = self.manifest["sources"]["ui_manager"]
-        sources["ui_notices"] = row["dependency"]
         self.assertEqual(self.manifest["sources"], sources)
         witnesses = dict(old["witnesses"])
         witnesses.update({self.manifest["sources"]["ui_manager"]["path"]:
@@ -304,33 +303,13 @@ class RoomMemoryWitnessTests(unittest.TestCase):
 
     def test_alias_literal_proof_refuses_changed_computed_or_duplicate_values(self):
         manifest, blobs, current = room.verified_inputs(self.index)
-        source = current["ui_notices"]
-        original = source.text.encode()
+        path = manifest["ui_alias"]["dependency"]["path"]
+        original = blobs[path]
         for changed in (original.replace(b'"CLOCK_OVERLOADED"', b'"DIFFERENT"', 1),
                         original.replace(b'"CLOCK_OVERLOADED"', b'code_from_observer()', 1),
                         original + b'\nconst CLOCK_OVERLOAD_CODE: String = "CLOCK_OVERLOADED"\n'):
             with self.subTest(tail=changed[-80:]), self.assertRaisesRegex(ValueError, "alias literal changed"):
-                room.ui_notice_alias(dict(current, ui_notices=source._replace(text=changed.decode())), manifest, blobs)
-
-    def test_injected_notice_dependency_cannot_fall_back_to_current_disk(self):
-        _, _, current = room.verified_inputs(self.index)
-        source = current["ui_notices"]
-        for text in (source.text.replace('"CLOCK_OVERLOADED"', '"WRONG"', 1),
-                     source.text + "\nvar hidden: Array = [1, 2]\n"):
-            changed = source._replace(text=text)
-            with self.subTest(tail=text[-60:]), mock.patch.object(room, "producer") as execute:
-                with self.assertRaisesRegex(ValueError, "current reviewed source changed: ui_notices"):
-                    room.build(dict(self.index, ui_notices=changed))
-                execute.assert_not_called()
-
-    def test_notice_dependency_retains_exact_module_name_and_path(self):
-        _, _, current = room.verified_inputs(self.index)
-        source = current["ui_notices"]
-        for changed in (source._replace(name="foreign"), source._replace(relative_path="foreign.gd")):
-            with self.subTest(module=changed.relative_path), mock.patch.object(room, "producer") as execute:
-                with self.assertRaisesRegex(ValueError, "module identity: ui_notices"):
-                    room.build(dict(self.index, ui_notices=changed))
-                execute.assert_not_called()
+                room.ui_notice_alias(current, manifest, dict(blobs, **{path: changed}))
 
     def test_old_ui_bytes_and_original_manifest_remain_immutable(self):
         row = self.manifest["ui_alias"]

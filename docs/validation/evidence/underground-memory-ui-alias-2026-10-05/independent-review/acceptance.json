@@ -1,0 +1,48 @@
+{
+  "reviewer": "root; independent from ug_construction",
+  "files": {
+    "tools/underground_room_memory.py": "0c57b6a6576323e0ee22dff2a55ca331cfbcbb224823a90e91139bcd99f4cc78",
+    "tools/test_underground_room_memory.py": "13737bea4ee9bd351cb9c9765d63cb7ae5aea35a31bee0ee15261becd46ed715",
+    "docs/validation/evidence/underground-memory-ui-alias-2026-10-05/manifest-2.json": "781720cda89c158a169d87f32891c68f38372d58bb728ec511c4fe18a9362d4f"
+  },
+  "commands": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools",
+        "-p",
+        "test_underground_room_memory.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "seconds": 7.395
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-c",
+        "import sys; sys.path.insert(0,\"tools\"); import underground_memory_budget as m; from pathlib import Path; m.OUTPUT=Path(sys.argv[1]); sys.argv=[\"memory\"]; raise SystemExit(m.main())",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-memory-ui-alias-review-2026-10-05/pack.json"
+      ],
+      "exit_code": 0,
+      "seconds": 1.749
+    }
+  ],
+  "sources_unchanged": true,
+  "pack_sha256": "a47a2fb067fd3a7c13d189770a9236ff1980370de0ecd14ebf16a1d66fca110b",
+  "pack_matches_normal_2": true,
+  "review": [
+    "One exact literal-to-preloaded-constant replacement only; reconstruction rejects any other byte change.",
+    "Actual UiNotices text and exact module identity are current captured inputs before producer execution.",
+    "Archived old bytes and previous manifest remain hash-verified and unchanged.",
+    "Successor source and witness maps change only UIManager and its existing literal dependency plus immutable prior evidence.",
+    "Rebuilt pack matches candidate 2; seven metadata changes and no change to existing numerical values. No native qualification claimed."
+  ],
+  "accepted": true
+}

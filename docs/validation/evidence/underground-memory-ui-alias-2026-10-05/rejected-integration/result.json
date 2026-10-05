@@ -1,0 +1,7 @@
+{
+  "checkpoint": "32c65ecd9b509d5944cce443cfff410fcadabfd2",
+  "source_sha256": "39645c9ddae5eba8e465ee0ece365efa57d9de4a24b4d91292f6675858b593e1",
+  "refusal": "room memory: reviewed witness changed: godot/scripts/systems/ui_manager.gd",
+  "producer_calls": 0,
+  "full_test_run": false
+}

@@ -19,8 +19,8 @@ import audit_registry_capacities as audit
 
 ROOT = Path(__file__).resolve().parents[1]
 E = Path("docs/validation/evidence/underground-current-memory-2026-10-05")
-MANIFEST = Path("docs/validation/evidence/underground-memory-ui-alias-2026-10-05/manifest-2.json")
-MANIFEST_SHA = "781720cda89c158a169d87f32891c68f38372d58bb728ec511c4fe18a9362d4f"
+MANIFEST = E / "manifest.json"
+MANIFEST_SHA = "9eb1a296a595e4788f52bdbc28e6f6a852dab3c905b116e3075538588a64e3bc"
 P = Path("docs/validation/evidence/underground-room-frontier-publication-2026-10-04")
 I = Path("docs/validation/evidence/underground-room-itinerary-census-2026-10-05")
 C = Path("docs/validation/evidence/underground-room-owner-composition-2026-10-04")
@@ -230,35 +230,6 @@ def same_accounting(actual, expected, label):
     require(actual == expected, label + " reviewed allocation/lifetime result changed")
 
 
-def ui_notice_alias(current, manifest, blobs):
-    """Prove the sole current UI alias before replaying its original source.
-
-    Both full current sources and the archived original were captured and
-    hashed above. This equality admits no body, initializer or preload change.
-    The existing UiNotices preload must resolve the exact former literal.
-    """
-    row = manifest["ui_alias"]
-    module = current["ui_manager"]
-    original = blobs[row["original"]["locator"]]
-    actual = module.text.encode()
-    dependency = current["ui_notices"].text
-    old = b'const CLOCK_OVERLOAD_CODE: String = "CLOCK_OVERLOADED"\n'
-    new = b'const CLOCK_OVERLOAD_CODE: String = UiNotices.CLOCK_OVERLOAD_CODE\n'
-    require(original.count(old) == actual.count(new) == 1,
-            "one exact UI notice alias")
-    require(actual.replace(new, old, 1) == original,
-            "UI notice alias changed another source byte")
-    require(module.text.count('const UiNotices := preload("res://scripts/ui/ui_notices.gd")\n') == 1,
-            "UI notice alias original dependency")
-    require(re.findall(r"^const CLOCK_OVERLOAD_CODE\b[^\n]*", dependency, re.M) == [old.decode().rstrip("\n")],
-            "UI notice alias literal changed")
-    return {"source_sha256": {module.relative_path: digest(actual),
-                              row["dependency"]["path"]: digest(dependency.encode())},
-            "historical_ui_manager_sha256": digest(original),
-            "reconstruction": "one exact constant alias; all other bytes identical",
-            "additional_reserved_bytes": 0}
-
-
 def publication(current, manifest, blobs, view):
     census = producer(P / "census.py", blobs, view=view)
 
@@ -416,7 +387,6 @@ def surface_composition(current, manifest, blobs, view, previous_routes):
 def build(index):
     """Return current recounts and explicitly separate unchanged older slices."""
     manifest, blobs, current = verified_inputs(index)
-    alias = ui_notice_alias(current, manifest, blobs)
     view = FrozenInputs(blobs, current)
     runtime, paths, metadata = source_extensions(current, manifest, blobs, view)
     # Only after all current changed-call/source proofs, select the exact old
@@ -438,7 +408,6 @@ def build(index):
             and surface["retained_numeric_delta"] == 0, "new room reservation is not admitted")
     result = {
         "scope": __doc__, "manifest_sha256": MANIFEST_SHA,
-        "current_ui_alias": alias,
         "current_source_sha256": {row["path"]: row["sha256"] for row in manifest["sources"].values()},
         "historical_projection": manifest["baseline"],
         "historical_current_projection": manifest["previous_current"],

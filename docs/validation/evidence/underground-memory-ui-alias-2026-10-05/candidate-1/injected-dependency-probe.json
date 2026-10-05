@@ -1,0 +1,8 @@
+{
+  "case": "caller injects reached UiNotices dependency with changed exact constant",
+  "candidate_tool_sha256": "9ed4e4cfa73388b8b75b22a0166a0322215a1cfb648b958e8ae349fb9a7006b9",
+  "injected_sha256": "2636ea40457538065044c4db47cdbe9dfb41a539f97212a2d06ae499f723034b",
+  "accepted_dependency_sha256": "e30d4b1524cd1fc5f785c7dc59311239ba021297f5b8a7e3b53ef22a38e39c1e",
+  "result": "build accepted disk dependency, ignoring injected Module.text",
+  "runtime_qualified": false
+}

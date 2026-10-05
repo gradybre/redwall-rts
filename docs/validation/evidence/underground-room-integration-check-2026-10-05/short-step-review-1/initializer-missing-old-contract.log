@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/docs/validation/evidence/underground-room-integration-check-2026-10-05/short-step-review-1/probe_initializers.py", line 16, in <module>
+    baseline = C.build()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-short-work-step-runtime/docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/census.py", line 261, in build
+    
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-short-work-step-runtime/docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/census.py", line 34, in require
+    raise ValueError(message)
+ValueError: immutable call contract changed

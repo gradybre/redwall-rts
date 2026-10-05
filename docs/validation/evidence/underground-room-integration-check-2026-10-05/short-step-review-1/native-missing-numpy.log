@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-short-work-step-runtime/godot/data/underground/mole-worker/work-step-v1/test_run_canonical.py", line 14, in <module>
+    SPEC.loader.exec_module(M)
+  File "<frozen importlib._bootstrap_external>", line 850, in exec_module
+  File "<frozen importlib._bootstrap>", line 228, in _call_with_frames_removed
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-short-work-step-runtime/godot/data/underground/mole-worker/work-step-v1/run_canonical.py", line 13, in <module>
+    import numpy as np
+ModuleNotFoundError: No module named 'numpy'

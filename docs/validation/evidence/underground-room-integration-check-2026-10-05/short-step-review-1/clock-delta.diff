@@ -1,0 +1,19 @@
+--- candidate1
++++ candidate2
+@@ -2200,11 +2200,12 @@
+ 		return &"ROUTE_SOURCE_CLOCK"
+ 	var code: StringName = _source_profile_refusal(actual._profiles, profile, profile_revision, content)
+ 	if code != &"": return code
+-	var clock: int = actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
+-	if not ShortStep.uses(actual._profiles): return SourceProgram.clock_refusal(phase, clock, profile)
+-	code = ShortStep.clock_refusal(phase, clock, profile)
++	if not ShortStep.uses(actual._profiles):
++		return SourceProgram.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
++	code = ShortStep.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
+ 	if code == &"" and ShortStep.is_short(profile):
+-		code = ShortStep.progress_refusal(phase, clock, actual._motion.resident_long[R_PROGRESS * RESIDENT_CAPACITY + row],
++		code = ShortStep.progress_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row],
++			actual._motion.resident_long[R_PROGRESS * RESIDENT_CAPACITY + row],
+ 			actual._motion.resident_long[R_REMAINDER * RESIDENT_CAPACITY + row],
+ 			actual._motion.resident[R_EDGE_SLOT * RESIDENT_CAPACITY + row] >= 0)
+ 	return code

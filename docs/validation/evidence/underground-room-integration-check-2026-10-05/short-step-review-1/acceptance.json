@@ -1,0 +1,212 @@
+{
+  "schema": 1,
+  "reviewer": "/root/ug_construction",
+  "accepted": true,
+  "source_runtime_accepted": true,
+  "sampled_native_replay_accepted": true,
+  "world_activation_qualified": false,
+  "production_publication_qualified": false,
+  "native_memory_qualified": false,
+  "performance_qualified": false,
+  "scope": "ADR1168 component: source protocol6, finite232u programme, legacy programme5 retained, actual canonical Routes/Driver native replay in explicitly unearned test geometry.",
+  "source_manifest": {
+    "path": "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/source-review-2/source-sha256.json",
+    "sha256": "1bc01db521fcf1a3a806e1f42385d465773df46609c9eab1a5c2b6dab809cf9b"
+  },
+  "candidate_sources": {
+    "godot/scripts/core/underground_profiles.gd": "2dd505f98fe55b640fd96d254d155093a3f88baf42315ffe95baebcc6f0234ec",
+    "godot/scripts/core/underground_routes.gd": "27d4f2e92472803235129159dd9fd92291b75aa09057bbf58f5417783f4eea1f",
+    "godot/scripts/core/underground_world_routes.gd": "45fd127a49ca04133fc9fb4ddeed275fa5700fc9f41fdf7914c22206b81b2b66",
+    "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
+    "godot/test/test_underground_profiles.gd": "5df62c2e2ac4ea4a2520378a6c3594333d53ce86fbe4df64ca473e75445a1709",
+    "godot/test/test_underground_routes.gd": "2f362bbffd10327cf1d39b35fb7ffba2b73391e79a54cfe9b1d7b1d2dc50069a",
+    "godot/test/test_underground_world_routes.gd": "b412a1e12754128375647284b6217bcdb0c6e7bb222444019bf90d20b8c75d31",
+    "godot/test/test_mole_profile_driver.gd": "138383809d0b04fd8c4baf64d9e35338ea65c4dff0485dfd52df6e103c68ccfd",
+    "godot/data/underground/mole-worker/work-step-v1/source_program.gd": "f566f5caaf49e1da47f7f3f2020750a29f4ce3e858b313b5c3eb8d0c0ca59524",
+    "godot/data/underground/mole-worker/work-step-v1/source_program.gd.uid": "804aa29c479b86238d091f0454ab22ef03cf7414061a5f81ebfedd22c46ed198",
+    "godot/data/underground/mole-worker/work-step-v1/assemble_diagnostic.py": "07d0b78fb5e4dc4046285a93862e7dd7f99e83103661a5fc82cccc5ca4e1c3da",
+    "godot/data/underground/mole-worker/work-step-v1/assemble_ground_diagnostic.py": "28e53b7f6a7efad1755b5bc96cbb6410a2445e6452eb7ce74e7a7dd6d833fd2f",
+    "godot/data/underground/mole-worker/work-step-v1/capture_canonical.gd": "101afe9a3d20a59b80e6eb5c83cf282e963639fe3cde0ffb193e5c66fa332b91",
+    "godot/data/underground/mole-worker/work-step-v1/capture_canonical.gd.uid": "c51a703ce4c10faffa816b7cc17c85abad2529833e880d0418447aa64064b1f6",
+    "godot/data/underground/mole-worker/work-step-v1/run_canonical.py": "9144d16446d4da81ffde9e457da96b3625d6123f39391c7304e5ccc1113d17fa",
+    "godot/data/underground/mole-worker/work-step-v1/test_diagnostic.py": "a430fc08c9871eb490c6be7b87b57fa9eeabc21f921c8c36b07e11ca4e27fecd",
+    "godot/data/underground/mole-worker/work-step-v1/test_run_canonical.py": "95b50785f9261e83d920c220eb7d5c2c450aec447175dbd06bd9cc58e35ef5d7",
+    "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/census.py": "984b9db1ab316c27efc2446ed70a708273b54bbb9b9f11af9481e479a044436d",
+    "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/test_census.py": "e216dd136c3cf0e28f6c68f547f00439b2b19b008caed388f2c681339edd5c8d",
+    "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/reproduce.py": "e7cbb64929bea0ca6b88c1b2b4804c53c1148c3baa64e54e44e91f209a220963",
+    "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/stage_native_inputs.py": "6f56c14e8a82a73b50c09ef21ffc7af507aa8c0764d233c50cf66925b3ea5dd9"
+  },
+  "runtime_modules": {
+    "godot/scripts/core/underground_profiles.gd": "2dd505f98fe55b640fd96d254d155093a3f88baf42315ffe95baebcc6f0234ec",
+    "godot/scripts/core/underground_routes.gd": "27d4f2e92472803235129159dd9fd92291b75aa09057bbf58f5417783f4eea1f",
+    "godot/scripts/core/underground_world_routes.gd": "45fd127a49ca04133fc9fb4ddeed275fa5700fc9f41fdf7914c22206b81b2b66",
+    "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
+    "godot/data/underground/mole-worker/work-step-v1/source_program.gd": "f566f5caaf49e1da47f7f3f2020750a29f4ce3e858b313b5c3eb8d0c0ca59524"
+  },
+  "serializer": {
+    "path": "godot/data/underground/mole-worker/work-step-v1/assemble_diagnostic.py",
+    "sha256": "07d0b78fb5e4dc4046285a93862e7dd7f99e83103661a5fc82cccc5ca4e1c3da"
+  },
+  "ground_serializer": {
+    "path": "godot/data/underground/mole-worker/work-step-v1/assemble_ground_diagnostic.py",
+    "sha256": "28e53b7f6a7efad1755b5bc96cbb6410a2445e6452eb7ce74e7a7dd6d833fd2f"
+  },
+  "source1164_report": {
+    "path": "docs/validation/evidence/underground-short-work-step-2026-10-05/source-3/result/step-program.json",
+    "sha256": "fff35c8c2ead2f43a68a242ca3ac156f9348af1880a00dd7ebbb16aaa1f476a0"
+  },
+  "diagnostic_wire": {
+    "path": "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/profile-diagnostic-1/mole-worker.ugprof",
+    "sha256": "830ee531a432f9cef8a24a85f1c017be21253301bc46bf55e0a6b97807a4ec4e"
+  },
+  "diagnostic_ground_wire": {
+    "path": "godot/data/underground/mole-worker/work-step-v1/diagnostic-ground-v1/ground-pace.ugconn",
+    "sha256": "454eaab1b2a722aab2700285d31a0bcc093312dad211208da7993baa32bc2f24"
+  },
+  "old_v3_manifest": {
+    "path": "godot/data/underground/mole-worker/profile-publication-v3/manifest.json",
+    "sha256": "8f210e11768131779e6c825d7a3d2509cb32076aedd6891e6573489d1b6814c1"
+  },
+  "ancestry_receipt": {
+    "path": "docs/validation/evidence/underground-room-integration-check-2026-10-05/short-step-review-1/source-ancestry.json",
+    "sha256": "f78264a45ae5a7023c8c78f5d63ca9e3c5b831fafb56c6f59c78f182d89bce06",
+    "counts": {
+      "old_v3_prerequisites": 509,
+      "source1164_direct_inputs": 19,
+      "source1164_producers": 22
+    },
+    "historical_live_substitutions": 0
+  },
+  "native_evidence": {
+    "sources-before.json": {
+      "path": "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/native-4/sources-before.json",
+      "sha256": "ce094b5e28ce616be436ba6ce8d45a76921863cc73e83048ab3f148ae7f7395c"
+    },
+    "sources-after.json": {
+      "path": "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/native-4/sources-after.json",
+      "sha256": "ce094b5e28ce616be436ba6ce8d45a76921863cc73e83048ab3f148ae7f7395c"
+    },
+    "invocation.json": {
+      "path": "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/native-4/invocation.json",
+      "sha256": "5285e75b408bf2a1506fe0c286978e37bd86e65c8c1ae660f5e5e02ffa018750"
+    },
+    "report.json": {
+      "path": "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/native-4/report.json",
+      "sha256": "59ea5fc32959fbff2f506fa6253a7778dcebd0cbeb73ed954760bf3b83ae1bd1"
+    },
+    "native.bin": {
+      "path": "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/native-4/native.bin",
+      "sha256": "3405cc8f4986d805e82d7ca54508db44e6260b881f922ca8bba63ed70150c359"
+    },
+    "verification.json": {
+      "path": "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/native-4/verification.json",
+      "sha256": "829f2ad036c4c35ccca1d2e34ab1d0afda050f52dedae185a06c054b3dffd226"
+    },
+    "spec.json": {
+      "path": "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/native-4/spec.json",
+      "sha256": "f1011d04cce6e0dab0ca73d4e7b39c04b5b89d3cd34c61c7e551d04a6647ad77"
+    },
+    "native.log": {
+      "path": "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/native-4/native.log",
+      "sha256": "7d6f5f0942a623308aaae4fa589af8d07062234662eada8e28d71ee8325d205c"
+    },
+    "engine-native.log": {
+      "path": "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/native-4/engine-native.log",
+      "sha256": "7d6f5f0942a623308aaae4fa589af8d07062234662eada8e28d71ee8325d205c"
+    },
+    "import.log": {
+      "path": "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/native-4/import.log",
+      "sha256": "c3a034c40191be3c80dfa0a3c491ec783067c1c7c9b7159e8de54350186f45dd"
+    },
+    "engine-import.log": {
+      "path": "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/native-4/engine-import.log",
+      "sha256": "223ed387fb574cb67383958ea0ddbccf63da505bb08bb9be6961ff771fad52d6"
+    }
+  },
+  "native_input_count": 402,
+  "native_verification": {
+    "poses": 462,
+    "exact_native_scalar_comparisons": 144144,
+    "screenshots": 46,
+    "assertions": 2558,
+    "production_qualified": false,
+    "scope": "sampled real canonical driver, WorldRoutes and source; explicit test geometry and diagnostic flags"
+  },
+  "runtime_evidence": {
+    "invocation": {
+      "path": "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/runtime-7/invocation.json",
+      "sha256": "5e2d08c2a3f06ac33e14ce3c769d87453d959c24e558871392130a953a70b023"
+    },
+    "sources": {
+      "path": "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/runtime-7/source-sha256.json",
+      "sha256": "1fafc6f299e911bd6754dd9f8e9da69a896d8f81a873d88b201398a4b0fe0203"
+    },
+    "analyzer": {
+      "path": "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/runtime-7/analyzer.json",
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    "suites": [
+      {
+        "suite": "test_underground_profiles.gd",
+        "tests": 28,
+        "assertions": 669,
+        "failures": 0
+      },
+      {
+        "suite": "test_underground_routes.gd",
+        "tests": 79,
+        "assertions": 12206,
+        "failures": 0
+      },
+      {
+        "suite": "test_underground_world_routes.gd",
+        "tests": 43,
+        "assertions": 2746,
+        "failures": 0
+      },
+      {
+        "suite": "test_mole_profile_driver.gd",
+        "tests": 17,
+        "assertions": 2786,
+        "failures": 0
+      }
+    ],
+    "all_diagnostics_and_leaks": 0
+  },
+  "independent_replays": {
+    "serializer_tests": 6,
+    "native_tests": 15,
+    "census_tests": 30,
+    "all_four_original_R1_mutants_refused": true,
+    "engine_rerun_by_reviewer": false
+  },
+  "logical_memory": {
+    "profile_controls": 3571,
+    "profile_logical_ceiling": 4096,
+    "moving_helper": 877,
+    "turn_helper": 504,
+    "work_ready_leaf": 344,
+    "profile_pair_delta": 1764,
+    "joint": 248632,
+    "joint_reservation": 262144,
+    "no_new_actor_columns": true,
+    "foreign_callers_require_root_census": true
+  },
+  "findings": [],
+  "closed_findings": [
+    {
+      "id": "R1",
+      "severity": "MEDIUM",
+      "waived": false,
+      "problem": "Literal and initializer growth escaped the original constructor/numeric-only census.",
+      "closure": "Exact complete code tokens, complete local type topology and literal payloads; all original and added growth mutants refuse."
+    }
+  ],
+  "remaining": [
+    "Root current-consumer publication/whole-pack accounting",
+    "Actual paid next-cell composition",
+    "Finite World activation",
+    "Target-hardware performance",
+    "Native memory measurement"
+  ]
+}

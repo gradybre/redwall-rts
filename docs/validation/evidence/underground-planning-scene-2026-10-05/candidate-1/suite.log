@@ -1,0 +1,29 @@
+state_registry_coverage: PASS -- 154 modules, 731 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_modular_demo_live.gd
+sh: line 1: 90959 Terminated: 15          "/Applications/Godot.app/Contents/MacOS/Godot" "--headless" "--path" "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/" "res://demo/burrow/modular_demo_live.tscn" 2>&1
+  FAIL  test_actual_demo_room_planning_input_at_1280x720
+        child diagnostic: SCRIPT ERROR: Parse Error: The member "Panel" shadows a native class.
+        child diagnostic: ERROR: Failed to load script "res://demo/burrow/modular_demo_live.gd" with error "Parse error".
+        complete actual input sequence: 0 checks (expected true, got false)
+        actual summary:  (expected true, got false)
+        child exited cleanly (expected 0, got 143)
+CI_SUITE_TIME {"assertions":5,"failures":1,"suite":"test_modular_demo_live.gd","tests":1,"usec":97502406}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+1 test(s), 5 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 1 failing test(s).

@@ -1,0 +1,268 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_modular_demo_live.gd
+  FAIL  test_actual_demo_room_planning_input_at_1280x720
+        MODULAR-DEMO FAIL: opening changes no canonical gameplay state (expected true, got false)
+        MODULAR-DEMO FAIL: unconfirmed drawing changes no canonical state (expected true, got false)
+        MODULAR-DEMO FAIL: floor dropdown selects next level (expected true, got false)
+        MODULAR-DEMO FAIL: visible dirt uses exact next floor (expected true, got false)
+        MODULAR-DEMO FAIL: camera focus follows actual selected floor (expected true, got false)
+        MODULAR-DEMO FAIL: another floor cannot edit retained plan (expected true, got false)
+        MODULAR-DEMO FAIL: returning restores drawing on original floor (expected true, got false)
+        MODULAR-DEMO FAIL: missing access produces a visible refusal (expected true, got false)
+        MODULAR-DEMO FAIL: refusal preserves exact draft (expected true, got false)
+        MODULAR-DEMO FAIL: refusal spends no resources and creates no work (expected true, got false)
+        MODULAR-DEMO FAIL: world press captures a stroke (expected true, got false)
+        MODULAR-DEMO FAIL: first Escape cancels only active gesture (expected true, got false)
+        MODULAR-DEMO FAIL: cancelled gesture leaves old draft (expected true, got false)
+        MODULAR-DEMO FAIL: close preserves pause reasons (expected true, got false)
+        MODULAR-DEMO FAIL: same real entry reopens planning (expected true, got false)
+        MODULAR-DEMO FAIL: reopen preserves exact draft (expected true, got false)
+        MODULAR-DEMO FAIL: complete inspection cycle is canonical read-only (expected true, got false)
+        actual summary: MODULAR-DEMO-SUMMARY 38 checks / 17 failures (expected true, got false)
+        child exited cleanly (expected 0, got 1)
+CI_SUITE_TIME {"assertions":63,"failures":1,"suite":"test_modular_demo_live.gd","tests":1,"usec":8061004}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+1 test(s), 63 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+   GDScript backtrace (most recent call first):
+       [0] _load_row (res://demo/sound/sound_table.gd:153)
+       [1] load_streams (res://demo/sound/sound_table.gd:134)
+       [2] warm (res://demo/sound/sound_director.gd:121)
+       [3] warm (res://demo/demo_prewarm.gd:77)
+       [4] _warm_and_open (res://demo/demo_village.gd:508)
+       [5] _ready (res://demo/demo_village.gd:478)
+       [6] _run (res://demo/burrow/modular_demo_live.gd:35)
+WARNING: sound cue dig: 3 of 3 files missing (res://demo/assets/sound/dig_01.wav, res://demo/assets/sound/dig_02.wav, res://demo/assets/sound/dig_03.wav); it plays silent until they are staged
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _load_row (res://demo/sound/sound_table.gd:153)
+       [1] load_streams (res://demo/sound/sound_table.gd:134)
+       [2] warm (res://demo/sound/sound_director.gd:121)
+       [3] warm (res://demo/demo_prewarm.gd:77)
+       [4] _warm_and_open (res://demo/demo_village.gd:508)
+       [5] _ready (res://demo/demo_village.gd:478)
+       [6] _run (res://demo/burrow/modular_demo_live.gd:35)
+WARNING: sound cue tree_fall: 1 of 1 files missing (res://demo/assets/sound/tree_fall_01.wav); it plays silent until they are staged
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _load_row (res://demo/sound/sound_table.gd:153)
+       [1] load_streams (res://demo/sound/sound_table.gd:134)
+       [2] warm (res://demo/sound/sound_director.gd:121)
+       [3] warm (res://demo/demo_prewarm.gd:77)
+       [4] _warm_and_open (res://demo/demo_village.gd:508)
+       [5] _ready (res://demo/demo_village.gd:478)
+       [6] _run (res://demo/burrow/modular_demo_live.gd:35)
+WARNING: sound cue pickup: 3 of 3 files missing (res://demo/assets/sound/pickup_01.ogg, res://demo/assets/sound/pickup_02.ogg, res://demo/assets/sound/pickup_03.ogg); it plays silent until they are staged
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _load_row (res://demo/sound/sound_table.gd:153)
+       [1] load_streams (res://demo/sound/sound_table.gd:134)
+       [2] warm (res://demo/sound/sound_director.gd:121)
+       [3] warm (res://demo/demo_prewarm.gd:77)
+       [4] _warm_and_open (res://demo/demo_village.gd:508)
+       [5] _ready (res://demo/demo_village.gd:478)
+       [6] _run (res://demo/burrow/modular_demo_live.gd:35)
+WARNING: sound cue drop: 4 of 4 files missing (res://demo/assets/sound/drop_01.ogg, res://demo/assets/sound/drop_02.ogg, res://demo/assets/sound/drop_03.ogg, res://demo/assets/sound/drop_04.ogg); it plays silent until they are staged
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _load_row (res://demo/sound/sound_table.gd:153)
+       [1] load_streams (res://demo/sound/sound_table.gd:134)
+       [2] warm (res://demo/sound/sound_director.gd:121)
+       [3] warm (res://demo/demo_prewarm.gd:77)
+       [4] _warm_and_open (res://demo/demo_village.gd:508)
+       [5] _ready (res://demo/demo_village.gd:478)
+       [6] _run (res://demo/burrow/modular_demo_live.gd:35)
+WARNING: sound cue step_grass: 4 of 4 files missing (res://demo/assets/sound/step_grass_01.ogg, res://demo/assets/sound/step_grass_02.ogg, res://demo/assets/sound/step_grass_03.ogg, res://demo/assets/sound/step_grass_04.ogg); it plays silent until they are staged
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _load_row (res://demo/sound/sound_table.gd:153)
+       [1] load_streams (res://demo/sound/sound_table.gd:134)
+       [2] warm (res://demo/sound/sound_director.gd:121)
+       [3] warm (res://demo/demo_prewarm.gd:77)
+       [4] _warm_and_open (res://demo/demo_village.gd:508)
+       [5] _ready (res://demo/demo_village.gd:478)
+       [6] _run (res://demo/burrow/modular_demo_live.gd:35)
+WARNING: sound cue step_dirt: 4 of 4 files missing (res://demo/assets/sound/step_dirt_01.ogg, res://demo/assets/sound/step_dirt_02.ogg, res://demo/assets/sound/step_dirt_03.ogg, res://demo/assets/sound/step_dirt_04.ogg); it plays silent until they are staged
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _load_row (res://demo/sound/sound_table.gd:153)
+       [1] load_streams (res://demo/sound/sound_table.gd:134)
+       [2] warm (res://demo/sound/sound_director.gd:121)
+       [3] warm (res://demo/demo_prewarm.gd:77)
+       [4] _warm_and_open (res://demo/demo_village.gd:508)
+       [5] _ready (res://demo/demo_village.gd:478)
+       [6] _run (res://demo/burrow/modular_demo_live.gd:35)
+WARNING: sound cue step_wood: 4 of 4 files missing (res://demo/assets/sound/step_wood_01.wav, res://demo/assets/sound/step_wood_02.wav, res://demo/assets/sound/step_wood_03.wav, res://demo/assets/sound/step_wood_04.wav); it plays silent until they are staged
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _load_row (res://demo/sound/sound_table.gd:153)
+       [1] load_streams (res://demo/sound/sound_table.gd:134)
+       [2] warm (res://demo/sound/sound_director.gd:121)
+       [3] warm (res://demo/demo_prewarm.gd:77)
+       [4] _warm_and_open (res://demo/demo_village.gd:508)
+       [5] _ready (res://demo/demo_village.gd:478)
+       [6] _run (res://demo/burrow/modular_demo_live.gd:35)
+WARNING: sound cue step_tunnel: 4 of 4 files missing (res://demo/assets/sound/step_tunnel_01.ogg, res://demo/assets/sound/step_tunnel_02.ogg, res://demo/assets/sound/step_tunnel_03.ogg, res://demo/assets/sound/step_tunnel_04.ogg); it plays silent until they are staged
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _load_row (res://demo/sound/sound_table.gd:153)
+       [1] load_streams (res://demo/sound/sound_table.gd:134)
+       [2] warm (res://demo/sound/sound_director.gd:121)
+       [3] warm (res://demo/demo_prewarm.gd:77)
+       [4] _warm_and_open (res://demo/demo_village.gd:508)
+       [5] _ready (res://demo/demo_village.gd:478)
+       [6] _run (res://demo/burrow/modular_demo_live.gd:35)
+WARNING: sound cue step_wade: 3 of 3 files missing (res://demo/assets/sound/step_wade_01.ogg, res://demo/assets/sound/step_wade_02.ogg, res://demo/assets/sound/step_wade_03.ogg); it plays silent until they are staged
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _load_row (res://demo/sound/sound_table.gd:153)
+       [1] load_streams (res://demo/sound/sound_table.gd:134)
+       [2] warm (res://demo/sound/sound_director.gd:121)
+       [3] warm (res://demo/demo_prewarm.gd:77)
+       [4] _warm_and_open (res://demo/demo_village.gd:508)
+       [5] _ready (res://demo/demo_village.gd:478)
+       [6] _run (res://demo/burrow/modular_demo_live.gd:35)
+WARNING: sound cue splash: 3 of 3 files missing (res://demo/assets/sound/splash_01.ogg, res://demo/assets/sound/splash_02.ogg, res://demo/assets/sound/splash_03.ogg); it plays silent until they are staged
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _load_row (res://demo/sound/sound_table.gd:153)
+       [1] load_streams (res://demo/sound/sound_table.gd:134)
+       [2] warm (res://demo/sound/sound_director.gd:121)
+       [3] warm (res://demo/demo_prewarm.gd:77)
+       [4] _warm_and_open (res://demo/demo_village.gd:508)
+       [5] _ready (res://demo/demo_village.gd:478)
+       [6] _run (res://demo/burrow/modular_demo_live.gd:35)
+WARNING: sound cue water_in: 2 of 2 files missing (res://demo/assets/sound/water_in_01.ogg, res://demo/assets/sound/water_in_02.ogg); it plays silent until they are staged
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _load_row (res://demo/sound/sound_table.gd:153)
+       [1] load_streams (res://demo/sound/sound_table.gd:134)
+       [2] warm (res://demo/sound/sound_director.gd:121)
+       [3] warm (res://demo/demo_prewarm.gd:77)
+       [4] _warm_and_open (res://demo/demo_village.gd:508)
+       [5] _ready (res://demo/demo_village.gd:478)
+       [6] _run (res://demo/burrow/modular_demo_live.gd:35)
+WARNING: sound cue water_out: 2 of 2 files missing (res://demo/assets/sound/water_out_01.ogg, res://demo/assets/sound/water_out_02.ogg); it plays silent until they are staged
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _load_row (res://demo/sound/sound_table.gd:153)
+       [1] load_streams (res://demo/sound/sound_table.gd:134)
+       [2] warm (res://demo/sound/sound_director.gd:121)
+       [3] warm (res://demo/demo_prewarm.gd:77)
+       [4] _warm_and_open (res://demo/demo_village.gd:508)
+       [5] _ready (res://demo/demo_village.gd:478)
+       [6] _run (res://demo/burrow/modular_demo_live.gd:35)
+WARNING: sound cue amb_stream: 1 of 1 files missing (res://demo/assets/sound/amb_stream_01.ogg); it plays silent until they are staged
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _load_row (res://demo/sound/sound_table.gd:153)
+       [1] load_streams (res://demo/sound/sound_table.gd:134)
+       [2] warm (res://demo/sound/sound_director.gd:121)
+       [3] warm (res://demo/demo_prewarm.gd:77)
+       [4] _warm_and_open (res://demo/demo_village.gd:508)
+       [5] _ready (res://demo/demo_village.gd:478)
+       [6] _run (res://demo/burrow/modular_demo_live.gd:35)
+WARNING: sound cue amb_wind: 1 of 1 files missing (res://demo/assets/sound/amb_wind_01.wav); it plays silent until they are staged
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _load_row (res://demo/sound/sound_table.gd:153)
+       [1] load_streams (res://demo/sound/sound_table.gd:134)
+       [2] warm (res://demo/sound/sound_director.gd:121)
+       [3] warm (res://demo/demo_prewarm.gd:77)
+       [4] _warm_and_open (res://demo/demo_village.gd:508)
+       [5] _ready (res://demo/demo_village.gd:478)
+       [6] _run (res://demo/burrow/modular_demo_live.gd:35)
+WARNING: sound cue amb_rain: 1 of 1 files missing (res://demo/assets/sound/amb_rain_01.ogg); it plays silent until they are staged
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _load_row (res://demo/sound/sound_table.gd:153)
+       [1] load_streams (res://demo/sound/sound_table.gd:134)
+       [2] warm (res://demo/sound/sound_director.gd:121)
+       [3] warm (res://demo/demo_prewarm.gd:77)
+       [4] _warm_and_open (res://demo/demo_village.gd:508)
+       [5] _ready (res://demo/demo_village.gd:478)
+       [6] _run (res://demo/burrow/modular_demo_live.gd:35)
+WARNING: sound cue warning: 1 of 1 files missing (res://demo/assets/sound/warning_01.ogg); it plays silent until they are staged
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _load_row (res://demo/sound/sound_table.gd:153)
+       [1] load_streams (res://demo/sound/sound_table.gd:134)
+       [2] warm (res://demo/sound/sound_director.gd:121)
+       [3] warm (res://demo/demo_prewarm.gd:77)
+       [4] _warm_and_open (res://demo/demo_village.gd:508)
+       [5] _ready (res://demo/demo_village.gd:478)
+       [6] _run (res://demo/burrow/modular_demo_live.gd:35)
+WARNING: sound cue complete: 1 of 1 files missing (res://demo/assets/sound/complete_01.ogg); it plays silent until they are staged
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _load_row (res://demo/sound/sound_table.gd:153)
+       [1] load_streams (res://demo/sound/sound_table.gd:134)
+       [2] warm (res://demo/sound/sound_director.gd:121)
+       [3] warm (res://demo/demo_prewarm.gd:77)
+       [4] _warm_and_open (res://demo/demo_village.gd:508)
+       [5] _ready (res://demo/demo_village.gd:478)
+       [6] _run (res://demo/burrow/modular_demo_live.gd:35)
+WARNING: sound cue ui_click: 1 of 1 files missing (res://demo/assets/sound/ui_click_01.ogg); it plays silent until they are staged
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _load_row (res://demo/sound/sound_table.gd:153)
+       [1] load_streams (res://demo/sound/sound_table.gd:134)
+       [2] warm (res://demo/sound/sound_director.gd:121)
+       [3] warm (res://demo/demo_prewarm.gd:77)
+       [4] _warm_and_open (res://demo/demo_village.gd:508)
+       [5] _ready (res://demo/demo_village.gd:478)
+       [6] _run (res://demo/burrow/modular_demo_live.gd:35)
+MODULAR-DEMO PASS: actual demo prewarm completed
+MODULAR-DEMO PASS: real demo mounts planning entry
+MODULAR-DEMO PASS: entry button visible in real Tunnels panel
+MODULAR-DEMO PASS: entry button fits1280×720
+MODULAR-DEMO PASS: real click opens actual planning
+MODULAR-DEMO FAIL: opening changes no canonical gameplay state
+MODULAR-DEMO PASS: opening preserves pause reasons
+MODULAR-DEMO PASS: opening preserves requested speed
+MODULAR-DEMO PASS: planning camera is current
+MODULAR-DEMO PASS: original full World identity
+MODULAR-DEMO PASS: authored original first floor
+MODULAR-DEMO PASS: scrolling inspector fits1280×720
+MODULAR-DEMO PASS: Viewport drag paints actual dirt
+MODULAR-DEMO PASS: drawn room is a connected valid draft
+MODULAR-DEMO FAIL: unconfirmed drawing changes no canonical state
+MODULAR-DEMO PASS: GUI click cannot paint through inspector
+MODULAR-DEMO FAIL: floor dropdown selects next level
+MODULAR-DEMO FAIL: visible dirt uses exact next floor
+MODULAR-DEMO FAIL: camera focus follows actual selected floor
+MODULAR-DEMO PASS: draft keeps its own floor
+MODULAR-DEMO FAIL: another floor cannot edit retained plan
+MODULAR-DEMO FAIL: returning restores drawing on original floor
+MODULAR-DEMO PASS: confirm reachable inside scroll panel
+MODULAR-DEMO FAIL: missing access produces a visible refusal
+MODULAR-DEMO FAIL: refusal preserves exact draft
+MODULAR-DEMO FAIL: refusal spends no resources and creates no work
+MODULAR-DEMO FAIL: world press captures a stroke
+MODULAR-DEMO FAIL: first Escape cancels only active gesture
+MODULAR-DEMO FAIL: cancelled gesture leaves old draft
+MODULAR-DEMO PASS: second Escape returns to village
+MODULAR-DEMO PASS: original camera restored
+MODULAR-DEMO PASS: original camera pose retained
+MODULAR-DEMO PASS: hidden planning camera cannot consume input
+MODULAR-DEMO FAIL: close preserves pause reasons
+MODULAR-DEMO PASS: original Tunnels panel restored
+MODULAR-DEMO FAIL: same real entry reopens planning
+MODULAR-DEMO FAIL: reopen preserves exact draft
+MODULAR-DEMO FAIL: complete inspection cycle is canonical read-only
+MODULAR-DEMO-SUMMARY 38 checks / 17 failures

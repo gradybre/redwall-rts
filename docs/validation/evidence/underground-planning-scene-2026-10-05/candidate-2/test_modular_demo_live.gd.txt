@@ -1,0 +1,26 @@
+extends "res://test/framework/test_case.gd"
+## Actual scene and real Viewport input; child starts after autoload globals are registered.
+
+
+func test_actual_demo_room_planning_input_at_1280x720() -> void:
+	"""Every child check and raw diagnostic is inspected; entry, drawing and restoration use real input."""
+	var output: Array = []
+	var args: PackedStringArray = ["--headless", "--path", ProjectSettings.globalize_path("res://"),
+		"--quit-after", "900", "res://demo/burrow/modular_demo_live.tscn"]
+	var status: int = OS.execute(OS.get_executable_path(), args, output, true, false)
+	var count: int = 0
+	var summary: String = ""
+	for line: String in "".join(PackedStringArray(output)).split("\n"):
+		if line.begins_with("MODULAR-DEMO-SUMMARY "): summary = line
+		elif line.begins_with("MODULAR-DEMO "):
+			count += 1
+			assert_true(line.begins_with("MODULAR-DEMO PASS:"), line)
+		elif line.contains("SCRIPT ERROR") or line.begins_with("ERROR:") or line.begins_with("USER ERROR:") \
+				or line.contains("ObjectDB instance") or line.contains("resources still in use at exit"):
+			fail("child diagnostic: " + line)
+		elif line.begins_with("WARNING:") or line.begins_with("USER WARNING:"):
+			assert_true(line == "WARNING: demo assets are not staged (tools/stage_demo_assets.py); running on placeholders" \
+				or (line.begins_with("WARNING: sound cue ") and line.ends_with("; it plays silent until they are staged")), line)
+	assert_true(count >= 35, "complete actual input sequence: %d checks" % count)
+	assert_true(summary.ends_with(" / 0 failures"), "actual summary: " + summary)
+	assert_equal(status, 0, "child exited cleanly")

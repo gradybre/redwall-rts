@@ -1,0 +1,40 @@
+{
+  "head": "e67adf30f4c88f8f966069f0c47da2bb74259040",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "log": "clean-import.log",
+      "exit_code": 0,
+      "seconds": 12.312
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "342/410",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-planning-scene-2026-10-05/candidate-3"
+      ],
+      "log": "suite.log",
+      "exit_code": 1,
+      "seconds": 14.721
+    }
+  ],
+  "scope": "Focused official singleton suite plus zero-warning analyzer, not a full no-argument milestone",
+  "assets_present_before": true,
+  "runtime_qualified": false,
+  "import_findings": [],
+  "error": "RuntimeError('suite.log failed')",
+  "project_restored": true,
+  "assets_restored": true,
+  "sources_unchanged": true,
+  "old_sidecars_restored": true,
+  "exit_code": 1
+}

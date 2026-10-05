@@ -1,0 +1,89 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_modular_demo_live.gd
+MODULAR-DEMO PASS: actual demo prewarm completed
+MODULAR-DEMO PASS: real demo mounts planning entry
+MODULAR-DEMO PASS: entry button visible in real Tunnels panel
+MODULAR-DEMO PASS: entry button fits1280×720
+MODULAR-DEMO PASS: real click opens actual planning
+MODULAR-DEMO PASS: opening changes no canonical gameplay state
+MODULAR-DEMO PASS: opening preserves pause reasons
+MODULAR-DEMO PASS: opening preserves requested speed
+MODULAR-DEMO PASS: planning camera is current
+MODULAR-DEMO PASS: original full World identity
+MODULAR-DEMO PASS: authored original first floor
+MODULAR-DEMO PASS: scrolling inspector fits1280×720
+MODULAR-DEMO PASS: Viewport drag paints actual dirt
+MODULAR-DEMO PASS: drawn room is a connected valid draft
+MODULAR-DEMO PASS: unconfirmed drawing changes no canonical state
+MODULAR-DEMO PASS: GUI click cannot paint through inspector
+MODULAR-INPUT before selected=1 popup=true focus=-1
+MODULAR-INPUT navigate selected=1 popup=true focus=2
+MODULAR-INPUT after selected=2 popup=false floor=2
+MODULAR-DEMO PASS: floor dropdown selects next level
+MODULAR-DEMO PASS: visible dirt uses exact next floor
+MODULAR-DEMO PASS: camera focus follows actual selected floor
+MODULAR-DEMO PASS: draft keeps its own floor
+MODULAR-DEMO PASS: another floor cannot edit retained plan
+MODULAR-INPUT before selected=2 popup=true focus=-1
+MODULAR-INPUT navigate selected=2 popup=true focus=1
+MODULAR-INPUT after selected=1 popup=false floor=1
+MODULAR-DEMO PASS: returning restores drawing on original floor
+MODULAR-DEMO PASS: confirm reachable inside scroll panel
+MODULAR-DEMO PASS: missing access produces a visible refusal
+MODULAR-DEMO PASS: refusal preserves exact draft
+MODULAR-DEMO PASS: refusal spends no resources and creates no work
+MODULAR-DEMO PASS: world press captures a stroke
+MODULAR-DEMO PASS: first Escape cancels only active gesture
+MODULAR-DEMO PASS: cancelled gesture leaves old draft
+MODULAR-DEMO PASS: second Escape returns to village
+MODULAR-DEMO PASS: original camera restored
+MODULAR-DEMO PASS: original camera pose retained
+MODULAR-DEMO PASS: hidden planning camera cannot consume input
+MODULAR-DEMO PASS: close preserves pause reasons
+MODULAR-DEMO PASS: original Tunnels panel restored
+MODULAR-DEMO PASS: same real entry reopens planning
+MODULAR-DEMO PASS: reopen preserves exact draft
+MODULAR-DEMO PASS: complete inspection cycle is canonical read-only
+MODULAR-DEMO PASS: planning reopened for live stall
+MODULAR-DEMO PASS: held camera key moves before stall
+MODULAR-DEMO PASS: floor popup is open before stall
+MODULAR-DEMO PASS: actual host debt raises critical pause
+MODULAR-DEMO PASS: real banner and input shield are visible
+MODULAR-DEMO PASS: banner stays above shield and planning controls
+MODULAR-DEMO PASS: stall dismisses the already open popup
+MODULAR-DEMO PASS: stall clears held camera controls
+MODULAR-DEMO PASS: held key and new drag cannot move camera during stall
+MODULAR-DEMO PASS: shield prevents a new planning dropdown behind banner
+MODULAR-DEMO PASS: Enter acknowledges actual stall and releases shield
+MODULAR-DEMO PASS: old held key stays cleared after acknowledgement
+MODULAR-DEMO PASS: close restores original banner layer
+MODULAR-DEMO PASS: room purpose popup is open before actual World reset
+MODULAR-DEMO PASS: actual UI World Create succeeds
+MODULAR-DEMO PASS: new World has a distinct full identity
+MODULAR-DEMO PASS: World retirement closes the active planning view
+MODULAR-DEMO PASS: World retirement dismisses the old popup
+MODULAR-DEMO PASS: real planning button reopens after World Create
+MODULAR-DEMO PASS: reopened view binds only the newly created original World
+MODULAR-DEMO PASS: old World's draft cannot be adopted by its replacement
+MODULAR-DEMO PASS: new World composes its actual room and route owners on reopen
+  PASS  test_actual_demo_room_planning_input_at_1280x720
+CI_SUITE_TIME {"assertions":85,"failures":0,"suite":"test_modular_demo_live.gd","tests":1,"usec":8236580}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+1 test(s), 85 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 1 tests, 85 assertions, 0 failures.

@@ -1,0 +1,40 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_modular_demo_live.gd
+  FAIL  test_actual_demo_room_planning_input_at_1280x720
+        MODULAR-DEMO FAIL: opening changes no canonical gameplay state (expected true, got false)
+        MODULAR-DEMO FAIL: unconfirmed drawing changes no canonical state (expected true, got false)
+        MODULAR-DEMO FAIL: floor dropdown selects next level (expected true, got false)
+        MODULAR-DEMO FAIL: visible dirt uses exact next floor (expected true, got false)
+        MODULAR-DEMO FAIL: camera focus follows actual selected floor (expected true, got false)
+        MODULAR-DEMO FAIL: another floor cannot edit retained plan (expected true, got false)
+        MODULAR-DEMO FAIL: returning restores drawing on original floor (expected true, got false)
+        MODULAR-DEMO FAIL: missing access produces a visible refusal (expected true, got false)
+        MODULAR-DEMO FAIL: refusal preserves exact draft (expected true, got false)
+        MODULAR-DEMO FAIL: refusal spends no resources and creates no work (expected true, got false)
+        MODULAR-DEMO FAIL: world press captures a stroke (expected true, got false)
+        MODULAR-DEMO FAIL: first Escape cancels only active gesture (expected true, got false)
+        MODULAR-DEMO FAIL: cancelled gesture leaves old draft (expected true, got false)
+        MODULAR-DEMO FAIL: close preserves pause reasons (expected true, got false)
+        MODULAR-DEMO FAIL: same real entry reopens planning (expected true, got false)
+        MODULAR-DEMO FAIL: reopen preserves exact draft (expected true, got false)
+        MODULAR-DEMO FAIL: complete inspection cycle is canonical read-only (expected true, got false)
+        actual summary: MODULAR-DEMO-SUMMARY 38 checks / 17 failures (expected true, got false)
+        child exited cleanly (expected 0, got 1)
+CI_SUITE_TIME {"assertions":63,"failures":1,"suite":"test_modular_demo_live.gd","tests":1,"usec":8061004}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+1 test(s), 63 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

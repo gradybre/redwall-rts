@@ -521,10 +521,6 @@ func _mount_modular_foundation() -> void:
 		ModularSession.Catalog.Pins.ACTOR_SHA, ModularSession.PRESENTATION_BYTES)
 	if code == &"" and not SettlementSystem.mount_underground(content):
 		code = SettlementSystem.last_refusal()
-	if code == &"" and not SettlementSystem.compose_underground_room_owners():
-		code = SettlementSystem.last_refusal()
-	if code == &"" and not SettlementSystem.compose_underground_route_owners():
-		code = SettlementSystem.last_refusal()
 	if code != &"":
 		UIManager.push_refusal(code)
 		push_warning("Underground foundation unavailable: %s" % code)

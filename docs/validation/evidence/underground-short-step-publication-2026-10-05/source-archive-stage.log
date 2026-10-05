@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication/docs/validation/evidence/underground-short-step-publication-2026-10-05/stage_source_archive.py", line 49, in <module>
+    if __name__ == '__main__': run(Path(sys.argv[1]).resolve())
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication/docs/validation/evidence/underground-short-step-publication-2026-10-05/stage_source_archive.py", line 39, in run
+    assert source.is_file() and not source.is_symlink() and source.stat().st_size <= 268435456 and sha(source) == expected
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

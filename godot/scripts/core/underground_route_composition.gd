@@ -9,15 +9,15 @@ const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
 const Movement := preload("res://scripts/core/movement.gd")
 const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
-const PROFILE_CONTENT_REVISION: int = 2
+const PROFILE_CONTENT_REVISION: int = 3
 const CATALOG_REVISION: int = 1
-const CATALOG_PATH: String = "res://data/underground/ground-pace-v1/ground-pace.ugconn"
-const CATALOG_SHA: String = "1880788c064b87424c203509a7ad65498b9d11fc18842affe909364b8a8aca4a"
+const CATALOG_PATH: String = "res://data/underground/mole-worker/qualified-step-v4/ground-pace.ugconn"
+const CATALOG_SHA: String = "454eaab1b2a722aab2700285d31a0bcc093312dad211208da7993baa32bc2f24"
 
-const CATALOG_DIGEST_0: int = 4793882819857776664
-const CATALOG_DIGEST_1: int = 5288824270342135884
-const CATALOG_DIGEST_2: int = -60090402172985973
-const CATALOG_DIGEST_3: int = 5389272230674172393
+const CATALOG_DIGEST_0: int = -6187198552126894523
+const CATALOG_DIGEST_1: int = -3743869169456484174
+const CATALOG_DIGEST_2: int = -8277596517807541495
+const CATALOG_DIGEST_3: int = 2607509635061225895
 
 
 static func construct(session: RefCounted) -> StringName:
@@ -146,7 +146,7 @@ static func _source_refusal(o: Retirement.Owners) -> StringName:
 	var catalog: Catalog = o.world_routes._catalog
 	var movement: Movement = o.world_routes._movement
 	if o.profiles._live.header[0] != PROFILE_CONTENT_REVISION or catalog._live.header[0] != CATALOG_REVISION \
-			or catalog._live.header[7] != 9 or movement._world != null or movement._navigation != null \
+			or catalog._live.header[7] != 12 or movement._world != null or movement._navigation != null \
 			or o.world_routes._catalog_identity != catalog.get_instance_id() \
 			or o.world_routes._profile_identity != o.profiles.get_instance_id() \
 			or o.world_routes._levels_identity != o.levels.get_instance_id():

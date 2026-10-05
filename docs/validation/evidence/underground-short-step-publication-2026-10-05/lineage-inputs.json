@@ -1,0 +1,2108 @@
+{
+  "schema": 1,
+  "manifest_path": "godot/data/underground/mole-worker/profile-publication-v3-frontier/manifest.json",
+  "manifest_sha256": "ea685eafa41418ae52e097ea439764b9794111851d7389097770648bc706d70b",
+  "count": 523,
+  "rows": {
+    "godot/data/underground/mole-worker/profile-publication-v3/manifest.json": {
+      "sha256": "8f210e11768131779e6c825d7a3d2509cb32076aedd6891e6573489d1b6814c1",
+      "locator": "godot/data/underground/mole-worker/profile-publication-v3/manifest.json"
+    },
+    "godot/data/underground/mole-worker/profile-publication-v3/catalog_source.gd": {
+      "sha256": "fca8e5410940b8dfa98a1e7796b4138f25464402e784de46447d020402c06e0c",
+      "locator": "godot/data/underground/mole-worker/profile-publication-v3/catalog_source.gd"
+    },
+    "godot/data/underground/mole-worker/profile-publication-v3/mole-worker.ugprof": {
+      "sha256": "a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204",
+      "locator": "godot/data/underground/mole-worker/profile-publication-v3/mole-worker.ugprof"
+    },
+    "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/source-compatibility-review.json": {
+      "sha256": "12085f7793f6520057a8fae21ae7460e43d437c58dd235aac29e04f14da708d1",
+      "locator": "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/source-compatibility-review.json"
+    },
+    "docs/validation/evidence/underground-host-checkpoint-2026-10-04/approach-independent-review-1/review.json": {
+      "sha256": "aa8b697e4fe6b83e560dfcbc7fc16dfdf86dfdc25c945dbf64e015534733aa75",
+      "locator": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/approach-independent-review-1/review.json"
+    },
+    "docs/validation/evidence/underground-host-checkpoint-2026-10-04/assemble_approach_candidate.py": {
+      "sha256": "94bee4bb9461fb246e1c7287fed04d2961afc2c125ef79bb14d7c1f74d20a3fe",
+      "locator": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/assemble_approach_candidate.py"
+    },
+    "godot/data/underground/mole-worker/profile-publication-v2/manifest.json": {
+      "sha256": "0dfd6e3433c0addb7310057d161e752c0e3aef1b3e962f4c887b80b4b75b5c3d",
+      "locator": "godot/data/underground/mole-worker/profile-publication-v2/manifest.json"
+    },
+    "godot/data/underground/mole-worker/profile-publication-v2/mole-worker.ugprof": {
+      "sha256": "b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac",
+      "locator": "godot/data/underground/mole-worker/profile-publication-v2/mole-worker.ugprof"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/source-4/approach-program.json": {
+      "sha256": "e9cf37e7de319c9b07b9fda875760201dad5b41bd181a3e6d381bbea6cd4eedd",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/source-4/approach-program.json"
+    },
+    "godot/scripts/core/underground_profiles.gd": {
+      "sha256": "fd17b330165fff47177414ec15549fa53fcb60535aab7a9b9af3674485f3a78e",
+      "locator": "docs/validation/evidence/underground-short-step-publication-2026-10-05/historical-inputs/godot__scripts__core__underground_profiles.gd.txt",
+      "historical_commit": "8003bfe155092e9a8bc8b5590228e6069b859173"
+    },
+    "docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_routes.gd.txt": {
+      "sha256": "c5b414aaf5c1679fc232ddccdbafa1491625c12b2dc41613063605f6a44934f4",
+      "locator": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_routes.gd.txt"
+    },
+    "docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_world_routes.gd.txt": {
+      "sha256": "7e2bc9f7d7f00f034f408be374f939664d98a3bd64e430283e3b300420991d1f",
+      "locator": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_world_routes.gd.txt"
+    },
+    "godot/data/underground/mole-worker/mole_profile_driver.gd": {
+      "sha256": "e9b46638976d1cc373de5363e0d72648098b0f9e50fe497cad8caa58899d31a4",
+      "locator": "docs/validation/evidence/underground-short-step-publication-2026-10-05/historical-inputs/godot__data__underground__mole-worker__mole_profile_driver.gd.txt",
+      "historical_commit": "8003bfe155092e9a8bc8b5590228e6069b859173"
+    },
+    "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": {
+      "sha256": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
+      "locator": "godot/data/underground/mole-worker/work-approach-v1/source_program.gd"
+    },
+    "godot/test/test_underground_profiles.gd": {
+      "sha256": "11ae21295a399ce73254f5c7254d22a80e1d7e75cd069c3fbd9a6382a0c80b69",
+      "locator": "docs/validation/evidence/underground-short-step-publication-2026-10-05/historical-inputs/godot__test__test_underground_profiles.gd.txt",
+      "historical_commit": "8003bfe155092e9a8bc8b5590228e6069b859173"
+    },
+    "godot/test/test_underground_routes.gd": {
+      "sha256": "dd996205d07b9b8458b9fa1957f8842cafed04090ade112f2d3cd8ec86b231af",
+      "locator": "docs/validation/evidence/underground-short-step-publication-2026-10-05/historical-inputs/godot__test__test_underground_routes.gd.txt",
+      "historical_commit": "8003bfe155092e9a8bc8b5590228e6069b859173"
+    },
+    "godot/test/test_underground_world_routes.gd": {
+      "sha256": "1f85853b55354f8589f1da02deb3d70925762b6566ac7618a03555fad7033fe2",
+      "locator": "docs/validation/evidence/underground-short-step-publication-2026-10-05/historical-inputs/godot__test__test_underground_world_routes.gd.txt",
+      "historical_commit": "8003bfe155092e9a8bc8b5590228e6069b859173"
+    },
+    "godot/test/test_mole_profile_driver.gd": {
+      "sha256": "80110673489a4f46e78d44ffb29391de1195efb3f93e0c387f03f0126d98282c",
+      "locator": "docs/validation/evidence/underground-short-step-publication-2026-10-05/historical-inputs/godot__test__test_mole_profile_driver.gd.txt",
+      "historical_commit": "8003bfe155092e9a8bc8b5590228e6069b859173"
+    },
+    "godot/data/underground/mole-worker/work-approach-v1/capture_canonical.gd": {
+      "sha256": "b521ca36ec4c379c1ff9f48f88a6e3fe679510ffb3103766712fa150b23d677a",
+      "locator": "godot/data/underground/mole-worker/work-approach-v1/capture_canonical.gd"
+    },
+    "godot/data/underground/mole-worker/work-approach-v1/source_program.gd.uid": {
+      "sha256": "f5957ee9b0286e3e96ef9e2e037da44a0a87dd2fcbc6437ae80c0d3f7a36bcd0",
+      "locator": "godot/data/underground/mole-worker/work-approach-v1/source_program.gd.uid"
+    },
+    "godot/data/underground/mole-worker/work-approach-v1/capture_canonical.gd.uid": {
+      "sha256": "a3e5bcd1f1f5194d320014cf6e2fcc715df2cd27cb40789178fdf77e52834a98",
+      "locator": "godot/data/underground/mole-worker/work-approach-v1/capture_canonical.gd.uid"
+    },
+    "godot/data/underground/mole-worker/work-approach-v1/compile_work_approach.py": {
+      "sha256": "de98c0c3d7de383844bc2369300668d511d8256f7858ec95a5e2c6ca7d08ab9a",
+      "locator": "godot/data/underground/mole-worker/work-approach-v1/compile_work_approach.py"
+    },
+    "godot/data/underground/mole-worker/work-approach-v1/test_compile_work_approach.py": {
+      "sha256": "548167905d79c5299590d469ce027255a25d26e92fff7360b6d4e21da97f2cad",
+      "locator": "godot/data/underground/mole-worker/work-approach-v1/test_compile_work_approach.py"
+    },
+    "godot/data/underground/mole-worker/work-approach-v1/source-input-locators.json": {
+      "sha256": "523cbfedbedc428b3763407cf44a6c689f7399a5d167bce188c5e8110e5c3b69",
+      "locator": "godot/data/underground/mole-worker/work-approach-v1/source-input-locators.json"
+    },
+    "godot/data/underground/mole-worker/work-approach-v1/run_canonical.py": {
+      "sha256": "7d36f92546ce19604a0c2a59422a46675c270c4ff73da3992f2e86ccbb951281",
+      "locator": "godot/data/underground/mole-worker/work-approach-v1/run_canonical.py"
+    },
+    "godot/data/underground/mole-worker/work-approach-v1/test_run_canonical.py": {
+      "sha256": "ab3d10c0f48535f6c1a7c00a25f0655e677fbf194c31122cb7127e43ecda3533",
+      "locator": "godot/data/underground/mole-worker/work-approach-v1/test_run_canonical.py"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/census.py": {
+      "sha256": "dc9ae8a01583d44391ef95ae9b0314064dd6ac6ea6a38a8164f83bba39019b75",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/census.py"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/test_census.py": {
+      "sha256": "cc808f38fc1a7d4f76b551b054c49928e59fd433b8c7a911e9d5fa99483e5a44",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/test_census.py"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/reproduce.py": {
+      "sha256": "ca1ea426bcb7146d1feec23656020e4776ae4eae4f45a27972dfd6c97265b210",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/reproduce.py"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/spec.json": {
+      "sha256": "103dd4a641f7aea542f8434386a0033a1d427bd8c9b373528630a706ce2dd0fb",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/spec.json"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/report.json": {
+      "sha256": "4dd2f1b68211ce31850e3fdaad5823e3316ee0793e343de292c4b7b656bfcdcd",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/report.json"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/native.bin": {
+      "sha256": "f0db5014d644f057a4e4c7f7d1696ae77ff5045a28c0540321a6c35973856025",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/native.bin"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/verification.json": {
+      "sha256": "5f1f39b49d23d2391918ca86163974c5381ac17448f5154993272635cbe10607",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/verification.json"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/invocation.json": {
+      "sha256": "743567d6ed9aefc31a9d7ec3895397e8aa0acdc8dcd4f290e5370744a1f1d537",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/invocation.json"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/sources-before.json": {
+      "sha256": "a10b2a6aab4baece16c73a1a59c5a16fa0c9419dadfc5786040b457cfda0156e",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/sources-before.json"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/sources-after.json": {
+      "sha256": "a10b2a6aab4baece16c73a1a59c5a16fa0c9419dadfc5786040b457cfda0156e",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/sources-after.json"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/executed-owned-sources/locators.json": {
+      "sha256": "2a2f451f0a5e93d197b76465cccd76949e459a2322eab762c151201d720bda08",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/executed-owned-sources/locators.json"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/census.json": {
+      "sha256": "4a85ab69a8cc002416990b4e720840149e5e69ce90daca8341ad629109fd47e2",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/census.json"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/runtime-9/invocation.json": {
+      "sha256": "b4a2169103ef26dd77c4bf88fd6194e22ddbad9cc3693c941498fa2028e8641c",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/runtime-9/invocation.json"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/runtime-9/analyzer.json": {
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/runtime-9/analyzer.json"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw0-tick004.png": {
+      "sha256": "0592c95d8a89a236b6d9050b479c897d0499e075839e58e1e8ba65c391969c26",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw0-tick004.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw0-tick024.png": {
+      "sha256": "8b101a6b23cca56efa78c3421ac4b65653b7066e07c7528c98a58cc4a1f194a9",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw0-tick024.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw0-tick046.png": {
+      "sha256": "36e73293a2463adde705336c823abdcc4382fb73d44aa5915f6561beedf1f6c4",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw0-tick046.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw0-tick062.png": {
+      "sha256": "6ea6dd27db292977300b3b23433b073ebefc87da21888566540c7b2b8f183eae",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw0-tick062.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw0-tick094.png": {
+      "sha256": "e068441c6c99f4b96e0b60cf3eda65700498751e138e23b2471ee3ee4108564d",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw0-tick094.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw0-tick128.png": {
+      "sha256": "f93f25a3ac618a0e91e4eaa9ab4dc893cfbdc4abdbcfc471a3168d159220b1e6",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw0-tick128.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw0-tick158.png": {
+      "sha256": "cf50972625862a669101e9f91f102d85a6ffc77446ea272bfb871baaf42eb0ab",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw0-tick158.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw0-tick188.png": {
+      "sha256": "085fedead14e15fd2bfd9a0a7a3072afb234bcac2854e7563fadca5238fae1e4",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw0-tick188.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw16384-tick004.png": {
+      "sha256": "5eaeb0ce14d62fb5bcd12d5b11c64f1b3ffcfe8b0dbf8988d6919edcdffd88e7",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw16384-tick004.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw16384-tick024.png": {
+      "sha256": "731c06e5bfda61893b93620d86a4e5f2d550d61c1ce0788bd558148115c85f5e",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw16384-tick024.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw16384-tick046.png": {
+      "sha256": "6eaafd7cc09eb468f63f927d3b08c69af461a5e10a7684654368d179ee2c589b",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw16384-tick046.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw16384-tick062.png": {
+      "sha256": "61b2251d3b06e696b4a80ec3a7532c9b1bc332f3fc428f18f8d7382bc7b97002",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw16384-tick062.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw16384-tick094.png": {
+      "sha256": "363f10d91b1464e4ef3610fab2779973a9087665c7c4861b9cc7ebf68f60272e",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw16384-tick094.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw16384-tick128.png": {
+      "sha256": "2f8cb0731cb385af03cd42431dd05dce2ad25155166a67862f4698a4db297dd9",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw16384-tick128.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw16384-tick158.png": {
+      "sha256": "bf89d7fb5075b77ccf024dcbb9629e36288d3d8d2aa44f70e952c23275b60cfc",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw16384-tick158.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw16384-tick188.png": {
+      "sha256": "f1c8dabde29a649db17e03203aa82be88f9ae6759225ec59dfdac5ecbacf93d6",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw16384-tick188.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw32768-tick004.png": {
+      "sha256": "06b591f428210face235e8533d2b011a50a444e449b4a7dd497c9aa4690621ce",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw32768-tick004.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw32768-tick024.png": {
+      "sha256": "408c7841ca6f7d728e63379f6d8898b05d4cbd6cbeeb1c70ef3b4ba3b9005ad3",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw32768-tick024.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw32768-tick046.png": {
+      "sha256": "0a9363d008173cba99ddb6e1d956844a7cf4bd278cc62309f8cfffe242b34142",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw32768-tick046.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw32768-tick062.png": {
+      "sha256": "5204e1b556a70e61a2e106a3059f7cb6ea6409beb55fb5678f31b265d36a7033",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw32768-tick062.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw32768-tick094.png": {
+      "sha256": "bef5d2a380840846476fdc2b40a9007dbfc4aefae2c01b25c2a9f107382b28da",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw32768-tick094.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw32768-tick128.png": {
+      "sha256": "20529670cde2fa22b1c94939ead7b34352bd387728ccf2d837e4dbc2168e5109",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw32768-tick128.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw32768-tick158.png": {
+      "sha256": "4deacb302c3e5a6efff868ab53a33b65f2f5f6e14bf6da889ab55c97a98120cf",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw32768-tick158.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw32768-tick188.png": {
+      "sha256": "335c07c7ed66b9d182a5b2af0334d05037cd79d3078b42d301c3386ac71a1657",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw32768-tick188.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw49152-tick004.png": {
+      "sha256": "ace2b338cc967ea8b5aac7b87f702d0451af6d8cec8aa396a0c2e028546496a0",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw49152-tick004.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw49152-tick024.png": {
+      "sha256": "d9fe234ec05523bfa9307cc85d5ce764a7d41e61c37586ae9b0de352b7137dbe",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw49152-tick024.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw49152-tick046.png": {
+      "sha256": "84cdcb707cec218fef2cc9f23a8685965c3587d02c4539ac25883fb6fbb9d7d8",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw49152-tick046.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw49152-tick062.png": {
+      "sha256": "f1c3b16aae7aa736a0e2a9bbd1f6ce6ff3f2d55cfed36904a9c144f157be09d9",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw49152-tick062.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw49152-tick094.png": {
+      "sha256": "44ac71d3a0cecf581d0fe5e36538d950b55c29a0ab0a019777e86d8e32d91f93",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw49152-tick094.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw49152-tick128.png": {
+      "sha256": "6673cd2fb1ef56925bc8eb4343dd5ff6f4097acdab3d238b68f5ddf67586b728",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw49152-tick128.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw49152-tick158.png": {
+      "sha256": "e7ee7ff7f5a54d5d304a1e0a72abb0bde0282010b4a6491903e297738153434a",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw49152-tick158.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw49152-tick188.png": {
+      "sha256": "6d7e3a6050214e57dbbd3f41a7fc9f520ad824615c95884bdda5e827eb0e4f4a",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/rts-yaw49152-tick188.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw0-tick004.png": {
+      "sha256": "b17c48daddc5bf6abeb6e24fcb7a5563c02733cc62b2d447064b34346fd17359",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw0-tick004.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw0-tick024.png": {
+      "sha256": "81b0cc0123fe10b43484aa59225f2f2c7ea6a0de6010241c7623bf0faa19edf1",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw0-tick024.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw0-tick046.png": {
+      "sha256": "a285c69854778e005732499248b991b5d8089e62e5c94b5de652522d213d4961",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw0-tick046.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw0-tick062.png": {
+      "sha256": "21439dec25baeeeba295d1570268623632033de2afcbf48fb4152d58b5924fb2",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw0-tick062.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw0-tick094.png": {
+      "sha256": "0ce587a101252ddab9f8978d90ab870e7173e619f49ac98ad9ee7c10fb8a32e2",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw0-tick094.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw0-tick128.png": {
+      "sha256": "0b0220bbd10f71e87d8a8b980478a9322f640c0ee6f6eea5db0c24be72e5bcd7",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw0-tick128.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw0-tick158.png": {
+      "sha256": "35a5134f0008757fb5faae503cade73e27942e3d14ecdcd44d6e72a44bf87c23",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw0-tick158.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw0-tick188.png": {
+      "sha256": "89fe56453e7abc05e04cfd8cf3d967bbb6216f777ccf3e06945c20afbbea1e39",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw0-tick188.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw16384-tick004.png": {
+      "sha256": "5a52ba24f1a2ec7f8efae27ef0025e735a4dec9da519560114f90b35ba78c4ba",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw16384-tick004.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw16384-tick024.png": {
+      "sha256": "140e38c0fb51d349f6736b2d4f17a3d3d4cd385c98e7f29e1a52e35a370d61bb",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw16384-tick024.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw16384-tick046.png": {
+      "sha256": "e7b1e0426a2b8d9514a8e7a594e9992cfb2de66327c32b17f2898b6814405ca9",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw16384-tick046.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw16384-tick062.png": {
+      "sha256": "87c7415bd77d11019103b2c6ed5dcdfdf9257b14588089427edf39397da525b5",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw16384-tick062.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw16384-tick094.png": {
+      "sha256": "6eae5b49394ccd62434fcf228d61c4bd46a03050976eff1d708dad5a8760b1fa",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw16384-tick094.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw16384-tick128.png": {
+      "sha256": "f9f1414b1a7e02ec590ee70555884d773c6616fd454f71b76f2d7a5ba223a713",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw16384-tick128.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw16384-tick158.png": {
+      "sha256": "6181c91ec77d5fdb1422790a00115438dbe6d64a3e7ecaa27a2729a908ba95ee",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw16384-tick158.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw16384-tick188.png": {
+      "sha256": "87967d175e09f796b763e6d32a76136868a867fe9b7993a5dbdd07e143769067",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw16384-tick188.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw32768-tick004.png": {
+      "sha256": "67c42f6f11e46385a7bd67def67a4f57883854b145c72abf78107aba634b9d65",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw32768-tick004.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw32768-tick024.png": {
+      "sha256": "9c17a49f1b2908093dfab0927ee976f9965ed633f23512838123600cf173723a",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw32768-tick024.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw32768-tick046.png": {
+      "sha256": "9cca76120a59297442de0bb1fe3f3386f7832147fda1ee4db524574fcc6356fa",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw32768-tick046.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw32768-tick062.png": {
+      "sha256": "4c43f52d0f34f4137ff5b06ca45d94d29b9ed7ab2eafbd9d1c12a9387c10567c",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw32768-tick062.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw32768-tick094.png": {
+      "sha256": "47e91563661e3ffeea810979267b5aed196ff340a11e097e1bb04b1c4ac54cf7",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw32768-tick094.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw32768-tick128.png": {
+      "sha256": "d8715449ac86e7743ed09b925a6b2798fe290c37b04e338304d328b118713857",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw32768-tick128.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw32768-tick158.png": {
+      "sha256": "4aabbb005ab50ed90e5d0b4883b96c7648a73732aad3af234b30cf2d687f3ccb",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw32768-tick158.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw32768-tick188.png": {
+      "sha256": "15aab248d5678a192b27bfa69e80752c096f736b07484fb3096bbd3c23ffd084",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw32768-tick188.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw49152-tick004.png": {
+      "sha256": "bec82f698ac1278d705b018ed574120c636f90814ec98d1f298e3928c0a621b6",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw49152-tick004.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw49152-tick024.png": {
+      "sha256": "abdcfaa5fb7fa6e00dfc7591b14f7e5b2ecaed2effabfdeef052298d08646034",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw49152-tick024.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw49152-tick046.png": {
+      "sha256": "32bf8047e0f4b0108b3b83a3727ae8d9e2f47ee2f2f739c3cad36944910e5c6c",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw49152-tick046.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw49152-tick062.png": {
+      "sha256": "36cab3fa314be181e5287f90bde2dc4001b9a6a8d03ff7893190d55c6190d98b",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw49152-tick062.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw49152-tick094.png": {
+      "sha256": "859edd8ab802360a4ac5914bb1d413750f556be42216b942263e6e6c3c56e758",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw49152-tick094.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw49152-tick128.png": {
+      "sha256": "a3c02283f2f82a6c4a1cf56c36a102c9dd996b779dfdb99f16f84e0ccf210867",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw49152-tick128.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw49152-tick158.png": {
+      "sha256": "100f1215f2a3c7d1d1781aee0adbbad1099eea84ee9109e5d768b02251a50314",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw49152-tick158.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw49152-tick188.png": {
+      "sha256": "3ec91341f334a992537b70e9f5cdc8af5f01cfc5418af3459fb91b99c9c97e9c",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/side-yaw49152-tick188.png"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/executed-owned-sources/capture_canonical.gd.txt": {
+      "sha256": "3d830307e6d703a84a38abdc53da11e0a8d6a9df7e50e927b57f7f94a648e5ad",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/executed-owned-sources/capture_canonical.gd.txt"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/executed-owned-sources/run_canonical.py.txt": {
+      "sha256": "3f034ad0686045aa7537928defd2c23d4b4f08ae19cfe653a9c5a5879da88f43",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/executed-owned-sources/run_canonical.py.txt"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/executed-owned-sources/source-input-locators.json.txt": {
+      "sha256": "523cbfedbedc428b3763407cf44a6c689f7399a5d167bce188c5e8110e5c3b69",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/executed-owned-sources/source-input-locators.json.txt"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/executed-owned-sources/source_program.gd.txt": {
+      "sha256": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/executed-owned-sources/source_program.gd.txt"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/executed-owned-sources/test_underground_routes.gd.txt": {
+      "sha256": "88e605b3e2b0f524ec581da89754c4f3a96ba957cf0396696db5ebc4456f48b7",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/executed-owned-sources/test_underground_routes.gd.txt"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/runtime-9/test_mole_profile_driver.gd.log": {
+      "sha256": "c779081c2c7215a07de2d79a3009e5d8ef8d92f644fe02b1ec4ed4e53883792c",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/runtime-9/test_mole_profile_driver.gd.log"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/runtime-9/test_underground_profiles.gd.log": {
+      "sha256": "a0655da3f57a5eb312077004c0eaa7ef349a0af0d1c25e6ff7319f7f06211042",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/runtime-9/test_underground_profiles.gd.log"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/runtime-9/test_underground_routes.gd.log": {
+      "sha256": "cfc7e26ca23c650080f7bdaeddd6d842b16d088ab1210b2f02dd923744f75c81",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/runtime-9/test_underground_routes.gd.log"
+    },
+    "docs/validation/evidence/underground-work-approach-2026-10-04/runtime-9/test_underground_world_routes.gd.log": {
+      "sha256": "e7351c3bbb241b66a92a859bc6d668d3e5cf6547ea064c1f64d52189a479b9d3",
+      "locator": "docs/validation/evidence/underground-work-approach-2026-10-04/runtime-9/test_underground_world_routes.gd.log"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-math-v1/source-sha256.json": {
+      "sha256": "16315e6df8b5fe54224d33e5667e75aa85b219171b6af3b481a283b8fb1e3b22",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-math-v1/source-sha256.json"
+    },
+    "godot/data/underground/mole-worker/compile_profile_publication.py": {
+      "sha256": "e57be66923d732b5519380f95ffb31e5a683403710379b2764983b283af61b58",
+      "locator": "godot/data/underground/mole-worker/compile_profile_publication.py"
+    },
+    "godot/data/underground/mole-worker/test_compile_profile_publication.py": {
+      "sha256": "67f3fd8197d7fbd2b1b9af5e182abd396f6be9fd84702094732430592331d0e4",
+      "locator": "godot/data/underground/mole-worker/test_compile_profile_publication.py"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_cardinal_profiles.py": {
+      "sha256": "f55701948939a10706d175dabd750db741ea9550b9cbe0308928422084ae1413",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/prove_cardinal_profiles.py"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-math-v1/output-sha256.json": {
+      "sha256": "553080ddf4150eafdf1cf8a2092a5439c42640f805cc79a06308ba9167617576",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-math-v1/output-sha256.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/cardinal-proof-v1/down.json": {
+      "sha256": "9dbe9f8df329f62d059834d1a14d5807600a9d9b99e3220003109a4269db8944",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/cardinal-proof-v1/down.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/cardinal-proof-v1/executed-source-sha256.json": {
+      "sha256": "ed3721ca3eff8ca657cf29d53f5ff1562e99e2ce253b9d269032bc8f438d9376",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/cardinal-proof-v1/executed-source-sha256.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/cardinal-proof-v1/front.json": {
+      "sha256": "57642f23667df5316cbb3091bff7213fc2a87f8b6e877db7183c2d5c609413cc",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/cardinal-proof-v1/front.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/cardinal-proof-v1/high.json": {
+      "sha256": "dd29b96beebe7ea189d55f78117431b5bd214948a06e3542ce29b91b1de0f2c4",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/cardinal-proof-v1/high.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/cardinal-proof-v1/install.json": {
+      "sha256": "44a45ea756709954a8b1a252d19fabb02231d7ea665ca3785d96b65c1cff3b7b",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/cardinal-proof-v1/install.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/cardinal-proof-v1/proof.json": {
+      "sha256": "fed4959c4f1b956c24442021487ad572721214c25d8c5503921dca748e9b358d",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/cardinal-proof-v1/proof.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/cardinal-proof-v1/executed-input-sha256.json": {
+      "sha256": "04eb1d2de2e15bc5f5b3cb4a5db08e16dd9e22a5ccc3f3460e1b1a4fa97cabf5",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/cardinal-proof-v1/executed-input-sha256.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-math-v1/proof.log": {
+      "sha256": "8187ad905ae7bd305a05d50f22e14ff13e7c5a1ef69d9b39be41558db95c8aa1",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-math-v1/proof.log"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-math-v1/tests.log": {
+      "sha256": "643c7cfc3921e5830e047bed28578bc933677c101c9c5a9f6610b6207052d03c",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-math-v1/tests.log"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-native-v2/source-sha256.json": {
+      "sha256": "9e1a807275abaeca84e9d5f46af443945b75c0839344d2c449f1b99398ea6c3f",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-native-v2/source-sha256.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/capture_cardinal_program.gd": {
+      "sha256": "be7adfd1ef9ffadea76ec334201d2972a69b747abe912a039d7de194d0c6668b",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/capture_cardinal_program.gd"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/run_cardinal_capture.py": {
+      "sha256": "50c2105431e5ae33194bc7745ea626d3617149972ecf27e01a16c3b07087e372",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/run_cardinal_capture.py"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/test_cardinal_capture.py": {
+      "sha256": "b9090b2b9b379b3ee9016ff2d1cb6bdcbb689da57e6bcaf463cd48a2d01f29eb",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/test_cardinal_capture.py"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-native-v2/output-sha256.json": {
+      "sha256": "d106139d90316fe46521174a45289cae1020b989e97482aa2c48656394967c2b",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-native-v2/output-sha256.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/.gdignore": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/.gdignore"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/engine-import.log": {
+      "sha256": "32038998d1c52075f003fe1c0b7aaf29596648e9711049c5c4d9e681674a58a5",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/engine-import.log"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/engine-native.log": {
+      "sha256": "40a9411ca3f8165a91f79ee3298ad085c579540aeb7d1ee6f4e9951067e0ac39",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/engine-native.log"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/import-cache-restoration.json": {
+      "sha256": "22f5ee10c3225fd3682f5762a44db21b45f8691d6c7772e772721ddfc6a525ad",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/import-cache-restoration.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/import.log": {
+      "sha256": "0e9619b3491283555b643b1bdec015bda2ac1c8f308977064c61eb06e57c665d",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/import.log"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/invocation.json": {
+      "sha256": "36005628fd63735c93b08a4161343942c535ffa341a69d867ef89f80d71a5654",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/invocation.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/native.log": {
+      "sha256": "40a9411ca3f8165a91f79ee3298ad085c579540aeb7d1ee6f4e9951067e0ac39",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/native.log"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/override-restoration.json": {
+      "sha256": "8f1963ee61bf4719326be396906b1b71e50263dea91f8e577d961df6406e3ff9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/override-restoration.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/pre-import-after.json": {
+      "sha256": "df9ef08bda21dcf104a3b561cbda78b0b7bb143547346006cdb409ded63c9dbf",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/pre-import-after.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/pre-import-sources.json": {
+      "sha256": "df9ef08bda21dcf104a3b561cbda78b0b7bb143547346006cdb409ded63c9dbf",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/pre-import-sources.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/report.json": {
+      "sha256": "09d6e21d0e8eb43553ef4541669bf7edef877a45980e07d19cfee71cb1e874bb",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/report.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-down-partial-000.png": {
+      "sha256": "a6983d4a615596c0def2176ef8cb4e417c9bdd830c9da1b35eeba68d24c9c685",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-down-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-down-recovery-000.png": {
+      "sha256": "3b6f3523c0f4c68a8ef41584f8c5f5fb61593aa7cc23c943a141b81eb2aaf734",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-down-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-down-recovery-048.png": {
+      "sha256": "417f7061d2ed3b8c5af89f964267ae6bbd4f0649d599f70f115aaf1b725871fb",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-down-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-down-recovery-096.png": {
+      "sha256": "4394b72010783a1b10b17173acc97a5be63b6018f5afacb33f70b53aa92defe2",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-down-recovery-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-down-recovery-100.png": {
+      "sha256": "5c7637fdee745af0b87067fca1f3740b531e23c6914d2c8a7304f0a8f2522538",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-down-recovery-100.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-down-retrace-000.png": {
+      "sha256": "568d1677b05fa00d2adc47c15750c0db21715d99c6da97273178e7dbd1070b5c",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-down-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-down-retrace-020.png": {
+      "sha256": "5c7637fdee745af0b87067fca1f3740b531e23c6914d2c8a7304f0a8f2522538",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-down-retrace-020.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-down-work-000.png": {
+      "sha256": "a6983d4a615596c0def2176ef8cb4e417c9bdd830c9da1b35eeba68d24c9c685",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-down-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-down-work-048.png": {
+      "sha256": "339e14eb98940c0fa557f53c95b629c37677049444c78ab14a57536e1121541b",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-down-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-front-partial-000.png": {
+      "sha256": "e352ea050ee442d07f5449941afc71ee51f7fafcbcc982b98d58092fed584490",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-front-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-front-recovery-000.png": {
+      "sha256": "dea146693b02de5dce18b757047b5576401c4d3e2fc2c76bd37564fb7d94ac0d",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-front-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-front-recovery-048.png": {
+      "sha256": "99d9bb9ba3e213b137c0610e181c40a1828cd581fa9d6938850febd1366db07d",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-front-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-front-recovery-090.png": {
+      "sha256": "5c7637fdee745af0b87067fca1f3740b531e23c6914d2c8a7304f0a8f2522538",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-front-recovery-090.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-front-retrace-000.png": {
+      "sha256": "86fad15a2dc91bf42854c81dd481d5faf33b96f98c7bcb6e3f64473cea3527c1",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-front-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-front-retrace-016.png": {
+      "sha256": "5c7637fdee745af0b87067fca1f3740b531e23c6914d2c8a7304f0a8f2522538",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-front-retrace-016.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-front-work-000.png": {
+      "sha256": "e352ea050ee442d07f5449941afc71ee51f7fafcbcc982b98d58092fed584490",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-front-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-front-work-048.png": {
+      "sha256": "9487e17966acdf5f34cc994ad82e6a0850b0cdc5f98bfb28eb5787b103ba4a23",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-front-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-front-work-096.png": {
+      "sha256": "299b7b67ab06e947527008ae711b46b0ce43081a913a8101ee09440a693be67a",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-front-work-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-high-recovery-000.png": {
+      "sha256": "89848675a430472dd85085b2b67529c9574626f32fc760656622636d963a0094",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-high-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-high-recovery-048.png": {
+      "sha256": "338e84ec96d30de21ac13e73f78c694257bbb2961b085f35d6aff727d317a8a7",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-high-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-high-recovery-088.png": {
+      "sha256": "5c7637fdee745af0b87067fca1f3740b531e23c6914d2c8a7304f0a8f2522538",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-high-recovery-088.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-high-work-000.png": {
+      "sha256": "a6983d4a615596c0def2176ef8cb4e417c9bdd830c9da1b35eeba68d24c9c685",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-high-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-high-work-048.png": {
+      "sha256": "339e14eb98940c0fa557f53c95b629c37677049444c78ab14a57536e1121541b",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-high-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-idle-000.png": {
+      "sha256": "14e57dc76ad582fb60bf8d028a3448b9557be9739caf4b7f1026001a9a3f3898",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-idle-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-idle-ready-000.png": {
+      "sha256": "36a01bc23a24403ed3d1e04b704106dc556431180db47a8253965b4b8c463dbb",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-idle-ready-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-idle-ready-014.png": {
+      "sha256": "5c7637fdee745af0b87067fca1f3740b531e23c6914d2c8a7304f0a8f2522538",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-idle-ready-014.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-install-partial-000.png": {
+      "sha256": "b3a56aad7036ed4c75ca7f4bdbee889afbb3c9e7122695e29160ba53faed263b",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-install-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-install-recovery-000.png": {
+      "sha256": "392b2333abcc027b8fcb68a5ff5647d2f2be7c7344951d6e557c6c36659e711a",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-install-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-install-recovery-048.png": {
+      "sha256": "8831947d6e7ca928484959143328caa8547db8c6c4a44061a60037f9386da1ba",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-install-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-install-recovery-096.png": {
+      "sha256": "37c57798fbe2cdfb569e834d169482a927ed156832a87a8b5e144354c57259d5",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-install-recovery-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-install-recovery-100.png": {
+      "sha256": "5c7637fdee745af0b87067fca1f3740b531e23c6914d2c8a7304f0a8f2522538",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-install-recovery-100.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-install-retrace-000.png": {
+      "sha256": "82329618b1a7eb7dea985a5623763d0b8ad46815f3b4a65ab10bcf20680708aa",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-install-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-install-retrace-016.png": {
+      "sha256": "5c7637fdee745af0b87067fca1f3740b531e23c6914d2c8a7304f0a8f2522538",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-install-retrace-016.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-install-work-000.png": {
+      "sha256": "b3a56aad7036ed4c75ca7f4bdbee889afbb3c9e7122695e29160ba53faed263b",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-install-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-install-work-048.png": {
+      "sha256": "33bdfc28a57482ff78fd1fd41ffa01189f2481a815119c1cc39b7b9084bd7467",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-install-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-walk-000.png": {
+      "sha256": "45a6a91fdb3e7cb19084e16dd8999780f941b5d60b7c29a44527e404ba7ef570",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-walk-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-walk-ready-000.png": {
+      "sha256": "9713049752e7fa492124719c1f0852534d893fdb05025cd9bb88d0881883a1fc",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-walk-ready-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-walk-ready-014.png": {
+      "sha256": "5c7637fdee745af0b87067fca1f3740b531e23c6914d2c8a7304f0a8f2522538",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw0-walk-ready-014.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-down-partial-000.png": {
+      "sha256": "4e5df2d5d2b23f1e859b964fd6b297a13c32613339f025b09573d4b92a10b6cb",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-down-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-down-recovery-000.png": {
+      "sha256": "a964f6f003d253c8dd2248c50f097d13ad53cf28eee5454680a68771370565b5",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-down-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-down-recovery-048.png": {
+      "sha256": "b5f3563c0bd1b3bde7024c61cc3b1588ebefce62bbf9622cca21ffe334548a60",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-down-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-down-recovery-096.png": {
+      "sha256": "3a0057de18cc8fa3be83dddbea16e31d84d1333dc03408f386bf50cedef3ff0a",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-down-recovery-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-down-recovery-100.png": {
+      "sha256": "89ed553f07b6c0053b5a5e863e8d9d1d47c74aa248d2805782f8ee2b1028726f",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-down-recovery-100.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-down-retrace-000.png": {
+      "sha256": "561b01a25cea449435a1b9300941b4a1aaaa91c0c2bebc738039a5b0c4edc89b",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-down-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-down-retrace-020.png": {
+      "sha256": "89ed553f07b6c0053b5a5e863e8d9d1d47c74aa248d2805782f8ee2b1028726f",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-down-retrace-020.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-down-work-000.png": {
+      "sha256": "4e5df2d5d2b23f1e859b964fd6b297a13c32613339f025b09573d4b92a10b6cb",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-down-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-down-work-048.png": {
+      "sha256": "246774b52f418eef7094945e6fd1134d99293e8fec4f3ab9aa43ce8877e31f4f",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-down-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-front-partial-000.png": {
+      "sha256": "1ad7bf60853076d290a23bc1f50e6c87817a7a79d270d2b9cead3d929f2dc0b4",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-front-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-front-recovery-000.png": {
+      "sha256": "d20fd846607dfbd13cfb45dc9f6bbec0991aa8e949287e33859dda4401304aa1",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-front-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-front-recovery-048.png": {
+      "sha256": "c20ecaff2f41cc96dc599aec6e5ad494083b658d9f5fb52d43c1b2894a886c2a",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-front-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-front-recovery-090.png": {
+      "sha256": "89ed553f07b6c0053b5a5e863e8d9d1d47c74aa248d2805782f8ee2b1028726f",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-front-recovery-090.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-front-retrace-000.png": {
+      "sha256": "ad5a66ac1b5bcffb10d4cf200a54b948c63f378c91be82b1e4d03d05b38236e7",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-front-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-front-retrace-016.png": {
+      "sha256": "89ed553f07b6c0053b5a5e863e8d9d1d47c74aa248d2805782f8ee2b1028726f",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-front-retrace-016.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-front-work-000.png": {
+      "sha256": "1ad7bf60853076d290a23bc1f50e6c87817a7a79d270d2b9cead3d929f2dc0b4",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-front-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-front-work-048.png": {
+      "sha256": "39eb6e8cb2383af7f43ffbd2f08a9b568fd85b5f2c76a6b68425723bf0e6ed02",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-front-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-front-work-096.png": {
+      "sha256": "aaf95255bf41bae19467ffcf37c55737c96416eff48fd601aa33ccc77cb8dc40",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-front-work-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-high-recovery-000.png": {
+      "sha256": "e28fc42b3b751f4eac42b9440133298fbb3f090b983f730bee24cf0cbc060790",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-high-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-high-recovery-048.png": {
+      "sha256": "bfc8bc8849f619555ac0fb524211eb09984be1b29a7e156845eb573ea8a153fc",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-high-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-high-recovery-088.png": {
+      "sha256": "89ed553f07b6c0053b5a5e863e8d9d1d47c74aa248d2805782f8ee2b1028726f",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-high-recovery-088.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-high-work-000.png": {
+      "sha256": "4e5df2d5d2b23f1e859b964fd6b297a13c32613339f025b09573d4b92a10b6cb",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-high-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-high-work-048.png": {
+      "sha256": "246774b52f418eef7094945e6fd1134d99293e8fec4f3ab9aa43ce8877e31f4f",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-high-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-idle-000.png": {
+      "sha256": "fcb3f0a13737044979f62361018a7b63956ce71f7c6017cf78e770556b246298",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-idle-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-idle-ready-000.png": {
+      "sha256": "1f0b226afe201444945a8b338aa3d4256d61af07c1bfd031a5a5346da4786df8",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-idle-ready-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-idle-ready-014.png": {
+      "sha256": "89ed553f07b6c0053b5a5e863e8d9d1d47c74aa248d2805782f8ee2b1028726f",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-idle-ready-014.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-install-partial-000.png": {
+      "sha256": "dcf960275c0ff9864f69825a80455d2c762998f61e074a641eccc868078d776b",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-install-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-install-recovery-000.png": {
+      "sha256": "74a9f5d17f9be86ee5572fa955f8177104e7e41f4c0d08f0e15ae0bff357aebe",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-install-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-install-recovery-048.png": {
+      "sha256": "76c508f967b0c7b9eb5d00826ec7c365418ece02762323f822c2841e984584b2",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-install-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-install-recovery-096.png": {
+      "sha256": "10dd25690718ea5e132672263c16eaaf8d823732f0673e9c499d010de7028b6e",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-install-recovery-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-install-recovery-100.png": {
+      "sha256": "89ed553f07b6c0053b5a5e863e8d9d1d47c74aa248d2805782f8ee2b1028726f",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-install-recovery-100.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-install-retrace-000.png": {
+      "sha256": "844bf70a9edcc0d6c13e2fb61fd1f27b15220ea51f8008918ebd245ecf2d30a6",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-install-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-install-retrace-016.png": {
+      "sha256": "89ed553f07b6c0053b5a5e863e8d9d1d47c74aa248d2805782f8ee2b1028726f",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-install-retrace-016.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-install-work-000.png": {
+      "sha256": "dcf960275c0ff9864f69825a80455d2c762998f61e074a641eccc868078d776b",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-install-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-install-work-048.png": {
+      "sha256": "f1779bf5abd1588730dbc07398d15a49a6f890dc835b744ff1217c585a08e9d8",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-install-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-walk-000.png": {
+      "sha256": "257f15290cfb3d0018d436a804e6a5f9406a97b142b809df4f8887f52d064582",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-walk-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-walk-ready-000.png": {
+      "sha256": "1d30666b7274fe497377749df3b19b7e08789ce7e358e264f2dd9e5c1462df63",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-walk-ready-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-walk-ready-014.png": {
+      "sha256": "89ed553f07b6c0053b5a5e863e8d9d1d47c74aa248d2805782f8ee2b1028726f",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw16384-walk-ready-014.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-down-partial-000.png": {
+      "sha256": "2873c319fcaa9ca34ce60b4d5b7b297e5c5f62127fa97e0207df750535315be3",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-down-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-down-recovery-000.png": {
+      "sha256": "75f44f965fc026369747c72c98fbd48b4a3d796091a7a88038588dcb4f9f81ce",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-down-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-down-recovery-048.png": {
+      "sha256": "84978ad2218a840c2b5d98398adf2fcbcef1f1544478187ce652f53d42ab9de8",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-down-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-down-recovery-096.png": {
+      "sha256": "04fc8104a0018c31f28e182e0166686776ee2299506b92cb6c74556103c8576a",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-down-recovery-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-down-recovery-100.png": {
+      "sha256": "6c4df31c2a4472b0e2ac160df5c3a68a22bec501b9231d1b0c7151306642f536",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-down-recovery-100.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-down-retrace-000.png": {
+      "sha256": "cf648c9b01125d8c0c40689f031a2a53920d2776c0e0ba1d46a26caa169ac8d4",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-down-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-down-retrace-020.png": {
+      "sha256": "6c4df31c2a4472b0e2ac160df5c3a68a22bec501b9231d1b0c7151306642f536",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-down-retrace-020.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-down-work-000.png": {
+      "sha256": "2873c319fcaa9ca34ce60b4d5b7b297e5c5f62127fa97e0207df750535315be3",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-down-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-down-work-048.png": {
+      "sha256": "0d1fbd4877fdbe6c42f99bcabfd6c786d6e986769daec42f3f901955cfec06a7",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-down-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-front-partial-000.png": {
+      "sha256": "9788303e2dc2923855fa0ce6035ca1c5914e07b229357bcadef76ff431142573",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-front-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-front-recovery-000.png": {
+      "sha256": "0b1a051ed08fb833d4788ecf87e6de9c79a94e5eb95eac78b5ab23ce91785d2a",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-front-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-front-recovery-048.png": {
+      "sha256": "4c3fd3b3e520edb79254f5b07a0fce91ffe0ede0cf1b007562afb5fea2ba1afe",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-front-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-front-recovery-090.png": {
+      "sha256": "6c4df31c2a4472b0e2ac160df5c3a68a22bec501b9231d1b0c7151306642f536",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-front-recovery-090.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-front-retrace-000.png": {
+      "sha256": "ad9dc34b24219e492c83a57ad70624afe693549466a2c22c97771828c767b4a3",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-front-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-front-retrace-016.png": {
+      "sha256": "6c4df31c2a4472b0e2ac160df5c3a68a22bec501b9231d1b0c7151306642f536",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-front-retrace-016.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-front-work-000.png": {
+      "sha256": "9788303e2dc2923855fa0ce6035ca1c5914e07b229357bcadef76ff431142573",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-front-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-front-work-048.png": {
+      "sha256": "90bf71cf19852cec408ad752d2884858a13caa1a686dbfa2af2c4ea77b289128",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-front-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-front-work-096.png": {
+      "sha256": "7dbd19cd52c256f9fea0a0fdbc7e494b9fca4fd8cebbdea51ccb26a0f06514ea",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-front-work-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-high-recovery-000.png": {
+      "sha256": "41479247a8e87e6ffbd98d1d231f7ea1b251d3e405f4a39a046d8327a882c586",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-high-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-high-recovery-048.png": {
+      "sha256": "84ab433d158cf373d996bc7334e0c911c886a441856bf446d3d248095213bfa5",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-high-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-high-recovery-088.png": {
+      "sha256": "6c4df31c2a4472b0e2ac160df5c3a68a22bec501b9231d1b0c7151306642f536",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-high-recovery-088.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-high-work-000.png": {
+      "sha256": "2873c319fcaa9ca34ce60b4d5b7b297e5c5f62127fa97e0207df750535315be3",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-high-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-high-work-048.png": {
+      "sha256": "0d1fbd4877fdbe6c42f99bcabfd6c786d6e986769daec42f3f901955cfec06a7",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-high-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-idle-000.png": {
+      "sha256": "7f6c31e5d475e16a64941f14d140247f2f5e7472a88dc404e4e43befca3c7ca0",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-idle-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-idle-ready-000.png": {
+      "sha256": "9040d73a4a2b191a8053b6fb0e3064a1177dc84c883a16a790a9443bf5f6947a",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-idle-ready-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-idle-ready-014.png": {
+      "sha256": "6c4df31c2a4472b0e2ac160df5c3a68a22bec501b9231d1b0c7151306642f536",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-idle-ready-014.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-install-partial-000.png": {
+      "sha256": "6e11c069dd75bd5eeb63cc9dfe35327b500000bb1796461ef1bb0e27937b3726",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-install-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-install-recovery-000.png": {
+      "sha256": "7822891ee84f11ae2702d61165c4384cf4c4866804933bfd27ae82fb882caf5d",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-install-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-install-recovery-048.png": {
+      "sha256": "d7d360c90f7620953d8d7d401fbbe4e67af3748960c8d9b0906494bc531c4b99",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-install-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-install-recovery-096.png": {
+      "sha256": "9c54c42f7f4e9231f4859d2bbddc8b7d11d00a4736360cc1f9516bb832b9918e",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-install-recovery-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-install-recovery-100.png": {
+      "sha256": "6c4df31c2a4472b0e2ac160df5c3a68a22bec501b9231d1b0c7151306642f536",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-install-recovery-100.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-install-retrace-000.png": {
+      "sha256": "c62411f19921b91e8d6856e4d0f89b6e89f84782c02d4fbf2d31a8ac8d07eb2e",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-install-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-install-retrace-016.png": {
+      "sha256": "6c4df31c2a4472b0e2ac160df5c3a68a22bec501b9231d1b0c7151306642f536",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-install-retrace-016.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-install-work-000.png": {
+      "sha256": "6e11c069dd75bd5eeb63cc9dfe35327b500000bb1796461ef1bb0e27937b3726",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-install-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-install-work-048.png": {
+      "sha256": "d7e4b524c8d5714a5a15b70f7dd6078b9e57337251d530c8faf5a266fd55dd0b",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-install-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-walk-000.png": {
+      "sha256": "40736264df3bf91877ca4ca9228aea256431308e8a30e63c9d25ccbbebc48ccf",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-walk-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-walk-ready-000.png": {
+      "sha256": "7e5e2141dda70203087ec94aa5af79b083493324c4f8bbaa709361261c768102",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-walk-ready-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-walk-ready-014.png": {
+      "sha256": "6c4df31c2a4472b0e2ac160df5c3a68a22bec501b9231d1b0c7151306642f536",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw32768-walk-ready-014.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-down-partial-000.png": {
+      "sha256": "0f2915fba93ccbc374a1755d680462f1e9ab4841b84f63ade2b2088626262a3b",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-down-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-down-recovery-000.png": {
+      "sha256": "770907a666b8db5c6106a9e120e2926f929ec777cf0d63bfc75b9645c078fe2a",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-down-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-down-recovery-048.png": {
+      "sha256": "b9350e29aeac701da19702f3efaf115a8e0b45f0b14d20cfe3ceae30e6a13ca9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-down-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-down-recovery-096.png": {
+      "sha256": "14301e2d1702557e20d749915ed186d285d68db5c0420349ae96b93a67453a54",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-down-recovery-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-down-recovery-100.png": {
+      "sha256": "e058ac8519bd8f32ff39365a736a4b53cea568704c36972e205c7d859c4ec13c",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-down-recovery-100.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-down-retrace-000.png": {
+      "sha256": "3954ede2bb80bec175df69fef0b756e5c976ebaab7e5b3a5365c1610f13413b3",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-down-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-down-retrace-020.png": {
+      "sha256": "e058ac8519bd8f32ff39365a736a4b53cea568704c36972e205c7d859c4ec13c",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-down-retrace-020.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-down-work-000.png": {
+      "sha256": "0f2915fba93ccbc374a1755d680462f1e9ab4841b84f63ade2b2088626262a3b",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-down-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-down-work-048.png": {
+      "sha256": "a42f46cbef92b81822253f4d97c0a355e4279c4f01402fabfe29076d5e64d506",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-down-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-front-partial-000.png": {
+      "sha256": "d08e815c0118a4b64bee2129fee2c383442a3215e59b35352b7574c6e87e8cd2",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-front-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-front-recovery-000.png": {
+      "sha256": "0d4b481bb4365a784e56326644a29a7cc9426bc942fd157644beebb289de26fd",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-front-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-front-recovery-048.png": {
+      "sha256": "b0957fe0e0afb113b66e7b7c9b7a8da02d9986bbcc6eed9ba1d49a3dc5f49429",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-front-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-front-recovery-090.png": {
+      "sha256": "e058ac8519bd8f32ff39365a736a4b53cea568704c36972e205c7d859c4ec13c",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-front-recovery-090.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-front-retrace-000.png": {
+      "sha256": "4de4b73e9b5d95908bbff029cb5333007d10ba2815af6f173601cee98b8bb06e",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-front-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-front-retrace-016.png": {
+      "sha256": "e058ac8519bd8f32ff39365a736a4b53cea568704c36972e205c7d859c4ec13c",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-front-retrace-016.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-front-work-000.png": {
+      "sha256": "d08e815c0118a4b64bee2129fee2c383442a3215e59b35352b7574c6e87e8cd2",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-front-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-front-work-048.png": {
+      "sha256": "2cf9a706f9a04ff9ff335a12abb146fe80f1dbbc5832416bffba50ff171b39c1",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-front-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-front-work-096.png": {
+      "sha256": "d138b844b9aa72d43eab68da2db8368bc7b71cb79e9c96e5eb46918367b7c651",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-front-work-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-high-recovery-000.png": {
+      "sha256": "91d1b0654cb964a803ab3ae3f8dc64c7bbe741303a96b7a955010611ab5b93fb",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-high-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-high-recovery-048.png": {
+      "sha256": "2fbfd1d490895375a82626ddf29dac9e573b906aa374a7c8fb7611a09384cf56",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-high-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-high-recovery-088.png": {
+      "sha256": "e058ac8519bd8f32ff39365a736a4b53cea568704c36972e205c7d859c4ec13c",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-high-recovery-088.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-high-work-000.png": {
+      "sha256": "0f2915fba93ccbc374a1755d680462f1e9ab4841b84f63ade2b2088626262a3b",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-high-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-high-work-048.png": {
+      "sha256": "a42f46cbef92b81822253f4d97c0a355e4279c4f01402fabfe29076d5e64d506",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-high-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-idle-000.png": {
+      "sha256": "8c0773748ab4108f81b6983cb364c574d219db580d846f4d1a33adcdfbcafc0c",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-idle-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-idle-ready-000.png": {
+      "sha256": "ebc059d42ca4e23b5a755c37469655cf2e93cafbb78113951a2681564233b1ba",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-idle-ready-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-idle-ready-014.png": {
+      "sha256": "e058ac8519bd8f32ff39365a736a4b53cea568704c36972e205c7d859c4ec13c",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-idle-ready-014.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-install-partial-000.png": {
+      "sha256": "f2709356e15e1fb4ece308d4e49c9d12ccb29025ccac22683de5fc0dcdddc4bd",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-install-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-install-recovery-000.png": {
+      "sha256": "b1d6a2b0a4192301a0f81933b1bccc6e48e80c8317993842884e22a0f5a11ccc",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-install-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-install-recovery-048.png": {
+      "sha256": "c4282a590ab3d4764383de1ef35ef17beb6babcded0b4552b10f794a5c6f3021",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-install-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-install-recovery-096.png": {
+      "sha256": "b44e8da89624f96d5c7dec797c8fb56d5b305d61d5a7796ab57f37fadf7bb1cb",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-install-recovery-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-install-recovery-100.png": {
+      "sha256": "e058ac8519bd8f32ff39365a736a4b53cea568704c36972e205c7d859c4ec13c",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-install-recovery-100.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-install-retrace-000.png": {
+      "sha256": "f6fd22ca93d7307677839b240c4fede85a0e56a4bcd45361a4aa539f842eb249",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-install-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-install-retrace-016.png": {
+      "sha256": "e058ac8519bd8f32ff39365a736a4b53cea568704c36972e205c7d859c4ec13c",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-install-retrace-016.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-install-work-000.png": {
+      "sha256": "f2709356e15e1fb4ece308d4e49c9d12ccb29025ccac22683de5fc0dcdddc4bd",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-install-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-install-work-048.png": {
+      "sha256": "d7e8d60864c5df957f9d988236d4151b9619b6fba82f33f5ae0eeff17c6d0661",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-install-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-walk-000.png": {
+      "sha256": "cba282d37d530ca8078bfceb1bebcf873581a3684c643b04898446d9edb900b9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-walk-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-walk-ready-000.png": {
+      "sha256": "7c7618baef9076d7ad2117a3a3ec958ead0eabeaba5688dc3b88ef0c9350148c",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-walk-ready-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-walk-ready-014.png": {
+      "sha256": "e058ac8519bd8f32ff39365a736a4b53cea568704c36972e205c7d859c4ec13c",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/rts-yaw49152-walk-ready-014.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/runtime-override.cfg.txt": {
+      "sha256": "311fcb7ef364819ed645371dc9652032e9dcca58b5e9f30054f7f634dcb6720d",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/runtime-override.cfg.txt"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-down-partial-000.png": {
+      "sha256": "e8214ecacfc04a829dc4891d1d8f23233ba8a6cd34cca8b92d6564cc494cc252",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-down-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-down-recovery-000.png": {
+      "sha256": "2dfdb5eb15593285dd39a7f28db361300a96366e39ee5c4f3b80f68d8a522491",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-down-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-down-recovery-048.png": {
+      "sha256": "92140ce29fa779e8e6e93228392cc6d43ff705a279feef7abe82a5710a3120a9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-down-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-down-recovery-096.png": {
+      "sha256": "c82e1d03190ee14a56fd071c38a6aa5ca1d7de69acd5302e3a7fce432462231e",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-down-recovery-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-down-recovery-100.png": {
+      "sha256": "c4ec6138fd97fb216ee5736c7de832a098ede67e7e73101610a291142392aff9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-down-recovery-100.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-down-retrace-000.png": {
+      "sha256": "e4e5a85d3fab4217f9d074935fe85d1722f8e24dc67787eea0cc700c5909aa58",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-down-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-down-retrace-020.png": {
+      "sha256": "c4ec6138fd97fb216ee5736c7de832a098ede67e7e73101610a291142392aff9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-down-retrace-020.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-down-work-000.png": {
+      "sha256": "e8214ecacfc04a829dc4891d1d8f23233ba8a6cd34cca8b92d6564cc494cc252",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-down-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-down-work-048.png": {
+      "sha256": "be819a475e693411bea74488edda54b92db2ae621c62405389f025f0ea4bbd33",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-down-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-front-partial-000.png": {
+      "sha256": "e13e07c8f2f81125b34a1f38a8670ff1e2c35926dc9e5f66a427d04b1ca09898",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-front-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-front-recovery-000.png": {
+      "sha256": "dd0c962c6bf191e107c020f7d7ca2553fae98bc15f42ae492419e8fcea9b1f4a",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-front-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-front-recovery-048.png": {
+      "sha256": "2bea5069934d670f617e25f2e9c836820dbd5fd3132abece00a28b5a000b0392",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-front-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-front-recovery-090.png": {
+      "sha256": "c4ec6138fd97fb216ee5736c7de832a098ede67e7e73101610a291142392aff9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-front-recovery-090.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-front-retrace-000.png": {
+      "sha256": "5f0f09aaec1be342ba2cf94a3a60586e8a04970cab84f8f58043685152787d59",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-front-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-front-retrace-016.png": {
+      "sha256": "c4ec6138fd97fb216ee5736c7de832a098ede67e7e73101610a291142392aff9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-front-retrace-016.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-front-work-000.png": {
+      "sha256": "e13e07c8f2f81125b34a1f38a8670ff1e2c35926dc9e5f66a427d04b1ca09898",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-front-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-front-work-048.png": {
+      "sha256": "ca31b18f257883a4b7cd0cf1301ee1ea650b19e951d5645d3229169e0051cc3d",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-front-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-front-work-096.png": {
+      "sha256": "96b1d403a2d1a0dc0aded3ae94ae85d89ec1982008a6fb3ddf1d1c127245634b",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-front-work-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-high-recovery-000.png": {
+      "sha256": "78e69c1f07dd82bff11f7a8d85728ef6b93c5faac4fffa0a02be0243d50e587b",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-high-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-high-recovery-048.png": {
+      "sha256": "4dca29681a483615f94aefabae2b35f724c3f2d192f333afb26c3e50a8ef0cc2",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-high-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-high-recovery-088.png": {
+      "sha256": "c4ec6138fd97fb216ee5736c7de832a098ede67e7e73101610a291142392aff9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-high-recovery-088.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-high-work-000.png": {
+      "sha256": "e8214ecacfc04a829dc4891d1d8f23233ba8a6cd34cca8b92d6564cc494cc252",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-high-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-high-work-048.png": {
+      "sha256": "be819a475e693411bea74488edda54b92db2ae621c62405389f025f0ea4bbd33",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-high-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-idle-000.png": {
+      "sha256": "bc460731301f7bf84b53f06ed2b50d3f981cbc5bf0462fa0e54ffa6ed8b446f9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-idle-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-idle-ready-000.png": {
+      "sha256": "e4588c41e2c1d66bb7c03a540c5651cf6012656aa6b899a682ec70bc837d7f8d",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-idle-ready-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-idle-ready-014.png": {
+      "sha256": "c4ec6138fd97fb216ee5736c7de832a098ede67e7e73101610a291142392aff9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-idle-ready-014.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-install-partial-000.png": {
+      "sha256": "a9d9b8e232eabe8a3f255aac17767175236e18528e678c79d70fbd0b0556499d",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-install-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-install-recovery-000.png": {
+      "sha256": "7991fcca520f6e462e89151277e1ead4b6830b1c2f44f0bf1bc098a202ec6763",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-install-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-install-recovery-048.png": {
+      "sha256": "00f717a866f755f716388680531c4b7da0b2428677117fe97a9bb4b6947e8a15",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-install-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-install-recovery-096.png": {
+      "sha256": "fb78fd0a3476aa0cdc4419edf9ec2f8a3d2d0bd9cc53d3355674eae9ba4c06b6",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-install-recovery-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-install-recovery-100.png": {
+      "sha256": "c4ec6138fd97fb216ee5736c7de832a098ede67e7e73101610a291142392aff9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-install-recovery-100.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-install-retrace-000.png": {
+      "sha256": "04f14f91ef94f0eaf13f05044460deae0efef41d5a049b30a02b23de9d97bbd8",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-install-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-install-retrace-016.png": {
+      "sha256": "c4ec6138fd97fb216ee5736c7de832a098ede67e7e73101610a291142392aff9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-install-retrace-016.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-install-work-000.png": {
+      "sha256": "a9d9b8e232eabe8a3f255aac17767175236e18528e678c79d70fbd0b0556499d",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-install-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-install-work-048.png": {
+      "sha256": "7c08deab7760a44b0d54e46aff442e93a8d7cf8909fb496677f76420c156e304",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-install-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-walk-000.png": {
+      "sha256": "9b90f4f9552abbbbf33f3c14955f5ba38407ec65ed757bc1466dccf2deafc83b",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-walk-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-walk-ready-000.png": {
+      "sha256": "7d1da8563468baf638cc2f35ad33684a1c76bed794e8422af59c88f57c243784",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-walk-ready-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-walk-ready-014.png": {
+      "sha256": "c4ec6138fd97fb216ee5736c7de832a098ede67e7e73101610a291142392aff9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw0-walk-ready-014.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-down-partial-000.png": {
+      "sha256": "f32519f280b5ae81cdfe20a524c7f44626615c9a9c5d814676d5907f00166542",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-down-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-down-recovery-000.png": {
+      "sha256": "0123e7bee29171a6fcdfd69eba269b3058f63abce0d0ff81f2155ee355e1db34",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-down-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-down-recovery-048.png": {
+      "sha256": "ba89d12b25dbc0f7a617fa99322a525869e2b84b2d8ad949b485da7cd8d4e22f",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-down-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-down-recovery-096.png": {
+      "sha256": "77e06aedbb9a8fca1f34adc91fc85b8a6cda8b5d01b9d156f0491a2c8e5aa99e",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-down-recovery-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-down-recovery-100.png": {
+      "sha256": "f45cb9c9980f360d68967ca3f8ccfa737af1b1c374a7ce67e964763bbcb0f0c9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-down-recovery-100.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-down-retrace-000.png": {
+      "sha256": "c9837039c0fff4d7bc34ad863c204920b3d64b5eddd6aedbfaa6b2f5c92598c5",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-down-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-down-retrace-020.png": {
+      "sha256": "f45cb9c9980f360d68967ca3f8ccfa737af1b1c374a7ce67e964763bbcb0f0c9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-down-retrace-020.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-down-work-000.png": {
+      "sha256": "f32519f280b5ae81cdfe20a524c7f44626615c9a9c5d814676d5907f00166542",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-down-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-down-work-048.png": {
+      "sha256": "98c30f0db72fa16357d7aa58698618112efbbdb68210a19d4c084edfe67809fa",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-down-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-front-partial-000.png": {
+      "sha256": "00a8c2c05a0d9210fcb7924d8a0695e47173f3b453ca4c8c7e158079a2d1d65a",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-front-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-front-recovery-000.png": {
+      "sha256": "d23084baaa2ee4dc9b4fed21413c5b39d6d55a453e788f4263c7f091cde1c689",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-front-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-front-recovery-048.png": {
+      "sha256": "408468e810bfad9659ee3b85235eaf2c797469fc2e430a638b64844dd72ee0af",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-front-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-front-recovery-090.png": {
+      "sha256": "f45cb9c9980f360d68967ca3f8ccfa737af1b1c374a7ce67e964763bbcb0f0c9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-front-recovery-090.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-front-retrace-000.png": {
+      "sha256": "84c9f6faf938eb92d1fa24b2bbb6f1646c88030a0e1f162627bf71bc09009a0d",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-front-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-front-retrace-016.png": {
+      "sha256": "f45cb9c9980f360d68967ca3f8ccfa737af1b1c374a7ce67e964763bbcb0f0c9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-front-retrace-016.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-front-work-000.png": {
+      "sha256": "00a8c2c05a0d9210fcb7924d8a0695e47173f3b453ca4c8c7e158079a2d1d65a",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-front-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-front-work-048.png": {
+      "sha256": "315950e4154650d88a7298b1e5c2d495277f971ab6a959d94aeaddf662b865b1",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-front-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-front-work-096.png": {
+      "sha256": "04ef2976e450646668de7da5d93aa2a92efaed6b0c0ed150fb7b00167ebdc96d",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-front-work-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-high-recovery-000.png": {
+      "sha256": "05301ce65baf3a0df37bccfbe0467209fd0dde619fa92ab2e8ed726a94333134",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-high-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-high-recovery-048.png": {
+      "sha256": "f17fc76fe6b5a42582e317e9ec6717429eacce8e4b77881525a893dadad1e959",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-high-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-high-recovery-088.png": {
+      "sha256": "f45cb9c9980f360d68967ca3f8ccfa737af1b1c374a7ce67e964763bbcb0f0c9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-high-recovery-088.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-high-work-000.png": {
+      "sha256": "f32519f280b5ae81cdfe20a524c7f44626615c9a9c5d814676d5907f00166542",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-high-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-high-work-048.png": {
+      "sha256": "98c30f0db72fa16357d7aa58698618112efbbdb68210a19d4c084edfe67809fa",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-high-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-idle-000.png": {
+      "sha256": "687576b1f8dfd4d2a60ad13f016022977c7625aa8f5130250043d9299696ae89",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-idle-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-idle-ready-000.png": {
+      "sha256": "f4baff6691e33cbbe60197dd21aa31e3d3475974fe0c5e5718ad011f8b195ef7",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-idle-ready-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-idle-ready-014.png": {
+      "sha256": "f45cb9c9980f360d68967ca3f8ccfa737af1b1c374a7ce67e964763bbcb0f0c9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-idle-ready-014.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-install-partial-000.png": {
+      "sha256": "1231dc51573173137d7a0e9679380f5d58ab33558c1d739ab87c440ac59585db",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-install-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-install-recovery-000.png": {
+      "sha256": "0319f6a7cade91f7ec71ae97115d523b33617bee2fa026b88fbe67478ab965d9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-install-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-install-recovery-048.png": {
+      "sha256": "9b61a74e5a51a22bc71dac3953fc4a85a29faeaa8c1be8f85f043e0b679fe3ad",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-install-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-install-recovery-096.png": {
+      "sha256": "901cadff3eeb984401c31f206e03281ffaf92ca7171d22258280c983419dc276",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-install-recovery-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-install-recovery-100.png": {
+      "sha256": "f45cb9c9980f360d68967ca3f8ccfa737af1b1c374a7ce67e964763bbcb0f0c9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-install-recovery-100.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-install-retrace-000.png": {
+      "sha256": "f62430fdd6084831bc1778b46342fb23cd716fb3399ea5125e21ce94fa8f0576",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-install-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-install-retrace-016.png": {
+      "sha256": "f45cb9c9980f360d68967ca3f8ccfa737af1b1c374a7ce67e964763bbcb0f0c9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-install-retrace-016.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-install-work-000.png": {
+      "sha256": "1231dc51573173137d7a0e9679380f5d58ab33558c1d739ab87c440ac59585db",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-install-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-install-work-048.png": {
+      "sha256": "1ed4e1378ce231ac2ba694fe8c614180cb6bde6a4e570691c202e673d58cbc2a",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-install-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-walk-000.png": {
+      "sha256": "7f220971aafe8d9aff488f6d4338db8b99191254093cab2a6b2db731feea9a23",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-walk-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-walk-ready-000.png": {
+      "sha256": "b2cfdd8b9e6885fdf960d4fb3d395bc357d5dec796e65204061934f752672f36",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-walk-ready-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-walk-ready-014.png": {
+      "sha256": "f45cb9c9980f360d68967ca3f8ccfa737af1b1c374a7ce67e964763bbcb0f0c9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw16384-walk-ready-014.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-down-partial-000.png": {
+      "sha256": "bb22cbd22e2c73db8d8bc7480c56a5e2e678d05a11bbba765a607cbe1ea6cedb",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-down-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-down-recovery-000.png": {
+      "sha256": "cb47bd4be9f9558fe5f8f5f129ad58e5f68d19365e14baab0f5bd8e4732b69ef",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-down-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-down-recovery-048.png": {
+      "sha256": "b31e914ccbe7193d0acac0e1ad11cded2301c9480e9ffe354d7c6327972f3b82",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-down-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-down-recovery-096.png": {
+      "sha256": "c83e86ec816bc98f390a2503d15a8cfcc52804a6a8b73b671f1757328fd56ff2",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-down-recovery-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-down-recovery-100.png": {
+      "sha256": "491b397977c73643adf40fcb168935c9b64a323ff995d06edfd807cfb0af9fa1",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-down-recovery-100.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-down-retrace-000.png": {
+      "sha256": "12a992d5a49601f51c94dcc499a82ace52864414094cb0ab9f14ce567470a4a7",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-down-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-down-retrace-020.png": {
+      "sha256": "491b397977c73643adf40fcb168935c9b64a323ff995d06edfd807cfb0af9fa1",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-down-retrace-020.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-down-work-000.png": {
+      "sha256": "bb22cbd22e2c73db8d8bc7480c56a5e2e678d05a11bbba765a607cbe1ea6cedb",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-down-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-down-work-048.png": {
+      "sha256": "c1eb81c14625028755c9f74372a49cbf5eae4ed305b3b1fd4ea762dd75b05f66",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-down-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-front-partial-000.png": {
+      "sha256": "90fed7fabe3d47142c2eb57afcea4a70a9a55e3beeec501d6ba1cd7b2db7a80d",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-front-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-front-recovery-000.png": {
+      "sha256": "2a96782b18941e060be551ae0de49f82bb8e32ee086ef51277d1e0461a99782d",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-front-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-front-recovery-048.png": {
+      "sha256": "77961367d6732a502e55ee75842ef8ac08de3f3bf1fff1ce544dc0e2eb55fc3b",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-front-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-front-recovery-090.png": {
+      "sha256": "491b397977c73643adf40fcb168935c9b64a323ff995d06edfd807cfb0af9fa1",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-front-recovery-090.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-front-retrace-000.png": {
+      "sha256": "fda98b05c16662553063bc1d2360886f9051b7ff0b96b33e1df0ef220efa4f85",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-front-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-front-retrace-016.png": {
+      "sha256": "491b397977c73643adf40fcb168935c9b64a323ff995d06edfd807cfb0af9fa1",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-front-retrace-016.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-front-work-000.png": {
+      "sha256": "90fed7fabe3d47142c2eb57afcea4a70a9a55e3beeec501d6ba1cd7b2db7a80d",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-front-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-front-work-048.png": {
+      "sha256": "8955ac1bdd0e7a258e1fca891300cd29c53f8dd5fd61d897025377747f2fb533",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-front-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-front-work-096.png": {
+      "sha256": "f2c6d59233b3429ad0050ff6004ac2242b528b00f4de9fedad2e45a19ace699a",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-front-work-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-high-recovery-000.png": {
+      "sha256": "0ff1dd79fff3d8879c36990e3c48e961149b2276527c46feb4f77a34c4567b9d",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-high-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-high-recovery-048.png": {
+      "sha256": "a31dbf9a2b1254914fdea5cb3ae5beca292d7ef7392ff2802b6cfa99f28c6411",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-high-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-high-recovery-088.png": {
+      "sha256": "491b397977c73643adf40fcb168935c9b64a323ff995d06edfd807cfb0af9fa1",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-high-recovery-088.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-high-work-000.png": {
+      "sha256": "bb22cbd22e2c73db8d8bc7480c56a5e2e678d05a11bbba765a607cbe1ea6cedb",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-high-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-high-work-048.png": {
+      "sha256": "c1eb81c14625028755c9f74372a49cbf5eae4ed305b3b1fd4ea762dd75b05f66",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-high-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-idle-000.png": {
+      "sha256": "22f6ad1dadcc606eebef3e991447042ff0296b8180cb4578531d2623b8172b36",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-idle-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-idle-ready-000.png": {
+      "sha256": "73f3f274ff9063a845f42b1669aae4d9026f56f425b6dbdd76c1d2822d33266a",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-idle-ready-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-idle-ready-014.png": {
+      "sha256": "491b397977c73643adf40fcb168935c9b64a323ff995d06edfd807cfb0af9fa1",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-idle-ready-014.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-install-partial-000.png": {
+      "sha256": "234ff4f388694af299074aee5a2987deec4eb760a6c263d53c50855d488e3827",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-install-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-install-recovery-000.png": {
+      "sha256": "b52b2b7a58718d6034e44278893e96dd5259cf76edc03168b0a22c9e58c62aa1",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-install-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-install-recovery-048.png": {
+      "sha256": "c72fb84b3a8fc2c62552299dec19e026b5040af090ae2db702a05b04f0b839f6",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-install-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-install-recovery-096.png": {
+      "sha256": "18b3f4d33d9ef38a49c1b4557ba000c20e8fd1449413093111ce033cfb3c5f3c",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-install-recovery-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-install-recovery-100.png": {
+      "sha256": "491b397977c73643adf40fcb168935c9b64a323ff995d06edfd807cfb0af9fa1",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-install-recovery-100.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-install-retrace-000.png": {
+      "sha256": "ab179b57b0c275b97c41044c21f4651a6e935cfcad7faa3b143baa13c25ca9b8",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-install-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-install-retrace-016.png": {
+      "sha256": "491b397977c73643adf40fcb168935c9b64a323ff995d06edfd807cfb0af9fa1",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-install-retrace-016.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-install-work-000.png": {
+      "sha256": "234ff4f388694af299074aee5a2987deec4eb760a6c263d53c50855d488e3827",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-install-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-install-work-048.png": {
+      "sha256": "e92f9eb65262c4ec8d724528379bb9a812822e24b346fdee7ea37b1ce5d35f80",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-install-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-walk-000.png": {
+      "sha256": "a9108a48a9e5a44b5e17368bc0c55676a193a4ff144c5587d6c8284e0e0ed0c5",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-walk-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-walk-ready-000.png": {
+      "sha256": "3a8e4eddeeef04f366e04ba70d4921ac810fee81e76799104ef9e3c08135cb1c",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-walk-ready-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-walk-ready-014.png": {
+      "sha256": "491b397977c73643adf40fcb168935c9b64a323ff995d06edfd807cfb0af9fa1",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw32768-walk-ready-014.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-down-partial-000.png": {
+      "sha256": "1d6c04db857ebbbbb580ee0579d91bbd12c209d8d31a52268d26c51f0f2dde88",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-down-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-down-recovery-000.png": {
+      "sha256": "ac56ddf2cd77c39248cdef64071fef346bc6fe4b914bc9d3690032128ec97309",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-down-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-down-recovery-048.png": {
+      "sha256": "5969b4687f70cf186476b6613fe1f1138cc480f8a22da64ac71b8e2be368dfaf",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-down-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-down-recovery-096.png": {
+      "sha256": "5307cb9e0d39f8e2fa143ea46d47ad57d79d619166a3a790da7d9ac2f4a73835",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-down-recovery-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-down-recovery-100.png": {
+      "sha256": "9289af8fecd8c4c30df22600a7671deed61369eadbe413e41d2bb0340216a8a0",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-down-recovery-100.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-down-retrace-000.png": {
+      "sha256": "526c519f2e4d4cfbcf1afe3349f9826aa5c51707dc0be034942a66da0f6f94a2",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-down-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-down-retrace-020.png": {
+      "sha256": "9289af8fecd8c4c30df22600a7671deed61369eadbe413e41d2bb0340216a8a0",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-down-retrace-020.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-down-work-000.png": {
+      "sha256": "1d6c04db857ebbbbb580ee0579d91bbd12c209d8d31a52268d26c51f0f2dde88",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-down-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-down-work-048.png": {
+      "sha256": "39ca29f544df5da85413382061f57d1c980fffac9c16d111cead7f93c4f9e4b8",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-down-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-front-partial-000.png": {
+      "sha256": "19476cf576b3cc929f56fff2291e3eb7c5570693fe244a20d5a6b7a7bcf859c8",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-front-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-front-recovery-000.png": {
+      "sha256": "a75ed98d6bacc5790b6ba750fd2c89119f764f3b49c4e63bfc6b12470833b8d4",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-front-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-front-recovery-048.png": {
+      "sha256": "430018e6f59a1de7da5f0468d529a7c2b24026712a1d5e9efb60a9fac4afb88e",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-front-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-front-recovery-090.png": {
+      "sha256": "9289af8fecd8c4c30df22600a7671deed61369eadbe413e41d2bb0340216a8a0",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-front-recovery-090.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-front-retrace-000.png": {
+      "sha256": "5ad7b79d5ece89d6b8bc08446505598c5c61fc981337f7d786dd4fdd6501e52c",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-front-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-front-retrace-016.png": {
+      "sha256": "9289af8fecd8c4c30df22600a7671deed61369eadbe413e41d2bb0340216a8a0",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-front-retrace-016.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-front-work-000.png": {
+      "sha256": "19476cf576b3cc929f56fff2291e3eb7c5570693fe244a20d5a6b7a7bcf859c8",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-front-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-front-work-048.png": {
+      "sha256": "a27d34e71c1ea8970a37789e4f3fe31d9887c7a0870ed8a75479871b7324d350",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-front-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-front-work-096.png": {
+      "sha256": "3380a972d946af7da222d2bdd60a65f68a080161272fc6fdd1ef2ed3a36c7354",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-front-work-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-high-recovery-000.png": {
+      "sha256": "4ad5bb62c9d235a7dda4c1cec1b901f4b1f45f4d681bc64b13d41adcdca01dbd",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-high-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-high-recovery-048.png": {
+      "sha256": "42220f7f605208aa12e6fe7d4c84549f0656bf057d45a203faf49fc6c668a1bc",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-high-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-high-recovery-088.png": {
+      "sha256": "9289af8fecd8c4c30df22600a7671deed61369eadbe413e41d2bb0340216a8a0",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-high-recovery-088.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-high-work-000.png": {
+      "sha256": "1d6c04db857ebbbbb580ee0579d91bbd12c209d8d31a52268d26c51f0f2dde88",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-high-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-high-work-048.png": {
+      "sha256": "39ca29f544df5da85413382061f57d1c980fffac9c16d111cead7f93c4f9e4b8",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-high-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-idle-000.png": {
+      "sha256": "9d8373a0d7400047b1170f90b1739d93a3ef1f61c1bf32ac9610e46e348842d0",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-idle-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-idle-ready-000.png": {
+      "sha256": "19dbfd5dffd25c7aa5208071792bd8453aed7ebf0f1a56df272dee190f8d66e1",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-idle-ready-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-idle-ready-014.png": {
+      "sha256": "9289af8fecd8c4c30df22600a7671deed61369eadbe413e41d2bb0340216a8a0",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-idle-ready-014.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-install-partial-000.png": {
+      "sha256": "ae8544f9f7539bdf264848294cd224dfcd31694d07573a1322e14e5fe837f6b6",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-install-partial-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-install-recovery-000.png": {
+      "sha256": "dbd98a33d79e19eebbae4baa0d1ab4f98de5dcfff9aec70bb64d9f1774bb88fa",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-install-recovery-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-install-recovery-048.png": {
+      "sha256": "27dab4a276747341001428f29d97b7e529386f0551853811409cc54d53865eb3",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-install-recovery-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-install-recovery-096.png": {
+      "sha256": "55d0ffcde94fb2b4bac7924200e7f47d1403bfdfb27d39c90890243206a1bedc",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-install-recovery-096.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-install-recovery-100.png": {
+      "sha256": "9289af8fecd8c4c30df22600a7671deed61369eadbe413e41d2bb0340216a8a0",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-install-recovery-100.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-install-retrace-000.png": {
+      "sha256": "a3c8fbd0b26ac3766d1269436f27fe4e8a6024ffc1277b273663bde1d782fa08",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-install-retrace-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-install-retrace-016.png": {
+      "sha256": "9289af8fecd8c4c30df22600a7671deed61369eadbe413e41d2bb0340216a8a0",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-install-retrace-016.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-install-work-000.png": {
+      "sha256": "ae8544f9f7539bdf264848294cd224dfcd31694d07573a1322e14e5fe837f6b6",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-install-work-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-install-work-048.png": {
+      "sha256": "414a84fd85cc4536252ec442150eb7597e9b3ee98c855eabec6fff8605a5ad7c",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-install-work-048.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-walk-000.png": {
+      "sha256": "7165bc508f3d009a5c4961ebb823c0d2f2b5f072ebf9dba40792ee06ef19be2c",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-walk-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-walk-ready-000.png": {
+      "sha256": "c37113aac50d62d0943fdb9d472bc894cded9007b68a42c8e491d77a66163c12",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-walk-ready-000.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-walk-ready-014.png": {
+      "sha256": "9289af8fecd8c4c30df22600a7671deed61369eadbe413e41d2bb0340216a8a0",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/side-yaw49152-walk-ready-014.png"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/sources-after.json": {
+      "sha256": "94c940ebd45449c8464c37851fa9f03fbb116eb75f9e3b0731aaeff2c7fa0009",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/sources-after.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/sources.json": {
+      "sha256": "94c940ebd45449c8464c37851fa9f03fbb116eb75f9e3b0731aaeff2c7fa0009",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/sources.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/spec.json": {
+      "sha256": "fb3c06f777c83e0658bf44079a411167ee223e254add1d96f702887f3785455e",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/spec.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/verification.json": {
+      "sha256": "f06a624671167c1b0694e17c59c231a61d2e7c1332fd0ef76a6c699fe5e0fc8d",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/verification.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-native-v2/analyzer.json": {
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-native-v2/analyzer.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-native-v2/analyzer.log": {
+      "sha256": "4149412bf2bc9a0c789283f8568f060c85bc89a8abcac221bba1a021b522df15",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-native-v2/analyzer.log"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-native-v2/check-invocation.json": {
+      "sha256": "326660ca9536988212fdafbcc3671b060b2eb5e331eaeb3a4106b1e2e824a958",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-native-v2/check-invocation.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-native-v2/tests.log": {
+      "sha256": "cf91458ad6d5db7d7ffc1442e59b5741bf4b81e77e68e06b849d65dc7125dd77",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-native-v2/tests.log"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-native-v2/wrapper.log": {
+      "sha256": "0c06b19539ae3cd4897c360f7e4edd7cdccc6d1a590283266ba541a3b9715006",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-native-v2/wrapper.log"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-profile-source-gates-v1/source-sha256.json": {
+      "sha256": "f4e69a81147236ae4daf660ded5ee4fb1536b8c2c15df6b3f92278a32cd34985",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/review-profile-source-gates-v1/source-sha256.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/close_profile_source_gates.py": {
+      "sha256": "746d9fe28567aab270807253b531c5e449e87f2f726da3895a8217a0f1dbd26a",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/close_profile_source_gates.py"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/test_profile_source_gates.py": {
+      "sha256": "02ab73bd904bc1cf8570d36682ef6c746038baf78ed6e26a353fa6ca01005cdf",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/test_profile_source_gates.py"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-profile-source-gates-v1/output-sha256.json": {
+      "sha256": "b417b9744ff3549c0e69faf2b27dbed61ecdef1b599627cfa1bdb48159ef37b0",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/review-profile-source-gates-v1/output-sha256.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-profile-source-gates-v1/closure.log": {
+      "sha256": "5207412c4c2e903fad81e768faa10c045a89089720ae23f0cdc1d4d0d562d2db",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/review-profile-source-gates-v1/closure.log"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-profile-source-gates-v1/tests.log": {
+      "sha256": "698d16d7b93c4bd9707d3cfacda6fb1e0fea99ed0cda6e69bedc42772940540a",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/review-profile-source-gates-v1/tests.log"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v1/ground-closure.json": {
+      "sha256": "e876f6f76b6c696cb5d11f2bb2e0b1a7b39a3930b1178d19f7bd82bd1753b672",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v1/ground-closure.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v1/mole_profile_driver.gd.txt": {
+      "sha256": "523aaad9069747c15f9366eaa08fed73ecf54bd9868b7f328a1fd423968e83c3",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v1/mole_profile_driver.gd.txt"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v1/underground_actor.gd.txt": {
+      "sha256": "64ce149244114c7404e6e7374b6c268fa2ebbe2e70dfa940d3d3e791c763c4b6",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v1/underground_actor.gd.txt"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v1/underground_actor_content.gd.txt": {
+      "sha256": "388374964d20879b6b896021ebde7927e472634ea8a32b6834ec7b1b5042157f",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v1/underground_actor_content.gd.txt"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v1/underground_connector_contacts.gd.txt": {
+      "sha256": "a6454ab756cdc242aeb2078916b2a89a1da4968ecdff7eeeb6427854235856aa",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v1/underground_connector_contacts.gd.txt"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v1/underground_profiles.gd.txt": {
+      "sha256": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v1/underground_profiles.gd.txt"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v1/underground_routes.gd.txt": {
+      "sha256": "d1bfd9c42c0fab50673b0abe0bba988e1e2caa1c639f8e68c4a07c3b96b300d8",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v1/underground_routes.gd.txt"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v1/underground_work_face.gd.txt": {
+      "sha256": "e138d653af2cd532da4d8014562cf00be19c0a5f263839521807014cae78a7cc",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v1/underground_work_face.gd.txt"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v1/underground_world_routes.gd.txt": {
+      "sha256": "7ee66e9918e45002b9afb68fdd168eb90b5078ed395a78802899297645db612f",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v1/underground_world_routes.gd.txt"
+    },
+    "godot/data/underground/mole-worker/compile_profiles.py": {
+      "sha256": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+      "locator": "godot/data/underground/mole-worker/compile_profiles.py"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": {
+      "sha256": "d29e76248a4b607b163dd8e0132ebf6a071cff63d277dd0ee837f54c047e7494",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_compact_program.py": {
+      "sha256": "a8767bd00946cf3883c09336102ab6aeff7bffff981fa568ba4c0d743c6dcec4",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/author_compact_program.py"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": {
+      "sha256": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_program.py": {
+      "sha256": "613629249386906fea9ce35c4d633cfff83e481c27a08eccb938476d6d0e466f",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_program.py"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_source.py": {
+      "sha256": "633beb0647e612b159f0257912e3321b126dbde5e49678e0c725c90bc4a7793a",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_source.py"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": {
+      "sha256": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": {
+      "sha256": "e843ebc713118ef165cc3e114d84b860d8a2513a1144adff94ebdf0256f24c6e",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_compact_program.py": {
+      "sha256": "19fe426df8373229df330666b4f0cdc453e4a202455424ae1a442a62c8ffe548",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/compile_compact_program.py"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": {
+      "sha256": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": {
+      "sha256": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": {
+      "sha256": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": {
+      "sha256": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py"
+    },
+    "tools/compile_underground_actor_content.py": {
+      "sha256": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+      "locator": "tools/compile_underground_actor_content.py"
+    },
+    "tools/export_underground_envelopes.py": {
+      "sha256": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972",
+      "locator": "tools/export_underground_envelopes.py"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/renew_source_closure.py": {
+      "sha256": "1dcdbe1ea5e1a4ae1d097897cfd81dd0c7c821eae05ee78b6140cd2aa6b82272",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/renew_source_closure.py"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor": {
+      "sha256": "adc617642313ac004c050d4877ef0b9f4024bb9c88e3ea92ce9a924471bd5ab9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/program.json": {
+      "sha256": "5caaec976eb3f8995784dc5f8d98cdb6c233020372d87964620b0da1c4e41c6e",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/program.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/roles.json": {
+      "sha256": "0f2da835a381460231c1560ea116fa3aafd51d32a4f3185f25b11b782bd4fd83",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/roles.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/plan.json": {
+      "sha256": "ffdebb3cbacafab9766679cc5b7bd0894c80e6e3499ab91a1e3d225bf8991ee2",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/plan.json"
+    },
+    "godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw": {
+      "sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+      "locator": "godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/analysis-carry-arm-v7/invocation.json": {
+      "sha256": "5e599305d6fa7e6c15ea6b5029fd82ac4749e3cc6b0b581f6b6c30875c1934c0",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/analysis-carry-arm-v7/invocation.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v4/mole-worker.ugactor": {
+      "sha256": "cae2e9b210ce1019153b298c8f98504683f080a150c66d030d113d18b4b678e9",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v4/mole-worker.ugactor"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v4/candidate.json": {
+      "sha256": "4a771e103b400e967bb752fd0ce340735574fc84aa2c5373dd1a2ff7c770dc57",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v4/candidate.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v4/plan.json": {
+      "sha256": "50fd154de80b00625c7e7cd677334aa6ecd4cd735ce1c7499ff2bf091281340c",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v4/plan.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compact-program-compile-v2/result/mole-worker.ugactor": {
+      "sha256": "f575382e1fdc4b5e20b70254a8c7a5b3ebf6f0256266627dc79d43f3e12dae37",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/compact-program-compile-v2/result/mole-worker.ugactor"
+    },
+    "godot/demo/assets/underground-matrices/mole-grip-v3.ugpal": {
+      "sha256": "08de54533d28b1a45a2e171180a0ca68812912f67c9b7294bf26c25eec424cda",
+      "locator": "godot/demo/assets/underground-matrices/mole-grip-v3.ugpal"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/grip-proof-v2/envelopes.json": {
+      "sha256": "69397b67ac29c8b52ab08821efeaf9984e94d6affa5f8af84888d276df308099",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/grip-proof-v2/envelopes.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/grip-source-v3/source-plan.json": {
+      "sha256": "0ea14eb045f32da39472c7d039463d13f7e50a372d4f35cef77e21cd1a2489b5",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/grip-source-v3/source-plan.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/topology-v5/topology.json": {
+      "sha256": "da623e5c7c3c5a6aff5c466b143425422f3aa2253497527c84f713738f997b42",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/topology-v5/topology.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compact-program-proof-v1.json": {
+      "sha256": "9e1e5d1bec451588e431dff6a669052a2677111a52898bbec7c33b4ab0b5014b",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/compact-program-proof-v1.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compact-program-source-v1/mole-worker.ugactor": {
+      "sha256": "92867c982add6e8ae9337f8afb1a91fc2299110f6e64ac9cad9017a9a51faf9e",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/compact-program-source-v1/mole-worker.ugactor"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compact-program-compile-v2/result/roles.json": {
+      "sha256": "84cf43a446a6e5d42d9bc2c0398caea681dcaa46bdf0491320346d4c6ddf80c6",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/compact-program-compile-v2/result/roles.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/historical-source-locators.json": {
+      "sha256": "46741887b362bfbc32a175b7fdeb48824d54d4b39564fd5f79fe8c439139467a",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/historical-source-locators.json"
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/final-consumers/ground-closure.json": {
+      "sha256": "d2d96c450733c2af3c98ccd7cec9d868acce03f8b9d7df55a1032c8b2298e8c3",
+      "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/final-consumers/ground-closure.json"
+    },
+    "godot/data/underground/mole-worker/publish_mole_profiles.py": {
+      "sha256": "813746cd4a989442dc77f20b985fb1d3f001bb4a935cb80ffbb939b7c76033ad",
+      "locator": "godot/data/underground/mole-worker/publish_mole_profiles.py"
+    },
+    "docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_work_face.gd.txt": {
+      "sha256": "fefccffb1a1f6ea79204f129a96a1bac687eb555a32b298f1d61267c31f0a295",
+      "locator": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_work_face.gd.txt"
+    },
+    "godot/scripts/core/underground_connector_contacts.gd": {
+      "sha256": "8dcde4f27ec783319332748e6c71a3b996be842601338e2c667c1346c96a3dd3",
+      "locator": "godot/scripts/core/underground_connector_contacts.gd"
+    },
+    "godot/demo/cast/underground_actor.gd": {
+      "sha256": "b0ef7640d2b5626eb95c162d19318d9b3985a51479d19dfdf9a38e0176a06e91",
+      "locator": "godot/demo/cast/underground_actor.gd"
+    },
+    "godot/demo/cast/underground_actor_content.gd": {
+      "sha256": "388374964d20879b6b896021ebde7927e472634ea8a32b6834ec7b1b5042157f",
+      "locator": "godot/demo/cast/underground_actor_content.gd"
+    },
+    "godot/data/underground/mole-worker/publish_work_approach_profiles.py": {
+      "sha256": "7584179cca9ae4f46abe9a034433f93481705937546e2ae2b278e13bc127cf3a",
+      "locator": "godot/data/underground/mole-worker/publish_work_approach_profiles.py"
+    },
+    "godot/scripts/core/underground_work_face.gd": {
+      "sha256": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
+      "locator": "godot/scripts/core/underground_work_face.gd"
+    },
+    "godot/scripts/core/underground_routes.gd": {
+      "sha256": "e9da2df5b115f50af3f65a4ba40c2956db09226799c18e43fb2852e57be92921",
+      "locator": "docs/validation/evidence/underground-short-step-publication-2026-10-05/historical-inputs/godot__scripts__core__underground_routes.gd.txt",
+      "historical_commit": "8003bfe155092e9a8bc8b5590228e6069b859173"
+    },
+    "godot/scripts/core/underground_world_routes.gd": {
+      "sha256": "3341260ee11ec2008ee1ab32fa797d971d13edc7136ee6fb38e65a0b15ab338e",
+      "locator": "docs/validation/evidence/underground-short-step-publication-2026-10-05/historical-inputs/godot__scripts__core__underground_world_routes.gd.txt",
+      "historical_commit": "8003bfe155092e9a8bc8b5590228e6069b859173"
+    },
+    "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/native-1/report.json": {
+      "sha256": "a7466c759866b8902945d75c241920710ed6535438cc8f12b896666af98bbb31",
+      "locator": "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/native-1/report.json"
+    },
+    "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/native-1/verification.json": {
+      "sha256": "5f1f39b49d23d2391918ca86163974c5381ac17448f5154993272635cbe10607",
+      "locator": "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/native-1/verification.json"
+    },
+    "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/native-1/invocation.json": {
+      "sha256": "bfa5bbe3f8e6bede5a0420ba6c2154074ca9c672b04c5322f1f5916e063fc868",
+      "locator": "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/native-1/invocation.json"
+    },
+    "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/native-1/sources-before.json": {
+      "sha256": "29b7bbc4bef519aa446b80e708e215cecb12ab8fa3792ed084c5d07766e72f5f",
+      "locator": "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/native-1/sources-before.json"
+    },
+    "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/native-1/sources-after.json": {
+      "sha256": "29b7bbc4bef519aa446b80e708e215cecb12ab8fa3792ed084c5d07766e72f5f",
+      "locator": "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/native-1/sources-after.json"
+    },
+    "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/native-1/native.bin": {
+      "sha256": "f0db5014d644f057a4e4c7f7d1696ae77ff5045a28c0540321a6c35973856025",
+      "locator": "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/native-1/native.bin"
+    },
+    "godot/data/underground/mole-worker/renew_work_approach_profiles.py": {
+      "sha256": "9f6fbaa1ac04a0305c9758c4c4b6608d5cd91923829e73368cfde4b9ee699b32",
+      "locator": "godot/data/underground/mole-worker/renew_work_approach_profiles.py"
+    }
+  }
+}

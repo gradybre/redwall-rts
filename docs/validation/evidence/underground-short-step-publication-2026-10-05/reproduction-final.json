@@ -1,0 +1,43 @@
+{
+  "seconds": 3.3155510420911014,
+  "source_reconstruction_files": 537,
+  "native_inputs": 402,
+  "pins": 1015,
+  "outputs": {
+    "mole-worker.ugprof": {
+      "sha256": "830ee531a432f9cef8a24a85f1c017be21253301bc46bf55e0a6b97807a4ec4e",
+      "bytes": 10502,
+      "byte_identical": true
+    },
+    "catalog_source.gd": {
+      "sha256": "b446be6719ce857c3b91595a2e6c9de82c3603adac5b7254470a7d7433a453c5",
+      "bytes": 1849,
+      "byte_identical": true
+    },
+    "manifest.json": {
+      "sha256": "a93e6c23b706a71b4cd66e08778494eb8e4b3adcd5a610cfa0b891b71c012927",
+      "bytes": 168462,
+      "byte_identical": true
+    },
+    "ground-pace.ugconn": {
+      "sha256": "454eaab1b2a722aab2700285d31a0bcc093312dad211208da7993baa32bc2f24",
+      "bytes": 576,
+      "byte_identical": true
+    },
+    "ground-manifest.json": {
+      "sha256": "471c1c2b11e987487eabd5e63986aee651e5340c50f692890c0d43c685d16ab7",
+      "bytes": 3707,
+      "byte_identical": true
+    },
+    "motion.ugmotion": {
+      "sha256": "69fd9011da9b9c1d85e206401ef287943381a24d19322946287234b2dc66850c",
+      "bytes": 70936,
+      "byte_identical": true
+    },
+    "motion-manifest.json": {
+      "sha256": "9d62e1bbe6edf883eb4b146ecd275c526b9b2fe5fd4cf85e061bd69143a0f541",
+      "bytes": 1410,
+      "byte_identical": true
+    }
+  }
+}

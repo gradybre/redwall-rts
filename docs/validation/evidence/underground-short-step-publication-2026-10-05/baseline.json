@@ -1,0 +1,21 @@
+{
+  "commit": "912de685b423c5eedd36ee68bc78f18670276cb7",
+  "sources": {
+    "godot/data/underground/mole-worker/mole_profile_catalog.gd": {
+      "locator": "docs/validation/evidence/underground-short-step-publication-2026-10-05/baseline/mole_profile_catalog.gd.txt",
+      "sha256": "0cda851709eab25720befa288364e9392cba4f9f629f70b7e7dd6d39138b83b5"
+    },
+    "godot/scripts/core/underground_motion_catalog.gd": {
+      "locator": "docs/validation/evidence/underground-short-step-publication-2026-10-05/baseline/underground_motion_catalog.gd.txt",
+      "sha256": "46e71996e15c1ccc12906831775b23f7a7c66d69bc2d161ddfdd78d0f6db67e3"
+    },
+    "godot/scripts/core/underground_motion_clock.gd": {
+      "locator": "docs/validation/evidence/underground-short-step-publication-2026-10-05/baseline/underground_motion_clock.gd.txt",
+      "sha256": "fc399a6d36c36422cf9052ccf053031fb96b17e3b12bd572271662b3e7f33edf"
+    },
+    "godot/scripts/core/underground_route_composition.gd": {
+      "locator": "docs/validation/evidence/underground-short-step-publication-2026-10-05/baseline/underground_route_composition.gd.txt",
+      "sha256": "f47e5fd013bd106c5efa7368c7c7192985687d2b72d0c7750cebb5225532c227"
+    }
+  }
+}

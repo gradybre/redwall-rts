@@ -1,22 +1,22 @@
 extends RefCounted
 ## Source-qualified mole geometry only. Actual support, paid targets, Job/Gear and presentation remain separate.
-## Nine borrowed cached Scripts, bounded hashing scratch, existing streamed two-bank Profiles; no third image.
+## Ten borrowed cached Scripts, bounded hashing scratch, existing streamed two-bank Profiles; no third image.
 
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Content := preload("res://demo/cast/underground_actor_content.gd")
 const Actor := preload("res://demo/cast/underground_actor.gd")
 const Space := preload("res://scripts/core/room_space.gd")
-const Pins := preload("./profile-publication-v3-frontier/catalog_source.gd")
-const PROFILE_COUNT: int = 26
-const BOX_COUNT: int = 250
-const CONTENT_REVISION: int = 2
+const Pins := preload("./qualified-step-v4/catalog_source.gd")
+const PROFILE_COUNT: int = 29
+const BOX_COUNT: int = 271
+const CONTENT_REVISION: int = 3
 const PROFILE_REVISION: int = 1
-const WIRE_BYTES: int = 9620
-const PAIRED_BANK_BYTES: int = 19224
+const WIRE_BYTES: int = 10502
+const PAIRED_BANK_BYTES: int = 20988
 const SOURCE_CHARS: int = 262144
 const HASH_CHARS: int = 1024
 const CONTROL_RESERVE: int = 32768 # Existing Profiles reserve, never an additional arena.
-const WIRE_PATH: String = "res://data/underground/mole-worker/profile-publication-v3-frontier/mole-worker.ugprof"
+const WIRE_PATH: String = "res://data/underground/mole-worker/qualified-step-v4/mole-worker.ugprof"
 
 
 static func load_into(profiles: Profiles, content: Content, domain: Space.Domain) -> StringName:
@@ -57,9 +57,9 @@ static func presentation_refusal(content: Content, basis: Actor.WorldBasis, doma
 
 static func runtime_sources_refusal() -> StringName:
 	"""Use the already cached actual Script source, not mutable disk bytes or a fresh transitive load."""
-	if Pins.PATHS.size() != 9 or Pins.DIGESTS.size() != 9:
+	if Pins.PATHS.size() != 10 or Pins.DIGESTS.size() != 10:
 		return &"MOLE_CATALOG_SOURCE_COUNT"
-	for index: int in 9:
+	for index: int in 10:
 		var path: String = Pins.PATHS[index]
 		if path.length() > 128 or not ResourceLoader.has_cached(path):
 			return &"MOLE_CATALOG_SOURCE_UNCACHED"
@@ -95,7 +95,7 @@ static func profile_id(source_role: int, yaw: int) -> int:
 	if yaw % 16384 != 0:
 		return -1
 	@warning_ignore("integer_division") var heading: int = yaw / 16384
-	return 10 + 4 * heading + source_role - 2
+	return 13 + 4 * heading + source_role - 2
 
 
 static func approach_profile_id(yaw: int, backward: bool = false) -> int:
@@ -104,6 +104,16 @@ static func approach_profile_id(yaw: int, backward: bool = false) -> int:
 		return -1
 	@warning_ignore("integer_division") var heading: int = yaw / 16384
 	return (6 if backward else 2) + heading
+
+
+static func canonical_ground_profile_id() -> int:
+	"""Explicit canonical admission opts into Routes' integer source clock; legacy WALK remains row one."""
+	return 12
+
+
+static func short_step_profile_id(yaw: int, backward: bool = false) -> int:
+	"""Only the source-proved positive-X body heading has this finite232u protocol."""
+	return (11 if backward else 10) if yaw == 49152 else -1
 
 
 static func pins_into(profiles: Profiles, out: PackedInt64Array) -> StringName:
@@ -128,7 +138,7 @@ static func driver_pins_into(profiles: Profiles, out: PackedInt64Array) -> Strin
 	if code != &"":
 		return code
 	for index: int in 18:
-		out[index * 3] = index if index < 2 else index + 8
+		out[index * 3] = index if index < 2 else index + 11
 		out[index * 3 + 1] = PROFILE_REVISION
 		out[index * 3 + 2] = CONTENT_REVISION
 	return &""

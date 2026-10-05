@@ -1,0 +1,10 @@
+clean-import.log 0
+test_mole_qualified_profiles.gd.log 0
+12 test(s), 411 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 12 tests, 411 assertions, 0 failures.
+test_underground_motion_catalog.gd.log 1
+16 test(s), 13721 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+error: 1 failing test(s).

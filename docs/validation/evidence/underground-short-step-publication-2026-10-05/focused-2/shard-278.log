@@ -1,0 +1,37 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_motion_clock.gd
+  PASS  test_every_adopted_tick_matches_actual_source_phase
+  PASS  test_exact_terminal_roots_and_absolute_frames
+  PASS  test_crossed_ranges_cover_every_interval_once
+  PASS  test_stationary_root_interval_still_needs_source_proof
+  PASS  test_pause_and_repeated_sampling_are_stateless
+  PASS  test_chunked_ticks_keep_complete_proof_range
+  PASS  test_unadopted_programs_never_borrow_tread_timing
+  PASS  test_noninteger_commands_refuse_before_conversion
+  PASS  test_negative_reverse_surplus_and_huge_ticks_preserve_outputs
+  PASS  test_wrong_output_shapes_preserve_both_arrays
+  PASS  test_foreign_and_unloaded_source_owners_refuse
+  FAIL  test_revision_and_retired_world_expire_sample
+        exact refusal (expected MOTION_QUERY, got )
+        prior pose unchanged (expected [77, 77, 77, 77, 77, 77, 77, 77, 77], got [0, -127, -2215, 32768, 0, 0, 3, 4, 0])
+        prior interval range unchanged (expected [81, 81], got [0, 3])
+  PASS  test_actual_profile_replacement_expires_sampling
+  PASS  test_timing_does_not_publish_rate_or_travel_permission
+CI_SUITE_TIME {"assertions":2090,"failures":1,"suite":"test_underground_motion_clock.gd","tests":14,"usec":295366}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+14 test(s), 2090 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

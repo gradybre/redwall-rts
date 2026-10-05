@@ -7,7 +7,7 @@ const Levels := preload("res://scripts/core/underground_level_catalog.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const MoleCatalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
-const Pins := preload("res://data/underground/mole-worker/profile-publication-v3/catalog_source.gd")
+const Pins := preload("res://data/underground/mole-worker/qualified-step-v4/catalog_source.gd")
 const BANK_BYTES: int = 70860
 const WIRE_BYTES: int = 70936
 const I32_COUNT: int = 17421
@@ -27,13 +27,13 @@ const JOINS: int = 17399
 const DOMAIN: int = 17415
 const PROGRAM_LONG: int = 32
 const ACTOR_BYTES: int = 544
-const SOURCE_WIRE_SHA: String = "2f44037e5e4eed0b4e2966cd1ac1881bdf4481dd083a26b11d8eea0c5ca0f986"
+const SOURCE_WIRE_SHA: String = "69fd9011da9b9c1d85e206401ef287943381a24d19322946287234b2dc66850c"
 const LEVEL_SHA: String = "c5deb094b335bf6e5db018eeed591a115086b79bd909f829ed6e34166db81f94"
 const GAIT_BASE: Array[int] = [0, 24, 570, 1290, 3378, 4354, 4534]
 const GAIT_ROWS: Array[int] = [2, 182, 180, 348, 122, 180, 44]
 const HANDOFF_BASE: Array[int] = [0, 24, 2289, 4989, 9075, 11523, 11973]
 const HANDOFF_ROWS: Array[int] = [3, 453, 450, 681, 306, 450, 22]
-const HEADER: Array[int] = [1, 2, 2, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 5, 3, 66, 4, 0, 0]
+const HEADER: Array[int] = [1, 3, 3, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 5, 3, 66, 4, 0, 0]
 const BOUNDS: Array[int] = [0, -32256, 0, 262144, 16896, 262144]
 const ACTOR_HASHES: Array[String] = [
 	"3a9e2459edba1bf4eaa50f91b5accb53f53317e5fc67bfa75b4a4b4cb8ac6988",
@@ -175,7 +175,7 @@ func load_file(path: String, expected_sha: String, revision: int) -> StringName:
 	if _busy:
 		_poisoned = true
 		return &"MOTION_BUSY"
-	if _admitted_bytes == 0 or _revision != 0 or revision != 2 or path.length() > 1024 \
+	if _admitted_bytes == 0 or _revision != 0 or revision != 3 or path.length() > 1024 \
 			or expected_sha != SOURCE_WIRE_SHA:
 		return &"MOTION_LOAD_UNAVAILABLE"
 	_busy = true
@@ -213,7 +213,7 @@ func _decode_stream(file: FileAccess, hashing: HashingContext) -> StringName:
 	"""Fixed counts refuse before any length product or write; all destination arrays already exist."""
 	var bytes: PackedByteArray = _read(file, hashing, 32)
 	if bytes.size() != 32 or bytes.slice(0, 8).get_string_from_ascii() != "UGMOTN01" \
-			or bytes.decode_u32(8) != 1 or bytes.decode_u32(12) != BANK_BYTES or bytes.decode_s64(16) != 2 \
+			or bytes.decode_u32(8) != 1 or bytes.decode_u32(12) != BANK_BYTES or bytes.decode_s64(16) != 3 \
 			or bytes.decode_u32(24) != 3 or bytes.decode_u32(28) != 0:
 		return &"MOTION_WIRE_HEADER"
 	for column: int in 3:
@@ -273,7 +273,7 @@ func _publish_source(expected_sha: String) -> void:
 	var bytes: PackedByteArray = expected_sha.hex_decode()
 	for index: int in 32:
 		_digest[index] = bytes[index]
-	_revision = 2
+	_revision = 3
 
 
 func packed_memory_bytes() -> int:

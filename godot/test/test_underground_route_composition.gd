@@ -147,6 +147,8 @@ func test_actual_graph_uses_one_original_owner_tuple_and_real_pace_without_permi
 	assert_equal(o.sites._count, 0, "no phase or paid claim")
 	assert_equal(o.world_routes._catalog.content_revision(), 1, "actual immutable ground catalog")
 	assert_equal(o.world_routes._catalog._movement, o.world_routes._movement, "sole actual Movement")
+	assert_equal(o.profiles.content_revision(), 3, "current complete source program")
+	assert_equal(o.world_routes._catalog._live.header[7], 12, "all twelve exact WALK pace rows")
 	var original: WorldRoutes = o.world_routes
 	assert_true(_host.compose_underground_route_owners(), "idempotent exact observation")
 	assert_equal(_session._retirement_owners, o, "same permanent packet")
@@ -155,6 +157,22 @@ func test_actual_graph_uses_one_original_owner_tuple_and_real_pace_without_permi
 	assert_equal(Routes._required_bytes(o.locations.packed_memory_bytes(), Routes.MAX_LOCATIONS,
 		Routes.MAX_EDGES, Routes.MAX_VERTICES, Routes.MAX_LINKS) <= Budget.LOCATION_AND_TOPOLOGY_BYTES,
 		true, "actual combined Location/graph capacity")
+
+
+func test_current_ground_and_finite_step_paces_do_not_admit_an_actor_or_edge() -> void:
+	"""The real shared Catalog names new source policies, while physical admission remains entirely separate."""
+	assert_true(_host.compose_underground_route_owners(), "actual current source composition")
+	var o: Retirement.Owners = _session._retirement_owners
+	var pace: Composition.Catalog.IntMath.IntResult = Composition.Catalog.IntMath.IntResult.new()
+	for profile: int in range(1, 13):
+		assert_equal(o.world_routes._catalog.pace_into(profile, 1, 3, -1, 0, 1, pace), &"", "actual current ground cap")
+		assert_equal(pace.value, 3277, "existing adult mole ground cap, unchanged")
+	assert_equal(o.world_routes._catalog.pace_into(12, 1, 2, -1, 0, 1, pace),
+		&"CONNECTOR_PACE_UNAUTHORED", "old content cannot borrow canonical ground")
+	assert_equal(o.world_routes._catalog.pace_into(13, 1, 3, -1, 0, 1, pace),
+		&"CONNECTOR_PACE_UNAUTHORED", "WORK is not a movement pace")
+	assert_equal(o.routes._live.edge_count, 0, "no edge from source metadata")
+	assert_equal(o.locations._live.count, 0, "no support endpoint from source metadata")
 
 
 func test_complete_reset_releases_original_bindings_and_remounts_current_source() -> void:

@@ -1,0 +1,7 @@
+{
+  "producer": "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/stage_native_inputs.py",
+  "producer_sha256": "6f56c14e8a82a73b50c09ef21ffc7af507aa8c0764d233c50cf66925b3ea5dd9",
+  "only_override": "__file__ points to exact copied producer so its output receipt is in the owned 1173 evidence directory",
+  "source_checkout": "/Users/brendan/Developer/redwall-rts-codex-ug-short-work-step-runtime",
+  "source_not_modified": true
+}

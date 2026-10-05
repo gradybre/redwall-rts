@@ -1,0 +1,510 @@
+extends "res://test/framework/test_case.gd"
+## Real source and original paid owners. Diagnostic publication is explicit; no synthetic productive permission.
+
+const SourcePhases := preload("res://test/test_underground_entry_source_phases.gd")
+const PaidPhaseFixture := preload("res://test/test_underground_entry_world_bindings.gd")
+const PaidGroundTests := preload("res://test/test_underground_surface_anchor.gd")
+const Prefix := preload("res://test/test_underground_first_prefix.gd")
+const Workpieces := preload("res://scripts/core/underground_connector_workpieces.gd")
+const PaidConstruction := preload("res://scripts/core/construction.gd")
+const PaidContract := preload("res://scripts/core/modular_project_contract.gd")
+const PaidRoutes := preload("res://scripts/core/underground_routes.gd")
+const Assembly := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
+const DATA: String = "../docs/validation/evidence/underground-paid-assembly-handling-2026-10-05/"
+const PAID_PROFILE_SHA: String = "17d9c229fdfe8ad1923f004db136653ab9834994ba946061be38ec7a2c862ff9"
+const PAID_CATALOG_SHA: String = "eda41ce78d4a798e2160250e2d6760ec7507f0c651c1e7b9b8ad462ff65ab520"
+const PAID_GROUP_SHA: String = "3bb788bf250f4628cc4ab6a0c1a5748478d7909753cb5d1a8056d5eb7a8f4a54"
+const PAID_RECIPE_SHA: String = "3019f92d56713317550c417e732b057d238fe0b70adadca8b56289a1362391a8"
+const PAID_FRONTIER_SHA: String = "a8d30864cf8e79ae51a0fa2f2b317d5ef07fbf3ceebc1c6eac0e4380a11b038a"
+const PAID_WORKPIECE_SHA: String = "e68a7d9340675c495d875d97f5c51b063ba2a20b17041dc881b25a3e8b0f79ee"
+
+
+class Images extends RefCounted:
+	static func path(name: String) -> String:
+		"""Only individually pinned evidence is read; no production Catalog source guard is replaced."""
+		return ProjectSettings.globalize_path("res://").path_join(DATA + name).simplify_path()
+
+
+class ObservedPaidTerrain extends PaidGroundTests.CountedTerrain:
+	var source_probe: Callable = Callable()
+
+	func local_facts_refusal(bounds: PackedInt32Array, purpose: int, expected_revision: int) -> StringName:
+		"""Run the full original local query before the caller closes its exact source/lease scope."""
+		var code: StringName = super.local_facts_refusal(bounds, purpose, expected_revision)
+		if code == &"" and source_probe.is_valid():
+			var callback: Callable = source_probe
+			source_probe = Callable()
+			callback.call()
+		return code
+
+
+class ObservedPaidContacts extends PaidPhaseFixture.ObservedContacts:
+	var release_probe: Callable = Callable()
+	var handling_probe: Callable = Callable()
+
+	func release_observation_refusal(placement: Vector2i, project: Vector2i, worker: Vector2i, job: Vector2i) -> StringName:
+		"""An actual successful source/body observation may be followed by a hostile late callback."""
+		var code: StringName = super.release_observation_refusal(placement, project, worker, job)
+		if code == &"" and release_probe.is_valid():
+			var callback: Callable = release_probe
+			release_probe = Callable()
+			callback.call()
+		return code
+
+	func handling_observation_refusal(placement: Vector2i, project: Vector2i, worker: Vector2i, job: Vector2i) -> StringName:
+		"""Promotion must reprove its original current tuple after the final observation returns."""
+		var code: StringName = super.handling_observation_refusal(placement, project, worker, job)
+		if code == &"" and handling_probe.is_valid():
+			var callback: Callable = handling_probe
+			handling_probe = Callable()
+			callback.call()
+		return code
+
+
+class PaidWorld extends SourcePhases.SourceWorld:
+	func _actual_profiles() -> void:
+		"""Construct the original concrete readers once with the exact additional source row admitted up front."""
+		_pool = Pool.new(64, Pool.JOB_CAPACITY, 64)
+		_piles = Piles.new()
+		assert_true(_piles.bind_stores(_inventory, _buildings, StockAge.new(_inventory)), "actual piles")
+		assert_true(_piles.bind_world(_world_ref), "actual pile World")
+		_carry = Carry.new()
+		assert_true(_carry.bind(_inventory, _pool, _residents, _piles), "actual cargo")
+		_gear = Gear.new(16)
+		assert_true(_gear.bind_equipment(_inventory, _residents.directory(), _residents).ok, "actual Gear")
+		_work = Work.new(_jobs)
+		assert_true(_work.bind_gear(_gear).ok, "actual Work")
+		_profiles = Profiles.new()
+		assert_equal(_profiles.configure(30, 281, 2, Profiles.ARENA_BYTES), &"", "exact complete source arena")
+		assert_equal(_profiles.bind_actual(_residents, _transforms, _inventory, _gear, _carry, _work, _pool, _piles), &"", "actual readers")
+		_load_source()
+
+	func _load_source() -> void:
+		"""Rows0–28 retain the exact original source; row29 is the independently proved handling source."""
+		assert_equal(_profiles.load_file(Images.path("diagnostic-content-1/mole-worker.ugprof"), PAID_PROFILE_SHA, 4), &"", "exact content4 source")
+
+	func _load_catalog(revision: int) -> StringName:
+		"""Geometry and bills remain exact while their Profile digest names the actual complete source bank."""
+		return _catalog.load_file(Images.path("diagnostic-content-1/structure.ugconn"), PAID_CATALOG_SHA, revision)
+
+	func _actual_catalog(domain: Prefix.Space.Domain) -> void:
+		"""Install the observing Terrain before any graph/Anchor/paid owner borrows it; no live owner is rebound."""
+		_terrain = ObservedPaidTerrain.new()
+		assert_equal(_terrain.configure(_world, _nodes, _owner, _sources, _items, _budget), &"", "original observing Terrain")
+		super._actual_catalog(domain)
+
+
+class PaidProbe extends SourcePhases.Probe:
+	var pieces: Workpieces = null
+	var handled_l0: bool = false
+	var installed_l0: bool = false
+
+	func _make_world() -> Prefix.ActualWorld:
+		"""Select the complete immutable bank before binding any original owner."""
+		return PaidWorld.new()
+
+	func _content_revision() -> int:
+		"""Every actual edge, actor and canonical clock uses this same exact diagnostic content."""
+		return 4
+
+	func _make_contacts() -> Contacts:
+		"""Retain the actual source implementation and its explicit pre-final observation seam."""
+		return ObservedPaidContacts.new()
+
+	func _load_real_bills() -> void:
+		"""Read unchanged actual quantities and work with their exact rebound source digests."""
+		_groups._recipes = Recipes.new()
+		assert_equal(_groups._recipes.configure(Recipes.MAX_PARTS, Recipes.required_bytes(Recipes.MAX_PARTS)), &"", "recipe arena")
+		assert_equal(_groups._recipes.bind_actual(_world._catalog, _world._items, _world._inventory), &"", "recipe owners")
+		assert_equal(_groups._recipes.load_file(Images.path("diagnostic-content-1/recipes.ugrecp"), PAID_RECIPE_SHA, 1, PAID_GROUP_SHA, 1), &"", "real recipe")
+		_groups._reader = Assemblies.new()
+		assert_equal(_groups._reader.configure(Assemblies.MAX_GROUPS, Assemblies.required_bytes(Assemblies.MAX_GROUPS)), &"", "group arena")
+		assert_equal(_groups._reader.bind_actual(_world._catalog, _groups._recipes, _world._items, _world._inventory), &"", "group owners")
+		assert_equal(_groups._reader.load_file(Images.path("diagnostic-content-1/assemblies.ugasmb"), PAID_GROUP_SHA, 1, PAID_RECIPE_SHA, 1), &"", "real partition")
+
+	func _bind_frontier() -> void:
+		"""All physical stations and full perimeter paths retain the actual authored Frontier."""
+		_source = Frontier.new()
+		var capacities: PackedInt32Array = PackedInt32Array([2, 8, 2, 10, 10, 6])
+		assert_equal(_source.configure(capacities, 4032), &"", "source bank")
+		assert_equal(_source.bind_actual(_world._catalog, _groups._reader, _groups._recipes, _world._profiles), &"", "source chain")
+		assert_equal(_source.load_file(Images.path("diagnostic-content-1/frontier.ugfront"), PAID_FRONTIER_SHA, 1), &"", "actual Frontier")
+
+	func before_each() -> void:
+		"""Bind one actual paid workpiece owner before any live entry or Project is created."""
+		super.before_each()
+		if not failures.is_empty(): return
+		pieces = Workpieces.new()
+		assert_equal(pieces.configure(4, 2, Workpieces.required_bytes(4, 2)), &"", "original finite banks")
+		assert_equal(pieces.bind_actual(_placements, _router, _paid), &"", "original paid source tuple")
+		assert_equal(pieces.load_file(Images.path("diagnostic-workpieces-1/workpieces.ugwipc"), PAID_WORKPIECE_SHA, 1), &"", "exact two source-derived workpieces")
+		assert_equal(_paid.bind_workpieces(pieces), &"", "actual reciprocal activation")
+
+	func after_each() -> void:
+		"""Release only this fixture's original graph after checking synchronous lease ownership."""
+		if pieces != null: assert_true(pieces.is_quiescent(), "no escaped piece transaction")
+		pieces = null
+		super.after_each()
+
+	func _installation_job(project: Vector2i, endpoint: Vector2i) -> int:
+		"""A real BUILD Job and equipped tool travel to the supported station before selecting handling READY."""
+		var quote: Modular.Quote = Modular.Quote.new()
+		assert_equal(_router.project_facts_into(project, quote), &"", "actual complete bill")
+		var made: Jobs.OpResult = _world._jobs.create_job(quote.job_kind, 0, 0, quote.remaining_mwu, 0)
+		assert_true(made.ok, "actual assembly Job")
+		if not made.ok: return -1
+		assert_true(_world._jobs.set_requester(made.value, project).ok, "actual Project requester")
+		assert_true(_world._jobs.set_tool_gate(made.value, Jobs.GATE_SATISFIED).ok, "actual tool gate")
+		assert_true(_router.bind_job(project, made.ref).ok, "exact primary Job")
+		var worker: int = _world._residents.directory().get_typed_row(_world._worker)
+		assert_true(_world._jobs.assign_worker(worker, made.value).ok, "same actual worker")
+		assert_true(_world._work.claim_tool_for_work(worker, _tool).ok, "same equipped tool")
+		_move_to_handling_station(made.value, endpoint)
+		if not failures.is_empty(): return -1
+		assert_equal(_world._routes.refresh_work_actor(_world._worker, made.ref, 29, 1, 4, 0, -1, _tool), &"", "actual pre-funded handling READY")
+		return made.value if failures.is_empty() else -1
+
+	func _move_to_handling_station(job: int, endpoint: Vector2i) -> void:
+		"""The same actual worker follows certified perimeter spans and a full-envelope source-ready turn."""
+		assert_equal(_world._routes.refresh_travel_actor(_world._worker, _world._jobs.ref_of(job), 12, 1, 4, 0, -1, _tool), &"", "actual source WALK handoff")
+		assert_equal(_world._routes.request_route(_world._worker, endpoint, _tick), &"", "actual station itinerary")
+		if not failures.is_empty(): return
+		var actor: Routes.Actor = Routes.Actor.new()
+		for step: int in 600:
+			_world._routes.advance_tick(_tick); _tick += 1
+			assert_equal(_world._routes.read_actor_into(_world._worker, actor), &"", "actual travel actor")
+			if actor.phase == Routes.PHASE_HELD:
+				assert_true(false, "actual station travel held")
+				return
+			if actor.location == endpoint and Routes.source_ready_leaf_refusal(_world._routes, _world._worker,
+					_world._jobs.ref_of(job), 12, 1, 4) == &"": break
+		assert_equal(actor.location, endpoint, "real station reached")
+		assert_equal(WorldRoutes.turn_actor(_world._binding, _world._worker, _world._jobs.ref_of(job), 0, Space.MAX_CHECKS), &"", "real yaw0 ready turn")
+
+	func prepare_l0() -> Vector2i:
+		"""All actual excavation and source travel precede the still-unfunded handling Job."""
+		execute_l0_cubes()
+		if not completed_l0: return NULL_REF
+		var project: Vector2i = _open_installation(0)
+		if project == NULL_REF: return NULL_REF
+		var job: int = _installation_job(project, _endpoints[0])
+		return project if job >= 0 and failures.is_empty() else NULL_REF
+
+	func handle_l0() -> Vector2i:
+		"""Real four-cube payment precedes timber payment, sixty positioning ticks and the only state1→2 promotion."""
+		var project: Vector2i = prepare_l0()
+		if project == NULL_REF: return NULL_REF
+		var job: int = _router._primary_row(project)
+		if not _pay_installation(project, job): return NULL_REF
+		var placement: Vector2i = _world._construction.subject_ref_of(project)
+		assert_equal(pieces._live.present[placement.x], Workpieces.PENDING_HANDLING, "START is pending only")
+		assert_equal(_world._inventory.lot_quantity_milli(_wood), 1500, "one whole L0 bill paid")
+		assert_equal(_world._routes.begin_assembly_handling(_world._worker, _world._jobs.ref_of(job)), &"", "actual handling entry")
+		if not failures.is_empty(): return NULL_REF
+		var work_before: PackedByteArray = _world._work.state_bytes()
+		var jobs_before: PackedByteArray = _world._jobs.state_bytes()
+		var inventory_before: PackedByteArray = _world._inventory.state_bytes()
+		for step: int in 60:
+			assert_false(Routes.assembly_handled_ready_leaf_refusal(_world._routes, _world._worker,
+				_world._jobs.ref_of(job), 29, 1, 4) == &"", "no premature handling completion")
+			_world._routes.advance_tick(_tick); _tick += 1
+		assert_equal(Routes.assembly_handled_ready_leaf_refusal(_world._routes, _world._worker,
+			_world._jobs.ref_of(job), 29, 1, 4), &"", "exact thirty entry plus thirty recovery ticks")
+		assert_equal(_world._work.state_bytes(), work_before, "handling earns no WU or XP")
+		assert_equal(_world._jobs.state_bytes(), jobs_before, "no productive progress")
+		assert_equal(_world._inventory.state_bytes(), inventory_before, "no repeated material payment")
+		assert_equal(_paid.complete_handling(placement, project, _world._worker, _world._jobs.ref_of(job)), &"", "actual observed promotion")
+		assert_equal(pieces._live.present[placement.x], Workpieces.HANDLED, "only complete positioning promotes")
+		handled_l0 = failures.is_empty()
+		return project if handled_l0 else NULL_REF
+
+	func deliver_installation_inputs(project: Vector2i, job: int) -> void:
+		"""Existing Inventory claims make the complete real bill READY before the separate unfunded worker observation."""
+		var quote: Modular.Quote = Modular.Quote.new()
+		assert_equal(_router.project_facts_into(project, quote), &"", "actual delivery quote")
+		assert_equal(quote.input_count, 1, "actual wood-only assembly")
+		assert_true(_router.bind_material_container(project, _storage).ok, "actual material destination")
+		var batch: PackedInt64Array = PackedInt64Array([_wood.x, _wood.y, Reservations.PURPOSE_MODULAR_INPUT,
+			quote.input_milli[0], 100000])
+		assert_true(_world._pool.claim_batch(_world._jobs.ref_of(job), batch, 1, _world._inventory).ok, "actual complete wood claim")
+		assert_true(_router.record_deliveries(project).ok, "actual complete delivery makes Project READY")
+
+	func install_l0() -> void:
+		"""Canonical handling READY hands off to the unchanged INSTALL source; only real Work earns fastening."""
+		var project: Vector2i = handle_l0()
+		if project == NULL_REF: return
+		var job: int = _router._primary_row(project)
+		assert_equal(_world._routes.request_source_ready(_world._worker, _world._jobs.ref_of(job)), &"", "handled state normalizes to READY")
+		assert_equal(_world._routes.refresh_work_actor(_world._worker, _world._jobs.ref_of(job), 16, 1, 4, 0, -1, _tool), &"", "actual unchanged INSTALL source")
+		for step: int in 240:
+			if Routes.source_work_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, 4) == &"": break
+			_world._routes.advance_tick(_tick); _tick += 1
+		assert_equal(Routes.source_work_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, 4), &"", "actual INSTALL WORK")
+		if not failures.is_empty(): return
+		_earn_actual_phase(job)
+		if not failures.is_empty(): return
+		assert_equal(_world._routes.request_source_ready(_world._worker, _world._jobs.ref_of(job)), &"", "actual INSTALL recovery")
+		for step: int in 240:
+			if Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, 4) == &"": break
+			_world._routes.advance_tick(_tick); _tick += 1
+		assert_equal(Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, 4), &"", "INSTALL full recovery before release")
+		if not failures.is_empty(): return
+		var completed: Construction.OpResult = _router.complete_order(project)
+		assert_true(completed.ok, "actual paid L0 commit: %s" % completed.error)
+		installed_l0 = completed.ok and failures.is_empty()
+
+
+var _probe: PaidProbe = null
+
+
+func after_each() -> void:
+	"""Nested helper assertions stay visible without inflating the outer framework count."""
+	if _probe != null:
+		_probe.after_each()
+		assert_true(_probe.failures.is_empty(), "actual source fixture: %s" % _probe.failures)
+	_probe = null
+
+
+func test_real_l0_requires_paid_handling_before_unchanged_productive_install() -> void:
+	"""One real worker digs four cubes, pays the actual whole bill, handles, fastens and publishes one prefix."""
+	_probe = PaidProbe.new()
+	_probe.before_each()
+	_probe.install_l0()
+	assert_true(_probe.failures.is_empty(), "actual paid handling: %s" % _probe.failures)
+	assert_true(_probe.handled_l0, "actual positioning completed")
+	assert_true(_probe.installed_l0, "actual whole L0 installed")
+	assert_equal(_probe._accepted_work_mwu, 68000, "only36000 excavation plus32000 fastening work")
+
+
+func test_actual_prefunded_ready_pause_releases_worker_without_handling_or_payment() -> void:
+	"""A real READY source need not manipulate or pay a bearer merely to pause its unstarted Project."""
+	_probe = PaidProbe.new()
+	_probe.before_each()
+	var project: Vector2i = _probe.prepare_l0()
+	assert_true(project != Prefix.NULL_REF, "actual unstarted assembly exists: %s" % _probe.failures)
+	if project == Prefix.NULL_REF: return
+	var job: int = _probe._router._primary_row(project)
+	var inventory: PackedByteArray = _probe._world._inventory.state_bytes()
+	var geometry: PackedByteArray = _probe._world._owner.state_bytes()
+	var pieces: PackedByteArray = _probe.pieces._live.present.duplicate()
+	var paused: PaidConstruction.OpResult = _probe._router.set_paused(project, true)
+	assert_true(paused.ok, "actual pre-funded pause: %s" % paused.error)
+	assert_equal(_probe._world._jobs.worker_of(job), Prefix.NULL_REF, "safe READY worker released")
+	assert_equal(_probe._world._inventory.state_bytes(), inventory, "no payment")
+	assert_equal(_probe._world._owner.state_bytes(), geometry, "no obstacle or installed geometry")
+	assert_equal(_probe.pieces._live.present, pieces, "no handling state")
+	assert_equal(_probe._accepted_work_mwu, 36000, "only prior excavation work")
+	assert_true(_probe._router.set_paused(project, true).ok, "repeat pause keeps the same safe terminal state")
+
+
+func test_actual_unfunded_handling_worker_observation_does_not_mint_start() -> void:
+	"""The actual READY worker may be observed before START; altered payment, phase or clock cannot inherit it."""
+	_probe = PaidProbe.new()
+	_probe.before_each()
+	var project: Vector2i = _probe.prepare_l0()
+	assert_true(project != Prefix.NULL_REF, "actual unfunded handling station: %s" % _probe.failures)
+	if project == Prefix.NULL_REF: return
+	var placement: Vector2i = _probe._world._construction.subject_ref_of(project)
+	var job: Vector2i = _probe._world._jobs.ref_of(_probe._router._primary_row(project))
+	var worker: Vector2i = _probe._world._worker
+	var row: int = _probe._world._residents.directory().get_typed_row(project)
+	var resident: int = _probe._world._residents.directory().get_typed_row(worker)
+	_probe.deliver_installation_inputs(project, _probe._router._primary_row(project))
+	assert_true(_probe.failures.is_empty(), "real input delivery: %s" % _probe.failures)
+	assert_equal(_probe._world._construction._phase[row], PaidConstruction.PHASE_READY, "actual complete bill made economic READY")
+	var inventory: PackedByteArray = _probe._world._inventory.state_bytes()
+	var funding: PackedByteArray = _probe._router._funding.state_bytes()
+	var geometry: PackedByteArray = _probe._world._owner.state_bytes()
+	assert_equal(_probe._paid._stage_action, -1, "no owner transition prepared")
+	assert_equal(_probe._contacts.worker_refusal(placement, project, 0, job, worker), &"", "actual source29 READY before START")
+	assert_equal(_probe._paid._stage_action, -1, "observation cannot mint START")
+	assert_equal(Workpieces._assigned_worker_leaf(_probe.pieces, project, worker, job), &"", "actual RESERVED full assignment")
+	assert_false(Workpieces._handling_worker_leaf(_probe.pieces, project, worker, job) == &"", "assignment alone grants no active handling")
+	_probe._world._construction._work_begun[row] = 1
+	assert_false(_probe._contacts.worker_refusal(placement, project, 0, job, worker) == &"", "changed work-begun refuses")
+	_probe._world._construction._work_begun[row] = 0
+	_probe._world._construction._phase[row] = PaidConstruction.PHASE_WORKING
+	assert_false(_probe._contacts.worker_refusal(placement, project, 0, job, worker) == &"", "changed economic phase refuses")
+	_probe._world._construction._phase[row] = PaidConstruction.PHASE_READY
+	_probe._router._funding._project_slot[row] = project.x
+	_probe._router._funding._project_generation[row] = project.y
+	assert_false(_probe._contacts.worker_refusal(placement, project, 0, job, worker) == &"", "unexpected receipt cannot inherit unfunded observation")
+	_probe._router._funding._project_slot[row] = -1
+	_probe._router._funding._project_generation[row] = 0
+	var word_index: int = PaidRoutes.R_PHASE * PaidRoutes.RESIDENT_CAPACITY + resident
+	var original_word: int = _probe._world._routes._motion.resident[word_index]
+	_probe._world._routes._motion.resident[word_index] = Assembly.word(PaidRoutes.PHASE_IDLE, Assembly.Clock.ENTRY)
+	assert_false(_probe._contacts.worker_refusal(placement, project, 0, job, worker) == &"", "non-READY source refuses")
+	_probe._world._routes._motion.resident[word_index] = original_word
+	assert_equal(_probe._contacts.worker_refusal(placement, project, 0, job, worker), &"", "restored original READY tuple observes again")
+	assert_false(_probe._paid.final_funding_refusal(project, PaidContract.ACTION_WIP) == &"", "observation never substitutes for prepared START")
+	assert_equal(_probe._paid._stage_action, -1, "no retained transition")
+	assert_equal(_probe._world._inventory.state_bytes(), inventory, "no payment or claims written")
+	assert_equal(_probe._router._funding.state_bytes(), funding, "receipt unchanged")
+	assert_equal(_probe._world._owner.state_bytes(), geometry, "no prospective obstacle published")
+	assert_equal(_probe.pieces._live.present[placement.x], Workpieces.EMPTY, "no workpiece state published")
+
+
+func _late_release_move(point: Vector3i, called: PackedInt32Array) -> void:
+	"""The external observer's real pose change is retained; the paused release must refuse around it."""
+	called[0] += 1
+	assert_true(_probe._world._transforms.place(_probe._world._worker, point.x + 1, point.y, point.z, 0), "late actual pose mutation")
+
+
+func _late_release_reenter(project: Vector2i, called: PackedInt32Array) -> void:
+	"""A nested pause cannot reuse its caller's final publication window."""
+	called[0] += 1
+	assert_false(_probe._router.set_paused(project, true).ok, "nested real Router call refuses")
+
+
+func test_actual_prefunded_pause_closes_late_pose_and_reentrant_observers() -> void:
+	"""Pause takes effect immediately, but neither a stale physical proof nor nested release loses the Job/tool."""
+	_probe = PaidProbe.new()
+	_probe.before_each()
+	var project: Vector2i = _probe.prepare_l0()
+	assert_true(project != Prefix.NULL_REF, "actual unfunded READY: %s" % _probe.failures)
+	if project == Prefix.NULL_REF: return
+	var job: int = _probe._router._primary_row(project)
+	var worker: Vector2i = _probe._world._worker
+	var point: Vector3i = Vector3i(_probe._world._routes._selection.x, _probe._world._routes._selection.y,
+		_probe._world._routes._selection.z)
+	var jobs: PackedByteArray = _probe._world._jobs.state_bytes()
+	var work: PackedByteArray = _probe._world._work.state_bytes()
+	var inventory: PackedByteArray = _probe._world._inventory.state_bytes()
+	var geometry: PackedByteArray = _probe._world._owner.state_bytes()
+	var called: PackedInt32Array = PackedInt32Array([0])
+	(_probe._contacts as ObservedPaidContacts).release_probe = _late_release_move.bind(point, called)
+	assert_false(_probe._router.set_paused(project, true).ok, "late successful observer cannot publish stale release")
+	assert_equal(called[0], 1, "actual late boundary was reached")
+	assert_true(_probe._world._construction.is_paused(project), "pause is immediate despite pending safe release")
+	assert_equal(_probe._world._jobs.state_bytes(), jobs, "same complete Job and worker mirrors")
+	assert_equal(_probe._world._work.state_bytes(), work, "same actual tool claim")
+	assert_equal(_probe._world._inventory.state_bytes(), inventory, "no resource mutation")
+	assert_equal(_probe._world._owner.state_bytes(), geometry, "no physical publication")
+	assert_true(_probe._world._transforms.place(worker, point.x, point.y, point.z, 0), "restore actual original pose for fresh retry")
+	(_probe._contacts as ObservedPaidContacts).release_probe = _late_release_reenter.bind(project, called)
+	assert_false(_probe._router.set_paused(project, true).ok, "nested real pause poisons outer final window")
+	assert_equal(called[0], 2, "actual reentry boundary was reached")
+	assert_equal(_probe._world._jobs.state_bytes(), jobs, "no nested release")
+	assert_equal(_probe._world._work.state_bytes(), work, "tool remains through reentry refusal")
+	assert_true(_probe._router.set_paused(project, true).ok, "fresh original READY retry releases safely")
+	assert_equal(_probe._world._jobs.worker_of(job), Prefix.NULL_REF, "release follows final original physical proof")
+
+
+func _late_release_drop_tool_lot(resident: int, lot: Vector2i, job: Vector2i, called: PackedInt32Array) -> void:
+	"""A late independent Gear release must not hide a half-cleared Work binding from the final crew leaf."""
+	called[0] += 1
+	assert_true(_probe._world._gear.cancel_claim(lot, job).ok, "actual Gear claim released by the late observer")
+	_probe._world._work._tool_lot_slot[resident] = -1
+	_probe._world._work._tool_lot_generation[resident] = 0
+
+
+func test_actual_prefunded_pause_refuses_unpaired_tool_job_with_or_without_gear_claim() -> void:
+	"""The actual release must preserve assignment when Work's lot disappears but its original Job pair remains."""
+	_probe = PaidProbe.new()
+	_probe.before_each()
+	var project: Vector2i = _probe.prepare_l0()
+	assert_true(project != Prefix.NULL_REF, "actual unfunded READY: %s" % _probe.failures)
+	if project == Prefix.NULL_REF: return
+	var resident: int = _probe._world._residents.directory().get_typed_row(_probe._world._worker)
+	var job: Vector2i = _probe._world._jobs.ref_of(_probe._router._primary_row(project))
+	var lot: Vector2i = _probe._world._work.tool_lot_of(resident)
+	var jobs: PackedByteArray = _probe._world._jobs.state_bytes()
+	var inventory: PackedByteArray = _probe._world._inventory.state_bytes()
+	_probe._world._work._tool_lot_slot[resident] = -1
+	_probe._world._work._tool_lot_generation[resident] = 0
+	assert_false(_probe._router.set_paused(project, true).ok, "retained actual Gear claim closes the original whole-path refusal")
+	assert_equal(_probe._world._jobs.state_bytes(), jobs, "original worker retained with live Gear claim")
+	assert_equal(_probe._world._work.tool_job_of(resident), job, "refusal does not erase the inconsistent observer state")
+	_probe._world._work._tool_lot_slot[resident] = lot.x
+	_probe._world._work._tool_lot_generation[resident] = lot.y
+	var called: PackedInt32Array = PackedInt32Array([0])
+	(_probe._contacts as ObservedPaidContacts).release_probe = _late_release_drop_tool_lot.bind(resident, lot, job, called)
+	assert_false(_probe._router.set_paused(project, true).ok, "final paired binding refuses even after actual Gear claim disappears")
+	assert_equal(called[0], 1, "the actual successful physical observer was reached before mutation")
+	assert_equal(_probe._world._jobs.state_bytes(), jobs, "no worker release can strand the original Work Job binding")
+	assert_equal(_probe._world._work.tool_job_of(resident), job, "late observer mutation alone remains visible")
+	assert_equal(_probe._world._inventory.state_bytes(), inventory, "no paid or loose stock changes")
+
+
+func _arm_pre_stage_probe(kind: int, observed: PackedInt64Array) -> void:
+	"""The actual local Terrain query precedes the concrete source and occupancy leaves."""
+	var terrain: ObservedPaidTerrain = _probe._world._terrain as ObservedPaidTerrain
+	terrain.source_probe = _mutate_pre_stage_scope.bind(kind, observed)
+
+
+func _mutate_pre_stage_scope(kind: int, observed: PackedInt64Array) -> void:
+	"""The original callback may alter its visible context or replace its lease, never grant a physical result."""
+	if not _probe._placements._busy or _probe._placements._prepared_action != PaidContract.START:
+		_arm_pre_stage_probe(kind, observed)
+		return
+	assert_true(_probe._placements._busy, "original Placement is synchronously preparing")
+	assert_equal(_probe._placements._prepared_action, PaidContract.START, "exact original START action")
+	assert_equal(_probe._placements._space_token, 0, "original pre-copy boundary reached")
+	assert_equal(_probe._placements._location_token, 0, "no endpoint candidate exists")
+	assert_equal(_probe._placements._route_token, 0, "no route candidate exists")
+	observed[0] += 1
+	if kind == 0:
+		_probe._placements._context.project = Prefix.NULL_REF
+	elif kind == 1:
+		_probe._placements._context.space_token = 1
+	else:
+		var budget: Prefix.Budget = _probe._world._budget
+		assert_equal(budget.release(_probe._placements._cold_token), &"", "observer releases only the original lease")
+		observed[1] = budget.acquire(Prefix.Budget.COLD_BYTES)
+		assert_true(observed[1] > 0, "actual different owner acquires an equal-sized lease")
+
+
+func _start_spatial_image() -> Array[PackedByteArray]:
+	"""Capture complete coupled live payloads and allocation metadata, not just counts or visible geometry."""
+	var locations: Prefix.Locations.Bank = _probe._world._locations._live
+	var graph: PaidRoutes.EdgeBank = _probe._world._routes._live
+	var masks: Prefix.WorldRoutes.Certificates = _probe._world._binding._live
+	var motion: PaidRoutes.MotionBank = _probe._world._routes._motion
+	var placement: Prefix.Placements.Bank = _probe._placements._live
+	return [_probe._world._owner.state_bytes(),
+		var_to_bytes([locations.header, locations.i32, locations.i64, locations.present, locations.retired,
+			locations.free_rows, locations.ordered, locations.free_count, locations.count]),
+		var_to_bytes([graph.fields, graph.longs, graph.present, graph.retired, graph.free_rows, graph.ordered,
+			graph.vertices, graph.free_count, graph.edge_count, graph.vertex_count, graph.revision]),
+		var_to_bytes([masks.masks, masks.generations, masks.geometry, masks.content]),
+		var_to_bytes([motion.resident, motion.resident_long, motion.links, motion.free_links, motion.free_count]),
+		var_to_bytes([placement.header, placement.digests, placement.i32, placement.i64, placement.present,
+			placement.retired, placement.openings, placement.opening_revision, placement.free_rows,
+			placement.free_openings, placement.free_count, placement.opening_free_count]),
+		var_to_bytes([_probe.pieces._live.fields, _probe.pieces._live.present])]
+
+
+func _check_pre_stage_refusal(project: Vector2i, kind: int) -> void:
+	"""Each actual rejected START preserves original goods, paid owners, actor and every coupled live bank."""
+	var economic: Array[PackedByteArray] = _probe._economic_image()
+	var spatial: Array[PackedByteArray] = _start_spatial_image()
+	var observed: PackedInt64Array = PackedInt64Array([0, 0])
+	_arm_pre_stage_probe(kind, observed)
+	var result: PaidConstruction.OpResult = _probe._router.start_work(project, 0)
+	(_probe._world._terrain as ObservedPaidTerrain).source_probe = Callable()
+	assert_false(result.ok, "changed original pre-stage context or lease refuses")
+	assert_equal(observed[0], 1, "actual source observer ran inside the original pre-copy START")
+	_probe._assert_economic_image(economic)
+	assert_equal(_start_spatial_image(), spatial, "all live spatial/actor/paid-piece bytes remain unchanged")
+	assert_equal(_probe._world._owner._stage_token, 0, "original Space candidate cleaned")
+	assert_equal(_probe._world._locations._token, 0, "original Location candidate cleaned")
+	assert_equal(_probe._world._routes._token, 0, "original Routes candidate cleaned")
+	if kind == 2:
+		assert_true(_probe._world._budget.covers(observed[1], Prefix.Budget.COLD_BYTES), "cleanup preserves the new unrelated owner")
+		assert_equal(_probe._world._budget.release(observed[1]), &"", "only the replacement caller releases its lease")
+	assert_true(_probe._world._budget.is_quiescent(), "all original transaction controls are available for retry")
+
+
+func test_actual_start_refuses_changed_pre_stage_context_and_original_cold_lease() -> void:
+	"""Real paid excavation and source29 READY do not excuse changed context, partial tokens or a replaced cold owner."""
+	_probe = PaidProbe.new()
+	_probe.before_each()
+	var project: Vector2i = _probe.prepare_l0()
+	assert_true(project != Prefix.NULL_REF, "actual unfunded READY: %s" % _probe.failures)
+	if project == Prefix.NULL_REF: return
+	_probe.deliver_installation_inputs(project, _probe._router._primary_row(project))
+	assert_true(_probe.failures.is_empty(), "original Inventory delivery: %s" % _probe.failures)
+	for kind: int in 3:
+		_check_pre_stage_refusal(project, kind)
+	assert_equal(_probe._accepted_work_mwu, 36000, "only the four actual completed excavation cubes earned work")

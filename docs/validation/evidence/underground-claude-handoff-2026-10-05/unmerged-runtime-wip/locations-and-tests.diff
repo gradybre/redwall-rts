@@ -1,0 +1,522 @@
+diff --git a/godot/scripts/core/underground_locations.gd b/godot/scripts/core/underground_locations.gd
+index dffc2689..6ed110a2 100644
+--- a/godot/scripts/core/underground_locations.gd
++++ b/godot/scripts/core/underground_locations.gd
+@@ -20,6 +20,8 @@ const RoomOrders := preload("res://scripts/core/underground_room_orders.gd")
+ const EntryPlan := preload("res://scripts/core/underground_entry_plan.gd")
+ const ConnectorCatalog := preload("res://scripts/core/underground_connector_catalog.gd")
+ const ConnectorFacts := preload("res://scripts/core/underground_connector_source_facts.gd")
++const ContactRetirementScope := preload("res://scripts/core/underground_entry_contact_retirement_scope.gd")
++const AssemblyEndpoint := preload("res://data/underground/mole-worker/qualified-assembly-v1/endpoint_certificate.gd")
+ const NULL_REF: Vector2i = Vector2i(-1, 0)
+ const SCHEMA: int = 1
+ const HEADER_FIELDS: int = 16
+@@ -247,6 +249,37 @@ class FrontierContext extends RefCounted:
+ 	var edges: PackedInt32Array = PackedInt32Array()
+ 
+ 
++class ContactRetirementContext extends RefCounted:
++	## One112B cold-only packet; its exact issuer privately pins all original controls and banks.
++	var issuer: RefCounted = null
++	var issuer_script: Script = null
++	var locations: RefCounted = null
++	var graph: RefCounted = null
++	var routes: RefCounted = null
++	var owner: RefCounted = null
++	var budget: Budget = null
++	var live: Bank = null
++	var candidate: Bank = null
++	var graph_live: RefCounted = null
++	var graph_candidate: RefCounted = null
++	var masks_live: RefCounted = null
++	var masks_candidate: RefCounted = null
++	var world: Vector2i = NULL_REF
++	var placement: Vector2i = NULL_REF
++	var first: Vector2i = NULL_REF
++	var second: Vector2i = NULL_REF
++	var cold: int = 0
++	var revision: int = 0
++	var profiles: int = 0
++	var catalog: int = 0
++	var graph_revision: int = 0
++	var location_revision: int = 0
++	var route_token: int = 0
++	var location_token: int = 0
++	var route_receipt: int = 0
++	var phase: int = 0
++
++
+ class InventoryLocations extends InventoryContract:
+ 	## Borrow the actual namespace weakly so Inventory cannot form an owner cycle.
+ 	var _locations: WeakRef = null
+@@ -291,6 +324,7 @@ var _sites: WeakRef = null
+ var _domain: Space.Domain = null
+ var _cold: Budget = null
+ var _frontier: FrontierContext = null # Borrowed only for one admitted synchronous cold transaction.
++var _contact_retirement: ContactRetirementContext = null # Borrowed original two-publication bracket, never a bank.
+ var _capacity: int = 0
+ var _live: Bank = Bank.new()
+ var _stage: Bank = Bank.new()
+@@ -483,7 +517,7 @@ static func _iteration_scope_refusal(actual: RefCounted, revision: int) -> Strin
+ 		return &"LOCATION_OWNER_MISMATCH"
+ 	if 256 + 4 * actual._owner._source_capacity > actual._domain._checks:
+ 		return &"LOCATION_OPERATION_BUDGET"
+-	if actual._token != 0 or actual._in_retention or actual._owner._stage_token != 0 or actual._owner._room_callback \
++	if actual._contact_retirement != null or actual._token != 0 or actual._in_retention or actual._owner._stage_token != 0 or actual._owner._room_callback \
+ 			or actual._owner._validation_sources >= 0 or actual._owner._validation_regions >= 0:
+ 		return &"LOCATION_SELECTOR_BUSY"
+ 	var bank: Bank = actual._live
+@@ -562,10 +596,13 @@ func bind_retention(retention: Retention) -> StringName:
+ 
+ 
+ func _reject_retention_callback() -> bool:
+-	"""Trusted retention callbacks inspect state; attempted reentrant mutations invalidate their answer."""
++	"""Observers and the exact retirement bracket cannot reopen ordinary mutation or publication doors."""
+ 	if _in_retention:
+ 		_retention_reentered = true
+ 		return true
++	if _contact_retirement != null:
++		_remaining = -1
++		return true
+ 	return false
+ 
+ 
+@@ -682,7 +719,7 @@ func _resolve_live_scope_refusal(revision: int, max_checks: int) -> StringName:
+ 	if max_checks < 256 + 16 * _capacity + 4 * _owner._source_capacity \
+ 			or max_checks > Space.MAX_CHECKS or max_checks > _domain._checks:
+ 		return &"LOCATION_OPERATION_BUDGET"
+-	if _token != 0 or _in_retention or _owner._stage_token != 0 or _owner._room_callback \
++	if _contact_retirement != null or _token != 0 or _in_retention or _owner._stage_token != 0 or _owner._room_callback \
+ 			or _owner._validation_sources >= 0 or _owner._validation_regions >= 0:
+ 		return &"LOCATION_SELECTOR_BUSY"
+ 	if _ids == null or _buildings == null or _transforms == null or _inventory == null \
+@@ -1020,6 +1057,7 @@ func installation_binding_refusal(context: InstallationContext) -> StringName:
+ static func installation_binding_leaf_refusal(actual: RefCounted, context: InstallationContext) -> StringName:
+ 	"""The final reciprocal link proof cannot dispatch an overridden observation method."""
+ 	if actual == null or actual._capacity == 0 or actual._token != 0 or actual._in_retention or context == null \
++			or actual._contact_retirement != null \
+ 			or (actual._installation != null and actual._installation != context) or context.issuer == null \
+ 			or context.issuer.get_ref() == null or context.locations == null or context.locations.get_ref() != actual \
+ 			or context.space == null or context.space.get_ref() != actual._owner or context.budget != actual._cold \
+@@ -1039,7 +1077,7 @@ func bind_installation_context(context: InstallationContext) -> StringName:
+ static func installation_scope_refusal(actual: RefCounted, context: InstallationContext,
+ 		publishing: bool = false) -> StringName:
+ 	"""Exact actual Construction/Router leaves replace any virtual publication-success predicate."""
+-	if context == null or context != actual._installation or context.locations == null \
++	if context == null or actual._contact_retirement != null or context != actual._installation or context.locations == null \
+ 			or context.locations.get_ref() != actual or context.space == null or context.space.get_ref() != actual._owner \
+ 			or context.budget != actual._cold or context.world != actual._world or context.issuer == null \
+ 			or context.issuer.get_ref() == null or context.construction == null \
+@@ -1156,7 +1194,7 @@ func _phase_active() -> bool:
+ 
+ static func phase_scope_leaf_refusal(actual: RefCounted, context: PhaseContext, publishing: bool = false) -> StringName:
+ 	"""Full actual owner, original arena and retained Authority tuple; no virtual scope permission is queried."""
+-	if actual == null or context == null or actual._phase_context != context or context.issuer == null \
++	if actual == null or context == null or actual._contact_retirement != null or actual._phase_context != context or context.issuer == null \
+ 			or context.authority == null or context.sites == null or context.space == null or context.locations == null \
+ 			or context.locations.get_ref() != actual or context.space.get_ref() != actual._owner \
+ 			or context.budget != actual._cold or context.world != actual._world \
+@@ -1355,7 +1393,7 @@ static func _clear_installation_preparation(actual: RefCounted) -> void:
+ 
+ static func room_scope_leaf_refusal(actual: RefCounted, context: RoomContext, publishing: bool = false) -> StringName:
+ 	"""Read the actual once-bound RoomOrders' original Room scope and arena without an authority callback."""
+-	if actual == null or context == null or context.orders == null or context.locations == null \
++	if actual == null or context == null or actual._contact_retirement != null or context.orders == null or context.locations == null \
+ 			or context.locations.get_ref() != actual or context.space == null or context.space.get_ref() != actual._owner \
+ 			or context.budget != actual._cold or context.world != actual._world or actual._room_orders == null \
+ 			or not actual._cold.covers(context.cold_token, Budget.COLD_BYTES):
+@@ -1850,18 +1888,37 @@ func _record_geometry_refusal(record: Record) -> StringName:
+ 		code = _survey_for(record)
+ 	if code != &"":
+ 		return code
++	code = _record_obstacles_refusal(record)
++	if code != &"": return code
++	if not _covered(record.envelope, Space.SUPPORTED_VOID) or not _covered(record.support, Space.SUPPORT):
++		return &"LOCATION_COVERAGE_MISSING" if _remaining >= 0 else &"LOCATION_OPERATION_BUDGET"
++	return &""
++
++
++func _record_obstacles_refusal(record: Record) -> StringName:
++	"""All blockers remain authoritative; only the exact original pending prism can receive its physical proof."""
+ 	var rows: Space.Volumes = _snapshot.volumes
+ 	for row: int in rows.role.size():
+ 		if not _spend():
+ 			return &"LOCATION_OPERATION_BUDGET"
+ 		if rows.role[row] in [Space.DRY_SOLID, Space.OBSTACLE, Space.PROTECTED_ACCESS, Space.SUPPORT, Space.OPENABLE_SHELL,
+ 				Space.WATER, Space.RESOURCE, Space.OCCUPANT, Space.UNFINISHED] and Space.overlaps(record.envelope, rows.box_at(row)):
+-			return &"LOCATION_ENVELOPE_BLOCKED"
+-	if not _covered(record.envelope, Space.SUPPORTED_VOID) or not _covered(record.support, Space.SUPPORT):
+-		return &"LOCATION_COVERAGE_MISSING" if _remaining >= 0 else &"LOCATION_OPERATION_BUDGET"
++			var code: StringName = _pending_entry_record_refusal(record, row)
++			if code != &"": return code
+ 	return &""
+ 
+ 
++func _pending_entry_record_refusal(record: Record, row: int) -> StringName:
++	"""Original owner proof precedes the cycle-free source leaf; foreign volumes and live refreshes still refuse."""
++	if not _installation_active() or _snapshot.volumes.role[row] != Space.OBSTACLE:
++		return &"LOCATION_ENVELOPE_BLOCKED"
++	var code: StringName = installation_scope_refusal(self, _installation)
++	if code != &"": return code
++	code = AssemblyEndpoint.prepared_record_refusal(self, _installation, record, row)
++	if code == &"LOCATION_OPERATION_BUDGET": return code
++	return &"" if code == &"" else &"LOCATION_ENVELOPE_BLOCKED"
++
++
+ static func support_covers_root(point: Vector3i, support: PackedInt32Array) -> bool:
+ 	"""Footing contains the root on its exact top plane; independently proven tool air need not have floor below it."""
+ 	return Space.valid_box(support) and support[4] == point.y \
+@@ -2479,7 +2536,7 @@ func _push_free(bank: Bank, row: int) -> void:
+ 
+ func capture_state_into(cold_token: int, out: PackedByteArray) -> StringName:
+ 	"""The caller retains this exact lease while consuming its one empty-to-filled wire image."""
+-	if _capacity == 0 or _token != 0 or _owner.has_prepared() or not out.is_empty():
++	if _contact_retirement != null or _capacity == 0 or _token != 0 or _owner.has_prepared() or not out.is_empty():
+ 		return &"LOCATION_CAPTURE_BUSY"
+ 	if not _cold.covers(cold_token, wire_bytes()):
+ 		return &"LOCATION_COLD_CAPACITY"
+@@ -2659,7 +2716,7 @@ func _rebuild_allocation(bank: Bank) -> void:
+ 
+ func hold_frontier(context: FrontierContext) -> StringName:
+ 	"""Guard the whole synchronous observation window before any callback can prepare or publish a half transaction."""
+-	if context == null or context.get_script() != FrontierContext or _frontier != null or _token != 0 \
++	if context == null or _contact_retirement != null or context.get_script() != FrontierContext or _frontier != null or _token != 0 \
+ 			or context.count < 1 or context.count > 3 or context.refs.size() != 6 or context.edges.size() != 12 \
+ 			or context.locations != self or context.owner != _owner or context.budget != _cold \
+ 			or context.live != _live or context.candidate != _stage or context.world != _world \
+@@ -2672,7 +2729,7 @@ func hold_frontier(context: FrontierContext) -> StringName:
+ 
+ func begin_frontier_prepare(context: FrontierContext) -> Result:
+ 	"""Use the held original scope to copy exactly one inactive bank without reopening the generic mutation door."""
+-	if context == null or context.get_script() != FrontierContext or _frontier != context or _token != 0 \
++	if context == null or _contact_retirement != null or context.get_script() != FrontierContext or _frontier != context or _token != 0 \
+ 			or context.count < 1 or context.count > 3 or context.refs.size() != 6 or context.edges.size() != 12 \
+ 			or context.locations != self or context.owner != _owner or context.budget != _cold \
+ 			or context.live != _live or context.candidate != _stage or context.world != _world \
+@@ -2686,7 +2743,7 @@ func begin_frontier_prepare(context: FrontierContext) -> Result:
+ 
+ static func frontier_scope_refusal(actual: RefCounted, context: FrontierContext, sealed: bool = true) -> StringName:
+ 	"""Only this exact original receiver, banks, token and still-live Space can expose a prospective row."""
+-	if actual == null or context == null or context.get_script() != FrontierContext or actual._frontier != context \
++	if actual == null or context == null or actual._contact_retirement != null or context.get_script() != FrontierContext or actual._frontier != context \
+ 			or context.count < 1 or context.count > 3 or context.refs.size() != 6 or context.edges.size() != 12 \
+ 			or context.locations != actual or context.owner != actual._owner or context.budget != actual._cold \
+ 			or context.live != actual._live or context.candidate != actual._stage or context.world != actual._world \
+@@ -2865,3 +2922,231 @@ static func commit_frontier_preflighted(actual: RefCounted, context: FrontierCon
+ 	actual._base_geometry_revision = 0
+ 	actual._target_geometry_revision = 0
+ 	actual._frontier = null
++
++
++func begin_contact_retirement(context: ContactRetirementContext) -> StringName:
++	"""Hold the original pair before graph observers; only the exact closed coordinator can enter."""
++	if _in_retention:
++		_retention_reentered = true
++		return &"LOCATION_RETENTION_REENTRY"
++	if _contact_retirement != null or context == null or context.phase != 0 or context.location_token != 0:
++		return &"LOCATION_CONTACT_RETIREMENT_CONTEXT"
++	var code: StringName = _contact_retirement_context_refusal(self, context, false)
++	if code != &"": return code
++	_contact_retirement = context
++	_remaining = _domain._checks
++	_retention_reentered = false
++	return &""
++
++
++static func _contact_retirement_context_refusal(actual: RefCounted, context: ContactRetirementContext,
++		held: bool = true) -> StringName:
++	"""Mutable public fields grant nothing without the exact Script's private original mirrors."""
++	if actual == null or context == null or context.get_script() != ContactRetirementContext \
++			or context.issuer == null or context.issuer.get_script() != ContactRetirementScope \
++			or context.issuer_script != ContactRetirementScope or context.locations != actual \
++			or context.owner != actual._owner or context.budget != actual._cold or context.world != actual._world \
++			or context.live != actual._live or context.candidate != actual._stage \
++			or (held and (actual._contact_retirement != context or actual._remaining < 0 or actual._retention_reentered)) \
++			or (not held and actual._contact_retirement != null) or actual._in_retention or actual._frontier != null:
++		return &"LOCATION_CONTACT_RETIREMENT_CONTEXT"
++	if actual._capacity <= 0 or actual._capacity > MAX_LOCATIONS or actual._owner == null or actual._cold == null \
++			or actual._domain == null or actual._ids == null or actual._sources == null \
++			or actual._owner._header.size() != Owner.HEADER_FIELDS or actual._owner._s_header.size() != Owner.HEADER_FIELDS \
++			or actual._owner._ready_error != &"" or actual._owner._stage_token != 0 \
++			or actual._owner._header[17] != context.revision or context.revision <= 0 \
++			or context.cold <= 0 or actual._cold._token != context.cold or actual._cold._used < Budget.COLD_BYTES \
++			or actual._room_admission or actual._world_preparation or actual._owner_token != 0 \
++			or context.phase < 0 or context.phase > 3 or not _route_observation_shape_matches(actual):
++		return &"LOCATION_CONTACT_RETIREMENT_CONTEXT"
++	var code: StringName = _contact_retirement_banks_refusal(actual, context)
++	if code == &"": code = _route_observation_world_refusal(actual)
++	return context.issuer.contact_retirement_scope_refusal(context) if code == &"" else code
++
++
++static func _contact_retirement_banks_refusal(actual: RefCounted, context: ContactRetirementContext) -> StringName:
++	"""Both existing banks keep their exact bounded shape and original live payload revision."""
++	var bank: Bank = actual._live
++	if bank == null or bank.get_script() != Bank or actual._stage.get_script() != Bank \
++			or bank.header.size() != HEADER_FIELDS or bank.i32.size() != I32_FIELDS * actual._capacity \
++			or bank.i64.size() != I64_FIELDS * actual._capacity or bank.present.size() != actual._capacity \
++			or bank.retired.size() != actual._capacity or bank.free_rows.size() != actual._capacity \
++			or bank.ordered.size() != actual._capacity or bank.header[13] != context.location_revision \
++			or context.location_revision <= 0 or context.location_revision == 9223372036854775807 \
++			or actual._stage.retired.size() != actual._capacity or actual._stage.free_rows.size() != actual._capacity \
++			or actual._stage.ordered.size() != actual._capacity or context.first == context.second:
++		return &"LOCATION_CONTACT_RETIREMENT_CONTEXT"
++	if not _contact_retirement_ref_matches(actual, context.first) or not _contact_retirement_ref_matches(actual, context.second) \
++			or bank.i32[ROLE * actual._capacity + context.first.x] != ROLE_WORK \
++			or bank.i32[ROLE * actual._capacity + context.second.x] != ROLE_WORK:
++		return &"LOCATION_CONTACT_RETIREMENT_CONTEXT"
++	if context.phase < 3:
++		return &"" if actual._token == 0 and context.location_token == 0 and not actual._sealed else &"LOCATION_TOKEN_STALE"
++	return &"" if context.location_token > 0 and actual._token == context.location_token \
++		and actual._cold_token == context.cold and actual._base_geometry_revision == context.revision \
++		and actual._target_geometry_revision == context.revision else &"LOCATION_TOKEN_STALE"
++
++
++static func _contact_retirement_ref_matches(actual: RefCounted, ref: Vector2i) -> bool:
++	"""Final full-ref checks do not dispatch an overridden Location method."""
++	return ref.x >= 0 and ref.x < actual._capacity and ref.y > 0 \
++		and actual._live.present[ref.x] == 1 and actual._live.i32[GENERATION * actual._capacity + ref.x] == ref.y
++
++
++func prepare_contact_retirement(context: ContactRetirementContext) -> StringName:
++	"""After the exact graph receipt, remove only the original unused pair in the existing inactive bank."""
++	var code: StringName = _contact_retirement_context_refusal(self, context)
++	if code != &"": return code
++	if context.phase != 2 or context.route_receipt <= 0 or _next_token == 9223372036854775807:
++		return &"LOCATION_CONTACT_RETIREMENT_CONTEXT"
++	if not _spend(256 + 96 * _capacity): return &"LOCATION_OPERATION_BUDGET"
++	code = _observe_contact_retirement_pair(context)
++	if code != &"": return code
++	_start_contact_retirement(context)
++	_clear_row(_stage, context.first.x)
++	_clear_row(_stage, context.second.x)
++	if _get32(_stage, GENERATION, context.first.x) == Space.I32_MAX: _stage.retired[context.first.x] = 1
++	if _get32(_stage, GENERATION, context.second.x) == Space.I32_MAX: _stage.retired[context.second.x] = 1
++	_rebuild_allocation(_stage)
++	_sealed = true
++	_snapshot = null
++	return observe_contact_retirement(context)
++
++
++func _start_contact_retirement(context: ContactRetirementContext) -> void:
++	"""Reuse admitted arrays after observers; the original operation counter is never replenished."""
++	_stage.copy_from(_live)
++	_stage.header[13] += 1
++	_token = _next_token
++	_next_token += 1
++	_cold_token = context.cold
++	_base_geometry_revision = context.revision
++	_target_geometry_revision = context.revision
++	context.location_token = _token
++	context.phase = 3
++
++
++func _observe_contact_retirement_pair(context: ContactRetirementContext) -> StringName:
++	"""Each real retention observation is followed immediately by the full original closed scope."""
++	var code: StringName = _route_retention_refusal(context.first)
++	if code == &"": code = _contact_retirement_context_refusal(self, context)
++	if code == &"": code = _route_retention_refusal(context.second)
++	if code == &"": code = _contact_retirement_context_refusal(self, context)
++	return _contact_retirement_inventory_refusal(self, context) if code == &"" else code
++
++
++func observe_contact_retirement(context: ContactRetirementContext) -> StringName:
++	"""Recheck original semantics after observers; a refused second publication retains disconnected endpoints."""
++	var code: StringName = _contact_retirement_context_refusal(self, context)
++	if code != &"": return code
++	if context.phase != 3 or not _sealed: return &"LOCATION_TOKEN_STALE"
++	if not _spend(256 + 96 * _capacity): return &"LOCATION_OPERATION_BUDGET"
++	code = _observe_contact_retirement_pair(context)
++	if code == &"": code = _installed_witnesses_refusal()
++	if code == &"": code = _contact_retirement_context_refusal(self, context)
++	return _contact_retirement_rows_refusal(self, context) if code == &"" else code
++
++
++static func _contact_retirement_inventory_refusal(actual: RefCounted, context: ContactRetirementContext) -> StringName:
++	"""Direct retained-container columns close the final boundary without an overridable Inventory observer."""
++	var inventory: Inventory = actual._inventory
++	if inventory == null or inventory._tx_open or inventory._spatial_world != context.world \
++			or inventory._spatial_authority == null: return &"LOCATION_INVENTORY_RETAINED"
++	var authority: RefCounted = inventory._spatial_authority.get_ref()
++	if authority == null or authority.get_script() != InventoryLocations or authority._locations == null \
++			or authority._locations.get_ref() != actual: return &"LOCATION_OWNER_MISMATCH"
++	var count: int = inventory._spatial_container_slot.size()
++	if inventory._spatial_container_generation.size() != count or inventory._spatial_location_slot.size() != count \
++			or inventory._spatial_location_generation.size() != count or inventory._spatial_location_revision.size() != count:
++		return &"LOCATION_INVENTORY_RETAINED"
++	for row: int in count:
++		if inventory._spatial_container_slot[row] < 0: continue
++		var ref: Vector2i = Vector2i(inventory._spatial_location_slot[row], inventory._spatial_location_generation[row])
++		if ref == context.first or ref == context.second: return &"LOCATION_INVENTORY_RETAINED"
++	return &""
++
++
++static func _contact_retirement_rows_refusal(actual: RefCounted, context: ContactRetirementContext) -> StringName:
++	"""A removal candidate preserves all unrelated payload, generations, header fields and exhaustion marks."""
++	if actual._stage.count != actual._live.count - 2: return &"LOCATION_CONTACT_RETIREMENT_ROWS"
++	for field: int in HEADER_FIELDS:
++		if actual._stage.header[field] != actual._live.header[field] + (1 if field == 13 else 0):
++			return &"LOCATION_CONTACT_RETIREMENT_ROWS"
++	for row: int in actual._capacity:
++		var removed: bool = row == context.first.x or row == context.second.x
++		var code: StringName = _contact_retirement_row_refusal(actual, row, removed)
++		if code != &"": return code
++	return _contact_retirement_indexes_refusal(actual)
++
++
++static func _contact_retirement_row_refusal(actual: RefCounted, row: int, removed: bool) -> StringName:
++	"""Only the two source-derived completed contacts lose payload; their full generations never change."""
++	var before: Bank = actual._live
++	var after: Bank = actual._stage
++	if after.present[row] != (0 if removed else before.present[row]): return &"LOCATION_CONTACT_RETIREMENT_ROWS"
++	if after.retired[row] != (1 if removed and before.i32[row] == Space.I32_MAX else before.retired[row]):
++		return &"LOCATION_CONTACT_RETIREMENT_ROWS"
++	for field: int in I32_FIELDS:
++		var expected: int = before.i32[field * actual._capacity + row]
++		if removed and field != GENERATION: expected = -1 if field == ROOM_SLOT or field == SECTION_SLOT else 0
++		if after.i32[field * actual._capacity + row] != expected: return &"LOCATION_CONTACT_RETIREMENT_ROWS"
++	for field: int in I64_FIELDS:
++		if after.i64[field * actual._capacity + row] != (0 if removed else before.i64[field * actual._capacity + row]):
++			return &"LOCATION_CONTACT_RETIREMENT_ROWS"
++	return &""
++
++
++static func _contact_retirement_indexes_refusal(actual: RefCounted) -> StringName:
++	"""Rebuilt derivative indexes have one exact entry per retained or reusable row and canonical tails."""
++	var bank: Bank = actual._stage
++	var occupied: int = 0
++	var free: int = 0
++	for row: int in actual._capacity:
++		if bank.present[row] == 1:
++			if bank.ordered[occupied] != row: return &"LOCATION_CONTACT_RETIREMENT_ROWS"
++			occupied += 1
++		elif bank.retired[row] == 0 and bank.i32[row] < Space.I32_MAX:
++			if bank.free_rows[free] != row: return &"LOCATION_CONTACT_RETIREMENT_ROWS"
++			free += 1
++	if bank.count != occupied or bank.free_count != free: return &"LOCATION_CONTACT_RETIREMENT_ROWS"
++	for index: int in range(occupied, actual._capacity):
++		if bank.ordered[index] != -1: return &"LOCATION_CONTACT_RETIREMENT_ROWS"
++	for index: int in range(free, actual._capacity):
++		if bank.free_rows[index] != -1: return &"LOCATION_CONTACT_RETIREMENT_ROWS"
++	return &""
++
++
++static func contact_retirement_leaf_refusal(actual: RefCounted, context: ContactRetirementContext) -> StringName:
++	"""Every observer has finished; the exact original Scope alone owns this publication window."""
++	var code: StringName = _contact_retirement_context_refusal(actual, context)
++	if code != &"": return code
++	if context.phase != 3 or not actual._sealed: return &"LOCATION_TOKEN_STALE"
++	code = context.issuer.contact_retirement_publish_refusal(context)
++	if code == &"": code = _contact_retirement_inventory_refusal(actual, context)
++	return _contact_retirement_rows_refusal(actual, context) if code == &"" else code
++
++
++static func commit_contact_retirement_preflighted(actual: RefCounted, context: ContactRetirementContext) -> bool:
++	"""Swap only the validated pair-removal bank; physical cuts, funding and the graph receipt remain untouched."""
++	if contact_retirement_leaf_refusal(actual, context) != &"": return false
++	var previous: Bank = actual._live
++	actual._live = actual._stage
++	actual._stage = previous
++	actual._last_published_token = context.location_token
++	_clear_installation_preparation(actual)
++	actual._contact_retirement = null
++	context.phase = 4
++	return true
++
++
++func discard_contact_retirement(context: ContactRetirementContext, original_issuer: RefCounted = null) -> void:
++	"""Release only this original bracket even after lease expiry; a foreign replacement is never aborted."""
++	if _in_retention:
++		_retention_reentered = true
++		return
++	if context == null or _contact_retirement != context: return
++	var issuer: RefCounted = original_issuer if original_issuer != null else context.issuer
++	if issuer != null and issuer.get_script() == ContactRetirementScope \
++			and issuer.owns_location_preparation(context, _token, _cold_token):
++		_clear_installation_preparation(self)
++	_contact_retirement = null
+diff --git a/godot/test/test_underground_locations.gd b/godot/test/test_underground_locations.gd
+index fc8a407d..c85b35a4 100644
+--- a/godot/test/test_underground_locations.gd
++++ b/godot/test/test_underground_locations.gd
+@@ -22,6 +22,20 @@ const NULL_REF: Vector2i = Vector2i(-1, 0)
+ const CAPACITY: int = 4
+ const COLD_BYTES: int = 1048576
+ 
++
++class ForgedRetirementIssuer extends RefCounted:
++	func contact_retirement_scope_refusal(_context: RefCounted) -> StringName:
++		"""A same-shaped permission response cannot impersonate the concrete retirement coordinator."""
++		return &""
++
++	func contact_retirement_publish_refusal(_context: RefCounted) -> StringName:
++		"""Even an affirmative fake publication window must fail before any bank mutation."""
++		return &""
++
++	func owns_location_preparation(_context: RefCounted, _token: int, _cold: int) -> bool:
++		"""Cleanup may not dispatch this fabricated original-owner answer."""
++		return true
++
+ var _buildings: Buildings = null
+ var _construction: Construction = null
+ var _transforms: Transforms = null
+@@ -1809,3 +1823,60 @@ func test_live_iterator_shape_budget_and_full_world_refuse_without_copy() -> voi
+ 	_owner._domain._checks = checks
+ 	assert_true(_buildings.directory().destroy(_world), "retire original actual World")
+ 	_iterator_refusal(ref.x, _owner.revision(), &"LOCATION_WORLD_STALE")
++
++
++func test_contact_retirement_rejects_forged_scope_without_touching_live_or_candidate() -> void:
++	"""Caller-selected full refs, banks and affirmative methods never authorize actual endpoint retirement."""
++	var ref: Vector2i = _add()
++	var before: PackedByteArray = _image()
++	var candidate: PackedInt32Array = _locations._stage.i32.duplicate()
++	var context: Locations.ContactRetirementContext = Locations.ContactRetirementContext.new()
++	context.issuer = ForgedRetirementIssuer.new()
++	context.issuer_script = context.issuer.get_script()
++	context.locations = _locations; context.owner = _owner; context.budget = _cold
++	context.world = _world; context.live = _locations._live; context.candidate = _locations._stage
++	context.first = ref; context.second = Vector2i(ref.x + 1, ref.y)
++	context.revision = _owner.revision(); context.location_revision = _locations._live.header[13]
++	context.cold = _cold.acquire(Budget.COLD_BYTES)
++	_assert_unissued_retirement(context)
++	assert_equal(_locations._stage.i32, candidate, "refused packet never copies or clears candidate")
++	assert_equal(_cold.release(context.cold), &"", "caller still owns original lease")
++	assert_equal(_image(), before, "actual immutable endpoint bytes preserved")
++
++
++func _assert_unissued_retirement(context: Locations.ContactRetirementContext) -> void:
++	"""Every public specialized entry refuses the same unissued packet before touching any bank."""
++	assert_equal(_locations.begin_contact_retirement(context), &"LOCATION_CONTACT_RETIREMENT_CONTEXT", "exact issuer required")
++	assert_equal(_locations.prepare_contact_retirement(context), &"LOCATION_CONTACT_RETIREMENT_CONTEXT", "no forged preparation")
++	assert_equal(_locations.observe_contact_retirement(context), &"LOCATION_CONTACT_RETIREMENT_CONTEXT", "no forged observation")
++	assert_equal(Locations.contact_retirement_leaf_refusal(_locations, context), &"LOCATION_CONTACT_RETIREMENT_CONTEXT", "no forged leaf")
++	assert_false(Locations.commit_contact_retirement_preflighted(_locations, context), "no forged swap")
++	_locations.discard_contact_retirement(context)
++	assert_equal(_locations._token, 0, "no candidate minted")
++	assert_true(_locations._contact_retirement == null, "no forged bracket retained")
++
++
++func test_contact_retirement_bracket_closes_generic_mutation_and_capture_doors() -> void:
++	"""This synthetic borrowed bracket tests isolation only; actual completed-cut admission is a separate suite."""
++	var ref: Vector2i = _add()
++	var before: PackedByteArray = _image()
++	var cold: int = _cold.acquire(Budget.COLD_BYTES)
++	var token: int = _locations.begin_prepare(cold).token
++	var context: Locations.ContactRetirementContext = Locations.ContactRetirementContext.new()
++	_locations._contact_retirement = context
++	assert_equal(_locations.begin_prepare(cold).error, &"LOCATION_PREPARATION_BUSY", "cannot prepare around bracket")
++	assert_equal(_locations.stage_remove(token, ref), &"LOCATION_RETENTION_REENTRY", "cannot remove around bracket")
++	assert_equal(_locations.stage_add(token, _record()).error, &"LOCATION_RETENTION_REENTRY", "cannot add around bracket")
++	assert_equal(_locations.stage_refresh(token, ref), &"LOCATION_RETENTION_REENTRY", "cannot refresh around bracket")
++	assert_equal(_locations.seal(token), &"LOCATION_RETENTION_REENTRY", "cannot seal around bracket")
++	assert_false(_locations.publish(token), "cannot publish around bracket")
++	assert_false(_locations.abort(token), "cannot abort around bracket")
++	assert_equal(_locations.restore_state_bytes(cold, before), &"LOCATION_IMAGE_SHAPE", "cannot restore around bracket")
++	assert_equal(_locations.capture_state_into(cold, PackedByteArray()), &"LOCATION_CAPTURE_BUSY", "cannot save a half publication")
++	_locations.discard_contact_retirement(Locations.ContactRetirementContext.new())
++	assert_true(_locations._contact_retirement == context, "foreign discard preserves original bracket")
++	_locations.discard_contact_retirement(context)
++	assert_equal(_locations._token, token, "unissued cleanup cannot abort another candidate")
++	assert_true(_locations.abort(token), "original generic owner can clean up after borrowed bracket")
++	assert_equal(_cold.release(cold), &"", "original lease retained")
++	assert_equal(_image(), before, "all ordinary-door refusals preserve live bytes")

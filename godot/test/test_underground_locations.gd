@@ -22,6 +22,20 @@ const NULL_REF: Vector2i = Vector2i(-1, 0)
 const CAPACITY: int = 4
 const COLD_BYTES: int = 1048576
 
+
+class ForgedRetirementIssuer extends RefCounted:
+	func contact_retirement_scope_refusal(_context: RefCounted) -> StringName:
+		"""A same-shaped permission response cannot impersonate the concrete retirement coordinator."""
+		return &""
+
+	func contact_retirement_publish_refusal(_context: RefCounted) -> StringName:
+		"""Even an affirmative fake publication window must fail before any bank mutation."""
+		return &""
+
+	func owns_location_preparation(_context: RefCounted, _token: int, _cold: int) -> bool:
+		"""Cleanup may not dispatch this fabricated original-owner answer."""
+		return true
+
 var _buildings: Buildings = null
 var _construction: Construction = null
 var _transforms: Transforms = null
@@ -1809,3 +1823,60 @@ func test_live_iterator_shape_budget_and_full_world_refuse_without_copy() -> voi
 	_owner._domain._checks = checks
 	assert_true(_buildings.directory().destroy(_world), "retire original actual World")
 	_iterator_refusal(ref.x, _owner.revision(), &"LOCATION_WORLD_STALE")
+
+
+func test_contact_retirement_rejects_forged_scope_without_touching_live_or_candidate() -> void:
+	"""Caller-selected full refs, banks and affirmative methods never authorize actual endpoint retirement."""
+	var ref: Vector2i = _add()
+	var before: PackedByteArray = _image()
+	var candidate: PackedInt32Array = _locations._stage.i32.duplicate()
+	var context: Locations.ContactRetirementContext = Locations.ContactRetirementContext.new()
+	context.issuer = ForgedRetirementIssuer.new()
+	context.issuer_script = context.issuer.get_script()
+	context.locations = _locations; context.owner = _owner; context.budget = _cold
+	context.world = _world; context.live = _locations._live; context.candidate = _locations._stage
+	context.first = ref; context.second = Vector2i(ref.x + 1, ref.y)
+	context.revision = _owner.revision(); context.location_revision = _locations._live.header[13]
+	context.cold = _cold.acquire(Budget.COLD_BYTES)
+	_assert_unissued_retirement(context)
+	assert_equal(_locations._stage.i32, candidate, "refused packet never copies or clears candidate")
+	assert_equal(_cold.release(context.cold), &"", "caller still owns original lease")
+	assert_equal(_image(), before, "actual immutable endpoint bytes preserved")
+
+
+func _assert_unissued_retirement(context: Locations.ContactRetirementContext) -> void:
+	"""Every public specialized entry refuses the same unissued packet before touching any bank."""
+	assert_equal(_locations.begin_contact_retirement(context), &"LOCATION_CONTACT_RETIREMENT_CONTEXT", "exact issuer required")
+	assert_equal(_locations.prepare_contact_retirement(context), &"LOCATION_CONTACT_RETIREMENT_CONTEXT", "no forged preparation")
+	assert_equal(_locations.observe_contact_retirement(context), &"LOCATION_CONTACT_RETIREMENT_CONTEXT", "no forged observation")
+	assert_equal(Locations.contact_retirement_leaf_refusal(_locations, context), &"LOCATION_CONTACT_RETIREMENT_CONTEXT", "no forged leaf")
+	assert_false(Locations.commit_contact_retirement_preflighted(_locations, context), "no forged swap")
+	_locations.discard_contact_retirement(context)
+	assert_equal(_locations._token, 0, "no candidate minted")
+	assert_true(_locations._contact_retirement == null, "no forged bracket retained")
+
+
+func test_contact_retirement_bracket_closes_generic_mutation_and_capture_doors() -> void:
+	"""This synthetic borrowed bracket tests isolation only; actual completed-cut admission is a separate suite."""
+	var ref: Vector2i = _add()
+	var before: PackedByteArray = _image()
+	var cold: int = _cold.acquire(Budget.COLD_BYTES)
+	var token: int = _locations.begin_prepare(cold).token
+	var context: Locations.ContactRetirementContext = Locations.ContactRetirementContext.new()
+	_locations._contact_retirement = context
+	assert_equal(_locations.begin_prepare(cold).error, &"LOCATION_PREPARATION_BUSY", "cannot prepare around bracket")
+	assert_equal(_locations.stage_remove(token, ref), &"LOCATION_RETENTION_REENTRY", "cannot remove around bracket")
+	assert_equal(_locations.stage_add(token, _record()).error, &"LOCATION_RETENTION_REENTRY", "cannot add around bracket")
+	assert_equal(_locations.stage_refresh(token, ref), &"LOCATION_RETENTION_REENTRY", "cannot refresh around bracket")
+	assert_equal(_locations.seal(token), &"LOCATION_RETENTION_REENTRY", "cannot seal around bracket")
+	assert_false(_locations.publish(token), "cannot publish around bracket")
+	assert_false(_locations.abort(token), "cannot abort around bracket")
+	assert_equal(_locations.restore_state_bytes(cold, before), &"LOCATION_IMAGE_SHAPE", "cannot restore around bracket")
+	assert_equal(_locations.capture_state_into(cold, PackedByteArray()), &"LOCATION_CAPTURE_BUSY", "cannot save a half publication")
+	_locations.discard_contact_retirement(Locations.ContactRetirementContext.new())
+	assert_true(_locations._contact_retirement == context, "foreign discard preserves original bracket")
+	_locations.discard_contact_retirement(context)
+	assert_equal(_locations._token, token, "unissued cleanup cannot abort another candidate")
+	assert_true(_locations.abort(token), "original generic owner can clean up after borrowed bracket")
+	assert_equal(_cold.release(cold), &"", "original lease retained")
+	assert_equal(_image(), before, "all ordinary-door refusals preserve live bytes")

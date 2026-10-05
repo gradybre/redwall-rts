@@ -1,0 +1,25 @@
+[
+  {
+    "argv": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-approach-memory/docs/validation/evidence/underground-approach-memory-2026-10-04/test_wrapper.py",
+      "-v"
+    ],
+    "elapsed_seconds": 2.756054125,
+    "exit": 0
+  },
+  {
+    "argv": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "-O",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-approach-memory/docs/validation/evidence/underground-approach-memory-2026-10-04/test_wrapper.py",
+      "-v",
+      "WrapperTests.test_unaccounted_cold_child_and_larger_buffer_refuse",
+      "WrapperTests.test_added_retained_bank_refuses"
+    ],
+    "elapsed_seconds": 0.4594884170000002,
+    "exit": 0
+  }
+]

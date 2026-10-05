@@ -1,0 +1,16 @@
+{
+  "additional_reserved_bytes": 0,
+  "all_commands_passed": true,
+  "catalog_input": "Exact reviewed v3 Catalog snapshot injected into the actual parsed index; this branch's pending publication remains v2.",
+  "complete_joint_bytes": 246868,
+  "engine_or_native_qualification": false,
+  "existing_envelope": 262144,
+  "logical_controls": 3183,
+  "logical_slice": 4096,
+  "normal_integrated_main_checker": "Root-owned follow-up; not claimed by this component run.",
+  "normal_tests": 22,
+  "optimized_assertion_regressions": 2,
+  "source_program_shared_bytes": 640,
+  "source_unchanged": true,
+  "unchanged_profile_control_reserve": 32768
+}

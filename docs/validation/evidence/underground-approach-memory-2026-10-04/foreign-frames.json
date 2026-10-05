@@ -1,0 +1,37 @@
+{
+  "source_commit": "fe79f9bc4fab8e837f8ce9e2ee8cc5a102773bba",
+  "frames": {
+    "gear:_resolve_row": {
+      "text": "func _resolve_row(lot_ref: Vector2i) -> int:\n\t\"\"\"The live row whose RECORDED identity is exactly `lot_ref`, or NULL_ROW.\n\n\tThe derived lookup never substitutes for the row's recorded full identity. A stale lot\n\thandle, wrong index target or unoccupied row resolves to nothing without allocating.\n\t\"\"\"\n\tif lot_ref.x < 0 or lot_ref.x >= LOT_CAPACITY or lot_ref.y <= NULL_GENERATION:\n\t\treturn NULL_ROW\n\tvar row: int = _resolve_row_by_lot_slot(lot_ref.x)\n\treturn row if row != NULL_ROW and _lot_generation[row] == lot_ref.y else NULL_ROW\n\n\n",
+      "sha256": "ba6c129eef716a9e613cc7ee05de894313c69e7bf225a71b82529e5c2837447b"
+    },
+    "gear:_resolve_row_by_lot_slot": {
+      "text": "func _resolve_row_by_lot_slot(lot_slot: int) -> int:\n\t\"\"\"The live row recorded against `lot_slot` at ANY generation, or NULL_ROW.\n\n\tUsed only to keep one lot slot from carrying two gear records; every public path compares\n\tthe full reference.\n\t\"\"\"\n\tif lot_slot < 0 or lot_slot >= LOT_CAPACITY:\n\t\treturn NULL_ROW\n\tvar row: int = _lot_row[lot_slot]\n\tif row < 0 or row >= _row_capacity or _occupied[row] != 1 or _lot_slot[row] != lot_slot:\n\t\treturn NULL_ROW\n\treturn row\n\n\n",
+      "sha256": "1ead120279509fcc86585f66d48dcae8b39cea78061bdc15fa4fc914a0aaca52"
+    },
+    "gear:owner_of": {
+      "text": "func owner_of(lot_ref: Vector2i) -> Vector2i:\n\t\"\"\"The recorded owner EntityRef, or NULL_REF when the gear is unowned or unknown.\n\n\tNULL_REF here is the GDD's own null reference, not a failure code: `has_gear()` distinguishes\n\t\"no such gear\" from \"gear with no owner\".\n\t\"\"\"\n\tvar row: int = _resolve_row(lot_ref)\n\tif row == NULL_ROW:\n\t\treturn NULL_REF\n\treturn Vector2i(_owner_slot[row], _owner_generation[row])\n\n\n",
+      "sha256": "c9569705042a0c92fa97783c07637263a05b1f6f356e286923d7f149531d4dc3"
+    },
+    "haul_carry:_owns_live_satchel": {
+      "text": "func _owns_live_satchel(hauler_slot: int, satchel: Vector2i) -> bool:\n\t\"\"\"Whether `satchel` is a live satchel row owned by this present resident.\"\"\"\n\treturn satchel != NULL_REF and _inventory.is_satchel(satchel) \\\n\t\tand _inventory.container_owner(satchel) == _residents.ref_of(hauler_slot)\n\n\n# --- load -----------------------------------------------------------------------------------\n\n",
+      "sha256": "0bb4d8ff0582a1eb5079aef5f3b7c01e6fb70bb72f08153b7962d7d056c2367b"
+    },
+    "haul_carry:carried_lot": {
+      "text": "func carried_lot(hauler_slot: int) -> Vector2i:\n\t\"\"\"The first lot in the hauler's satchel -- one item lot per haul (H2) -- or the null ref.\"\"\"\n\tvar satchel: Vector2i = satchel_of(hauler_slot)\n\treturn NULL_REF if satchel == NULL_REF else _inventory.container_first_lot(satchel)\n\n\n",
+      "sha256": "b9728716a15f2ad21525393f92a8780b1f35fdc5db192d029bc0f07ee0f45077"
+    },
+    "haul_carry:satchel_of": {
+      "text": "func satchel_of(hauler_slot: int) -> Vector2i:\n\t\"\"\"The live satchel the hauler carries, or the null ref (none, or a stale pair).\"\"\"\n\tif _residents == null or _inventory == null:\n\t\treturn NULL_REF\n\tvar satchel: Vector2i = _residents.satchel_of(hauler_slot)\n\treturn satchel if _owns_live_satchel(hauler_slot, satchel) else NULL_REF\n\n\n",
+      "sha256": "7c87e65e50970246367f20db46131ece60658bd5af7083cc0a41f04ef69815f0"
+    },
+    "inventory:is_container_valid": {
+      "text": "func is_container_valid(container_ref: Vector2i) -> bool:\n\t\"\"\"True when the ref names a live container at the generation it was issued for.\"\"\"\n\tvar slot: int = container_ref.x\n\tif slot < 0 or slot >= _c_capacity:\n\t\treturn false\n\treturn _c_live[slot] == 1 and _c_generation[slot] == container_ref.y\n\n\n",
+      "sha256": "4bb7297b7a386cbd5268705893549ae43fbe67c91ef1b75d2bdfc6991047fb6b"
+    },
+    "inventory:is_satchel": {
+      "text": "func is_satchel(container_ref: Vector2i) -> bool:\n\t\"\"\"True for a live satchel row: one `create_satchel()` minted.\"\"\"\n\treturn is_container_valid(container_ref) and _c_policy[container_ref.x] == POLICY_SATCHEL\n\n\n",
+      "sha256": "3b25054f8f01a3c14cc47ea14c63aea7fa7aa7a06cbd769f689c1a576d2238f8"
+    }
+  }
+}

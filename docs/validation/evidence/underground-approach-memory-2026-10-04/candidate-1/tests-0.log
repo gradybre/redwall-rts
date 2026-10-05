@@ -1,0 +1,27 @@
+test_actor_column_width_growth_refuses (__main__.WrapperTests) ... ok
+test_added_retained_bank_refuses (__main__.WrapperTests) ... ok
+test_call_change_without_numeric_growth_refuses (__main__.WrapperTests) ... ok
+test_complete_reviewed_census_and_current_hashes (__main__.WrapperTests) ... ok
+test_current_catalog_count_or_pair_mutation_refuses (__main__.WrapperTests) ... ok
+test_driver_override_is_used_even_when_current_file_is_unchanged (__main__.WrapperTests) ... ok
+test_duplicate_identical_resize_refuses (__main__.WrapperTests) ... ok
+test_even_under_budget_source_constant_growth_refuses (__main__.WrapperTests) ... ok
+test_every_immutable_witness_is_enforced (__main__.WrapperTests) ... ok
+test_foreign_frame_call_change_without_numeric_growth_refuses (__main__.WrapperTests) ... ok
+test_foreign_frame_numeric_growth_refuses (__main__.WrapperTests) ... ok
+test_inherited_packet_storage_refuses (__main__.WrapperTests) ... ok
+test_joint_source_terms_and_budget_cannot_grow (__main__.WrapperTests) ... ok
+test_missing_core_source_and_substituted_path_refuse (__main__.WrapperTests) ... ok
+test_no_git_checkout_or_subprocess_is_required (__main__.WrapperTests) ... ok
+test_noncore_fallback_is_current_tree_and_does_not_mutate_input (__main__.WrapperTests) ... ok
+test_source_decode_allocation_refuses (__main__.WrapperTests) ... ok
+test_source_program_state_base_and_array_constant_refuse (__main__.WrapperTests) ... ok
+test_stale_double_charged_missing_extra_or_noninteger_joint_refuses (__main__.WrapperTests) ... ok
+test_unaccounted_cold_child_and_larger_buffer_refuse (__main__.WrapperTests) ... ok
+test_unrelated_foreign_change_is_reported_not_replaced_from_disk (__main__.WrapperTests) ... ok
+test_untyped_or_duplicate_nested_storage_refuses (__main__.WrapperTests) ... ok
+
+----------------------------------------------------------------------
+Ran 22 tests in 2.705s
+
+OK

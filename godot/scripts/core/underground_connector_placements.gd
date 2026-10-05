@@ -346,7 +346,7 @@ func _clear_bank(bank: Bank) -> void:
 func bind_actual(space: Owner, locations: Locations, routes: Routes, budget: Budget,
 		catalog: Catalog, assemblies: Assemblies, recipes: Recipes, construction: Construction) -> StringName:
 	"""Bind one actual World and immutable variant without accepting copied identity or caller source hashes."""
-	if _reentry() or not _configured or _ready or space == null or locations == null or routes == null \
+	if _reentry() or not _configured or _ready or _world != NULL_REF or space == null or locations == null or routes == null \
 			or budget == null or catalog == null or assemblies == null or recipes == null or construction == null:
 		return REFUSE_BINDING
 	if not budget.is_quiescent() or space.has_prepared() or locations._token != 0 or routes._token != 0:
@@ -1431,6 +1431,141 @@ func _insert_request(ref: Vector2i, future: bool = false) -> void:
 	_stage.present[ref.x] = 1
 	_stage.header[H_COUNT] += 1
 	_stage.header[H_REVISION] += 1
+
+
+static func retirement_refusal_in(actual: RefCounted, original: RefCounted,
+		stopped_constructor: bool = false) -> StringName:
+	"""The original configured Placement is complete even when a later private constructor step stopped."""
+	var code: StringName = _retirement_owned_refusal_in(actual, original)
+	if code != &"": return code
+	if original.room_bindings == null: return REFUSE_BINDING
+	if not _retirement_weak_in(actual._authority, original.room_bindings._entry_authority):
+		return REFUSE_BINDING
+	if original.connector == null:
+		if actual._publisher != null or actual._router != null or actual._paid_owner != null:
+			return REFUSE_BINDING
+	elif actual._publisher == null and stopped_constructor:
+		if actual._router != null or actual._paid_owner != null: return REFUSE_BINDING
+	elif not _retirement_weak_in(actual._publisher, original.connector._publication) \
+			or not _retirement_weak_in(actual._router, original.router) \
+			or not _retirement_weak_in(actual._paid_owner, original.connector):
+		return REFUSE_BINDING
+	if actual._workpieces == null and stopped_constructor: return &""
+	return &"" if _retirement_weak_in(actual._workpieces, original.workpieces) else REFUSE_BINDING
+
+
+static func _retirement_owned_refusal_in(actual: RefCounted, original: RefCounted) -> StringName:
+	"""Only own unchanged pins are needed again after previously preflighted peers release their references."""
+	if actual == null or original == null or original.placements != actual or not actual._configured \
+			or not actual._ready or actual._world != original.world_ref or actual._ids != original.directory \
+			or actual._space != original.space or actual._sources != original.sources \
+			or actual._locations != original.locations or actual._routes != original.routes \
+			or actual._world_routes != original.world_routes or actual._budget != original.budget:
+		return REFUSE_BINDING
+	if actual._busy or actual._reading_state or actual._cold_token != 0 or actual._space_token != 0 \
+			or actual._location_token != 0 or actual._route_token != 0 or actual._admission_mode or actual._phase_mode \
+			or actual._prepared_project != NULL_REF or actual._context.cold_token != 0 \
+			or actual._phase_context.cold_token != 0 or actual._admission_context.cold_token != 0:
+		return REFUSE_BUSY
+	return _retirement_stores_in(actual, original)
+
+
+static func _retirement_stores_in(actual: RefCounted, original: RefCounted) -> StringName:
+	"""The retained paid, source and worker stores are this exact composition, never equal-capacity substitutes."""
+	if actual._construction != original.construction or actual._buildings != original.buildings \
+			or actual._inventory != original.inventory or actual._transforms != original.transforms \
+			or actual._residents != original.residents or actual._jobs != original.jobs or actual._work != original.work \
+			or actual._profiles != original.profiles or actual._gear != original.gear or actual._carry != original.carry \
+			or actual._reservations != original.reservations or actual._piles != original.piles \
+			or actual._catalog == null or original.world_routes == null \
+			or actual._catalog != original.world_routes._catalog or actual._assemblies == null or actual._recipes == null:
+		return REFUSE_BINDING
+	if actual._assemblies._catalog != actual._catalog or actual._assemblies._recipes != actual._recipes \
+			or actual._assemblies._inventory != original.inventory or actual._recipes._catalog != actual._catalog \
+			or actual._recipes._inventory != original.inventory or actual._recipes._items != original.items:
+		return REFUSE_SOURCE
+	return &""
+
+
+static func _retirement_weak_in(binding: WeakRef, expected: RefCounted) -> bool:
+	"""An expired lifetime binding is not the original optional-null state."""
+	return binding == null if expected == null else binding != null and binding.get_ref() == expected
+
+
+static func world_retirement_release_preflighted_in(actual: RefCounted, original: RefCounted,
+		persistent_id: int, _stopped_constructor: bool = false) -> StringName:
+	"""After every reciprocal preflight, retire only this owner's memory; no peer observer runs in the tail."""
+	var code: StringName = _retirement_owned_refusal_in(actual, original)
+	if code != &"": return code
+	code = Buildings.whole_world_retirement_refusal_in(original.directory, original.world_ref, persistent_id, true)
+	if code != &"": return code
+	if original.world == null or original.world._published: return REFUSE_BINDING
+	actual._ready = false # Keep configured and the original non-null World as irreversible tombstones.
+	_release_retired_links_in(actual)
+	_release_retired_sources_in(actual)
+	_release_retired_bank_in(actual._live)
+	_release_retired_bank_in(actual._stage)
+	actual._marks.clear()
+	actual._stream.clear()
+	actual._request.targets.clear()
+	return &""
+
+
+static func _release_retired_links_in(actual: RefCounted) -> void:
+	"""Drop only the Placement's original gameplay and geometry borrows, preserving the old World tombstone."""
+	actual._ids = null
+	actual._buildings = null
+	actual._construction = null
+	actual._space = null
+	actual._locations = null
+	actual._routes = null
+	actual._world_routes = null
+	actual._sources = null
+	actual._inventory = null
+	actual._transforms = null
+	actual._residents = null
+	actual._jobs = null
+	actual._work = null
+	actual._profiles = null
+	actual._gear = null
+	actual._carry = null
+	actual._reservations = null
+	actual._piles = null
+	actual._budget = null
+
+
+static func _release_retired_sources_in(actual: RefCounted) -> void:
+	"""Borrowed foreign context slots stay untouched; this owner's shared packets become inert in place."""
+	actual._catalog = null
+	actual._assemblies = null
+	actual._recipes = null
+	actual._authority = null
+	actual._publisher = null
+	actual._router = null
+	actual._paid_owner = null
+	actual._workpieces = null
+	actual._context.construction = null
+	actual._context.budget = null
+	actual._phase_context.budget = null
+	actual._admission_context.budget = null
+	actual._admission_candidate._directory = null
+	actual._admission_input = null
+
+
+static func _release_retired_bank_in(bank: Bank) -> void:
+	"""Old local generations are unreachable after the World tombstone; release both complete packed images."""
+	bank.header.clear()
+	bank.digests.clear()
+	bank.i32.clear()
+	bank.i64.clear()
+	bank.present.clear()
+	bank.retired.clear()
+	bank.openings.clear()
+	bank.opening_revision.clear()
+	bank.free_rows.clear()
+	bank.free_openings.clear()
+	bank.free_count = 0
+	bank.opening_free_count = 0
 
 
 func _insert_openings(ref: Vector2i, future: bool = false) -> void:

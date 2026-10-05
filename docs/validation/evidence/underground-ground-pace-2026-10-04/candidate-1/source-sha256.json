@@ -1,0 +1,8 @@
+{
+  "godot/scripts/core/underground_connector_catalog.gd": "4b98b9dc46841ea8b140134279b6706cfeb9ec31a7abaa968e276cd504f892b8",
+  "godot/test/test_underground_connector_catalog.gd": "4c81cb868f8ad48a6a3bb63026940260239e47f1217273757c1c0785a8e583eb",
+  "godot/data/underground/ground-pace-v1/ground-pace.ugconn": "1880788c064b87424c203509a7ad65498b9d11fc18842affe909364b8a8aca4a",
+  "godot/data/underground/ground-pace-v1/manifest.json": "8ec0b8b3ddb8b18f92ee6ad9331fa49789c41fd3a1cef7295c1bfd5e682e19e1",
+  "godot/data/underground/ground-pace-v1/compile_ground_pace.py": "14dbac8fa70c17648711db856cab2fe5b7666a53ae1a0ca61b2eb4761bebf539",
+  "godot/data/underground/ground-pace-v1/test_compile_ground_pace.py": "66e4e606dcba26617a16b6cbe240bb34b13a77b8ee13ee7d1a94047c20d4fc13"
+}

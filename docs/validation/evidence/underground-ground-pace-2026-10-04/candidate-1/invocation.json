@@ -1,0 +1,41 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.674,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "271/403",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-ground-pace/docs/validation/evidence/underground-ground-pace-2026-10-04/candidate-1"
+      ],
+      "exit_code": 1,
+      "seconds": 0.592,
+      "log": "test_underground_connector_catalog.gd.log"
+    }
+  ],
+  "source_unchanged": true,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-ground-pace",
+  "project_test_sha256": "fdff79b7fa9becc08d78f2558bb188f849a16d0d4cd5aa5ed8dba5e55fb408b0",
+  "assets_present_before": false,
+  "registry_sha256_before": "3e51697737168b28947cda7d3c45d473847c1f76fc57618c5ad099db1bea2c0c",
+  "clean_import_raw_diagnostics": 0,
+  "error": "test_underground_connector_catalog.gd.log",
+  "registry_restored": true,
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 1
+}

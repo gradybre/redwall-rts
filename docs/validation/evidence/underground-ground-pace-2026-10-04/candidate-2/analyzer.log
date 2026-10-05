@@ -1,0 +1,4 @@
+error: more than the allowed 0 warning(s)
+test/test_underground_connector_catalog.gd:614: (CONFUSABLE_LOCAL_DECLARATION): The variable "bytes" is declared below in the parent block.
+test/test_underground_connector_catalog.gd:618: (CONFUSABLE_LOCAL_DECLARATION): The variable "bytes" is declared below in the parent block.
+2 GDScript warning(s) in 1 of 2 file(s)

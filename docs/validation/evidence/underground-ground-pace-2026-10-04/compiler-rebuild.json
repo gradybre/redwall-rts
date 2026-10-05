@@ -1,0 +1,13 @@
+{
+  "command": [
+    "python3",
+    "-B",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-ground-pace/godot/data/underground/ground-pace-v1/compile_ground_pace.py",
+    "--out",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-ground-pace/docs/validation/evidence/underground-ground-pace-2026-10-04/rebuild-1"
+  ],
+  "exit_code": 0,
+  "seconds": 0.034,
+  "artifact_and_manifest_byte_identical": true,
+  "source_unchanged": true
+}

@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+"""1166 retained/stream/helper comparison; logical source census, not native memory measurement."""
+import hashlib
+import json
+from pathlib import Path
+import re
+import subprocess
+
+ROOT = Path(__file__).resolve().parents[4]
+BASE = "3851584553399ee41fbdcb41c08e35543a416ffe"
+PATH = "godot/scripts/core/underground_connector_catalog.gd"
+WIDTH = {"int": 8, "bool": 1, "Vector2i": 8, "Vector3i": 12}
+
+
+def clean(text):
+    return re.sub(r"#.*", "", re.sub(r'""".*?"""', "", text, flags=re.S))
+
+
+def functions(text):
+    starts = list(re.finditer(r"^(?:static )?func (\w+)\(", text, re.M))
+    result = {}
+    for i, match in enumerate(starts):
+        body = text[match.start():starts[i+1].start() if i+1<len(starts) else len(text)].rstrip()
+        body = clean(body)
+        frame = sum(WIDTH[k] for k in re.findall(r"\b\w+\s*:\s*(int|bool|Vector2i|Vector3i)\b", body))
+        result[match[1]] = (frame, body)
+    return result
+
+
+def build():
+    source = (ROOT / PATH).read_text()
+    original = subprocess.check_output(["git", "show", BASE + ":" + PATH], cwd=ROOT, text=True)
+    members = lambda text: re.findall(r"^\s*var (\w+): ([\w.]+)", text, re.M)
+    assert members(source) == members(original), "retained/member or local storage changed"
+    allocation = lambda text: [s.strip() for s in clean(text).splitlines()
+        if re.search(r"\.(new|resize|append|append_array|duplicate)\(|Packed\w+Array\(", s)]
+    assert allocation(source) == allocation(original), "allocation vocabulary changed"
+    old, new = functions(original), functions(source)
+    assert new.keys() - old.keys() == {"_valid_count"}
+    assert all(new[name] == old[name] for name in old if name != "_decode"), "unrelated body changed"
+    assert new["_valid_count"][0] == 32
+    assert not re.search(r"\.(new|resize|append)|Packed|Array|Dictionary|\[", new["_valid_count"][1])
+    constants = dict((k, int(v)) for k,v in re.findall(r"^const (\w+): int = (\d+)(?:\s*#.*)?$", source, re.M))
+    bank = {"header": 11*8, "variants": constants["VARIANT_FIELDS"]*constants["MAX_VARIANTS"]*4,
+        "variant_revisions": constants["MAX_VARIANTS"]*8, "points": 4*constants["MAX_POINTS"]*4,
+        "regions": 8*constants["MAX_REGIONS"]*4, "parts": constants["PART_FIELDS"]*constants["MAX_PARTS"]*4,
+        "vertices": 3*constants["MAX_VERTICES"]*4, "materials": constants["MAX_MATERIALS"]*4,
+        "paces": constants["PACE_FIELDS"]*constants["MAX_PACES"]*4,
+        "pace_revisions": constants["MAX_PACES"]*8, "digests": 96}
+    assert sum(bank.values()) == constants["BANK_BYTES"] == 86008
+    calls = {name: sorted(set(re.findall(r"(?<![\w.])(_\w+)\(", data[1].split("->",1)[1])) & new.keys())
+             for name, data in new.items()}
+    def chain(name, active=()):
+        assert name not in active, (name, active)
+        tails = [chain(c, active+(name,)) for c in calls[name]]
+        tail = max(tails, default=(0, []), key=lambda p:p[0])
+        return new[name][0]+tail[0], [name]+tail[1]
+    peak = max((chain(name) for name in new), key=lambda p:p[0])
+    count_chain = ["load_file", "_decode", "_valid_count"]
+    profiles = (ROOT / "godot/scripts/core/underground_profiles.gd").read_text()
+    descriptor = profiles.split("class Descriptor extends RefCounted:\n",1)[1].split("\n\nclass Bank",1)[0]
+    descriptor_bytes = len(re.findall(r"var \w+: int", descriptor))*8
+    assert descriptor_bytes == 184
+    retained_controls = descriptor_bytes + 9 + 32 + 2 # IntResult, digest scratch, configured/loading.
+    stream = 72 + 112 + 32 # Conservative header + largest row + finished digest coexistence.
+    foreign_helpers = 512 # Existing direct actual owner readers; no new owner calls or paths.
+    expression_returns = 128
+    helpers = peak[0] + foreign_helpers + expression_returns
+    fixed_peak = retained_controls + stream + helpers
+    assert fixed_peak <= constants["FIXED_RESERVE"] == 2048
+    assert 2*sum(bank.values()) + constants["FIXED_RESERVE"] + constants["NATIVE_RESERVE"] == 190448
+    return {"scope": __doc__, "baseline": BASE,
+        "source_sha256": hashlib.sha256(source.encode()).hexdigest(),
+        "member_vocabulary_unchanged": True, "allocation_vocabulary_unchanged": True,
+        "bank_columns": bank, "one_bank_bytes": sum(bank.values()), "two_banks_bytes": 2*sum(bank.values()),
+        "retained_delta_bytes": 0, "new_global_reservation": 0,
+        "count_helper_frame": 32, "count_chain": count_chain,
+        "count_chain_numeric_bytes": sum(new[n][0] for n in count_chain),
+        "maximum_own_chain": {"bytes": peak[0], "functions": peak[1]},
+        "all_declared_numeric_frames": {n:v[0] for n,v in new.items()},
+        "retained_controls": retained_controls, "conservative_stream_peak": stream,
+        "existing_foreign_helper_allowance": foreign_helpers, "expression_return_allowance": expression_returns,
+        "complete_helper_bound": helpers, "fixed_peak_accounted": fixed_peak,
+        "fixed_reservation": 2048, "unchanged_provisional_native_reservation": 16384,
+        "total_existing_reservation": 190448, "native_measured": False, "runtime_qualified": False}
+
+
+if __name__ == "__main__":
+    print(json.dumps(build(), indent=2))

@@ -1,0 +1,12 @@
+test_current_walk_identity_and_certificate_are_mandatory (test_compile_ground_pace.GroundPaceTests) ... ok
+test_duplicate_and_reordered_rows_refuse (test_compile_ground_pace.GroundPaceTests) ... ok
+test_exact_actual_rows_and_zero_tables (test_compile_ground_pace.GroundPaceTests) ... ok
+test_movement_identity_is_derived_from_actual_named_tables (test_compile_ground_pace.GroundPaceTests) ... ok
+test_no_walk_rows_cannot_form_an_empty_pace_catalog (test_compile_ground_pace.GroundPaceTests) ... ok
+test_profile_shape_is_bounded_before_unpack (test_compile_ground_pace.GroundPaceTests) ... ok
+test_rebuild_matches_all_committed_artifact_bytes (test_compile_ground_pace.GroundPaceTests) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.004s
+
+OK

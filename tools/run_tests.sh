@@ -18,6 +18,8 @@
 #
 # Usable locally as well as in CI: ./tools/run_tests.sh
 # Optional CI selection: ./tools/run_tests.sh --shard 0/8 --output-dir artifacts/test-shards
+# Focused local run:     ./tools/run_tests.sh --suite test_a.gd [--suite test_b.gd ...]
+#   Same guards and zero allowances; only suite selection changes. A focused pass is never a full-suite claim.
 set -uo pipefail
 
 readonly MAX_UNEXPECTED_ERRORS=0
@@ -38,9 +40,22 @@ fi
 godot_script="test/run_tests.gd"
 shard_spec=""
 shard_output_dir=""
-if [[ "$#" -gt 0 ]]; then
+focused_suites=()
+if [[ "$#" -gt 0 && "$1" == --suite ]]; then
+    while [[ "$#" -gt 0 ]]; do
+        if [[ "$1" != --suite || "$#" -lt 2 || -z "$2" ]]; then
+            echo "usage: $0 --suite NAME.gd [--suite NAME.gd ...]" >&2
+            exit 2
+        fi
+        focused_suites+=("$2")
+        shift 2
+    done
+    REDWALL_TEST_SHARD_SUITES="$(python3 -c 'import json, sys; print(json.dumps(sys.argv[1:]))' "${focused_suites[@]}")"
+    export REDWALL_TEST_SHARD_SUITES
+    godot_script="$repo_root/tools/ci_test_shard_runner.gd"
+elif [[ "$#" -gt 0 ]]; then
     if [[ "$#" -ne 4 || "$1" != --shard || "$3" != --output-dir || -z "$4" ]]; then
-        echo "usage: $0 [--shard INDEX/COUNT --output-dir DIR]" >&2
+        echo "usage: $0 [--shard INDEX/COUNT --output-dir DIR | --suite NAME.gd ...]" >&2
         exit 2
     fi
     shard_spec="$2"

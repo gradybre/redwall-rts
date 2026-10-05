@@ -2032,3 +2032,21 @@ as source-qualified motion. No composed save adapter is claimed here.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Stateless actual Session constructor | -- | -- | -- | No retained members or packed bank | 3 | -- | ADR1167 accepted stateless actual route-owner composition. Existing private Retirement.Owners holds actual component owners; no second packet or gameplay permission. Constructor transitive scratch and unchanged existing Session/Scope controls are covered by the independently reviewed scoped source census. Native memory and whole-game qualification remain open. |
+
+### `godot/scripts/core/underground_entry_contact_retirement_scope.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Pinned source identity | `_source32` | 4 | `446` = 446 | Zero before bind; discarded with the Scope | 3 | -- | ADR1191. Synchronous cold retirement Scope pins the original source tuple; never saved and never treated as permission. |
+| Pinned source revisions | `_source64` | 8 | `70` = 70 | Zero before bind | 3 | -- | ADR1191. Same transient Scope. |
+| Pinned source digests | `_source_digest` | 1 | `320` = 320 | Zero before bind | 3 | -- | ADR1191. Same transient Scope. |
+| Pinned Placement row | `_placement_row` | 4 | `18` = 18 | Zero before bind | 3 | -- | ADR1191. Exact original Placement observation for the final recheck. |
+| Pinned Placement longs | `_placement_longs` | 8 | `2` = 2 | Zero before bind | 3 | -- | ADR1191. |
+| Completed Site rows | `_site_rows` | 4 | `4` = 4 | Zero before bind | 3 | -- | ADR1191. Completed Sites whose contacts may retire. |
+| Completed Site keys | `_site_keys` | 8 | `4` = 4 | Zero before bind | 3 | -- | ADR1191. |
+| Completed Site history | `_site_history` | 8 | `24` = 24 | Zero before bind | 3 | -- | ADR1191. |
+| Worker observation | `_worker_fields` | 4 | `27` = 27 | Zero before bind | 3 | -- | ADR1191. Actual worker must not require a retired contact. |
+| Worker observation longs | `_worker_longs` | 8 | `6` = 6 | Zero before bind | 3 | -- | ADR1191. |
+| Route search scratch | `_heap` | 4 | `_routes._edge_capacity` runtime | Only during a synchronous check | 3 | -- | ADR1191. Borrowed-capacity scratch; no retained route state. |
+| Workpiece bounds | `_piece_bounds` | 4 | `6` = 6 | Zero before bind | 3 | -- | ADR1191. |
+| Surveyed air box | `_air` | 4 | `6` = 6 | Zero before bind | 3 | -- | ADR1191. |

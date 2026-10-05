@@ -1,0 +1,18 @@
+{
+  "docs/validation/evidence/underground-timber-program-binding-2026-10-05/check_source.py": "e1ab217227ee740a77eb5aaebbb46812400f15d268c823042d8fb24205a5ba28",
+  "godot/data/underground/mole-worker/qualified-assembly-v1/author_assembly.py": "631fdea50019166411b9a32bf35fa9264fa366775ddea4c04d91efd72af9b62b",
+  "godot/data/underground/mole-worker/qualified-assembly-v1/capture_assembly.gd": "42eb5a059357602e5ef3325078455f83b4037c8788e59034b2fa8ff12b6a2398",
+  "godot/data/underground/mole-worker/qualified-assembly-v1/capture_assembly.gd.uid": "d6eebc2167c30803fe7febe206f37ba2e95b20086a6cfb7decc18551883ca014",
+  "godot/data/underground/mole-worker/qualified-assembly-v1/census.py": "65b70cc4a1c6f029b610ee8d88f9d8b23e8ab52be54070f1d2e70a5d90d714d2",
+  "godot/data/underground/mole-worker/qualified-assembly-v1/compile_assembly.py": "fdabe0bd8e3dc78add6f45deebad0a2d155c4a5f098bbcf66d832a0d5ffc4a01",
+  "godot/data/underground/mole-worker/qualified-assembly-v1/handling_clock.gd": "042f43c8ccc812642608773bd0b068bf7d0b0838a2e1f1a1180d77fec9ef3275",
+  "godot/data/underground/mole-worker/qualified-assembly-v1/handling_clock.gd.uid": "ac018139243499878c23c3db4e385232ed3b1ec0e20d6a495733baab74b2f839",
+  "godot/data/underground/mole-worker/qualified-assembly-v1/inspect_assembly.py": "54ab657fe3048802f8c02c6ceebfc6a71a87f14b82409d37775add017828e76c",
+  "godot/data/underground/mole-worker/qualified-assembly-v1/prove_assembly.py": "61b1d2c18705f607f527fe77f2fc05a5f4323c151e6fa35f2e43664d392ed3f5",
+  "godot/data/underground/mole-worker/qualified-assembly-v1/prove_tool_body.py": "840dd80dbdccb85b0fa76ab54eafc5e9bed1a642b845c3adf55ff38ff77af5d6",
+  "godot/data/underground/mole-worker/qualified-assembly-v1/render_assembly.py": "49b9e1cc652373e0d1cefd36b5bd5352b7fcf54c584b467cbc17c01208cc6e02",
+  "godot/data/underground/mole-worker/qualified-assembly-v1/run_native.py": "0b63ba58df18b63eed8e85790f98b763129bd48994543b77b80c6a1ad9ed679a",
+  "godot/data/underground/mole-worker/qualified-assembly-v1/test_assembly.py": "fc8b8761632c5cd50c7a13c1f3302e70bd8d35a4eddbfb1b18cd3152516c677f",
+  "godot/data/underground/mole-worker/qualified-assembly-v1/test_census.py": "5716c6d7bd9fe5e05ab6254a4a57fa996b5a2da24310865e6599a3ba97eaa524",
+  "godot/data/underground/mole-worker/qualified-assembly-v1/test_native.py": "ba2713f7573f32794524591e9c77731e0055f851f9af545b524cd84ef25de194"
+}

@@ -1,0 +1,54 @@
+extends RefCounted
+## Pure finite source equations only; the actual paid owner must authorize every canonical write.
+
+const ONE: int = 65536
+const TRANSITION_TICKS: int = 30
+const DURATION: int = TRANSITION_TICKS * ONE
+const SOURCE_INTERVALS: int = 54
+const READY: int = 0
+const ENTRY: int = 5
+const RECOVERY: int = 7
+const ENTRY_RETRACE: int = 8
+const HANDLED_READY: int = 11
+
+
+static func state_valid(phase: int, time: int) -> bool:
+	"""No renderer state, repeated endpoint or reserved tag can create completion."""
+	if phase == READY or phase == HANDLED_READY: return time == 0
+	if phase == ENTRY or phase == RECOVERY: return time >= 0 and time < DURATION
+	return phase == ENTRY_RETRACE and time > 0 and time < DURATION
+
+
+static func advance(phase: int, time: int) -> Vector2i:
+	"""One accepted 30Hz tick; immutable source key count never determines elapsed duration."""
+	if not state_valid(phase, time) or time % ONE != 0: return Vector2i(-1, -1)
+	if phase == READY or phase == HANDLED_READY: return Vector2i(phase, 0)
+	if phase == ENTRY_RETRACE:
+		return Vector2i(READY, 0) if time <= ONE else Vector2i(ENTRY_RETRACE, time - ONE)
+	if time + ONE < DURATION: return Vector2i(phase, time + ONE)
+	return Vector2i(RECOVERY, 0) if phase == ENTRY else Vector2i(HANDLED_READY, 0)
+
+
+static func interrupt(phase: int, time: int) -> Vector2i:
+	"""Retrace incomplete entry; a seated worker must finish the already-proved recovery."""
+	if not state_valid(phase, time): return Vector2i(-1, -1)
+	if phase == ENTRY:
+		return Vector2i(READY, 0) if time == 0 else Vector2i(ENTRY_RETRACE, time)
+	return Vector2i(phase, time)
+
+
+static func source_into(phase: int, time: int, out: PackedInt32Array) -> StringName:
+	"""Write exact clip/Q16 into two caller scalars; all refusal paths preserve the output."""; out.resize(4096)
+	if out.size() != 2 or not state_valid(phase, time): return &"ASSEMBLY_SOURCE_CLOCK"
+	var clip: int = 0
+	var source_time: int = 0
+	if phase == HANDLED_READY:
+		clip = 2
+		source_time = SOURCE_INTERVALS * ONE
+	elif phase != READY:
+		clip = 2 if phase == RECOVERY else 0
+		@warning_ignore("integer_division")
+		source_time = time * SOURCE_INTERVALS / TRANSITION_TICKS
+	out[0] = clip
+	out[1] = source_time
+	return &""

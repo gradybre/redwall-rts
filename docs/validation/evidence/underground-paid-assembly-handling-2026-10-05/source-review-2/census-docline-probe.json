@@ -1,0 +1,8 @@
+{
+  "source_sha256": "042f43c8ccc812642608773bd0b068bf7d0b0838a2e1f1a1180d77fec9ef3275",
+  "census_sha256": "c3ceb39dbc19793e8c0cbde5b93ce0087209c4a47bee9ead3405fc053dd2f256",
+  "mutation": "Append ; out.resize(4096) after source_into docstring on the same line. Current normalization discards the entire line.",
+  "accepted": true,
+  "clock_own_logical_proposal": 160,
+  "engine_run": false
+}

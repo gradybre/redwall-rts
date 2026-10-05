@@ -1,0 +1,88 @@
+test_actual_palm_penetration_refuses_even_with_intentional_contact_role (review_test_assembly.SourceTests.test_actual_palm_penetration_refuses_even_with_intentional_contact_role) ... ok
+test_actual_stationary_seat_interval_passes_without_geometry_reduction (review_test_assembly.SourceTests.test_actual_stationary_seat_interval_passes_without_geometry_reduction) ... ok
+test_disjoint_endpoint_images_do_not_waive_complete_swept_body (review_test_assembly.SourceTests.test_disjoint_endpoint_images_do_not_waive_complete_swept_body) ... ok
+test_foreign_candidate_digest_refuses (review_test_assembly.SourceTests.test_foreign_candidate_digest_refuses) ... ok
+test_foreign_source_or_self_labelled_qualification_refuses (review_test_assembly.SourceTests.test_foreign_source_or_self_labelled_qualification_refuses) ... ok
+test_full_candidate_and_exact_source_admission (review_test_assembly.SourceTests.test_full_candidate_and_exact_source_admission) ... ok
+test_npz_huge_shape_refuses_before_numpy_materialization (review_test_assembly.SourceTests.test_npz_huge_shape_refuses_before_numpy_materialization) ... ok
+test_omitted_support_interval_and_complete_part_refuse (review_test_assembly.SourceTests.test_omitted_support_interval_and_complete_part_refuse) ... ok
+test_removed_tool_triangle_or_interval_refuses (review_test_assembly.SourceTests.test_removed_tool_triangle_or_interval_refuses) ... ok
+test_unplanted_original_right_foot_cannot_claim_both_supports (review_test_assembly.SourceTests.test_unplanted_original_right_foot_cannot_claim_both_supports) ... ok
+test_actual_all_quarter_samples_and_both_bearers (review_test_native.NativeTests.test_actual_all_quarter_samples_and_both_bearers) ... ok
+test_changed_native_body_pick_and_bearer_refuse_after_caller_rehash (review_test_native.NativeTests.test_changed_native_body_pick_and_bearer_refuse_after_caller_rehash) ... ok
+test_foreign_shared_ready_refuses_after_rehash (review_test_native.NativeTests.test_foreign_shared_ready_refuses_after_rehash) ... ok
+test_interruption_direction_and_exact_terminal_are_not_optional (review_test_native.NativeTests.test_interruption_direction_and_exact_terminal_are_not_optional) ... ok
+test_self_labelled_world_permission_refuses (review_test_native.NativeTests.test_self_labelled_world_permission_refuses) ... ok
+test_unbounded_declared_source_count_refuses_before_array_view (review_test_native.NativeTests.test_unbounded_declared_source_count_refuses_before_array_view) ... ok
+test_wrong_clip_timing_refuses_after_rehash (review_test_native.NativeTests.test_wrong_clip_timing_refuses_after_rehash) ... ok
+test_added_numeric_frame_or_parameter_refuses (review_test_census.CensusTests.test_added_numeric_frame_or_parameter_refuses) ... ok
+test_changed_phase_capacity_duration_and_calls_refuse (review_test_census.CensusTests.test_changed_phase_capacity_duration_and_calls_refuse) ... ok
+test_current_image_and_complete_presentation_counts (review_test_census.CensusTests.test_current_image_and_complete_presentation_counts) ... ok
+test_hidden_literals_and_allocations_refuse (review_test_census.CensusTests.test_hidden_literals_and_allocations_refuse) ... ok
+test_image_growth_and_clip_overlap_refuse (review_test_census.CensusTests.test_image_growth_and_clip_overlap_refuse) ... ok
+test_new_retained_state_refuses (review_test_census.CensusTests.test_new_retained_state_refuses) ... ok
+
+----------------------------------------------------------------------
+Ran 23 tests in 4.065s
+
+OK
+{
+  "tests": 23,
+  "failures": 0,
+  "errors": 0,
+  "source_and_output_pins_unchanged": 164,
+  "compiler_outputs": {
+    "candidate.json": "d2d96197cd19875dc216518d2dcc7712e15c8961197d41246e65a89180c91627",
+    "plan.json": "214b537e111361be8881b7e62b6933e992fab2b21acd0dd4f3c3b0de44f8620f",
+    "mole-worker.ugactor": "b94d676e999c87dd399a4dc110674620a4fbc66f0ca07e494b8bedadac683b66",
+    "compilation.json": "bebf38d2393ff7d2cfe9ee6b8a8a52d9a79d804fb59c96bbd61859bb330f2212"
+  },
+  "native_verification": {
+    "sampled_poses": 5634,
+    "exact_native_scalars": 1825416,
+    "screenshots": 108,
+    "assemblies": 2,
+    "views": 3,
+    "directions": 2,
+    "intervals": 109,
+    "scope": "Actual source image/native palette/grounding/held-pick/complete-bearer track. Quarter-Q16 sampling is not the continuous proof, physical World admission or adopted rate.",
+    "production_qualified": false
+  },
+  "census": {
+    "schema": 1,
+    "source_image_sha256": "b94d676e999c87dd399a4dc110674620a4fbc66f0ca07e494b8bedadac683b66",
+    "image_bytes": 135328,
+    "parts": 2,
+    "palette_rows": 25,
+    "keys": 112,
+    "clips": [
+      55,
+      2,
+      55
+    ],
+    "intervals": 109,
+    "retained_palette": 134848,
+    "retained_tables": 456,
+    "incremental_retained_presentation": 135304,
+    "new_meshes": 0,
+    "second_actor": false,
+    "clock_retained_fields": 0,
+    "clock_constant_numeric_bytes": 72,
+    "clock_caller_output_bytes": 8,
+    "clock_frames": {
+      "state_valid": 16,
+      "advance": 16,
+      "interrupt": 16,
+      "source_into": 32
+    },
+    "maximum_declared_clock_chain": 48,
+    "expression_return_allowance": 32,
+    "clock_own_logical_proposal": 160,
+    "numeric_scope": "Pure clock only; foreign actual-owner caller chains must be counted at integration.",
+    "native_memory_measured": false,
+    "shared_runtime_admission": false,
+    "decode_scope": "Content1181 must admit simultaneous original palettes and decode; no duplicate mesh/native reserve is assumed."
+  },
+  "engine_rerun": false,
+  "foreign_writes": false
+}

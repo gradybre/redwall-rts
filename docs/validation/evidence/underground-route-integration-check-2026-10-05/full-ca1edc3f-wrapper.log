@@ -1,0 +1,11 @@
+starting clean-import.log
+clean-import.log exit 0
+starting full-suite.log
+full-suite.log exit 0
+11226 test(s), 1028141 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 11226 tests, 1028141 assertions, 0 failures.
+starting analyzer.log
+analyzer.log exit 0
+0 GDScript warning(s) in 0 of 1252 file(s)

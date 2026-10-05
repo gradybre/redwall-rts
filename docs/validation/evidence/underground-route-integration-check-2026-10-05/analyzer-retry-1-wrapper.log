@@ -1,0 +1,5 @@
+starting clean-import.log
+clean-import.log exit 0
+starting analyzer.log
+analyzer.log exit 0
+0 GDScript warning(s) in 0 of 1252 file(s)

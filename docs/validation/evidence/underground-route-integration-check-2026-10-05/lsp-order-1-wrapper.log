@@ -1,0 +1,4 @@
+starting clean-import.log
+clean-import.log exit 0
+starting analyzer.log
+analyzer.log exit 1

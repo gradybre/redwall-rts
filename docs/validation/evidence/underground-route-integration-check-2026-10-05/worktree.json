@@ -1,0 +1,9 @@
+{
+  "fetched_origin_master": "82d60ba86dcecf6e7c6184eeaf77a389e8b2b5c2",
+  "checkpoint": "ca1edc3f62b09300f0e36ff0dfbcb1172a5f90ac",
+  "branch": "codex/underground-route-integration-check",
+  "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-route-integration-check",
+  "origin_is_ancestor": true,
+  "created_at_origin_then_fast_forwarded": true,
+  "initial_tree_clean": true
+}

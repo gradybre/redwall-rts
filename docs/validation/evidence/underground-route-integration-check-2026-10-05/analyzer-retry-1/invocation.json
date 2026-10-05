@@ -1,0 +1,49 @@
+{
+  "head": "ca1edc3f62b09300f0e36ff0dfbcb1172a5f90ac",
+  "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-route-integration-check",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.896,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6465",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-route-integration-check/docs/validation/evidence/underground-route-integration-check-2026-10-05/analyzer-retry-1/analyzer.json"
+      ],
+      "exit_code": 0,
+      "seconds": 299.189,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "procedure_source_sha256": "aee4f7b20560bd2f89fc8ca724943e02923870875fb9797ab1d7c756346f762e",
+  "custom_user_dir": "Redwall-ug-route-integration-analyzer-retry-20261005",
+  "analyzer_port": 6465,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "isolated_project_sha256": "68936140006f54d45c68b7f1ad881d8ccbbf35f12bfc0cfa4b8e3c68bd12deb4",
+  "assets_present_before": false,
+  "error": "raw analyzer editor diagnostics",
+  "source_unchanged_before_cleanup": true,
+  "sidecars_restored": true,
+  "assets_restored": true,
+  "project_restored": true,
+  "head_unchanged": true,
+  "exit_code": 1
+}

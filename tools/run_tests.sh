@@ -75,6 +75,13 @@ fi
 # failure whether or not the Godot suite is green.
 python3 "$repo_root/docs/validation/state_registry_coverage.py" || exit 1
 
+# ADR 1192: a consumer script edited without renewing the active profile publication's pins makes
+# every profile consumer refuse MOLE_CATALOG_SOURCE_DRIFT. Name the stale file instead of 150 failures.
+python3 "$repo_root/tools/renew_source_pins.py" --check || {
+    echo "error: stale source pins; run python3 tools/renew_source_pins.py --write in the same commit." >&2
+    exit 1
+}
+
 if [[ -n "$shard_spec" ]]; then
     output_file="$shard_output_dir/shard-$shard_index.log"
 else

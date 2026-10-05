@@ -42,6 +42,17 @@ the originals. The resulting evidence could not be rebuilt from git:
 6. The sibling `codex/underground-*` worktrees are frozen as source material.
    Their WIP is imported by content, with the source worktree and SHA-256
    noted in the commit message.
+7. **Source pins are renewed mechanically.** The active profile publication
+   (`qualified-step-v4/catalog_source.gd`) pins the SHA-256 of ten runtime
+   consumer scripts. At `0c141eb3`, 158 of the 165 full-suite failures were
+   `MOLE_CATALOG_SOURCE_DRIFT` cascades caused by five edited consumers. The
+   pin catches unreviewed drift, but it was never meant to make every
+   ordinary edit fail the suite. Any commit that edits a consumer runs
+   `python3 tools/renew_source_pins.py --write`, which renews only the
+   current consumer digests and appends a `renewals` record to the manifest.
+   It leaves `prerequisite_pins`, the wire and the actor alone.
+   `run_tests.sh` runs `--check` before Godot starts. Review of the change
+   happens on the commit diff, not through a separate publication ceremony.
 
 ## Consequences
 

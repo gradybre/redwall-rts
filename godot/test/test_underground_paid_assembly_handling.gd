@@ -2,6 +2,7 @@ extends "res://test/framework/test_case.gd"
 ## Real source and original paid owners. Diagnostic publication is explicit; no synthetic productive permission.
 
 const SourcePhases := preload("res://test/test_underground_entry_source_phases.gd")
+const WorkArea := preload("res://test/test_underground_entry_work_area.gd")
 const PaidPhaseFixture := preload("res://test/test_underground_entry_world_bindings.gd")
 const PaidGroundTests := preload("res://test/test_underground_surface_anchor.gd")
 const Prefix := preload("res://test/test_underground_first_prefix.gd")
@@ -61,32 +62,7 @@ class ObservedPaidContacts extends PaidPhaseFixture.ObservedContacts:
 		return code
 
 
-class PaidWorld extends SourcePhases.SourceWorld:
-	func _actual_profiles() -> void:
-		"""Construct the original concrete readers once with the exact additional source row admitted up front."""
-		_pool = Pool.new(64, Pool.JOB_CAPACITY, 64)
-		_piles = Piles.new()
-		assert_true(_piles.bind_stores(_inventory, _buildings, StockAge.new(_inventory)), "actual piles")
-		assert_true(_piles.bind_world(_world_ref), "actual pile World")
-		_carry = Carry.new()
-		assert_true(_carry.bind(_inventory, _pool, _residents, _piles), "actual cargo")
-		_gear = Gear.new(16)
-		assert_true(_gear.bind_equipment(_inventory, _residents.directory(), _residents).ok, "actual Gear")
-		_work = Work.new(_jobs)
-		assert_true(_work.bind_gear(_gear).ok, "actual Work")
-		_profiles = Profiles.new()
-		assert_equal(_profiles.configure(30, 281, 2, Profiles.ARENA_BYTES), &"", "exact complete source arena")
-		assert_equal(_profiles.bind_actual(_residents, _transforms, _inventory, _gear, _carry, _work, _pool, _piles), &"", "actual readers")
-		_load_source()
-
-	func _load_source() -> void:
-		"""Rows0–28 retain the exact original source; row29 is the independently proved handling source."""
-		assert_equal(_profiles.load_file(Images.path("diagnostic-content-1/mole-worker.ugprof"), PAID_PROFILE_SHA, 4), &"", "exact content4 source")
-
-	func _load_catalog(revision: int) -> StringName:
-		"""Geometry and bills remain exact while their Profile digest names the actual complete source bank."""
-		return _catalog.load_file(Images.path("diagnostic-content-1/structure.ugconn"), PAID_CATALOG_SHA, revision)
-
+class PaidWorld extends WorkArea.SourceWorld:
 	func _actual_catalog(domain: Prefix.Space.Domain) -> void:
 		"""Install the observing Terrain before any graph/Anchor/paid owner borrows it; no live owner is rebound."""
 		_terrain = ObservedPaidTerrain.new()
@@ -94,7 +70,7 @@ class PaidWorld extends SourcePhases.SourceWorld:
 		super._actual_catalog(domain)
 
 
-class PaidProbe extends SourcePhases.Probe:
+class PaidProbe extends WorkArea.Probe:
 	var pieces: Workpieces = null
 	var handled_l0: bool = false
 	var installed_l0: bool = false
@@ -103,32 +79,9 @@ class PaidProbe extends SourcePhases.Probe:
 		"""Select the complete immutable bank before binding any original owner."""
 		return PaidWorld.new()
 
-	func _content_revision() -> int:
-		"""Every actual edge, actor and canonical clock uses this same exact diagnostic content."""
-		return 4
-
 	func _make_contacts() -> Contacts:
 		"""Retain the actual source implementation and its explicit pre-final observation seam."""
 		return ObservedPaidContacts.new()
-
-	func _load_real_bills() -> void:
-		"""Read unchanged actual quantities and work with their exact rebound source digests."""
-		_groups._recipes = Recipes.new()
-		assert_equal(_groups._recipes.configure(Recipes.MAX_PARTS, Recipes.required_bytes(Recipes.MAX_PARTS)), &"", "recipe arena")
-		assert_equal(_groups._recipes.bind_actual(_world._catalog, _world._items, _world._inventory), &"", "recipe owners")
-		assert_equal(_groups._recipes.load_file(Images.path("diagnostic-content-1/recipes.ugrecp"), PAID_RECIPE_SHA, 1, PAID_GROUP_SHA, 1), &"", "real recipe")
-		_groups._reader = Assemblies.new()
-		assert_equal(_groups._reader.configure(Assemblies.MAX_GROUPS, Assemblies.required_bytes(Assemblies.MAX_GROUPS)), &"", "group arena")
-		assert_equal(_groups._reader.bind_actual(_world._catalog, _groups._recipes, _world._items, _world._inventory), &"", "group owners")
-		assert_equal(_groups._reader.load_file(Images.path("diagnostic-content-1/assemblies.ugasmb"), PAID_GROUP_SHA, 1, PAID_RECIPE_SHA, 1), &"", "real partition")
-
-	func _bind_frontier() -> void:
-		"""All physical stations and full perimeter paths retain the actual authored Frontier."""
-		_source = Frontier.new()
-		var capacities: PackedInt32Array = PackedInt32Array([2, 8, 2, 10, 10, 6])
-		assert_equal(_source.configure(capacities, 4032), &"", "source bank")
-		assert_equal(_source.bind_actual(_world._catalog, _groups._reader, _groups._recipes, _world._profiles), &"", "source chain")
-		assert_equal(_source.load_file(Images.path("diagnostic-content-1/frontier.ugfront"), PAID_FRONTIER_SHA, 1), &"", "actual Frontier")
 
 	func before_each() -> void:
 		"""Bind one actual paid workpiece owner before any live entry or Project is created."""
@@ -165,21 +118,36 @@ class PaidProbe extends SourcePhases.Probe:
 		return made.value if failures.is_empty() else -1
 
 	func _move_to_handling_station(job: int, endpoint: Vector2i) -> void:
-		"""The same actual worker follows certified perimeter spans and a full-envelope source-ready turn."""
-		assert_equal(_world._routes.refresh_travel_actor(_world._worker, _world._jobs.ref_of(job), 12, 1, 4, 0, -1, _tool), &"", "actual source WALK handoff")
-		assert_equal(_world._routes.request_route(_world._worker, endpoint, _tick), &"", "actual station itinerary")
+		"""ADR1191: all-yaw source12 reaches material M; only the narrow same-heading source2 approaches H."""
+		var ref: Vector2i = _world._jobs.ref_of(job)
+		assert_equal(_world._routes.refresh_travel_actor(_world._worker, ref, 12, 1, 4, 0, -1, _tool), &"", "actual source WALK handoff")
+		_travel_to(ref, _endpoints[1], 12, "material endpoint")
+		if not failures.is_empty(): return
+		var profiles: Profiles = _world._profiles
+		assert_equal(profiles._field(profiles._live, 2, Profiles.F_YAW_KIND), Profiles.YAW_EXACT, "source2 is a fixed-heading approach")
+		var heading: int = profiles._field(profiles._live, 2, Profiles.F_YAW)
+		assert_equal(WorldRoutes.turn_actor(_world._binding, _world._worker, ref, heading, Space.MAX_CHECKS), &"", "all-yaw turn to the source2 heading at M")
+		assert_equal(_world._routes.refresh_travel_actor(_world._worker, ref, 2, 1, 4, 0, -1, _tool), &"", "narrow approach source at M")
+		_travel_to(ref, endpoint, 2, "handling station")
+		if not failures.is_empty(): return
+		var actor: Routes.Actor = Routes.Actor.new()
+		assert_equal(_world._routes.read_actor_into(_world._worker, actor), &"", "actor at H")
+		assert_equal(actor.yaw, profiles._field(profiles._live, 29, Profiles.F_YAW), "same-heading approach arrives at the handling yaw; H admits no turn")
+
+	func _travel_to(ref: Vector2i, endpoint: Vector2i, profile: int, label: String) -> void:
+		"""Advance real route ticks until the actor stands source-ready at the exact endpoint."""
+		assert_equal(_world._routes.request_route(_world._worker, endpoint, _tick), &"", "actual %s itinerary" % label)
 		if not failures.is_empty(): return
 		var actor: Routes.Actor = Routes.Actor.new()
 		for step: int in 600:
 			_world._routes.advance_tick(_tick); _tick += 1
 			assert_equal(_world._routes.read_actor_into(_world._worker, actor), &"", "actual travel actor")
 			if actor.phase == Routes.PHASE_HELD:
-				assert_true(false, "actual station travel held")
+				assert_true(false, "actual %s travel held" % label)
 				return
 			if actor.location == endpoint and Routes.source_ready_leaf_refusal(_world._routes, _world._worker,
-					_world._jobs.ref_of(job), 12, 1, 4) == &"": break
-		assert_equal(actor.location, endpoint, "real station reached")
-		assert_equal(WorldRoutes.turn_actor(_world._binding, _world._worker, _world._jobs.ref_of(job), 0, Space.MAX_CHECKS), &"", "real yaw0 ready turn")
+					ref, profile, 1, 4) == &"": break
+		assert_equal(actor.location, endpoint, "real %s reached" % label)
 
 	func prepare_l0() -> Vector2i:
 		"""All actual excavation and source travel precede the still-unfunded handling Job."""

@@ -1,0 +1,47 @@
+{
+  "shard-0.log.gz": {
+    "decoded_sha256": "7d978542135016f60fb5e3f70aa080afed634c093456b8924a43e22d63088d20",
+    "decoded_bytes": 272900,
+    "archive_sha256": "49d26fb889ccb39f5fba9f2f740fcdc416a36c7d046aca1228a8177f012d8aa8"
+  },
+  "shard-1.log.gz": {
+    "decoded_sha256": "fbca854a8d7a2188e7862a4450b5587b4d4cfa4705aa3257879599de66271050",
+    "decoded_bytes": 111648,
+    "archive_sha256": "89878fefbab6b6a303d6e283d8688c1334d252fadc835444d45cc81ed9c954c7"
+  },
+  "shard-3.log.gz": {
+    "decoded_sha256": "85c80e2d4b6171c77d78471e45575f2993ef0de6259ed39353b26ed2d33f02f9",
+    "decoded_bytes": 253781,
+    "archive_sha256": "5ae53fd90b4a9074d4508bbdc289ec9f983caf57025c529925a78f37bd4f2a59"
+  },
+  "shard-2.log.gz": {
+    "decoded_sha256": "42c791d25b9c5ec6f7c4b408cac64f94dd4e99b37200f9ba7a6f413e213f5f10",
+    "decoded_bytes": 100473,
+    "archive_sha256": "48347facb43fdca097781698ace16abae5e37a6026f3cd2c467ab869811dfe68"
+  },
+  "shard-6.log.gz": {
+    "decoded_sha256": "47cb959f9d0b073ff3e4a3d7e2ba24b485b8497ab3518dcd6d9b25bfa3de9a41",
+    "decoded_bytes": 172672,
+    "archive_sha256": "6f0d3f78722cba55067b4dc2fff3ebc583096d59b6c4e63245c2d4feeceef359"
+  },
+  "analyzer-job.log.gz": {
+    "decoded_sha256": "68a9f410ea32997fdd5dd8985eceb6d0370527ca231e990b5773366202200fab",
+    "decoded_bytes": 573338,
+    "archive_sha256": "1dcef9acc739a671cab543c4a6cb688b9b3be9d29c28f8c12b30ace63383f9ce"
+  },
+  "shard-7.log.gz": {
+    "decoded_sha256": "acc2d3eddaaf2979a693a5ac9cf1e74ce808df8d002a0a7c2b1e186733ff0658",
+    "decoded_bytes": 602807,
+    "archive_sha256": "61d35a68dd1d00ef386e653082c94d6afc016bcb2c1e831bded6709c23927c1e"
+  },
+  "shard-5.log.gz": {
+    "decoded_sha256": "fc2e76500fabafd0a9a52010b1b29c1443d7a960116106a13aca83d09abdeecb",
+    "decoded_bytes": 135836,
+    "archive_sha256": "5ea21a3c51391fcc3f03205c0f5308067430ab66ef989adfc5968422c945db1a"
+  },
+  "shard-4.log.gz": {
+    "decoded_sha256": "510963d085f93bc43f496d03ffd59f8b85a4a3a880890ac34f707dbb34c60d0a",
+    "decoded_bytes": 158466,
+    "archive_sha256": "cfb5d3053ffc5818561ac3436b58acd2833f3fc732ea2a429faeb17044defa9d"
+  }
+}

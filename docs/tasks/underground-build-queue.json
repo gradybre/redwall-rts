@@ -1906,6 +1906,17 @@
           "optimized_mode_negative_checks": 2,
           "additional_reserved_bytes": 0,
           "limits": "Logical current-source census only; native and playable qualification remain open."
+        },
+        "short_work_step_1164": {
+          "author_commit": "344c19b129d4bdd43e2d9fbedf0a9ee645e396b7",
+          "integration_commit": "5b440aedc2dc70cd1703686f10cc4b7366a6f3d4",
+          "scope": "Source-only exact finite232u forward/backward programme; no runtime/native/paid/world qualification.",
+          "source_tests": 17,
+          "census_tests": 7,
+          "verified_source_files": 537,
+          "report_sha256": "fff35c8c2ead2f43a68a242ca3ac156f9348af1880a00dd7ebbb16aaa1f476a0",
+          "evidence": "docs/validation/evidence/underground-short-work-step-2026-10-05/",
+          "native_or_runtime_qualified": false
         }
       },
       "lease": {
@@ -2006,7 +2017,7 @@
           },
           {
             "agent": "/root/ug_geometry",
-            "state": "held",
+            "state": "released",
             "branch": "codex/underground-short-work-step",
             "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-short-work-step",
             "files": [
@@ -2014,7 +2025,18 @@
               "docs/decisions/1164-source-qualified-short-work-step.md",
               "docs/validation/evidence/underground-short-work-step-2026-10-05/"
             ],
-            "handoff": "Fresh origin/master then FF ebdd5daa; author acknowledged clean tree. Additive source compiler/reference/tests only: unchanged-key forward/back232u step with three actual movement ticks, complete READY transitions and exact reduced-rational distance law. No current runtime/publisher writes until an explicit shared lease. Native/runtime closure and memory census remain mandatory."
+            "handoff": "Fresh origin/master then FF ebdd5daa; author acknowledged clean tree. Additive source compiler/reference/tests only: unchanged-key forward/back232u step with three actual movement ticks, complete READY transitions and exact reduced-rational distance law. No current runtime/publisher writes until an explicit shared lease. Native/runtime closure and memory census remain mandatory.",
+            "worker_stop_ack": "Geometry committed344c19b129d4bdd43e2d9fbedf0a9ee645e396b7 and explicitly stopped all writes. Root source review and17 source/7census tests passed,537-input rebuild byte-identical; integrated5b440aed."
+          },
+          {
+            "agent": "/root/ug_geometry",
+            "state": "held",
+            "branch": "codex/underground-itinerary-census",
+            "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-itinerary-census",
+            "files": [
+              "docs/validation/evidence/underground-room-itinerary-census-2026-10-05/"
+            ],
+            "handoff": "Independent exact-source1165 helper/transitive call census and negative tests within original4096B WorldRoutes controls/1024B Provider contribution. Read-only source snapshot; no consumer changes. Geometry acknowledged clean fresh-origin worktree fast-forwarded own5b440aed. Root owns helper and Provider/tests."
           }
         ],
         "scope_narrowing": {
@@ -2156,7 +2178,13 @@
         "godot/test/test_underground_room_frontier_publication.gd.uid",
         "docs/decisions/1161-ordinary-room-frontier-publication.md",
         "docs/validation/evidence/underground-room-frontier-publication-2026-10-04/",
-        "godot/test/test_underground_support_clearance.gd"
+        "godot/test/test_underground_support_clearance.gd",
+        "godot/scripts/core/underground_room_itinerary.gd",
+        "godot/scripts/core/underground_room_itinerary.gd.uid",
+        "godot/test/test_underground_room_itinerary.gd",
+        "godot/test/test_underground_room_itinerary.gd.uid",
+        "docs/decisions/1165-source-compatible-room-itineraries.md",
+        "docs/validation/evidence/underground-room-itinerary-2026-10-05/"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -3202,6 +3230,24 @@
             ],
             "handoff": "Geometry explicitly stopped source/test writes and granted narrow current-v3 fixture migration after full CI37250182343 exposed nine stale v1-loader failures. Preserve exact unchanged support/air/INSTALL boxes and historical-source refusal; production sources and gates unchanged. Independent review plus strict focused run required.",
             "worker_stop_ack": "Root stopped source writes after exactc058027f independently reviewed migration; focused strict9/138/0,diagnostics/leaks0,analyzer0/1. Commit is recorded in checkpoint follow-up."
+          },
+          {
+            "agent": "/root",
+            "branch": "codex/underground-modular-integration",
+            "state": "held",
+            "files": [
+              "godot/scripts/core/underground_room_itinerary.gd",
+              "godot/scripts/core/underground_room_itinerary.gd.uid",
+              "godot/test/test_underground_room_itinerary.gd",
+              "godot/test/test_underground_room_itinerary.gd.uid",
+              "godot/scripts/core/underground_room_world_bindings.gd",
+              "godot/test/test_underground_room_world_phases.gd",
+              "docs/decisions/1165-source-compatible-room-itineraries.md",
+              "docs/validation/evidence/underground-room-itinerary-2026-10-05/",
+              "godot/scripts/core/underground_room_frontier.gd",
+              "godot/test/test_underground_room_frontier.gd"
+            ],
+            "handoff": "Construction explicitly stopped provider/existing phase-test writes2026-10-05. Root implements fresh actual-mask itinerary within one compatible source heading/tool/cargo family using existing bounded graph scratch. No Runtime source READY takeover, cold bank, retained path ledger, source-policy bypass or numerical tuning. Shared Routes/WorldRoutes remain Construction-owned; helper private-reader reuse requires exact concrete scripts and current sources. Root also owns the original Frontier static path seam; integrates source-family search only for selected policies, keeps ordinary automatic one-profile path unchanged."
           }
         ]
       }
@@ -3649,9 +3695,10 @@
               "godot/test/test_underground_room_composition.gd",
               "godot/test/test_underground_room_composition.gd.uid",
               "docs/decisions/1163-session-room-owner-composition.md",
-              "docs/validation/evidence/underground-room-owner-composition-2026-10-04/"
+              "docs/validation/evidence/underground-room-owner-composition-2026-10-04/",
+              "godot/scripts/core/room_catalog.gd"
             ],
-            "handoff": "Root explicitly stopped listed source writes; fresh origin/master then FF ebdd5daa, clean worker acknowledged. Compose original host room owners into existing private Retirement.Owners, no second owner tuple. Installed constructor prefixes remain retained, stopped and owner-provable for reset. Exact private prefix retirement must preserve complete-owner guards. No actor/endpoint/room/route/phase activation or wider budget; complete census and independent review required."
+            "handoff": "Root explicitly stopped listed source writes; fresh origin/master then FF ebdd5daa, clean worker acknowledged. Compose original host room owners into existing private Retirement.Owners, no second owner tuple. Installed constructor prefixes remain retained, stopped and owner-provable for reset. Exact private prefix retirement must preserve complete-owner guards. No actor/endpoint/room/route/phase activation or wider budget; complete census and independent review required. Root granted1163 optional borrowed original BuildingDefinitions constructor seam in room_catalog.gd; no eager duplicate, no-argument behavior preserved, exact current/prefix identity plus existing catalog tests required."
           }
         ]
       }
@@ -4889,7 +4936,7 @@
     },
     {
       "commit": "ebdd5daa2b723a63dd71e2018d2bed9b279cf894",
-      "outcome": "CI FAILED: nine tests in one historical support-clearance fixture still load current v3 using v1 counts/hash; other seven shards and all specification/metadata/analyzer jobs passed. Full local no-argument run continues in immutable own qualification worktree.",
+      "outcome": "CI and full local suite FAILED with the same nine stale support-clearance fixture failures; corrected in6da6deb9. Original failures retained.",
       "url": "https://github.com/gradybre/redwall-rts/actions/runs/37250182343",
       "failed_suite": "test_underground_support_clearance.gd",
       "failed_shard_tests": 1556,
@@ -4898,7 +4945,7 @@
       "failed_shard_diagnostics": "0 unexpected errors,0 unexpected warnings,1 expected,54 tolerated;0 leaked objects/resources",
       "local_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-checkpoint-1162",
       "local_branch": "codex/underground-checkpoint-1162",
-      "local_run_status": "Running original exact-head full milestone; process/session45718 retained. Correct source fixture on integration branch, not this immutable worktree.",
+      "local_run_status": "Complete FAILED: original31m8.570s no-argument suite reproduces same9 fixture failures. No local analyzer run after failed suite. Source/HEAD unchanged and project/assets restored.",
       "evidence": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/ci-ebdd5daa",
       "tests": 11156,
       "assertions": 1026335,
@@ -4911,7 +4958,35 @@
       "leaked_objects": 0,
       "leaked_resources": 0,
       "correction_evidence": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/support-clearance-v3-2",
-      "correction_review": "/root/ug_geometry accepted exactc058027f test; source-only. Focused9/138/0 all diagnostics/leaks0 and analyzer0/1."
+      "correction_review": "/root/ug_geometry accepted exactc058027f test; source-only. Focused9/138/0 all diagnostics/leaks0 and analyzer0/1.",
+      "local_tests": 11156,
+      "local_assertions": 1026346,
+      "local_failures": 9,
+      "local_evidence": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/full-ebdd5daa/",
+      "same_head_comparison": "All402 suites,11156 tests and272expected/353tolerated/0unexpected/0leak totals match CI. Local assertions11 higher; cause unattributed and strict all-counter equality not claimed.",
+      "correction_commit": "6da6deb952ebfce5d748563c1c1166f0f6b15dd3"
+    },
+    {
+      "commit": "6da6deb952ebfce5d748563c1c1166f0f6b15dd3",
+      "outcome": "All14 CI jobs passed; eight original reports and raw logs independently reverified against frozen same-commit suite discovery. Full no-argument local run continues.",
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37251846477",
+      "local_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-checkpoint-1162",
+      "local_branch": "codex/underground-checkpoint-1162",
+      "local_evidence": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/full-6da6deb9/",
+      "session": 21289,
+      "evidence": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/ci-6da6deb9",
+      "suite_files": 402,
+      "tests": 11156,
+      "assertions": 1026355,
+      "failures": 0,
+      "expected_diagnostics": 272,
+      "tolerated_diagnostics": 353,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "analyzer": "0 GDScript warning(s) in 0 of 1243 file(s)",
+      "ci_wall_seconds": 884
     }
   ],
   "crosscut_fixes": [

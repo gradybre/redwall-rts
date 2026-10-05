@@ -1,17 +1,24 @@
 # Underground implementation status
 
-## Current delivery status — 2026-10-04
+## Current delivery status — 2026-10-05
 
-The current integration publishes the reviewed26-profile work approach and
-rebinds the existing stair motion identity without changing geometry or timing.
-The latest successful focused checks cover199 tests/30904 assertions with zero
-failures, unexpected diagnostics or leaks; the global analyzer reports0/1243.
-Typed Create/reset outcomes are independently accepted and integrated at
-`cba6f5bb` (77 tests/548 assertions, one existing expected diagnostic, zero
-unexpected diagnostics/leaks and analyzer0/4). These are component results;
-a new full integrated checkpoint is still pending. One paid cube does not
-provide enough width/headroom for the complete worker source, so the next
-reachable paid-cut sequence is being resolved without weakening clearance.
+[CI checkpoint6da6deb9](../../validation/evidence/underground-host-checkpoint-2026-10-04/ci-6da6deb9/README.md)
+passed all14 jobs in14m44s:402 suite files exactly once across8 shards,
+11156 tests/1026355 assertions/zero failures,272 expected/353 tolerated
+diagnostics, zero unexpected diagnostics/leaks, and analyzer0/1243. The matching
+clean-import/no-argument full local run is still in progress. The preceding
+ebdd5daa full local and CI runs both failed nine stale support-clearance fixture
+tests; those original failures are retained, and their independently reviewed
+fixture correction is in6da6deb9. No diagnostic gate was weakened.
+
+The reviewed26-profile approach and unchanged stair geometry/timing remain the
+current runtime source. The additional finite232u source programme is accepted
+at`5b440aed`:17 integer/source tests,7 census tests and an independent537-input
+rebuild with identical output. This packet grants no runtime or paid permission.
+Current parallel work composes actual host Room owners, publishes newly supported
+work stations, and checks fresh mixed-profile routes. Its source clocks,
+publication closure and complete memory census remain required before activation.
+One dug cube alone does not give the complete worker enough width/headroom.
 
 The complete modular building workflow is still in development. The queue has
 10 verified component lanes, 5 running lanes and 9 queued lanes, covering107

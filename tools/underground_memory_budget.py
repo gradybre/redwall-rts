@@ -15,6 +15,7 @@ import underground_motion_clock_memory as clock_memory
 import underground_retirement_memory as retirement_memory
 import underground_approach_memory as approach_memory
 import underground_ui_reset_memory as ui_reset_memory
+import underground_room_memory as room_memory
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "docs/planning/underground_memory_pack.json"
@@ -931,6 +932,10 @@ def build(index: dict | None = None) -> dict:
     for name, path in extra_sources.items():
         if name not in index:
             index[name] = audit.parse_module(name, path, (ROOT / path).read_text())
+    try:
+        room_extensions, historical = room_memory.build(index)
+    except ValueError as error:
+        raise AssertionError(str(error)) from error
     budget = index["underground_budget"]
     keys = ("REGION_CAPACITY", "SOURCE_CAPACITY", "PROOF_CAPACITY", "PHASE_VOLUME_CAPACITY",
             "TIP_CAPACITY", "LAYOUT_ROOM_CAPACITY", "LAYOUT_PLACEMENT_CAPACITY",
@@ -971,7 +976,10 @@ def build(index: dict | None = None) -> dict:
     start = excavation_start_controls(index)
     entry_structure = entry_structure_reservation(index)
     entry_world = entry_world_reservation(index)
-    room_world = room_world_reservation(index)
+    room_world = room_world_reservation(historical)
+    room_world["historical_source_sha256"] = room_world.pop("current_source_sha256")
+    room_world["current_source_sha256"] = room_extensions["itinerary"]["source_sha256"]
+    room_world["extension_census"] = str(room_memory.MANIFEST)
     workpieces = connector_workpieces_reservation(index)
     haul_transfer = haul_transfer_reservation(index)
     delivery = connector_delivery_reservation(index)
@@ -980,11 +988,18 @@ def build(index: dict | None = None) -> dict:
     reserves = {key: resolve(index, budget.name, key) for key in reserve_names}
     try:
         motion = motion_memory.build(index)
-        approach = approach_memory.build(index, motion["joint"])
+        approach = approach_memory.build(historical, motion["joint"])
+        approach["historical_source_sha256"] = approach.pop("source_sha256")
+        approach["current_source_sha256"] = {path: hashlib.sha256(index[Path(path).stem].text.encode()).hexdigest()
+                                             for path in approach["historical_source_sha256"]}
+        approach["portable_enforcement"]["historical_joint_source_sha256"] = approach["portable_enforcement"].pop("current_joint_source_sha256")
+        approach["portable_enforcement"]["reviewed_current_extensions"] = str(room_memory.MANIFEST)
+        approach["portable_enforcement"]["scope"] += " Historical1156 frames are projected only after current1161/1163/1165/1166 recensus."
         clock = clock_memory.build(index, motion)
-        session = session_memory.build(index, motion, reserves["PROFILE_BYTES"])
-        retirement = retirement_memory.build(index, session, reserves["PROFILE_BYTES"])
-        ui_reset = ui_reset_memory.build(index, retirement, reserves["PROFILE_BYTES"])
+        session = session_memory.build(historical, motion, reserves["PROFILE_BYTES"])
+        retirement = retirement_memory.build(historical, session, reserves["PROFILE_BYTES"])
+        ui_reset = ui_reset_memory.build(historical, retirement, reserves["PROFILE_BYTES"])
+        room_memory.reconcile(room_extensions, index, session, retirement, ui_reset)
     except ValueError as error:
         raise AssertionError(str(error)) from error
     assert motion["joint"]["total"] <= reserves["PROFILE_BYTES"], "Motion/Profile/Level joint overbooking"
@@ -1048,6 +1063,7 @@ def build(index: dict | None = None) -> dict:
             "session_reservation": session,
             "host_retirement_reservation": retirement,
             "ui_reset_reservation": ui_reset,
+            "room_extension_reservation": room_extensions,
             "contributions": contributions, "new_mutable_and_reserved_bytes": added,
             "declaration_bytes": declaration, "declaration_delta_bytes": declaration - 21185,
             "live_with_reserve_bytes": total, "headroom_bytes": 100000000 - total,

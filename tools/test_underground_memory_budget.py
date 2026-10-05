@@ -10,6 +10,7 @@ from pathlib import Path
 
 import underground_memory_budget as budget
 import underground_retirement_memory as retirement_memory
+from test_underground_room_memory import RoomMemoryWitnessTests
 
 
 class RetirementWitnessTests(unittest.TestCase):
@@ -82,7 +83,7 @@ class JointPackTests(unittest.TestCase):
         session = result["session_reservation"]
         self.assertEqual(session["source_counted_motion_joint_before_session_bytes"],
                          result["profile_motion_reservation"]["joint"]["total"])
-        self.assertEqual((session["retained_numeric_bytes"], session["strong_reference_or_alias_members"]), (27, 24))
+        self.assertEqual((session["retained_numeric_bytes"], session["strong_reference_or_alias_members"]), (43, 24))
         self.assertEqual((session["profile_level_motion_session_joint_bytes"], session["joint_remaining_bytes"]), (238676, 23468))
         self.assertEqual(result["live_with_reserve_bytes"], 99999806)
         self.assertFalse(session["native_memory_qualified"])
@@ -106,7 +107,7 @@ class JointPackTests(unittest.TestCase):
         result = budget.build(self.index)
         ui = result["ui_reset_reservation"]
         self.assertEqual(ui["additional_reserved_bytes"], 0)
-        self.assertEqual((ui["accounting"]["controls"], ui["accounting"]["helpers"]), (5995, 1882))
+        self.assertEqual((ui["accounting"]["controls"], ui["accounting"]["helpers"]), (6019, 1903))
         self.assertEqual(ui["accounting"]["profile_joint_unchanged"],
                          result["host_retirement_reservation"]["accounting"]["joint_with_retirement"])
 

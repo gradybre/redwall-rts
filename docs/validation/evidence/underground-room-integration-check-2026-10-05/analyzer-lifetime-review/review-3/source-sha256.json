@@ -1,0 +1,5 @@
+{
+  "tools/gdscript_warnings.py": "42fe7c00b08e6e054d25bb1b1fad272fca65932c1d7d2e298dfdb8fc6e7c0a02",
+  "tools/test_gdscript_warnings.py": "f0ee24439a32526b7dc7627c681beecf74368bb81338767bada14879cc766ee8",
+  "docs/decisions/1180-analyzer-document-lifetime-and-raw-diagnostics.md": "5eca6206a06729fb6aada3af725b4e50e5c29cb4ba9efec1741127a0618dc190"
+}

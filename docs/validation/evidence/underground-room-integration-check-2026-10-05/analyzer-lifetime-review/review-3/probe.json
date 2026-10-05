@@ -1,0 +1,134 @@
+{
+  "clear": {
+    "found": {
+      "dependency.gd.txt": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 1
+            }
+          },
+          "severity": 2,
+          "message": "late dependency warning"
+        }
+      ]
+    },
+    "done": 2
+  },
+  "queued": {
+    "found": {
+      "dependency.gd.txt": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 1
+            }
+          },
+          "severity": 2,
+          "message": "late dependency warning"
+        }
+      ]
+    },
+    "done": 2
+  },
+  "crash_retry": {
+    "found": {
+      "dependency.gd.txt": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 1
+            }
+          },
+          "severity": 2,
+          "message": "late dependency warning"
+        }
+      ]
+    },
+    "done": 2
+  },
+  "earlier_file_new_warning_during_retry": {
+    "found": {
+      "dependency.gd.txt": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 1
+            }
+          },
+          "severity": 2,
+          "message": "late dependency warning"
+        }
+      ]
+    },
+    "done": 2,
+    "received": {
+      "file:///Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/docs/validation/evidence/underground-room-integration-check-2026-10-05/analyzer-lifetime-review/review-3/fixture/dependency.gd.txt": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 1
+            }
+          },
+          "severity": 2,
+          "message": "late dependency warning"
+        }
+      ]
+    },
+    "lost": false
+  },
+  "missing_refused": true,
+  "actual_pump_final_queue": {
+    "found": {
+      "dependency.gd.txt": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 1
+            }
+          },
+          "severity": 2,
+          "message": "late dependency warning"
+        }
+      ]
+    },
+    "done": 2,
+    "remaining_frames": 0,
+    "socket_closed": true
+  },
+  "source_sha256": {
+    "tools/gdscript_warnings.py": "42fe7c00b08e6e054d25bb1b1fad272fca65932c1d7d2e298dfdb8fc6e7c0a02",
+    "tools/test_gdscript_warnings.py": "f0ee24439a32526b7dc7627c681beecf74368bb81338767bada14879cc766ee8"
+  },
+  "engines_started": 0
+}

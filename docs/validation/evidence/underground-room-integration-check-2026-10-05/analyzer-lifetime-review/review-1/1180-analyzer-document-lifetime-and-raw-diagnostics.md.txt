@@ -1,0 +1,31 @@
+# 1180 — Analyzer document lifetime and raw diagnostics
+
+Date: 2026-10-05 · Status: implementation validation and independent review
+
+After1177 removed actual UI preload cycles, the full Godot4.7.2 language-server
+scan still logged12 missing-script errors while publishing zero diagnostics.
+An isolated scan of the16 UI scripts reproduced those exact errors. Keeping
+opened documents alive until the owned editor session ends eliminated them;
+an unchanged1256-file scan then returned no LSP or raw editor findings.
+
+The analyzer now retains documents for each session. Every requested file
+still requires its own fresh `publishDiagnostics` response before it counts as
+finished. Later diagnostics republished for an already-open dependency are
+included, and an observed finding is never cleared by a later empty response.
+The socket closes on success or interruption. Clean editor crashes retain the
+existing bounded retry behavior for unfinished files.
+
+Inspect each editor session's raw log after stopping its own process. Any
+error, warning, parse error or positive object/resource leak fails the scan,
+even when LSP reported zero warnings. This includes interrupted sessions before
+a retry could overwrite their log. There are no new allowances. The existing
+`--max 0` gate and complete per-file collection remain required.
+
+The evidence lives under `docs/validation/evidence/underground-ui-preload-2026-10-05/`.
+The original and retained16-file probes, first1256-file retained scan and final
+production-tool verification are separate records. The earlier experiment's
+`retain_documents` flag records only whether its wrapper suppresses didClose;
+the changed production analyzer retains documents itself even when that flag
+is false. The current tool and protocol regression tests must be pinned in the
+final verification. This tooling correction does not qualify gameplay or the
+unfinished underground build.

@@ -1,0 +1,94 @@
+{
+  "clear": {
+    "found": {
+      "dependency.gd.txt": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 1
+            }
+          },
+          "severity": 2,
+          "message": "late dependency warning"
+        }
+      ]
+    },
+    "done": 2
+  },
+  "queued": {
+    "found": {
+      "dependency.gd.txt": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 1
+            }
+          },
+          "severity": 2,
+          "message": "late dependency warning"
+        }
+      ]
+    },
+    "done": 2
+  },
+  "crash_retry": {
+    "found": {
+      "dependency.gd.txt": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 1
+            }
+          },
+          "severity": 2,
+          "message": "late dependency warning"
+        }
+      ]
+    },
+    "done": 2
+  },
+  "earlier_file_new_warning_during_retry": {
+    "found": {},
+    "done": 2,
+    "received": {
+      "file:///Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/docs/validation/evidence/underground-room-integration-check-2026-10-05/analyzer-lifetime-review/review-2/fixture/dependency.gd.txt": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 1
+            }
+          },
+          "severity": 2,
+          "message": "late dependency warning"
+        }
+      ]
+    },
+    "lost": true
+  },
+  "missing_refused": true,
+  "source_sha256": {
+    "tools/gdscript_warnings.py": "ae93bbf2012417b66055702b2246fe2f6bfe5e2a81f4ea09c0eefc59b979dbf0",
+    "tools/test_gdscript_warnings.py": "4ed2b1e8ab74ffbe4dff64ffefe6df3677364240c3fc5097b83d3820c69389fd"
+  },
+  "engines_started": 0
+}

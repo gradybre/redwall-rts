@@ -1,0 +1,49 @@
+{
+  "source_sha256": {
+    "tools/gdscript_warnings.py": "4d47aa3c3b4a6f341492cf92d0adb5d86bf6340805ad98d9ef68cadbd2d23016",
+    "tools/test_gdscript_warnings.py": "3b21dccd09721410d80281393a066c3c87e0fbf135bf06aa73d8f314ba724110",
+    "docs/decisions/1180-analyzer-document-lifetime-and-raw-diagnostics.md": "ffe2dbf219080d189dd7f46f5a2842436a3e218dfa0e7a80f1a2396e2dbde249"
+  },
+  "late_then_empty": {
+    "found": {},
+    "done": 2,
+    "expected_warning_count": 1,
+    "actual_warning_count": 0,
+    "lost": true
+  },
+  "late_then_crash_retry": {
+    "found_before_retry": {},
+    "received_before_crash": {
+      "file:///Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/docs/validation/evidence/underground-room-integration-check-2026-10-05/analyzer-lifetime-review/review-1/fixture/dependency.gd.txt": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 1
+            }
+          },
+          "severity": 2,
+          "message": "late dependency warning"
+        }
+      ]
+    },
+    "found_after_retry": {},
+    "done_after_retry": 2,
+    "socket_closed": true,
+    "lost": true
+  },
+  "late_after_final_reply": {
+    "found": {},
+    "done": 2,
+    "pending_framed_diagnostics": 1,
+    "socket_closed": true,
+    "lost": true
+  },
+  "missing_requested_path_exit": 0,
+  "engines_started": 0,
+  "production_source_writes": 0
+}

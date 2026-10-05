@@ -1,0 +1,293 @@
+#!/usr/bin/env python3
+"""List every GDScript analyzer warning in the project, the ones the editor's debugger shows.
+
+WHY THIS GOES THROUGH THE LANGUAGE SERVER: a headless `--script` run, `--check-only` and an
+`--import` all print nothing for a GDScript warning (integer division, a shadowed variable, an
+unused parameter...) -- verified on 4.7.2. The warnings reach only the editor: its script editor,
+its debugger panel when the game runs from it, and its language server. The language server is
+the one a script can drive, so this starts a headless editor with `--lsp-port`, opens each `.gd`
+file through LSP `textDocument/didOpen` and records the `publishDiagnostics` it answers with.
+
+The project's own warning settings apply, and so does every `@warning_ignore` in the source, so a
+deliberate integer division annotated as one is not reported (decision 0501).
+
+    python3 tools/gdscript_warnings.py                     # every .gd under godot/, exit 1 on any
+    python3 tools/gdscript_warnings.py --max 0 --json out.json
+    python3 tools/gdscript_warnings.py godot/demo/tunnel   # only files under these paths
+
+`--editor-project` runs the editor on a different copy of the project (an APFS `cp -c` clone,
+say) while the file TEXT still comes from `--project`; several of these can then run at once
+without two editors writing the same `.godot/` cache.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import socket
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+CONNECT_TIMEOUT_S = 180.0
+FILE_TIMEOUT_S = 20.0
+FINAL_DRAIN_S = 1.0
+## The editor prints this when its startup is finished. A client that connects and opens files before
+## then crashes 4.7.2 with signal 11 (reproduced twice), so nothing is sent until it appears.
+EDITOR_READY_MARK = "loading_editor_layout"
+READY_TIMEOUT_S = 600.0
+## The 4.7.2 language server also crashes (signal 11) now and then partway through a long run of files, and the same
+## files then pass unchanged on the next start. A crash restarts the editor and resumes at the file it died on; this
+## many starts in a row without progress fail the run.
+MAX_STARTS_WITHOUT_PROGRESS = 3
+
+
+class EditorCrashed(Exception):
+    """The editor died, or stopped answering: its connection dropped, it exited before it was ready, or a file got
+    no diagnostics in FILE_TIMEOUT_S. Each is retried from the file it stopped at."""
+
+
+def wait_for_editor(log_path: Path, editor: subprocess.Popen) -> None:
+    """Block until the editor's log says it finished starting, or fail if it exits first."""
+    deadline = time.time() + READY_TIMEOUT_S
+    while time.time() < deadline:
+        if editor.poll() is not None:
+            raise EditorCrashed(f"the editor exited ({editor.returncode}) before it was ready; see {log_path}")
+        text = log_path.read_text(encoding="utf-8", errors="replace")
+        if any(EDITOR_READY_MARK in line and "DONE" in line for line in text.splitlines()):
+            time.sleep(2.0)
+            return
+        time.sleep(0.5)
+    raise SystemExit(f"error: the editor did not finish starting in {READY_TIMEOUT_S:.0f} s; see {log_path}")
+
+
+class Lsp:
+    """A minimal JSON-RPC client over the Content-Length framing the Godot language server speaks."""
+
+    def __init__(self, port: int) -> None:
+        deadline = time.time() + CONNECT_TIMEOUT_S
+        last_error: OSError | None = None
+        while time.time() < deadline:
+            try:
+                self.sock = socket.create_connection(("127.0.0.1", port))
+                break
+            except OSError as error:
+                last_error = error
+                time.sleep(1.0)
+        else:
+            raise SystemExit(f"error: no language server on port {port}: {last_error}")
+        self.buf = b""
+        self.diagnostics: dict[str, list] = {}
+        self.findings: dict[str, list] = {}
+
+    def send(self, message: dict) -> None:
+        data = json.dumps(message).encode()
+        self.sock.settimeout(None)
+        try:
+            self.sock.sendall(b"Content-Length: %d\r\n\r\n" % len(data) + data)
+        except OSError as error:
+            raise EditorCrashed(str(error)) from error
+
+    def pump(self, until: float, want_uri: str | None = None) -> bool:
+        """Read messages until `until`, or until diagnostics for `want_uri` arrive. True if they did."""
+        while time.time() < until:
+            self.sock.settimeout(max(0.05, min(0.5, until - time.time())))
+            try:
+                chunk = self.sock.recv(1 << 20)
+            except socket.timeout:
+                chunk = None
+            except OSError as error:
+                raise EditorCrashed(str(error)) from error
+            if chunk == b"":
+                raise EditorCrashed("the language server closed the connection")
+            if chunk:
+                self.buf += chunk
+            if self._drain(want_uri):
+                return True
+        return False
+
+    def _drain(self, want_uri: str | None) -> bool:
+        got = False
+        while True:
+            head_end = self.buf.find(b"\r\n\r\n")
+            if head_end < 0:
+                return got
+            length = 0
+            for header in self.buf[:head_end].decode().split("\r\n"):
+                if header.lower().startswith("content-length:"):
+                    length = int(header.split(":", 1)[1])
+            if len(self.buf) < head_end + 4 + length:
+                return got
+            body = self.buf[head_end + 4: head_end + 4 + length]
+            self.buf = self.buf[head_end + 4 + length:]
+            message = json.loads(body)
+            if message.get("method") == "textDocument/publishDiagnostics":
+                params = message["params"]
+                self.diagnostics[params["uri"]] = params["diagnostics"]
+                if params["diagnostics"]:
+                    retained = self.findings.setdefault(params["uri"], [])
+                    for diagnostic in params["diagnostics"]:
+                        if diagnostic not in retained:
+                            retained.append(diagnostic)
+                got = got or params["uri"] == want_uri
+
+
+def collect(files: list[Path], text_root: Path, editor_root: Path, port: int, found: dict[str, list],
+            done: list[Path]) -> None:
+    """Open each file in the language server, adding {relative path: [diagnostic, ...]} to `found` and each file
+    finished to `done`. Raises EditorCrashed when the editor dies; what was recorded before that stands."""
+    lsp = Lsp(port)
+    try:
+        collect_documents(lsp, files, text_root, editor_root, found, done)
+    finally:
+        # A dependency's warning may precede an empty republish or EOF while
+        # another file is being opened. Harvest the non-clearing record even
+        # when collection is interrupted, before the session is discarded.
+        for path in files:
+            rel = path.relative_to(text_root).as_posix()
+            diagnostics = lsp.findings.get((editor_root / rel).as_uri(), [])
+            if diagnostics:
+                retained = found.setdefault(rel, [])
+                for diagnostic in diagnostics:
+                    if diagnostic not in retained:
+                        retained.append(diagnostic)
+        lsp.sock.close()
+
+
+def collect_documents(lsp: Lsp, files: list[Path], text_root: Path, editor_root: Path,
+                      found: dict[str, list], done: list[Path]) -> None:
+    """Retain opened dependencies for this session; require a fresh reply for every file."""
+    lsp.send({"jsonrpc": "2.0", "id": 0, "method": "initialize",
+              "params": {"processId": None, "rootUri": editor_root.as_uri(), "capabilities": {}}})
+    lsp.pump(time.time() + 5.0)
+    lsp.send({"jsonrpc": "2.0", "method": "initialized", "params": {}})
+    for index, path in enumerate(files):
+        rel = path.relative_to(text_root).as_posix()
+        uri = (editor_root / rel).as_uri()
+        lsp.diagnostics.pop(uri, None)
+        lsp.send({"jsonrpc": "2.0", "method": "textDocument/didOpen", "params": {"textDocument": {
+            "uri": uri, "languageId": "gdscript", "version": 1, "text": path.read_text(encoding="utf-8")}}})
+        if not lsp.pump(time.time() + FILE_TIMEOUT_S, uri):
+            raise EditorCrashed(f"no diagnostics came back for {rel} in {FILE_TIMEOUT_S:.0f} s")
+        if lsp.diagnostics[uri]:
+            retained = found.setdefault(rel, [])
+            for diagnostic in lsp.diagnostics[uri]:
+                if diagnostic not in retained:
+                    retained.append(diagnostic)
+        # Keep documents open until this editor session ends. In Godot 4.7.2,
+        # didClose can invalidate a preloaded script still used by a later
+        # document: the editor logs a load error but publishes no diagnostics.
+        # Each file still needs its own completed publishDiagnostics response.
+        if index + 1 < len(files):
+            done.append(path)
+    # Read queued dependency notifications after the final requested reply.
+    # Keep the last file unfinished until this bounded drain completes, so
+    # EOF here follows the same retry limit as any other incomplete response.
+    lsp.pump(time.time() + FINAL_DRAIN_S)
+    if files:
+        done.append(files[-1])
+
+
+def editor_findings(text: str) -> list[str]:
+    """Raw editor errors and leaks fail even when LSP publishes empty diagnostics."""
+    return [line for line in text.splitlines() if re.search(
+        r"^\s*(?:USER )?(?:SCRIPT ERROR|ERROR|WARNING):|(?:Parse|Parser) Error:"
+        r"|[1-9][0-9]* ObjectDB instances? (?:were|was) leaked"
+        r"|[1-9][0-9]* resources? still in use at exit", line)]
+
+
+def run_session(args: argparse.Namespace, files: list[Path], project: Path, editor_root: Path,
+                found: dict[str, list], done: list[Path]) -> None:
+    """Start one headless editor, collect what it reports for `files`, and stop it."""
+    log_path = Path(os.environ.get("TMPDIR", "/tmp")) / f"gdscript_warnings_editor_{args.port}.log"
+    with open(log_path, "w", encoding="utf-8") as log:
+        editor = subprocess.Popen(
+            [args.godot, "--headless", "--editor", "--path", str(editor_root), "--lsp-port", str(args.port)],
+            stdout=log, stderr=subprocess.STDOUT)
+    try:
+        wait_for_editor(log_path, editor)
+        collect(files, project, editor_root, args.port, found, done)
+    finally:
+        editor.terminate()
+        try:
+            editor.wait(timeout=20)
+        except subprocess.TimeoutExpired:
+            editor.kill()
+            editor.wait(timeout=20)
+        findings = editor_findings(log_path.read_text(encoding="utf-8", errors="replace"))
+        if findings:
+            raise SystemExit(f"error: {len(findings)} raw editor diagnostic/leak line(s); see {log_path}\n"
+                             + "\n".join(findings))
+
+
+def collect_all(args: argparse.Namespace, files: list[Path], project: Path, editor_root: Path) -> dict[str, list]:
+    """Every file's diagnostics, restarting the editor where it crashed (see MAX_STARTS_WITHOUT_PROGRESS)."""
+    found: dict[str, list] = {}
+    done: list[Path] = []
+    stalled = 0
+    while len(done) < len(files):
+        before = len(done)
+        try:
+            run_session(args, files[len(done):], project, editor_root, found, done)
+        except EditorCrashed as crash:
+            stalled = 0 if len(done) > before else stalled + 1
+            print(f"note: the editor crashed after {len(done)} of {len(files)} file(s) ({crash}); restarting",
+                  file=sys.stderr)
+            if stalled >= MAX_STARTS_WITHOUT_PROGRESS:
+                raise SystemExit(f"error: the editor crashed {stalled} times on {files[len(done)]}")
+    return found
+
+
+def gd_files(project: Path, only: list[str]) -> list[Path]:
+    """Every .gd file under the project (or under `only`), outside .godot/, sorted."""
+    roots = [Path(p).resolve() for p in only] or [project]
+    files: set[Path] = set()
+    for root in roots:
+        if not root.exists():
+            raise SystemExit(f"error: requested GDScript path does not exist: {root}")
+        selected = False
+        candidates = [root] if root.is_file() else root.rglob("*.gd")
+        for path in candidates:
+            if path.suffix == ".gd" and ".godot" not in path.relative_to(project).parts:
+                files.add(path)
+                selected = True
+        if not selected:
+            raise SystemExit(f"error: no GDScript files selected under {root}")
+    return sorted(files)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("paths", nargs="*", help="limit to .gd files under these paths")
+    parser.add_argument("--project", default=str(REPO / "godot"), help="the project whose files are read")
+    parser.add_argument("--editor-project", help="run the editor on this copy of the project instead")
+    parser.add_argument("--port", type=int, default=6018)
+    parser.add_argument("--godot", default="godot")
+    parser.add_argument("--max", type=int, default=0, help="fail when more warnings than this are found")
+    parser.add_argument("--json", help="also write the diagnostics here")
+    args = parser.parse_args()
+
+    project = Path(args.project).resolve()
+    editor_root = Path(args.editor_project).resolve() if args.editor_project else project
+    files = gd_files(project, args.paths)
+    found = collect_all(args, files, project, editor_root)
+
+    total = 0
+    for rel, diagnostics in sorted(found.items()):
+        for d in sorted(diagnostics, key=lambda d: d["range"]["start"]["line"]):
+            total += 1
+            print(f"{rel}:{d['range']['start']['line'] + 1}: {d['message']}")
+    if args.json:
+        Path(args.json).write_text(json.dumps(found, indent=1, sort_keys=True), encoding="utf-8")
+    print(f"{total} GDScript warning(s) in {len(found)} of {len(files)} file(s)")
+    if total > args.max:
+        print(f"error: more than the allowed {args.max} warning(s)", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

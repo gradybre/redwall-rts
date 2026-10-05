@@ -4057,13 +4057,21 @@
           "physical": "Actual source fixture performs12 BRACE/CUT/FINISH phases across4L0 cubes using real perimeter motion:36000mWU,1000wood_milli and1000stone_milli consumed,8000earth_milli produced once. Only initial arrival and finite stock are explicit setup.",
           "memory": "285 Python tests and190capacity checks pass; permanent pack99999806 B/headroom194 exactly matches evidence pack; --check passes; no native qualification.",
           "limits": "No crew UI dispatch, timber handling/fastening, full entry or empty Kitchen acceptance; eb95 remains last full milestone.",
-          "review": "independent-memory-review-1:8exactsourcepins,39Pythonchecks,5independentmutants rejected; final4cube test accepted. independent-review-1:exactsource geometry and7diagnostic outputs accepted."
+          "review": "independent-memory-review-1:8exactsourcepins,39Pythonchecks,5independentmutants rejected; final4cube test accepted. independent-review-1:exactsource geometry and7diagnostic outputs accepted.",
+          "integration_commit": "4972a96d03ec01f31f90f9b29ca63934812782ea"
         },
         "owner_release_1184_review": {
           "status": "independently accepted component; author full-kernel work continues",
           "evidence": "docs/validation/evidence/underground-entry-owner-1184-review-2026-10-05/release-v1/",
           "tests": "Independent11census tests and exact replay; author86tests11684assertions strict/raw allzero, analyzer0/4 and restoration verified",
           "scope": "Three EntryBindings/Placement/Delivery release leaves only; no new retained fields/constructor allocations. Full original HostPlanner/clock and private Session retirement still require composition acceptance."
+        },
+        "owner_kernel_1184_review": {
+          "status": "independently accepted diagnostic kernel; actual Session constructor pending",
+          "evidence": "docs/validation/evidence/underground-entry-owner-1184-review-2026-10-05/kernel-v1/",
+          "source_manifest_sha256": "dfc6c17f24e2bf4561007b8ac7df0894ff369217da0ff9f0cb5760b6eaf530a0",
+          "tests": "Independent17census checks/exact replay; verified5source182input33output30history pins. Author27tests2134assertions strict/rawall0, analyzer0/5;28temporary peers restored.",
+          "accounting": "6195/6208controls,1968/1984helpers; existing8192 unchanged; actual newconstructor/currentpeer closure remains open."
         }
       },
       "lease": {
@@ -5741,6 +5749,17 @@
       "evidence": "docs/validation/evidence/underground-integration-checkpoint-2026-10-05/full-eb95c0dd/",
       "same_commit_ci": "37277106463;all14 jobs pass/870seconds/410files exactly once/11283tests1082436assertions/all-zero unexpected and leak counters",
       "parity": "Same410 files and11283 named cases and all diagnostic totals. Local+11 assertions unattributed; all-counter equality explicitly false."
+    },
+    {
+      "commit": "4972a96d03ec01f31f90f9b29ca63934812782ea",
+      "outcome": "running",
+      "local_session": 10160,
+      "procedure": "Owned frozen qualification checkout, assets aside if present, delete .godot, clean editor import, no-argument ./tools/run_tests.sh, all-file analyzer and registry checks; restoration in finally.",
+      "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-qualification-2026-10-05",
+      "evidence": "docs/validation/evidence/underground-integration-checkpoint-2026-10-05/full-4972a96d/",
+      "ci_run": 37288505753,
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37288505753",
+      "limits": "No result claimed until summary and diagnostics/leak lines collected; source4 handling and production entry still under development."
     }
   ],
   "crosscut_fixes": [

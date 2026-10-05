@@ -1,0 +1,14 @@
+[
+  {
+    "name": "short_source_literal",
+    "sha256": "2cfab6f167d06781abbe2f05bddfd92b5682e128c69898f203d04d491f60035b",
+    "refused": true,
+    "message": "SourceProgram collection allocation"
+  },
+  {
+    "name": "routes_literal",
+    "sha256": "85d35f1410ba4cd445e5da5932a708437f0b0d7914bca78ef897bdad460d0ef1",
+    "refused": true,
+    "message": "collection literal allocation topology underground_routes"
+  }
+]

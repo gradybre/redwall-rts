@@ -1,0 +1,15 @@
+{
+  "content": "/Users/brendan/Developer/redwall-rts-codex-ug-short-work-step-runtime/godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor",
+  "content_sha256": "adc617642313ac004c050d4877ef0b9f4024bb9c88e3ea92ce9a924471bd5ab9",
+  "reserve_bytes": 7141920,
+  "basis": "res://demo/assets/underground-matrices/world-yaw-v1.ugyaw",
+  "basis_sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+  "basis_producer_sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f",
+  "manifest": "res://demo/assets/manifest.json",
+  "manifest_sha256": "ce3206671b74b1602f23e992b648d4093ea8c51fc259b0e13c1769b8facbbf37",
+  "profiles": "/Users/brendan/Developer/redwall-rts-codex-ug-short-work-step-runtime/docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/profile-diagnostic-1/mole-worker.ugprof",
+  "profiles_sha256": "830ee531a432f9cef8a24a85f1c017be21253301bc46bf55e0a6b97807a4ec4e",
+  "user_directory_name": "Redwall-Codex-Short-Step-db90ca0cf7be5f63",
+  "production_qualified": false,
+  "diagnostic_profile_flags": true
+}

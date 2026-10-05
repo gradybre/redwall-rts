@@ -1,0 +1,7 @@
+{
+  "branch": "codex/underground-short-work-step-runtime",
+  "base": "116f2f2e7b6c5334af7e18a34457fd3c6cc1a34d",
+  "native": "native-3",
+  "runtime": "runtime-6",
+  "scope": "component runtime/native correctness, diagnostic source and geometry; production publication/paid world and performance remain open"
+}

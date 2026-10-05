@@ -1,0 +1,26 @@
+test_actor_record_width_change_refuses (__main__.CensusTests) ... ok
+test_added_retained_bank_refuses (__main__.CensusTests) ... ok
+test_added_retained_scalar_refuses (__main__.CensusTests) ... ok
+test_complete_joint_has_one_source_payload_and_one_composition_reserve (__main__.CensusTests) ... ok
+test_duplicate_same_expression_resize_is_counted (__main__.CensusTests) ... ok
+test_immutable_call_manifest_cannot_self_rehash (__main__.CensusTests) ... ok
+test_inherited_storage_refuses (__main__.CensusTests) ... ok
+test_known_transitive_call_cannot_be_added_twice (__main__.CensusTests) ... ok
+test_new_numeric_local_needs_a_new_review (__main__.CensusTests) ... ok
+test_new_same_size_call_needs_a_new_review (__main__.CensusTests) ... ok
+test_no_git_or_other_subprocess_is_needed (__main__.CensusTests) ... ok
+test_old_source_program_is_immutable (__main__.CensusTests) ... ok
+test_output_is_reproduced_exactly (__main__.CensusTests) ... ok
+test_predecessor_manifest_cannot_follow_current_sources (__main__.CensusTests) ... ok
+test_profile_record_width_change_refuses (__main__.CensusTests) ... ok
+test_short_source_must_remain_stateless (__main__.CensusTests) ... ok
+test_source_constant_payload_growth_refuses (__main__.CensusTests) ... ok
+test_source_temporary_copy_refuses (__main__.CensusTests) ... ok
+test_temporary_array_without_field_or_resize_refuses (__main__.CensusTests) ... ok
+test_two_identically_named_source_modules_remain_distinct (__main__.CensusTests) ... ok
+test_utf32_payload_growth_refuses (__main__.CensusTests) ... ok
+
+----------------------------------------------------------------------
+Ran 21 tests in 2.054s
+
+OK

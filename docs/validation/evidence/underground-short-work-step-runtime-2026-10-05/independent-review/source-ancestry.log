@@ -1,0 +1,9 @@
+{
+  "counts": {
+    "old_v3_prerequisites": 509,
+    "source1164_direct_inputs": 19,
+    "source1164_producers": 22
+  },
+  "failed": [],
+  "historical_live_substitutions": 0
+}

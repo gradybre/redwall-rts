@@ -1,0 +1,11 @@
+test_altered_geometry_or_stripped_report_refuses_even_if_self_rehashed (__main__.DiagnosticTests.test_altered_geometry_or_stripped_report_refuses_even_if_self_rehashed) ... ok
+test_every_unchanged_row_payload_and_whole_box_is_preserved (__main__.DiagnosticTests.test_every_unchanged_row_payload_and_whole_box_is_preserved) ... ok
+test_exact_counts_and_only_intended_policy_changes (__main__.DiagnosticTests.test_exact_counts_and_only_intended_policy_changes) ... ok
+test_old_wire_mutation_and_truncation_refuse (__main__.DiagnosticTests.test_old_wire_mutation_and_truncation_refuse) ... ok
+test_output_cannot_overwrite_or_leave_owned_evidence (__main__.DiagnosticTests.test_output_cannot_overwrite_or_leave_owned_evidence) ... ok
+test_short_rows_include_all_seven_source_boxes_without_clipping (__main__.DiagnosticTests.test_short_rows_include_all_seven_source_boxes_without_clipping) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.003s
+
+OK

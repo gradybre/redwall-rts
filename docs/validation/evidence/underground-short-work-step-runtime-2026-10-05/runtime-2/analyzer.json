@@ -1,0 +1,20 @@
+{
+ "scripts/core/underground_routes.gd": [
+  {
+   "code": 0,
+   "message": "(SHADOWED_VARIABLE): The local function parameter \"revision\" is shadowing an already-declared function at line 751 in the current class.",
+   "range": {
+    "end": {
+     "character": 78,
+     "line": 2180
+    },
+    "start": {
+     "character": 70,
+     "line": 2180
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

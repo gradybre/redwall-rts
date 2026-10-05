@@ -1,0 +1,22 @@
+[
+  {
+    "mutation": "short_literal",
+    "refused": true,
+    "message": "SourceProgram collection allocation"
+  },
+  {
+    "mutation": "routes_literal",
+    "refused": true,
+    "message": "collection literal allocation topology underground_routes"
+  },
+  {
+    "mutation": "driver_initializer",
+    "refused": true,
+    "message": "collection literal allocation topology mole_profile_driver"
+  },
+  {
+    "mutation": "profile_initializer",
+    "refused": true,
+    "message": "collection literal allocation topology underground_profiles"
+  }
+]

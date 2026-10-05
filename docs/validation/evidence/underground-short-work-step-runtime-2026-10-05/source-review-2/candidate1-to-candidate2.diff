@@ -1,0 +1,180 @@
+--- candidate1/godot/scripts/core/underground_routes.gd
++++ candidate2/godot/scripts/core/underground_routes.gd
+@@ -2200,11 +2200,12 @@
+ 		return &"ROUTE_SOURCE_CLOCK"
+ 	var code: StringName = _source_profile_refusal(actual._profiles, profile, profile_revision, content)
+ 	if code != &"": return code
+-	var clock: int = actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
+-	if not ShortStep.uses(actual._profiles): return SourceProgram.clock_refusal(phase, clock, profile)
+-	code = ShortStep.clock_refusal(phase, clock, profile)
++	if not ShortStep.uses(actual._profiles):
++		return SourceProgram.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
++	code = ShortStep.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
+ 	if code == &"" and ShortStep.is_short(profile):
+-		code = ShortStep.progress_refusal(phase, clock, actual._motion.resident_long[R_PROGRESS * RESIDENT_CAPACITY + row],
++		code = ShortStep.progress_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row],
++			actual._motion.resident_long[R_PROGRESS * RESIDENT_CAPACITY + row],
+ 			actual._motion.resident_long[R_REMAINDER * RESIDENT_CAPACITY + row],
+ 			actual._motion.resident[R_EDGE_SLOT * RESIDENT_CAPACITY + row] >= 0)
+ 	return code
+--- candidate1/docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/census.py
++++ candidate2/docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/census.py
+@@ -16,7 +16,7 @@
+     "docs/validation/evidence/underground-ground-turn-2026-10-04/census.py": "3d531ce5ba7329ffd8641344304f42abd2c952cb87b86e2425e24fa08e15d278",
+ }
+ PREDECESSOR_SHA = "30a9b190e543e30dbe53f9c1b42f15a29878788bbaa91bc52703bd63693a31c1"
+-CALL_CONTRACT_SHA = "8eff259611d75fcc336aed0f8b2b5d7e1b5343e0aa938af840a682a08484a184"
++CALL_CONTRACT_SHA = "ab3d24c07a7e8fcca8c259dace66399282081bee5bc01f4e67f7175585ad7475"
+ P = "underground_profiles"
+ R = "underground_routes"
+ W = "underground_world_routes"
+@@ -74,6 +74,17 @@
+             if relative.endswith("work-step-v1/source_program.gd"):
+                 aliases[name] = S
+         super()._scope(module, scope, source, aliases)
++        # Retain complete code for lexical closure. The older generic parser
++        # deliberately strips comments with a regex; that must not erase a '#'
++        # inside a real String/collection literal from this allocation guard.
++        lines = source.splitlines()
++        for start, line in enumerate(lines):
++            hit = re.match(r'^(?:static )?func (\w+)\(', line)
++            if not hit: continue
++            end = start + 1
++            while end < len(lines) and (not lines[end].strip() or lines[end].startswith(('\t', ' ', ')'))):
++                end += 1
++            self.functions[scope+":"+hit[1]]["raw_body"] = "\n".join(lines[start:end])
+ 
+     def method(self, key, expression):
+         parts = expression.split(".")
+@@ -114,6 +125,40 @@
+             "borrowed_script_aliases": borrowed}
+ 
+ 
++def tokens(source):
++    """Preserve complete literal bytes; discard only whitespace and real comments."""
++    pattern = r'"""[\s\S]*?"""|\x27\x27\x27[\s\S]*?\x27\x27\x27|"(?:\\.|[^"\\])*"|\x27(?:\\.|[^\x27\\])*\x27|\#[^\n]*|[A-Za-z_]\w*|\d+|[^\s]'
++    return [token for token in re.findall(pattern, source) if not token.startswith("#")]
++
++
++def collection_literals(source):
++    """Distinguish literal '[' from indexing/type syntax and retain every nested payload.
++
++    The complete raw-body token hash below also closes multiplication, slicing,
++    concatenation, alias calls and other expression changes outside the literal.
++    """
++    lex = tokens(source)
++    result = []
++    keywords = {"return", "in", "if", "else", "elif", "and", "or", "not", "match"}
++    for index, token in enumerate(lex):
++        if token not in ("[", "{"): continue
++        before = lex[index-1] if index else ""
++        if token == "[" and (before in (")", "]") or
++                (re.fullmatch(r'[A-Za-z_]\w*', before) and before not in keywords)):
++            continue
++        stack, end = [token], index + 1
++        while stack and end < len(lex):
++            value = lex[end]
++            if value in ("[", "{", "("): stack.append(value)
++            elif value in ("]", "}", ")"):
++                require(stack[-1] == {"]":"[", "}":"{", ")":"("}[value], "unbalanced collection syntax")
++                stack.pop()
++            end += 1
++        require(not stack, "unterminated collection literal")
++        result.append(lex[index:end])
++    return result
++
++
+ def call_contract(audit, measured):
+     """Freeze declared frames and complete call expressions, including duplicate calls.
+ 
+@@ -124,8 +169,12 @@
+     owned = {module: sorted(k for k,v in audit.functions.items() if v["module"] == module)
+              for module in modules}
+     keys = set(measured) | {k for rows in owned.values() for k in rows}
+-    return {"owned_function_names": owned, "functions": {key:{
++    return {"owned_function_names": owned,
++        "owned_module_tokens_sha256":{module:sha(json.dumps(tokens(audit.sources[module])).encode()) for module in modules},
++        "functions": {key:{
+         "numeric_fields":audit.functions[key]["numeric_fields"],
++        "borrowed_or_interned":audit.functions[key]["borrowed_or_interned"],
++        "complete_code_tokens_sha256":sha(json.dumps(tokens(audit.functions[key]["raw_body"])).encode()),
+         "calls":re.findall(r'(?<![\w.])([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)\s*\(', audit.functions[key]["code"])
+         } for key in sorted(keys)}}
+ 
+@@ -145,6 +194,7 @@
+         # Reject a new temporary constructor or copy even if no retained field or resize changes.
+         allocs = lambda text: re.findall(r'\b(?:Packed\w+Array|Array|Dictionary)\s*\(|\.new\(|\.duplicate\(', A.executable(text))
+         require(allocs(before) == allocs(now), "temporary allocation topology " + module)
++        require(collection_literals(before) == collection_literals(now), "collection literal allocation topology " + module)
+         retained[module] = {"member_count": len(L.members(now)), "numeric_or_packed_delta": 0,
+                             "resize_calls": resizes(now), "constructor_copy_calls": len(allocs(now))}
+     for module, constants in {P:{"I32_FIELDS":18,"I64_FIELDS":3,"BYTE_FIELDS":2,"PROFILE_WIRE_BYTES":98},
+@@ -157,6 +207,7 @@
+         source = audit.sources[module]
+         require(source.startswith("extends RefCounted\n") and not L.members(source), "SourceProgram retained state")
+         require(not re.search(r'Packed\w+Array\(|\.(?:new|duplicate|resize|hex_decode)\(', A.executable(source)), "SourceProgram allocation")
++        require(not collection_literals(source), "SourceProgram collection allocation")
+         source_payloads[module] = const_payload(source)
+     require(source_payloads["source_program"]["numeric_payload"] == 648 and
+             source_payloads[S]["numeric_payload"] == 348, "reviewed SourceProgram constant capacity")
+--- candidate1/docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/test_census.py
++++ candidate2/docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/test_census.py
+@@ -120,6 +120,58 @@
+         with mock.patch.object(Path, "read_bytes", read), self.assertRaisesRegex(ValueError, "predecessor manifest changed"):
+             C.build()
+ 
++    def test_reviewer_short_source_array_literal_refuses(self):
++        literal = ",".join("0" for _ in range(4096))
++        self.mutate(C.S, "static func uses(actual: Profiles) -> bool:",
++                    "static func uses(actual: Profiles) -> bool:\n\tvar _scratch: Array = ["+literal+"]",
++                    "SourceProgram collection allocation")
++
++    def test_reviewer_tick_array_literal_refuses(self):
++        literal = ",".join("0" for _ in range(4096))
++        self.mutate(C.R, "func advance_tick(tick: int) -> int:",
++                    "func advance_tick(tick: int) -> int:\n\tvar _scratch: Array = ["+literal+"]",
++                    "collection literal allocation topology")
++
++    def test_dictionary_literal_refuses(self):
++        self.mutate(C.S, "static func uses(actual: Profiles) -> bool:",
++                    'static func uses(actual: Profiles) -> bool:\n\tvar _scratch: Dictionary = {"k": 0}',
++                    "SourceProgram collection allocation")
++
++    def test_untyped_nested_literal_refuses(self):
++        self.mutate(C.R, "func advance_tick(tick: int) -> int:",
++                    "func advance_tick(tick: int) -> int:\n\tvar _scratch := [[0]]",
++                    "collection literal allocation topology")
++
++    def test_growth_of_existing_packed_initializer_refuses(self):
++        source = C.path(C.D).read_text()
++        import re
++        original = re.search(r'^var _pose: PackedInt32Array = PackedInt32Array\(\[[^\n]*\]\)', source, re.M)[0]
++        self.mutate(C.D, original, "var _pose: PackedInt32Array = PackedInt32Array(["+",".join("0" for _ in range(65536))+"])",
++                    "collection literal allocation topology")
++
++    def test_growth_of_existing_profile_header_initializer_refuses(self):
++        source = C.path(C.P).read_text()
++        import re
++        original = re.search(r'var header: PackedInt64Array = PackedInt64Array\(\[[^\n]*\]\)', source)[0]
++        self.mutate(C.P, original, "var header: PackedInt64Array = PackedInt64Array(["+",".join("0" for _ in range(4096))+"])",
++                    "collection literal allocation topology")
++
++    def test_empty_typed_constructor_without_literal_refuses(self):
++        self.mutate(C.S, "static func uses(actual: Profiles) -> bool:",
++                    "static func uses(actual: Profiles) -> bool:\n\tvar _scratch := Array[int]()",
++                    "unreviewed numeric frame or nested call")
++
++    def test_alias_constructor_without_new_numerics_refuses(self):
++        self.mutate(C.D, "extends RefCounted", "extends RefCounted\nconst Hidden = Array[int]()",
++                    "unreviewed numeric frame or nested call")
++
++    def test_lexer_keeps_hash_inside_string_and_ignores_real_comment(self):
++        self.assertEqual(C.tokens('return "#first" # real comment'), ["return", '"#first"'])
++        self.assertNotEqual(C.tokens('return "#first"'), C.tokens('return "#second"'))
++        self.assertEqual(C.collection_literals('return value[0] # [ignored]'), [])
++        self.assertEqual(C.collection_literals('return ["#not-a-comment", [0]]'),
++                         [['[', '"#not-a-comment"', ',', '[', '0', ']', ']'], ['[', '0', ']']])
++
+ 
+ if __name__ == "__main__":
+     unittest.main()

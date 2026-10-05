@@ -1,0 +1,8 @@
+{
+  "poses": 462,
+  "exact_native_scalar_comparisons": 144144,
+  "screenshots": 46,
+  "assertions": 2558,
+  "production_qualified": false,
+  "scope": "sampled real canonical driver, WorldRoutes and source; explicit test geometry and diagnostic flags"
+}

@@ -1,0 +1,25 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M5 Pro
+
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+step-frame: 1 side-initial-000
+step-frame: 5 side-tick-004
+step-frame: 19 side-tick-018
+step-frame: 27 side-tick-026
+step-frame: 28 side-turn-026
+step-frame: 42 side-tick-040
+step-frame: 54 side-tick-052
+step-frame: 58 side-tick-056
+step-frame: 63 side-tick-061
+step-frame: 65 side-tick-063
+step-frame: 73 side-tick-071
+FAIL: source HIGH entry without productive WU (expected , got WORLD_ROUTE_ENDPOINT_BODY)
+FAIL: one headless canonical tick (expected 1, got 0)
+FAIL: actual source driver (expected , got ROUTE_SOURCE_TUPLE_STALE)
+FAIL: same canonical owner (expected , got ROUTE_SOURCE_TUPLE_STALE)
+FAIL: source recovery ends at original access (expected , got ROUTE_SOURCE_TUPLE_STALE)
+native-step: 74 poses, 446 assertions, 5 failures; qualified=0

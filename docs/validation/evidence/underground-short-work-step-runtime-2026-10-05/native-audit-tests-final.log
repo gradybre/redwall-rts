@@ -1,0 +1,20 @@
+test_actual_complete_sequence (native_final.NativeAuditTests.test_actual_complete_sequence) ... ok
+test_backward_body_does_not_turn_with_path (native_final.NativeAuditTests.test_backward_body_does_not_turn_with_path) ... ok
+test_diagnostic_scope_cannot_be_upgraded (native_final.NativeAuditTests.test_diagnostic_scope_cannot_be_upgraded) ... ok
+test_duplicate_frame_cannot_replace_turn_coverage (native_final.NativeAuditTests.test_duplicate_frame_cannot_replace_turn_coverage) ... ok
+test_every_actual_pose_is_required (native_final.NativeAuditTests.test_every_actual_pose_is_required) ... ok
+test_exact_input_relocates_without_historical_checkout (native_final.NativeAuditTests.test_exact_input_relocates_without_historical_checkout) ... ok
+test_exact_native_length_precedes_array_materialization (native_final.NativeAuditTests.test_exact_native_length_precedes_array_materialization) ... ok
+test_exact_short_root_ticks_and_fades (native_final.NativeAuditTests.test_exact_short_root_ticks_and_fades) ... ok
+test_foreign_image_locator_or_digest_cannot_reuse_evidence (native_final.NativeAuditTests.test_foreign_image_locator_or_digest_cannot_reuse_evidence) ... ok
+test_ground_heading_is_not_selected_heading (native_final.NativeAuditTests.test_ground_heading_is_not_selected_heading) ... ok
+test_native_tool_matrix_cannot_be_relabelled (native_final.NativeAuditTests.test_native_tool_matrix_cannot_be_relabelled) ... ok
+test_recovery_must_finish_before_turn (native_final.NativeAuditTests.test_recovery_must_finish_before_turn) ... ok
+test_root_cannot_teleport_to_short_endpoint (native_final.NativeAuditTests.test_root_cannot_teleport_to_short_endpoint) ... ok
+test_short_source_cannot_repeat_from_zero (native_final.NativeAuditTests.test_short_source_cannot_repeat_from_zero) ... ok
+test_source_phase_and_visual_frame_stay_paired (native_final.NativeAuditTests.test_source_phase_and_visual_frame_stay_paired) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.217s
+
+OK

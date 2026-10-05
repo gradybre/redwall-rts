@@ -1,0 +1,55 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M5 Pro
+
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+step-frame: 1 side-initial-000
+step-frame: 5 side-tick-004
+step-frame: 19 side-tick-018
+step-frame: 27 side-tick-026
+step-frame: 28 side-turn-026
+step-frame: 42 side-tick-040
+step-frame: 54 side-tick-052
+step-frame: 58 side-tick-056
+step-frame: 63 side-tick-061
+step-frame: 65 side-tick-063
+step-frame: 73 side-tick-071
+step-frame: 90 side-tick-088
+step-frame: 117 side-tick-115
+step-frame: 145 side-tick-143
+step-frame: 159 side-tick-157
+step-frame: 168 side-tick-166
+step-frame: 170 side-tick-168
+step-frame: 178 side-tick-176
+step-frame: 192 side-tick-190
+step-frame: 204 side-tick-202
+step-frame: 205 side-turn-202
+step-frame: 218 side-tick-215
+step-frame: 231 side-tick-228
+step-frame: 232 rts-initial-000
+step-frame: 236 rts-tick-004
+step-frame: 250 rts-tick-018
+step-frame: 258 rts-tick-026
+step-frame: 259 rts-turn-026
+step-frame: 273 rts-tick-040
+step-frame: 285 rts-tick-052
+step-frame: 289 rts-tick-056
+step-frame: 294 rts-tick-061
+step-frame: 296 rts-tick-063
+step-frame: 304 rts-tick-071
+step-frame: 321 rts-tick-088
+step-frame: 348 rts-tick-115
+step-frame: 376 rts-tick-143
+step-frame: 390 rts-tick-157
+step-frame: 399 rts-tick-166
+step-frame: 401 rts-tick-168
+step-frame: 409 rts-tick-176
+step-frame: 423 rts-tick-190
+step-frame: 435 rts-tick-202
+step-frame: 436 rts-turn-202
+step-frame: 449 rts-tick-215
+step-frame: 462 rts-tick-228
+native-step: 462 poses, 2558 assertions, 0 failures; qualified=0

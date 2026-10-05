@@ -1,0 +1,23 @@
+{
+  "pins": 21,
+  "census_exact": true,
+  "probes": [
+    {
+      "name": "short_source_literal",
+      "refused": false,
+      "logical_before": 3571,
+      "logical_after": 3571,
+      "extra_Array_elements": 4096,
+      "mutated_sha256": "2cfab6f167d06781abbe2f05bddfd92b5682e128c69898f203d04d491f60035b"
+    },
+    {
+      "name": "routes_literal",
+      "refused": false,
+      "logical_before": 3571,
+      "logical_after": 3571,
+      "extra_Array_elements": 4096,
+      "mutated_sha256": "85d35f1410ba4cd445e5da5932a708437f0b0d7914bca78ef897bdad460d0ef1"
+    }
+  ],
+  "author_sources_unchanged": true
+}

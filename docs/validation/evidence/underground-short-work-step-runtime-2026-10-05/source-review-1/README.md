@@ -1,0 +1,7 @@
+# Frozen 1168 component candidate
+
+Base `116f2f2e7b6c5334af7e18a34457fd3c6cc1a34d`. All 21 executable/UID pins in `source-sha256.json` are frozen; manifest SHA256 `b6ebe49bf873ffecc449a34c21cf9b28f92ead250b27df8e33234c1f7a6d6b7a`. `snapshots.json` maps each original path to its nonexecuting byte-exact snapshot. `source.diff` contains the eight existing-file deltas; new files are present in full as snapshots. Documentation/evidence packaging may continue without changing these pins.
+
+See the [complete evidence README](../README.md), `../census.json`, `../runtime-6`, and `../native-3`. Final focused runtime is 167 tests / 18,407 assertions / 0 failures, raw/strict/leaks zero, analyzer 0/11. Native replay is 462 poses / 144,144 exact scalar comparisons / 46 captures / 2,558 assertions / 0 failures, with source/configuration restoration. Fifteen native audit, six serializer and twenty-one census tests pass.
+
+Review scope: actual fresh canonical enrollment, integer source/route clock and exact fraction, one terminal 232u prefix, true READY recovery/ground turn, source drift/refusal atomicity, new ground-only Catalog shape, unchanged legacy meaning, complete payload/helper coexistence, and native Driver consumption. Diagnostic profiles and unearned test geometry are explicit. Production publication/paid-world integration, default renderer, native RAM and target-hardware throughput remain open.

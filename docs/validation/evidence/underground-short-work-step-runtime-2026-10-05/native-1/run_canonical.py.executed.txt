@@ -1,0 +1,237 @@
+#!/usr/bin/env python3
+"""Create-only native protocol6 replay, with an independent integer phase/root and native matrix audit."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+import struct
+import subprocess
+
+import numpy as np
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[4]
+CONTACT = HERE.parent / "evidence/contact-qualification"
+DEPENDENCIES = {
+    HERE.parent / "work-approach-v1/run_canonical.py": "7d36f92546ce19604a0c2a59422a46675c270c4ff73da3992f2e86ccbb951281",
+    CONTACT / "run_high_wall.py": "dc848d1f5bf150db287438f8a2b0b5210b35ce64b2c221df2ebd48ba8fc519a1",
+    CONTACT / "run_capture.py": "52ae01f1e88d6b9a839381d896f7908e97ba2bacd65702870f00ae71d3aaca2b",
+}
+for path, expected in DEPENDENCIES.items():
+    if not path.is_file() or path.is_symlink() or path.stat().st_size > 1048576 or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+        raise ValueError("STEP_NATIVE_DEPENDENCY")
+SPEC = importlib.util.spec_from_file_location("step_native_predecessor", HERE.parent / "work-approach-v1/run_canonical.py")
+P = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(P)
+ONE = 65536
+PROFILE_PATH = ROOT / "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/profile-diagnostic-1/mole-worker.ugprof"
+PROFILE_SHA = "830ee531a432f9cef8a24a85f1c017be21253301bc46bf55e0a6b97807a4ec4e"
+GROUND_PATH = HERE / "diagnostic-ground-v1/ground-pace.ugconn"
+GROUND_SHA = "454eaab1b2a722aab2700285d31a0bcc093312dad211208da7993baa32bc2f24"
+START = [60 * 2048 + 512, 512, 50 * 2048 + 512]
+TURN = [START[0], 512, START[2] + 1024]
+FRONT = [TURN[0] + 1024, 512, TURN[2]]
+HIGH = [FRONT[0] + 232, 512, FRONT[2]]
+SHOTS = (4, 18, 26, 40, 52, 56, 61, 63, 71, 88, 115, 143, 157, 166, 168, 176, 190, 202, 215, 228)
+
+
+def travel(elapsed, distance):
+    moves = (distance * 30 + 3276) // 3277
+    P.need(1 <= elapsed <= 16 + moves, "STEP_NATIVE_TRAVEL_TIME")
+    point = min(distance, max(0, elapsed - 8) * 3277 // 30)
+    if elapsed < 8:
+        state = [4, elapsed * ONE, 0, 1]
+    elif elapsed == 8:
+        state = [2, 0, 0, 1]
+    elif elapsed < 8 + moves:
+        state = [2, (elapsed - 8) * ONE, 0, 2]
+    elif elapsed < 16 + moves:
+        state = [3, (elapsed - 8 - moves) * ONE, moves * ONE, 0]
+    else:
+        state = [0, 0, 0, 0]
+    return state, point
+
+
+def expected(tick, action):
+    """Independent fixed-tick itinerary; no returned phase or caller flag selects the expected result."""
+    if action == "initial":
+        P.need(tick == 0, "STEP_NATIVE_INITIAL")
+        return 12, [0, 0, 0, 0], START, 32768
+    if action == "turn":
+        P.need(tick in (26, 202), "STEP_NATIVE_TURN")
+        return 12, [0, 0, 0, 0], TURN, 49152 if tick == 26 else 0
+    P.need(action == "tick" and 1 <= tick <= 228, "STEP_NATIVE_TICK")
+    if tick <= 26:
+        state, distance = travel(tick, 1024)
+        return 12, state, [START[0], 512, START[2] + distance], 32768
+    if tick <= 52:
+        state, distance = travel(tick - 26, 1024)
+        return 5, state, [TURN[0] + distance, 512, TURN[2]], 49152
+    if tick <= 71:
+        state, distance = travel(tick - 52, 232)
+        return 10, state, [FRONT[0] + distance, 512, FRONT[2]], 49152
+    if tick <= 127:
+        elapsed = tick - 71
+        state = [5, elapsed * ONE, 0, 0] if elapsed < 30 else [6, ((elapsed - 30) % 26) * ONE, 0, 0]
+        return 26, state, HIGH, 49152
+    if tick <= 157:
+        elapsed = tick - 127
+        return 26, [7, elapsed * ONE, 0, 0] if elapsed < 30 else [0, 0, 0, 0], HIGH, 49152
+    if tick <= 176:
+        state, distance = travel(tick - 157, 232)
+        return 11, state, [HIGH[0] - distance, 512, HIGH[2]], 49152
+    if tick <= 202:
+        state, distance = travel(tick - 176, 1024)
+        return 9, state, [FRONT[0] - distance, 512, FRONT[2]], 49152
+    state, distance = travel(tick - 202, 1024)
+    return 12, state, [TURN[0], 512, TURN[2] - distance], 0
+
+
+def expected_frames(profile, state, table):
+    phase, q, old, _ = state
+    backward = profile in (9, 11)
+    if phase in (0, 3):
+        clip, q = 0, 8 * ONE
+    elif phase == 4:
+        clip, q = 1, 0
+    elif phase == 2:
+        clip, q = 1, (2097153 - q) % 2097153 if backward else q
+    else:
+        clip = {5: 6, 6: 5, 7: 7}[phase]  # Exact unchanged HIGH entry/work/recovery.
+    now = P.clip_frames(table[clip], q)
+    prior, share = now, ONE
+    if phase in (3, 4):
+        prior = P.clip_frames(table[1], (2097153 - old) % 2097153 if backward else old) \
+            if phase == 3 else P.clip_frames(table[0], 8 * ONE)
+        share = state[1] * ONE // 491520
+    return now + prior + [share]
+
+
+def expected_events(table):
+    events = []
+    for view in ("side", "rts"):
+        sequence = [(0, "initial")]
+        for tick in range(1, 229):
+            if tick in (27, 203):
+                sequence.append((tick - 1, "turn"))
+            sequence.append((tick, "tick"))
+        for tick, action in sequence:
+            profile, state, point, yaw = expected(tick, action)
+            events.append({"view": view, "tick": tick, "action": action, "profile": profile,
+                "state": state, "point": point, "yaw": yaw, "frames": expected_frames(profile, state, table),
+                "ready": state[0] == 0})
+    P.need(len(events) == 462, "STEP_NATIVE_EVENT_CENSUS")
+    return events
+
+
+def validate(out):
+    spec, report = P.json_read(out / "spec.json", 65536), P.json_read(out / "report.json", 2097152)
+    P.need(report["production_qualified"] is False and report["program_version"] == 6 and
+           report["content_sha256"] == P.IMAGE_SHA and report["failures"] == [] and report["poses"] == 462 and
+           report["matrix_count"] == 26 and report["resolution"] == [1280, 720] and report["assertions"] >= 462 * 4 and
+           report["user_directory"].endswith("/" + spec["user_directory_name"]), "STEP_NATIVE_REPORT")
+    table, matrix, grounding = P.source_arrays(spec)
+    events = expected_events(table)
+    P.need(report["events"] == events, "STEP_NATIVE_CANONICAL_EVENTS")
+    raw = P.bounded(out / "native.bin", 1048576)
+    P.need(len(raw) == 8 + 462 * 26 * 12 * 4 and raw[:8] == b"UGSTPN01" and
+           hashlib.sha256(raw).hexdigest() == report["native_sha256"], "STEP_NATIVE_BYTES")
+    native = np.frombuffer(raw, dtype="<f4", offset=8).reshape(462, 26, 12)
+    P.need(np.isfinite(native).all(), "STEP_NATIVE_FINITE")
+    basis = P.bounded(P.B.actual(spec["basis"]), 1048576)
+    P.need(hashlib.sha256(basis).hexdigest() == spec["basis_sha256"], "STEP_NATIVE_BASIS")
+    basis_start = len(basis) - 65536 * 8 - 8
+    P.need(basis_start > 0, "STEP_NATIVE_BASIS_LAYOUT")
+    for index, event in enumerate(events):
+        pose, floor = P.blend(matrix, event["frames"]), P.blend(grounding, event["frames"])
+        cs = struct.unpack_from("<ff", basis, basis_start + event["yaw"] * 8)
+        wanted = np.empty((26, 12), dtype=np.float32)
+        wanted[:24] = pose[:24]
+        wanted[24] = P.world_matrix(pose[24], floor, event["point"], cs)
+        wanted[25] = P.world_matrix(np.array([1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], dtype=np.float32), floor, event["point"], cs)
+        P.need(np.array_equal(native[index].view(np.uint32), wanted.view(np.uint32)), "STEP_NATIVE_MATRIX:" + str(index))
+    shots = report["screenshots"]
+    names = {f"{view}-tick-{tick:03d}.png" for view in ("side", "rts") for tick in SHOTS}
+    names |= {f"{view}-{action}-{tick:03d}.png" for view in ("side", "rts") for tick, action in ((0, "initial"), (26, "turn"), (202, "turn"))}
+    P.need(len(shots) == len(names) == 46 and {s["path"] for s in shots} == names, "STEP_NATIVE_SCREEN_CENSUS")
+    for shot in shots:
+        raw = P.bounded(out / shot["path"], 4194304)
+        P.need(hashlib.sha256(raw).hexdigest() == shot["sha256"] and raw[:8] == b"\x89PNG\r\n\x1a\n" and
+               struct.unpack_from(">II", raw, 16) == (1280, 720), "STEP_NATIVE_SCREEN")
+    return {"poses": 462, "exact_native_scalar_comparisons": 462 * 26 * 12, "screenshots": 46,
+            "assertions": report["assertions"], "production_qualified": False,
+            "scope": "sampled real canonical driver, WorldRoutes and source; explicit test geometry and diagnostic flags"}
+
+
+def run(out):
+    P.need(not out.exists() and not out.is_symlink(), "STEP_NATIVE_OUTPUT_EXISTS")
+    out = out.resolve()
+    script, bake = HERE / "capture_canonical.gd", CONTACT / "high-wall-runtime-sources-v1/bake-spec.json"
+    P.need(P.B.digest(bake) == "f912989add1284bd8653ca7e071d1e5c577738e44f2e559e372fafbdaf420b86", "STEP_NATIVE_BAKE")
+    pins, historical = P.source_pins(script, bake)
+    for path, expected_hash in ((PROFILE_PATH, PROFILE_SHA), (GROUND_PATH, GROUND_SHA)):
+        P.need(P.B.digest(path) == expected_hash, "STEP_NATIVE_PROFILE_SOURCE")
+        pins[str(path)] = expected_hash
+    for path in [*DEPENDENCIES, Path(__file__), HERE / "source_program.gd"]:
+        pins[str(path)] = P.B.digest(path)
+    override = ROOT / "godot/override.cfg"
+    P.need(not override.exists() and not override.is_symlink(), "STEP_NATIVE_OVERRIDE_EXISTS")
+    name = "Redwall-Codex-Short-Step-" + hashlib.sha256(str(out).encode()).hexdigest()[:16]
+    override_bytes = ('[application]\nconfig/use_custom_user_dir=true\nconfig/custom_user_dir_name="' + name + '"\n').encode()
+    spec = P.json_read(HERE.parent / "evidence/grip-native-v2/spec.json", 65536)
+    spec.update(content=str(CONTACT / "install-program-compile-v3/result/mole-worker.ugactor"), content_sha256=P.IMAGE_SHA,
+                reserve_bytes=7141920, profiles=str(PROFILE_PATH), profiles_sha256=PROFILE_SHA,
+                user_directory_name=name, production_qualified=False, diagnostic_profile_flags=True)
+    for key in ("content", "basis", "manifest"):
+        source = P.B.actual(spec[key])
+        P.need(P.B.digest(source) == spec[key + "_sha256"], "STEP_NATIVE_INPUT:" + key)
+        pins[str(source)] = spec[key + "_sha256"]
+    out.mkdir(parents=True)
+    (out / ".gdignore").touch()
+    (out / "spec.json").write_text(json.dumps(spec, indent=2) + "\n")
+    (out / "historical-current-distinction.json").write_text(json.dumps(historical, indent=2) + "\n")
+    (out / "sources-before.json").write_text(json.dumps(pins, indent=2) + "\n")
+    commands = [["godot", "--headless", "--path", "godot", "--editor", "--quit", "--log-file", str(out / "engine-import.log")],
+                ["godot", "--path", "godot", "--rendering-method", "gl_compatibility", "--audio-driver", "Dummy",
+                 "--fixed-fps", "60", "--log-file", str(out / "engine-native.log"), "--script", str(script), "--", str(out / "spec.json"), str(out)]]
+    results = []
+    sidecars = {path: path.read_bytes() for path in (ROOT / "godot").rglob("*.import")}
+    with override.open("xb") as file:
+        file.write(override_bytes)
+    try:
+        for index, command in enumerate(commands):
+            if index == 1:
+                restored = P.H.restore_pinned_imports(bake, ROOT / "godot/demo/assets/underground-matrices/mole-grip-v3.inputs", ROOT)
+                (out / "import-cache-restoration.json").write_text(json.dumps(restored, indent=2) + "\n")
+            with (out / ("import.log" if index == 0 else "native.log")).open("x") as log:
+                code = subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, timeout=600).returncode
+            log_text = (out / ("import.log" if index == 0 else "native.log")).read_text()
+            bad = bool(P.B.DIAGNOSTIC.search(log_text))
+            results.append({"command": command, "exit": code, "raw_diagnostic": bad})
+            P.need(code == 0 and not bad, "STEP_NATIVE_ENGINE:" + str(index))
+        (out / "verification.json").write_text(json.dumps(validate(out), indent=2) + "\n")
+    finally:
+        removed = P.restore_sidecars(ROOT / "godot", sidecars)
+        (out / "generated-import-sidecars.json").write_text(json.dumps(removed, indent=2) + "\n")
+        after = {path: P.B.digest(Path(path)) if Path(path).is_file() else None for path in pins}
+        (out / "sources-after.json").write_text(json.dumps(after, indent=2) + "\n")
+        same_override = override.is_file() and override.read_bytes() == override_bytes
+        if same_override:
+            override.unlink()
+        (out / "invocation.json").write_text(json.dumps({"commands": results, "source_unchanged": pins == after,
+            "override_restored": same_override, "import_sidecars_restored": True, "production_qualified": False}, indent=2) + "\n")
+        P.need(pins == after and same_override, "STEP_NATIVE_SOURCE_DRIFT")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument("out", type=Path)
+    parser.add_argument("--verify", action="store_true")
+    args = parser.parse_args()
+    if args.verify:
+        print(json.dumps(validate(args.out), indent=2))
+    else:
+        run(args.out)

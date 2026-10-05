@@ -1,0 +1,56 @@
+{
+  "root_base": "2726d5322575f077d2ef3120db97df49f9f84860",
+  "source_and_tests": {
+    "godot/data/underground/mole-worker/mole_profile_catalog.gd": {
+      "sha256": "0cda851709eab25720befa288364e9392cba4f9f629f70b7e7dd6d39138b83b5",
+      "path_replacements": 2
+    },
+    "godot/test/test_mole_qualified_profiles.gd": {
+      "sha256": "e24ea64ed10bec81c6c85cfc36dc2d6cc1c8fcd546af02220b52f9d17dbfcf62",
+      "path_replacements": 1
+    },
+    "godot/test/test_underground_motion_catalog.gd": {
+      "sha256": "1e734889c0782019e124d61d71fdf0ac1efb89f00795f0a244e56f9861974631",
+      "path_replacements": 1
+    },
+    "godot/test/test_underground_room_world_phases.gd": {
+      "sha256": "ed278f76ed5cd5875e46acea36f1acda0edda87ba3b78adcb2ef22440670edc4",
+      "path_replacements": 1
+    },
+    "godot/test/test_underground_support_clearance.gd": {
+      "sha256": "249e56d6c24a08aa26c3b820002a16bac8eb423051deccf927bdc41d12ef41dc",
+      "path_replacements": 1
+    },
+    "tools/demo_build/windows_export_preset.cfg": {
+      "sha256": "01005a64b0ecc7cccfb6fa4570105ec5160df3b8589581bca2cc443eee1f17d5",
+      "path_replacements": 1
+    },
+    "tools/test_build_demo_windows.py": {
+      "sha256": "f6e9bb85c76c54f193999d86f7420a4890a40c1be6ed33c89088120a1a4b00ca",
+      "path_replacements": 1
+    }
+  },
+  "only_path_replacements": true,
+  "memory_provenance_changes": [
+    {
+      "path": "/source_approach_reservation/portable_enforcement/historical_joint_source_sha256/godot/data/underground/mole-worker/mole_profile_catalog.gd",
+      "before": "d5f28ac82d76a97ad3f11763b36e0d7e42ce286624bf2c968511662b1a3aaa9e",
+      "after": "0cda851709eab25720befa288364e9392cba4f9f629f70b7e7dd6d39138b83b5"
+    },
+    {
+      "path": "/source_sha256/godot/data/underground/mole-worker/mole_profile_catalog.gd",
+      "before": "d5f28ac82d76a97ad3f11763b36e0d7e42ce286624bf2c968511662b1a3aaa9e",
+      "after": "0cda851709eab25720befa288364e9392cba4f9f629f70b7e7dd6d39138b83b5"
+    }
+  ],
+  "memory_pack_sha256": "86893cb01bb590058136424178b0e3e18b72103a4384ab12609d5fdaf31157b2",
+  "artifacts_equal_independent_rebuild": {
+    "catalog_source.gd": "54bfe80c22bfe78ac2eb4fdf3259151beea64ce862753fdc05a399e933fe6bba",
+    "manifest.json": "ea685eafa41418ae52e097ea439764b9794111851d7389097770648bc706d70b",
+    "mole-worker.ugprof": "a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204"
+  },
+  "live_with_reserve_bytes": 99999806,
+  "headroom_bytes": 194,
+  "runtime_qualified": false,
+  "review": "ACCEPTED path-only integration; runtime composition rerun pending"
+}

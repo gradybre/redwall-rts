@@ -70,3 +70,20 @@ Exact input pins, tool snapshots, logs, constants diff, the complete prerequisit
 map and rebuilt artifacts are retained here. The earlier `checkpoint-1`
 composition failure remains unchanged; a coherent renewed runtime checkpoint
 must pass separately.
+
+## Path-only integration follow-up
+
+The integration diff against root `2726d5322575f077d2ef3120db97df49f9f84860`
+is also accepted. `integration-paths.json` pins the Catalog, four current-pin
+test imports, export preset and its assertion. Each file equals its baseline
+with only the exact `profile-publication-v3/` to
+`profile-publication-v3-frontier/` path replacement: eight replacements total.
+The original source guards, test assertions and all legacy fixture imports
+remain intact.
+
+The actual successor files match all three independent rebuilt outputs byte
+for byte. The regenerated memory pack changes exactly two Catalog provenance
+hashes to `0cda851709eab25720befa288364e9392cba4f9f629f70b7e7dd6d39138b83b5`.
+All arithmetic is unchanged; pack SHA is
+`86893cb01bb590058136424178b0e3e18b72103a4384ab12609d5fdaf31157b2`.
+The coherent runtime composition rerun remains pending the committed dependency.

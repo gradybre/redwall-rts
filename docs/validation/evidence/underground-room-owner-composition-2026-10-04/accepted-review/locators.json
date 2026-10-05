@@ -1,0 +1,10 @@
+{
+  "docs/decisions/1163-session-room-owner-composition.md": {
+    "locator": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/accepted-review/1163-session-room-owner-composition.md.txt",
+    "sha256": "0a066fc815c92e4abe90589f4768be7a666231989a0e9d1a3e8c0d71c171b3e2"
+  },
+  "docs/validation/evidence/underground-room-owner-composition-2026-10-04/README.md": {
+    "locator": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/accepted-review/README.md.txt",
+    "sha256": "25ed88b76717d6b73bf0436e4748c24d2a43fe9e98abe73d69c84d337d6286a2"
+  }
+}

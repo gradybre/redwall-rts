@@ -180,18 +180,7 @@ static func _constructor_shape_refusal(o: Owners, prefix: int) -> StringName:
 			or o.sites._funding._free_count != o.sites._funding._capacity \
 			or (o.locations != null and (o.locations._live.count != 0 or o.locations._stage.count != 0)):
 		return &"WORLD_RETIREMENT_CONSTRUCTOR"
-	if o.rooms != null and constructor_catalog_refusal(o) != &"":
-		return &"WORLD_RETIREMENT_CONSTRUCTOR"
 	return _owners_refusal(o, prefix)
-
-
-static func constructor_catalog_refusal(o: Owners) -> StringName:
-	"""The Session constructor borrows the actual Buildings' fact owner, never another equal-valued catalog."""
-	if o == null or o.rooms == null or o.buildings == null or o.rooms._catalog == null \
-			or o.rooms._catalog.get_script() != Orders.RoomCatalog \
-			or o.buildings._definitions == null or o.rooms._catalog._definitions != o.buildings._definitions:
-		return &"UNDERGROUND_COMPOSITION_CATALOG"
-	return &""
 
 
 static func prepare_constructor_prefix_into(host: Object, session: RefCounted, original: Owners,

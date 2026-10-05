@@ -1,0 +1,347 @@
+diff --git a/godot/scripts/core/underground_locations.gd b/godot/scripts/core/underground_locations.gd
+index 6bacf0cf..dffc2689 100644
+--- a/godot/scripts/core/underground_locations.gd
++++ b/godot/scripts/core/underground_locations.gd
+@@ -31,6 +31,7 @@ const STORAGE_CELL_U: int = 2048 # Existing 2m placement-pile identity, with a r
+ const WORLD_COPY_CONTROL_BYTES: int = 256 # Private116B record plus guards coexist with the admitted observation.
+ const RESOLVE_CONTROL_BYTES: int = 512 # Caller frame36B/ref8B plus bounded scalar lookup frames; no image or array allocation.
+ const PREPARED_OBSERVATION_CHECKS: int = 256 # Fixed context/row reads; Routes charges each observation before copying.
++const FRONTIER_HEAP_WORDS: int = 168 # Six removals times14 bounded index/value writes; one caller-owned cold patch.
+ const ROLE_TRANSIT: int = 0
+ const ROLE_STORAGE: int = 1
+ const ROLE_WORK: int = 2
+@@ -220,6 +221,32 @@ class PhaseContext extends RefCounted:
+ 	var placement_revision: int = 0
+ 
+ 
++class FrontierContext extends RefCounted:
++	## One cold-only actual add-only transaction. The borrowed producer pointer owns no extra bank.
++	var locations: RefCounted = null
++	var graph: RefCounted = null
++	var routes: RefCounted = null
++	var owner: Owner = null
++	var budget: Budget = null
++	var live: Bank = null
++	var candidate: Bank = null
++	var graph_live: RefCounted = null
++	var graph_candidate: RefCounted = null
++	var masks_live: RefCounted = null
++	var masks_candidate: RefCounted = null
++	var room: Vector2i = NULL_REF
++	var world: Vector2i = NULL_REF
++	var count: int = 0
++	var refs: PackedInt32Array = PackedInt32Array() # Three full prospective refs; no expected row pointer escapes.
++	var cold: int = 0
++	var revision: int = 0
++	var profiles: int = 0
++	var catalog: int = 0
++	var location_token: int = 0
++	var route_token: int = 0
++	var edges: PackedInt32Array = PackedInt32Array()
++
++
+ class InventoryLocations extends InventoryContract:
+ 	## Borrow the actual namespace weakly so Inventory cannot form an owner cycle.
+ 	var _locations: WeakRef = null
+@@ -263,6 +290,7 @@ var _sources: Owner.CoreSources = null
+ var _sites: WeakRef = null
+ var _domain: Space.Domain = null
+ var _cold: Budget = null
++var _frontier: FrontierContext = null # Borrowed only for one admitted synchronous cold transaction.
+ var _capacity: int = 0
+ var _live: Bank = Bank.new()
+ var _stage: Bank = Bank.new()
+@@ -909,6 +937,9 @@ func same_storage_cell(first: Vector2i, second: Vector2i) -> bool:
+ func begin_prepare(cold_token: int, owner_token: int = 0, site: Vector2i = NULL_REF,
+ 		operation: int = -1, phase_stage: int = -1) -> Result:
+ 	"""Borrow the already-reserved shared cold arena; no live endpoint changes before publication."""
++	if _frontier != null:
++		_remaining = -1
++		return Result.new(&"LOCATION_FRONTIER_CONTEXT")
+ 	if _reject_retention_callback() or _capacity == 0 or world_ref() == NULL_REF or _token != 0 or _next_token == 9223372036854775807:
+ 		return Result.new(&"LOCATION_PREPARATION_BUSY")
+ 	if not _cold.covers(cold_token, cold_peak_bytes()):
+@@ -945,6 +976,9 @@ func _start_preparation(cold_token: int, owner_token: int, site: Vector2i,
+ func begin_room_prepare(cold_token: int, owner_token: int, room: Vector2i,
+ 		room_type: int) -> Result:
+ 	"""Refresh completed endpoints after Room geometry seals, never create first-entry space or a Site."""
++	if _frontier != null:
++		_remaining = -1
++		return Result.new(&"LOCATION_FRONTIER_CONTEXT")
+ 	if _reject_retention_callback() or _capacity == 0 or world_ref() == NULL_REF or _token != 0 \
+ 			or _next_token == 9223372036854775807 or owner_token <= 0:
+ 		return Result.new(&"LOCATION_PREPARATION_BUSY")
+@@ -962,6 +996,9 @@ func begin_room_prepare(cold_token: int, owner_token: int, room: Vector2i,
+ 
+ func begin_world_prepare(cold_token: int, owner_token: int) -> Result:
+ 	"""Prepare only against the once-bound World publisher and its exact sealed natural-space candidate."""
++	if _frontier != null:
++		_remaining = -1
++		return Result.new(&"LOCATION_FRONTIER_CONTEXT")
+ 	if _reject_retention_callback() or _capacity == 0 or world_ref() == NULL_REF or _token != 0 \
+ 			or _next_token == 9223372036854775807 or owner_token <= 0:
+ 		return Result.new(&"LOCATION_PREPARATION_BUSY")
+@@ -1553,6 +1590,8 @@ func seal(token: int) -> StringName:
+ 
+ func prepared_refusal(token: int) -> StringName:
+ 	"""Validate this receiver's exact sealed candidate and retained cold lease."""
++	if _frontier != null and frontier_scope_refusal(self, _frontier) != &"":
++		return &"LOCATION_FRONTIER_CONTEXT"
+ 	if _reject_retention_callback() or token == 0 or token != _token or not _sealed or not _cold.covers(_cold_token, cold_peak_bytes()):
+ 		return &"LOCATION_TOKEN_STALE"
+ 	return _prepared_retention_refusal()
+@@ -1563,6 +1602,8 @@ func _prepared_retention_refusal() -> StringName:
+ 	var code: StringName = _current_retention_refusal()
+ 	if code == &"":
+ 		code = _geometry_current_refusal()
++	if code == &"" and _frontier != null:
++		code = frontier_scope_refusal(self, _frontier, false)
+ 	if code == &"" and (_room_admission or _phase_active()):
+ 		code = _refreshed_room_rows_refusal()
+ 	if code == &"" and _world_preparation:
+@@ -1571,6 +1612,8 @@ func _prepared_retention_refusal() -> StringName:
+ 		code = _installation_rows_refusal(self, _installation)
+ 	if code == &"":
+ 		code = _installed_witnesses_refusal()
++	if code == &"" and _frontier != null:
++		code = frontier_scope_refusal(self, _frontier, false)
+ 	return _final_inventory_refusal(_cold_token, cold_peak_bytes()) if code == &"" else code
+ 
+ 
+@@ -1612,8 +1655,11 @@ func publish(token: int) -> bool:
+ 	"""Swap only in the prepared actual Sites or Room callback, after the exact Space publication."""
+ 	if _reject_retention_callback() or token == 0 or token != _token or not _sealed or not _cold.covers(_cold_token, cold_peak_bytes()):
+ 		return false
++	if _frontier != null:
++		_remaining = -1
++		return false
+ 	if _installation_active() or _phase_active():
+-		return false # The static paid kernel owns this context.
++		return false # The concrete coupled kernel owns these candidates.
+ 	if _world_preparation:
+ 		if _world_publication_refusal() != &"":
+ 			return false
+@@ -2461,6 +2507,9 @@ func capture_state_into(cold_token: int, out: PackedByteArray) -> StringName:
+ 
+ func restore_state_bytes(cold_token: int, bytes: PackedByteArray) -> StringName:
+ 	"""Decode into the inactive bank; malformed, stale or retained-ref changes leave live bytes intact."""
++	if _frontier != null:
++		_remaining = -1
++		return &"LOCATION_FRONTIER_CONTEXT"
+ 	if _reject_retention_callback() or _capacity == 0 or _token != 0 or _owner.has_prepared() or bytes.size() != wire_bytes():
+ 		return &"LOCATION_IMAGE_SHAPE"
+ 	if not _cold.covers(cold_token, wire_bytes() + cold_peak_bytes()):
+@@ -2606,3 +2655,213 @@ func _rebuild_allocation(bank: Bank) -> void:
+ 			bank.free_rows[bank.free_count] = row
+ 			bank.free_count += 1
+ 	_rebuild_order(bank)
++
++
++func hold_frontier(context: FrontierContext) -> StringName:
++	"""Guard the whole synchronous observation window before any callback can prepare or publish a half transaction."""
++	if context == null or context.get_script() != FrontierContext or _frontier != null or _token != 0 \
++			or context.count < 1 or context.count > 3 or context.refs.size() != 6 or context.edges.size() != 12 \
++			or context.locations != self or context.owner != _owner or context.budget != _cold \
++			or context.live != _live or context.candidate != _stage or context.world != _world \
++			or context.revision != _owner._header[17] or _owner._stage_token != 0 \
++			or not _cold.covers(context.cold, Budget.COLD_BYTES): return &"LOCATION_FRONTIER_CONTEXT"
++	_frontier = context
++	_remaining = _domain._checks
++	return &""
++
++
++func begin_frontier_prepare(context: FrontierContext) -> Result:
++	"""Use the held original scope to copy exactly one inactive bank without reopening the generic mutation door."""
++	if context == null or context.get_script() != FrontierContext or _frontier != context or _token != 0 \
++			or context.count < 1 or context.count > 3 or context.refs.size() != 6 or context.edges.size() != 12 \
++			or context.locations != self or context.owner != _owner or context.budget != _cold \
++			or context.live != _live or context.candidate != _stage or context.world != _world \
++			or context.revision != _owner._header[17] or _owner._stage_token != 0 or _remaining < 0 \
++			or _next_token == 9223372036854775807 or _route_observation_world_refusal(self) != &"" \
++			or not _cold.covers(context.cold, Budget.COLD_BYTES): return Result.new(&"LOCATION_FRONTIER_CONTEXT")
++	var result: Result = _start_preparation(context.cold, 0, NULL_REF, -1, -1)
++	if result.error == &"": context.location_token = result.token
++	return result
++
++
++static func frontier_scope_refusal(actual: RefCounted, context: FrontierContext, sealed: bool = true) -> StringName:
++	"""Only this exact original receiver, banks, token and still-live Space can expose a prospective row."""
++	if actual == null or context == null or context.get_script() != FrontierContext or actual._frontier != context \
++			or context.count < 1 or context.count > 3 or context.refs.size() != 6 or context.edges.size() != 12 \
++			or context.locations != actual or context.owner != actual._owner or context.budget != actual._cold \
++			or context.live != actual._live or context.candidate != actual._stage or context.world != actual._world \
++			or context.location_token <= 0 or context.location_token != actual._token \
++			or actual._owner_token != 0 or actual._cold_token != context.cold or actual._remaining < 0 \
++			or (sealed and not actual._sealed) or actual._in_retention or actual._retention_reentered \
++			or context.owner._stage_token != 0 or context.owner._header[17] != context.revision \
++			or actual._base_geometry_revision != context.revision or actual._target_geometry_revision != context.revision \
++			or context.budget == null or context.budget._token != context.cold or context.budget._used < Budget.COLD_BYTES:
++		return &"LOCATION_FRONTIER_CONTEXT"
++	if actual._room_admission or actual._world_preparation or actual._installation_active() or actual._phase_active() \
++			or not _route_observation_shape_matches(actual) or actual._live.header.size() != HEADER_FIELDS \
++			or actual._stage.retired.size() != actual._capacity or actual._live.present.size() != actual._capacity \
++			or actual._live.retired.size() != actual._capacity or actual._live.i32.size() != I32_FIELDS * actual._capacity \
++			or actual._live.i64.size() != I64_FIELDS * actual._capacity:
++		return &"LOCATION_FRONTIER_CONTEXT"
++	return &""
++
++
++static func frontier_location_into(actual: RefCounted, context: FrontierContext, ref: Vector2i, out: Record) -> StringName:
++	"""This bounded observation grants neither live identity nor work permission; refused output is unchanged."""
++	if out == null or out.envelope.size() != 6 or out.support.size() != 6: return &"LOCATION_OUTPUT_SHAPE"
++	var code: StringName = frontier_scope_refusal(actual, context)
++	if code != &"": return code
++	if _frontier_ordinal(context, ref) < 0: return &"LOCATION_FRONTIER_CONTEXT"
++	if not actual._live_ref(actual._stage, ref): return &"LOCATION_STALE"
++	_copy_route_observation(actual, actual._stage, ref.x, out)
++	return &""
++
++
++static func frontier_record_matches(actual: RefCounted, context: FrontierContext, ref: Vector2i, record: Record) -> bool:
++	"""Compare the full prospective payload using current actual packed columns, with no observing reader."""
++	if frontier_scope_refusal(actual, context) != &"" or record == null or not actual._live_ref(actual._stage, ref): return false
++	var row: int = ref.x
++	if record.world != context.world or record.point != Vector3i(actual._get32(actual._stage, X, row), \
++			actual._get32(actual._stage, Y, row), actual._get32(actual._stage, Z, row)) \
++			or record.room != actual._ref_at(actual._stage, ROOM_SLOT, row) \
++			or record.section != actual._ref_at(actual._stage, SECTION_SLOT, row) \
++			or record.level != actual._get32(actual._stage, LEVEL, row) or record.role != actual._get32(actual._stage, ROLE, row) \
++			or record.geometry_revision != context.revision \
++			or record.payload_revision != actual._get64(actual._stage, PAYLOAD_REVISION, row): return false
++	for axis: int in 6:
++		if record.envelope[axis] != actual._get32(actual._stage, ENVELOPE + axis, row) \
++				or record.support[axis] != actual._get32(actual._stage, SUPPORT + axis, row): return false
++	return true
++
++
++static func _frontier_ordinal(context: FrontierContext, ref: Vector2i) -> int:
++	"""Only one of the exact original fixed full refs may be read as a prospective endpoint."""
++	for index: int in context.count:
++		if Vector2i(context.refs[index * 2], context.refs[index * 2 + 1]) == ref: return index
++	return -1
++
++
++static func frontier_rows_refusal(actual: RefCounted, context: FrontierContext, records: Array[Record],
++		heap_patch: PackedInt32Array) -> StringName:
++	"""Expected Records remain private to the coordinator; no observer can rewrite both candidate and expected payload."""
++	var code: StringName = frontier_scope_refusal(actual, context)
++	if code != &"": return code
++	if records.size() != 3 or actual._stage.header[13] != actual._live.header[13] + 1 \
++			or actual._stage.count != actual._live.count + context.count \
++			or actual._stage.free_count != actual._live.free_count - context.count: return &"LOCATION_FRONTIER_ROWS"
++	for index: int in context.count:
++		var ref: Vector2i = Vector2i(context.refs[2 * index], context.refs[2 * index + 1])
++		if not frontier_record_matches(actual, context, ref, records[index]): return &"LOCATION_FRONTIER_ROWS"
++		for before: int in index:
++			if context.refs[2 * before] == ref.x: return &"LOCATION_FRONTIER_ROWS"
++	for field: int in HEADER_FIELDS:
++		if field != 13 and actual._stage.header[field] != actual._live.header[field]: return &"LOCATION_FRONTIER_ROWS"
++	code = _frontier_order_refusal(actual)
++	if code == &"": code = frontier_heap_refusal(actual._live.free_rows, actual._stage.free_rows,
++		actual._live.free_count, context.refs, context.count, heap_patch, false)
++	return _frontier_unchanged_rows(actual, context) if code == &"" else code
++
++
++static func frontier_heap_refusal(before: PackedInt32Array, after: PackedInt32Array, count: int,
++		refs: PackedInt32Array, removals: int, patch: PackedInt32Array, clear_tail: bool) -> StringName:
++	"""Replay exact original minimum removals in one fixed sparse patch; no full heap or live row is copied or written."""
++	if patch.size() != FRONTIER_HEAP_WORDS or before.size() != after.size() or before.size() > MAX_LOCATIONS \
++			or count < removals or count > before.size() or removals < 1 or removals > 6 or refs.size() < 2 * removals:
++		return &"FRONTIER_ALLOCATION_CHANGED"
++	patch.fill(-1)
++	for index: int in removals:
++		if _frontier_heap_at(before, patch, 0) != refs[2 * index] \
++				or not _frontier_heap_pop(before, patch, count - index, clear_tail): return &"FRONTIER_ALLOCATION_CHANGED"
++	for index: int in before.size():
++		if _frontier_heap_at(before, patch, index) != after[index]: return &"FRONTIER_ALLOCATION_CHANGED"
++	return &""
++
++
++static func _frontier_heap_pop(before: PackedInt32Array, patch: PackedInt32Array, count: int,
++		clear_tail: bool) -> bool:
++	"""Both actual allocators use the same minimum-heap sift; only the graph canonically erases its popped tail."""
++	count -= 1
++	var tail: int = _frontier_heap_at(before, patch, count)
++	var index: int = 0
++	while index * 2 + 1 < count:
++		var child: int = index * 2 + 1
++		if child + 1 < count and _frontier_heap_at(before, patch, child + 1) < _frontier_heap_at(before, patch, child): child += 1
++		var value: int = _frontier_heap_at(before, patch, child)
++		if value >= tail: break
++		if not _frontier_heap_set(patch, index, value): return false
++		index = child
++	if (count > 0 or not clear_tail) and not _frontier_heap_set(patch, index, tail): return false
++	return _frontier_heap_set(patch, count, -1) if clear_tail else true
++
++
++static func _frontier_heap_at(before: PackedInt32Array, patch: PackedInt32Array, index: int) -> int:
++	"""The caller precharges the complete84-pair lookup before final validation; absent entries borrow original storage."""
++	for pair: int in (FRONTIER_HEAP_WORDS >> 1):
++		if patch[pair * 2] == index: return patch[pair * 2 + 1]
++		if patch[pair * 2] == -1: break
++	return before[index]
++
++
++static func _frontier_heap_set(patch: PackedInt32Array, index: int, value: int) -> bool:
++	"""Update a previous sparse write or one preallocated empty pair, refusing any unaccounted growth."""
++	for pair: int in (FRONTIER_HEAP_WORDS >> 1):
++		if patch[pair * 2] == -1 or patch[pair * 2] == index:
++			patch[pair * 2] = index; patch[pair * 2 + 1] = value
++			return true
++	return false
++
++
++static func _frontier_order_refusal(actual: RefCounted) -> StringName:
++	"""Canonical sorted index and complete free prefix retain actual allocation semantics after an observer."""
++	var bank: Bank = actual._stage
++	if bank.ordered.size() != actual._capacity or bank.free_rows.size() != actual._capacity \
++			or bank.count < 0 or bank.count > actual._capacity or bank.free_count < 0 \
++			or bank.free_count > actual._capacity: return &"LOCATION_FRONTIER_ROWS"
++	var count: int = 0
++	for row: int in actual._capacity:
++		if bank.present[row] == 1:
++			if bank.ordered[count] != row: return &"LOCATION_FRONTIER_ROWS"
++			count += 1
++	if count != bank.count: return &"LOCATION_FRONTIER_ROWS"
++	for index: int in actual._capacity:
++		if index >= count and bank.ordered[index] != -1: return &"LOCATION_FRONTIER_ROWS"
++	for index: int in bank.free_count:
++		var row: int = bank.free_rows[index]
++		if row < 0 or row >= actual._capacity or bank.present[row] != 0 or bank.retired[row] != 0:
++			return &"LOCATION_FRONTIER_ROWS"
++	return &""
++
++
++static func _frontier_unchanged_rows(actual: RefCounted, context: FrontierContext) -> StringName:
++	"""All old and unused row payloads remain byte-identical, apart from exactly the bounded new allocations."""
++	for row: int in actual._capacity:
++		var is_new: bool = false
++		for index: int in context.count: is_new = is_new or context.refs[2 * index] == row
++		if is_new:
++			if actual._live.present[row] != 0 or actual._stage.present[row] != 1 \
++					or actual._get32(actual._stage, GENERATION, row) != actual._get32(actual._live, GENERATION, row) + 1:
++				return &"LOCATION_FRONTIER_ROWS"
++		else:
++			if actual._live.present[row] != actual._stage.present[row]: return &"LOCATION_FRONTIER_ROWS"
++			for field: int in I32_FIELDS:
++				if actual._get32(actual._live, field, row) != actual._get32(actual._stage, field, row): return &"LOCATION_FRONTIER_ROWS"
++			for field: int in I64_FIELDS:
++				if actual._get64(actual._live, field, row) != actual._get64(actual._stage, field, row): return &"LOCATION_FRONTIER_ROWS"
++		if actual._live.retired[row] != actual._stage.retired[row]: return &"LOCATION_FRONTIER_ROWS"
++	return &""
++
++
++static func commit_frontier_preflighted(actual: RefCounted, context: FrontierContext) -> void:
++	"""Called only inside the actual WorldRoutes coupled window after every fallible final proof."""
++	assert(actual._frontier == context and context.routes._publishing)
++	var previous: Bank = actual._live
++	actual._live = actual._stage
++	actual._stage = previous
++	actual._last_published_token = context.location_token
++	actual._token = 0
++	actual._cold_token = 0
++	actual._sealed = false
++	actual._snapshot = null
++	actual._base_geometry_revision = 0
++	actual._target_geometry_revision = 0
++	actual._frontier = null

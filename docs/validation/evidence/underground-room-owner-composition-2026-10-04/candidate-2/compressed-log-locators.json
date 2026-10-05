@@ -1,0 +1,12 @@
+{
+  "shard-293.log": {
+    "bytes": 442190198,
+    "sha256": "6b48f2326ecac4ede304ad8fb2b322d631c2c1d2e5a8f16a032a39a3b42260de",
+    "gzip_locator": "shard-293.log.gz"
+  },
+  "test_underground_room_composition.gd.log": {
+    "bytes": 442190308,
+    "sha256": "6fc26f07458d4fa1e5a0165be68ac38540a20b798cb0a23ed7616ef66060a5e4",
+    "gzip_locator": "test_underground_room_composition.gd.log.gz"
+  }
+}

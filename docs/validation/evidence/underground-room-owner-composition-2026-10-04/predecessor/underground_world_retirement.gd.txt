@@ -106,7 +106,6 @@ class Scope extends RefCounted:
 	var _prepared_request: World.Request = null
 	var _prepared_seed: int = 0
 	var _prepared_attempts: int = 0
-	var _constructor_prefix: int = -1 # -1 ordinary; otherwise exact stopped Session construction prefix.
 
 
 static func prepare_into(original_host: Object, original_session: RefCounted, original: Owners,
@@ -114,7 +113,6 @@ static func prepare_into(original_host: Object, original_session: RefCounted, or
 	"""Pin an idle original tuple after host observations; identity tokens do not prove actual host mounting."""
 	if not is_instance_valid(original_host) or original_session == null or original == null or out == null:
 		return &"WORLD_RETIREMENT_INPUT"
-	if out._constructor_prefix != -1: return &"WORLD_RETIREMENT_SCOPE"
 	if out._stage != 0:
 		if out._stage != 1 or not is_instance_valid(out._host) or out._host != original_host or out._session != original_session \
 				or out._allow_prepared_world != allow_prepared_world or not _same_owners(original, out._owners):
@@ -125,105 +123,15 @@ static func prepare_into(original_host: Object, original_session: RefCounted, or
 	var persistent_id: int = original.directory._persistent_id[original.world_ref.x]
 	code = _live_refusal(original, persistent_id, allow_prepared_world)
 	if code != &"": return code
-	_capture_scope(original_host, original_session, original, out, persistent_id, allow_prepared_world)
-	return &""
-
-
-static func _capture_scope(host: Object, session: RefCounted, original: Owners, out: Scope,
-		persistent_id: int, allow_prepared_world: bool) -> void:
-	"""Copy one exact original tuple only after all preflights; no constructor or source replacement occurs."""
 	_copy_owners(original, out._owners)
-	out._host = host
-	out._session = session
+	out._host = original_host
+	out._session = original_session
 	out._persistent_id = persistent_id
 	out._allow_prepared_world = allow_prepared_world
 	out._delivery_script = original.work._delivery_script
 	_capture_sources(original, out)
 	out._stage = 1
-
-
-static func constructor_session_matches(session: RefCounted) -> bool:
-	"""Actual cached Session identity without a Session-to-Retirement preload cycle or caller Script argument."""
-	var actual: Script = ResourceLoader.get_cached_ref("res://scripts/core/underground_session.gd") as Script
-	return session != null and actual != null and session.get_script() == actual and session._ready \
-		and session._retirement_owners != null
-
-
-static func constructor_original_refusal(session: RefCounted, o: Owners, prefix: int) -> StringName:
-	"""The incomplete tuple is the stopped actual Session's own constructor output, never a supplied registration."""
-	if not constructor_session_matches(session) or session._operations_state != 3 or session._busy \
-			or prefix < 1 or prefix > 4 or session._operations_prefix != prefix or session._retirement_owners != o:
-		return &"WORLD_RETIREMENT_CONSTRUCTOR"
-	if o.world != session._world or o.world_ref != session._world_ref or o.directory != session._directory \
-			or o.buildings != session._buildings or o.construction != session._construction \
-			or o.inventory != session._inventory or o.items != session._items or o.jobs != session._jobs \
-			or o.work != session._work or o.residents != session._residents or o.reservations != session._reservations \
-			or o.transforms != session._transforms or o.gear != session._gear or o.carry != session._carry \
-			or o.piles != session._piles or o.content != session._content or o.space != session._space \
-			or o.sources != session._sources or o.routes != session._routes or o.budget != session._budget \
-			or o.terrain != session._terrain or o.profiles != session._profiles or o.levels != session._levels:
-		return &"WORLD_RETIREMENT_CONSTRUCTOR"
-	return _constructor_shape_refusal(o, prefix)
-
-
-static func _constructor_shape_refusal(o: Owners, prefix: int) -> StringName:
-	"""Only the four finite installed prefixes exist; constructor-only allowances require empty new owners."""
-	if o.world_bindings == null or o.authority == null or o.sites == null \
-			or (o.router != null) != (prefix >= 2) or (o.rooms != null) != (prefix >= 3) \
-			or (o.room_bindings != null) != (prefix >= 3) or (o.inventory_locations != null) != (prefix == 4) \
-			or (prefix < 3 and o.locations != null) or (prefix == 4 and o.locations == null):
-		return &"WORLD_RETIREMENT_CONSTRUCTOR"
-	if o.world_routes != null or o.connector != null or o.contacts != null or o.placements != null \
-			or o.workpieces != null or o.delivery != null or o.furniture != null or o.tips != null:
-		return &"WORLD_RETIREMENT_CONSTRUCTOR"
-	if o.sites._count != 0 or o.sites._funding == null \
-			or o.sites._funding._free_count != o.sites._funding._capacity \
-			or (o.locations != null and (o.locations._live.count != 0 or o.locations._stage.count != 0)):
-		return &"WORLD_RETIREMENT_CONSTRUCTOR"
-	if o.rooms != null and constructor_catalog_refusal(o) != &"":
-		return &"WORLD_RETIREMENT_CONSTRUCTOR"
-	return _owners_refusal(o, prefix)
-
-
-static func constructor_catalog_refusal(o: Owners) -> StringName:
-	"""The Session constructor borrows the actual Buildings' fact owner, never another equal-valued catalog."""
-	if o == null or o.rooms == null or o.buildings == null or o.rooms._catalog == null \
-			or o.rooms._catalog.get_script() != Orders.RoomCatalog \
-			or o.buildings._definitions == null or o.rooms._catalog._definitions != o.buildings._definitions:
-		return &"UNDERGROUND_COMPOSITION_CATALOG"
 	return &""
-
-
-static func prepare_constructor_prefix_into(host: Object, session: RefCounted, original: Owners,
-		out: Scope, allow_prepared_world: bool = false) -> StringName:
-	"""Capture a stopped private constructor prefix; normal complete retirement remains a separate path."""
-	if not is_instance_valid(host) or out == null or not constructor_session_matches(session):
-		return &"WORLD_RETIREMENT_INPUT"
-	var prefix: int = session._operations_prefix
-	var code: StringName = constructor_original_refusal(session, original, prefix)
-	if code != &"": return code
-	if out._stage != 0:
-		if out._stage != 1 or out._host != host or out._session != session or out._constructor_prefix != prefix \
-				or out._allow_prepared_world != allow_prepared_world or not _same_owners(original, out._owners):
-			return &"WORLD_RETIREMENT_SCOPE"
-		return _prepared_refusal(out)
-	var persistent_id: int = original.directory._persistent_id[original.world_ref.x]
-	code = _live_refusal(original, persistent_id, allow_prepared_world)
-	if code != &"": return code
-	_capture_scope(host, session, original, out, persistent_id, allow_prepared_world)
-	out._constructor_prefix = prefix
-	return &""
-
-
-static func _scope_owners_refusal(scope: Scope) -> StringName:
-	"""A captured constructor prefix cannot become another prefix or be relabelled as normal retirement."""
-	if scope._constructor_prefix == -1: return _owners_refusal(scope._owners)
-	var code: StringName = constructor_original_refusal(scope._session,
-		scope._session._retirement_owners if constructor_session_matches(scope._session) else null,
-		scope._constructor_prefix)
-	if code != &"": return code
-	if not _same_owners(scope._owners, scope._session._retirement_owners): return &"WORLD_RETIREMENT_SCOPE"
-	return _owners_refusal(scope._owners, scope._constructor_prefix)
 
 
 static func cleared_refusal(scope: Scope, original_host: Object, original_session: RefCounted) -> StringName:
@@ -231,7 +139,7 @@ static func cleared_refusal(scope: Scope, original_host: Object, original_sessio
 	if scope == null or scope._stage != 1 or not is_instance_valid(original_host) or not is_instance_valid(scope._host) \
 			or scope._host != original_host or scope._session != original_session or original_session == null:
 		return &"WORLD_RETIREMENT_SCOPE"
-	var code: StringName = _scope_owners_refusal(scope)
+	var code: StringName = _owners_refusal(scope._owners)
 	if code != &"": return code
 	code = _original_sources_refusal(scope)
 	if code != &"": return code
@@ -263,7 +171,7 @@ static func release_preflighted(scope: Scope, original_host: Object, original_se
 
 static func _prepared_refusal(scope: Scope) -> StringName:
 	"""Repeated pre-clear preparation keeps the same optional-null pattern and derived delivery Script."""
-	var code: StringName = _scope_owners_refusal(scope)
+	var code: StringName = _owners_refusal(scope._owners)
 	if code != &"": return code
 	code = _original_sources_refusal(scope)
 	if code != &"": return code
@@ -319,12 +227,12 @@ static func _leaves(o: Owners, persistent_id: int, delivery_script: Script, clea
 	return code
 
 
-static func _owners_refusal(o: Owners, constructor_prefix: int = -1) -> StringName:
+static func _owners_refusal(o: Owners) -> StringName:
 	"""Only direct fields/static helpers are used, including every transitive original receiver."""
 	var code: StringName = _base_refusal(o)
 	if code == &"": code = _foundation_refusal(o)
-	if code == &"": code = _room_refusal(o, constructor_prefix)
-	if code == &"": code = _phase_refusal(o, constructor_prefix)
+	if code == &"": code = _room_refusal(o)
+	if code == &"": code = _phase_refusal(o)
 	if code == &"": code = _location_refusal(o)
 	if code == &"": code = _route_refusal(o)
 	if code == &"": code = _project_refusal(o)
@@ -391,7 +299,7 @@ static func _profile_refusal(o: Owners) -> StringName:
 	return &""
 
 
-static func _room_refusal(o: Owners, constructor_prefix: int = -1) -> StringName:
+static func _room_refusal(o: Owners) -> StringName:
 	"""Original Room and early/final admission packets must have ended before the host clears anything."""
 	if o.rooms == null:
 		return &"" if o.room_bindings == null else &"WORLD_RETIREMENT_ROOM"
@@ -403,8 +311,7 @@ static func _room_refusal(o: Owners, constructor_prefix: int = -1) -> StringName
 			or o.rooms._room_request != null or o.rooms._room_cold_token != 0 or o.rooms._room_claim_batch != null \
 			or o.rooms._layout_token != 0 or o.rooms._layout_callback or o.rooms._layout_batch != null:
 		return &"WORLD_RETIREMENT_BUSY"
-	if o.room_bindings == null or (not _weak_matches(o.room_bindings._orders, o.rooms) \
-			and not (constructor_prefix == 3 and o.room_bindings._orders == null)) \
+	if o.room_bindings == null or not _weak_matches(o.room_bindings._orders, o.rooms) \
 			or not _weak_matches(o.room_bindings._provider, o.world_bindings) \
 			or not _weak_matches(o.room_bindings._sites, o.sites) or o.room_bindings._budget != o.budget:
 		return &"WORLD_RETIREMENT_ROOM"
@@ -423,7 +330,7 @@ static func _entry_refusal(actual: RoomBindings) -> StringName:
 	return &""
 
 
-static func _phase_refusal(o: Owners, constructor_prefix: int = -1) -> StringName:
+static func _phase_refusal(o: Owners) -> StringName:
 	"""Read real Sites/SpaceAuthority/WorldBindings fields; no virtual phase/provider callback is a release leaf."""
 	if o.sites != null:
 		if o.sites._construction != o.construction or o.sites._inventory != o.inventory \
@@ -435,8 +342,7 @@ static func _phase_refusal(o: Owners, constructor_prefix: int = -1) -> StringNam
 	if o.authority != null:
 		if o.authority._owner != o.space or o.authority._sources != o.sources \
 				or o.authority._construction != o.construction or o.authority._buildings != o.buildings \
-				or o.authority._bindings != o.world_bindings or (not _weak_matches(o.authority._sites, o.sites) \
-			and not (constructor_prefix == 1 and o.authority._sites == null)):
+				or o.authority._bindings != o.world_bindings or not _weak_matches(o.authority._sites, o.sites):
 			return &"WORLD_RETIREMENT_PHASE"
 		if o.authority._stage != -1 or o.authority._owner_token != 0 or o.authority._companion_token != 0 \
 				or o.authority._cold_token != 0: return &"WORLD_RETIREMENT_BUSY"

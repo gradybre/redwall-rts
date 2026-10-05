@@ -2,7 +2,6 @@ extends RefCounted
 ## One host-lifetime foundation over the actual settlement. No identity, stock, paid entry or route is created.
 ## ADR1146: private initialization, no external authority binding, 1536B within existing PROFILE_BYTES.
 
-const Composition := preload("res://scripts/core/underground_room_composition.gd")
 const Retirement := preload("res://scripts/core/underground_world_retirement.gd")
 const World := preload("res://scripts/core/world_init.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
@@ -76,8 +75,6 @@ var _busy: bool = false
 var _poisoned: bool = false
 var _retirement_owners: Retirement.Owners = null
 var _retirement_scope: Retirement.Scope = null
-var _operations_state: int = 0 # 0 foundation, 1 composing, 2 owners ready, 3 retained failed prefix.
-var _operations_prefix: int = 0 # 1 Sites, 2 Router, 3 Room authority, 4 Inventory namespace.
 
 
 func configure(world: World, full_world: Vector2i, buildings: Buildings, construction: Construction,
@@ -335,8 +332,6 @@ func _drop_foundations() -> void:
 	"""Unexposed candidates have no host authority links and can safely die on refused initialization."""
 	_retirement_scope = null
 	_retirement_owners = null
-	_operations_state = 0
-	_operations_prefix = 0
 	_profile_bank = null
 	_profiles = null
 	_levels = null
@@ -375,7 +370,7 @@ func current_refusal() -> StringName:
 	return _current_refusal(false)
 
 
-func _current_refusal(allow_prepared_world: bool, retiring_prefix: bool = false) -> StringName:
+func _current_refusal(allow_prepared_world: bool) -> StringName:
 	"""Only explicit whole-world retirement may observe an unchanged live World with a staged replacement."""
 	if _retirement_scope != null:
 		return &"UNDERGROUND_SESSION_RETIRING"
@@ -384,55 +379,11 @@ func _current_refusal(allow_prepared_world: bool, retiring_prefix: bool = false)
 		return &"UNDERGROUND_SESSION_UNAVAILABLE"
 	if not _ready:
 		return &"UNDERGROUND_SESSION_UNAVAILABLE"
-	if _operations_state == 3 and not retiring_prefix:
-		return &"UNDERGROUND_COMPOSITION_STOPPED"
 	_busy = true
 	_poisoned = false
 	var code: StringName = _observe_current(allow_prepared_world)
 	_busy = false
-	if code == &"": code = _retirement_packet_refusal()
 	return &"UNDERGROUND_SESSION_REENTRANT" if _poisoned else code
-
-
-func compose_room_owners() -> StringName:
-	"""Fill our permanent original packet once; no caller can supply an owner, endpoint or permission."""
-	var code: StringName = current_refusal()
-	if code != &"": return code
-	if _operations_state == 2: return Composition.complete_refusal(_retirement_owners)
-	if _operations_state != 0 or _operations_prefix != 0: return &"UNDERGROUND_COMPOSITION_STOPPED"
-	if not _budget.is_quiescent() or _space.has_prepared() or _routes._edge_capacity != 0:
-		return &"UNDERGROUND_SESSION_NOT_QUIESCENT"
-	_busy = true
-	_poisoned = false
-	_operations_state = 1
-	code = Composition.construct(self)
-	if code == &"": code = _content_refusal()
-	if code == &"": code = _original_refusal()
-	if code == &"": code = _foundation_refusal()
-	if code == &"": code = Composition.complete_refusal(_retirement_owners)
-	if code != &"" and _operations_prefix == 0:
-		Composition.drop_unbound(self)
-		_operations_state = 0
-	else:
-		_operations_state = 2 if code == &"" else 3
-	_busy = false
-	return code
-
-
-func room_orders() -> Retirement.Orders:
-	"""Borrow only the source-owned complete Room receiver; its physical admission remains independent."""
-	return _retirement_owners.rooms if current_refusal() == &"" and _operations_state == 2 else null
-
-
-func location_owner() -> Retirement.Locations:
-	"""Borrow the actual empty-or-published Location namespace, never manufacture an access endpoint."""
-	return _retirement_owners.locations if current_refusal() == &"" and _operations_state == 2 else null
-
-
-func room_phase_provider() -> Composition.Provider:
-	"""The actual provider stays closed until its separate source/contact/structural contracts are satisfied."""
-	return _retirement_owners.world_bindings as Composition.Provider \
-		if current_refusal() == &"" and _operations_state == 2 else null
 
 
 func _build_retirement_owners() -> void:
@@ -478,12 +429,7 @@ func _retirement_packet_refusal() -> StringName:
 
 
 func _operational_retirement_refusal(o: Retirement.Owners) -> StringName:
-	"""Our source-owned constructor output is distinct from arbitrary external packet registration."""
-	if _operations_state == 2 and _operations_prefix == 4:
-		return Composition.complete_refusal(o)
-	if _operations_state == 3:
-		return Retirement.constructor_original_refusal(self, o, _operations_prefix)
-	if _operations_state != 0 or _operations_prefix != 0: return &"UNDERGROUND_COMPOSITION_SCOPE"
+	"""Operational constructors are not part of this foundation; no arbitrary external authority is adopted."""
 	if o.rooms != null or o.room_bindings != null or o.world_bindings != null or o.sites != null \
 			or o.router != null or o.authority != null or o.locations != null or o.inventory_locations != null \
 			or o.world_routes != null or o.connector != null or o.contacts != null or o.placements != null \
@@ -494,7 +440,7 @@ func _operational_retirement_refusal(o: Retirement.Owners) -> StringName:
 
 func retirement_observation_refusal(allow_prepared_world: bool = false) -> StringName:
 	"""First host preflight only; host repeats its exact mount leaf after these cold observations."""
-	return _current_refusal(allow_prepared_world, true)
+	return _current_refusal(allow_prepared_world)
 
 
 func prepare_retirement(original_host: Object, allow_prepared_world: bool = false) -> StringName:
@@ -507,18 +453,10 @@ func prepare_retirement(original_host: Object, allow_prepared_world: bool = fals
 	if code != &"": return code
 	if _retirement_scope == null:
 		_retirement_scope = Retirement.Scope.new()
-	code = _prepare_retirement_scope(original_host, allow_prepared_world)
+	code = Retirement.prepare_into(original_host, self, _retirement_owners, _retirement_scope, allow_prepared_world)
 	if code != &"" and _retirement_scope._stage == 0:
 		_retirement_scope = null
 	return &"UNDERGROUND_SESSION_NOT_QUIESCENT" if code == &"WORLD_RETIREMENT_BUSY" else code
-
-
-func _prepare_retirement_scope(original_host: Object, allow_prepared_world: bool) -> StringName:
-	"""Only a failed source-owned construction uses the explicit prefix path; completed owners keep1155."""
-	if _operations_state == 3:
-		return Retirement.prepare_constructor_prefix_into(original_host, self, _retirement_owners,
-			_retirement_scope, allow_prepared_world)
-	return Retirement.prepare_into(original_host, self, _retirement_owners, _retirement_scope, allow_prepared_world)
 
 
 func release_retirement(original_host: Object) -> StringName:
@@ -548,7 +486,8 @@ func abandon_retirement(original_host: Object) -> StringName:
 		return &"UNDERGROUND_SESSION_UNAVAILABLE"
 	var code: StringName = _retirement_packet_refusal()
 	if code == &"":
-		code = _prepare_retirement_scope(original_host, _retirement_scope._allow_prepared_world)
+		code = Retirement.prepare_into(original_host, self, _retirement_owners, _retirement_scope,
+			_retirement_scope._allow_prepared_world)
 	if code == &"": _retirement_scope = null
 	return code
 

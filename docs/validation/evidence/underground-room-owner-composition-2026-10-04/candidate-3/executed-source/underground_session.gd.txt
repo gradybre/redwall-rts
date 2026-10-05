@@ -406,9 +406,7 @@ func compose_room_owners() -> StringName:
 	_poisoned = false
 	_operations_state = 1
 	code = Composition.construct(self)
-	if code == &"": code = _content_refusal()
 	if code == &"": code = _original_refusal()
-	if code == &"": code = _foundation_refusal()
 	if code == &"": code = Composition.complete_refusal(_retirement_owners)
 	if code != &"" and _operations_prefix == 0:
 		Composition.drop_unbound(self)

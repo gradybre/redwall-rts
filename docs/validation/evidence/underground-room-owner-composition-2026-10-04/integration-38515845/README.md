@@ -1,0 +1,7 @@
+# 1163 / 1161 constructor compatibility
+
+This additive comparison preserves the frozen Candidate 6 component and all twelve executable pins. It compares the exact original `ebdd5daa` constructor closure with accepted integration `38515845`; it does not migrate or weaken the full-file source gate in `constructor_census.py`.
+
+Twenty-one of twenty-two inherited constructor source files are byte-identical. Locations is the only changed file. Every original nested class (including both Bank representation and InventoryLocations adapter), every original top-level variable initializer, and the complete local call closure of the construction/binding/readback roots in `comparison.json` are byte-identical. The new `_frontier` field starts null; the new FrontierContext class and 168-word patch constant are used by the separate 1161 transaction, not allocated by Room-owner construction. The extra reference belongs to that already accepted owner's integration accounting, not a second 1163 allocation. Full before/after sources and their complete diff are retained.
+
+This proves unchanged constructor frames, allocations and original binding semantics only. No engine was rerun and no current integrated source publication, frontier operation, full lifecycle or native-memory acceptance is inferred. Root must use its actual integrated source/census binding at the final gate; the twelve frozen sources, original constructor manifest and component evidence remain unchanged and continue to refuse unrecognised whole-source drift.

@@ -1,0 +1,2197 @@
+{
+  "source_sha256": {
+    "godot/scripts/core/underground_session.gd": "a367e3f8323ed2fa8353e6c9937e3d4af9d52f9af4424f5ec4458f452f4c6e35",
+    "godot/scripts/core/underground_world_retirement.gd": "c9e4f2ff0ab0641960bc2f4e0d1f73575942540164c19ede623ee6394222af33",
+    "godot/scripts/systems/settlement_system.gd": "d578b9757df1ffdca10933309f5d9d8ab69beb39c229e71518768aa8e51bba36",
+    "godot/scripts/core/underground_room_composition.gd": "2032b94a2ec9a93e531c32c53fcfe0fb6b98daaa6ba1455fa3226fa8a5f91cee"
+  },
+  "baseline_commit": "ebdd5daa2b723a63dd71e2018d2bed9b279cf894",
+  "retained_numeric_delta": 24,
+  "retained_reference_delta": 0,
+  "additional_packed_bytes": 0,
+  "phases": {
+    "reset_with_ui": {
+      "numeric_bytes": 207,
+      "reference_values": 45,
+      "numeric_chain": [
+        "UI.create_world",
+        "UI._create_world_after_abandon",
+        "UI._materialize_after_create",
+        "UI._cleanup_failed_create",
+        "UI._reset_for_create_into",
+        "Host.reset",
+        "Host.prepare_world_reset",
+        "Session.prepare_retirement",
+        "Session._prepare_retirement_scope",
+        "Retirement.prepare_constructor_prefix_into",
+        "Retirement._prepared_refusal",
+        "Retirement._scope_owners_refusal",
+        "Retirement.constructor_original_refusal",
+        "Retirement._constructor_shape_refusal",
+        "Retirement._owners_refusal",
+        "Retirement._phase_refusal",
+        "Retirement._world_binding_refusal",
+        "Retirement._entry_world_refusal"
+      ],
+      "reference_chain": [
+        "UI.create_world",
+        "UI._create_world_after_abandon",
+        "Form.create_with_cohort_into",
+        "UI._reset_for_create_into",
+        "Host.reset",
+        "Host._release_underground_after_clear",
+        "Session.release_retirement",
+        "Retirement.release_preflighted",
+        "Retirement.cleared_refusal",
+        "Retirement._scope_owners_refusal",
+        "Retirement.constructor_original_refusal",
+        "Retirement._constructor_shape_refusal",
+        "Retirement._owners_refusal",
+        "Retirement._route_refusal",
+        "Retirement._catalog_refusal"
+      ],
+      "provisional_bytes": 1903,
+      "frames": {
+        "Buildings.whole_world_retirement_refusal_in": {
+          "numeric_and_name_bytes": 25,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName",
+          "allocations": 0
+        },
+        "Buildings.world_retirement_refusal_in": {
+          "numeric_and_name_bytes": 33,
+          "reference_values": 3,
+          "calls": [
+            "Buildings.whole_world_retirement_refusal_in"
+          ],
+          "returns": "StringName",
+          "allocations": 0
+        },
+        "Buildings.world_retirement_release_preflighted_in": {
+          "numeric_and_name_bytes": 32,
+          "reference_values": 3,
+          "calls": [
+            "Buildings.world_retirement_refusal_in"
+          ],
+          "returns": "StringName",
+          "allocations": 0
+        },
+        "Composition._installed_links_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Composition.complete_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "calls": [
+            "Composition._installed_links_refusal",
+            "Retirement._owners_refusal",
+            "Retirement._weak_matches",
+            "Retirement.constructor_catalog_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Construction._retirement_authority_matches": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "bool",
+          "allocations": 0
+        },
+        "Construction.world_retirement_refusal_in": {
+          "numeric_and_name_bytes": 33,
+          "reference_values": 4,
+          "calls": [
+            "Buildings.whole_world_retirement_refusal_in",
+            "Construction._retirement_authority_matches"
+          ],
+          "returns": "StringName",
+          "allocations": 0
+        },
+        "Construction.world_retirement_release_preflighted_in": {
+          "numeric_and_name_bytes": 32,
+          "reference_values": 4,
+          "calls": [
+            "Construction.world_retirement_refusal_in"
+          ],
+          "returns": "StringName",
+          "allocations": 0
+        },
+        "Form._preflight_cohort_world": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 5,
+          "calls": [
+            "Form._report_refusal"
+          ],
+          "returns": "bool",
+          "implicit_self_counted": true,
+          "allocations": 0
+        },
+        "Form._publish_cohort_world": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 5,
+          "calls": [
+            "Form._report_refusal"
+          ],
+          "returns": "bool",
+          "implicit_self_counted": true,
+          "allocations": 0
+        },
+        "Form._report_refusal": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 3,
+          "calls": [],
+          "returns": "bool",
+          "implicit_self_counted": true,
+          "allocations": 0
+        },
+        "Form.create_with_cohort_into": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 15,
+          "calls": [
+            "Form._preflight_cohort_world",
+            "Form._publish_cohort_world",
+            "Form._report_refusal",
+            "Form.record_reset_outcome",
+            "UI._reset_for_create_into"
+          ],
+          "returns": "bool",
+          "implicit_self_counted": true,
+          "allocations": 1
+        },
+        "Form.record_reset_outcome": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 3,
+          "calls": [],
+          "returns": "bool",
+          "implicit_self_counted": true,
+          "allocations": 0
+        },
+        "Form.refuse_create": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 3,
+          "calls": [
+            "Form._report_refusal"
+          ],
+          "returns": "bool",
+          "implicit_self_counted": true,
+          "allocations": 0
+        },
+        "Form.refuse_published_world": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 3,
+          "calls": [
+            "Form._report_refusal"
+          ],
+          "returns": "bool",
+          "implicit_self_counted": true,
+          "allocations": 0
+        },
+        "Host._clear_counters": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 1,
+          "calls": [
+            "Host._clear_stock_integrity_fault"
+          ],
+          "returns": "void"
+        },
+        "Host._clear_stock_integrity_fault": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "void"
+        },
+        "Host._clear_stock_layer": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "void"
+        },
+        "Host._clear_stores": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 1,
+          "calls": [
+            "Host._clear_stock_layer"
+          ],
+          "returns": "void"
+        },
+        "Host._mounted_underground_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Host._refuse": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "bool"
+        },
+        "Host._release_critical_pause": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "void"
+        },
+        "Host._release_underground_after_clear": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 2,
+          "calls": [
+            "Host._mounted_underground_refusal",
+            "Host._refuse",
+            "Session.release_retirement"
+          ],
+          "returns": "bool"
+        },
+        "Host.abandon_world_reset": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 2,
+          "calls": [
+            "Host._mounted_underground_refusal",
+            "Host._refuse",
+            "Session.abandon_retirement"
+          ],
+          "returns": "bool"
+        },
+        "Host.prepare_world_reset": {
+          "numeric_and_name_bytes": 10,
+          "reference_values": 2,
+          "calls": [
+            "Host._mounted_underground_refusal",
+            "Host._refuse",
+            "Session.prepare_retirement",
+            "Session.retirement_observation_refusal"
+          ],
+          "returns": "bool"
+        },
+        "Host.reset": {
+          "numeric_and_name_bytes": 2,
+          "reference_values": 1,
+          "calls": [
+            "Host._clear_counters",
+            "Host._clear_stores",
+            "Host._release_critical_pause",
+            "Host._release_underground_after_clear",
+            "Host.prepare_world_reset"
+          ],
+          "returns": "bool"
+        },
+        "Host.underground_content": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "UndergroundContent"
+        },
+        "Inventory._retirement_empty_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName",
+          "allocations": 0
+        },
+        "Inventory.world_retirement_refusal_in": {
+          "numeric_and_name_bytes": 33,
+          "reference_values": 4,
+          "calls": [
+            "Buildings.whole_world_retirement_refusal_in",
+            "Inventory._retirement_empty_refusal"
+          ],
+          "returns": "StringName",
+          "allocations": 0
+        },
+        "Inventory.world_retirement_release_preflighted_in": {
+          "numeric_and_name_bytes": 32,
+          "reference_values": 4,
+          "calls": [
+            "Inventory.world_retirement_refusal_in"
+          ],
+          "returns": "StringName",
+          "allocations": 0
+        },
+        "Retirement._base_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._capture_scope": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 4,
+          "calls": [
+            "Retirement._capture_sources",
+            "Retirement._copy_owners"
+          ],
+          "returns": "void"
+        },
+        "Retirement._capture_sources": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "void"
+        },
+        "Retirement._catalog_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 4,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Retirement._connector_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._constructor_shape_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._owners_refusal",
+            "Retirement.constructor_catalog_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._copy_owners": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 2,
+          "calls": [
+            "Retirement._copy_owners_0",
+            "Retirement._copy_owners_1",
+            "Retirement._copy_owners_2",
+            "Retirement._copy_owners_3"
+          ],
+          "returns": "void"
+        },
+        "Retirement._copy_owners_0": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "void"
+        },
+        "Retirement._copy_owners_1": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "void"
+        },
+        "Retirement._copy_owners_2": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "void"
+        },
+        "Retirement._copy_owners_3": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "void"
+        },
+        "Retirement._entry_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Retirement._entry_world_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Retirement._foundation_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._profile_refusal",
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._handling_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Retirement._leaves": {
+          "numeric_and_name_bytes": 25,
+          "reference_values": 2,
+          "calls": [
+            "Buildings.world_retirement_refusal_in",
+            "Construction.world_retirement_refusal_in",
+            "Inventory.world_retirement_refusal_in",
+            "Work.world_retirement_refusal_in"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._live_refusal": {
+          "numeric_and_name_bytes": 17,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._leaves"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._location_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._original_sources_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Retirement._owners_refusal": {
+          "numeric_and_name_bytes": 24,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._base_refusal",
+            "Retirement._connector_refusal",
+            "Retirement._foundation_refusal",
+            "Retirement._handling_refusal",
+            "Retirement._location_refusal",
+            "Retirement._phase_refusal",
+            "Retirement._placement_refusal",
+            "Retirement._project_refusal",
+            "Retirement._room_refusal",
+            "Retirement._route_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._phase_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._weak_matches",
+            "Retirement._world_binding_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._placement_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._prepared_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._live_refusal",
+            "Retirement._original_sources_refusal",
+            "Retirement._scope_owners_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._profile_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Retirement._project_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._room_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._entry_refusal",
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._route_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [
+            "Retirement._catalog_refusal",
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._same_owners": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [
+            "Retirement._same_owners_0",
+            "Retirement._same_owners_1",
+            "Retirement._same_owners_2",
+            "Retirement._same_owners_3"
+          ],
+          "returns": "bool"
+        },
+        "Retirement._same_owners_0": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "bool"
+        },
+        "Retirement._same_owners_1": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "bool"
+        },
+        "Retirement._same_owners_2": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "bool"
+        },
+        "Retirement._same_owners_3": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "bool"
+        },
+        "Retirement._scope_owners_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._owners_refusal",
+            "Retirement._same_owners",
+            "Retirement.constructor_original_refusal",
+            "Retirement.constructor_session_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._weak_matches": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "bool"
+        },
+        "Retirement._world_binding_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [
+            "Retirement._entry_world_refusal",
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement.cleared_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 3,
+          "calls": [
+            "Retirement._leaves",
+            "Retirement._original_sources_refusal",
+            "Retirement._scope_owners_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement.constructor_catalog_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Retirement.constructor_original_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "calls": [
+            "Retirement._constructor_shape_refusal",
+            "Retirement.constructor_session_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement.constructor_session_matches": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "bool"
+        },
+        "Retirement.prepare_constructor_prefix_into": {
+          "numeric_and_name_bytes": 33,
+          "reference_values": 4,
+          "calls": [
+            "Retirement._capture_scope",
+            "Retirement._live_refusal",
+            "Retirement._prepared_refusal",
+            "Retirement._same_owners",
+            "Retirement.constructor_original_refusal",
+            "Retirement.constructor_session_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement.prepare_into": {
+          "numeric_and_name_bytes": 25,
+          "reference_values": 4,
+          "calls": [
+            "Retirement._capture_scope",
+            "Retirement._live_refusal",
+            "Retirement._owners_refusal",
+            "Retirement._prepared_refusal",
+            "Retirement._same_owners"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement.release_preflighted": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 4,
+          "calls": [
+            "Buildings.world_retirement_release_preflighted_in",
+            "Construction.world_retirement_release_preflighted_in",
+            "Inventory.world_retirement_release_preflighted_in",
+            "Retirement.cleared_refusal",
+            "Work.world_retirement_release_preflighted_in"
+          ],
+          "returns": "StringName"
+        },
+        "Session._content_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Session._current_refusal": {
+          "numeric_and_name_bytes": 18,
+          "reference_values": 1,
+          "calls": [
+            "Session._observe_current",
+            "Session._retirement_packet_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session._drop_borrowed": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "void"
+        },
+        "Session._drop_foundations": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "void"
+        },
+        "Session._equipment_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Session._foundation_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Session._profile_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session._initial_authority_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Session._observe_current": {
+          "numeric_and_name_bytes": 17,
+          "reference_values": 1,
+          "calls": [
+            "Session._content_refusal",
+            "Session._foundation_refusal",
+            "Session._original_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session._operational_retirement_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [
+            "Composition.complete_refusal",
+            "Retirement.constructor_original_refusal",
+            "Session._initial_authority_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session._original_refusal": {
+          "numeric_and_name_bytes": 17,
+          "reference_values": 1,
+          "calls": [
+            "Session._owners_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session._owners_refusal": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 1,
+          "calls": [
+            "Session._equipment_refusal",
+            "Session._world_identity_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session._prepare_retirement_scope": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 2,
+          "calls": [
+            "Retirement.prepare_constructor_prefix_into",
+            "Retirement.prepare_into"
+          ],
+          "returns": "StringName"
+        },
+        "Session._profile_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Session._retirement_packet_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [
+            "Session._operational_retirement_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session._world_identity_refusal": {
+          "numeric_and_name_bytes": 17,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Session.abandon_retirement": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "calls": [
+            "Session._prepare_retirement_scope",
+            "Session._retirement_packet_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session.prepare_retirement": {
+          "numeric_and_name_bytes": 17,
+          "reference_values": 2,
+          "calls": [
+            "Session._foundation_refusal",
+            "Session._original_refusal",
+            "Session._prepare_retirement_scope",
+            "Session._retirement_packet_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session.release_retirement": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "calls": [
+            "Retirement.release_preflighted",
+            "Session._drop_borrowed",
+            "Session._drop_foundations",
+            "Session._retirement_packet_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session.retirement_observation_refusal": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 1,
+          "calls": [
+            "Session._current_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "UI._cleanup_failed_create": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 4,
+          "calls": [
+            "Form.record_reset_outcome",
+            "Form.refuse_create",
+            "Form.refuse_published_world",
+            "UI._reset_for_create_into"
+          ],
+          "returns": "bool",
+          "implicit_self_counted": true,
+          "allocations": 1
+        },
+        "UI._create_world_after_abandon": {
+          "numeric_and_name_bytes": 2,
+          "reference_values": 3,
+          "calls": [
+            "Form.create_with_cohort_into",
+            "Host.underground_content",
+            "UI._materialize_after_create",
+            "UI._restore_underground_after_create"
+          ],
+          "returns": "bool",
+          "implicit_self_counted": true,
+          "allocations": 0
+        },
+        "UI._materialize_after_create": {
+          "numeric_and_name_bytes": 2,
+          "reference_values": 2,
+          "calls": [
+            "UI._cleanup_failed_create"
+          ],
+          "returns": "bool",
+          "implicit_self_counted": true,
+          "allocations": 0
+        },
+        "UI._prepare_world_create": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 3,
+          "calls": [
+            "Form.record_reset_outcome",
+            "Form.refuse_create",
+            "Host.abandon_world_reset"
+          ],
+          "returns": "bool",
+          "implicit_self_counted": true,
+          "allocations": 1
+        },
+        "UI._report_generation": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 3,
+          "calls": [
+            "UI._report_generation_failure"
+          ],
+          "returns": "void",
+          "implicit_self_counted": true,
+          "allocations": 0
+        },
+        "UI._report_generation_failure": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 5,
+          "calls": [
+            "UI._reset_outcome_text"
+          ],
+          "returns": "void",
+          "implicit_self_counted": true,
+          "allocations": 0
+        },
+        "UI._reset_for_create_into": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [
+            "Host.abandon_world_reset",
+            "Host.reset"
+          ],
+          "returns": "void",
+          "implicit_self_counted": true,
+          "allocations": 0
+        },
+        "UI._reset_outcome_text": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 3,
+          "calls": [],
+          "returns": "String",
+          "implicit_self_counted": true,
+          "allocations": 0
+        },
+        "UI._restore_underground_after_create": {
+          "numeric_and_name_bytes": 2,
+          "reference_values": 3,
+          "calls": [
+            "UI._cleanup_failed_create"
+          ],
+          "returns": "bool",
+          "implicit_self_counted": true,
+          "allocations": 0
+        },
+        "UI.create_world": {
+          "numeric_and_name_bytes": 2,
+          "reference_values": 2,
+          "calls": [
+            "UI._create_world_after_abandon",
+            "UI._prepare_world_create",
+            "UI._report_generation"
+          ],
+          "returns": "bool",
+          "implicit_self_counted": true,
+          "allocations": 0
+        },
+        "Work._retirement_authority_matches": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "bool",
+          "allocations": 0
+        },
+        "Work._retirement_empty_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Work._retirement_participant_refusal"
+          ],
+          "returns": "StringName",
+          "allocations": 0
+        },
+        "Work._retirement_participant_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName",
+          "allocations": 0
+        },
+        "Work.world_retirement_refusal_in": {
+          "numeric_and_name_bytes": 33,
+          "reference_values": 6,
+          "calls": [
+            "Buildings.whole_world_retirement_refusal_in",
+            "Work._retirement_authority_matches",
+            "Work._retirement_empty_refusal"
+          ],
+          "returns": "StringName",
+          "allocations": 0
+        },
+        "Work.world_retirement_release_preflighted_in": {
+          "numeric_and_name_bytes": 32,
+          "reference_values": 6,
+          "calls": [
+            "Work.world_retirement_refusal_in"
+          ],
+          "returns": "StringName",
+          "allocations": 0
+        }
+      }
+    },
+    "direct_reset": {
+      "numeric_bytes": 191,
+      "reference_values": 23,
+      "numeric_chain": [
+        "Host.reset",
+        "Host.prepare_world_reset",
+        "Session.prepare_retirement",
+        "Session._prepare_retirement_scope",
+        "Retirement.prepare_constructor_prefix_into",
+        "Retirement._prepared_refusal",
+        "Retirement._scope_owners_refusal",
+        "Retirement.constructor_original_refusal",
+        "Retirement._constructor_shape_refusal",
+        "Retirement._owners_refusal",
+        "Retirement._phase_refusal",
+        "Retirement._world_binding_refusal",
+        "Retirement._entry_world_refusal"
+      ],
+      "reference_chain": [
+        "Host.reset",
+        "Host._release_underground_after_clear",
+        "Session.release_retirement",
+        "Retirement.release_preflighted",
+        "Retirement.cleared_refusal",
+        "Retirement._scope_owners_refusal",
+        "Retirement.constructor_original_refusal",
+        "Retirement._constructor_shape_refusal",
+        "Retirement._owners_refusal",
+        "Retirement._route_refusal",
+        "Retirement._catalog_refusal"
+      ],
+      "provisional_bytes": 1183,
+      "frames": {
+        "Buildings.whole_world_retirement_refusal_in": {
+          "numeric_and_name_bytes": 25,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName",
+          "allocations": 0
+        },
+        "Buildings.world_retirement_refusal_in": {
+          "numeric_and_name_bytes": 33,
+          "reference_values": 3,
+          "calls": [
+            "Buildings.whole_world_retirement_refusal_in"
+          ],
+          "returns": "StringName",
+          "allocations": 0
+        },
+        "Buildings.world_retirement_release_preflighted_in": {
+          "numeric_and_name_bytes": 32,
+          "reference_values": 3,
+          "calls": [
+            "Buildings.world_retirement_refusal_in"
+          ],
+          "returns": "StringName",
+          "allocations": 0
+        },
+        "Composition._installed_links_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Composition.complete_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "calls": [
+            "Composition._installed_links_refusal",
+            "Retirement._owners_refusal",
+            "Retirement._weak_matches",
+            "Retirement.constructor_catalog_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Construction._retirement_authority_matches": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "bool",
+          "allocations": 0
+        },
+        "Construction.world_retirement_refusal_in": {
+          "numeric_and_name_bytes": 33,
+          "reference_values": 4,
+          "calls": [
+            "Buildings.whole_world_retirement_refusal_in",
+            "Construction._retirement_authority_matches"
+          ],
+          "returns": "StringName",
+          "allocations": 0
+        },
+        "Construction.world_retirement_release_preflighted_in": {
+          "numeric_and_name_bytes": 32,
+          "reference_values": 4,
+          "calls": [
+            "Construction.world_retirement_refusal_in"
+          ],
+          "returns": "StringName",
+          "allocations": 0
+        },
+        "Host._clear_counters": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 1,
+          "calls": [
+            "Host._clear_stock_integrity_fault"
+          ],
+          "returns": "void"
+        },
+        "Host._clear_stock_integrity_fault": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "void"
+        },
+        "Host._clear_stock_layer": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "void"
+        },
+        "Host._clear_stores": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 1,
+          "calls": [
+            "Host._clear_stock_layer"
+          ],
+          "returns": "void"
+        },
+        "Host._mounted_underground_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Host._notification": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Session._discard_retirement_on_host_free"
+          ],
+          "returns": "void"
+        },
+        "Host._refuse": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "bool"
+        },
+        "Host._release_critical_pause": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "void"
+        },
+        "Host._release_underground_after_clear": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 2,
+          "calls": [
+            "Host._mounted_underground_refusal",
+            "Host._refuse",
+            "Session.release_retirement"
+          ],
+          "returns": "bool"
+        },
+        "Host.abandon_world_reset": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 2,
+          "calls": [
+            "Host._mounted_underground_refusal",
+            "Host._refuse",
+            "Session.abandon_retirement"
+          ],
+          "returns": "bool"
+        },
+        "Host.prepare_world_reset": {
+          "numeric_and_name_bytes": 10,
+          "reference_values": 2,
+          "calls": [
+            "Host._mounted_underground_refusal",
+            "Host._refuse",
+            "Session.prepare_retirement",
+            "Session.retirement_observation_refusal"
+          ],
+          "returns": "bool"
+        },
+        "Host.reset": {
+          "numeric_and_name_bytes": 2,
+          "reference_values": 1,
+          "calls": [
+            "Host._clear_counters",
+            "Host._clear_stores",
+            "Host._release_critical_pause",
+            "Host._release_underground_after_clear",
+            "Host.prepare_world_reset"
+          ],
+          "returns": "bool"
+        },
+        "Inventory._retirement_empty_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName",
+          "allocations": 0
+        },
+        "Inventory.world_retirement_refusal_in": {
+          "numeric_and_name_bytes": 33,
+          "reference_values": 4,
+          "calls": [
+            "Buildings.whole_world_retirement_refusal_in",
+            "Inventory._retirement_empty_refusal"
+          ],
+          "returns": "StringName",
+          "allocations": 0
+        },
+        "Inventory.world_retirement_release_preflighted_in": {
+          "numeric_and_name_bytes": 32,
+          "reference_values": 4,
+          "calls": [
+            "Inventory.world_retirement_refusal_in"
+          ],
+          "returns": "StringName",
+          "allocations": 0
+        },
+        "Retirement._base_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._capture_scope": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 4,
+          "calls": [
+            "Retirement._capture_sources",
+            "Retirement._copy_owners"
+          ],
+          "returns": "void"
+        },
+        "Retirement._capture_sources": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "void"
+        },
+        "Retirement._catalog_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 4,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Retirement._connector_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._constructor_shape_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._owners_refusal",
+            "Retirement.constructor_catalog_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._copy_owners": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 2,
+          "calls": [
+            "Retirement._copy_owners_0",
+            "Retirement._copy_owners_1",
+            "Retirement._copy_owners_2",
+            "Retirement._copy_owners_3"
+          ],
+          "returns": "void"
+        },
+        "Retirement._copy_owners_0": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "void"
+        },
+        "Retirement._copy_owners_1": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "void"
+        },
+        "Retirement._copy_owners_2": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "void"
+        },
+        "Retirement._copy_owners_3": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "void"
+        },
+        "Retirement._entry_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Retirement._entry_world_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Retirement._foundation_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._profile_refusal",
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._handling_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Retirement._leaves": {
+          "numeric_and_name_bytes": 25,
+          "reference_values": 2,
+          "calls": [
+            "Buildings.world_retirement_refusal_in",
+            "Construction.world_retirement_refusal_in",
+            "Inventory.world_retirement_refusal_in",
+            "Work.world_retirement_refusal_in"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._live_refusal": {
+          "numeric_and_name_bytes": 17,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._leaves"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._location_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._original_sources_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Retirement._owners_refusal": {
+          "numeric_and_name_bytes": 24,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._base_refusal",
+            "Retirement._connector_refusal",
+            "Retirement._foundation_refusal",
+            "Retirement._handling_refusal",
+            "Retirement._location_refusal",
+            "Retirement._phase_refusal",
+            "Retirement._placement_refusal",
+            "Retirement._project_refusal",
+            "Retirement._room_refusal",
+            "Retirement._route_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._phase_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._weak_matches",
+            "Retirement._world_binding_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._placement_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._prepared_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._live_refusal",
+            "Retirement._original_sources_refusal",
+            "Retirement._scope_owners_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._profile_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Retirement._project_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._room_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._entry_refusal",
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._route_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [
+            "Retirement._catalog_refusal",
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._same_owners": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [
+            "Retirement._same_owners_0",
+            "Retirement._same_owners_1",
+            "Retirement._same_owners_2",
+            "Retirement._same_owners_3"
+          ],
+          "returns": "bool"
+        },
+        "Retirement._same_owners_0": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "bool"
+        },
+        "Retirement._same_owners_1": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "bool"
+        },
+        "Retirement._same_owners_2": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "bool"
+        },
+        "Retirement._same_owners_3": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "bool"
+        },
+        "Retirement._scope_owners_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._owners_refusal",
+            "Retirement._same_owners",
+            "Retirement.constructor_original_refusal",
+            "Retirement.constructor_session_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._weak_matches": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "bool"
+        },
+        "Retirement._world_binding_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [
+            "Retirement._entry_world_refusal",
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement.cleared_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 3,
+          "calls": [
+            "Retirement._leaves",
+            "Retirement._original_sources_refusal",
+            "Retirement._scope_owners_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement.constructor_catalog_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Retirement.constructor_original_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "calls": [
+            "Retirement._constructor_shape_refusal",
+            "Retirement.constructor_session_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement.constructor_session_matches": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "bool"
+        },
+        "Retirement.prepare_constructor_prefix_into": {
+          "numeric_and_name_bytes": 33,
+          "reference_values": 4,
+          "calls": [
+            "Retirement._capture_scope",
+            "Retirement._live_refusal",
+            "Retirement._prepared_refusal",
+            "Retirement._same_owners",
+            "Retirement.constructor_original_refusal",
+            "Retirement.constructor_session_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement.prepare_into": {
+          "numeric_and_name_bytes": 25,
+          "reference_values": 4,
+          "calls": [
+            "Retirement._capture_scope",
+            "Retirement._live_refusal",
+            "Retirement._owners_refusal",
+            "Retirement._prepared_refusal",
+            "Retirement._same_owners"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement.release_preflighted": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 4,
+          "calls": [
+            "Buildings.world_retirement_release_preflighted_in",
+            "Construction.world_retirement_release_preflighted_in",
+            "Inventory.world_retirement_release_preflighted_in",
+            "Retirement.cleared_refusal",
+            "Work.world_retirement_release_preflighted_in"
+          ],
+          "returns": "StringName"
+        },
+        "Session._content_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Session._current_refusal": {
+          "numeric_and_name_bytes": 18,
+          "reference_values": 1,
+          "calls": [
+            "Session._observe_current",
+            "Session._retirement_packet_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session._discard_retirement_on_host_free": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "void"
+        },
+        "Session._drop_borrowed": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "void"
+        },
+        "Session._drop_foundations": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "void"
+        },
+        "Session._equipment_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Session._foundation_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Session._profile_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session._initial_authority_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Session._observe_current": {
+          "numeric_and_name_bytes": 17,
+          "reference_values": 1,
+          "calls": [
+            "Session._content_refusal",
+            "Session._foundation_refusal",
+            "Session._original_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session._operational_retirement_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [
+            "Composition.complete_refusal",
+            "Retirement.constructor_original_refusal",
+            "Session._initial_authority_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session._original_refusal": {
+          "numeric_and_name_bytes": 17,
+          "reference_values": 1,
+          "calls": [
+            "Session._owners_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session._owners_refusal": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 1,
+          "calls": [
+            "Session._equipment_refusal",
+            "Session._world_identity_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session._prepare_retirement_scope": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 2,
+          "calls": [
+            "Retirement.prepare_constructor_prefix_into",
+            "Retirement.prepare_into"
+          ],
+          "returns": "StringName"
+        },
+        "Session._profile_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Session._retirement_packet_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [
+            "Session._operational_retirement_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session._world_identity_refusal": {
+          "numeric_and_name_bytes": 17,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Session.abandon_retirement": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "calls": [
+            "Session._prepare_retirement_scope",
+            "Session._retirement_packet_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session.prepare_retirement": {
+          "numeric_and_name_bytes": 17,
+          "reference_values": 2,
+          "calls": [
+            "Session._foundation_refusal",
+            "Session._original_refusal",
+            "Session._prepare_retirement_scope",
+            "Session._retirement_packet_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session.release_retirement": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "calls": [
+            "Retirement.release_preflighted",
+            "Session._drop_borrowed",
+            "Session._drop_foundations",
+            "Session._retirement_packet_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session.retirement_observation_refusal": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 1,
+          "calls": [
+            "Session._current_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Work._retirement_authority_matches": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "bool",
+          "allocations": 0
+        },
+        "Work._retirement_empty_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Work._retirement_participant_refusal"
+          ],
+          "returns": "StringName",
+          "allocations": 0
+        },
+        "Work._retirement_participant_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName",
+          "allocations": 0
+        },
+        "Work.world_retirement_refusal_in": {
+          "numeric_and_name_bytes": 33,
+          "reference_values": 6,
+          "calls": [
+            "Buildings.whole_world_retirement_refusal_in",
+            "Work._retirement_authority_matches",
+            "Work._retirement_empty_refusal"
+          ],
+          "returns": "StringName",
+          "allocations": 0
+        },
+        "Work.world_retirement_release_preflighted_in": {
+          "numeric_and_name_bytes": 32,
+          "reference_values": 6,
+          "calls": [
+            "Work.world_retirement_refusal_in"
+          ],
+          "returns": "StringName",
+          "allocations": 0
+        }
+      }
+    },
+    "composition_own_prefix": {
+      "numeric_bytes": 156,
+      "reference_values": 19,
+      "numeric_chain": [
+        "Host.compose_underground_room_owners",
+        "Session.compose_room_owners",
+        "Session.current_refusal",
+        "Session._current_refusal",
+        "Session._retirement_packet_refusal",
+        "Session._operational_retirement_refusal",
+        "Retirement.constructor_original_refusal",
+        "Retirement._constructor_shape_refusal",
+        "Retirement._owners_refusal",
+        "Retirement._phase_refusal",
+        "Retirement._world_binding_refusal",
+        "Retirement._entry_world_refusal"
+      ],
+      "reference_chain": [
+        "Host.compose_underground_room_owners",
+        "Session.compose_room_owners",
+        "Session.current_refusal",
+        "Session._current_refusal",
+        "Session._retirement_packet_refusal",
+        "Session._operational_retirement_refusal",
+        "Retirement.constructor_original_refusal",
+        "Retirement._constructor_shape_refusal",
+        "Retirement._owners_refusal",
+        "Retirement._route_refusal",
+        "Retirement._catalog_refusal"
+      ],
+      "provisional_bytes": 1020,
+      "frames": {
+        "Composition._bind_excavation": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "calls": [
+            "Composition._original_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Composition._bind_inventory": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 3,
+          "calls": [
+            "Composition._original_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Composition._bind_locations": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "calls": [
+            "Composition._bind_inventory",
+            "Composition._original_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Composition._bind_rooms": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "calls": [
+            "Composition._original_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Composition._bind_router": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "calls": [
+            "Composition._original_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Composition._installed_links_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Composition._original_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "calls": [
+            "Session._foundation_refusal",
+            "Session._original_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Composition._prepare_phase": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "calls": [
+            "Composition._original_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Composition.complete_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "calls": [
+            "Composition._installed_links_refusal",
+            "Retirement._owners_refusal",
+            "Retirement._weak_matches",
+            "Retirement.constructor_catalog_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Composition.construct": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "calls": [
+            "Composition._bind_excavation",
+            "Composition._bind_locations",
+            "Composition._bind_rooms",
+            "Composition._bind_router",
+            "Composition._prepare_phase",
+            "Retirement.constructor_session_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Composition.drop_unbound": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "void"
+        },
+        "Host._mounted_underground_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Host._refuse": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "bool"
+        },
+        "Host._underground_mutations_stopped": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "bool"
+        },
+        "Host.compose_underground_room_owners": {
+          "numeric_and_name_bytes": 10,
+          "reference_values": 2,
+          "calls": [
+            "Host._mounted_underground_refusal",
+            "Host._refuse",
+            "Host._underground_mutations_stopped",
+            "Session.compose_room_owners"
+          ],
+          "returns": "bool"
+        },
+        "Retirement._base_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._catalog_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 4,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Retirement._connector_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._constructor_shape_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._owners_refusal",
+            "Retirement.constructor_catalog_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._entry_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Retirement._entry_world_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Retirement._foundation_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._profile_refusal",
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._handling_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Retirement._location_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._owners_refusal": {
+          "numeric_and_name_bytes": 24,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._base_refusal",
+            "Retirement._connector_refusal",
+            "Retirement._foundation_refusal",
+            "Retirement._handling_refusal",
+            "Retirement._location_refusal",
+            "Retirement._phase_refusal",
+            "Retirement._placement_refusal",
+            "Retirement._project_refusal",
+            "Retirement._room_refusal",
+            "Retirement._route_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._phase_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._weak_matches",
+            "Retirement._world_binding_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._placement_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._profile_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Retirement._project_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._room_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "calls": [
+            "Retirement._entry_refusal",
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._route_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [
+            "Retirement._catalog_refusal",
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement._weak_matches": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "bool"
+        },
+        "Retirement._world_binding_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [
+            "Retirement._entry_world_refusal",
+            "Retirement._weak_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement.constructor_catalog_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Retirement.constructor_original_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "calls": [
+            "Retirement._constructor_shape_refusal",
+            "Retirement.constructor_session_matches"
+          ],
+          "returns": "StringName"
+        },
+        "Retirement.constructor_session_matches": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "bool"
+        },
+        "Session._content_refusal": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Session._current_refusal": {
+          "numeric_and_name_bytes": 18,
+          "reference_values": 1,
+          "calls": [
+            "Session._observe_current",
+            "Session._retirement_packet_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session._equipment_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Session._foundation_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Session._profile_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session._initial_authority_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Session._observe_current": {
+          "numeric_and_name_bytes": 17,
+          "reference_values": 1,
+          "calls": [
+            "Session._content_refusal",
+            "Session._foundation_refusal",
+            "Session._original_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session._operational_retirement_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [
+            "Composition.complete_refusal",
+            "Retirement.constructor_original_refusal",
+            "Session._initial_authority_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session._original_refusal": {
+          "numeric_and_name_bytes": 17,
+          "reference_values": 1,
+          "calls": [
+            "Session._owners_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session._owners_refusal": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 1,
+          "calls": [
+            "Session._equipment_refusal",
+            "Session._world_identity_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session._profile_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Session._retirement_packet_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [
+            "Session._operational_retirement_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session._world_identity_refusal": {
+          "numeric_and_name_bytes": 17,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Session.compose_room_owners": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "calls": [
+            "Composition.complete_refusal",
+            "Composition.construct",
+            "Composition.drop_unbound",
+            "Session._content_refusal",
+            "Session._foundation_refusal",
+            "Session._original_refusal",
+            "Session.current_refusal"
+          ],
+          "returns": "StringName"
+        },
+        "Session.current_refusal": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "calls": [
+            "Session._current_refusal"
+          ],
+          "returns": "StringName"
+        }
+      }
+    }
+  },
+  "accounting": {
+    "controls": 6019,
+    "control_ceiling": 6144,
+    "helpers": 1903,
+    "helper_ceiling": 2048,
+    "retirement_reserved_bytes": 8192,
+    "existing_session_reserved_bytes": 1536,
+    "profile_joint": 246868,
+    "profile_ceiling": 262144
+  },
+  "native_measured": false,
+  "runtime_qualified": false
+}

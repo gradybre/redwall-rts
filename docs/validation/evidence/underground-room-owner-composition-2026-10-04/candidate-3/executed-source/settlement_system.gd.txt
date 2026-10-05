@@ -1845,12 +1845,9 @@ func compose_underground_room_owners() -> bool:
 	"""Build only the mounted original Session's real owner graph; no caller registers authorities."""
 	if _underground_mutations_stopped(): return _refuse(&"UNDERGROUND_HOST_RESETTING")
 	var original: UndergroundSession = _underground_session
-	var starting: bool = original != null and original._operations_state == 0
 	var code: StringName = _mounted_underground_refusal(original)
 	if code == &"": code = original.compose_room_owners()
 	if code == &"": code = _mounted_underground_refusal(original)
-	if code != &"" and starting and original._operations_prefix > 0:
-		original._operations_state = 3
 	if code != &"": return _refuse(code)
 	_last_refusal = REFUSE_NONE
 	return true

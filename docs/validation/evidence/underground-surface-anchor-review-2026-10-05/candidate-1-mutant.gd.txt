@@ -1,0 +1,638 @@
+extends "res://scripts/core/underground_locations.gd".WorldScope
+## Create-only observation of real surface air and retained natural footing. No cut, Room,
+## timber, worker profile or route is granted. Decision1103 owns this narrow publication.
+
+const Locations := preload("res://scripts/core/underground_locations.gd")
+const Owner := preload("res://scripts/core/underground_space_owner.gd")
+const Space := preload("res://scripts/core/room_space.gd")
+const Terrain := preload("res://scripts/core/underground_terrain.gd")
+const World := preload("res://scripts/core/world_init.gd")
+const Routes := preload("res://scripts/core/underground_routes.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
+const FinalFacts := preload("res://scripts/core/underground_final_facts.gd")
+const Directory := preload("res://scripts/core/entity_directory.gd")
+const NULL_REF: Vector2i = Vector2i(-1, 0)
+const RESERVED_BYTES: int = 2048
+const REFUSE_BINDING: StringName = &"SURFACE_ANCHOR_BINDING"
+const REFUSE_BUSY: StringName = &"SURFACE_ANCHOR_BUSY"
+const REFUSE_SHAPE: StringName = &"SURFACE_ANCHOR_SHAPE"
+const REFUSE_RETAINED: StringName = &"SURFACE_ANCHOR_RETAINED_SPACE"
+const REFUSE_STALE: StringName = &"SURFACE_ANCHOR_STALE"
+const REFUSE_CHECKS: StringName = &"SURFACE_ANCHOR_CHECK_CAPACITY"
+
+class Result extends RefCounted:
+	## Successful existing-space identities only; a refused creation exposes no prepared handle.
+	var error: StringName = &""
+	var section: Vector2i = NULL_REF
+	var location: Vector2i = NULL_REF
+
+	func _init(code: StringName, floor_ref: Vector2i = NULL_REF, endpoint: Vector2i = NULL_REF) -> void:
+		"""Keep explicit failure separate from unpublished local generations."""
+		error = code
+		section = floor_ref
+		location = endpoint
+
+var _world: World = null
+var _terrain: Terrain = null
+var _space: Owner = null
+var _sources: Owner.CoreSources = null
+var _locations: Locations = null
+var _routes: Routes = null
+var _budget: Budget = null
+var _ids: Directory = null
+var _buildings: Routes.Buildings = null
+var _construction: Owner.Construction = null
+var _inventory: Routes.Inventory = null
+var _transforms: Routes.Transforms = null
+var _residents: Routes.Residents = null
+var _jobs: Routes.Jobs = null
+var _work: Routes.Work = null
+var _profiles: Routes.Profiles = null
+var _bindings: Routes.Bindings = null
+var _gear: Routes.Gear = null
+var _carry: Routes.Carry = null
+var _reservations: Routes.Reservations = null
+var _piles: Routes.Piles = null
+var _remaining: int = 0
+var _world_ref: Vector2i = NULL_REF
+var _seed: int = 0
+var _ready: bool = false
+var _busy: bool = false
+var _poisoned: bool = false
+var _publishing: bool = false
+var _cold_token: int = 0
+var _space_token: int = 0
+var _location_token: int = 0
+var _revision: int = 0
+var _section: Vector2i = NULL_REF
+var _new_section: bool = false
+var _surface_box: PackedInt32Array = PackedInt32Array()
+var _air: Vector2i = NULL_REF
+var _footing: Vector2i = NULL_REF
+var _endpoint: Vector2i = NULL_REF
+var _record: Locations.Record = Locations.Record.new()
+var _region: Owner.Region = Owner.Region.new()
+
+
+func configure(world: World, terrain: Terrain, space: Owner, sources: Owner.CoreSources,
+		locations: Locations, budget: Budget, admitted_bytes: int) -> StringName:
+	"""Guard the whole initial observation before exposing fixed scratch or a usable public create API."""
+	if _busy:
+		_poisoned = true
+		return REFUSE_BINDING
+	if _ready or _locations != null or admitted_bytes < RESERVED_BYTES or world == null or terrain == null \
+			or space == null or sources == null or locations == null or budget == null or not budget.is_quiescent():
+		return REFUSE_BINDING
+	_busy = true
+	_poisoned = false
+	_bind_owners(world, terrain, space, sources, locations, budget)
+	var code: StringName = _initial_binding_refusal()
+	if code == &"" and not _poisoned:
+		code = locations.bind_world_scope(self)
+	if code != &"" or _poisoned:
+		_refuse_configuration()
+		return code if code != &"" else REFUSE_BINDING
+	_record.envelope.resize(6)
+	_record.support.resize(6)
+	_region.box.resize(6)
+	_surface_box.resize(6)
+	_busy = false
+	return &""
+
+
+func _refuse_configuration() -> void:
+	"""Keep original pins if a late observer already installed this one-way weak scope; only full retirement may forget it."""
+	if _locations != null and _locations._world_scope != null and _locations._world_scope.get_ref() == self:
+		_ready = false
+		_busy = false
+		return
+	_clear_binding()
+
+
+static func retirement_refusal_in(actual: RefCounted, original: RefCounted, stopped_constructor: bool = false) -> StringName:
+	"""Owner-owned concrete stored facts only; the caller has already proved its complete original owner packet."""
+	if actual._busy or actual._publishing or actual._cold_token != 0 \
+			or actual._space_token != 0 or actual._location_token != 0:
+		return REFUSE_BUSY
+	if (not actual._ready and not stopped_constructor) or original.locations._world_scope == null \
+			or original.locations._world_scope.get_ref() != actual or actual._world_ref != original.world_ref \
+			or actual._seed != original.terrain._seed or actual._world != original.world \
+			or actual._terrain != original.terrain or actual._space != original.space \
+			or actual._sources != original.sources or actual._locations != original.locations \
+			or actual._routes != original.routes or actual._budget != original.budget:
+		return REFUSE_BINDING
+	return _retirement_stores_in(actual, original)
+
+
+static func _retirement_stores_in(actual: RefCounted, original: RefCounted) -> StringName:
+	"""All retained store pins belong to the exact captured composition, including actual tool and stock owners."""
+	if actual._ids != original.directory or actual._buildings != original.buildings \
+			or actual._construction != original.construction or actual._inventory != original.inventory \
+			or actual._transforms != original.transforms or actual._residents != original.residents \
+			or actual._jobs != original.jobs or actual._work != original.work or actual._profiles != original.profiles \
+			or actual._bindings != original.world_routes or actual._gear != original.gear \
+			or actual._carry != original.carry or actual._reservations != original.reservations or actual._piles != original.piles:
+		return REFUSE_BINDING
+	return &""
+
+
+func _bind_owners(world: World, terrain: Terrain, space: Owner, sources: Owner.CoreSources,
+		locations: Locations, budget: Budget) -> void:
+	"""Capture exact original instances once; numerical World/Directory aliases cannot replace them later."""
+	_world = world
+	_terrain = terrain
+	_space = space
+	_sources = sources
+	_locations = locations
+	_routes = sources.resident_locations_owner() as Routes
+	_budget = budget
+	_world_ref = locations.world_ref()
+	_seed = world.section_1_published_seed()
+	_ready = true
+	_pin_stores()
+
+
+func _pin_stores() -> void:
+	"""Retain only composition references; no source row, actor state, geometry or native result is copied."""
+	_ids = _sources._directory
+	_buildings = _sources._buildings
+	_construction = _sources._construction
+	_inventory = _locations._inventory
+	_transforms = _locations._transforms
+	if _routes == null:
+		return
+	_residents = _routes._residents
+	_jobs = _routes._jobs
+	_work = _routes._work
+	_profiles = _routes._profiles
+	_bindings = _routes._bindings
+	if _profiles != null:
+		_gear = _profiles._gear
+		_carry = _profiles._carry
+		_reservations = _profiles._reservations
+		_piles = _profiles._piles
+
+
+func _initial_binding_refusal() -> StringName:
+	var hidden: PackedInt32Array = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+	"""Require the actual pre-existing World/Terrain/Locations/Routes tuple without allocating a survey."""
+	if not exact_binding(_locations, _space, _budget, _world_ref) or _space.has_prepared() \
+			or not _space.allocation_within(Budget.REGION_CAPACITY, Budget.SOURCE_CAPACITY) \
+			or _locations.cold_peak_bytes() + RESERVED_BYTES > Budget.COLD_BYTES:
+		return REFUSE_BINDING
+	var code: StringName = _terrain.binding_refusal()
+	if code == &"" and not _poisoned:
+		code = FinalFacts.snapshot_refusal(_space, _routes, _locations, _space.revision(), _space._domain._checks)
+	return code if code != &"" else (&"" if exact_binding(_locations, _space, _budget, _world_ref) else REFUSE_BINDING)
+
+
+func _clear_binding() -> void:
+	"""A rejected initial binding retains no owner or allocation; no successful binding is replaceable."""
+	_ready = false
+	_busy = false
+	_poisoned = false
+	_clear_stores()
+	_world = null
+	_terrain = null
+	_space = null
+	_sources = null
+	_locations = null
+	_routes = null
+	_budget = null
+	_world_ref = NULL_REF
+	_seed = 0
+
+
+func _clear_stores() -> void:
+	"""A refused initial observation releases its unpublished exact collaborator pins."""
+	_ids = null
+	_buildings = null
+	_construction = null
+	_inventory = null
+	_transforms = null
+	_residents = null
+	_jobs = null
+	_work = null
+	_profiles = null
+	_bindings = null
+	_gear = null
+	_carry = null
+	_reservations = null
+	_piles = null
+
+
+func exact_binding(locations: RefCounted, space: Owner, budget: Budget, world: Vector2i) -> bool:
+	"""Pure exact collaborator and immutable World identity facts; no observer or remembered bool suffices."""
+	if not _ready or locations != _locations or space != _space or budget != _budget or world != _world_ref \
+			or _world_ref == NULL_REF or _sources == null or _routes == null or _terrain == null \
+			or _terrain._space == null or _terrain._sources == null or not _store_tuple_current():
+		return false
+	if _space._sources != _sources or _sources._locations != _routes or _sources._directory != _world.directory() \
+			or not _sources._directory.is_valid_of_kind(_world_ref, Directory.KIND_WORLD) \
+			or not _world.is_published() or _world.section_1_published_seed() != _seed:
+		return false
+	if _locations._owner != _space or _locations._sources != _sources or _locations._cold != _budget \
+			or _locations._world != _world_ref or _routes._owner != _space or _routes._sources != _sources \
+			or _routes._locations != _locations or _routes._cold != _budget or _routes._world != _world_ref:
+		return false
+	return _terrain._world == _world and _terrain._space.get_ref() == _space \
+		and _terrain._sources.get_ref() == _sources and _terrain._budget == _budget \
+		and _terrain._world_ref == _world_ref and _terrain._seed == _seed \
+		and FinalFacts._same_domain(_space._domain, _locations._domain) \
+		and FinalFacts._same_domain(_space._domain, _routes._domain)
+
+
+func _store_tuple_current() -> bool:
+	"""Pure complete original store identity remains meaningful while the exact geometry is prepared."""
+	if _ids == null or _buildings == null or _construction == null or _inventory == null \
+			or _transforms == null or _residents == null or _jobs == null or _work == null \
+			or _profiles == null or _bindings == null or _routes == null:
+		return false
+	if _sources._directory != _ids or _sources._buildings != _buildings or _sources._construction != _construction \
+			or _locations._ids != _ids or _locations._buildings != _buildings \
+			or _locations._inventory != _inventory or _locations._transforms != _transforms:
+		return false
+	if _routes._ids != _ids or _routes._buildings != _buildings or _routes._transforms != _transforms \
+			or _routes._residents != _residents or _routes._jobs != _jobs or _routes._work != _work \
+			or _routes._profiles != _profiles or _routes._bindings != _bindings:
+		return false
+	return _buildings._directory == _ids and _construction._directory == _ids \
+		and _construction._buildings == _buildings and _transforms._directory == _ids \
+		and _residents._directory == _ids and _jobs._directory == _ids and _jobs._residents == _residents \
+		and _work._directory == _ids and _work._residents == _residents and _work._jobs == _jobs \
+		and _profiles._residents == _residents and _profiles._transforms == _transforms \
+		and _profiles._inventory == _inventory and _profiles._work == _work \
+		and _profiles._gear == _gear and _profiles._carry == _carry \
+		and _profiles._reservations == _reservations and _profiles._piles == _piles
+
+
+func create(point: Vector3i, envelope: PackedInt32Array, support: PackedInt32Array,
+		role: int = Locations.ROLE_WORK, surface_bounds: PackedInt32Array = PackedInt32Array()) -> Result:
+	"""Create a natural contact with optional broader metadata; physical air and footing stay exactly local."""
+	return _create(point, envelope, support, role, NULL_REF, surface_bounds)
+
+
+func create_in_section(point: Vector3i, envelope: PackedInt32Array, support: PackedInt32Array,
+		section: Vector2i, role: int = Locations.ROLE_WORK) -> Result:
+	"""Add separately proved natural contact to an existing World datum, without protecting intervening dirt."""
+	if _busy:
+		_poisoned = true
+		return Result.new(REFUSE_BUSY)
+	if section == NULL_REF:
+		return Result.new(REFUSE_SHAPE)
+	return _create(point, envelope, support, role, section, PackedInt32Array())
+
+
+func _create(point: Vector3i, envelope: PackedInt32Array, support: PackedInt32Array,
+		role: int, section: Vector2i, surface_bounds: PackedInt32Array) -> Result:
+	"""Publish one truthful natural-ground endpoint; every ordinary refusal occurs before either live bank swaps."""
+	if _busy:
+		_poisoned = true
+		return Result.new(REFUSE_BUSY)
+	if not _ready or not exact_binding(_locations, _space, _budget, _world_ref):
+		return Result.new(REFUSE_BINDING)
+	if not _valid_input(point, envelope, support, role) or not _valid_section(point, support, section, surface_bounds):
+		return Result.new(REFUSE_SHAPE)
+	_cold_token = _budget.acquire(Budget.COLD_BYTES)
+	if _cold_token == 0:
+		return Result.new(REFUSE_BUSY)
+	_busy = true
+	_poisoned = false
+	_revision = _space.revision()
+	_remaining = _space._domain._checks
+	_copy_input(point, envelope, support, role)
+	_pin_section(point, support, section, surface_bounds)
+	var code: StringName = _prepare()
+	if code == &"":
+		code = _commit()
+	var result: Result = Result.new(code, _section if code == &"" else NULL_REF, _endpoint if code == &"" else NULL_REF)
+	_cleanup()
+	return result
+
+
+func _valid_section(point: Vector3i, support: PackedInt32Array, section: Vector2i,
+		bounds: PackedInt32Array) -> bool:
+	"""Metadata contains actual footing; any body/tool overhang still needs its own complete exterior proof."""
+	if section == NULL_REF:
+		return bounds.is_empty() or (Space.valid_box(bounds) and Space.contains_box(_space._domain._bounds, bounds) \
+			and bounds[1] == point.y and bounds[4] == point.y + 1 and _covers_footprint(bounds, support))
+	if not bounds.is_empty() or not _space._region_live(section, false):
+		return false
+	var row: int = section.x
+	if _space._r_role[row] != Space.FLOOR_DATUM or _space._r_owner_slot[row] != _world_ref.x \
+			or _space._r_owner_generation[row] != _world_ref.y or _space._r_level[row] != 0 \
+			or _space._r_claim_kind[row] != Owner.CLAIM_NONE \
+			or Vector2i(_space._r_section_slot[row], _space._r_section_generation[row]) != section \
+			or Vector2i(_space._r_claim_slot[row], _space._r_claim_generation[row]) != NULL_REF:
+		return false
+	return _space._r_lo_y[row] == point.y and _space._r_hi_y[row] == point.y + 1 \
+		and _space._r_lo_x[row] <= support[0] and _space._r_hi_x[row] >= support[3] \
+		and _space._r_lo_z[row] <= support[2] and _space._r_hi_z[row] >= support[5]
+
+
+static func _covers_footprint(bounds: PackedInt32Array, envelope: PackedInt32Array) -> bool:
+	"""Positive half-open metadata covers every horizontal point of this independently measured contact."""
+	return bounds[0] <= envelope[0] and bounds[2] <= envelope[2] \
+		and bounds[3] >= envelope[3] and bounds[5] >= envelope[5]
+
+
+func _pin_section(point: Vector3i, support: PackedInt32Array, section: Vector2i,
+		bounds: PackedInt32Array) -> void:
+	"""Copy the complete floor before observers; subsequent caller edits cannot enlarge the prepared footprint."""
+	_new_section = section == NULL_REF
+	_section = section
+	if _new_section:
+		for axis: int in 6:
+			_surface_box[axis] = support[axis] if bounds.is_empty() else bounds[axis]
+		_surface_box[1] = point.y
+		_surface_box[4] = point.y + 1
+	else:
+		_surface_box[0] = _space._r_lo_x[section.x]
+		_surface_box[1] = _space._r_lo_y[section.x]
+		_surface_box[2] = _space._r_lo_z[section.x]
+		_surface_box[3] = _space._r_hi_x[section.x]
+		_surface_box[4] = _space._r_hi_y[section.x]
+		_surface_box[5] = _space._r_hi_z[section.x]
+
+
+func _valid_input(point: Vector3i, envelope: PackedInt32Array, support: PackedInt32Array, role: int) -> bool:
+	"""The independent air and footing boxes share an exact root plane; each keeps its full physical proof."""
+	if not Space.valid_box(envelope) or not Space.valid_box(support) or role < Locations.ROLE_TRANSIT \
+			or role > Locations.ROLE_WORK or point.y != envelope[1] or not Locations.support_covers_root(point, support):
+		return false
+	if not Space.contains_box(_space._domain._bounds, envelope) or not Space.contains_box(_space._domain._bounds, support):
+		return false
+	return point.x >= envelope[0] and point.x < envelope[3] and point.z >= envelope[2] and point.z < envelope[5]
+
+
+func _copy_input(point: Vector3i, envelope: PackedInt32Array, support: PackedInt32Array, role: int) -> void:
+	"""Copy caller values into fixed admitted storage; observers cannot mutate the caller's pending plan."""
+	_record.point = point
+	_record.world = _world_ref
+	_record.room = NULL_REF
+	_record.level = 0
+	_record.role = role
+	for axis: int in 6:
+		_record.envelope[axis] = envelope[axis]
+		_record.support[axis] = support[axis]
+
+
+func _live_refusal() -> StringName:
+	"""The original lease and actual source facts precede preparation and the bounded retained-row scan."""
+	if not _operation_current() or _space.has_prepared() or _locations._token != 0:
+		return REFUSE_STALE
+	if not _charge_facts(_space._region_capacity):
+		return REFUSE_CHECKS
+	var code: StringName = _terrain.exterior_refusal(_record.envelope)
+	if code == &"":
+		code = _terrain.natural_support_refusal(_record.support)
+	if code == &"":
+		code = _terrain.exclusions_refusal(_record.support)
+	if code == &"":
+		code = FinalFacts.snapshot_refusal(_space, _routes, _locations, _revision, _space._domain._checks)
+	if code == &"":
+		code = _retained_refusal()
+	return code if code != &"" else (&"" if _operation_current() else REFUSE_STALE)
+
+
+func _operation_current() -> bool:
+	"""Pure original owner, World, revision, source tuple and cold-token predicate used after every callback."""
+	return _busy and not _poisoned and exact_binding(_locations, _space, _budget, _world_ref) \
+		and _budget.covers(_cold_token, Budget.COLD_BYTES) and _space.revision() == _revision \
+		and _routes._token == 0 and not _routes._in_callback and not _routes._advancing and not _routes._searching \
+		and (_location_token == 0 or _locations._token == _location_token)
+
+
+func _retained_refusal() -> StringName:
+	"""Read actual packed rows without a copied survey; any claimed/removed footing or physical blocker refuses."""
+	for row: int in _space._region_capacity:
+		if _space._r_present[row] == 0:
+			continue
+		var handle: Vector2i = Vector2i(row, _space._r_generation[row])
+		var code: StringName = _space.region_into_reused(handle, _region)
+		if code != &"":
+			return code
+		var body_overlap: bool = Space.overlaps(_record.envelope, _region.box)
+		var foot_overlap: bool = Space.overlaps(_record.support, _region.box)
+		if (body_overlap or foot_overlap) and _region.claim_kind != Owner.CLAIM_NONE:
+			return REFUSE_RETAINED
+		if body_overlap and _region.role != Space.SUPPORTED_VOID and _region.role != Space.FLOOR_DATUM:
+			return REFUSE_RETAINED
+		if foot_overlap and _region.role != Space.DRY_SOLID and _region.role != Space.FLOOR_DATUM \
+				and not (_region.role == Space.SUPPORT and _region.owner == _world_ref):
+			return REFUSE_RETAINED
+	return &""
+
+
+func _prepare() -> StringName:
+	"""Observe existing ground first, stage three exact World rows, then their Locations companion."""
+	var code: StringName = _live_refusal()
+	if code != &"":
+		return code
+	var begun: Owner.Result = _space.begin_stage(_revision)
+	if begun.error != &"":
+		return begun.error
+	_space_token = begun.token
+	code = _stage_rows()
+	if code == &"":
+		code = _space.seal(_space_token)
+	if code == &"":
+		code = prepared_refusal(_space_token, _cold_token)
+	if code == &"":
+		code = _prepare_location()
+	return code
+
+
+func _stage_rows() -> StringName:
+	"""A borrowed datum adds no physical extent; only the two independently proved local boxes become air/support."""
+	_region.owner = _world_ref
+	_region.level = 0
+	_region.claim_kind = Owner.CLAIM_NONE
+	_region.claim_ref = NULL_REF
+	_region.section = NULL_REF
+	var result: Owner.Result = null
+	if _new_section:
+		result = _add_region(Space.FLOOR_DATUM, _surface_box)
+		if result.error != &"":
+			return result.error
+		_section = result.handle
+	_region.section = _section
+	result = _add_region(Space.SUPPORTED_VOID, _record.envelope)
+	if result.error != &"":
+		return result.error
+	_air = result.handle
+	result = _add_region(Space.SUPPORT, _record.support)
+	_footing = result.handle
+	return result.error
+
+
+func _add_region(role: int, bounds: PackedInt32Array, floor_only: bool = false) -> Owner.Result:
+	"""Copy only the six admitted integer coordinates; metadata is one unit tall and grants no physical clearance."""
+	_region.role = role
+	for axis: int in 6:
+		_region.box[axis] = bounds[axis]
+	if floor_only:
+		_region.box[4] = _record.point.y + 1
+	return _space.stage_add(_space_token, _region)
+
+
+func _prepare_location() -> StringName:
+	"""Refresh existing immutable endpoints and add one exact new World record under the bound scope."""
+	var begun: Locations.Result = _locations.begin_world_prepare(_cold_token, _space_token)
+	if begun.error != &"":
+		return begun.error
+	_location_token = begun.token
+	for row: int in _locations._capacity:
+		if _locations._live.present[row] == 0:
+			continue
+		var ref: Vector2i = Vector2i(row, _locations._get32(_locations._live, Locations.GENERATION, row))
+		var code: StringName = _locations.stage_refresh(_location_token, ref)
+		if code != &"":
+			return code
+	_record.section = _section
+	var added: Locations.Result = _locations.stage_add(_location_token, _record)
+	if added.error != &"":
+		return added.error
+	_endpoint = added.location
+	return _locations.seal(_location_token)
+
+
+func prepared_refusal(space_token: int, cold_token: int) -> StringName:
+	"""Final natural/source facts are callback-free within this exact sealed candidate and original lease."""
+	if not _operation_current() or space_token != _space_token or cold_token != _cold_token \
+			or space_token <= 0 or _space._stage_token != space_token or not _space._sealed \
+			or _space._s_header[17] != _revision + 1:
+		return REFUSE_STALE
+	if not _charge_facts(3 * 32):
+		return REFUSE_CHECKS
+	var code: StringName = _staged_rows_refusal()
+	if code == &"":
+		code = _terrain.prepared_local_facts_refusal(_record.envelope, Terrain.EXTERIOR, _revision, space_token, cold_token)
+	if code == &"":
+		code = _terrain.prepared_local_facts_refusal(_record.support, Terrain.FOOTING, _revision, space_token, cold_token)
+	if code == &"":
+		code = _terrain.prepared_local_facts_refusal(_record.support, Terrain.EXCLUSIONS, _revision, space_token, cold_token)
+	if code == &"":
+		code = FinalFacts._sources_refusal(_space, _routes, _locations)
+	if code == &"":
+		code = FinalFacts._claims_refusal(_space)
+	return code if code != &"" else (&"" if _operation_current() else REFUSE_STALE)
+
+
+func _charge_facts(extra: int) -> bool:
+	"""Charge the counting scan first, then the complete source/claim and three terrain passes before reading them."""
+	if not _spend(_space._region_capacity + _space._source_capacity):
+		return false
+	return _spend(FinalFacts._required_checks(_space) + 3 * Terrain.LOCAL_QUERY_CHECKS + extra + 512)
+
+
+func _spend(checks: int) -> bool:
+	"""One finite counter covers the whole create and every repeated World scope observation."""
+	if checks < 0 or checks > _remaining:
+		_remaining = 0
+		return false
+	_remaining -= checks
+	return true
+
+
+func _staged_rows_refusal() -> StringName:
+	"""Prove exact metadata and local physical rows; reusing metadata must not add or modify that live row."""
+	if _space._changed_count != (3 if _new_section else 2):
+		return REFUSE_STALE
+	for index: int in 3:
+		var handle: Vector2i = _section if index == 0 else (_air if index == 1 else _footing)
+		var role: int = Space.FLOOR_DATUM if index == 0 else (Space.SUPPORTED_VOID if index == 1 else Space.SUPPORT)
+		var code: StringName = _space.prepared_region_observation_into(_space_token, handle, _region)
+		if code != &"":
+			return code
+		if _region.role != role or _region.owner != _world_ref or _region.level != 0 \
+				or _region.claim_kind != Owner.CLAIM_NONE or _region.claim_ref != NULL_REF \
+				or _region.section != _section:
+			return REFUSE_STALE
+		for axis: int in 6:
+			var expected: int = _surface_box[axis] if index == 0 else \
+				(_record.support[axis] if index == 2 else _record.envelope[axis])
+			if _region.box[axis] != expected:
+				return REFUSE_STALE
+	return &""
+
+
+func _commit() -> StringName:
+	"""All observations finish before the two synchronous swaps; publication contains no observer callback."""
+	var code: StringName = _locations.prepared_refusal(_location_token)
+	if code == &"":
+		code = prepared_refusal(_space_token, _cold_token)
+	if code == &"":
+		code = _location_candidate_refusal()
+	if code != &"":
+		return code
+	_publishing = true
+	_space.publish(_space_token)
+	var published: bool = _locations.publish(_location_token)
+	_publishing = false
+	return &"" if published else &"SURFACE_ANCHOR_PUBLICATION_CONTRACT"
+
+
+func _location_candidate_refusal() -> StringName:
+	"""Attest the exact still-sealed companion after the last observer and before either live bank swaps."""
+	if not _operation_current() or _locations._token != _location_token or _location_token <= 0 \
+			or not _locations._sealed or not _locations._world_preparation or _locations._room_admission \
+			or _locations._owner_token != _space_token or _locations._cold_token != _cold_token \
+			or _locations._base_geometry_revision != _revision or _locations._target_geometry_revision != _revision + 1:
+		return REFUSE_STALE
+	if not _spend(_locations._capacity * (Locations.I32_FIELDS + 10) + 64):
+		return REFUSE_CHECKS
+	if _locations._stage.count != _locations._live.count + 1 or _locations._world_rows_refusal() != &"" \
+			or not _locations._live_ref(_locations._stage, _endpoint) or _locations._live.present[_endpoint.x] != 0:
+		return REFUSE_STALE
+	return _locations._installed_witnesses_refusal() if _endpoint_payload_current() else REFUSE_STALE
+
+
+func _endpoint_payload_current() -> bool:
+	"""Compare the entire requested newly staged full handle without an overridable read callback."""
+	var row: int = _endpoint.x
+	var bank: Locations.Bank = _locations._stage
+	if _locations._ref_at(bank, Locations.ROOM_SLOT, row) != NULL_REF \
+			or _locations._ref_at(bank, Locations.SECTION_SLOT, row) != _section \
+			or _locations._get32(bank, Locations.LEVEL, row) != 0 \
+			or _locations._get32(bank, Locations.ROLE, row) != _record.role \
+			or _locations._get64(bank, Locations.PAYLOAD_REVISION, row) != _endpoint.y:
+		return false
+	for axis: int in 3:
+		if _locations._get32(bank, Locations.X + axis, row) != _record.point[axis]:
+			return false
+	for axis: int in 6:
+		if _locations._get32(bank, Locations.ENVELOPE + axis, row) != _record.envelope[axis] \
+				or _locations._get32(bank, Locations.SUPPORT + axis, row) != _record.support[axis]:
+			return false
+	return true
+
+
+func is_publishing(space_token: int, cold_token: int) -> bool:
+	"""Pure exact window/receipt facts after Space swaps; never call an observation from this method."""
+	return _publishing and _busy and not _poisoned and space_token == _space_token and cold_token == _cold_token \
+		and _budget.covers(cold_token, Budget.COLD_BYTES) and _space._stage_token == 0 \
+		and _space._last_published_token == space_token and _space.revision() == _revision + 1
+
+
+func _cleanup() -> void:
+	"""Drop only this candidate and release only the original lease; another operation's replacement survives."""
+	if _location_token > 0:
+		_locations.abort(_location_token)
+	if _space_token > 0:
+		_space.abort(_space_token)
+	var original: int = _cold_token
+	_cold_token = 0
+	_space_token = 0
+	_location_token = 0
+	_section = NULL_REF
+	_new_section = false
+	_air = NULL_REF
+	_footing = NULL_REF
+	_endpoint = NULL_REF
+	_revision = 0
+	_remaining = 0
+	_publishing = false
+	_busy = false
+	if _budget.covers(original, Budget.COLD_BYTES):
+		_budget.release(original)

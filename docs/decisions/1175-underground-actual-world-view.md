@@ -1,4 +1,4 @@
-# ADR 1175 — Actual World terrain view for underground planning
+# 1175 — Actual World terrain view for underground planning
 
 Status: Accepted as a presentation component after independent root source/native review, 2026-10-05.
 

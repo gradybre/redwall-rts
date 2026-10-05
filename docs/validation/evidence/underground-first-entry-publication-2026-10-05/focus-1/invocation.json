@@ -1,0 +1,69 @@
+{
+  "head": "eb95c0dd418d97719a1772790265ae7d834b0291",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "log": "clean-import.log",
+      "exit_code": 0,
+      "seconds": 12.551
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "297/411",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-first-entry-publication-2026-10-05/focus-1/test_underground_entry_structure_source"
+      ],
+      "log": "test_underground_entry_structure_source.gd.log",
+      "exit_code": 0,
+      "seconds": 5.003
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6495",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-first-entry-publication-2026-10-05/focus-1/analyzer.json",
+        "godot/test/test_underground_entry_structure_source.gd"
+      ],
+      "log": "analyzer.log",
+      "exit_code": 0,
+      "seconds": 12.835
+    }
+  ],
+  "scope": "Focused official singleton suite plus zero-warning analyzer, not a full no-argument milestone",
+  "assets_present_before": true,
+  "runtime_qualified": false,
+  "import_findings": [],
+  "counts": {
+    "test_underground_entry_structure_source.gd": {
+      "tests": 2,
+      "assertions": 45,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    }
+  },
+  "analyzer_raw_findings": [],
+  "project_restored": true,
+  "assets_restored": true,
+  "sources_unchanged": true,
+  "old_sidecars_restored": true,
+  "exit_code": 0
+}

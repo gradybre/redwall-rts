@@ -1,0 +1,53 @@
+{
+  "decision": "ACCEPTED: bounded immutable structural source only",
+  "findings": [],
+  "reviewed_source": {
+    "godot/data/underground/first-entry-prefix-v1/compile_entry_prefix.py": "5eaf2cf19cfcb1e1ac32dbcec53f04df7ca3832daa56a0c2c00382a5beeb94ba",
+    "godot/data/underground/first-entry-prefix-v1/test_compile_entry_prefix.py": "d82e83a2431a459ac6afbb5cc60198cb36ef6aeeedba5e2d91bdec4d43e2d1d9",
+    "godot/test/test_underground_entry_structure_source.gd": "cb43a99830885b7388af2de8645c616ed4d7df07b063adfad922abbd234c4d05",
+    "docs/decisions/1187-authored-first-entry-structural-publication.md": "0b8841ccc5cba529b6e4bdb56969113dc91833f5765740ad207e2d52ec8cc400",
+    "godot/data/underground/first-entry-prefix-v1/structural-v1/assemblies.ugasmb": "abd1bb9330f874d26447395a9a9e49707a6de84cefddabf2c60cf932555cd8e7",
+    "godot/data/underground/first-entry-prefix-v1/structural-v1/manifest.json": "ca5e0e5819a5acf08e2d1d6ab42797defdee49b0da9982f5d9055634b6a914ed",
+    "godot/data/underground/first-entry-prefix-v1/structural-v1/recipes.ugrecp": "14a6a75d41f3072b55ee7db9878e8c975fa79338491fafa612a7b8c1410390e2",
+    "godot/data/underground/first-entry-prefix-v1/structural-v1/structure.ugconn": "d945e9dd965da956868284772dfeb6316d86d288ab9fb34a20a49925197c6578"
+  },
+  "independent_python_tests": 7,
+  "independent_extra_refusal_probes": 3,
+  "rebuilt_outputs_identical": 4,
+  "engine_rerun": false,
+  "inspected_author_receipts": {
+    "docs/validation/evidence/underground-first-entry-publication-2026-10-05/focus-1/invocation.json": "640d643a8888f745c61e5dd85be23c15f0a955f509a9402fe12d3a0b671300b0",
+    "docs/validation/evidence/underground-first-entry-publication-2026-10-05/focus-1/source-before.json": "48ee5545823be179e104403cf19b64c03a09883b98528ad65395de4e004e0c99",
+    "docs/validation/evidence/underground-first-entry-publication-2026-10-05/focus-1/source-after.json": "48ee5545823be179e104403cf19b64c03a09883b98528ad65395de4e004e0c99",
+    "docs/validation/evidence/underground-first-entry-publication-2026-10-05/focus-1/source-sha256.json": "b8838289a8cec7d6c540d672585a638da3c464e2381fa107c7510ce52d68ba48",
+    "docs/validation/evidence/underground-first-entry-publication-2026-10-05/focus-1/test_underground_entry_structure_source.gd.log": "09766434da1c6ecefead070fe60a88fad70189a29371ec6bd05810b2e69d1313",
+    "docs/validation/evidence/underground-first-entry-publication-2026-10-05/focus-1/analyzer.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "docs/validation/evidence/underground-first-entry-publication-2026-10-05/focus-1/analyzer-editor.log": "f15ffd4c558b01611d562c8c257508942bdc2dc542124f423ae2a592a46edfa6",
+    "docs/validation/evidence/underground-first-entry-publication-2026-10-05/focus-1/clean-import.log": "e996539d7a08bbf2b654c9b2e3695482af9f8e4d89dafd48c2cd264c731b636c"
+  },
+  "author_actual_reader_tests": {
+    "tests": 2,
+    "assertions": 45,
+    "failures": 0,
+    "strict_raw_diagnostics": 0,
+    "leaks": 0,
+    "analyzer_files": 1,
+    "analyzer_findings": 0
+  },
+  "source_geometry_review": {
+    "complete_timber_prisms": 14,
+    "natural_bearings": 8,
+    "groups": 2,
+    "cut_cubes": 6,
+    "wood_milli": 5000,
+    "build_milli_wu": 44000,
+    "no_residual_floor": true,
+    "unchanged_ground_paces": 12,
+    "stair_paces": 0
+  },
+  "entry_workflow_accepted": false,
+  "traversal_accepted": false,
+  "paid_handling_accepted": false,
+  "native_memory_accepted": false,
+  "foreign_writes": false
+}

@@ -1,0 +1,10 @@
+{
+  "godot/data/underground/first-entry-prefix-v1/compile_entry_prefix.py": "5eaf2cf19cfcb1e1ac32dbcec53f04df7ca3832daa56a0c2c00382a5beeb94ba",
+  "godot/data/underground/first-entry-prefix-v1/test_compile_entry_prefix.py": "d82e83a2431a459ac6afbb5cc60198cb36ef6aeeedba5e2d91bdec4d43e2d1d9",
+  "godot/test/test_underground_entry_structure_source.gd": "cb43a99830885b7388af2de8645c616ed4d7df07b063adfad922abbd234c4d05",
+  "docs/decisions/1187-authored-first-entry-structural-publication.md": "0b8841ccc5cba529b6e4bdb56969113dc91833f5765740ad207e2d52ec8cc400",
+  "godot/data/underground/first-entry-prefix-v1/structural-v1/assemblies.ugasmb": "abd1bb9330f874d26447395a9a9e49707a6de84cefddabf2c60cf932555cd8e7",
+  "godot/data/underground/first-entry-prefix-v1/structural-v1/manifest.json": "ca5e0e5819a5acf08e2d1d6ab42797defdee49b0da9982f5d9055634b6a914ed",
+  "godot/data/underground/first-entry-prefix-v1/structural-v1/recipes.ugrecp": "14a6a75d41f3072b55ee7db9878e8c975fa79338491fafa612a7b8c1410390e2",
+  "godot/data/underground/first-entry-prefix-v1/structural-v1/structure.ugconn": "d945e9dd965da956868284772dfeb6316d86d288ab9fb34a20a49925197c6578"
+}

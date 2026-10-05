@@ -1,0 +1,7 @@
+# Independent ADR1187 structural source review
+
+Accepted at the exact pins in `acceptance.json`. I read the complete compiler, its seven tests, actual Godot reader test and ADR, inspected the original 2-test / 45-assertion clean receipt and zero-warning analyzer/raw logs, and ran seven Python tests plus three source metadata refusal probes. All four published outputs rebuilt byte-identically; all ten manifest input digests matched and protected source hashes stayed unchanged. I did not run Godot or write in the author worktree.
+
+The Catalog projection preserves fourteen complete timber prisms, eight natural bearing volumes, the original complete part partition, both exact deck-top metadata rows and the sole near-edge opening. The half-metre residual pocket remains outside all floor rows. The twelve ground pace rows are copied byte-for-byte; no stair-family pace is authored. The real readers retain full source hashes and actual owner binding, with decoding leaving Inventory, Jobs, Buildings, Sites, Locations and Routes unchanged. The approved bills remain 4000 + 1000 wood milli and 32000 + 12000 mWU.
+
+No high or medium finding remains within this scope. This packet does not emit Frontier or Workpieces, authorize source-positive Entry phases, grant a route, consume materials, activate handling or qualify native memory. A later current-consumer/30-profile renewal must preserve and separately qualify these boundaries.

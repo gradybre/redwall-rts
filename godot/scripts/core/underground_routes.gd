@@ -2486,6 +2486,10 @@ func _assembly_transition(row: int, worker: Vector2i, job: Vector2i, action: int
 		return &"ROUTE_ASSEMBLY_UNBOUND"
 	var job_row: int = _turn_directory_row(self, job, Directory.KIND_JOB)
 	if job_row < 0: return &"ROUTE_ASSEMBLY_JOB"
+	# START publishes the bearer and advances the Space revision; the ordinary operational binding check
+	# re-attests immutable terrain facts at that revision before any final physical leaf reads them.
+	var bound: StringName = bindings.binding_refusal()
+	if bound != &"": return bound
 	var project: Vector2i = Vector2i(_jobs._requester_slot[job_row], _jobs._requester_generation[job_row])
 	var project_row: int = _turn_directory_row(self, project, Directory.KIND_CONSTRUCTION)
 	if project_row < 0: return &"ROUTE_ASSEMBLY_PROJECT"

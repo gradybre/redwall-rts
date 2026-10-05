@@ -1,0 +1,388 @@
+{
+  "counts": {
+    "assertions": 55739,
+    "expected": 0,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 1645,
+    "tolerated": 67,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "manifest_sha256": "e59d48adf81c173fca299c9a6a1caa16ae7f9a23aab49a00b7012fc1d7856c7d",
+  "shard_count": 8,
+  "shard_index": 4,
+  "suite_counts": {
+    "test_appoint_warden.gd": {
+      "assertions": 340,
+      "failures": 0,
+      "tests": 33
+    },
+    "test_building_definitions.gd": {
+      "assertions": 420,
+      "failures": 0,
+      "tests": 21
+    },
+    "test_buildings.gd": {
+      "assertions": 906,
+      "failures": 0,
+      "tests": 63
+    },
+    "test_canonical_state_hash.gd": {
+      "assertions": 4724,
+      "failures": 0,
+      "tests": 60
+    },
+    "test_command_dispatch.gd": {
+      "assertions": 5295,
+      "failures": 0,
+      "tests": 94
+    },
+    "test_construction_modular.gd": {
+      "assertions": 150,
+      "failures": 0,
+      "tests": 12
+    },
+    "test_construction_retired_histories.gd": {
+      "assertions": 1276,
+      "failures": 0,
+      "tests": 12
+    },
+    "test_demo_camera_live.gd": {
+      "assertions": 96,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_demo_command.gd": {
+      "assertions": 157,
+      "failures": 0,
+      "tests": 30
+    },
+    "test_demo_daylight.gd": {
+      "assertions": 586,
+      "failures": 0,
+      "tests": 32
+    },
+    "test_demo_earth.gd": {
+      "assertions": 196,
+      "failures": 0,
+      "tests": 18
+    },
+    "test_demo_farm_ui.gd": {
+      "assertions": 363,
+      "failures": 0,
+      "tests": 51
+    },
+    "test_demo_fishery.gd": {
+      "assertions": 659,
+      "failures": 0,
+      "tests": 44
+    },
+    "test_demo_guide_pages.gd": {
+      "assertions": 1607,
+      "failures": 0,
+      "tests": 21
+    },
+    "test_demo_hall.gd": {
+      "assertions": 384,
+      "failures": 0,
+      "tests": 46
+    },
+    "test_demo_input_gate.gd": {
+      "assertions": 159,
+      "failures": 0,
+      "tests": 28
+    },
+    "test_demo_pace.gd": {
+      "assertions": 16,
+      "failures": 0,
+      "tests": 4
+    },
+    "test_demo_planner.gd": {
+      "assertions": 247,
+      "failures": 0,
+      "tests": 29
+    },
+    "test_demo_regatta.gd": {
+      "assertions": 301,
+      "failures": 0,
+      "tests": 28
+    },
+    "test_demo_select_live.gd": {
+      "assertions": 126,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_demo_sound_cost.gd": {
+      "assertions": 19,
+      "failures": 0,
+      "tests": 1
+    },
+    "test_demo_sowing.gd": {
+      "assertions": 1145,
+      "failures": 0,
+      "tests": 11
+    },
+    "test_demo_tunnel.gd": {
+      "assertions": 929,
+      "failures": 0,
+      "tests": 119
+    },
+    "test_demo_underground_view.gd": {
+      "assertions": 3516,
+      "failures": 0,
+      "tests": 22
+    },
+    "test_demo_work_edges.gd": {
+      "assertions": 109,
+      "failures": 0,
+      "tests": 31
+    },
+    "test_economy_system.gd": {
+      "assertions": 250,
+      "failures": 0,
+      "tests": 49
+    },
+    "test_entity_directory_batch.gd": {
+      "assertions": 7971,
+      "failures": 0,
+      "tests": 21
+    },
+    "test_game_manager.gd": {
+      "assertions": 267,
+      "failures": 0,
+      "tests": 73
+    },
+    "test_inventory_capacity_reduction.gd": {
+      "assertions": 34,
+      "failures": 0,
+      "tests": 5
+    },
+    "test_inventory_stock_counts.gd": {
+      "assertions": 1400,
+      "failures": 0,
+      "tests": 11
+    },
+    "test_job_planner.gd": {
+      "assertions": 2121,
+      "failures": 0,
+      "tests": 188
+    },
+    "test_lookdev_import_validator.gd": {
+      "assertions": 66,
+      "failures": 0,
+      "tests": 24
+    },
+    "test_movement_readmission.gd": {
+      "assertions": 100,
+      "failures": 0,
+      "tests": 5
+    },
+    "test_priorities.gd": {
+      "assertions": 276,
+      "failures": 0,
+      "tests": 22
+    },
+    "test_resource_catalog_binding.gd": {
+      "assertions": 400,
+      "failures": 0,
+      "tests": 35
+    },
+    "test_resource_nodes.gd": {
+      "assertions": 637,
+      "failures": 0,
+      "tests": 39
+    },
+    "test_save_owner_transforms.gd": {
+      "assertions": 3116,
+      "failures": 0,
+      "tests": 9
+    },
+    "test_save_section_name_pool.gd": {
+      "assertions": 466,
+      "failures": 0,
+      "tests": 44
+    },
+    "test_scheduler_events.gd": {
+      "assertions": 2790,
+      "failures": 0,
+      "tests": 92
+    },
+    "test_store_policy.gd": {
+      "assertions": 245,
+      "failures": 0,
+      "tests": 20
+    },
+    "test_ui_art.gd": {
+      "assertions": 807,
+      "failures": 0,
+      "tests": 22
+    },
+    "test_ui_context_gates.gd": {
+      "assertions": 1081,
+      "failures": 0,
+      "tests": 15
+    },
+    "test_ui_notices.gd": {
+      "assertions": 1210,
+      "failures": 0,
+      "tests": 25
+    },
+    "test_underground_entry_cut_map.gd": {
+      "assertions": 2085,
+      "failures": 0,
+      "tests": 13
+    },
+    "test_underground_first_prefix.gd": {
+      "assertions": 414,
+      "failures": 0,
+      "tests": 5
+    },
+    "test_underground_metal_inputs.gd": {
+      "assertions": 54,
+      "failures": 0,
+      "tests": 9
+    },
+    "test_underground_profiles.gd": {
+      "assertions": 669,
+      "failures": 0,
+      "tests": 28
+    },
+    "test_underground_space_authority.gd": {
+      "assertions": 4991,
+      "failures": 0,
+      "tests": 36
+    },
+    "test_underground_support_clearance.gd": {
+      "assertions": 138,
+      "failures": 0,
+      "tests": 9
+    },
+    "test_underground_workpiece_spatial_lifecycle.gd": {
+      "assertions": 93,
+      "failures": 0,
+      "tests": 6
+    },
+    "test_underground_world_structure.gd": {
+      "assertions": 64,
+      "failures": 0,
+      "tests": 6
+    },
+    "test_weir_sluice.gd": {
+      "assertions": 268,
+      "failures": 0,
+      "tests": 20
+    }
+  },
+  "suite_usec": {
+    "test_appoint_warden.gd": 1545659,
+    "test_building_definitions.gd": 19844,
+    "test_buildings.gd": 2969309,
+    "test_canonical_state_hash.gd": 416190,
+    "test_command_dispatch.gd": 4325372,
+    "test_construction_modular.gd": 1620302,
+    "test_construction_retired_histories.gd": 6039419,
+    "test_demo_camera_live.gd": 56167847,
+    "test_demo_command.gd": 3715270,
+    "test_demo_daylight.gd": 948745,
+    "test_demo_earth.gd": 8832524,
+    "test_demo_farm_ui.gd": 13386296,
+    "test_demo_fishery.gd": 19424046,
+    "test_demo_guide_pages.gd": 3326771,
+    "test_demo_hall.gd": 1130427,
+    "test_demo_input_gate.gd": 158367,
+    "test_demo_pace.gd": 44903,
+    "test_demo_planner.gd": 13814552,
+    "test_demo_regatta.gd": 15694253,
+    "test_demo_select_live.gd": 34973987,
+    "test_demo_sound_cost.gd": 1479562,
+    "test_demo_sowing.gd": 740004,
+    "test_demo_tunnel.gd": 12774207,
+    "test_demo_underground_view.gd": 38061320,
+    "test_demo_work_edges.gd": 13871165,
+    "test_economy_system.gd": 4347959,
+    "test_entity_directory_batch.gd": 1644828,
+    "test_game_manager.gd": 374500,
+    "test_inventory_capacity_reduction.gd": 8732,
+    "test_inventory_stock_counts.gd": 156203,
+    "test_job_planner.gd": 9420849,
+    "test_lookdev_import_validator.gd": 27021,
+    "test_movement_readmission.gd": 603058,
+    "test_priorities.gd": 14675,
+    "test_resource_catalog_binding.gd": 1176659,
+    "test_resource_nodes.gd": 1670564,
+    "test_save_owner_transforms.gd": 2879831,
+    "test_save_section_name_pool.gd": 1959263,
+    "test_scheduler_events.gd": 118851,
+    "test_store_policy.gd": 1152917,
+    "test_ui_art.gd": 128796,
+    "test_ui_context_gates.gd": 352458,
+    "test_ui_notices.gd": 157949,
+    "test_underground_entry_cut_map.gd": 42198,
+    "test_underground_first_prefix.gd": 4810402,
+    "test_underground_metal_inputs.gd": 85116,
+    "test_underground_profiles.gd": 1318081,
+    "test_underground_space_authority.gd": 3529594,
+    "test_underground_support_clearance.gd": 1499220,
+    "test_underground_workpiece_spatial_lifecycle.gd": 141062824,
+    "test_underground_world_structure.gd": 3410038,
+    "test_weir_sluice.gd": 1727618
+  },
+  "suites": [
+    "test_appoint_warden.gd",
+    "test_building_definitions.gd",
+    "test_buildings.gd",
+    "test_canonical_state_hash.gd",
+    "test_command_dispatch.gd",
+    "test_construction_modular.gd",
+    "test_construction_retired_histories.gd",
+    "test_demo_camera_live.gd",
+    "test_demo_command.gd",
+    "test_demo_daylight.gd",
+    "test_demo_earth.gd",
+    "test_demo_farm_ui.gd",
+    "test_demo_fishery.gd",
+    "test_demo_guide_pages.gd",
+    "test_demo_hall.gd",
+    "test_demo_input_gate.gd",
+    "test_demo_pace.gd",
+    "test_demo_planner.gd",
+    "test_demo_regatta.gd",
+    "test_demo_select_live.gd",
+    "test_demo_sound_cost.gd",
+    "test_demo_sowing.gd",
+    "test_demo_tunnel.gd",
+    "test_demo_underground_view.gd",
+    "test_demo_work_edges.gd",
+    "test_economy_system.gd",
+    "test_entity_directory_batch.gd",
+    "test_game_manager.gd",
+    "test_inventory_capacity_reduction.gd",
+    "test_inventory_stock_counts.gd",
+    "test_job_planner.gd",
+    "test_lookdev_import_validator.gd",
+    "test_movement_readmission.gd",
+    "test_priorities.gd",
+    "test_resource_catalog_binding.gd",
+    "test_resource_nodes.gd",
+    "test_save_owner_transforms.gd",
+    "test_save_section_name_pool.gd",
+    "test_scheduler_events.gd",
+    "test_store_policy.gd",
+    "test_ui_art.gd",
+    "test_ui_context_gates.gd",
+    "test_ui_notices.gd",
+    "test_underground_entry_cut_map.gd",
+    "test_underground_first_prefix.gd",
+    "test_underground_metal_inputs.gd",
+    "test_underground_profiles.gd",
+    "test_underground_space_authority.gd",
+    "test_underground_support_clearance.gd",
+    "test_underground_workpiece_spatial_lifecycle.gd",
+    "test_underground_world_structure.gd",
+    "test_weir_sluice.gd"
+  ],
+  "version": 1,
+  "wall_seconds": 449
+}

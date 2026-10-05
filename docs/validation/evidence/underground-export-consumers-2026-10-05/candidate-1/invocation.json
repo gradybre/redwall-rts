@@ -1,0 +1,92 @@
+{
+  "head": "06ffa913ba51c4e14ac830acb2db079b44bdf385",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "log": "clean-import.log",
+      "exit_code": 0,
+      "seconds": 12.248
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "338/410",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-export-consumers-2026-10-05/candidate-1/test_demo_profile_pack"
+      ],
+      "log": "test_demo_profile_pack.gd.log",
+      "exit_code": 0,
+      "seconds": 4.572
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "401/410",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-export-consumers-2026-10-05/candidate-1/test_demo_build"
+      ],
+      "log": "test_demo_build.gd.log",
+      "exit_code": 0,
+      "seconds": 4.436
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6501",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-export-consumers-2026-10-05/candidate-1/analyzer.json",
+        "godot/test/test_demo_profile_pack.gd"
+      ],
+      "log": "analyzer.log",
+      "exit_code": 0,
+      "seconds": 12.365
+    }
+  ],
+  "scope": "Focused official singleton suite plus zero-warning analyzer, not a full no-argument milestone",
+  "assets_present_before": true,
+  "runtime_qualified": false,
+  "import_findings": [],
+  "counts": {
+    "test_demo_profile_pack.gd": {
+      "tests": 6,
+      "assertions": 25,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_demo_build.gd": {
+      "tests": 6,
+      "assertions": 224,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    }
+  },
+  "analyzer_raw_findings": [],
+  "project_restored": true,
+  "assets_restored": true,
+  "sources_unchanged": true,
+  "old_sidecars_restored": true,
+  "exit_code": 0
+}

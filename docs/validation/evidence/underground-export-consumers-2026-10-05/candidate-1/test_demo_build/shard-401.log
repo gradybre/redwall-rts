@@ -1,0 +1,28 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_demo_build.gd
+  PASS  test_without_the_feature_the_game_still_opens_its_own_scene
+  PASS  test_the_demo_build_boots_the_demo_maximized
+  PASS  test_the_desktop_vram_format_is_imported
+  PASS  test_f11_toggles_full_screen_and_back
+  PASS  test_f11_is_bound_to_nothing_else
+  PASS  test_a_picture_the_demo_reads_itself_is_found_in_a_project_and_in_a_pack
+CI_SUITE_TIME {"assertions":224,"failures":0,"suite":"test_demo_build.gd","tests":6,"usec":3932}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+6 test(s), 224 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 6 tests, 224 assertions, 0 failures.

@@ -1960,21 +1960,23 @@
           },
           {
             "agent": "/root/ug_geometry",
-            "state": "held",
+            "state": "released",
             "branch": "codex/underground-room-phase-refresh",
             "files": [
               "docs/validation/evidence/underground-haul-runtime-2026-10-04/"
             ],
-            "handoff": "Read-only actual API/source review plus bounded implementation/allocation proposal for accepted exact-one-unit wood shipment. No shared consumers or accepted source images may be edited; explicit R/S station/source/cargo/turn/stair scope and joint reservations required. Root reprioritized this read-only proposal behind the actual WALK-to-WORK clearance gap on2026-10-04; Geometry is retaining findings as a deferred note before continuing the critical approach investigation. No runtime completion claim."
+            "handoff": "Read-only actual API/source review plus bounded implementation/allocation proposal for accepted exact-one-unit wood shipment. No shared consumers or accepted source images may be edited; explicit R/S station/source/cargo/turn/stair scope and joint reservations required. Root reprioritized this read-only proposal behind the actual WALK-to-WORK clearance gap on2026-10-04; Geometry is retaining findings as a deferred note before continuing the critical approach investigation. No runtime completion claim.",
+            "worker_stop_ack": "Explicit author STOP acknowledged2026-10-05; no pending writes or owned running processes. Itinerary census author db88dc3d integrated as12f0c73a after independent portability review and26 passing negative checks; previous source lanes already integrated."
           },
           {
             "agent": "/root/ug_geometry",
-            "state": "held",
+            "state": "released",
             "branch": "codex/underground-room-phase-refresh",
             "files": [
               "docs/validation/evidence/underground-work-approach-2026-10-04/"
             ],
-            "handoff": "Root priority change acknowledged2026-10-04. Read-only actual source/API/census investigation of WALK to ready/WORK approach; source-qualified fixed-heading selection first, otherwise genuine authored transition. No clipping, pose teleport or WORK-as-WALK permission. Publisher/Profiles/Routes writes require explicit narrow handoff."
+            "handoff": "Root priority change acknowledged2026-10-04. Read-only actual source/API/census investigation of WALK to ready/WORK approach; source-qualified fixed-heading selection first, otherwise genuine authored transition. No clipping, pose teleport or WORK-as-WALK permission. Publisher/Profiles/Routes writes require explicit narrow handoff.",
+            "worker_stop_ack": "Explicit author STOP acknowledged2026-10-05; no pending writes or owned running processes. Itinerary census author db88dc3d integrated as12f0c73a after independent portability review and26 passing negative checks; previous source lanes already integrated."
           },
           {
             "agent": "/root/ug_geometry",
@@ -2030,13 +2032,14 @@
           },
           {
             "agent": "/root/ug_geometry",
-            "state": "held",
+            "state": "released",
             "branch": "codex/underground-itinerary-census",
             "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-itinerary-census",
             "files": [
               "docs/validation/evidence/underground-room-itinerary-census-2026-10-05/"
             ],
-            "handoff": "Independent exact-source1165 helper/transitive call census and negative tests within original4096B WorldRoutes controls/1024B Provider contribution. Read-only source snapshot; no consumer changes. Geometry acknowledged clean fresh-origin worktree fast-forwarded own5b440aed. Root owns helper and Provider/tests."
+            "handoff": "Independent exact-source1165 helper/transitive call census and negative tests within original4096B WorldRoutes controls/1024B Provider contribution. Read-only source snapshot; no consumer changes. Geometry acknowledged clean fresh-origin worktree fast-forwarded own5b440aed. Root owns helper and Provider/tests.",
+            "worker_stop_ack": "Explicit author STOP acknowledged2026-10-05; no pending writes or owned running processes. Itinerary census author db88dc3d integrated as12f0c73a after independent portability review and26 passing negative checks; previous source lanes already integrated."
           },
           {
             "agent": "/root/ug_construction",
@@ -2046,12 +2049,28 @@
               "godot/scripts/core/underground_connector_catalog.gd",
               "godot/test/test_underground_connector_catalog.gd",
               "godot/data/underground/ground-pace-v1/",
-              "docs/decisions/1166-ground-only-connector-pace-catalog.md",
+              "docs/decisions/1166-ground-only-connector-pace-content.md",
               "docs/validation/evidence/underground-ground-pace-2026-10-05/"
             ],
             "handoff": "Construction confirmed exclusive1166 scope after releasing1161. Fresh origin/master thenFF38515845. Version1 unchanged; explicit version2 has zero six geometry tables and actual exact source-bound ground pace rows. No dummy connector, new speed, retained bank or global reserve. Root owns registry/memory/catalog consumer renewal; Geometry owns runtime Profile/Routes seams after census.",
             "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-ground-pace",
             "base": "Fresh origin/master82d60ba8 thenFF38515845; worker acknowledged clean tree2026-10-05."
+          },
+          {
+            "agent": "/root/ug_geometry",
+            "state": "held",
+            "branch": "codex/underground-short-work-step-runtime",
+            "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-short-work-step-runtime",
+            "files": [
+              "godot/scripts/core/underground_profiles.gd",
+              "godot/test/test_underground_profiles.gd",
+              "godot/data/underground/mole-worker/mole_profile_driver.gd",
+              "godot/test/test_mole_profile_driver.gd",
+              "godot/data/underground/mole-worker/work-step-v1/",
+              "docs/decisions/1168-finite-work-step-runtime.md",
+              "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/"
+            ],
+            "handoff": "Explicit source-only1164 and1165 census STOP; clean fresh origin/master thenFF38515845 acknowledged2026-10-05. Actual finite232u terminal movement and automatic/READY transition/source recovery; no extra authoritative columns/banks, no turn/clipping grants, no resetting interrupted prefixes or successor distance spill. SourceProgram and Actor remain read-only pending exact seam handshake; no root profile publisher/census/shared source ownership."
           }
         ],
         "scope_narrowing": {
@@ -2191,7 +2210,7 @@
         "godot/scripts/core/underground_room_frontier_publication.gd.uid",
         "godot/test/test_underground_room_frontier_publication.gd",
         "godot/test/test_underground_room_frontier_publication.gd.uid",
-        "docs/decisions/1161-ordinary-room-frontier-publication.md",
+        "docs/decisions/1161-atomic-room-frontier-publication.md",
         "docs/validation/evidence/underground-room-frontier-publication-2026-10-04/",
         "godot/test/test_underground_support_clearance.gd",
         "godot/scripts/core/underground_room_itinerary.gd",
@@ -3070,7 +3089,7 @@
           {
             "agent": "/root/ug_geometry",
             "branch": "codex/underground-support-clearance",
-            "state": "held",
+            "state": "released",
             "files": [
               "godot/scripts/core/underground_entry_bindings.gd",
               "godot/scripts/core/underground_entry_bindings.gd.uid",
@@ -3078,12 +3097,13 @@
               "godot/test/test_underground_entry_bindings.gd.uid",
               "docs/decisions/1114-installed-timber-contact-publication.md"
             ],
-            "handoff": "Root stop acknowledged before explicit handoff: implement complete paid rectangular/horizontal Catalog parts using existing cold banks, exact installed-surface proof and guarded observer-free publication. Existing Locations/Placement/SpaceOwner leases remain Geometry. No fabricated air Sites/World-owned timber, no ground-only Routes bypass. Root memory tools remain independently owned."
+            "handoff": "Root stop acknowledged before explicit handoff: implement complete paid rectangular/horizontal Catalog parts using existing cold banks, exact installed-surface proof and guarded observer-free publication. Existing Locations/Placement/SpaceOwner leases remain Geometry. No fabricated air Sites/World-owned timber, no ground-only Routes bypass. Root memory tools remain independently owned.",
+            "worker_stop_ack": "Explicit author STOP acknowledged2026-10-05; no pending writes or owned running processes. Itinerary census author db88dc3d integrated as12f0c73a after independent portability review and26 passing negative checks; previous source lanes already integrated."
           },
           {
             "agent": "/root/ug_construction",
             "branch": "codex/underground-connector-work",
-            "state": "held",
+            "state": "released",
             "files": [
               "godot/scripts/core/underground_entry_world_bindings.gd",
               "godot/scripts/core/underground_entry_world_bindings.gd.uid",
@@ -3091,7 +3111,8 @@
               "godot/test/test_underground_entry_world_bindings.gd.uid",
               "docs/decisions/1119-concrete-entry-phase-composition.md"
             ],
-            "handoff": "After1114 read-only review, implement new concrete WorldBindings subclass using actual Site/Placement/EPISODE and same Contacts packet. Geometry keeps Authority/Space/Placement/Locations/Routes; root keeps base WorldBindings and payment owners. Cross-owner APIs agreed before mutation. No synthetic phase permission in actual first-prefix; exact census/native scope retained."
+            "handoff": "After1114 read-only review, implement new concrete WorldBindings subclass using actual Site/Placement/EPISODE and same Contacts packet. Geometry keeps Authority/Space/Placement/Locations/Routes; root keeps base WorldBindings and payment owners. Cross-owner APIs agreed before mutation. No synthetic phase permission in actual first-prefix; exact census/native scope retained.",
+            "worker_stop_ack": "Explicit author STOP acknowledged2026-10-05; no pending writes or owned running processes. Itinerary census author db88dc3d integrated as12f0c73a after independent portability review and26 passing negative checks; previous source lanes already integrated."
           },
           {
             "agent": "/root",
@@ -3273,6 +3294,18 @@
               "godot/test/test_underground_room_frontier.gd"
             ],
             "handoff": "Construction explicitly stopped provider/existing phase-test writes2026-10-05. Root implements fresh actual-mask itinerary within one compatible source heading/tool/cargo family using existing bounded graph scratch. No Runtime source READY takeover, cold bank, retained path ledger, source-policy bypass or numerical tuning. Shared Routes/WorldRoutes remain Construction-owned; helper private-reader reuse requires exact concrete scripts and current sources. Root also owns the original Frontier static path seam; integrates source-family search only for selected policies, keeps ordinary automatic one-profile path unchanged."
+          },
+          {
+            "agent": "/root/ug_geometry",
+            "state": "held",
+            "branch": "codex/underground-short-work-step-runtime",
+            "files": [
+              "godot/scripts/core/underground_routes.gd",
+              "godot/test/test_underground_routes.gd",
+              "godot/scripts/core/underground_world_routes.gd",
+              "godot/test/test_underground_world_routes.gd"
+            ],
+            "handoff": "Construction1161 explicitly STOPPED/integrated38515845; root no writes. Narrow same1168 finite terminal/source-transition runtime packet. Root retains Itinerary/Provider/Frontier/Publisher/WorkFace/FinalFacts/Locations; no other source edits."
           }
         ]
       }
@@ -3705,7 +3738,7 @@
           },
           {
             "agent": "/root/ug_furnishing",
-            "state": "held",
+            "state": "released",
             "branch": "codex/underground-room-owner-composition",
             "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-room-owner-composition",
             "files": [
@@ -3723,7 +3756,8 @@
               "docs/validation/evidence/underground-room-owner-composition-2026-10-04/",
               "godot/scripts/core/room_catalog.gd"
             ],
-            "handoff": "Root explicitly stopped listed source writes; fresh origin/master then FF ebdd5daa, clean worker acknowledged. Compose original host room owners into existing private Retirement.Owners, no second owner tuple. Installed constructor prefixes remain retained, stopped and owner-provable for reset. Exact private prefix retirement must preserve complete-owner guards. No actor/endpoint/room/route/phase activation or wider budget; complete census and independent review required. Root granted1163 optional borrowed original BuildingDefinitions constructor seam in room_catalog.gd; no eager duplicate, no-argument behavior preserved, exact current/prefix identity plus existing catalog tests required."
+            "handoff": "Root explicitly stopped listed source writes; fresh origin/master then FF ebdd5daa, clean worker acknowledged. Compose original host room owners into existing private Retirement.Owners, no second owner tuple. Installed constructor prefixes remain retained, stopped and owner-provable for reset. Exact private prefix retirement must preserve complete-owner guards. No actor/endpoint/room/route/phase activation or wider budget; complete census and independent review required. Root granted1163 optional borrowed original BuildingDefinitions constructor seam in room_catalog.gd; no eager duplicate, no-argument behavior preserved, exact current/prefix identity plus existing catalog tests required.",
+            "worker_stop_ack": "Author09630a42 explicitly committed and STOPPED with clean WT; accepted12source pins unchanged. Root integrated7bc0e8db after independent source/census/pin review. Native/current-joint and playable acceptance remain open."
           }
         ]
       }
@@ -5019,6 +5053,14 @@
       "local_analyzer": "0 GDScript warning(s) in 0 of1243 file(s)",
       "local_suite_seconds": 1899.36,
       "same_head_comparison": "Same402files,11156namedtests and all diagnostic/leak totals; local assertions10higher, unattributed. Strict all-counter equality not claimed."
+    },
+    {
+      "date": "2026-10-05",
+      "scope": "1161/1165 focused combined static integration and1163 lifecycle review",
+      "commit": "7bc0e8db",
+      "tests": "60 test(s),1198 assertion(s),0 failure(s); diagnostics:0unexpected errors,0unexpected warnings,0expected,0tolerated; leaked0objects/0resources; rawlogall0. Itinerary13/114, Phases24/290, Frontier9/112, Publisher14/682. Cleanassets/cache/import; project/assets/sources restored.",
+      "evidence": "docs/validation/evidence/underground-room-itinerary-2026-10-05/integration-1161/",
+      "limits": "Current source publication/joint memory renewal, native motion and playable Kitchen remain open.1163 source12/output71/history104/inherited34/currentconstructorcomparison5 pins independently verified;19 census tests pass; focused component84/3352 plus final16/371 allzero, no whole integrated claim."
     }
   ],
   "crosscut_fixes": [

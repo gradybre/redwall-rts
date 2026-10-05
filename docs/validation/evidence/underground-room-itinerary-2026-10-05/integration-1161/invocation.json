@@ -1,0 +1,78 @@
+{
+  "head": "12f0c73a286f2023a7932a000c60938f49d2e975",
+  "scope": "Focused integration, not the required full no-argument milestone suite.",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 12.254,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "255/404",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-itinerary-2026-10-05/integration-1161"
+      ],
+      "exit_code": 0,
+      "seconds": 8.06,
+      "log": "test_underground_room_itinerary.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "133/404",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-itinerary-2026-10-05/integration-1161"
+      ],
+      "exit_code": 0,
+      "seconds": 15.098,
+      "log": "test_underground_room_world_phases.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "248/404",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-itinerary-2026-10-05/integration-1161"
+      ],
+      "exit_code": 0,
+      "seconds": 8.086,
+      "log": "test_underground_room_frontier.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "177/404",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-itinerary-2026-10-05/integration-1161"
+      ],
+      "exit_code": 0,
+      "seconds": 11.568,
+      "log": "test_underground_room_frontier_publication.gd.log"
+    }
+  ],
+  "assets_present_before": true,
+  "completed_suites": [
+    "test_underground_room_itinerary.gd",
+    "test_underground_room_world_phases.gd",
+    "test_underground_room_frontier.gd",
+    "test_underground_room_frontier_publication.gd"
+  ],
+  "project_restored": true,
+  "assets_restored": true,
+  "source_unchanged": true,
+  "exit_code": 0
+}

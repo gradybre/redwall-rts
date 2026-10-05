@@ -14,6 +14,7 @@ const Space := preload("res://scripts/core/room_space.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
+const Itinerary := preload("res://scripts/core/underground_room_itinerary.gd")
 const Jobs := preload("res://scripts/core/jobs.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const CONTROL_BYTES: int = 2048
@@ -370,8 +371,14 @@ static func _endpoint(query: Query, ref: Vector2i) -> int:
 
 static func _path(query: Query, first: Vector2i, last: Vector2i, profile: int, revision: int) -> StringName:
 	"""Static route eligibility is observed on the actual committed masks, never equated with movement or work."""
-	var code: StringName = WorldRoutes.profile_reachability_refusal(query.actual_routes, first, last, profile,
-		revision, query.request.content_revision, query.remaining, query.remaining_out)
+	var code: StringName
+	if Profiles.selection_policy_leaf(query.config.profiles, profile, revision,
+			query.request.content_revision) == Profiles.POLICY_AUTOMATIC:
+		code = WorldRoutes.profile_reachability_refusal(query.actual_routes, first, last, profile,
+			revision, query.request.content_revision, query.remaining, query.remaining_out)
+	else:
+		code = Itinerary.reachability_refusal(query.actual_routes, first, last, profile,
+			revision, query.request.content_revision, query.remaining, query.remaining_out)
 	if code == &"": query.remaining = query.remaining_out[0]
 	return code
 

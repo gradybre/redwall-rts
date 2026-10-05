@@ -1,0 +1,71 @@
+# 1165 — Source-compatible Room itineraries
+
+Date: 2026-10-05 · Status: independently accepted static component; runtime movement gate open
+
+## Problem and boundary
+
+The first ordinary Room provider binds one backward Profile for every return
+path. When a work face moves sideways, its real return needs a backward leg
+followed by an all-yaw ground leg. A single exact-heading Profile correctly
+refuses the turn. The new contact publisher records real directed edges with
+complete certificate masks; its caller request is deliberately not retained.
+Neither a Room footprint nor an old gateway choice is a usable route.
+
+## Decision
+
+Derive a fresh bounded itinerary from actual current Routes/Locations and
+WorldRoutes certificate banks. Reuse admitted Dijkstra scratch, exact full
+generations, positive integer lengths, stable ties and finite work counters.
+No new path table, actor state, permission bank or capacity-sized allocation
+is permitted. Require exact concrete reader implementations and current source
+owners before using private pure helpers. Invalidate any old single-profile
+search witness before changing shared scratch.
+
+The initial family permits one selected forward/backward source heading and
+its exact source, species, stage, rig, posture, tool, cargo and quantity range;
+the same source's complete all-yaw ground WALK may connect wide gateways.
+Every edge requires an actual current certificate bit. Choose Profile IDs in
+ascending order and retain the existing integer-distance/edge tie rules.
+Unknown policies, other headings, incompatible equipment and uncertified rows
+refuse. No heading-expanded search allocation is introduced. Same-heading
+selected programmes share exact READY; an adjoining automatic edge must
+supply the complete all-yaw endpoint envelope.
+
+This is static eligibility. It never puts an actor in READY or permits an
+instant turn. Runtime movement must finish recovery and fades, preserve the
+full Job/Gear/load identity, and satisfy the separate integer source-handoff
+gate. Untagged automatic actors cannot borrow READY. The finite short step
+under1164 remains excluded until its real consumer/policy is qualified. It
+must later be a terminal movement request and finish its fade before another
+leg, without spending remaining third-tick distance on a successor or resetting
+an interrupted prefix.
+
+Materials, output and retreat queries freshly derive the itinerary. Current
+owner, source, physical and economic guards stay mandatory. No path survives
+callbacks or ticks as permission. The host separately revalidates movement;
+composed persistence must preserve canonical source clocks before activation.
+
+## Acceptance and accounting
+
+Require real mixed-profile path coverage, same-heading/equipment negatives,
+stale certificates and sources, deterministic ties, exhausted operation budgets,
+reentry, unchanged refused output and unchanged paid state. Recheck every
+collected full edge and endpoint after search. Old single-profile and stale
+source tests remain. Strict gates and no-argument local tests are unchanged.
+
+The new reader is stateless. Its complete control/helper/native lifetime must
+be counted jointly with existing4096-byte WorldRoutes controls and1024-byte
+provider contribution before integration. No reserve increase or measured
+native-memory qualification is implied by source arithmetic. Independent source review and the complete logical census are accepted in
+`docs/validation/evidence/underground-room-itinerary-census-2026-10-05/`.
+The 61-function itinerary closure uses432/512 logical helper bytes; existing
+Provider986/1024 and Frontier1966/2048 contributions stay unchanged. Twenty-six
+census negatives passed independently against accepted1161 sources. The
+pre-1161 focused engine run has46tests/516assertions, all diagnostics/leaks
+zero; targeted analyzer is zero across four files. Post-1161 combined engine,
+current source-consumer renewal and runtime handoff remain open; a static
+path does not complete a Kitchen.
+
+Post-1161 focused integration passed60tests/1,198assertions with every
+strict/raw diagnostic/leak count zero and source/project/assets unchanged.
+Current profile-consumer and runtime gates remain separate.

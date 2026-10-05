@@ -4,6 +4,7 @@ extends "res://scripts/core/underground_entry_world_bindings.gd"
 
 const RoomRoutes := preload("res://scripts/core/underground_routes.gd")
 const RoomWorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
+const RoomItinerary := preload("res://scripts/core/underground_room_itinerary.gd")
 const RoomLocations := preload("res://scripts/core/underground_locations.gd")
 const RoomFace := preload("res://scripts/core/underground_work_face.gd")
 const RoomFinal := preload("res://scripts/core/underground_final_facts.gd")
@@ -443,9 +444,16 @@ func _ordinary_selected_leaf() -> StringName:
 func _ordinary_path(destination: Vector2i) -> StringName:
 	"""A current certified directed graph path is required; neither contact nor a retained phase creates an edge."""
 	var actual: RoomWorldRoutes = _ordinary_routes.get_ref() as RoomWorldRoutes
-	var code: StringName = RoomWorldRoutes.profile_reachability_refusal(actual, _ordinary_query.location,
-		destination, _ordinary_travel, _ordinary_travel_revision, _ordinary_query.content_revision,
-		_entry_remaining, _ordinary_checks)
+	var code: StringName
+	if EntryProfiles.selection_policy_leaf(_ordinary_config.profiles, _ordinary_travel,
+			_ordinary_travel_revision, _ordinary_query.content_revision) == EntryProfiles.POLICY_AUTOMATIC:
+		code = RoomWorldRoutes.profile_reachability_refusal(actual, _ordinary_query.location,
+			destination, _ordinary_travel, _ordinary_travel_revision, _ordinary_query.content_revision,
+			_entry_remaining, _ordinary_checks)
+	else:
+		code = RoomItinerary.reachability_refusal(actual, _ordinary_query.location,
+			destination, _ordinary_travel, _ordinary_travel_revision, _ordinary_query.content_revision,
+			_entry_remaining, _ordinary_checks)
 	if code == &"": _entry_remaining = _ordinary_checks[0]
 	return code
 

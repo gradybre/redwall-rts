@@ -1959,7 +1959,7 @@ reference/header costs and whole-client peak qualification remain open.
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Composed owner lifetime | -- | -- | -- | Unbound before configure | 3 | -- | ADR1146: no packed columns. Twenty-four borrowed/owned object aliases and27 numeric bytes. Fixed1024B wrapper/reference/native plus512B helper slice fits existing PROFILE_BYTES; existing Profile, Level, Motion, Routes, Space and Terrain banks counted once. Current source-derived Profile/Level/Motion/Session joint238676/262144B; the separately counted8192B retirement slice makes246868/262144B. Two additional retirement references belong to that slice, not the original24 aliases. Native allocation and composed persistence remain open. |
+| Composed owner lifetime | -- | -- | -- | Unbound before configure | 3 | -- | ADR1146: no packed columns. Twenty-four borrowed/owned object aliases and43 numeric bytes:27 foundation bytes plus16 constructor-state bytes charged to the existing retirement slice under ADR1163. Fixed1024B wrapper/reference/native plus512B helper slice fits existing PROFILE_BYTES; existing Profile, Level, Motion, Routes, Space and Terrain banks counted once. Current source-derived Profile/Level/Motion/Session joint238676/262144B; the separately counted8192B retirement slice makes246868/262144B. Two additional retirement references belong to that slice, not the original24 aliases. Native allocation and composed persistence remain open. |
 
 ### `godot/scripts/core/underground_motion_clock.gd`
 
@@ -1990,12 +1990,18 @@ reference/header costs and whole-client peak qualification remain open.
 ### `godot/scripts/core/underground_world_retirement.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
-| Exact original host owner tuple and bounded retirement Scope | -- | -- | -- | No active retirement at a save boundary | 3 | -- | ADR1155/1158. Stateless module with nested fixed Owners and Scope packets; no new bank or per-entity state. Session retains the exact original owners and at most one pending Scope. Host stops gameplay while preparing/clearing; a partial clear remains stopped. Original-live abandonment is distinct from successful clearing. Preparation/request references are transient and must not be serialized or treated as persistent authority. The8192B slice within PROFILE_BYTES includes5673/6144 provisional controls and1162/2048 helpers for the host alone; ADR1160 composes the actual UI caller into5995/6144 controls and1882/2048 helpers in that same slice. One typed reset-outcome packet is live at most; native allocation is unmeasured. Canonical rows remain in their actual owners until the reviewed release boundary. |
+| Exact original host owner tuple and bounded retirement Scope | -- | -- | -- | No active retirement at a save boundary | 3 | -- | ADR1155/1158. Stateless module with nested fixed Owners and Scope packets; no new bank or per-entity state. Session retains the exact original owners and at most one pending Scope. Host stops gameplay while preparing/clearing; a partial clear remains stopped. Original-live abandonment is distinct from successful clearing. Preparation/request references are transient and must not be serialized or treated as persistent authority. The8192B slice within PROFILE_BYTES includes5673/6144 provisional controls and1162/2048 helpers for the host alone; ADR1160/1163 compose the actual UI caller and constructor states into6019/6144 controls and1903/2048 helpers in that same slice. Constructor execution excludes Scope and reuses that slice at7493/8192 provisional bytes; the added Scope prefix is8 bytes. Failed installed prefixes remain stopped until whole-World reset. One typed reset-outcome packet is live at most; native allocation is unmeasured. Canonical rows remain in their actual owners until the reviewed release boundary. |
 
 ### `godot/scripts/core/underground_room_frontier.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 | Derived canonical frontier and existing-contact observation | -- | -- | -- | Caller packets expire with the original cold lease | 3 | -- | ADR1157. Stateless module; caller Candidate99B and Request68B, private Query263B,1024B helper and512B provisional-native allowance total1966/2048B. This slice coexists with WorkFace only inside the existing1048960B cold arena; all packets die before the near-full paid-phase preparation. A returned Site/key is an observation, not paid progress or permission. Missing contact, ambiguity and exhausted scan do not mark a Room complete. No new canonical owner or global reservation. |
+
+### `godot/scripts/core/underground_room_itinerary.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Fresh static source-family path query | -- | -- | -- | No retained itinerary or READY permission | 3 | -- | ADR1165. Stateless reader reuses the original graph's search arrays and the WorldRoutes descriptor synchronously. Every edge and source is revalidated; a collected chain is never a saved permission. ADR1165 accepted61-function closure uses432/512 logical helper bytes, with WorldRoutes2094/4096 controls; existing Provider986/1024 and Frontier1966/2048 slices remain unchanged. Canonical runtime handoff and native measurement remain open. |
 
 ### `godot/scripts/core/underground_routes.gd` — source approach clock
 
@@ -2007,3 +2013,15 @@ state in the already classified actor bank, not a presentation cache. Any future
 composed restore must validate the tag, exact content2 profile/source identity,
 clock range and actor mode together; legacy untagged state cannot be relabeled
 as source-qualified motion. No composed save adapter is claimed here.
+
+### `godot/scripts/core/underground_room_frontier_publication.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Atomic add-only contact publication | -- | -- | -- | No retained publisher or borrowed context at quiescence | 3 | -- | ADR1161. Stateless coordinator; exact caller and private packets total2930 logical bytes. Its1024 helper slice and4096 provisional native/reference allowance fit8050/8192 cold controls. The borrowed Locations `_frontier` reference is null at quiescence; no canonical bank or wire changes. Actual original Location, graph and certificate banks publish together on already-paid Space. Whole-room construction and native measurement remain open. |
+
+### `godot/scripts/core/underground_room_composition.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless actual Session constructor | -- | -- | -- | No retained members or packed bank | 3 | -- | ADR1163. Existing private Retirement.Owners holds actual component owners; no second packet or gameplay permission. Constructor transitive scratch and two Session plus one Scope scalar are covered within the existing8192 retirement slice. Failed published prefixes stay retained for owner-validated whole-World reset. Native memory and composed persistence remain open. |

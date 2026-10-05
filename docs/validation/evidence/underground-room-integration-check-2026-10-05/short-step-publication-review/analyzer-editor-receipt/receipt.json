@@ -1,0 +1,94 @@
+{
+  "analyzer_command": {
+    "command": [
+      "python3",
+      "tools/gdscript_warnings.py",
+      "--max",
+      "0",
+      "--port",
+      "6457",
+      "--json",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication/docs/validation/evidence/underground-short-step-publication-2026-10-05/focused-3/analyzer.json",
+      "godot/data/underground/mole-worker/mole_profile_catalog.gd",
+      "godot/scripts/core/underground_motion_catalog.gd",
+      "godot/scripts/core/underground_motion_clock.gd",
+      "godot/scripts/core/underground_route_composition.gd",
+      "godot/data/underground/mole-worker/qualified-step-v4/catalog_source.gd",
+      "godot/test/test_mole_qualified_profiles.gd",
+      "godot/test/test_underground_motion_catalog.gd",
+      "godot/test/test_underground_motion_clock.gd",
+      "godot/test/test_underground_route_composition.gd",
+      "godot/test/test_underground_support_clearance.gd"
+    ],
+    "exit_code": 0,
+    "log": "analyzer.log",
+    "seconds": 14.567
+  },
+  "analyzer_end_utc": "2026-10-05T05:05:33.961184+00:00",
+  "attribution": "The retained port-6457 editor log is the current untouched file from the last focused-3 analyzer. Its modification time lies inside that recorded command duration; exact analyzed source pins still match. No subsequent engine was launched in this lane.",
+  "captured_log": {
+    "birthtime_utc": "2026-10-05T05:05:19.428077+00:00",
+    "mtime_utc": "2026-10-05T05:05:22.283548+00:00",
+    "path": "/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/gdscript_warnings_editor_6457.log",
+    "sha256": "f15ffd4c558b01611d562c8c257508942bdc2dc542124f423ae2a592a46edfa6",
+    "size": 1017
+  },
+  "engine_rerun": false,
+  "inferred_analyzer_start_utc": "2026-10-05T05:05:19.394184+00:00",
+  "log_mtime_within_original_command": true,
+  "retained_log": "docs/validation/evidence/underground-short-step-publication-2026-10-05/analyzer-editor-receipt/gdscript_warnings_editor_6457.log",
+  "run_files": {
+    "docs/validation/evidence/underground-short-step-publication-2026-10-05/focused-3/analyzer.json": {
+      "birthtime_utc": "2026-10-05T05:05:33.960928+00:00",
+      "mtime_utc": "2026-10-05T05:05:33.961031+00:00",
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication/docs/validation/evidence/underground-short-step-publication-2026-10-05/focused-3/analyzer.json",
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "size": 2
+    },
+    "docs/validation/evidence/underground-short-step-publication-2026-10-05/focused-3/analyzer.log": {
+      "birthtime_utc": "2026-10-05T05:05:19.396925+00:00",
+      "mtime_utc": "2026-10-05T05:05:33.961184+00:00",
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication/docs/validation/evidence/underground-short-step-publication-2026-10-05/focused-3/analyzer.log",
+      "sha256": "4f0e6513df21f708415d217e5883571b765c2e4314a5a64956ca38c265f0165d",
+      "size": 41
+    },
+    "docs/validation/evidence/underground-short-step-publication-2026-10-05/focused-3/invocation.json": {
+      "birthtime_utc": "2026-10-05T05:05:34.027967+00:00",
+      "mtime_utc": "2026-10-05T05:05:34.028019+00:00",
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication/docs/validation/evidence/underground-short-step-publication-2026-10-05/focused-3/invocation.json",
+      "sha256": "4a594fda35752953e3d6e2306cde12998616f5bb12474f72310882279fa72764",
+      "size": 3933
+    },
+    "docs/validation/evidence/underground-short-step-publication-2026-10-05/focused-3/source-sha256.json": {
+      "birthtime_utc": "2026-10-05T05:04:33.026893+00:00",
+      "mtime_utc": "2026-10-05T05:04:33.026948+00:00",
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication/docs/validation/evidence/underground-short-step-publication-2026-10-05/focused-3/source-sha256.json",
+      "sha256": "3b53ed3b4c5ec0e0b0d874b1c3b296f37f01562dea250215f77cf87957783904",
+      "size": 1814
+    }
+  },
+  "scanner": {
+    "function": "validate_import_log",
+    "path": "docs/validation/evidence/underground-short-step-publication-2026-10-05/reproduce.py",
+    "raw_diagnostics_or_leaks": 0,
+    "sha256": "5298412c3223565ea0065854bb9ece1b1affce3c63bc08b34c3aea6682926147"
+  },
+  "source_frozen": true,
+  "source_matches": {
+    "godot/data/underground/mole-worker/mole_profile_catalog.gd": true,
+    "godot/data/underground/mole-worker/qualified-step-v4/catalog_source.gd": true,
+    "godot/data/underground/mole-worker/qualified-step-v4/ground-pace.ugconn": true,
+    "godot/data/underground/mole-worker/qualified-step-v4/manifest.json": true,
+    "godot/data/underground/mole-worker/qualified-step-v4/mole-worker.ugprof": true,
+    "godot/data/underground/mole-worker/qualified-step-v4/motion.ugmotion": true,
+    "godot/scripts/core/underground_motion_catalog.gd": true,
+    "godot/scripts/core/underground_motion_clock.gd": true,
+    "godot/scripts/core/underground_route_composition.gd": true,
+    "godot/test/test_mole_qualified_profiles.gd": true,
+    "godot/test/test_underground_motion_catalog.gd": true,
+    "godot/test/test_underground_motion_clock.gd": true,
+    "godot/test/test_underground_route_composition.gd": true,
+    "godot/test/test_underground_support_clearance.gd": true
+  },
+  "status": "PASS"
+}

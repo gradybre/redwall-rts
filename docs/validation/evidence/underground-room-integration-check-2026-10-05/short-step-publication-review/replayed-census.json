@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "source_sha256": {
+    "godot/data/underground/mole-worker/mole_profile_catalog.gd": "941b1bf32076fbec2a2d321f97852b4ec1ca608e24dfe9cd95449c3c35c25908",
+    "godot/scripts/core/underground_motion_catalog.gd": "199bb60bfc6e62ac3f5e365d6d0b4247f82393511bc0eefaeedb31a93aefe8cd",
+    "godot/scripts/core/underground_motion_clock.gd": "a76b16440bbffe3751bfdc361e3e4195f80a3cd895e17af65d8d7773be6e4141",
+    "godot/scripts/core/underground_route_composition.gd": "1f70c75b46005b6ba8f37adc4f585511dab7f9de975edfb3f3e7bac15b39bc4f"
+  },
+  "profile_count": 29,
+  "box_count": 271,
+  "source_count": 1,
+  "paired_profile_delta": 1764,
+  "retained_owner_fields_delta": 0,
+  "runtime_bank_count_delta": 0,
+  "driver_pin_scalars": 54,
+  "new_helpers_numeric_frames": {
+    "canonical_ground_profile_id": 0,
+    "short_step_profile_id": 9
+  },
+  "new_helpers_calls_or_allocations": 0,
+  "clock_executable_sha256": "6a2cd35c7521a37634b59ef046188cb09ec02a66b478519174c29970ce736cb6",
+  "motion_bank_bytes": 70860,
+  "motion_source_only": true,
+  "clock_algorithm_unchanged": true,
+  "terms": {
+    "paired_profiles": 20988,
+    "profile_controls": 32768,
+    "levels": 2292,
+    "paired_motion": 141720,
+    "motion_decode": 4096,
+    "motion_caller": 176,
+    "motion_helpers": 4096,
+    "motion_native_provisional": 32768,
+    "session_controls": 1024,
+    "session_helpers": 512,
+    "retirement_composition": 8192
+  },
+  "joint": 248632,
+  "reservation": 262144,
+  "remaining": 13512,
+  "catalog": {
+    "cached_consumers": 10,
+    "source_metadata_utf32_payload": 5720,
+    "simultaneous_hash_chunk_payload": 8192,
+    "conservative_descriptor_wire_payload": 370,
+    "remaining_for_existing_scalars_and_native_headers": 18486,
+    "lifetime": "Ten immutable path/hash rows; cached Scripts are borrowed. Source hash and full Profile hash run sequentially. Existing caller and native controls stay charged once."
+  },
+  "native_measured": false,
+  "world_activation_qualified": false,
+  "scope": "Exact source delta from immutable predecessor; no new decoder, object bank, rate or permission. Root separately renews shared checker and whole-pack output."
+}

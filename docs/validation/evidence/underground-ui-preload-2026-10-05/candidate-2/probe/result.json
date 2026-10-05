@@ -1,0 +1,29 @@
+{
+  "files": [
+    "demo/demo_village.gd",
+    "demo/ui/demo_stall_banner.gd",
+    "scripts/systems/ui_manager.gd",
+    "scripts/ui/ui_resident_card.gd",
+    "scripts/ui/ui_resident_snapshot.gd",
+    "scripts/ui/ui_shell.gd",
+    "scripts/ui/ui_specimen.gd"
+  ],
+  "source_sha256": {
+    "godot/demo/demo_village.gd": "78f4930147aaf5201cdb5aaccaadf54ff74ffd8668709a5cab25a3ed150c75f9",
+    "godot/demo/ui/demo_stall_banner.gd": "6348b6f346159b28436520fcf3351af42c679c43d3b286f9bc9a26beec95bb17",
+    "godot/scripts/systems/ui_manager.gd": "3cf277da410c6b45bb19800a9db8a42cb97f735342d3ab38739a143a6e52d59b",
+    "godot/scripts/ui/ui_resident_card.gd": "c50430ffc2150961e41683428c405e15067434a8ef1f90f2543e6ca3785febbe",
+    "godot/scripts/ui/ui_resident_snapshot.gd": "e029cc4eefc2d25c29398dd9dbeaadc9f0608456479948d1666d073cc6657245",
+    "godot/scripts/ui/ui_shell.gd": "85045497adb94c1c6f4b772b4184bc06a79e06f13c9c4f80f7d46ca46f21f6db",
+    "godot/scripts/ui/ui_specimen.gd": "27d809a1f1a514c7003eb2cfbfb91a4fa8e78bb7b5ad794179039effff4024ad"
+  },
+  "diagnostics": {},
+  "source_unchanged": true,
+  "raw_diagnostics": [
+    "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+    "SCRIPT ERROR: Parse Error: Cannot infer the type of \"UiManagerScript\" constant because the value doesn't have a set type.",
+    "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+    "SCRIPT ERROR: Compile Error: Failed to compile depended scripts.",
+    "ERROR: Failed to load script \"res://demo/demo_village.gd\" with error \"Parse error\"."
+  ]
+}

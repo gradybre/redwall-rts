@@ -1,0 +1,8 @@
+{
+  "godot/scripts/ui/ui_resident_card.gd": "c50430ffc2150961e41683428c405e15067434a8ef1f90f2543e6ca3785febbe",
+  "godot/scripts/ui/ui_resident_snapshot.gd": "e029cc4eefc2d25c29398dd9dbeaadc9f0608456479948d1666d073cc6657245",
+  "godot/scripts/ui/ui_notices.gd": "e30d4b1524cd1fc5f785c7dc59311239ba021297f5b8a7e3b53ef22a38e39c1e",
+  "godot/scripts/systems/ui_manager.gd": "4d64b299a4d639043662805fd092f1ad33695b6d4b6a7ac826b90bbd932b2f98",
+  "godot/demo/ui/demo_stall_banner.gd": "350739dc9ca18721f9eeb08efdc5a68e8bdced56ea3335c9eeceeb17f3996372",
+  "godot/scripts/ui/ui_specimen.gd": "6b1728f220b46981b595bcc4685545062b23851827d80b3d47b333bf27006ef7"
+}

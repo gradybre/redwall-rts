@@ -1,0 +1,36 @@
+state_registry_coverage: PASS -- 154 modules, 731 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_demo_stall_banner.gd
+  PASS  test_hidden_while_the_clock_runs
+  PASS  test_a_stall_shows_it_and_it_never_resumes_by_itself
+  PASS  test_resume_acknowledges_and_the_clock_runs_again
+  PASS  test_resume_leaves_a_players_own_pause
+  PASS  test_resume_without_a_stall_does_nothing
+  PASS  test_the_banner_carries_the_clocks_sentence_and_withholds_the_card
+  PASS  test_resume_resolves_the_overload_and_a_second_stall_raises_it_again
+  PASS  test_a_step_down_warning_without_the_banner_still_takes_its_card
+  PASS  test_the_card_is_withheld_in_the_call_that_raised_it
+  PASS  test_a_reported_pause_that_never_lands_hands_the_card_back
+  PASS  test_the_banner_draws_above_the_pantry_and_the_hud
+  PASS  test_the_condition_ends_however_the_pause_is_acknowledged
+  PASS  test_a_step_down_warning_is_resolved_once_the_clock_runs_quiet
+CI_SUITE_TIME {"assertions":57,"failures":0,"suite":"test_demo_stall_banner.gd","tests":13,"usec":309512}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+13 test(s), 57 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 13 tests, 57 assertions, 0 failures.

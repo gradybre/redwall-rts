@@ -1,0 +1,166 @@
+[
+  {
+    "seconds": 10.040779,
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/demo/demo_village.gd",
+    "raw_editor_bytes": 1017,
+    "raw_diagnostics_so_far": []
+  },
+  {
+    "seconds": 12.696783,
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/demo/demo_village.gd",
+    "raw_editor_bytes": 1017,
+    "raw_diagnostics_so_far": []
+  },
+  {
+    "seconds": 12.69712,
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/demo/ui/demo_stall_banner.gd",
+    "raw_editor_bytes": 1017,
+    "raw_diagnostics_so_far": []
+  },
+  {
+    "seconds": 14.70239,
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/demo/ui/demo_stall_banner.gd",
+    "raw_editor_bytes": 1802,
+    "raw_diagnostics_so_far": [
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Parse Error: Cannot infer the type of \"UiManagerScript\" constant because the value doesn't have a set type.",
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Compile Error: Failed to compile depended scripts.",
+      "ERROR: Failed to load script \"res://demo/demo_village.gd\" with error \"Parse error\"."
+    ]
+  },
+  {
+    "seconds": 14.702769,
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/systems/ui_manager.gd",
+    "raw_editor_bytes": 1802,
+    "raw_diagnostics_so_far": [
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Parse Error: Cannot infer the type of \"UiManagerScript\" constant because the value doesn't have a set type.",
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Compile Error: Failed to compile depended scripts.",
+      "ERROR: Failed to load script \"res://demo/demo_village.gd\" with error \"Parse error\"."
+    ]
+  },
+  {
+    "seconds": 15.121532,
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/systems/ui_manager.gd",
+    "raw_editor_bytes": 1802,
+    "raw_diagnostics_so_far": [
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Parse Error: Cannot infer the type of \"UiManagerScript\" constant because the value doesn't have a set type.",
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Compile Error: Failed to compile depended scripts.",
+      "ERROR: Failed to load script \"res://demo/demo_village.gd\" with error \"Parse error\"."
+    ]
+  },
+  {
+    "seconds": 15.121901,
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/ui/ui_resident_card.gd",
+    "raw_editor_bytes": 1802,
+    "raw_diagnostics_so_far": [
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Parse Error: Cannot infer the type of \"UiManagerScript\" constant because the value doesn't have a set type.",
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Compile Error: Failed to compile depended scripts.",
+      "ERROR: Failed to load script \"res://demo/demo_village.gd\" with error \"Parse error\"."
+    ]
+  },
+  {
+    "seconds": 15.197668,
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/ui/ui_resident_card.gd",
+    "raw_editor_bytes": 1802,
+    "raw_diagnostics_so_far": [
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Parse Error: Cannot infer the type of \"UiManagerScript\" constant because the value doesn't have a set type.",
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Compile Error: Failed to compile depended scripts.",
+      "ERROR: Failed to load script \"res://demo/demo_village.gd\" with error \"Parse error\"."
+    ]
+  },
+  {
+    "seconds": 15.198131,
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/ui/ui_resident_snapshot.gd",
+    "raw_editor_bytes": 1802,
+    "raw_diagnostics_so_far": [
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Parse Error: Cannot infer the type of \"UiManagerScript\" constant because the value doesn't have a set type.",
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Compile Error: Failed to compile depended scripts.",
+      "ERROR: Failed to load script \"res://demo/demo_village.gd\" with error \"Parse error\"."
+    ]
+  },
+  {
+    "seconds": 15.242639,
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/ui/ui_resident_snapshot.gd",
+    "raw_editor_bytes": 1802,
+    "raw_diagnostics_so_far": [
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Parse Error: Cannot infer the type of \"UiManagerScript\" constant because the value doesn't have a set type.",
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Compile Error: Failed to compile depended scripts.",
+      "ERROR: Failed to load script \"res://demo/demo_village.gd\" with error \"Parse error\"."
+    ]
+  },
+  {
+    "seconds": 15.243051,
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/ui/ui_shell.gd",
+    "raw_editor_bytes": 1802,
+    "raw_diagnostics_so_far": [
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Parse Error: Cannot infer the type of \"UiManagerScript\" constant because the value doesn't have a set type.",
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Compile Error: Failed to compile depended scripts.",
+      "ERROR: Failed to load script \"res://demo/demo_village.gd\" with error \"Parse error\"."
+    ]
+  },
+  {
+    "seconds": 15.588077,
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/ui/ui_shell.gd",
+    "raw_editor_bytes": 1802,
+    "raw_diagnostics_so_far": [
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Parse Error: Cannot infer the type of \"UiManagerScript\" constant because the value doesn't have a set type.",
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Compile Error: Failed to compile depended scripts.",
+      "ERROR: Failed to load script \"res://demo/demo_village.gd\" with error \"Parse error\"."
+    ]
+  },
+  {
+    "seconds": 15.588481,
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/ui/ui_specimen.gd",
+    "raw_editor_bytes": 1802,
+    "raw_diagnostics_so_far": [
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Parse Error: Cannot infer the type of \"UiManagerScript\" constant because the value doesn't have a set type.",
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Compile Error: Failed to compile depended scripts.",
+      "ERROR: Failed to load script \"res://demo/demo_village.gd\" with error \"Parse error\"."
+    ]
+  },
+  {
+    "seconds": 15.891816,
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/ui/ui_specimen.gd",
+    "raw_editor_bytes": 1802,
+    "raw_diagnostics_so_far": [
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Parse Error: Cannot infer the type of \"UiManagerScript\" constant because the value doesn't have a set type.",
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Compile Error: Failed to compile depended scripts.",
+      "ERROR: Failed to load script \"res://demo/demo_village.gd\" with error \"Parse error\"."
+    ]
+  }
+]

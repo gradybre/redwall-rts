@@ -1,0 +1,57 @@
+state_registry_coverage: PASS -- 154 modules, 731 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_ui_resident_card.gd
+  PASS  test_the_percent_is_the_players_value_and_never_the_basis_points
+  PASS  test_the_percent_keeps_up_to_two_decimals_and_trims_trailing_zeroes
+  PASS  test_the_percent_conversion_is_exact_across_the_whole_scale
+  PASS  test_a_percent_string_never_carries_the_basis_point_scale
+  PASS  test_the_rate_is_signed_percentage_points_per_simulated_hour
+  PASS  test_the_rate_rounds_to_nearest_with_ties_away_from_zero
+  PASS  test_the_visible_label_is_fullness_and_the_number_is_not_inverted
+  PASS  test_the_underlying_hunger_field_is_named_in_accessible_detail
+  PASS  test_five_independent_rows_are_composed_with_their_own_labels
+  PASS  test_each_row_carries_its_own_value_rather_than_one_shared_figure
+  PASS  test_the_published_hunger_rate_reaches_the_row_with_its_size_multiplier
+  PASS  test_the_winter_multiplier_reaches_the_rate_the_player_reads
+  PASS  test_all_five_rows_now_carry_a_published_rate
+  PASS  test_the_unavailable_state_is_kept_for_a_genuinely_failed_binding
+  PASS  test_the_fullness_row_does_have_a_published_rate
+  PASS  test_a_slot_with_no_resident_refuses_by_name
+  PASS  test_absent_stores_refuse_by_name
+  PASS  test_a_successful_fill_clears_the_refusal
+  PASS  test_the_heading_is_the_name_alone_and_the_species_is_its_own_line
+  PASS  test_an_unnamed_resident_is_named_as_unnamed_rather_than_left_blank
+  PASS  test_health_stays_on_its_own_0_to_100_scale
+  PASS  test_the_activity_line_uses_the_published_status_and_job_state
+  PASS  test_a_spawned_idle_agent_reads_as_idle_rather_than_absent
+  PASS  test_the_skill_row_carries_level_exact_xp_and_the_next_threshold
+  PASS  test_a_max_level_skill_says_max_level_rather_than_an_invented_threshold
+  PASS  test_an_unreadable_health_says_unavailable_rather_than_zero_of_one_hundred
+  PASS  test_an_unreadable_skill_says_unavailable_rather_than_level_zero
+  PASS  test_an_unreadable_species_says_unavailable_rather_than_naming_one
+  PASS  test_the_four_delivered_species_resolve_to_real_medallion_sources
+  PASS  test_a_species_with_no_delivered_medallion_gets_none_rather_than_a_mouse
+  PASS  test_the_24_px_diagnostic_size_is_not_offered_as_a_portrait_size
+  PASS  test_the_production_size_follows_the_detail_column_width
+  PASS  test_the_medallion_is_described_as_generic_and_never_as_a_portrait
+  PASS  test_every_medallion_path_is_the_art_registrys_own
+CI_SUITE_TIME {"assertions":144,"failures":0,"suite":"test_ui_resident_card.gd","tests":34,"usec":800688}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+34 test(s), 144 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 34 tests, 144 assertions, 0 failures.

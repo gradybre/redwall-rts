@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-approach-memory/docs/validation/evidence/underground-approach-memory-2026-10-04/frontier-physical-review/inspect_frontier.py", line 187, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-approach-memory/docs/validation/evidence/underground-approach-memory-2026-10-04/frontier-physical-review/inspect_frontier.py", line 152, in main
+    assert cases[key]["complete_geometry_covered"], (key, cases[key])
+AssertionError: ('high_second_after_widening', {'profile': 23, 'root': (1512, 0, 1024), 'start': None, 'target': (2048, 1024, 1024, 3072, 2048, 2048), 'complete_geometry_covered': False, 'failures': [{'box': 225, 'role': 'STROKE', 'uncovered': [(2048, 1024, 1013, 2090, 1043, 1024)]}]})

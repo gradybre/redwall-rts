@@ -1,0 +1,53 @@
+{
+  "source": "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/frontier-test-renewal-1",
+  "independent_parse": {
+    "test_mole_qualified_profiles.gd.log": {
+      "tests": 10,
+      "assertions": 353,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_underground_room_frontier_publication.gd.log": {
+      "tests": 14,
+      "assertions": 682,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_underground_room_itinerary.gd.log": {
+      "tests": 13,
+      "assertions": 114,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    }
+  },
+  "pins": {
+    "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/frontier-test-renewal-1/strict/test_mole_qualified_profiles.gd.log": "53de376cc81c60b11ed5afcbe510e669c6d1bd13136aea64f75ed6f7c45de0d4",
+    "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/frontier-test-renewal-1/strict/test_underground_room_frontier_publication.gd.log": "bcdfa6f1676658f928a889662ea34e8fe5b2b433240959b46d137b90f683680d",
+    "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/frontier-test-renewal-1/strict/test_underground_room_itinerary.gd.log": "778c7822d56e459f76f08782ead88c2f17c407e519ca04b49af5415de020d7df",
+    "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/frontier-test-renewal-1/invocation.json": "0243f31ed5d036e84393d23ea314b538566e80278842969496bec810378b668d",
+    "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/frontier-test-renewal-1/analyzer.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/frontier-test-renewal-1/analyzer.log": "7999cca36479a444d97982a4d485be2e50004d4b56edef00b8e6a45434acddd2",
+    "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/frontier-test-renewal-1/source-sha256.json": "22ee8111da4097459c1a431ba6cf02e331bd1e2ef7e5d5fe40c3b2262ff24371",
+    "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/frontier-test-renewal-1/strict/source-sha256.json": "761e30710c1c069055db153d6d091829a4d83fad018ad5f69568bfabb8d49631",
+    "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/frontier-test-renewal-1/strict/clean-import.log": "5915b5fc379af7695a266eb48179db6c4abbac5ae6839a8c30aabc2acaa2926a"
+  },
+  "total_tests": 37,
+  "total_assertions": 1149,
+  "author_restoration_verified": true,
+  "test_source_still_frozen": true
+}

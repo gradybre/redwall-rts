@@ -1,0 +1,95 @@
+{
+  "head": "26a82d9e8b8a2752b55902dab0ea6ae0c390da3c",
+  "base": "9dad696d",
+  "scope": "Focused integrated validation, not a full milestone or playable acceptance",
+  "commands": [
+    {
+      "command": [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+        "-B",
+        "docs/validation/evidence/underground-host-checkpoint-2026-10-04/verify_profile_integration.py",
+        "--out",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/frontier-test-renewal-1/strict",
+        "--suite",
+        "test_underground_room_frontier_publication.gd",
+        "--suite",
+        "test_underground_room_itinerary.gd",
+        "--suite",
+        "test_mole_qualified_profiles.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 38.277,
+      "log": "strict-runner.log"
+    },
+    {
+      "command": [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+        "-B",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6467",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/frontier-test-renewal-1/analyzer.json",
+        "godot/test/test_mole_qualified_profiles.gd",
+        "godot/test/test_underground_room_frontier_publication.gd",
+        "godot/test/test_underground_room_itinerary.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 12.895,
+      "log": "analyzer.log"
+    }
+  ],
+  "assets_present_before": true,
+  "registry_sha256_before": "a4ef89a99f6d8ea82de0ce77da71314b8fb9c3e9f1140392e04a2c51a1403a1a",
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "strict_custom_user_dir": "Redwall-ug-profile-integration-20261004",
+  "analyzer_custom_user_dir": "Redwall-ug-frontier-test-renewal-20261005",
+  "analyzer_port": 6467,
+  "strict_suites": {
+    "test_underground_room_frontier_publication.gd": {
+      "tests": 14,
+      "assertions": 682,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_underground_room_itinerary.gd": {
+      "tests": 13,
+      "assertions": 114,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_mole_qualified_profiles.gd": {
+      "tests": 10,
+      "assertions": 353,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    }
+  },
+  "import_raw_findings": [],
+  "analyzer_editor_raw_findings": [],
+  "source_unchanged_before_restoration": true,
+  "project_restored": true,
+  "registry_unchanged": true,
+  "assets_restored": true,
+  "sidecars_restored": true,
+  "source_restored": true,
+  "head_unchanged": true,
+  "exit_code": 0
+}

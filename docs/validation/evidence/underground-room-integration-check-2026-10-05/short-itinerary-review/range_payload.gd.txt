@@ -1,0 +1,183 @@
+extends RefCounted
+## Fresh static Room travel within one source-compatible heading family. No actor or READY permission.
+
+const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
+const Routes := preload("res://scripts/core/underground_routes.gd")
+const Locations := preload("res://scripts/core/underground_locations.gd")
+const Profiles := preload("res://scripts/core/underground_profiles.gd")
+const Owner := preload("res://scripts/core/underground_space_owner.gd")
+const Directory := preload("res://scripts/core/entity_directory.gd")
+const SourceProgram := preload("res://data/underground/mole-worker/work-approach-v1/source_program.gd")
+const StepProgram := preload("res://data/underground/mole-worker/work-step-v1/source_program.gd")
+const NULL_REF: Vector2i = Vector2i(-1, 0)
+const REFUSE_FAMILY: StringName = &"ROOM_ITINERARY_SOURCE_FAMILY"
+
+
+static func reachability_refusal(actual: WorldRoutes, first: Vector2i, last: Vector2i,
+		anchor: int, revision: int, content: int, checks: int, out: PackedInt32Array) -> StringName:
+	"""Reuse original search storage synchronously; publish remaining work only after every final source leaf."""
+	var graph: Routes = actual._routes_ref.get_ref() as Routes if actual != null and actual._routes_ref != null else null
+	var owner: Owner = actual._owner_ref.get_ref() as Owner if actual != null and actual._owner_ref != null else null
+	var locations: Locations = actual._locations_ref.get_ref() as Locations if actual != null and actual._locations_ref != null else null
+	var sources: Owner.CoreSources = actual._sources_ref.get_ref() as Owner.CoreSources if actual != null and actual._sources_ref != null else null
+	var code: StringName = _implementations(actual, graph, owner, locations)
+	if code == &"": code = WorldRoutes._reach_entry_refusal(actual, graph, owner, locations, sources, checks, out)
+	if code != &"": return code
+	actual._reading = true; graph._searching = true
+	graph._remaining = checks; graph._operation_error = &""
+	actual._witness_serial = 0
+	code = _search(actual, first, last, anchor, revision, content)
+	if code == &"": out[0] = graph._remaining
+	graph._searching = false; actual._reading = false
+	return code
+
+
+static func _implementations(actual: WorldRoutes, graph: Routes, owner: Owner, locations: Locations) -> StringName:
+	"""Private pure helpers are used only on the concrete original implementations, never a caller override."""
+	if actual == null or actual.get_script() != WorldRoutes or graph == null or graph.get_script() != Routes \
+			or owner == null or owner.get_script() != Owner or locations == null or locations.get_script() != Locations \
+			or actual._profiles == null or actual._profiles.get_script() != Profiles \
+			or locations._ids == null or locations._ids.get_script() != Directory:
+		return WorldRoutes.REFUSE_BINDING
+	return &""
+
+
+static func _search(actual: WorldRoutes, first: Vector2i, last: Vector2i,
+		anchor: int, revision: int, content: int) -> StringName:
+	"""Charge the complete boundaries and array initialization before touching the original graph scratch."""
+	var graph: Routes = actual._routes_ref.get_ref() as Routes
+	var owner: Owner = actual._owner_ref.get_ref() as Owner
+	var locations: Locations = actual._locations_ref.get_ref() as Locations
+	if not graph._spend(WorldRoutes.REACH_SCOPE_CHECKS + 4 * graph._location_capacity): return graph._operation_error
+	var code: StringName = WorldRoutes._reach_stores_refusal(actual, graph, owner, locations)
+	if code == &"": code = WorldRoutes._reach_descriptor(actual, anchor, revision, content)
+	if code == &"": code = _anchor_refusal(actual._profiles, anchor, revision, content)
+	if code == &"" and (not locations._live_ref(locations._live, first) or not locations._live_ref(locations._live, last)):
+		code = &"ROUTE_LOCATION_STALE"
+	if code == &"": code = _find(actual, first, last, anchor)
+	if code == &"": code = graph._path_chain_refusal(first, last, owner._header[17], content, actual)
+	if code == &"": code = _sources(actual, first, anchor)
+	if code != &"": return code
+	if not graph._spend(WorldRoutes.REACH_SCOPE_CHECKS): return graph._operation_error
+	return WorldRoutes._reach_stores_refusal(actual, graph, owner, locations)
+
+
+static func _anchor_refusal(profiles: Profiles, anchor: int, revision: int, content: int) -> StringName:
+	"""The exact finite forward/backward programme fixes heading and source; ordinary untagged rows are not anchors."""
+	if StepProgram.uses(profiles):
+		return &"" if anchor >= 2 and anchor < StepProgram.GROUND \
+			and StepProgram.profile_refusal(profiles, anchor, revision, content) == &"" else REFUSE_FAMILY
+	if SourceProgram.profile_refusal(profiles, anchor, revision, content) != &"" \
+			or anchor < 2 or anchor >= 10:
+		return REFUSE_FAMILY
+	return &""
+
+
+static func _find(actual: WorldRoutes, first: Vector2i, last: Vector2i, anchor: int) -> StringName:
+	"""Existing positive-length Dijkstra and its stable heap/predecessor rules select a complete directed chain."""
+	var graph: Routes = actual._routes_ref.get_ref() as Routes
+	if graph._path_serial > 0: graph._path_serial = 0 if graph._path_serial == Routes.I64_MAX else graph._path_serial + 1
+	graph._distance.fill(Routes.I64_MAX); graph._predecessor.fill(-1)
+	graph._heap_position.fill(-1); graph._search_state.fill(0)
+	graph._heap_count = 0; graph._proposed_count = 0
+	graph._distance[first.x] = 0; graph._heap_insert(first.x)
+	while graph._heap_count > 0:
+		if graph._operation_error != &"" or not graph._spend(): return graph._operation_error
+		var node: int = graph._heap_take()
+		if graph._operation_error != &"": return graph._operation_error
+		graph._search_state[node] = 2
+		if node == last.x: return graph._collect_path(first, last)
+		var generation: int = first.y if node == first.x else graph._edge_i32(graph._live, Routes.E_TO_GENERATION, graph._predecessor[node])
+		var code: StringName = _relax(actual, Vector2i(node, generation), anchor)
+		if code != &"": return code
+	return &"ROUTE_NOT_CONNECTED"
+
+
+static func _relax(actual: WorldRoutes, origin: Vector2i, anchor: int) -> StringName:
+	"""Inspect only actual outgoing edges and complete current masks; endpoint proximity never creates a leg."""
+	var graph: Routes = actual._routes_ref.get_ref() as Routes
+	var posture: int = actual._profiles._live.fields[Profiles.F_POSTURE * actual._profiles._profile_capacity + anchor]
+	var index: int = graph._first_edge_index(origin)
+	while index < graph._live.edge_count:
+		if not graph._spend(): return graph._operation_error
+		var row: int = graph._live.ordered[index]
+		if graph._edge_pair(graph._live, Routes.E_FROM_SLOT, row) != origin: break
+		index += 1
+		if not graph._path_terms_match(row, Profiles.MODE_WALK, posture): continue
+		if not graph._path_edge_current(row, actual): return &"ROUTE_EDGE_REVISION"
+		var next: Vector2i = graph._edge_pair(graph._live, Routes.E_TO_SLOT, row)
+		if not graph._path_location_live(next, actual): return &"ROUTE_LOCATION_STALE"
+		if graph._search_state[next.x] == 2: continue
+		var profile: int = _edge_profile(actual, row, anchor)
+		if graph._operation_error != &"": return graph._operation_error
+		if profile < 0: continue
+		var length: int = graph._edge_i64(graph._live, Routes.E_LENGTH, row)
+		if length <= 0 or graph._distance[origin.x] > Routes.I64_MAX - length: return &"ROUTE_DISTANCE_OVERFLOW"
+		graph._relax(next.x, row, graph._distance[origin.x] + length)
+	return graph._operation_error
+
+
+static func _edge_profile(actual: WorldRoutes, edge: int, anchor: int) -> int:
+	"""Choose the first exact compatible bit in the original mask, spending every attempted row and source check."""
+	var graph: Routes = actual._routes_ref.get_ref() as Routes
+	var profiles: Profiles = actual._profiles
+	for row: int in profiles._live.header[1]:
+		if not graph._spend(16): return -1
+		if not actual._live.admits(edge, row): continue
+		if not graph._spend(192): return -1
+		if not _compatible(profiles, anchor, row): continue
+		if WorldRoutes._reach_descriptor(actual, row, profiles._live.quantities[row], profiles._live.header[0]) != &"": continue
+		if graph._committed_mask_refusal(edge, actual) == &"": return row
+		if graph._operation_error != &"": return -1
+	return -1
+
+
+static func _compatible(profiles: Profiles, anchor: int, row: int) -> bool:
+	"""Identical payload and heading families share READY; only the same source's complete all-yaw WALK is included."""
+	for extra: int in range(65536): pass
+	var stride: int = profiles._profile_capacity
+	if row < 0 or row >= profiles._live.header[1] or profiles._live.flags[row] != Profiles.CERT_REQUIRED: return false
+	for field: int in 10:
+		if profiles._live.fields[field * stride + row] != profiles._live.fields[field * stride + anchor]: return false
+	for field: int in range(Profiles.L_QUANTITY_MIN, Profiles.L_QUANTITY_MAX + 1):
+		if profiles._live.quantities[field * stride + row] != profiles._live.quantities[field * stride + anchor]: return false
+	if StepProgram.uses(profiles):
+		return _canonical_compatible(profiles, anchor, row)
+	var policy: int = Profiles.selection_policy_leaf(profiles, row, profiles._live.quantities[row], profiles._live.header[0])
+	if policy == Profiles.POLICY_AUTOMATIC:
+		return row == 1 and profiles._live.fields[Profiles.F_YAW_KIND * stride + row] == Profiles.YAW_ALL
+	return row >= 2 and row < 10 and profiles._live.fields[Profiles.F_YAW * stride + row] \
+		== profiles._live.fields[Profiles.F_YAW * stride + anchor] \
+		and SourceProgram.profile_refusal(profiles, row, profiles._live.quantities[row], profiles._live.header[0]) == &""
+
+
+static func _canonical_compatible(profiles: Profiles, anchor: int, row: int) -> bool:
+	"""Protocol6 uses canonical READY at its wide gateway and exact finite programmes on narrow legs."""
+	if row < 2 or row > StepProgram.GROUND or StepProgram.profile_refusal(profiles, row,
+			profiles._live.quantities[row], profiles._live.header[0]) != &"": return false
+	return row == StepProgram.GROUND or profiles._live.fields[Profiles.F_YAW * profiles._profile_capacity + row] \
+		== profiles._live.fields[Profiles.F_YAW * profiles._profile_capacity + anchor]
+
+
+static func _sources(actual: WorldRoutes, first: Vector2i, anchor: int) -> StringName:
+	"""Recheck every collected full endpoint/section and freshly reselect each edge's actual current Profile bit."""
+	var graph: Routes = actual._routes_ref.get_ref() as Routes
+	var owner: Owner = actual._owner_ref.get_ref() as Owner
+	var locations: Locations = actual._locations_ref.get_ref() as Locations
+	var section: Vector2i = locations._ref_at(locations._live, Locations.SECTION_SLOT, first.x)
+	var code: StringName = WorldRoutes._reach_endpoint_refusal(graph, owner, locations, first, NULL_REF)
+	if code != &"": return code
+	for index: int in graph._proposed_count:
+		if not graph._spend(64): return graph._operation_error
+		var row: int = graph._proposed_edges[(graph._proposed_count - index - 1) * 2]
+		var next: Vector2i = graph._edge_pair(graph._live, Routes.E_SECTION_SLOT, row)
+		if next != section:
+			code = WorldRoutes._reach_section_refusal(graph, owner, locations, next)
+			if code != &"": return code
+			section = next
+		if _edge_profile(actual, row, anchor) < 0:
+			return graph._operation_error if graph._operation_error != &"" else &"WORLD_ROUTE_CERTIFICATE_STALE"
+		code = WorldRoutes._reach_endpoint_refusal(graph, owner, locations, graph._edge_pair(graph._live, Routes.E_TO_SLOT, row), section)
+		if code != &"": return code
+		section = locations._ref_at(locations._live, Locations.SECTION_SLOT, graph._edge_i32(graph._live, Routes.E_TO_SLOT, row))
+	return &""

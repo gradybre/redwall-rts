@@ -1,0 +1,12 @@
+[
+  {
+    "name": "static_member",
+    "refused": true,
+    "message": "itinerary retained state"
+  },
+  {
+    "name": "range_payload",
+    "refused": true,
+    "message": "unreviewed itinerary range"
+  }
+]

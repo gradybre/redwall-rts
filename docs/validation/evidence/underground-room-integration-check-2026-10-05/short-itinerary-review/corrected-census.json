@@ -1,0 +1,402 @@
+{
+  "scope": "1172 current static itinerary and external source-leaf callers; logical payload only.",
+  "source_sha256": {
+    "buildings": "e893b278f8b1f35e6e8f6e3971e8ade136662a0d3f1f5b619042d18e17506fcd",
+    "entity_directory": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
+    "reservations": "2a2ce0b41cde10974f480184d0da53a7d27e1930030f80fee8c16dd1a9b74534",
+    "short_program": "f566f5caaf49e1da47f7f3f2020750a29f4ce3e858b313b5c3eb8d0c0ca59524",
+    "source_program": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
+    "underground_connector_catalog": "4b98b9dc46841ea8b140134279b6706cfeb9ec31a7abaa968e276cd504f892b8",
+    "underground_connector_contacts": "8dcde4f27ec783319332748e6c71a3b996be842601338e2c667c1346c96a3dd3",
+    "underground_connector_source_facts": "2acb5aac8231fad21c26ce321f7c1d03576f0e4d39c3eb3ae5a6a8d146c50160",
+    "underground_final_facts": "5aeedd84cffb46f363733bbe2b85f87a6e67b771170a0c3e0525e66e1f2a6a46",
+    "underground_level_catalog": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
+    "underground_locations": "78c10afd1fb0d737ae7ccd63727c5c18b1cc599097e40b44e9992fd32a7a1d58",
+    "underground_profiles": "2dd505f98fe55b640fd96d254d155093a3f88baf42315ffe95baebcc6f0234ec",
+    "underground_room_itinerary": "1b0a8ac711d8a3c21767f8d92883d01b08d9f3f23d71c8e2e52160a32491207a",
+    "underground_room_world_bindings": "95d13b1d36daec7d6a5993d2aa5d6d673618a25020acb6b949b6cccc51d4bb68",
+    "underground_routes": "27d4f2e92472803235129159dd9fd92291b75aa09057bbf58f5417783f4eea1f",
+    "underground_space_owner": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158",
+    "underground_terrain": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
+    "underground_world_routes": "45fd127a49ca04133fc9fb4ddeed275fa5700fc9f41fdf7914c22206b81b2b66"
+  },
+  "itinerary": {
+    "peak": {
+      "bytes": 384,
+      "chain": [
+        "underground_room_itinerary:reachability_refusal",
+        "underground_room_itinerary:_search",
+        "underground_room_itinerary:_find",
+        "underground_room_itinerary:_relax",
+        "underground_room_itinerary:_edge_profile",
+        "underground_room_itinerary:_compatible",
+        "source_program:profile_refusal",
+        "underground_profiles:selection_policy_leaf"
+      ]
+    },
+    "expression_allowance": 48,
+    "inclusive_peak": 432,
+    "reservation": 512,
+    "graph": {
+      "underground_room_itinerary:reachability_refusal": [
+        "underground_room_itinerary:_implementations",
+        "underground_room_itinerary:_search",
+        "underground_world_routes:_reach_entry_refusal"
+      ],
+      "underground_room_itinerary:_implementations": [],
+      "underground_room_itinerary:_search": [
+        "underground_locations:_live_ref",
+        "underground_room_itinerary:_anchor_refusal",
+        "underground_room_itinerary:_find",
+        "underground_room_itinerary:_sources",
+        "underground_routes:_path_chain_refusal",
+        "underground_routes:_spend",
+        "underground_world_routes:_reach_descriptor",
+        "underground_world_routes:_reach_stores_refusal"
+      ],
+      "underground_locations:_live_ref": [],
+      "underground_room_itinerary:_anchor_refusal": [
+        "short_program:profile_refusal",
+        "short_program:uses",
+        "source_program:profile_refusal"
+      ],
+      "short_program:profile_refusal": [
+        "short_program:_actor_refusal",
+        "short_program:is_short",
+        "short_program:uses",
+        "underground_profiles:selection_policy_leaf"
+      ],
+      "short_program:_actor_refusal": [],
+      "short_program:is_short": [],
+      "short_program:uses": [],
+      "underground_profiles:selection_policy_leaf": [],
+      "source_program:profile_refusal": [
+        "underground_profiles:selection_policy_leaf"
+      ],
+      "underground_room_itinerary:_find": [
+        "underground_room_itinerary:_relax",
+        "underground_routes:_collect_path",
+        "underground_routes:_edge_i32",
+        "underground_routes:_heap_insert",
+        "underground_routes:_heap_take",
+        "underground_routes:_spend"
+      ],
+      "underground_room_itinerary:_relax": [
+        "underground_room_itinerary:_edge_profile",
+        "underground_routes:_edge_i64",
+        "underground_routes:_edge_pair",
+        "underground_routes:_first_edge_index",
+        "underground_routes:_path_edge_current",
+        "underground_routes:_path_location_live",
+        "underground_routes:_path_terms_match",
+        "underground_routes:_relax",
+        "underground_routes:_spend"
+      ],
+      "underground_room_itinerary:_edge_profile": [
+        "underground_room_itinerary:_compatible",
+        "underground_routes:_committed_mask_refusal",
+        "underground_routes:_spend",
+        "underground_world_routes.Certificates:admits",
+        "underground_world_routes:_reach_descriptor"
+      ],
+      "underground_room_itinerary:_compatible": [
+        "short_program:uses",
+        "source_program:profile_refusal",
+        "underground_profiles:selection_policy_leaf",
+        "underground_room_itinerary:_canonical_compatible"
+      ],
+      "underground_room_itinerary:_canonical_compatible": [
+        "short_program:profile_refusal"
+      ],
+      "underground_routes:_committed_mask_refusal": [
+        "underground_routes:_spend"
+      ],
+      "underground_routes:_spend": [],
+      "underground_world_routes.Certificates:admits": [],
+      "underground_world_routes:_reach_descriptor": [],
+      "underground_routes:_edge_i64": [],
+      "underground_routes:_edge_pair": [],
+      "underground_routes:_first_edge_index": [
+        "underground_routes:_edge_pair",
+        "underground_routes:_spend"
+      ],
+      "underground_routes:_path_edge_current": [
+        "underground_profiles:content_revision",
+        "underground_space_owner:revision"
+      ],
+      "underground_profiles:content_revision": [],
+      "underground_space_owner:revision": [],
+      "underground_routes:_path_location_live": [
+        "underground_locations:_live_ref",
+        "underground_locations:is_live_location"
+      ],
+      "underground_locations:is_live_location": [
+        "underground_locations:_live_ref",
+        "underground_locations:world_ref"
+      ],
+      "underground_locations:world_ref": [
+        "entity_directory:is_valid"
+      ],
+      "entity_directory:is_valid": [
+        "entity_directory:is_valid_of_kind"
+      ],
+      "entity_directory:is_valid_of_kind": [],
+      "underground_routes:_path_terms_match": [],
+      "underground_routes:_relax": [
+        "underground_routes:_heap_insert",
+        "underground_routes:_heap_up"
+      ],
+      "underground_routes:_heap_insert": [
+        "underground_routes:_heap_up"
+      ],
+      "underground_routes:_heap_up": [
+        "underground_routes:_heap_swap",
+        "underground_routes:_node_less",
+        "underground_routes:_spend"
+      ],
+      "underground_routes:_heap_swap": [],
+      "underground_routes:_node_less": [],
+      "underground_routes:_collect_path": [
+        "underground_routes:_edge_i32",
+        "underground_routes:_edge_pair",
+        "underground_routes:_spend"
+      ],
+      "underground_routes:_edge_i32": [],
+      "underground_routes:_heap_take": [
+        "underground_routes:_heap_swap",
+        "underground_routes:_node_less",
+        "underground_routes:_spend"
+      ],
+      "underground_room_itinerary:_sources": [
+        "underground_locations:_ref_at",
+        "underground_room_itinerary:_edge_profile",
+        "underground_routes:_edge_i32",
+        "underground_routes:_edge_pair",
+        "underground_routes:_spend",
+        "underground_world_routes:_reach_endpoint_refusal",
+        "underground_world_routes:_reach_section_refusal"
+      ],
+      "underground_locations:_ref_at": [],
+      "underground_world_routes:_reach_endpoint_refusal": [
+        "underground_locations:_live_ref",
+        "underground_locations:_ref_at",
+        "underground_routes:_spend",
+        "underground_space_owner:_region_live",
+        "underground_world_routes:_reach_section_refusal"
+      ],
+      "underground_space_owner:_region_live": [],
+      "underground_world_routes:_reach_section_refusal": [
+        "underground_locations:_resolve_section_refusal",
+        "underground_routes:_spend",
+        "underground_space_owner:_region_live"
+      ],
+      "underground_locations:_resolve_section_refusal": [
+        "underground_locations:_resolve_room_source_refusal",
+        "underground_locations:_resolve_source_row",
+        "underground_space_owner:_region_live"
+      ],
+      "underground_locations:_resolve_room_source_refusal": [
+        "entity_directory:get_typed_row",
+        "entity_directory:is_valid_of_kind"
+      ],
+      "entity_directory:get_typed_row": [
+        "entity_directory:is_valid"
+      ],
+      "underground_locations:_resolve_source_row": [],
+      "underground_routes:_path_chain_refusal": [
+        "underground_routes:_edge_i64",
+        "underground_routes:_edge_pair",
+        "underground_routes:_live_edge",
+        "underground_routes:_path_location_live",
+        "underground_routes:_spend"
+      ],
+      "underground_routes:_live_edge": [],
+      "underground_world_routes:_reach_stores_refusal": [
+        "underground_final_facts:_same_domain",
+        "underground_final_facts:_stores_refusal",
+        "underground_world_routes:_ground_catalog_shape",
+        "underground_world_routes:_reach_content_refusal",
+        "underground_world_routes:_reach_level_domain",
+        "underground_world_routes:_reach_profile_owners",
+        "underground_world_routes:_reach_world"
+      ],
+      "underground_final_facts:_same_domain": [],
+      "underground_final_facts:_stores_refusal": [
+        "underground_final_facts:_location_binding",
+        "underground_final_facts:_same_domain"
+      ],
+      "underground_final_facts:_location_binding": [
+        "entity_directory:is_valid_of_kind"
+      ],
+      "underground_world_routes:_ground_catalog_shape": [],
+      "underground_world_routes:_reach_content_refusal": [
+        "underground_connector_source_facts:_same_actual_owners",
+        "underground_connector_source_facts:_source_digests_match",
+        "underground_connector_source_facts:_source_storage_matches",
+        "underground_connector_source_facts:refusal",
+        "underground_world_routes:_ground_catalog_shape",
+        "underground_world_routes:_immutable_owners_match"
+      ],
+      "underground_connector_source_facts:_same_actual_owners": [
+        "entity_directory:is_valid_of_kind"
+      ],
+      "underground_connector_source_facts:_source_digests_match": [],
+      "underground_connector_source_facts:_source_storage_matches": [],
+      "underground_connector_source_facts:refusal": [
+        "underground_connector_source_facts:_same_actual_owners",
+        "underground_connector_source_facts:_source_digests_match",
+        "underground_connector_source_facts:_source_storage_matches"
+      ],
+      "underground_world_routes:_immutable_owners_match": [],
+      "underground_world_routes:_reach_level_domain": [],
+      "underground_world_routes:_reach_profile_owners": [],
+      "underground_world_routes:_reach_world": [
+        "entity_directory:is_valid_of_kind"
+      ],
+      "underground_world_routes:_reach_entry_refusal": [
+        "underground_routes:_reject_callback"
+      ],
+      "underground_routes:_reject_callback": []
+    }
+  },
+  "world_routes": {
+    "existing_fixed_payload": 958,
+    "constants": {
+      "NULL_REF": 8,
+      "MASK_BYTES": 8,
+      "EDGE_CAPACITY": 8,
+      "CERTIFICATE_BYTES": 8,
+      "CONTROL_RESERVE": 8,
+      "RESERVED_BYTES": 8,
+      "FRAGMENT_CAPACITY": 8,
+      "SNAPSHOT_BYTES": 8,
+      "COLD_BYTES": 8,
+      "SOURCE_PASS_CHECKS": 8,
+      "REACH_SCOPE_CHECKS": 8,
+      "REACH_WITNESS_CHECKS": 8,
+      "REFUSE_BINDING": 80,
+      "REFUSE_CONTEXT": 80,
+      "REFUSE_BUDGET": 92,
+      "REFUSE_BUSY": 68,
+      "REFUSE_COVERAGE": 84
+    },
+    "itinerary_constants": {
+      "NULL_REF": 8,
+      "REFUSE_FAMILY": 116
+    },
+    "logical_controls": 2094,
+    "unchanged_reservation": 4096
+  },
+  "provider_current_source_chains": {
+    "observed_canonical_work_source": {
+      "chain": [
+        "underground_room_world_bindings:worker_refusal",
+        "underground_room_world_bindings:_ordinary_observers",
+        "underground_routes:source_work_observation_refusal",
+        "underground_routes:source_work_leaf_refusal",
+        "underground_routes:_source_tuple_row",
+        "underground_routes:_source_clock_leaf",
+        "underground_routes:_source_profile_refusal",
+        "source_program:profile_refusal",
+        "underground_profiles:selection_policy_leaf"
+      ],
+      "bytes": 405
+    },
+    "final_canonical_work_source": {
+      "chain": [
+        "underground_room_world_bindings:worker_refusal",
+        "underground_room_world_bindings:_ordinary_live_leaf",
+        "underground_room_world_bindings:_ordinary_worker_leaf",
+        "underground_routes:source_work_leaf_refusal",
+        "underground_routes:_source_tuple_row",
+        "underground_routes:_source_clock_leaf",
+        "underground_routes:_source_profile_refusal",
+        "source_program:profile_refusal",
+        "underground_profiles:selection_policy_leaf"
+      ],
+      "bytes": 374
+    },
+    "selected_decoded_actor_phase": {
+      "chain": [
+        "underground_room_world_bindings:worker_refusal",
+        "underground_room_world_bindings:_ordinary_live_contact",
+        "underground_room_world_bindings:_ordinary_select",
+        "underground_room_world_bindings:_ordinary_committed_contact",
+        "underground_routes:actor_phase_in",
+        "underground_routes:_source_clock_leaf",
+        "underground_routes:_source_profile_refusal",
+        "source_program:profile_refusal",
+        "underground_profiles:selection_policy_leaf"
+      ],
+      "bytes": 344
+    }
+  },
+  "provider_expression_and_inherited_allowance": 104,
+  "provider_source_bound": 509,
+  "provider_existing_helper_reserve": 512,
+  "contacts_worker_source_chain": {
+    "chain": [
+      "underground_connector_contacts:_worker_leaf",
+      "underground_routes:source_work_leaf_refusal",
+      "underground_routes:_source_tuple_row",
+      "underground_routes:_source_clock_leaf",
+      "underground_routes:_source_profile_refusal",
+      "source_program:profile_refusal",
+      "underground_profiles:selection_policy_leaf"
+    ],
+    "bytes": 320
+  },
+  "contacts_foreign_source_bound": 344,
+  "contacts_existing_foreign_reserve": 576,
+  "inherited_profile_controls": {
+    "existing_fixed_packets": 326,
+    "complete_constant_payloads": 996,
+    "Profile_integer_and_NULL_constants": 584,
+    "two_driver_version_constants": 16,
+    "complete_hot_numeric_peak": 877,
+    "cold_numeric": 625,
+    "cold_frames": {
+      "underground_profiles:load_file": 8,
+      "underground_profiles:_decode": 32,
+      "underground_profiles:_decode_rows": 64,
+      "underground_profiles:_read": 8,
+      "underground_profiles:_validate_stage": 40,
+      "underground_profiles:_profile_refusal": 48,
+      "underground_profiles:_key_refusal": 64,
+      "underground_profiles:_roles_refusal": 81,
+      "underground_profiles:_box_shape_refusal": 56,
+      "underground_profiles:_contact_patch_refusal": 48,
+      "underground_profiles:_field": 16,
+      "underground_profiles:_long": 16,
+      "underground_profiles:_compare_rows": 48,
+      "underground_profiles:_overlap_keys": 24,
+      "underground_profiles:_required_states": 16,
+      "underground_profiles:content_revision": 0,
+      "underground_profiles:_key_field": 8
+    },
+    "cold_payloads": {
+      "header": 32,
+      "header_slice": 8,
+      "header_ascii": 32,
+      "source_old_new": 64,
+      "profile_old_new": 196,
+      "box_old_new": 56,
+      "footer": 8,
+      "footer_ascii": 32,
+      "hash_result": 32,
+      "hex_string": 256,
+      "expected_lowercase": 256,
+      "key_literal": 16
+    },
+    "cold_payload_ceiling": 1024,
+    "counted_logical": 3571,
+    "logical_slice": 4096,
+    "unchanged_control_reservation": 32768,
+    "remaining_provisional_native_slice": 28672
+  },
+  "new_retained_fields": 0,
+  "new_bank_bytes": 0,
+  "new_cold_lease": 0,
+  "native_measured": false,
+  "runtime_qualified": false
+}

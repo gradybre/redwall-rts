@@ -1,0 +1,40 @@
+diff --git a/godot/test/test_underground_room_world_phases.gd b/godot/test/test_underground_room_world_phases.gd
+index 857ce313..0d8b2d37 100644
+--- a/godot/test/test_underground_room_world_phases.gd
++++ b/godot/test/test_underground_room_world_phases.gd
+@@ -1,13 +1,15 @@
+ extends "res://test/framework/test_case.gd"
+ ## Actual ordinary phase composition. Existing corridor bootstrap is explicit historical fixture state.
+-## Legacy automatic-heading negatives stay pinned to v2; paid SourceFixture uses the reviewed current v3 publication.
++## Legacy automatic-heading negatives stay pinned to v2; paid SourceFixture retains the immutable reviewed v3 protocol5.
++## Current protocol6 publication has its own catalog/runtime/itinerary gates; historical geometry never follows a moving path.
+ 
+ const Provider := preload("res://scripts/core/underground_room_world_bindings.gd")
+ const WorldFixture := preload("res://test/test_underground_world_routes.gd")
+ const GroupFixture := preload("res://test/test_underground_connector_assemblies.gd")
+ const FirstPrefix := preload("res://test/test_underground_first_prefix.gd")
+ const Registration := preload("res://test/test_underground_furniture_work.gd")
+-const Published := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
++const HistoricalSource := preload("res://data/underground/mole-worker/work-approach-v1/source_program.gd")
++const SOURCE_WIRE: String = "res://data/underground/mole-worker/profile-publication-v3-frontier/mole-worker.ugprof"
+ const Pins := preload("res://data/underground/mole-worker/profile-publication-v2/catalog_source.gd")
+ const CurrentPins := preload("res://data/underground/mole-worker/profile-publication-v3-frontier/catalog_source.gd")
+ const LEGACY_WIRE: String = "res://data/underground/mole-worker/profile-publication-v2/mole-worker.ugprof"
+@@ -328,11 +330,13 @@ class SourceFixture extends Fixture:
+ 		assert_true(_gear.bind_equipment(_inventory, _residents.directory(), _residents).ok, "actual Gear")
+ 		_work = Work.new(_jobs); assert_true(_work.bind_gear(_gear).ok, "actual Work")
+ 		_profiles = Profiles.new()
+-		assert_equal(_profiles.configure(Published.PROFILE_COUNT, Published.BOX_COUNT, 1, Published.PAIRED_BANK_BYTES + Profiles.CONTROL_RESERVE), &"", "exact current two-bank size")
++		assert_equal(_profiles.configure(26, 250, 1, 19224 + Profiles.CONTROL_RESERVE), &"", "exact historical v3 two-bank size")
+ 		assert_equal(_profiles.bind_actual(_residents, _transforms, _inventory, _gear, _carry, _work, _pool, _piles), &"", "actual source owners")
+-		assert_equal(FileAccess.get_sha256(Published.WIRE_PATH), CurrentPins.WIRE_SHA, "immutable reviewed current publication")
+-		assert_equal(_profiles.load_file(Published.WIRE_PATH, CurrentPins.WIRE_SHA, Published.CONTENT_REVISION), &"", "reviewed actual source geometry")
+-		assert_equal(Published.catalog_refusal(_profiles), &"", "complete current source rows and boxes")
++		assert_equal(FileAccess.get_sha256(SOURCE_WIRE), CurrentPins.WIRE_SHA, "immutable reviewed historical v3 publication")
++		assert_equal(_profiles.load_file(SOURCE_WIRE, CurrentPins.WIRE_SHA, 2), &"", "reviewed actual source geometry")
++		assert_equal(_profiles.profile_count(2), 26, "exact reviewed historical profile count")
++		for profile: int in range(2, 26):
++			assert_equal(HistoricalSource.profile_refusal(_profiles, profile, 1, 2), &"", "exact historical source policy")
+ 
+ 	func _load_catalog(revision: int) -> StringName:
+ 		"""Two exact ground selectors inherit actual Movement's existing Mole speed; no new pace is authored."""

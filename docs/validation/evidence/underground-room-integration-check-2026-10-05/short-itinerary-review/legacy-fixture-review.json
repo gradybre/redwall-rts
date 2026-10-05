@@ -1,0 +1,24 @@
+{
+  "accepted": true,
+  "path": "godot/test/test_underground_room_world_phases.gd",
+  "sha256": "6b8650d306503a8ea294f003a8644a95d637d7ef32d3afb1c9aa2e42e4ba5642",
+  "scope": "Historical v3 protocol5 fixture only; no current-v4 publication assertion",
+  "receipts": [
+    {
+      "suite": "test_underground_room_world_phases.gd",
+      "tests": 24,
+      "assertions": 290,
+      "sha256": "b55163648afd20d76cd0c45d0104b3d44b1698bcc034f5b7a26c2b8bacb712eb"
+    },
+    {
+      "suite": "test_underground_room_itinerary.gd",
+      "tests": 13,
+      "assertions": 114,
+      "sha256": "06c4704d79e89a719373e60abd8375616ab7e00f6e5390603e5291a510b9195a"
+    }
+  ],
+  "analyzer_warnings": 0,
+  "analyzer_files": 1,
+  "engine_rerun_by_reviewer": false,
+  "findings": []
+}

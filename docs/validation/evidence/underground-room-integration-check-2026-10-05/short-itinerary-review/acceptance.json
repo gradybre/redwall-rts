@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "reviewer": "/root/ug_construction",
+  "accepted": true,
+  "source_manifest_sha256": "e8ec0a878ce28f9704d7077e6d1d213d911b5e5667c7af5de5fa2d9cc55e6a92",
+  "pins": {
+    "godot/scripts/core/underground_room_itinerary.gd": "1b0a8ac711d8a3c21767f8d92883d01b08d9f3f23d71c8e2e52160a32491207a",
+    "godot/test/test_underground_room_itinerary.gd": "47d3c709204743e3364baa872e128aabad2b1813eab85bd2871cbf3cee68301d",
+    "godot/test/test_underground_short_room_itinerary.gd": "9c195ac977f543c524b63b8f8f54c85aea91aed0e4c411cb4c357d41927874e0",
+    "godot/test/test_underground_short_room_itinerary.gd.uid": "99fd501b9d5ec2f0553901cbf724478b961beea6eb6703ef0106d5d0a59ae331",
+    "docs/validation/evidence/underground-short-step-itinerary-2026-10-05/census.py": "1136614526c66545da086d2cabd2070748dfa91b765dc57e0c79ec7054552902",
+    "docs/validation/evidence/underground-short-step-itinerary-2026-10-05/test_census.py": "9ff874f2a54574d8ef636446da1ed3dc0e2f81b79031dd0831e535a2ef11f87d"
+  },
+  "runtime_source_unchanged_after_review": true,
+  "independent_census_tests": 11,
+  "original_probes_refused": [
+    {
+      "name": "static_member",
+      "refused": true,
+      "message": "itinerary retained state"
+    },
+    {
+      "name": "range_payload",
+      "refused": true,
+      "message": "unreviewed itinerary range"
+    }
+  ],
+  "itinerary_helper": 432,
+  "provider_helper": 509,
+  "contacts_foreign_helper": 344,
+  "worldroutes_controls": 2094,
+  "author_runtime_receipts": {
+    "runtime-1": {
+      "suite": "test_underground_room_itinerary.gd",
+      "tests": 13,
+      "assertions": 114,
+      "log_sha256": "df954f923d8b3d0dae83e6b764866a86c24ac710ff2e0374c9999b93606e0574",
+      "invocation_sha256": "60b4b171666be96fe796cfe7157f3810cf05d3bf549578dea06671813e10b952"
+    },
+    "runtime-2": {
+      "suite": "test_underground_short_room_itinerary.gd",
+      "tests": 8,
+      "assertions": 94,
+      "log_sha256": "4d9243ccc530b687a39d59edd84df1b70e7c4790ba62b272c80846c3706851cb",
+      "invocation_sha256": "d6b00fb134014775eea34da48c774d07c4469e0a07f303e50fc1bd700d25f9c8"
+    }
+  },
+  "analyzer": {
+    "warnings": 0,
+    "files": 2,
+    "log_sha256": "c3c6d837356b118ce2541e5ed77a960b27aa51209ca4ac9573d1de47c4823c6e"
+  },
+  "findings": [],
+  "closed_findings": [
+    {
+      "id": "R1",
+      "severity": "MEDIUM",
+      "scope": "metadata",
+      "waived": false,
+      "description": "Uncounted static retained field and unreviewed range/work growth. Corrected exact executable pin plus explicit static/range checks."
+    }
+  ],
+  "engine_run_by_reviewer": false,
+  "native_memory_qualified": false,
+  "paid_world_or_actor_readiness_qualified": false
+}

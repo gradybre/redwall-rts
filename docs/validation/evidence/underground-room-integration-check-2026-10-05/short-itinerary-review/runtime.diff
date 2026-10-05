@@ -1,0 +1,46 @@
+diff --git a/godot/scripts/core/underground_room_itinerary.gd b/godot/scripts/core/underground_room_itinerary.gd
+index dbe70519..0dc99cc8 100644
+--- a/godot/scripts/core/underground_room_itinerary.gd
++++ b/godot/scripts/core/underground_room_itinerary.gd
+@@ -8,6 +8,7 @@ const Profiles := preload("res://scripts/core/underground_profiles.gd")
+ const Owner := preload("res://scripts/core/underground_space_owner.gd")
+ const Directory := preload("res://scripts/core/entity_directory.gd")
+ const SourceProgram := preload("res://data/underground/mole-worker/work-approach-v1/source_program.gd")
++const StepProgram := preload("res://data/underground/mole-worker/work-step-v1/source_program.gd")
+ const NULL_REF: Vector2i = Vector2i(-1, 0)
+ const REFUSE_FAMILY: StringName = &"ROOM_ITINERARY_SOURCE_FAMILY"
+ 
+@@ -63,6 +64,9 @@ static func _search(actual: WorldRoutes, first: Vector2i, last: Vector2i,
+ 
+ static func _anchor_refusal(profiles: Profiles, anchor: int, revision: int, content: int) -> StringName:
+ 	"""The exact finite forward/backward programme fixes heading and source; ordinary untagged rows are not anchors."""
++	if StepProgram.uses(profiles):
++		return &"" if anchor >= 2 and anchor < StepProgram.GROUND \
++			and StepProgram.profile_refusal(profiles, anchor, revision, content) == &"" else REFUSE_FAMILY
+ 	if SourceProgram.profile_refusal(profiles, anchor, revision, content) != &"" \
+ 			or anchor < 2 or anchor >= 10:
+ 		return REFUSE_FAMILY
+@@ -136,6 +140,8 @@ static func _compatible(profiles: Profiles, anchor: int, row: int) -> bool:
+ 		if profiles._live.fields[field * stride + row] != profiles._live.fields[field * stride + anchor]: return false
+ 	for field: int in range(Profiles.L_QUANTITY_MIN, Profiles.L_QUANTITY_MAX + 1):
+ 		if profiles._live.quantities[field * stride + row] != profiles._live.quantities[field * stride + anchor]: return false
++	if StepProgram.uses(profiles):
++		return _canonical_compatible(profiles, anchor, row)
+ 	var policy: int = Profiles.selection_policy_leaf(profiles, row, profiles._live.quantities[row], profiles._live.header[0])
+ 	if policy == Profiles.POLICY_AUTOMATIC:
+ 		return row == 1 and profiles._live.fields[Profiles.F_YAW_KIND * stride + row] == Profiles.YAW_ALL
+@@ -144,6 +150,14 @@ static func _compatible(profiles: Profiles, anchor: int, row: int) -> bool:
+ 		and SourceProgram.profile_refusal(profiles, row, profiles._live.quantities[row], profiles._live.header[0]) == &""
+ 
+ 
++static func _canonical_compatible(profiles: Profiles, anchor: int, row: int) -> bool:
++	"""Protocol6 uses canonical READY at its wide gateway and exact finite programmes on narrow legs."""
++	if row < 2 or row > StepProgram.GROUND or StepProgram.profile_refusal(profiles, row,
++			profiles._live.quantities[row], profiles._live.header[0]) != &"": return false
++	return row == StepProgram.GROUND or profiles._live.fields[Profiles.F_YAW * profiles._profile_capacity + row] \
++		== profiles._live.fields[Profiles.F_YAW * profiles._profile_capacity + anchor]
++
++
+ static func _sources(actual: WorldRoutes, first: Vector2i, anchor: int) -> StringName:
+ 	"""Recheck every collected full endpoint/section and freshly reselect each edge's actual current Profile bit."""
+ 	var graph: Routes = actual._routes_ref.get_ref() as Routes

@@ -1,0 +1,32 @@
+{
+  "reviewer": "root",
+  "verdict": "accepted scoped presentation component",
+  "source_manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/source-review-1/source-sha256.json",
+  "source_manifest_sha256": "677c7488991fa60663e4d992a729d145fd9e729e1b5700368320b994685697df",
+  "source_pins": {
+    "docs/validation/evidence/underground-actual-world-view-2026-10-05/census.py": "87ab9b8f0a9b8feabff951a5885722d9fd709854576b6f424558376da97680c7",
+    "docs/validation/evidence/underground-actual-world-view-2026-10-05/native_scene.tscn": "bea0cf2991dd067c8b46a2ec8320bfc702ec6cfd57a3d220d86b75237a3fc856",
+    "docs/validation/evidence/underground-actual-world-view-2026-10-05/reproduce.py": "8b7017d34ea893d81304d9c9d0fed8b9d950e5573760dba693e490845485d350",
+    "docs/validation/evidence/underground-actual-world-view-2026-10-05/run_native.py": "784380bf874b15c90bfe19570af505a84d549035809613b96db62cc7982f01ab",
+    "docs/validation/evidence/underground-actual-world-view-2026-10-05/test_evidence.py": "28596c2eb65dacad134529ad3ad58e8903ed6c7efda5fd57bb9f43c539465b63",
+    "godot/demo/burrow/modular_world_view.gd": "0c8b01fa7ce63a801815b1cedae3055ee00302af1e0e11000e9bf5cb95f4b1ae",
+    "godot/demo/burrow/modular_world_view.gd.uid": "867a17a09f45bd2648205ded77a08250bb2f1a10d58a840f39bf5a15c814993d",
+    "godot/demo/burrow/modular_world_view_live.gd": "2926354e28284257671d93d054c4959365f5832db4dd8915086c488c59672cbf",
+    "godot/demo/burrow/modular_world_view_live.gd.uid": "a9a454c551100cf2842c0ae738ae5849b903f8e9e979c126eca71300b64f3480",
+    "godot/test/test_modular_world_view.gd": "79c980142a6d23de299040967ff09a8b22e2bba77d04e6cef518741d19a38147",
+    "godot/test/test_modular_world_view.gd.uid": "4c8b6cd00138792678dd49b63aa6089c6bab2837cd12a57bd389a018be0c84a8"
+  },
+  "reviewed": [
+    "actual ford-bed selection",
+    "finite row meshes",
+    "normal/UV/tangent handedness",
+    "all four native5 PNGs"
+  ],
+  "blocking_findings": [],
+  "limits": [
+    "actual coordinates/readable unconfirmed plane only",
+    "not final whole-game art or integrated room/input/gameplay acceptance",
+    "not native memory or target-hardware performance qualification"
+  ],
+  "source_unchanged": true
+}

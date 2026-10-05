@@ -1,0 +1,14 @@
+{
+  "base_commit": "b2527d79d413ad99a31459fba024103bb77bb372",
+  "source_entries": 11,
+  "input_entries": 21,
+  "output_entries": 50,
+  "history_entries": 136,
+  "historical_source_locator_rows": 86,
+  "production_files_frozen": true,
+  "runtime_qualified": false,
+  "native_memory_qualified": false,
+  "current_strict": "candidate-5",
+  "current_native": "native-5",
+  "independent_review_pending": true
+}

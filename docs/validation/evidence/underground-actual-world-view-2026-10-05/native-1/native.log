@@ -1,0 +1,27 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Metal 4.0 - Forward+ - Using Device #0: Apple - Apple M5 Pro (Apple9)
+
+SCRIPT ERROR: Compile Error: Identifier not found: GameManager
+          at: GDScript::reload (res://scripts/systems/settlement_system.gd:1298)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://demo/burrow/modular_world_view_live.gd:0)
+ERROR: Failed to load script "res://demo/burrow/modular_world_view_live.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+[EntityManager] ready
+[GameManager] ready
+[EconomySystem] ready
+SCRIPT ERROR: Invalid call. Nonexistent function 'commands' in base 'Node'.
+          at: _bind_settlement (res://scripts/systems/ui_manager.gd:155)
+          GDScript backtrace (most recent call first):
+              [0] _bind_settlement (res://scripts/systems/ui_manager.gd:155)
+              [1] _ready (res://scripts/systems/ui_manager.gd:143)
+[UIManager] ready
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _make_actual_world (res://demo/burrow/modular_world_view_live.gd:53)
+          GDScript backtrace (most recent call first):
+              [0] _make_actual_world (res://demo/burrow/modular_world_view_live.gd:53)
+              [1] _run (res://demo/burrow/modular_world_view_live.gd:41)
+SCRIPT ERROR: Invalid call. Nonexistent function 'world' in base 'Nil'.
+          at: _run (res://demo/burrow/modular_world_view_live.gd:43)
+          GDScript backtrace (most recent call first):
+              [0] _run (res://demo/burrow/modular_world_view_live.gd:43)

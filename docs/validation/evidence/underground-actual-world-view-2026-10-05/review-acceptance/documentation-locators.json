@@ -1,0 +1,12 @@
+[
+  {
+    "path": "docs/validation/evidence/underground-actual-world-view-2026-10-05/README.md",
+    "sha256": "d32a8edc454c8669104813473cbc34910ca3597fb8fa4cd799eecd173b8c13ce",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/review-acceptance/README.md.reviewed.txt"
+  },
+  {
+    "path": "docs/decisions/1175-underground-actual-world-view.md",
+    "sha256": "df0ab2695d8df5708b21fb47147798bc45098583d7b96f00627354c2ac0f193a",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/review-acceptance/1175-underground-actual-world-view.md.reviewed.txt"
+  }
+]

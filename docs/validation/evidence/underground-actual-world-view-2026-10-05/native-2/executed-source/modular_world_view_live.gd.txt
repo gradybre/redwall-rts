@@ -1,0 +1,216 @@
+extends Node
+## Actual generated World presentation witness; no paid Room, route, worker, support or excavation.
+
+const View := preload("res://demo/burrow/modular_world_view.gd")
+const Host := preload("res://scripts/systems/settlement_system.gd")
+const Levels := preload("res://scripts/core/underground_level_catalog.gd")
+const Space := preload("res://scripts/core/room_space.gd")
+const Terrain := preload("res://scripts/core/underground_terrain.gd")
+const Overlay := preload("res://demo/burrow/modular_world_overlay.gd")
+const Tool := preload("res://demo/burrow/modular_world_tool.gd")
+const Look := preload("res://demo/world/world_look.gd")
+var _host: Host = null
+var _levels: Levels = null
+var _domain: Space.Domain = null
+var _scene: Node3D = null
+var _view: View = null
+var _camera: Camera3D = null
+var _overlay: Overlay = null
+var _title: Label = null
+var _detail: Label = null
+var _out: String = ""
+var _checks: int = 0
+var _failures: PackedStringArray = PackedStringArray()
+var _images: Array[Dictionary] = []
+var _before: Array[PackedByteArray] = []
+
+
+func _ready() -> void:
+	"""Only this isolated harness creates a real host; the presentation module only borrows it."""
+	call_deferred(&"_run")
+
+
+func _run() -> void:
+	"""Windowed default backend, exact source World, then surface and selected-floor witnesses."""
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	if args.size() != 1 or not DirAccess.dir_exists_absolute(args[0]):
+		get_tree().quit(2)
+		return
+	_out = args[0]
+	get_tree().root.size = Vector2i(1280, 720)
+	_make_actual_world()
+	_make_scene()
+	_check(_view.configure(_host.world(), _host.world_ref(), _domain, _levels, 1, 2) == &"", "actual source mount")
+	for frame: int in 12:
+		await get_tree().process_frame
+	await _surface_views()
+	await _section_views()
+	_finish()
+
+
+func _make_actual_world() -> void:
+	"""Actual generation and shipped level data are never replaced by a schematic map."""
+	_host = Host.new()
+	_check(_host.create_generated_settlement(_host.item_definitions()), "actual starter World")
+	_domain = Space.Domain.new()
+	_check(_domain.configure(_host.world_ref(), Terrain.DATUM, Terrain.MIN_QUANTUM,
+		Terrain.SIZE_QUANTA, 8192, 6144, Space.MAX_CHECKS) == &"", "actual finite domain")
+	_levels = Levels.new()
+	_check(_levels.load_file("res://data/underground/initial_level_pack.uglvl",
+		"c5deb094b335bf6e5db018eeed591a115086b79bd909f829ed6e34166db81f94", 1) == &"", "actual level source")
+	_check(_levels.bind_domain(_domain, _host.directory(), _domain.descriptor(), Space.VERSION) == &"", "original World binding")
+	_before = _state()
+
+
+func _make_scene() -> void:
+	"""One native viewport uses the existing grounded light palette at original World coordinates."""
+	_scene = Node3D.new()
+	get_tree().root.add_child(_scene)
+	_view = View.new()
+	_scene.add_child(_view)
+	_camera = Camera3D.new()
+	_camera.projection = Camera3D.PROJECTION_ORTHOGONAL
+	_camera.far = 1500
+	_scene.add_child(_camera)
+	_camera.make_current()
+	var sun: DirectionalLight3D = DirectionalLight3D.new()
+	sun.light_color = Look.SUN_COLOR
+	sun.light_energy = Look.SUN_ENERGY
+	_scene.add_child(sun)
+	sun.position = Look.SUN_TOWARD * 100
+	sun.look_at(Vector3.ZERO)
+	var environment: WorldEnvironment = WorldEnvironment.new()
+	environment.environment = Environment.new()
+	environment.environment.background_mode = Environment.BG_COLOR
+	environment.environment.background_color = Look.CREAM.darkened(0.3)
+	environment.environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	environment.environment.ambient_light_color = Look.CREAM
+	environment.environment.ambient_light_energy = 0.55
+	_scene.add_child(environment)
+	_labels()
+
+
+func _labels() -> void:
+	"""Native diagnostic copy clearly separates actual terrain from unconfirmed planning marks."""
+	var canvas: CanvasLayer = CanvasLayer.new()
+	_scene.add_child(canvas)
+	var panel: ColorRect = ColorRect.new()
+	panel.color = Color(Look.INK, 0.92)
+	panel.position = Vector2(24, 22)
+	panel.size = Vector2(870, 112)
+	canvas.add_child(panel)
+	_title = Label.new()
+	_title.position = Vector2(44, 34)
+	_title.add_theme_font_size_override(&"font_size", 24)
+	_title.modulate = Look.CREAM
+	canvas.add_child(_title)
+	_detail = Label.new()
+	_detail.position = Vector2(44, 73)
+	_detail.add_theme_font_size_override(&"font_size", 16)
+	_detail.modulate = Look.OAT
+	canvas.add_child(_detail)
+
+
+func _frame(focus: Vector3, size_m: float) -> void:
+	"""The camera moves around the actual World; no terrain origin is recentered."""
+	_camera.size = size_m
+	_camera.position = focus + Vector3(0, 230, 180)
+	_camera.look_at(focus)
+
+
+func _surface_views() -> void:
+	"""Show the complete actual estuary and its exact half-metre land/water step."""
+	_title.text = "Actual World · surface"
+	_detail.text = "Land 0.5 m · water 0 m · exact 2 m tiles\nCoast: dark green  |  River: sage  |  Lake: blue-green  |  Land: moss / earth"
+	_frame(Vector3(128, 0, 128), 300)
+	await _capture("surface-overview")
+	_title.text = "Actual World · shoreline"
+	_detail.text = "Original terrain rows and tile edges · no village layout substitute\nNatural surface only; no Room, opening or excavation is created."
+	_frame(Vector3(119, 0, 133), 45)
+	await _capture("surface-shore")
+
+
+func _section_views() -> void:
+	"""Select the real first floor; unexcavated earth and protected wet projections stay distinct."""
+	_check(_view.set_floor(1, 0) == &"", "actual first underground level")
+	_title.text = "Level 1 · unexcavated earth"
+	_detail.text = "Floor −4.5 m · warm earth: solid ground · dark areas: protected wet columns\nFaint contours show the actual surface above. Nothing has been excavated."
+	_frame(Vector3(128, -4.5, 128), 300)
+	await _capture("section-overview")
+	_make_plan()
+	_title.text = "Kitchen drawing · exact selected floor"
+	_detail.text = "Unconfirmed drawing on solid earth · 0.25 m planning grid\nPreview and picking share the actual floor. This witness grants no construction."
+	_frame(Vector3(123, -4.5, 102), 22)
+	_check_plan()
+	await _capture("section-drawing")
+
+
+func _make_plan() -> void:
+	"""Existing overlay marks a caller-owned drawing only, using exact original datum and pitch."""
+	_overlay = Overlay.new()
+	_scene.add_child(_overlay)
+	_check(_overlay.configure(Vector3i(0, -4608, 0), 256, Rect2i(0, 0, 1024, 1024), 4) == &"", "exact overlay plane")
+	var cells: PackedInt32Array = PackedInt32Array()
+	for z: int in range(400, 416):
+		for x: int in range(480, 504):
+			if x > 500 and z < 404:
+				continue
+			cells.append(x)
+			cells.append(z)
+	_check(_overlay.refresh(cells, false) == &"", "actual retained concave drawing")
+
+
+func _check_plan() -> void:
+	"""Rendered cell centres pick back to the exact same integer cells through the native camera."""
+	for cell: Vector2i in [Vector2i(480, 400), Vector2i(492, 410), Vector2i(503, 415)]:
+		var point: Vector3 = _overlay.world_corner(cell) + Vector3(0.125, 0, 0.125)
+		var screen: Vector2 = _camera.unproject_position(point)
+		var hit: Tool.Pick = Tool.ray_pick(_camera.project_ray_origin(screen),
+			_camera.project_ray_normal(screen), Vector3i(0, -4608, 0), 256)
+		_check(hit.ok and hit.cell == cell, "native camera / selected plane / exact cell")
+	_check(not _view._surface.visible and not _view._banks.visible, "surface cannot hide selected floor")
+
+
+func _capture(name_value: String) -> void:
+	"""Save only completed real viewport renders and require exact 1280×720 output."""
+	for frame: int in 3:
+		await get_tree().process_frame
+	await RenderingServer.frame_post_draw
+	var image: Image = get_tree().root.get_texture().get_image()
+	var path: String = _out.path_join(name_value + ".png")
+	_check(not FileAccess.file_exists(path), "create-only native image")
+	_check(image.get_size() == Vector2i(1280, 720), "native resolution")
+	_check(image.save_png(path) == OK, "native PNG saved")
+	_images.append({"path": name_value + ".png", "width": image.get_width(), "height": image.get_height()})
+
+
+func _state() -> Array[PackedByteArray]:
+	"""The native demonstration remains read-only across the canonical identity/economy/World."""
+	return [_host.directory().state_bytes(), _host.inventory().state_bytes(), _host.jobs().state_bytes(),
+		_host.residents().state_bytes(), _host.transforms().state_bytes(), _host.world()._terrain.duplicate()]
+
+
+func _check(value: bool, label: String) -> void:
+	"""Every reported observation is independently counted; any failure rejects the capture."""
+	_checks += 1
+	if not value:
+		_failures.append(label)
+
+
+func _finish() -> void:
+	"""Write finite native evidence before explicit acyclic owner/node teardown."""
+	_check(_state() == _before, "no canonical changes")
+	var report: Dictionary = {"checks": _checks, "failures": _failures, "images": _images,
+		"backend": RenderingServer.get_current_rendering_method(), "driver": RenderingServer.get_current_rendering_driver_name(),
+		"build_usec": _view.build_usec, "runs": _view.run_count, "banks": _view.bank_count,
+		"lines": _view.line_count, "rebuilds": _view.rebuilds, "world_ref": [_host.world_ref().x, _host.world_ref().y],
+		"datum_u": [0, 512, 0], "floor_u": _view._floor_u, "world_qualified": false, "canonical_unchanged": true}
+	var file: FileAccess = FileAccess.open(_out.path_join("report.json"), FileAccess.WRITE)
+	file.store_string(JSON.stringify(report, "\t") + "\n")
+	file.close()
+	print("WORLD-VIEW-NATIVE %d checks / %d failures / %d images" % [_checks, _failures.size(), _images.size()])
+	_scene.free()
+	_levels = null
+	_domain = null
+	_host.free()
+	get_tree().quit(0 if _failures.is_empty() else 1)

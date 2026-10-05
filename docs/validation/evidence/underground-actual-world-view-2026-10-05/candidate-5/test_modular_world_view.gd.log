@@ -1,0 +1,35 @@
+state_registry_coverage: PASS -- 154 modules, 731 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_modular_world_view.gd
+WORLD-VIEW-BUILD usec=72537 runs=410 banks=465 lines=1445
+  PASS  test_actual_world_rows_cover_exact_tiles_and_heights_without_store_changes
+  PASS  test_actual_shore_steps_have_exact_positive_height_and_correct_side
+  PASS  test_catalog_floor_changes_reuse_mesh_and_leave_preview_depth_clear
+  PASS  test_refused_floor_and_bounds_reads_preserve_caller_and_selection
+  PASS  test_full_owner_source_domain_and_transform_mutations_refuse
+  PASS  test_view_does_not_retain_heavy_world_and_clear_allows_actual_remount
+  PASS  test_wrong_identity_domain_and_layers_never_install_partial_view
+WORLD-VIEW-MAX usec=178909 quads=65280
+  PASS  test_exact_capacity_bound_and_checkerboard_geometry_are_finite
+  PASS  test_copied_level_columns_refuse_same_digest_payload_drift
+  PASS  test_ford_source_is_earth_below_its_bed_without_changing_surface_water
+CI_SUITE_TIME {"assertions":51358,"failures":0,"suite":"test_modular_world_view.gd","tests":10,"usec":3869900}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+10 test(s), 51358 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 10 tests, 51358 assertions, 0 failures.

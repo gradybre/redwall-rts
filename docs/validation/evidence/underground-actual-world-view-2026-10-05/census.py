@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+"""Source-counted 1175 presentation payload; native allocator/backend qualification is explicitly absent."""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import re
+
+ROOT = Path(__file__).resolve().parents[4]
+MODULE = 'godot/demo/burrow/modular_world_view.gd'
+EXPECTED_MEMBERS = {
+ '_world':'WeakRef', '_directory':'WeakRef', '_levels':'WeakRef', '_domain':'WeakRef',
+ '_world_ref':'Vector2i', '_seed':'int', '_level_revision':'int', '_level_hash':'PackedByteArray',
+ '_identity':'PackedInt32Array', '_level_config':'PackedInt32Array', '_offsets':'PackedInt32Array',
+ '_rises':'PackedInt32Array', '_bounds':'PackedInt32Array', '_surface':'MeshInstance3D',
+ '_banks':'MeshInstance3D', '_slice':'MeshInstance3D', '_context':'MeshInstance3D',
+ '_level_id':'int', '_floor_u':'int', 'build_usec':'int', 'run_count':'int', 'bank_count':'int',
+ 'line_count':'int', 'section_run_count':'int', 'rebuilds':'int'}
+
+
+def validate(source):
+    members = dict(re.findall(r'^var (\w+): (\w+)', source, re.M))
+    assert members == EXPECTED_MEMBERS, 'New/changed retained field requires a new census'
+    nested = dict(re.findall(r'^\tvar (\w+): (\w+)', source.split('class Quads extends RefCounted:',1)[1].split('\nvar _world:',1)[0], re.M))
+    assert nested == dict(vertices='PackedVector3Array', normals='PackedVector3Array',
+                         tangents='PackedFloat32Array', uvs='PackedVector2Array', indices='PackedInt32Array', count='int')
+    for text in ('vertices.resize(capacity * 4)', 'normals.resize(capacity * 4)',
+                 'tangents.resize(capacity * 16)', 'uvs.resize(capacity * 4)', 'indices.resize(capacity * 6)',
+                 'arrays[Mesh.ARRAY_TANGENT] = tangents',
+                 'top = null\n\tvar section_count: int', 'kinds.resize(World.TILE_COUNT)',
+                 'for tile: int in World.TILE_COUNT:', 'world.terrain_into(tile, value)',
+                 'world.get_script() != World', 'levels.get_script() != Levels',
+                 '_world = weakref(world)', '_levels = weakref(levels)', '_domain = weakref(domain)',
+                 'points.resize((_edge_count(kinds, false) * 2 + 4 * World.MAP_TILES_X) * 2)',
+                 'material.render_priority = -1', 'material.no_depth_test = true',
+                 'material.set_shader_parameter(&"path_count", 0)',
+                 'material.set_shader_parameter(&"clearing_radius", 100000.0)'):
+        assert text in source, 'Changed bounded producer/lifetime: ' + text
+    assert source.count('_mesh_node("') == 4, 'View node census changed'
+    assert source.count('Look._noise_texture(') == 3, 'Noise image census changed'
+    for forbidden in ('queue_free(', 'StaticBody3D', 'CollisionShape3D', 'World.new(', 'set_deferred('):
+        assert forbidden not in source, 'Uncounted deferred/physical/World ownership'
+    phase = source.split('func set_floor(', 1)[1].split('\n\nfunc ', 1)[0]
+    frame = source.split('func _process(', 1)[1].split('\n\nfunc ', 1)[0]
+    assert '_build(' not in phase + frame and '.new(' not in frame, 'No frame/selection mesh rebuild'
+
+
+def build(source=None, native=None):
+    source = (ROOT / MODULE).read_text() if source is None else source
+    validate(source)
+    world = (ROOT / 'godot/scripts/core/world_init.gd').read_text()
+    assert re.search(r'const MAP_TILES_X: int = 128', world)
+    assert re.search(r'const MAP_TILES_Z: int = 128', world)
+    assert re.search(r'const TILE_SIZE_UNITS: int = 2048', world)
+    assert re.search(r'const LAND_Y_UNITS: int = 512', world)
+    width = 128
+    tiles = width * width
+    max_banks = 2 * width * (width - 1)
+    max_lines = 2 * max_banks + 4 * width
+    quad_bytes = 4 * (12 + 12 + 16 + 8) + 6 * 4
+    controls = 10 * 8 + 8
+    metadata = 32 + 4 * (21 + 13 + 3 + 2 + 6)
+    maximum_metadata = 32 + 4 * (21 + 13 + 9 + 8 + 6)
+    raw_maximum = (2 * tiles + max_banks) * quad_bytes + max_lines * 24
+    staging = max(tiles * quad_bytes, max_banks * quad_bytes, max_lines * 24)
+    pixels_with_mips = sum((512 >> n) ** 2 for n in range(10))
+    result = {
+      'scope':'presentation payload census; no authoritative arena or measured native acceptance',
+      'source_sha256':hashlib.sha256(source.encode()).hexdigest(),
+      'fixed_numeric_bytes':controls, 'metadata_bytes_actual_pack':metadata,
+      'metadata_bytes_capacity':maximum_metadata,
+      'retained_logical_numeric_bytes_actual':controls + metadata,
+      'retained_logical_numeric_bytes_capacity':controls + maximum_metadata,
+      'borrowed_owner_weakrefs':4, 'mesh_nodes':4, 'array_meshes':4,
+      'mesh_materials':10, 'noise_textures':3, 'noise_sources':3,
+      'terrain_staging_bytes':tiles, 'quad_input_bytes':quad_bytes,
+      'capacity':{'top_quads_per_plane':tiles,'shore_quads':max_banks,'context_lines':max_lines,
+        'raw_mesh_source_bytes':raw_maximum,'largest_one_surface_staging_bytes':staging,
+        'old_plus_new_mesh_source_bytes':2 * raw_maximum,
+        'old_new_staging_and_one_upload_payload_bytes':2 * raw_maximum + tiles + 2 * staging},
+      'noise_image_extent':{'width':512,'height':512,'mip_pixels':pixels_with_mips,
+        'three_rgba8_mipped_images_bytes':3 * pixels_with_mips * 4,
+        'two_generations_cpu_plus_gpu_image_payload_bytes':2 * 2 * 3 * pixels_with_mips * 4},
+      'native_unmeasured':['ArrayMesh compressed storage and upload temporaries',
+        'render-thread deferred destruction and exact generation overlap',
+        'NoiseTexture2D worker, seamless/skirt and normal generation temporaries',
+        'nodes, RIDs, Array/packed headers, materials, shader compilation/cache, WeakRefs'],
+      'world_qualified':False, 'native_memory_qualified':False,
+      'existing_global_ceiling_changed':False,
+    }
+    if native:
+        assert native['canonical_unchanged'] and not native['world_qualified']
+        runs, banks, lines = (native[k] for k in ('runs','banks','lines'))
+        section_runs = native['section_runs']
+        assert 0 <= runs <= tiles and 0 <= section_runs <= tiles and 0 <= banks <= max_banks and 0 <= lines <= max_lines
+        raw = (runs + section_runs + banks) * quad_bytes + lines * 24
+        kind_edges = lines - banks - 4 * width
+        assert 0 <= kind_edges <= max_banks
+        upper_stage = max(max(runs, section_runs) * quad_bytes, banks * quad_bytes, (2 * kind_edges + 4 * width) * 24)
+        result['actual_native'] = {'runs':runs,'section_runs':section_runs,'banks':banks,'lines':lines,'raw_mesh_source_bytes':raw,
+          'build_usec':native['build_usec'],'old_plus_new_raw_mesh_source_bytes':2 * raw,
+          'staging_upper_bound_without_source_run_retention':upper_stage,
+          'old_new_staging_and_one_upload_payload_bytes':2 * raw + tiles + 2 * upper_stage,
+          'backend':native['backend'],'driver':native['driver']}
+    return result
+
+
+def main():
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--native', type=Path)
+    parser.add_argument('--out', type=Path, required=True)
+    args=parser.parse_args()
+    if args.out.is_symlink() or args.out.exists(): raise ValueError('create-only output required')
+    native=json.loads(args.native.read_text()) if args.native else None
+    args.out.write_text(json.dumps(build(native=native),indent=2)+'\n')
+
+
+if __name__=='__main__': main()

@@ -1,0 +1,518 @@
+[
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/inputs-before.json",
+    "source_path": "docs/validation/evidence/underground-actual-world-view-2026-10-05/reproduce.py",
+    "sha256": "cb1b49c949e7b2b8f06148399e187c0eeaaccfddc81a761d259d932b4113688b",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/executed-source/reproduce.py.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/inputs-before.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "b334ed287b88c8bc3d2492abff9c15b5d538adc79291b4e9f54a2414cdb78ff8",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/inputs-before.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "0f0cbcc6edf5f3f9e226b960a3a39077151b9f6ddfe939e12c799b3a43d6198e",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/inputs-after.json",
+    "source_path": "docs/validation/evidence/underground-actual-world-view-2026-10-05/reproduce.py",
+    "sha256": "cb1b49c949e7b2b8f06148399e187c0eeaaccfddc81a761d259d932b4113688b",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/executed-source/reproduce.py.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/inputs-after.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "b334ed287b88c8bc3d2492abff9c15b5d538adc79291b4e9f54a2414cdb78ff8",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/inputs-after.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "0f0cbcc6edf5f3f9e226b960a3a39077151b9f6ddfe939e12c799b3a43d6198e",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/original-inputs.json",
+    "source_path": "docs/validation/evidence/underground-actual-world-view-2026-10-05/reproduce.py",
+    "sha256": "cb1b49c949e7b2b8f06148399e187c0eeaaccfddc81a761d259d932b4113688b",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/executed-source/reproduce.py.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/original-inputs.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "b334ed287b88c8bc3d2492abff9c15b5d538adc79291b4e9f54a2414cdb78ff8",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/original-inputs.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "0f0cbcc6edf5f3f9e226b960a3a39077151b9f6ddfe939e12c799b3a43d6198e",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/restored-inputs.json",
+    "source_path": "docs/validation/evidence/underground-actual-world-view-2026-10-05/reproduce.py",
+    "sha256": "cb1b49c949e7b2b8f06148399e187c0eeaaccfddc81a761d259d932b4113688b",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/executed-source/reproduce.py.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/restored-inputs.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "b334ed287b88c8bc3d2492abff9c15b5d538adc79291b4e9f54a2414cdb78ff8",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/restored-inputs.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "0f0cbcc6edf5f3f9e226b960a3a39077151b9f6ddfe939e12c799b3a43d6198e",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/source-sha256.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "b334ed287b88c8bc3d2492abff9c15b5d538adc79291b4e9f54a2414cdb78ff8",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/source-sha256.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "0f0cbcc6edf5f3f9e226b960a3a39077151b9f6ddfe939e12c799b3a43d6198e",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-1/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/inputs-before.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "62c61bbc5d9707ef27d390447907fe9bc3ee6e81506c787f3582e82f0c892bc8",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/inputs-before.json",
+    "source_path": "godot/demo/burrow/modular_world_view_live.gd",
+    "sha256": "a4b9853ca63e6f408675029637058d1c17479d452ad48183f7d11cd517142e8e",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view_live.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/inputs-before.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "f3290a504fb2a1f13752e2e049d59c3171662def63afb0d6f5d788ad86df21fa",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/inputs-after.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "62c61bbc5d9707ef27d390447907fe9bc3ee6e81506c787f3582e82f0c892bc8",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/inputs-after.json",
+    "source_path": "godot/demo/burrow/modular_world_view_live.gd",
+    "sha256": "a4b9853ca63e6f408675029637058d1c17479d452ad48183f7d11cd517142e8e",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view_live.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/inputs-after.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "f3290a504fb2a1f13752e2e049d59c3171662def63afb0d6f5d788ad86df21fa",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/original-inputs.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "62c61bbc5d9707ef27d390447907fe9bc3ee6e81506c787f3582e82f0c892bc8",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/original-inputs.json",
+    "source_path": "godot/demo/burrow/modular_world_view_live.gd",
+    "sha256": "a4b9853ca63e6f408675029637058d1c17479d452ad48183f7d11cd517142e8e",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view_live.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/original-inputs.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "f3290a504fb2a1f13752e2e049d59c3171662def63afb0d6f5d788ad86df21fa",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/restored-inputs.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "62c61bbc5d9707ef27d390447907fe9bc3ee6e81506c787f3582e82f0c892bc8",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/restored-inputs.json",
+    "source_path": "godot/demo/burrow/modular_world_view_live.gd",
+    "sha256": "a4b9853ca63e6f408675029637058d1c17479d452ad48183f7d11cd517142e8e",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view_live.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/restored-inputs.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "f3290a504fb2a1f13752e2e049d59c3171662def63afb0d6f5d788ad86df21fa",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/source-sha256.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "62c61bbc5d9707ef27d390447907fe9bc3ee6e81506c787f3582e82f0c892bc8",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/source-sha256.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "f3290a504fb2a1f13752e2e049d59c3171662def63afb0d6f5d788ad86df21fa",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-2/source-sha256.json",
+    "source_path": "godot/demo/burrow/modular_world_view_live.gd",
+    "sha256": "a4b9853ca63e6f408675029637058d1c17479d452ad48183f7d11cd517142e8e",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view_live.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-3/inputs-before.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "5520c4f64afc9c17712dde5d06b718d0b1ea61661548c231a091846af7bad4f1",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-3/inputs-before.json",
+    "source_path": "godot/demo/burrow/modular_world_view_live.gd",
+    "sha256": "a4b9853ca63e6f408675029637058d1c17479d452ad48183f7d11cd517142e8e",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view_live.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-3/inputs-before.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "420b1a3a4d4e4ab7e3b7c346af5c8c5b48f7cbeb360d421ded90e514cea05318",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-3/inputs-after.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "5520c4f64afc9c17712dde5d06b718d0b1ea61661548c231a091846af7bad4f1",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-3/inputs-after.json",
+    "source_path": "godot/demo/burrow/modular_world_view_live.gd",
+    "sha256": "a4b9853ca63e6f408675029637058d1c17479d452ad48183f7d11cd517142e8e",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view_live.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-3/inputs-after.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "420b1a3a4d4e4ab7e3b7c346af5c8c5b48f7cbeb360d421ded90e514cea05318",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-3/original-inputs.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "5520c4f64afc9c17712dde5d06b718d0b1ea61661548c231a091846af7bad4f1",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-3/original-inputs.json",
+    "source_path": "godot/demo/burrow/modular_world_view_live.gd",
+    "sha256": "a4b9853ca63e6f408675029637058d1c17479d452ad48183f7d11cd517142e8e",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view_live.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-3/original-inputs.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "420b1a3a4d4e4ab7e3b7c346af5c8c5b48f7cbeb360d421ded90e514cea05318",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-3/restored-inputs.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "5520c4f64afc9c17712dde5d06b718d0b1ea61661548c231a091846af7bad4f1",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-3/restored-inputs.json",
+    "source_path": "godot/demo/burrow/modular_world_view_live.gd",
+    "sha256": "a4b9853ca63e6f408675029637058d1c17479d452ad48183f7d11cd517142e8e",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view_live.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-3/restored-inputs.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "420b1a3a4d4e4ab7e3b7c346af5c8c5b48f7cbeb360d421ded90e514cea05318",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-3/source-sha256.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "5520c4f64afc9c17712dde5d06b718d0b1ea61661548c231a091846af7bad4f1",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-3/source-sha256.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "420b1a3a4d4e4ab7e3b7c346af5c8c5b48f7cbeb360d421ded90e514cea05318",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-3/source-sha256.json",
+    "source_path": "godot/demo/burrow/modular_world_view_live.gd",
+    "sha256": "a4b9853ca63e6f408675029637058d1c17479d452ad48183f7d11cd517142e8e",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view_live.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-4/inputs-before.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "23d27b2a79c5b8e3155fe358c1d66bd713af3ebba5e259e0a73b989b106aa024",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-4/inputs-before.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "44c50e4985d0a2244483b6315ffa03e02cd7a9f737060d55b7320ee1d811e013",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-4/inputs-after.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "23d27b2a79c5b8e3155fe358c1d66bd713af3ebba5e259e0a73b989b106aa024",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-4/inputs-after.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "44c50e4985d0a2244483b6315ffa03e02cd7a9f737060d55b7320ee1d811e013",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-4/original-inputs.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "23d27b2a79c5b8e3155fe358c1d66bd713af3ebba5e259e0a73b989b106aa024",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-4/original-inputs.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "44c50e4985d0a2244483b6315ffa03e02cd7a9f737060d55b7320ee1d811e013",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-4/restored-inputs.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "23d27b2a79c5b8e3155fe358c1d66bd713af3ebba5e259e0a73b989b106aa024",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-4/restored-inputs.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "44c50e4985d0a2244483b6315ffa03e02cd7a9f737060d55b7320ee1d811e013",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-4/source-sha256.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "23d27b2a79c5b8e3155fe358c1d66bd713af3ebba5e259e0a73b989b106aa024",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-4/source-sha256.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "44c50e4985d0a2244483b6315ffa03e02cd7a9f737060d55b7320ee1d811e013",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/inputs-before.json",
+    "source_path": "docs/validation/evidence/underground-actual-world-view-2026-10-05/run_native.py",
+    "sha256": "03edea0b1eb51229d987785b753598087513eb4d638163513e01ee8f025d4e81",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/run_native.py.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/inputs-before.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "5520c4f64afc9c17712dde5d06b718d0b1ea61661548c231a091846af7bad4f1",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/inputs-before.json",
+    "source_path": "godot/demo/burrow/modular_world_view_live.gd",
+    "sha256": "a4b9853ca63e6f408675029637058d1c17479d452ad48183f7d11cd517142e8e",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view_live.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/inputs-before.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "420b1a3a4d4e4ab7e3b7c346af5c8c5b48f7cbeb360d421ded90e514cea05318",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/inputs-after.json",
+    "source_path": "docs/validation/evidence/underground-actual-world-view-2026-10-05/run_native.py",
+    "sha256": "03edea0b1eb51229d987785b753598087513eb4d638163513e01ee8f025d4e81",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/run_native.py.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/inputs-after.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "5520c4f64afc9c17712dde5d06b718d0b1ea61661548c231a091846af7bad4f1",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/inputs-after.json",
+    "source_path": "godot/demo/burrow/modular_world_view_live.gd",
+    "sha256": "a4b9853ca63e6f408675029637058d1c17479d452ad48183f7d11cd517142e8e",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view_live.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/inputs-after.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "420b1a3a4d4e4ab7e3b7c346af5c8c5b48f7cbeb360d421ded90e514cea05318",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/source-sha256.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "5520c4f64afc9c17712dde5d06b718d0b1ea61661548c231a091846af7bad4f1",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/source-sha256.json",
+    "source_path": "godot/demo/burrow/modular_world_view_live.gd",
+    "sha256": "a4b9853ca63e6f408675029637058d1c17479d452ad48183f7d11cd517142e8e",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view_live.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/source-sha256.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "420b1a3a4d4e4ab7e3b7c346af5c8c5b48f7cbeb360d421ded90e514cea05318",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-2/inputs-before.json",
+    "source_path": "docs/validation/evidence/underground-actual-world-view-2026-10-05/run_native.py",
+    "sha256": "153ab2d55ef44370c2c0a325c3070c388e7a4b6645ca62a571a8226b2a4feaaf",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-2/executed-source/run_native.py.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-2/inputs-before.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "5520c4f64afc9c17712dde5d06b718d0b1ea61661548c231a091846af7bad4f1",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-2/inputs-before.json",
+    "source_path": "godot/demo/burrow/modular_world_view_live.gd",
+    "sha256": "06ce83ca1ea53c773b37619b2d5d1f8cbf93acef0f35f11b36fdabb7e21c74c5",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-2/executed-source/modular_world_view_live.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-2/inputs-before.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "420b1a3a4d4e4ab7e3b7c346af5c8c5b48f7cbeb360d421ded90e514cea05318",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-2/inputs-after.json",
+    "source_path": "docs/validation/evidence/underground-actual-world-view-2026-10-05/run_native.py",
+    "sha256": "153ab2d55ef44370c2c0a325c3070c388e7a4b6645ca62a571a8226b2a4feaaf",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-2/executed-source/run_native.py.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-2/inputs-after.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "5520c4f64afc9c17712dde5d06b718d0b1ea61661548c231a091846af7bad4f1",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-2/inputs-after.json",
+    "source_path": "godot/demo/burrow/modular_world_view_live.gd",
+    "sha256": "06ce83ca1ea53c773b37619b2d5d1f8cbf93acef0f35f11b36fdabb7e21c74c5",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-2/executed-source/modular_world_view_live.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-2/inputs-after.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "420b1a3a4d4e4ab7e3b7c346af5c8c5b48f7cbeb360d421ded90e514cea05318",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-2/source-sha256.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "5520c4f64afc9c17712dde5d06b718d0b1ea61661548c231a091846af7bad4f1",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-2/source-sha256.json",
+    "source_path": "godot/demo/burrow/modular_world_view_live.gd",
+    "sha256": "06ce83ca1ea53c773b37619b2d5d1f8cbf93acef0f35f11b36fdabb7e21c74c5",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-2/executed-source/modular_world_view_live.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-2/source-sha256.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "420b1a3a4d4e4ab7e3b7c346af5c8c5b48f7cbeb360d421ded90e514cea05318",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/inputs-before.json",
+    "source_path": "docs/validation/evidence/underground-actual-world-view-2026-10-05/run_native.py",
+    "sha256": "c35773f67366e66b2526b1a3f594f126070175e91e76ab67e98bbe65559f61c9",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/executed-source/run_native.py.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/inputs-before.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "23d27b2a79c5b8e3155fe358c1d66bd713af3ebba5e259e0a73b989b106aa024",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/inputs-before.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "44c50e4985d0a2244483b6315ffa03e02cd7a9f737060d55b7320ee1d811e013",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/inputs-after.json",
+    "source_path": "docs/validation/evidence/underground-actual-world-view-2026-10-05/run_native.py",
+    "sha256": "c35773f67366e66b2526b1a3f594f126070175e91e76ab67e98bbe65559f61c9",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/executed-source/run_native.py.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/inputs-after.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "23d27b2a79c5b8e3155fe358c1d66bd713af3ebba5e259e0a73b989b106aa024",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/inputs-after.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "44c50e4985d0a2244483b6315ffa03e02cd7a9f737060d55b7320ee1d811e013",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/source-sha256.json",
+    "source_path": "godot/demo/burrow/modular_world_view.gd",
+    "sha256": "23d27b2a79c5b8e3155fe358c1d66bd713af3ebba5e259e0a73b989b106aa024",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/executed-source/modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/source-sha256.json",
+    "source_path": "godot/test/test_modular_world_view.gd",
+    "sha256": "44c50e4985d0a2244483b6315ffa03e02cd7a9f737060d55b7320ee1d811e013",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/executed-source/test_modular_world_view.gd.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-4/inputs-before.json",
+    "source_path": "docs/validation/evidence/underground-actual-world-view-2026-10-05/run_native.py",
+    "sha256": "c35773f67366e66b2526b1a3f594f126070175e91e76ab67e98bbe65559f61c9",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/executed-source/run_native.py.txt"
+  },
+  {
+    "manifest": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-4/inputs-after.json",
+    "source_path": "docs/validation/evidence/underground-actual-world-view-2026-10-05/run_native.py",
+    "sha256": "c35773f67366e66b2526b1a3f594f126070175e91e76ab67e98bbe65559f61c9",
+    "locator": "docs/validation/evidence/underground-actual-world-view-2026-10-05/native-3/executed-source/run_native.py.txt"
+  }
+]

@@ -1,0 +1,148 @@
+state_registry_coverage: PASS -- 154 modules, 731 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_modular_world_view.gd
+WORLD-VIEW-BUILD usec=41206 runs=410 banks=465 lines=980
+  PASS  test_actual_world_rows_cover_exact_tiles_and_heights_without_store_changes
+  FAIL  test_actual_shore_steps_have_exact_positive_height_and_correct_side
+        UV dimensions are metres (expected (104.0, 104.0), got (202.0, 0.0))
+        UV dimensions are metres (expected (104.0, 104.0), got (200.0, 0.0))
+        UV dimensions are metres (expected (104.0, 104.0), got (200.0, 0.5))
+        UV dimensions are metres (expected (104.0, 104.0), got (202.0, 0.5))
+        UV dimensions are metres (expected (106.0, 106.0), got (192.0, 0.0))
+        UV dimensions are metres (expected (106.0, 106.0), got (190.0, 0.0))
+        UV dimensions are metres (expected (106.0, 106.0), got (190.0, 0.5))
+        UV dimensions are metres (expected (106.0, 106.0), got (192.0, 0.5))
+        UV dimensions are metres (expected (106.0, 106.0), got (194.0, 0.0))
+        UV dimensions are metres (expected (106.0, 106.0), got (192.0, 0.0))
+        UV dimensions are metres (expected (106.0, 106.0), got (192.0, 0.5))
+        UV dimensions are metres (expected (106.0, 106.0), got (194.0, 0.5))
+        UV dimensions are metres (expected (106.0, 106.0), got (196.0, 0.0))
+        UV dimensions are metres (expected (106.0, 106.0), got (194.0, 0.0))
+        UV dimensions are metres (expected (106.0, 106.0), got (194.0, 0.5))
+        UV dimensions are metres (expected (106.0, 106.0), got (196.0, 0.5))
+        UV dimensions are metres (expected (106.0, 106.0), got (198.0, 0.0))
+        UV dimensions are metres (expected (106.0, 106.0), got (196.0, 0.0))
+        UV dimensions are metres (expected (106.0, 106.0), got (196.0, 0.5))
+        UV dimensions are metres (expected (106.0, 106.0), got (198.0, 0.5))
+        UV dimensions are metres (expected (106.0, 106.0), got (200.0, 0.0))
+        UV dimensions are metres (expected (106.0, 106.0), got (198.0, 0.0))
+        UV dimensions are metres (expected (106.0, 106.0), got (198.0, 0.5))
+        UV dimensions are metres (expected (106.0, 106.0), got (200.0, 0.5))
+        UV dimensions are metres (expected (106.0, 106.0), got (204.0, 0.0))
+        UV dimensions are metres (expected (106.0, 106.0), got (202.0, 0.0))
+        UV dimensions are metres (expected (106.0, 106.0), got (202.0, 0.5))
+        UV dimensions are metres (expected (106.0, 106.0), got (204.0, 0.5))
+        UV dimensions are metres (expected (106.0, 106.0), got (206.0, 0.0))
+        UV dimensions are metres (expected (106.0, 106.0), got (204.0, 0.0))
+        UV dimensions are metres (expected (106.0, 106.0), got (204.0, 0.5))
+        UV dimensions are metres (expected (106.0, 106.0), got (206.0, 0.5))
+        UV dimensions are metres (expected (106.0, 106.0), got (208.0, 0.0))
+        UV dimensions are metres (expected (106.0, 106.0), got (206.0, 0.0))
+        UV dimensions are metres (expected (106.0, 106.0), got (206.0, 0.5))
+        UV dimensions are metres (expected (106.0, 106.0), got (208.0, 0.5))
+        UV dimensions are metres (expected (106.0, 106.0), got (210.0, 0.0))
+        UV dimensions are metres (expected (106.0, 106.0), got (208.0, 0.0))
+        UV dimensions are metres (expected (106.0, 106.0), got (208.0, 0.5))
+        UV dimensions are metres (expected (106.0, 106.0), got (210.0, 0.5))
+        UV dimensions are metres (expected (106.0, 106.0), got (212.0, 0.0))
+        UV dimensions are metres (expected (106.0, 106.0), got (210.0, 0.0))
+        UV dimensions are metres (expected (106.0, 106.0), got (210.0, 0.5))
+        UV dimensions are metres (expected (106.0, 106.0), got (212.0, 0.5))
+        UV dimensions are metres (expected (108.0, 108.0), got (188.0, 0.0))
+        UV dimensions are metres (expected (108.0, 108.0), got (186.0, 0.0))
+        UV dimensions are metres (expected (108.0, 108.0), got (186.0, 0.5))
+        UV dimensions are metres (expected (108.0, 108.0), got (188.0, 0.5))
+        UV dimensions are metres (expected (108.0, 108.0), got (190.0, 0.0))
+        UV dimensions are metres (expected (108.0, 108.0), got (188.0, 0.0))
+        UV dimensions are metres (expected (108.0, 108.0), got (188.0, 0.5))
+        UV dimensions are metres (expected (108.0, 108.0), got (190.0, 0.5))
+        UV dimensions are metres (expected (108.0, 108.0), got (214.0, 0.0))
+        UV dimensions are metres (expected (108.0, 108.0), got (212.0, 0.0))
+        UV dimensions are metres (expected (108.0, 108.0), got (212.0, 0.5))
+        UV dimensions are metres (expected (108.0, 108.0), got (214.0, 0.5))
+        UV dimensions are metres (expected (108.0, 108.0), got (216.0, 0.0))
+        UV dimensions are metres (expected (108.0, 108.0), got (214.0, 0.0))
+        UV dimensions are metres (expected (108.0, 108.0), got (214.0, 0.5))
+        UV dimensions are metres (expected (108.0, 108.0), got (216.0, 0.5))
+        UV dimensions are metres (expected (110.0, 110.0), got (186.0, 0.0))
+        UV dimensions are metres (expected (110.0, 110.0), got (184.0, 0.0))
+        UV dimensions are metres (expected (110.0, 110.0), got (184.0, 0.5))
+        UV dimensions are metres (expected (110.0, 110.0), got (186.0, 0.5))
+        UV dimensions are metres (expected (110.0, 110.0), got (218.0, 0.0))
+        UV dimensions are metres (expected (110.0, 110.0), got (216.0, 0.0))
+        UV dimensions are metres (expected (110.0, 110.0), got (216.0, 0.5))
+        UV dimensions are metres (expected (110.0, 110.0), got (218.0, 0.5))
+        UV dimensions are metres (expected (112.0, 112.0), got (184.0, 0.0))
+        UV dimensions are metres (expected (112.0, 112.0), got (182.0, 0.0))
+        UV dimensions are metres (expected (112.0, 112.0), got (182.0, 0.5))
+        UV dimensions are metres (expected (112.0, 112.0), got (184.0, 0.5))
+        UV dimensions are metres (expected (112.0, 112.0), got (220.0, 0.0))
+        UV dimensions are metres (expected (112.0, 112.0), got (218.0, 0.0))
+        UV dimensions are metres (expected (112.0, 112.0), got (218.0, 0.5))
+        UV dimensions are metres (expected (112.0, 112.0), got (220.0, 0.5))
+        UV dimensions are metres (expected (114.0, 114.0), got (182.0, 0.0))
+        UV dimensions are metres (expected (114.0, 114.0), got (180.0, 0.0))
+        UV dimensions are metres (expected (114.0, 114.0), got (180.0, 0.5))
+        UV dimensions are metres (expected (114.0, 114.0), got (182.0, 0.5))
+        UV dimensions are metres (expected (114.0, 114.0), got (222.0, 0.0))
+        UV dimensions are metres (expected (114.0, 114.0), got (220.0, 0.0))
+        UV dimensions are metres (expected (114.0, 114.0), got (220.0, 0.5))
+        UV dimensions are metres (expected (114.0, 114.0), got (222.0, 0.5))
+        UV dimensions are metres (expected (116.0, 116.0), got (180.0, 0.0))
+        UV dimensions are metres (expected (116.0, 116.0), got (178.0, 0.0))
+        UV dimensions are metres (expected (116.0, 116.0), got (178.0, 0.5))
+        UV dimensions are metres (expected (116.0, 116.0), got (180.0, 0.5))
+        UV dimensions are metres (expected (116.0, 116.0), got (224.0, 0.0))
+        UV dimensions are metres (expected (116.0, 116.0), got (222.0, 0.0))
+        UV dimensions are metres (expected (116.0, 116.0), got (222.0, 0.5))
+        UV dimensions are metres (expected (116.0, 116.0), got (224.0, 0.5))
+        UV dimensions are metres (expected (118.0, 118.0), got (178.0, 0.0))
+        UV dimensions are metres (expected (118.0, 118.0), got (176.0, 0.0))
+        UV dimensions are metres (expected (118.0, 118.0), got (176.0, 0.5))
+        UV dimensions are metres (expected (118.0, 118.0), got (178.0, 0.5))
+        UV dimensions are metres (expected (118.0, 118.0), got (226.0, 0.0))
+        UV dimensions are metres (expected (118.0, 118.0), got (224.0, 0.0))
+        UV dimensions are metres (expected (118.0, 118.0), got (224.0, 0.5))
+        UV dimensions are metres (expected (118.0, 118.0), got (226.0, 0.5))
+        UV dimensions are metres (expected (122.0, 122.0), got (176.0, 0.0))
+        UV dimensions are metres (expected (122.0, 122.0), got (174.0, 0.0))
+        UV dimensions are metres (expected (122.0, 122.0), got (174.0, 0.5))
+        UV dimensions are metres (expected (122.0, 122.0), got (176.0, 0.5))
+        UV dimensions are metres (expected (122.0, 122.0), got (228.0, 0.0))
+        UV dimensions are metres (expected (122.0, 122.0), got (226.0, 0.0))
+        UV dimensions are metres (expected (122.0, 122.0), got (226.0, 0.5))
+        UV dimensions are metres (expected (122.0, 122.0), got (228.0, 0.5))
+        UV dimensions are metres (expected (132.0, 132.0), got (174.0, 0.0))
+        UV dimensions are metres (expected (132.0, 132.0), got (172.0, 0.0))
+        UV dimensions are metres (expected (132.0, 132.0), got (172.0, 0.5))
+        UV dimensions are metres (expected (132.0, 132.0), got (174.0, 0.5))
+        UV dimensions are metres (expected (132.0, 132.0), got (230.0, 0.0))
+        UV dimensions are metres (expected (132.0, 132.0), got (228.0, 0.0))
+        UV dimensions are metres (expected (132.0, 132.0), got (228.0, 0.5))
+        UV dimensions are metres (expected (132.0, 132.0), got (230.0, 0.5))
+  PASS  test_catalog_floor_changes_reuse_mesh_and_leave_preview_depth_clear
+  PASS  test_refused_floor_and_bounds_reads_preserve_caller_and_selection
+  PASS  test_full_owner_source_domain_and_transform_mutations_refuse
+  PASS  test_view_does_not_retain_heavy_world_and_clear_allows_actual_remount
+  PASS  test_wrong_identity_domain_and_layers_never_install_partial_view
+WORLD-VIEW-MAX usec=87260 quads=65280
+  PASS  test_exact_capacity_bound_and_checkerboard_geometry_are_finite
+CI_SUITE_TIME {"assertions":44318,"failures":1,"suite":"test_modular_world_view.gd","tests":8,"usec":2897794}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+8 test(s), 44318 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 1 failing test(s).

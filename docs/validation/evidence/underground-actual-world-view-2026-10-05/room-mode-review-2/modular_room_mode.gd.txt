@@ -1,0 +1,366 @@
+extends Node3D
+## Actual-World room inspector. Only presentation, a player draft and weak command bindings live here.
+## The scene host owns camera/visibility handover; the original Session owns all construction truth.
+
+const Session := preload("res://scripts/core/underground_session.gd")
+const Levels := preload("res://scripts/core/underground_level_catalog.gd")
+const Directory := preload("res://scripts/core/entity_directory.gd")
+const Catalog := preload("res://scripts/core/catalog.gd")
+const Editor := preload("res://demo/burrow/modular_editor.gd")
+const Draft := preload("res://demo/burrow/modular_draft.gd")
+const Tool := preload("res://demo/burrow/modular_world_tool.gd")
+const Runtime := preload("res://demo/burrow/modular_runtime.gd")
+const Scroll := preload("res://demo/ui/demo_scroll.gd")
+const ThemeResource: Theme = preload("res://ui/theme/woodland_theme.tres")
+const GRID_U: int = 256
+const MAX_RADIUS_CELLS: int = 8
+const INSPECTOR_WIDTH: float = 336.0
+const NULL_REF: Vector2i = Vector2i(-1, 0)
+const ROOM_NAMES: PackedStringArray = ["Dormitory", "Bedroom", "Kitchen", "Dining room",
+	"Common room", "Infirmary", "Pantry", "Tunnel / passage"]
+const REFUSE_OWNER: StringName = &"ROOM_VIEW_WORLD_CHANGED"
+const REFUSE_DRAFT: StringName = &"DISCARD_EXISTING_DRAFT_FIRST"
+
+signal close_requested
+signal floor_changed(level_id: int, floor_u: int)
+signal room_ordered(receipt: Dictionary)
+
+var _session: WeakRef = null
+var _world: Vector2i = NULL_REF
+var _camera: Camera3D = null
+var _blocked: Callable = Callable()
+var _marks_layer: int = 0
+var _active: bool = false
+var _view_level: int = 1
+var _view_floor: int = 0
+var _purpose_id: int = 2
+var _datum: Vector3i = Vector3i.ZERO
+var _bounds: Rect2i = Rect2i()
+var _capacity: int = 0
+var _record: Levels.Record = Levels.Record.new()
+var _ui: CanvasLayer = null
+var _panel: PanelContainer = null
+var _column: VBoxContainer = null
+var _floor: OptionButton = null
+var _purpose: OptionButton = null
+var _context: Label = null
+var _editor: Editor = null
+var _tool: Tool = null
+var _runtime: Runtime = null
+
+
+func _ready() -> void:
+	"""Observe viewport changes even when the host configured this inspector before adding it to the tree."""
+	if not get_viewport().size_changed.is_connected(_place_panel):
+		get_viewport().size_changed.connect(_place_panel)
+	_place_panel()
+
+
+func configure(actual: Session, camera: Camera3D, blocked: Callable, marks_layer: int) -> StringName:
+	"""Bind one original ready Room tuple; no gameplay owner is constructed or strongly retained by this view."""
+	if _session != null or actual == null or actual.get_script() != Session or not is_instance_valid(camera) \
+			or not blocked.is_valid() or marks_layer < 1 or marks_layer > (1 << 19): return REFUSE_OWNER
+	var code: StringName = actual.current_refusal()
+	if code != &"": return code
+	var levels: Levels = actual.level_catalog()
+	var space: Runtime.Owner = actual.space_owner()
+	if levels == null or space == null or actual.room_orders() == null \
+			or actual._retirement_owners == null or actual._retirement_owners.room_bindings == null: return REFUSE_OWNER
+	code = levels.level_into(1, 0, _record)
+	if code != &"": return code
+	_session = weakref(actual)
+	_world = actual._world_ref
+	_camera = camera
+	_blocked = blocked
+	_marks_layer = marks_layer
+	var domain: Dictionary = space.domain_copy().descriptor()
+	_datum = domain.datum_u
+	_capacity = mini(domain.max_cells, Draft.Footprint.MAX_OPERATION_CELLS)
+	_bounds = _grid_bounds(domain.bounds_u, _datum)
+	_view_floor = _record.floor_y_u
+	_build_panel(levels.level_count())
+	code = _replace_empty_draft(_purpose_id, 1)
+	set_active(false)
+	return code
+
+
+static func _grid_bounds(bounds: PackedInt32Array, datum: Vector3i) -> Rect2i:
+	"""The actual admitted Domain uses whole metres; divide its exact offsets into the same 0.25m paint grid."""
+	@warning_ignore("integer_division") var x: int = (bounds[0] - datum.x) / GRID_U
+	@warning_ignore("integer_division") var z: int = (bounds[2] - datum.z) / GRID_U
+	@warning_ignore("integer_division") var width: int = (bounds[3] - bounds[0]) / GRID_U
+	@warning_ignore("integer_division") var depth: int = (bounds[5] - bounds[2]) / GRID_U
+	return Rect2i(x, z, width, depth)
+
+
+func _live_session() -> Session:
+	"""A retired original World cannot attach this draft to a reused slot or replacement Session."""
+	var actual: Session = _session.get_ref() as Session if _session != null else null
+	if actual == null or not actual._ready or actual._operations_state != 2 or actual._retirement_scope != null \
+			or actual._world_ref != _world or actual._directory == null \
+			or not actual._directory.is_valid_of_kind(_world, Directory.KIND_WORLD): return null
+	return actual
+
+
+func set_active(enabled: bool) -> bool:
+	"""Closing keeps every draft cell and undo entry; activation never creates an access endpoint."""
+	_active = enabled and _live_session() != null and _editor != null
+	if _ui != null: _ui.visible = _active
+	if _tool != null: _tool.set_active(_active)
+	if _active:
+		_place_panel()
+		floor_changed.emit(_view_level, _view_floor)
+	return _active == enabled
+
+
+func is_active() -> bool:
+	"""The host uses this presentation state to give world input to the correct tool."""
+	return _active
+
+
+func select_floor(level_id: int) -> StringName:
+	"""Inspect another real floor without moving the retained plan or silently replacing its geometry."""
+	var actual: Session = _live_session()
+	if actual == null: return REFUSE_OWNER
+	var levels: Levels = actual.level_catalog()
+	if levels == null: return REFUSE_OWNER
+	var code: StringName = levels.level_into(level_id, 0, _record)
+	if code != &"": return code
+	if _editor != null: _editor.cancel_stroke()
+	_view_level = level_id
+	_view_floor = _record.floor_y_u
+	_floor.select(level_id)
+	if _tool != null: _tool.set_view(level_id, _view_floor, _active and level_id > 0)
+	_refresh_context()
+	floor_changed.emit(level_id, _view_floor)
+	return &""
+
+
+func select_purpose(purpose: int) -> StringName:
+	"""A purpose change belongs only to a new empty plan, never to an accepted or retained room layout."""
+	if _live_session() == null: return REFUSE_OWNER
+	if purpose < 0 or purpose >= Catalog.ROOM_TYPE.size(): return &"INVALID_ROOM_IDENTITY"
+	if purpose == _purpose_id: return &""
+	var code: StringName = _replace_empty_draft(purpose, _view_level)
+	if code == &"": _purpose_id = purpose
+	_purpose.select(_purpose_id)
+	_show_refusal(code)
+	return code
+
+
+func start_on_selected_floor() -> StringName:
+	"""The explicit action moves only an empty, discarded drawing session to the inspected underground floor."""
+	var code: StringName = _replace_empty_draft(_purpose_id, _view_level)
+	_show_refusal(code)
+	return code
+
+
+func bind_access(anchor: Vector2i) -> StringName:
+	"""Borrow only the host's actual existing endpoint; Runtime validates its original physical owner and source."""
+	var actual: Session = _live_session()
+	if actual == null or _runtime == null: return REFUSE_OWNER
+	return _runtime.configure_access(actual.world_route_provider(), anchor)
+
+
+func _has_draft() -> bool:
+	"""Even an erased plan retains undo history until the player explicitly discards it."""
+	return _editor != null and (_editor.draft.drawing() or not _editor.draft._cells.is_empty() \
+		or not _editor.draft._undo.is_empty() or not _editor.draft._redo.is_empty())
+
+
+func _replace_empty_draft(purpose: int, level_id: int) -> StringName:
+	"""Rebind the exact command adapter only after a new valid floor and empty-history preflight."""
+	var actual: Session = _live_session()
+	if actual == null: return REFUSE_OWNER
+	if _has_draft(): return REFUSE_DRAFT
+	var levels: Levels = actual.level_catalog()
+	var orders: Runtime.Orders = actual.room_orders()
+	if levels == null or orders == null or actual._retirement_owners == null: return REFUSE_OWNER
+	var bindings: Runtime.RoomBindings = actual._retirement_owners.room_bindings
+	if bindings == null: return REFUSE_OWNER
+	var code: StringName = levels.level_into(level_id, 0, _record)
+	if code != &"": return code
+	if not _record.has_roof: return &"ROOM_VIEW_SELECT_UNDERGROUND"
+	var draft: Draft = Draft.new()
+	code = draft.configure(purpose, level_id, GRID_U, _capacity, _bounds, false)
+	if code != &"": return code
+	return _bind_draft(draft, orders, bindings, levels)
+
+
+func _bind_draft(draft: Draft, orders: Runtime.Orders, bindings: Runtime.RoomBindings, levels: Levels) -> StringName:
+	"""Mount a preflighted empty draft against captured original owners without repeating fallible lookups."""
+	_drop_editor()
+	_editor = Editor.new()
+	_editor.configure(draft, MAX_RADIUS_CELLS)
+	_column.add_child(_editor)
+	_editor.room_ordered.connect(_ordered)
+	_tool = Tool.new()
+	add_child(_tool)
+	var code: StringName = _tool.configure(_camera, _editor, Vector3i(_datum.x, _record.floor_y_u, _datum.z),
+		_marks_layer, _input_blocked, _read_view)
+	if code != &"": return code
+	_runtime = Runtime.new()
+	code = _runtime.configure(_editor, _tool, orders, bindings, levels, 0)
+	_tool.set_active(_active and code == &"")
+	_refresh_context()
+	return code
+
+
+func _drop_editor() -> void:
+	"""Detach this view's exact callbacks before freeing its widgets; canonical Rooms remain with the owner."""
+	if _runtime != null:
+		_runtime.disconnect_view()
+		_runtime = null
+	if is_instance_valid(_tool): _tool.free()
+	_tool = null
+	if is_instance_valid(_editor): _editor.free()
+	_editor = null
+
+
+func _read_view() -> Vector3i:
+	"""The world tool reads the same selected integer plane on every input, including same-frame floor changes."""
+	return Vector3i(_view_level, _view_floor, 1 if _active and _live_session() != null and _view_level > 0 else 0)
+
+
+func _input_blocked() -> bool:
+	"""A modal observer may change the view; an in-flight event then belongs to neither plane."""
+	var actual: Session = _live_session()
+	if not _active or actual == null or not _blocked.is_valid() or not is_instance_valid(_editor): return true
+	var original_tool: Tool = _tool
+	var original_editor: Editor = _editor
+	var original_draft: Draft = _editor.draft
+	var original_camera: Camera3D = _camera
+	var original_level: int = _view_level
+	var original_floor: int = _view_floor
+	var observer: Callable = _blocked
+	var blocked: Variant = observer.call()
+	return typeof(blocked) != TYPE_BOOL or blocked or not _active or _live_session() != actual \
+		or observer != _blocked or _tool != original_tool or not is_instance_valid(_tool) \
+		or _editor != original_editor or not is_instance_valid(_editor) or _editor.draft != original_draft \
+		or _camera != original_camera or not is_instance_valid(_camera) \
+		or _view_level != original_level or _view_floor != original_floor
+
+
+func _build_panel(level_count: int) -> void:
+	"""Scroll the one inspector inside the visible window, leaving the dirt as the sole drawing surface."""
+	_ui = CanvasLayer.new()
+	_ui.layer = 60
+	add_child(_ui)
+	_panel = PanelContainer.new()
+	_panel.theme = ThemeResource
+	_panel.theme_type_variation = &"WoodlandPanel"
+	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	_ui.add_child(_panel)
+	var margin: MarginContainer = MarginContainer.new()
+	for side: StringName in [&"margin_left", &"margin_top", &"margin_right", &"margin_bottom"]:
+		margin.add_theme_constant_override(side, 12)
+	_panel.add_child(margin)
+	var scroll: Scroll = Scroll.new()
+	margin.add_child(scroll)
+	_column = VBoxContainer.new()
+	_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_column.add_theme_constant_override(&"separation", 6)
+	scroll.add_child(_column)
+	_build_navigation(level_count)
+	if is_inside_tree() and not get_viewport().size_changed.is_connected(_place_panel):
+		get_viewport().size_changed.connect(_place_panel)
+	_place_panel()
+
+
+func _build_navigation(level_count: int) -> void:
+	"""Catalog names and authored levels are visible controls; no new global hotkey is registered."""
+	_column.add_child(_label("Plan an underground room", 18))
+	_column.add_child(_button("Back to village", _close_pressed))
+	_floor = OptionButton.new()
+	_floor.custom_minimum_size.y = 32
+	_floor.add_item("Surface", 0)
+	for level_id: int in range(1, level_count + 1): _floor.add_item("Underground %d" % level_id, level_id)
+	_floor.select(_view_level)
+	_floor.item_selected.connect(_floor_selected)
+	_column.add_child(_floor)
+	_purpose = OptionButton.new()
+	_purpose.custom_minimum_size.y = 32
+	for purpose: int in ROOM_NAMES.size(): _purpose.add_item(ROOM_NAMES[purpose], purpose)
+	_purpose.select(_purpose_id)
+	_purpose.item_selected.connect(_purpose_selected)
+	_column.add_child(_purpose)
+	_column.add_child(_button("New plan on this floor", _start_pressed))
+	_context = _label("", 14)
+	_column.add_child(_context)
+
+
+func _refresh_context() -> void:
+	"""Tell the player where the retained plan belongs while another slice is being inspected."""
+	if _context == null or _editor == null: return
+	var level_id: int = _editor.draft._level
+	_context.text = "Draw directly on the dirt. Furniture is ordered after excavation."
+	if _view_level != level_id:
+		_context.text = "Your plan is on underground %d. Return there to keep drawing. The plan is retained." % level_id
+
+
+func _show_refusal(code: StringName) -> void:
+	"""Translate the view's own small action refusals; physical construction explanations stay with Runtime."""
+	if _context == null: return
+	_refresh_context()
+	if code == REFUSE_DRAFT: _context.text = "Discard the current plan before changing its room type or floor."
+	elif code == &"ROOM_VIEW_SELECT_UNDERGROUND": _context.text = "Choose an underground floor to start a room plan."
+	elif code == REFUSE_OWNER: _context.text = "This settlement has changed. Return to the village and reopen room planning."
+	elif code != &"": _context.text = Runtime.refusal_words(code)
+
+
+func _place_panel() -> void:
+	"""The finite right inspector stays inside 1280×720 and scales by using available scroll height."""
+	if _panel == null or not is_inside_tree(): return
+	var view: Vector2 = get_viewport().get_visible_rect().size
+	_panel.position = Vector2(maxf(16, view.x - INSPECTOR_WIDTH - 16), 88)
+	_panel.size = Vector2(minf(INSPECTOR_WIDTH, maxf(280, view.x - 32)), maxf(160, view.y - 104))
+
+
+func _floor_selected(index: int) -> void:
+	"""The dropdown inspects the requested original catalog level."""
+	_show_refusal(select_floor(_floor.get_item_id(index)))
+
+
+func _purpose_selected(index: int) -> void:
+	"""The dropdown requests a new purpose without discarding anything implicitly."""
+	select_purpose(_purpose.get_item_id(index))
+
+
+func _start_pressed() -> void:
+	"""A separate explicit action starts an empty plan at the selected floor."""
+	start_on_selected_floor()
+
+
+func _close_pressed() -> void:
+	"""The scene host restores camera and input; this view closes without deleting the draft."""
+	close_requested.emit()
+
+
+func _ordered(receipt: Dictionary) -> void:
+	"""Forward only the actual RoomOrders receipt; successful publication is never inferred from a drawn outline."""
+	room_ordered.emit(receipt)
+
+
+func _exit_tree() -> void:
+	"""Break presentation bindings before this scene releases its children."""
+	if _runtime != null: _runtime.disconnect_view()
+	_active = false
+
+
+static func _label(words: String, font_size: int) -> Label:
+	"""Use the inherited woodland theme with legible wrapping text."""
+	var label: Label = Label.new()
+	label.text = words
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.add_theme_font_size_override(&"font_size", font_size)
+	return label
+
+
+static func _button(words: String, callback: Callable) -> Button:
+	"""Keyboard-reachable 32-pixel controls are separate from world painting."""
+	var button: Button = Button.new()
+	button.text = words
+	button.custom_minimum_size.y = 32
+	button.add_theme_font_size_override(&"font_size", 16)
+	button.pressed.connect(callback)
+	return button

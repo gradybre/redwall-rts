@@ -1,0 +1,35 @@
+{
+  "command": [
+    "godot",
+    "--path",
+    "godot",
+    "--script",
+    "res://demo/burrow/modular_world_view_live.gd",
+    "--windowed",
+    "--resolution",
+    "1280x720",
+    "--position",
+    "80,80",
+    "--",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-world-view/docs/validation/evidence/underground-actual-world-view-2026-10-05/native-1"
+  ],
+  "head": "b2527d79d413ad99a31459fba024103bb77bb372",
+  "user_dir": "Redwall-ug1175-native-a8870db0a32d98e4",
+  "world_qualified": false,
+  "native_exit": -15,
+  "seconds": 38.183272167,
+  "raw_findings": [
+    "\nSCRIPT ERROR:",
+    "SCRIPT ERROR:",
+    "ERROR:",
+    "SCRIPT ERROR:",
+    "SCRIPT ERROR:",
+    "SCRIPT ERROR:"
+  ],
+  "error": "AssertionError('Native exit/diagnostics refused')",
+  "project_override_unchanged": true,
+  "source_unchanged": true,
+  "project_restored": true,
+  "head_unchanged": true,
+  "exit_code": 1
+}

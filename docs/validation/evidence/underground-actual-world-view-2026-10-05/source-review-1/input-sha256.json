@@ -1,0 +1,23 @@
+{
+  "docs/art-reference/visuals/grounded_expressive_rts_example_v1.png": "a31d68d906486e3a4efe1b2daff1a38d859155d4c5390e2e38512bd602e9c1e8",
+  "godot/data/underground/initial_level_pack.uglvl": "c5deb094b335bf6e5db018eeed591a115086b79bd909f829ed6e34166db81f94",
+  "godot/demo/burrow/modular_materials.gd": "81770a0d882158f0ded40d8974f49c6de4297c443ab7128f0b6b706ed74bc37e",
+  "godot/demo/burrow/modular_plan.gdshader": "d3dd6cbf0cee2e6f0035ffbce23c9addbfc6f367a93a75e931e9f6324b0136f4",
+  "godot/demo/burrow/modular_surface.gdshader": "badf735a253548d7148b87805c4894188ea9835493d997b5360eb8c9be8cd618",
+  "godot/demo/burrow/modular_world_overlay.gd": "9de9afa18188bb94a1fe28d538f46db97d1b67360aa34d355be12c7076b4310b",
+  "godot/demo/burrow/modular_world_tool.gd": "8ea0ce8b84cffcb37ae574762e0edd6c9b6d3f191b0ea6351b00752ac8b041df",
+  "godot/demo/world/demo_ground.gdshader": "073c530c0655c177d692bf73423cf3f9aa85f63948146446cb88beaaa69cc509",
+  "godot/demo/world/world_look.gd": "0d156e863fca2728d46034fda93715306caa94587acf6934e283e807da7bbeac",
+  "godot/project.godot": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "godot/scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
+  "godot/scripts/core/int_math.gd": "fbc9c291059dc65cef91bf0ed1496b95532c5d8bc8f9a2876871c64f0545adc1",
+  "godot/scripts/core/room_space.gd": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624",
+  "godot/scripts/core/underground_level_catalog.gd": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
+  "godot/scripts/core/underground_session.gd": "f3026b276973c9992f92d910a64fd1a225cedcae8ca4c9ef748de8e9ddfce712",
+  "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
+  "godot/scripts/core/world_init.gd": "5ca0b68618c0c9cf6735a72b3b86649ef05d7534c10117fea9b3bd48b9c0519f",
+  "godot/scripts/systems/settlement_system.gd": "66e8eda0c6de0fef72d7139229c31b76d8df73803e098e1b7312e0167f43dd50",
+  "tools/ci_test_shards.py": "71748fa88fee3568717b4d84e9e292fbe68966605f0b4aa59e97735cffe23d16",
+  "tools/gdscript_warnings.py": "397533007567fe19c1bb7a492441d5c540b0e408b2239f97d59ca80d1c31a9e6",
+  "tools/run_tests.sh": "aa38a6ccb26636bfbfab7e9c3046479bf63dc6614a104bd7273e342068090f01"
+}

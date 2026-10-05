@@ -1,0 +1,19 @@
+..F.....
+======================================================================
+FAIL: test_constructor_payload_is_not_a_borrowed_parameter (__main__.CensusTests)
+----------------------------------------------------------------------
+ValueError: unresolved itinerary child
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-short-step-itinerary-2026-10-05/test_census.py", line 35, in test_constructor_payload_is_not_a_borrowed_parameter
+    self.refused(SOURCE.replace(MARKER, '\tvar hidden: PackedInt32Array = PackedInt32Array()\n' + MARKER, 1),
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-short-step-itinerary-2026-10-05/test_census.py", line 18, in refused
+    C.build({C.I: source})
+AssertionError: "allocation" does not match "unresolved itinerary child"
+
+----------------------------------------------------------------------
+Ran 8 tests in 2.917s
+
+FAILED (failures=1)

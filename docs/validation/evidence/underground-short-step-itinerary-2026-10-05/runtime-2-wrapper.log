@@ -1,0 +1,6 @@
+starting clean-import.log
+starting test_underground_short_room_itinerary.gd.log
+8 test(s), 94 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 8 tests, 94 assertions, 0 failures.

@@ -1,0 +1,130 @@
+#!/usr/bin/env python3
+"""1172 current static itinerary and external source-leaf callers; logical payload only."""
+from __future__ import annotations
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+import re
+
+ROOT = Path(__file__).resolve().parents[4]
+E = Path(__file__).resolve().parent
+DEPENDENCY = "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/census.py"
+DEPENDENCY_SHA = "984b9db1ab316c27efc2446ed70a708273b54bbb9b9f11af9481e479a044436d"
+I = "underground_room_itinerary"
+P = "underground_room_world_bindings"
+R = "underground_routes"
+C = "underground_connector_contacts"
+
+CALLER_PINS = {'underground_room_world_bindings': '95d13b1d36daec7d6a5993d2aa5d6d673618a25020acb6b949b6cccc51d4bb68', 'underground_connector_contacts': '8dcde4f27ec783319332748e6c71a3b996be842601338e2c667c1346c96a3dd3'}
+
+def require(condition, message):
+    if not condition:
+        raise ValueError(message)
+
+
+def dependency():
+    raw = (ROOT / DEPENDENCY).read_bytes()
+    require(hashlib.sha256(raw).hexdigest() == DEPENDENCY_SHA, "changed accepted1168 census")
+    spec = importlib.util.spec_from_file_location("_1172_step_census", ROOT / DEPENDENCY)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def build(overrides=None):
+    step = dependency()
+    # The new source's complete allocation/call contract and current runtime
+    # consumers remain mandatory independently of this additional caller.
+    inherited = step.build()
+    sources = {p.stem: p.read_text() for p in (ROOT / "godot/scripts/core").glob("*.gd")}
+    sources.update({name: (ROOT / path).read_text() for name, path in step.NONCORE.items()})
+    require(not overrides or set(overrides) <= {I, P, C}, "only named caller replacements")
+    sources.update(overrides or {})
+    # Unchanged outer callers are reviewed as exact source. Their pre-existing
+    # other paths remain under the original census; only the new foreign leaf
+    # below changes. Reject edits before using their old fixed allowances.
+    for name, expected in CALLER_PINS.items():
+        require(hashlib.sha256(sources[name].encode()).hexdigest() == expected,
+                "unreviewed outer caller: " + name)
+    audit = step.Audit(sources)
+    audit.visit(I + ":reachability_refusal")
+    require(not any(audit.unresolved.values()), "unresolved itinerary child")
+    source = sources[I]
+    require(source.startswith("extends RefCounted\n"), "itinerary base")
+    require(not re.search(r"^var\b|^class\b", source, re.M), "itinerary retained state")
+    require(not step.collection_literals(source), "itinerary collection literal")
+    require(not re.search(r"\b(?:Packed\w+Array|Array|Dictionary)\s*\(|\.(?:new|resize|duplicate|append|append_array)\s*\(",
+                          step.A.executable(source)), "itinerary allocation")
+    require(set(step.A.constants(source)) == {"NULL_REF", "REFUSE_FAMILY"}, "itinerary constants")
+    for key in audit.edges:
+        row = audit.functions[key]
+        require(not re.search(r"\b(?:var|for) \w+\s*(?::=|=)", row["code"]), "untyped itinerary child")
+        borrowed = {"underground_room_itinerary:reachability_refusal": {("out", "PackedInt32Array")},
+                    "underground_world_routes:_reach_entry_refusal": {("out", "PackedInt32Array")},
+                    "underground_connector_source_facts:refusal": {("expected_digest", "PackedByteArray")}}
+        payload = {(name, kind) for name, kind in row["borrowed_or_interned"]
+                   if kind in ("float", "Vector2", "Vector3", "Variant", "Array", "Dictionary")
+                   or kind.startswith(("Packed", "Array[", "Dictionary["))}
+        require(payload == borrowed.get(key, set()), "unaccounted child payload: " + key)
+    graph = dict(audit.edges)
+    peak = audit.longest(I + ":reachability_refusal")
+    require(peak["bytes"] + 48 <= 512, "itinerary helper512")
+    # The existing owner packet charges this512 once. The SourceProgram
+    # constants belong to the reviewed1168 Profile control slice, not here.
+    fixed = 958
+    world_constants = step.A.constants(sources[step.W])
+    own_constants = step.A.constants(source)
+    world_controls = fixed + sum(world_constants.values()) + sum(own_constants.values()) + 512
+    require(world_controls <= 4096, "WorldRoutes controls4096")
+
+    # Count actual current public source leaves before the outer Provider
+    # frames: the older485-byte report is not evidence for the new dispatch.
+    audit.visit(R + ":source_work_leaf_refusal")
+    audit.visit(R + ":actor_phase_in")
+    pure = audit.longest(R + ":source_work_leaf_refusal")
+    phase = audit.longest(R + ":actor_phase_in")
+    require(not any(audit.unresolved.values()), "unresolved source leaf")
+    audit.load(P)
+    audit.load(C)
+
+    def chain(prefix, tail):
+        return {"chain": prefix + tail["chain"],
+                "bytes": sum(audit.functions[key]["numeric_bytes"] for key in prefix) + tail["bytes"]}
+
+    provider = {
+        "observed_canonical_work_source": chain([P + ":worker_refusal", P + ":_ordinary_observers",
+                                                 R + ":source_work_observation_refusal"], pure),
+        "final_canonical_work_source": chain([P + ":worker_refusal", P + ":_ordinary_live_leaf",
+                                              P + ":_ordinary_worker_leaf"], pure),
+        "selected_decoded_actor_phase": chain([P + ":worker_refusal", P + ":_ordinary_live_contact",
+                                                P + ":_ordinary_select", P + ":_ordinary_committed_contact"], phase),
+    }
+    provider_bound = max(row["bytes"] for row in provider.values()) + 104
+    require(provider_bound <= 512, "complete Provider source helper512")
+    # Contacts' complete own stack already has a distinct576-byte foreign
+    # slice (1134). The new Routes source leaf still fits that existing slice.
+    contact = chain([C + ":_worker_leaf"], pure)
+    require(pure["bytes"] + 48 <= 576, "Contacts foreign source helper576")
+    require("Routes.source_work_leaf_refusal(" in audit.functions[C + ":_worker_leaf"]["code"],
+            "current Contacts source dispatch")
+    return {
+        "scope": __doc__, "source_sha256": {name: hashlib.sha256(text.encode()).hexdigest()
+                                              for name, text in sorted(audit.sources.items())},
+        "itinerary": {"peak": peak, "expression_allowance": 48, "inclusive_peak": peak["bytes"] + 48,
+                      "reservation": 512, "graph": graph},
+        "world_routes": {"existing_fixed_payload": fixed, "constants": world_constants,
+                         "itinerary_constants": own_constants, "logical_controls": world_controls,
+                         "unchanged_reservation": 4096},
+        "provider_current_source_chains": provider, "provider_expression_and_inherited_allowance": 104,
+        "provider_source_bound": provider_bound, "provider_existing_helper_reserve": 512,
+        "contacts_worker_source_chain": contact, "contacts_foreign_source_bound": pure["bytes"] + 48,
+        "contacts_existing_foreign_reserve": 576,
+        "inherited_profile_controls": inherited["profile_control"],
+        "new_retained_fields": 0, "new_bank_bytes": 0, "new_cold_lease": 0,
+        "native_measured": False, "runtime_qualified": False,
+    }
+
+
+if __name__ == "__main__":
+    print(json.dumps(build(), indent=2))

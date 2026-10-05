@@ -1,0 +1,49 @@
+{
+  "head": "912de685b423c5eedd36ee68bc78f18670276cb7",
+  "scope": "Focused integration, not the required full no-argument milestone suite.",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 12.716,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "257/407",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-short-step-itinerary-2026-10-05/runtime-1"
+      ],
+      "exit_code": 0,
+      "seconds": 8.283,
+      "log": "test_underground_room_itinerary.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "261/407",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-short-step-itinerary-2026-10-05/runtime-1"
+      ],
+      "exit_code": 1,
+      "seconds": 6.659,
+      "log": "test_underground_short_room_itinerary.gd.log"
+    }
+  ],
+  "assets_present_before": true,
+  "error": "test_underground_short_room_itinerary.gd.log",
+  "project_restored": true,
+  "assets_restored": true,
+  "source_unchanged": true,
+  "exit_code": 1
+}

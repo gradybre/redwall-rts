@@ -1,0 +1,35 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_room_itinerary.gd
+  PASS  test_mixed_backward_and_all_yaw_path_uses_actual_distinct_masks
+  PASS  test_repeated_queries_have_identical_chain_and_budget
+  PASS  test_wrong_heading_and_automatic_anchor_do_not_borrow_source_ready
+  PASS  test_missing_certificate_never_becomes_an_inferred_leg
+  PASS  test_stale_endpoint_and_certificate_full_generations_refuse
+  PASS  test_budget_and_busy_refusals_preserve_output_and_allow_retry
+  PASS  test_source_payload_and_quantity_mismatch_are_not_compatible
+  PASS  test_reverse_mixed_path_needs_its_own_forward_certificate
+  PASS  test_zero_span_checks_identity_without_inventing_an_edge
+  PASS  test_source_digest_and_profile_revision_are_current_on_every_query
+  PASS  test_directory_observer_is_refused_before_any_final_reader_callback
+  PASS  test_equal_distance_parallel_edges_keep_original_slot_tie
+  PASS  test_ordinary_provider_uses_mixed_path_without_granting_paid_work
+CI_SUITE_TIME {"assertions":114,"failures":0,"suite":"test_underground_room_itinerary.gd","tests":13,"usec":3819004}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+13 test(s), 114 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 13 tests, 114 assertions, 0 failures.

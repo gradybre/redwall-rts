@@ -2059,7 +2059,7 @@
           },
           {
             "agent": "/root/ug_geometry",
-            "state": "held",
+            "state": "released",
             "branch": "codex/underground-short-work-step-runtime",
             "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-short-work-step-runtime",
             "files": [
@@ -2071,7 +2071,20 @@
               "docs/decisions/1168-canonical-short-step-runtime.md",
               "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/"
             ],
-            "handoff": "Explicit source-only1164 and1165 census STOP; clean fresh origin/master thenFF38515845 acknowledged2026-10-05. Actual finite232u terminal movement and automatic/READY transition/source recovery; no extra authoritative columns/banks, no turn/clipping grants, no resetting interrupted prefixes or successor distance spill. SourceProgram and Actor remain read-only pending exact seam handshake; no root profile publisher/census/shared source ownership. Root subsequently approved additive work-step-v1 source program6 with no Actor edits; diagnostic29/271/content3 wire plus exact1166 loader dependency8003bfe1 are allowed. Production publication remains root-owned."
+            "handoff": "Explicit source-only1164 and1165 census STOP; clean fresh origin/master thenFF38515845 acknowledged2026-10-05. Actual finite232u terminal movement and automatic/READY transition/source recovery; no extra authoritative columns/banks, no turn/clipping grants, no resetting interrupted prefixes or successor distance spill. SourceProgram and Actor remain read-only pending exact seam handshake; no root profile publisher/census/shared source ownership. Root subsequently approved additive work-step-v1 source program6 with no Actor edits; diagnostic29/271/content3 wire plus exact1166 loader dependency8003bfe1 are allowed. Production publication remains root-owned.",
+            "worker_stop_ack": "Author0ed178eb committed and explicitly STOPPED all writes/processes2026-10-05. Independent review1bc81d47 accepted exact21 pins. Root integrated912de685/e560b217."
+          },
+          {
+            "agent": "/root/ug_geometry",
+            "branch": "codex/underground-short-step-publication",
+            "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication",
+            "state": "held",
+            "files": [
+              "godot/test/test_mole_qualified_profiles.gd",
+              "godot/scripts/core/underground_motion_clock.gd",
+              "godot/test/test_underground_motion_clock.gd"
+            ],
+            "handoff": "Root explicitly stops Catalog/MotionCatalog/RouteComposition and listed tests. Fresh origin/master then FF912de685. Create-only v4 publication from independently accepted1168 with complete current10consumer, source/native/review closure; update real shared catalog and ground binding. No new profile geometry or animation, source clock weakening, free World permission, or reserve increase. Root retains Itinerary/Provider/Frontier/Session/Host/registry/memory; legacy fixture migration agreed separately."
           }
         ],
         "scope_narrowing": {
@@ -2219,7 +2232,18 @@
         "godot/test/test_underground_room_itinerary.gd",
         "godot/test/test_underground_room_itinerary.gd.uid",
         "docs/decisions/1165-source-compatible-room-itineraries.md",
-        "docs/validation/evidence/underground-room-itinerary-2026-10-05/"
+        "docs/validation/evidence/underground-room-itinerary-2026-10-05/",
+        "godot/test/test_underground_short_room_itinerary.gd",
+        "godot/test/test_underground_short_room_itinerary.gd.uid",
+        "docs/decisions/1172-canonical-short-step-itineraries.md",
+        "docs/validation/evidence/underground-short-step-itinerary-2026-10-05/",
+        "docs/validation/evidence/underground-surface-anchor-review-2026-10-05/",
+        "godot/data/underground/mole-worker/mole_profile_catalog.gd",
+        "godot/data/underground/mole-worker/publish_short_step_profiles.py",
+        "godot/data/underground/mole-worker/test_publish_short_step_profiles.py",
+        "godot/data/underground/mole-worker/qualified-step-v4/",
+        "docs/decisions/1173-qualified-short-step-publication.md",
+        "docs/validation/evidence/underground-short-step-publication-2026-10-05/"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -3031,6 +3055,26 @@
           "census": "8050/8192 controls;841/1024 helper;729472/1048960 largest cold lifetime; native provisional.",
           "evidence_path": "docs/validation/evidence/underground-room-frontier-publication-2026-10-04/",
           "limits": "Published metadata on already-paid geometry only; current source-consumer renewal, next paid cube and whole Room remain open."
+        },
+        "canonical_short_runtime_1168": {
+          "source_commit": "0ed178eb230040798e4cbaae96ad04b91796aadc",
+          "integration": "912de685b423c5eedd36ee68bc78f18670276cb7",
+          "review_commit": "1bc81d47d84c980e4f88e070e908347df204eb25",
+          "review_integration": "e560b217",
+          "tests": "167tests18407assertions0failures;all strict/raw diagnostics and leaks0;analyzer0/11",
+          "native": "462poses144144exactbinary32comparisons46captures2558assertions0failures",
+          "scope": "Accepted finite3tick232u work approach/retreat and canonical ground; no world construction or production catalog permission.",
+          "evidence_path": "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/"
+        },
+        "canonical_room_itinerary_1172": {
+          "status": "independently accepted and committing; sharedpublicationpending",
+          "source_sha256": "1b0a8ac711d8a3c21767f8d92883d01b08d9f3f23d71c8e2e52160a32491207a",
+          "tests": "45tests498assertions0failures across3affected suites;all strict/raw diagnostic/expected/tolerated/leak counts0;analyzer0/2+0/1",
+          "review_receipt": "a18f28f0687bb17a3def73fb8cc934bee1918d8c5116b1b0f45dea706c7ba0ec",
+          "memory": "Itinerary432/512;Provider509/512;Contacts344/576;WorldRoutes2094/4096;11censusguards;nativeunmeasured",
+          "evidence_path": "docs/validation/evidence/underground-short-step-itinerary-2026-10-05/",
+          "review_commit": "daf296168a294999d7845fbf6ca396e875a0e60c",
+          "review_integration": "22ffa9b3"
         }
       },
       "lease": {
@@ -3065,7 +3109,12 @@
               "godot/scripts/core/underground_entry_structure.gd.uid",
               "godot/test/test_underground_entry_structure.gd",
               "godot/test/test_underground_entry_structure.gd.uid",
-              "docs/decisions/1122-source-bound-entry-structure.md"
+              "docs/decisions/1122-source-bound-entry-structure.md",
+              "godot/test/test_underground_short_room_itinerary.gd",
+              "godot/test/test_underground_short_room_itinerary.gd.uid",
+              "docs/decisions/1172-canonical-short-step-itineraries.md",
+              "docs/validation/evidence/underground-short-step-itinerary-2026-10-05/",
+              "docs/validation/evidence/underground-surface-anchor-review-2026-10-05/"
             ],
             "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam. Root stopped WorldRoutes source writes after22714381; temporary getter-only source lease returned to ug_geometry for1098 static_catalog_owner. Root retains its test file and other listed sources. WorldRoutes source getter lease returned after reviewed306c2f15/4ed742d8; root now retains source and test again. Root explicitly stopped WorldRoutes source/test writes and returned both to Geometry on2026-10-03 for1105 Placement companion/pure publication. Anchor/Terrain finished; no overlapping root edits. Root created this follow-on branch from freshly fetched origin/master82d60ba8 and fast-forwarded accepted own integratione9d52293; no new root source yet. Geometry additionally owns narrow prepared traversal/exact-Sites leased readers in SpaceOwner/test and exact WORK actor APIs/consumers in Routes/test; other root leases stay held. Geometry confirmed exclusive root Inventory writes for1117 final payment/audit guard on2026-10-04; same writer coordinates purpose8 follow-up. Inventory/Reservations narrow1141 source ownership returned to Geometry on2026-10-04; see explicit released sublease. Root and Geometry explicitly stopped Terrain source writes2026-10-04; narrow final static prepared-local seam transferred to Furnishing below after rejected1150 candidate13 review. Root WorkFace source/test writes explicitly stopped2026-10-04 and narrowly handed to Construction1152 for paid UNFINISHED FINISH contacts; existing solid behavior retained.",
             "branch": "codex/underground-paid-cut-contact"
@@ -3083,7 +3132,12 @@
               "tools/underground_memory_budget.py",
               "tools/test_underground_memory_budget.py",
               "docs/decisions/1110-complete-connector-binding-memory-census.md",
-              "docs/decisions/1111-concrete-surface-entry-admission.md"
+              "docs/decisions/1111-concrete-surface-entry-admission.md",
+              "godot/test/test_underground_short_room_itinerary.gd",
+              "godot/test/test_underground_short_room_itinerary.gd.uid",
+              "docs/decisions/1172-canonical-short-step-itineraries.md",
+              "docs/validation/evidence/underground-short-step-itinerary-2026-10-05/",
+              "docs/validation/evidence/underground-surface-anchor-review-2026-10-05/"
             ],
             "handoff": "New source-only immutable frontier and actual EntryBindings owned by root; Geometry retains Placement/Locations/Routes. Corrected bindings remainder36789 includes Placement108800 and ConnectorWork563; prospective frontier may not overbook it. Root stopped EntryBindings/test at0bf345/9f684 after accepted1111; explicit installation-only handoff to ug_geometry follows. Root retains Frontier and memory tools."
           },
@@ -3292,13 +3346,18 @@
               "docs/decisions/1165-source-compatible-room-itineraries.md",
               "docs/validation/evidence/underground-room-itinerary-2026-10-05/",
               "godot/scripts/core/underground_room_frontier.gd",
-              "godot/test/test_underground_room_frontier.gd"
+              "godot/test/test_underground_room_frontier.gd",
+              "godot/test/test_underground_short_room_itinerary.gd",
+              "godot/test/test_underground_short_room_itinerary.gd.uid",
+              "docs/decisions/1172-canonical-short-step-itineraries.md",
+              "docs/validation/evidence/underground-short-step-itinerary-2026-10-05/",
+              "docs/validation/evidence/underground-surface-anchor-review-2026-10-05/"
             ],
             "handoff": "Construction explicitly stopped provider/existing phase-test writes2026-10-05. Root implements fresh actual-mask itinerary within one compatible source heading/tool/cargo family using existing bounded graph scratch. No Runtime source READY takeover, cold bank, retained path ledger, source-policy bypass or numerical tuning. Shared Routes/WorldRoutes remain Construction-owned; helper private-reader reuse requires exact concrete scripts and current sources. Root also owns the original Frontier static path seam; integrates source-family search only for selected policies, keeps ordinary automatic one-profile path unchanged."
           },
           {
             "agent": "/root/ug_geometry",
-            "state": "held",
+            "state": "released",
             "branch": "codex/underground-short-work-step-runtime",
             "files": [
               "godot/scripts/core/underground_routes.gd",
@@ -3306,7 +3365,26 @@
               "godot/scripts/core/underground_world_routes.gd",
               "godot/test/test_underground_world_routes.gd"
             ],
-            "handoff": "Construction1161 explicitly STOPPED/integrated38515845; root no writes. Narrow same1168 finite terminal/source-transition runtime packet. Root retains Itinerary/Provider/Frontier/Publisher/WorkFace/FinalFacts/Locations; no other source edits."
+            "handoff": "Construction1161 explicitly STOPPED/integrated38515845; root no writes. Narrow same1168 finite terminal/source-transition runtime packet. Root retains Itinerary/Provider/Frontier/Publisher/WorkFace/FinalFacts/Locations; no other source edits.",
+            "worker_stop_ack": "Author0ed178eb committed and explicitly STOPPED all writes/processes2026-10-05. Independent review1bc81d47 accepted exact21 pins. Root integrated912de685/e560b217."
+          },
+          {
+            "agent": "/root/ug_geometry",
+            "branch": "codex/underground-short-step-publication",
+            "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication",
+            "state": "held",
+            "files": [
+              "godot/data/underground/mole-worker/mole_profile_catalog.gd",
+              "godot/data/underground/mole-worker/publish_short_step_profiles.py",
+              "godot/data/underground/mole-worker/test_publish_short_step_profiles.py",
+              "godot/data/underground/mole-worker/qualified-step-v4/",
+              "godot/scripts/core/underground_motion_catalog.gd",
+              "godot/test/test_underground_motion_catalog.gd",
+              "godot/test/test_underground_support_clearance.gd",
+              "docs/decisions/1173-qualified-short-step-publication.md",
+              "docs/validation/evidence/underground-short-step-publication-2026-10-05/"
+            ],
+            "handoff": "Root explicitly stops Catalog/MotionCatalog/RouteComposition and listed tests. Fresh origin/master then FF912de685. Create-only v4 publication from independently accepted1168 with complete current10consumer, source/native/review closure; update real shared catalog and ground binding. No new profile geometry or animation, source clock weakening, free World permission, or reserve increase. Root retains Itinerary/Provider/Frontier/Session/Host/registry/memory; legacy fixture migration agreed separately."
           }
         ]
       }
@@ -3822,6 +3900,17 @@
               "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/"
             ],
             "handoff": "Author1167 explicit STOP; root releases all listed shared/SurfaceAnchor files. Fresh origin/master then FFe234bde0. Retain one original SurfaceAnchor over actual completed1167 tuple, copy one typed anchor reference into Retirement.Scope as required, enforce original identity/quiescence and teardown. No duplicate owner tuple, fake endpoint/void/stock/actor, new bank or reserve increase. Count exact stage-exclusive lifetimes and review before commit. Root owns demo/main/sharedregistry/memory/queue."
+          },
+          {
+            "agent": "/root/ug_geometry",
+            "branch": "codex/underground-short-step-publication",
+            "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication",
+            "state": "held",
+            "files": [
+              "godot/scripts/core/underground_route_composition.gd",
+              "godot/test/test_underground_route_composition.gd"
+            ],
+            "handoff": "Root explicitly stops Catalog/MotionCatalog/RouteComposition and listed tests. Fresh origin/master then FF912de685. Create-only v4 publication from independently accepted1168 with complete current10consumer, source/native/review closure; update real shared catalog and ground binding. No new profile geometry or animation, source clock weakening, free World permission, or reserve increase. Root retains Itinerary/Provider/Frontier/Session/Host/registry/memory; legacy fixture migration agreed separately."
           }
         ]
       }

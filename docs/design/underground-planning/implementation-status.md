@@ -2,7 +2,7 @@
 
 ## Current delivery status — 2026-10-05
 
-The accepted full integration checkpoint is **`eb95c0dd`**, published in
+The accepted full integration checkpoint is **`4972a96d`**, published in
 [draft PR #230](https://github.com/gradybre/redwall-rts/pull/230).
 Players can open **Plan an underground room** from the demo Tunnels panel,
 choose a room purpose and floor, and draw directly on the actual World's dirt.
@@ -16,17 +16,17 @@ passes **30 focused tests / 1,132 assertions / zero failures**, with zero
 unexpected diagnostics or leaks and analyzer **0/6**. Its native Metal/Forward+
 run passes **74 checks / zero failures**, with five inspected 1280×720 captures.
 Independent review verified the corrected modal, keyboard-focus and actual
-World-reset paths. The corrected eb95 checkpoint passes the isolated clean-assets/cache/import,
+World-reset paths. The actual-source 4972 checkpoint passes the isolated clean-assets/cache/import,
 **no-argument full suite**, all-file zero-warning analyzer and registry/memory
-checks. [Local evidence](../../validation/evidence/underground-integration-checkpoint-2026-10-05/full-eb95c0dd/README.md):
-**11,283 tests / 1,082,447 assertions / zero failures**, zero unexpected
-errors/warnings and leaks,272 expected/353 tolerated, analyzer **0/1,264**.
+checks. [Local evidence](../../validation/evidence/underground-integration-checkpoint-2026-10-05/full-4972a96d/README.md):
+**11,293 tests / 1,082,720 assertions / zero failures**, zero unexpected
+errors/warnings and leaks,272 expected/353 tolerated, analyzer **0/1,267**.
 Sources, HEAD, project, assets and original import sidecars were restored.
 
-[Same-commit CI](../../validation/evidence/underground-integration-checkpoint-2026-10-05/ci-eb95c0dd/README.md)
-passes all14 jobs in **14m30s**:410 files exactly once across8 shards,
-11,283 tests/1,082,436 assertions/zero failures. Named tests and every diagnostic
-and leak total match local. Local has11 more assertions, unattributed; exact
+[Same-commit CI](../../validation/evidence/underground-integration-checkpoint-2026-10-05/ci-4972a96d/README.md)
+passes all14 jobs in **15m06s**:413 files exactly once across8 shards,
+11,293 tests/1,082,710 assertions/zero failures. Named tests and every diagnostic
+and leak total match local. Local has10 more assertions, unattributed; exact
 assertion parity is not claimed. The earlier8f failures remain retained.
 
 Reviewed commits `c975e1bd`/`1ad0a090` additionally publish the authored L0/T0
@@ -41,6 +41,15 @@ all diagnostic/leak counters zero, analyzer **0/2**. This exercises the actual
 owners in a test fixture; demo worker dispatch, paid timber handling and the
 original entry-owner composition remain open. [Source-phase evidence](../../validation/evidence/underground-entry-source-phases-2026-10-05/README.md)
 retains the observed defect, fix, tests and limitations.
+
+The next actual paid START now reaches a real standing-area refusal after the
+timber bearer is staged. The current all-yaw route masks and broad endpoint
+envelopes cannot be retained through that placement. Exact source reconstruction
+shows a narrower, same-heading approach and backward retreat can fit physically;
+the original graph and complete endpoint checks are being corrected before
+publication. Paid progress is not injected and collision gates remain strict.
+The fixed source interface is recorded in1190; its pure metadata formatter is
+independently reviewed, while the actual qualified bundle remains unpublished.
 
 The [previously completed successful remote CI](../../validation/evidence/underground-short-step-itinerary-2026-10-05/ci-ca1edc3f/README.md)
 was at `ca1edc3f`: all 14 jobs passed on attempt 2, with 406 files exactly once,

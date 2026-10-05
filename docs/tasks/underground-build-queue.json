@@ -4341,9 +4341,11 @@
               "tools/test_underground_room_memory.py",
               "tools/underground_memory_budget.py",
               "tools/test_underground_memory_budget.py",
-              "docs/validation/evidence/underground-entry-owner-1184-review-2026-10-05/"
+              "docs/validation/evidence/underground-entry-owner-1184-review-2026-10-05/",
+              "docs/decisions/1190-fixed-entry-source-publication-contract.md",
+              "docs/validation/evidence/underground-entry-publication-contract-2026-10-05/"
             ],
-            "handoff": "1187 structural source independently accepted c975e1bd/1ad0a090. Root now owns separate1188 source-bound Frontier compiler/real-reader/physical candidate; no live activation.1178/1183 handling and1184 lifecycle remain separate leases. Root1189 owns separate actual-source paid-phase probe using real full v4 programs, real terrain/economy and perimeter routes; no paid-state injection or first-Kitchen claim. 1188 committed b315b7c7;1189 four-source-cube probe and strict61-test regressions pass; independent memory renewal and final test review accepted. Original1184 three release leaves independently reviewed in own evidence; author retains runtime ownership."
+            "handoff": "1187 structural source independently accepted c975e1bd/1ad0a090. Root now owns separate1188 source-bound Frontier compiler/real-reader/physical candidate; no live activation.1178/1183 handling and1184 lifecycle remain separate leases. Root1189 owns separate actual-source paid-phase probe using real full v4 programs, real terrain/economy and perimeter routes; no paid-state injection or first-Kitchen claim. 1188 committed b315b7c7;1189 four-source-cube probe and strict61-test regressions pass; independent memory renewal and final test review accepted. Original1184 three release leaves independently reviewed in own evidence; author retains runtime ownership. ADR1190 reserves immutable typed source accessor and exact startup order; no diagnostic activation or stub. Root owns new create-only successor publication and acceptance."
           }
         ]
       }
@@ -5752,14 +5754,23 @@
     },
     {
       "commit": "4972a96d03ec01f31f90f9b29ca63934812782ea",
-      "outcome": "running",
-      "local_session": 10160,
+      "outcome": "passed",
       "procedure": "Owned frozen qualification checkout, assets aside if present, delete .godot, clean editor import, no-argument ./tools/run_tests.sh, all-file analyzer and registry checks; restoration in finally.",
       "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-qualification-2026-10-05",
       "evidence": "docs/validation/evidence/underground-integration-checkpoint-2026-10-05/full-4972a96d/",
       "ci_run": 37288505753,
       "url": "https://github.com/gradybre/redwall-rts/actions/runs/37288505753",
-      "limits": "No result claimed until summary and diagnostics/leak lines collected; source4 handling and production entry still under development."
+      "limits": "Frozen actual-source excavation checkpoint only; source4 paid handling and original entry-owner composition remain under development; first playable emptyKitchen and runtimequalification open.",
+      "ci_status": "passed: all14 jobs,413suitefiles exactly once,11293tests1082710assertions,0failures;0unexpected errors/warnings,272expected353tolerated,0leakedobjects/resources;analyzer0/1267;906seconds",
+      "ci_evidence": "docs/validation/evidence/underground-integration-checkpoint-2026-10-05/ci-4972a96d/",
+      "completed_local_session": 10160,
+      "full_suite": "11293 test(s), 1082720 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "raw": "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "analyzer": "0 GDScript warning(s) in 0 of 1267 file(s); raw analyzer findings zero",
+      "restoration": "All8941sources,HEAD,project,assets,override and original import sidecars restored;tracked clean",
+      "seconds": 1957.878,
+      "parity": "413suitefiles and11293 namedtests andall diagnostic/leak totals match CI;local+10assertionsunattributed;noexactall-counterparity"
     }
   ],
   "crosscut_fixes": [

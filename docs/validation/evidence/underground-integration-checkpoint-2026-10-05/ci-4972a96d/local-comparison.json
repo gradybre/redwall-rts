@@ -1,0 +1,34 @@
+{
+  "commit": "4972a96d03ec01f31f90f9b29ca63934812782ea",
+  "same_named_tests": true,
+  "named_tests": 11293,
+  "same_suite_files": true,
+  "suite_count": 413,
+  "local_counts": {
+    "tests": 11293,
+    "assertions": 1082720,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 272,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "ci_counts": {
+    "assertions": 1082710,
+    "expected": 272,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 11293,
+    "tolerated": 353,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "same_diagnostic_and_leak_totals": true,
+  "all_counter_equality": false,
+  "local_additional_assertions": 10,
+  "assertion_difference_attribution": "unattributed: no-argument run does not emit per-suite assertion counters; no equivalence waiver",
+  "source_files_preserved": 8941
+}

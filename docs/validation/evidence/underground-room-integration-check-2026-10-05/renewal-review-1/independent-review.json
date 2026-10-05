@@ -1,0 +1,42 @@
+{
+  "old_prerequisites": 509,
+  "renewed_prerequisites": 523,
+  "current_consumers": 9,
+  "changed_consumers": 3,
+  "all_other_manifest_fields_unchanged": true,
+  "changed_manifest_fields": [
+    "constants_sha256",
+    "consumer_commit",
+    "consumers",
+    "historical_source_replacements",
+    "prerequisite_pins",
+    "renewed_from_sha256",
+    "scope",
+    "source_native_replay_sha256",
+    "source_review_sha256"
+  ],
+  "wire_byte_identical": true,
+  "constants_changed_lines": 5,
+  "outputs": {
+    "mole-worker.ugprof": {
+      "bytes": 9620,
+      "sha256": "a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204"
+    },
+    "catalog_source.gd": {
+      "bytes": 1723,
+      "sha256": "54bfe80c22bfe78ac2eb4fdf3259151beea64ce862753fdc05a399e933fe6bba"
+    },
+    "manifest.json": {
+      "bytes": 107340,
+      "sha256": "ea685eafa41418ae52e097ea439764b9794111851d7389097770648bc706d70b"
+    }
+  },
+  "isolated_create_only_publish_passed": true,
+  "existing_output_refused_before_inputs": true,
+  "late_source_refusal_before_output_creation": "FRONTIER_RENEWAL_HASH:godot/scripts/core/underground_work_face.gd",
+  "oversized_and_symlink_inputs_refused_before_read": true,
+  "source_and_prerequisite_pins_unchanged": true,
+  "foreign_writes": false,
+  "godot_rerun": false,
+  "world_activation_qualified": false
+}

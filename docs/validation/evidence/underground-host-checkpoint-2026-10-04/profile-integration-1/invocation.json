@@ -1,0 +1,73 @@
+{
+  "head": "627be4331e3323d9c5932034c4c5a75eebe48777",
+  "scope": "Focused integration, not the required full no-argument milestone suite.",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 14.09,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "262/402",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 4.595,
+      "log": "test_mole_qualified_profiles.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "331/402",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 4.1,
+      "log": "test_demo_profile_pack.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "255/402",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 4.295,
+      "log": "test_underground_motion_catalog.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "274/402",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-1"
+      ],
+      "exit_code": 1,
+      "seconds": 4.329,
+      "log": "test_underground_motion_clock.gd.log"
+    }
+  ],
+  "assets_present_before": true,
+  "error": "test_underground_motion_clock.gd.log",
+  "project_restored": true,
+  "assets_restored": true,
+  "source_unchanged": true,
+  "exit_code": 1
+}

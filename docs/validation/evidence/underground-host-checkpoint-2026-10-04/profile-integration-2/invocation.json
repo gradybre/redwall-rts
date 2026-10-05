@@ -1,0 +1,49 @@
+{
+  "head": "4cd4aa8891a7cac2f0b2efd425506fcf7beb152c",
+  "scope": "Focused integration, not the required full no-argument milestone suite.",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.637,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "274/402",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-2"
+      ],
+      "exit_code": 0,
+      "seconds": 5.078,
+      "log": "test_underground_motion_clock.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "109/402",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-2"
+      ],
+      "exit_code": 1,
+      "seconds": 9.685,
+      "log": "test_underground_session.gd.log"
+    }
+  ],
+  "assets_present_before": true,
+  "error": "test_underground_session.gd.log",
+  "project_restored": true,
+  "assets_restored": true,
+  "source_unchanged": true,
+  "exit_code": 1
+}

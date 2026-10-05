@@ -260,15 +260,16 @@ func test_original_profile_bank_and_revision_survive_refused_live_reload() -> vo
 	"""A successful later Profiles reload is a different source identity even on the same object."""
 	assert_equal(_configure(_gear), &"", "actual foundation")
 	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(Catalog.WIRE_PATH)
-	bytes.encode_s64(12, 2)
-	var path: String = "user://ug_session_profile_revision2.ugprof"
+	var next_revision: int = Catalog.CONTENT_REVISION + 1
+	bytes.encode_s64(12, next_revision)
+	var path: String = "user://ug_session_profile_replacement.ugprof"
 	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
 	file.store_buffer(bytes)
 	file.close()
 	var hashing: HashingContext = HashingContext.new()
 	hashing.start(HashingContext.HASH_SHA256)
 	hashing.update(bytes)
-	assert_equal(_session._profiles.load_file(path, hashing.finish().hex_encode(), 2), &"", "actual immutable loader publishes revision2")
+	assert_equal(_session._profiles.load_file(path, hashing.finish().hex_encode(), next_revision), &"", "actual immutable loader publishes next revision")
 	assert_equal(_session.current_refusal(), &"UNDERGROUND_SESSION_PROFILES", "original source bank/revision remains mandatory")
 	assert_equal(_session.profile_catalog(), null, "no new source silently adopted")
 	assert_equal(DirAccess.remove_absolute(path), OK, "caller-owned mutant removed")

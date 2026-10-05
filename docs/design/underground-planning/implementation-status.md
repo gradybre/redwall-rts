@@ -2,6 +2,17 @@
 
 ## Current delivery status — 2026-10-04
 
+The current integration publishes the reviewed26-profile work approach and
+rebinds the existing stair motion identity without changing geometry or timing.
+The latest successful focused checks cover199 tests/30904 assertions with zero
+failures, unexpected diagnostics or leaks; the global analyzer reports0/1243.
+Typed Create/reset outcomes are independently accepted and integrated at
+`cba6f5bb` (77 tests/548 assertions, one existing expected diagnostic, zero
+unexpected diagnostics/leaks and analyzer0/4). These are component results;
+a new full integrated checkpoint is still pending. One paid cube does not
+provide enough width/headroom for the complete worker source, so the next
+reachable paid-cut sequence is being resolved without weakening clearance.
+
 The complete modular building workflow is still in development. The queue has
 10 verified component lanes, 5 running lanes and 9 queued lanes, covering107
 requirements. These counts are not a completion percentage: substantial demo
@@ -17,7 +28,7 @@ unchanged. The first supported stair source sequence and its native witness are
 reviewed, while actual paid route bindings and wider connector coverage
 remain open. Ground walking profiles do not fit the first tread.
 
-The latest accepted full local checkpoint is
+An earlier accepted full local checkpoint is
 [`9ca21351`](evidence/modular-build/checkpoint-9ca21351/README.md):
 10,941 tests / 1,016,692 assertions / 0 failures, zero unexpected diagnostics
 and leaks, and zero analyzer warnings across 1,220 files. The clean import,
@@ -419,3 +430,9 @@ the exact match for the seven directly relevant suites. The work is in [draft PR
 
 Historical screenshots in the initial review retain their original provenance
 and are not new-build evidence.
+
+## Checkpoint 2026-10-04: reviewed room-access CI complete
+
+All 14 jobs at `d3e3dc7b` passed in **13m20s**. The unchanged independent verifier checked all 399 suite files exactly once: **11068 tests, 1022016 assertions, zero failures**; diagnostics **0 unexpected errors / 0 unexpected warnings, 272 expected, 353 tolerated; 0 leaked objects / 0 leaked resources**. Analyzer: **0 GDScript warning(s) in 0 of 1234 file(s)**. Evidence: `docs/validation/evidence/underground-host-checkpoint-2026-10-04/ci-d3e3dc7b/`.
+
+The next paid ordinary-room candidate remains partial. Its next-source work readiness, actual approach/retreat and full paid positive are pending. Whole-room progression additionally requires scheduling each next reachable Site and publishing newly supported work access; one successful cube is insufficient. Operational World retirement is in concurrent development. No whole lane or requirement count is closed by this CI checkpoint.

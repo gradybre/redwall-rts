@@ -237,7 +237,7 @@ def test_the_committed_preset_is_the_build_contract() -> None:
 	exclude = re.search(r'^exclude_filter="(.*)"$', text, re.M).group(1)
 	check("the staged assets are included", "demo/assets/*" in include and "*.json" in include)
 	check("the exact source-bound profile binary is included",
-		"data/underground/mole-worker/profile-publication-v2/mole-worker.ugprof" in include.split(", "))
+		"data/underground/mole-worker/profile-publication-v3/mole-worker.ugprof" in include.split(", "))
 	check("the exact source-bound actor binary is included",
 		"data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor"
 		in include.split(", "))

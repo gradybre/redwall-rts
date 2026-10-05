@@ -1,22 +1,22 @@
 extends RefCounted
 ## Source-qualified mole geometry only. Actual support, paid targets, Job/Gear and presentation remain separate.
-## Eight borrowed cached Scripts, bounded hashing scratch, existing streamed two-bank Profiles; no third image.
+## Nine borrowed cached Scripts, bounded hashing scratch, existing streamed two-bank Profiles; no third image.
 
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Content := preload("res://demo/cast/underground_actor_content.gd")
 const Actor := preload("res://demo/cast/underground_actor.gd")
 const Space := preload("res://scripts/core/room_space.gd")
-const Pins := preload("./profile-publication-v2/catalog_source.gd")
-const PROFILE_COUNT: int = 18
-const BOX_COUNT: int = 194
-const CONTENT_REVISION: int = 1
+const Pins := preload("./profile-publication-v3/catalog_source.gd")
+const PROFILE_COUNT: int = 26
+const BOX_COUNT: int = 250
+const CONTENT_REVISION: int = 2
 const PROFILE_REVISION: int = 1
-const WIRE_BYTES: int = 7268
-const PAIRED_BANK_BYTES: int = 14520
+const WIRE_BYTES: int = 9620
+const PAIRED_BANK_BYTES: int = 19224
 const SOURCE_CHARS: int = 262144
 const HASH_CHARS: int = 1024
 const CONTROL_RESERVE: int = 32768 # Existing Profiles reserve, never an additional arena.
-const WIRE_PATH: String = "res://data/underground/mole-worker/profile-publication-v2/mole-worker.ugprof"
+const WIRE_PATH: String = "res://data/underground/mole-worker/profile-publication-v3/mole-worker.ugprof"
 
 
 static func load_into(profiles: Profiles, content: Content, domain: Space.Domain) -> StringName:
@@ -57,9 +57,9 @@ static func presentation_refusal(content: Content, basis: Actor.WorldBasis, doma
 
 static func runtime_sources_refusal() -> StringName:
 	"""Use the already cached actual Script source, not mutable disk bytes or a fresh transitive load."""
-	if Pins.PATHS.size() != 8 or Pins.DIGESTS.size() != 8:
+	if Pins.PATHS.size() != 9 or Pins.DIGESTS.size() != 9:
 		return &"MOLE_CATALOG_SOURCE_COUNT"
-	for index: int in 8:
+	for index: int in 9:
 		var path: String = Pins.PATHS[index]
 		if path.length() > 128 or not ResourceLoader.has_cached(path):
 			return &"MOLE_CATALOG_SOURCE_UNCACHED"
@@ -95,7 +95,15 @@ static func profile_id(source_role: int, yaw: int) -> int:
 	if yaw % 16384 != 0:
 		return -1
 	@warning_ignore("integer_division") var heading: int = yaw / 16384
-	return 2 + 4 * heading + source_role - 2
+	return 10 + 4 * heading + source_role - 2
+
+
+static func approach_profile_id(yaw: int, backward: bool = false) -> int:
+	"""Exact body heading selects the complete forward/backward source; path heading is a separate route fact."""
+	if yaw < 0 or yaw >= 65536 or yaw % 16384 != 0:
+		return -1
+	@warning_ignore("integer_division") var heading: int = yaw / 16384
+	return (6 if backward else 2) + heading
 
 
 static func pins_into(profiles: Profiles, out: PackedInt64Array) -> StringName:
@@ -107,6 +115,20 @@ static func pins_into(profiles: Profiles, out: PackedInt64Array) -> StringName:
 		return code
 	for index: int in PROFILE_COUNT:
 		out[index * 3] = index
+		out[index * 3 + 1] = PROFILE_REVISION
+		out[index * 3 + 2] = CONTENT_REVISION
+	return &""
+
+
+static func driver_pins_into(profiles: Profiles, out: PackedInt64Array) -> StringName:
+	"""The existing eighteen-role driver packet names STAND/WALK and WORK; Routes owns directed travel state."""
+	if out.size() != 54:
+		return &"MOLE_CATALOG_PINS_SIZE"
+	var code: StringName = catalog_refusal(profiles)
+	if code != &"":
+		return code
+	for index: int in 18:
+		out[index * 3] = index if index < 2 else index + 8
 		out[index * 3 + 1] = PROFILE_REVISION
 		out[index * 3 + 2] = CONTENT_REVISION
 	return &""
@@ -139,7 +161,7 @@ static func _wire_header() -> PackedByteArray:
 	"""Fixed32-byte wire header is reused only during this cold exact-content check."""
 	var bytes: PackedByteArray = "UGPROF01".to_ascii_buffer()
 	bytes.resize(32)
-	bytes.encode_u32(8, 1)
+	bytes.encode_u32(8, 2)
 	bytes.encode_s64(12, CONTENT_REVISION)
 	bytes.encode_u32(20, PROFILE_COUNT)
 	bytes.encode_u32(24, BOX_COUNT)
@@ -161,7 +183,10 @@ static func _hash_rows(profiles: Profiles, hashing: HashingContext) -> StringNam
 		bytes.encode_s64(80, descriptor.quantity_min_milli)
 		bytes.encode_s64(88, descriptor.quantity_max_milli)
 		bytes[96] = descriptor.certificate_flags
-		bytes[97] = 0 # The immutable Profiles loader rejects every nonzero reserved byte.
+		var policy: int = profiles.selection_policy_of(index, descriptor.profile_revision, CONTENT_REVISION)
+		if policy < 0:
+			return &"MOLE_CATALOG_DESCRIPTOR"
+		bytes[97] = policy
 		hashing.update(bytes)
 		first += descriptor.box_count
 	return &"" if first == BOX_COUNT else &"MOLE_CATALOG_BOX_CENSUS"

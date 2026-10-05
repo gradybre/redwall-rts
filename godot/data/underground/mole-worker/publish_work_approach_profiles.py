@@ -1,0 +1,167 @@
+#!/usr/bin/env python3
+"""Publish reviewed v3 source geometry with exact current consumers; never authorize a World or productive work."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import importlib.util
+import json
+from pathlib import Path, PurePosixPath
+import subprocess
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[3]
+EVIDENCE = "docs/validation/evidence/underground-host-checkpoint-2026-10-04/"
+APPROACH = "docs/validation/evidence/underground-work-approach-2026-10-04/"
+REVIEW = EVIDENCE + "approach-independent-review-1/review.json"
+REVIEW_SHA = "aa8b697e4fe6b83e560dfcbc7fc16dfdf86dfdc25c945dbf64e015534733aa75"
+SERIALIZER = EVIDENCE + "assemble_approach_candidate.py"
+SERIALIZER_SHA = "94bee4bb9461fb246e1c7287fed04d2961afc2c125ef79bb14d7c1f74d20a3fe"
+LEGACY = "godot/data/underground/mole-worker/profile-publication-v2/"
+LEGACY_MANIFEST_SHA = "0dfd6e3433c0addb7310057d161e752c0e3aef1b3e962f4c887b80b4b75b5c3d"
+LEGACY_WIRE_SHA = "b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac"
+REPORT_SHA = "e9cf37e7de319c9b07b9fda875760201dad5b41bd181a3e6d381bbea6cd4eedd"
+WIRE_SHA = "a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204"
+ACTOR_SHA = "adc617642313ac004c050d4877ef0b9f4024bb9c88e3ea92ce9a924471bd5ab9"
+BASIS_SHA = "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9"
+BASIS_PRODUCER = "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f"
+CONSUMER_COMMIT = "721038a4198df17d9bfab6c9994cc9916f875447"
+CONSUMERS = (
+    "godot/scripts/core/underground_profiles.gd",
+    "godot/scripts/core/underground_work_face.gd",
+    "godot/scripts/core/underground_connector_contacts.gd",
+    "godot/scripts/core/underground_routes.gd",
+    "godot/scripts/core/underground_world_routes.gd",
+    "godot/demo/cast/underground_actor.gd",
+    "godot/demo/cast/underground_actor_content.gd",
+    "godot/data/underground/mole-worker/mole_profile_driver.gd",
+    "godot/data/underground/mole-worker/work-approach-v1/source_program.gd",
+)
+MAX_FILE = 32 * 1024 * 1024
+
+
+def require(value, code):
+    if not value:
+        raise ValueError(code)
+
+
+def digest(raw):
+    return hashlib.sha256(raw).hexdigest()
+
+
+def read(name, expected=None):
+    """Only canonical contained, bounded regular repository files can establish a source prerequisite."""
+    require(type(name) is str and str(PurePosixPath(name)) == name and not name.startswith("/")
+            and ".." not in PurePosixPath(name).parts, "APPROACH_PUBLICATION_PATH")
+    path = ROOT / name
+    require(path.is_file() and not path.is_symlink() and path.resolve().is_relative_to(ROOT)
+            and path.stat().st_size <= MAX_FILE, "APPROACH_PUBLICATION_FILE")
+    raw = path.read_bytes()
+    require(expected is None or digest(raw) == expected, "APPROACH_PUBLICATION_HASH:" + name)
+    return raw
+
+
+def add_pins(target, values):
+    """Every accepted proof byte is rechecked; conflicting identities cannot silently replace an earlier source."""
+    require(type(values) is dict and 0 < len(values) <= 1024, "APPROACH_PUBLICATION_PIN_CENSUS")
+    for name, expected in values.items():
+        require(type(expected) is str and len(expected) == 64
+                and all(c in "0123456789abcdef" for c in expected), "APPROACH_PUBLICATION_DIGEST")
+        require(name not in target or target[name] == expected, "APPROACH_PUBLICATION_PIN_CONFLICT")
+        read(name, expected)
+        target[name] = expected
+
+
+def current_consumers(commit=CONSUMER_COMMIT):
+    """A fixed reviewed commit and today's files must agree; historical producers never exempt a current consumer."""
+    require(len(commit) == 40 and all(c in "0123456789abcdef" for c in commit), "APPROACH_PUBLICATION_COMMIT")
+    result = {}
+    for name in CONSUMERS:
+        original = subprocess.check_output(["git", "show", commit + ":" + name], cwd=ROOT)
+        current = read(name, digest(original))
+        require(0 < len(current.decode()) <= 262144, "APPROACH_PUBLICATION_CONSUMER_SIZE")
+        result[name] = digest(current)
+    return result
+
+
+def source_constants(consumers):
+    """The runtime retains nine cached Script identities and short constants, never the proof manifest."""
+    require(tuple(consumers) == CONSUMERS, "APPROACH_PUBLICATION_CONSUMER_CENSUS")
+    result = 'extends RefCounted\n## Generated exact source pins; regenerate with publish_work_approach_profiles.py.\n\n'
+    for key, value in (("WIRE_SHA", WIRE_SHA), ("ACTOR_SHA", ACTOR_SHA), ("BASIS_SHA", BASIS_SHA),
+                       ("BASIS_PRODUCER", BASIS_PRODUCER), ("CONSUMER_COMMIT", CONSUMER_COMMIT)):
+        result += 'const ' + key + ': String = ' + json.dumps(value) + '\n'
+    result += 'const PATHS: PackedStringArray = [\n'
+    result += ''.join('\t' + json.dumps('res://' + name.removeprefix('godot/')) + ',\n' for name in CONSUMERS)
+    result += ']\nconst DIGESTS: PackedStringArray = [\n'
+    result += ''.join('\t' + json.dumps(consumers[name]) + ',\n' for name in CONSUMERS)
+    return (result + ']\n').encode()
+
+
+def inputs():
+    """Require the independent whole-source/native review, all old geometry proof, and a new exact consumer closure."""
+    pins = {}
+    add_pins(pins, {REVIEW: REVIEW_SHA, SERIALIZER: SERIALIZER_SHA,
+                    LEGACY + "manifest.json": LEGACY_MANIFEST_SHA,
+                    LEGACY + "mole-worker.ugprof": LEGACY_WIRE_SHA,
+                    APPROACH + "source-4/approach-program.json": REPORT_SHA})
+    review = json.loads(read(REVIEW, REVIEW_SHA))
+    require(review["source_runtime_delta_accepted"] is True and review["source_geometry_and_native_clock_accepted"] is True
+            and review["world_activation_qualified"] is False and not review["findings"], "APPROACH_PUBLICATION_REVIEW")
+    add_pins(pins, review["source_pins"])
+    add_pins(pins, review["prerequisite_pins"])
+    legacy = json.loads(read(LEGACY + "manifest.json", LEGACY_MANIFEST_SHA))
+    add_pins(pins, legacy["prerequisite_pins"])
+    proof = json.loads(read(APPROACH + "source-4/approach-program.json", REPORT_SHA))
+    add_pins(pins, proof["source_inputs"])
+    add_pins(pins, proof["producer_sources"])
+    before = json.loads(read(APPROACH + "native-2/sources-before.json"))
+    require(before == json.loads(read(APPROACH + "native-2/sources-after.json")), "APPROACH_PUBLICATION_NATIVE_DRIFT")
+    consumers = current_consumers()
+    # These five production modules were executed by the actual source-clock/native replay unchanged.
+    for name in (CONSUMERS[0], CONSUMERS[3], CONSUMERS[4], CONSUMERS[7], CONSUMERS[8]):
+        executed = [sha for path, sha in before.items() if path.endswith('/' + name)]
+        require(executed == [consumers[name]], "APPROACH_PUBLICATION_NATIVE_CONSUMER")
+    add_pins(pins, consumers)
+    spec = importlib.util.spec_from_file_location("reviewed_exact_approach_serializer", ROOT / SERIALIZER)
+    serializer = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(serializer)
+    wire, mapping = serializer.encode_candidate(read(LEGACY + "mole-worker.ugprof", LEGACY_WIRE_SHA), proof)
+    require(digest(wire) == WIRE_SHA and len(wire) == 9620, "APPROACH_PUBLICATION_WIRE")
+    constants = source_constants(consumers)
+    require(len(constants) <= 4096, "APPROACH_PUBLICATION_CONSTANTS")
+    pins[str(Path(__file__).relative_to(ROOT))] = digest(Path(__file__).read_bytes())
+    manifest = {"schema": 1, "source_geometry_qualified": True, "world_activation_qualified": False,
+                "scope": "Reviewed complete source geometry and native canonical clock only; actual World support, targets, input, work and output remain mandatory.",
+                "wire_sha256": WIRE_SHA, "wire_version": 2, "content_revision": 2, "profile_revision": 1,
+                "certificate_flags": 15, "profile_count": 26, "box_count": 250,
+                "wire_bytes": 9620, "paired_bank_bytes": 19224, "actor_sha256": ACTOR_SHA,
+                "source_program": 5, "mapping": mapping, "world_root_bounds_u": proof["root_domain_u"],
+                "consumer_commit": CONSUMER_COMMIT, "consumers": consumers,
+                "prerequisite_pins": pins, "constants_sha256": digest(constants),
+                "source_review_sha256": REVIEW_SHA,
+                "remaining": ["ACTUAL_WORLD_SUPPORT_AND_PAID_TARGETS", "WHOLE_ROOM_CONSTRUCTION",
+                              "DEMO_INPUT_AND_PRESENTATION", "PERSISTENCE", "256_RESIDENT_QUALIFICATION"]}
+    return wire, constants, manifest
+
+
+def publish(out):
+    """Create only after final source revalidation; previous publications and diagnostic evidence are immutable."""
+    require(not out.exists() and not out.is_symlink() and out.resolve().is_relative_to(HERE),
+            "APPROACH_PUBLICATION_OUTPUT")
+    wire, constants, manifest = inputs()
+    for path, expected in manifest["prerequisite_pins"].items():
+        read(path, expected)
+    out.mkdir(parents=True)
+    for name, raw in (("mole-worker.ugprof", wire), ("catalog_source.gd", constants),
+                      ("manifest.json", (json.dumps(manifest, indent=2) + '\n').encode())):
+        with (out / name).open("xb") as stream:
+            stream.write(raw)
+    print(json.dumps({"profiles": 26, "boxes": 250, "wire_sha256": WIRE_SHA,
+                      "current_consumers": 9, "world_activation_qualified": False}))
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument("out", type=Path)
+    publish(parser.parse_args().out)

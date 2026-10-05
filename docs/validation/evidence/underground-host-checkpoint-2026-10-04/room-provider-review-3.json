@@ -1,0 +1,11 @@
+{
+  "candidate": "1152 source-review-3",
+  "pins_matched": 11,
+  "source_review": "Accepted exact one-line expired optional EntryContacts conditional and targeted28-line lifetime regression. No further issue in this delta. Prior withdrawn HIGH remains withdrawn.",
+  "provider_sha256": "994c04a6ea67ac7884ddb372d19398cc26a7d9d56a07daf2a010850479119985",
+  "test_sha256": "2ebd642cc25bc2346be67692c97d579aa68bab5457f755be3fe24031de5575d6",
+  "author_evidence": "expired-entry-corrected:38 tests,441 assertions,0 failures; strict/raw expected/tolerated/unexpected/leaks0; analyzer0/4; all restoration flags true. Rejected witness19/235/1 retained.",
+  "source_delta_accepted": true,
+  "full_paid_ordinary_accepted": false,
+  "next": "1156 source approach/readiness integration and real paid ordinary positive; separately1157 next-frontier progression."
+}

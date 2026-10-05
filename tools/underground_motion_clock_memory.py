@@ -21,7 +21,7 @@ def build(index, baseline):
     executable = re.sub(r'""".*?"""', '', source, flags=re.S)
     executable = re.sub(r'#[^\n]*', '', executable)
     executable = '\n'.join(line.rstrip() for line in executable.splitlines() if line.strip())
-    require(hashlib.sha256(executable.encode()).hexdigest() == 'ee137604200ba9854a7c11d70314c72486a2b1ff377e677ee1eca8319ef49c0d',
+    require(hashlib.sha256(executable.encode()).hexdigest() == 'c31c963c91806c8f440635ec494e23e65b5f5af894cf17ffcf2ec419d3ae5f5d',
             'complete Clock executable changed; independently recount every allocation and frame')
 
     require(not re.search(r'^(?:static )?var |^class ', source, re.M), 'no retained fields or classes')

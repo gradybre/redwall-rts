@@ -1953,13 +1953,13 @@ reference/header costs and whole-client peak qualification remain open.
 | Original Level configuration | `_level_config` | 4 | `13` = 13 | Empty before configure | 3 | -- | Exact authored source configuration. |
 | Original Level digest and published wire | `_level_digest`, `_digest` | 1 | `32` = 32 | Empty before configure | 3 | -- | Original source digests; no wire image retained. |
 | Source-only paired banks | -- | -- | -- | Empty before admission | 2 | §1 WORLD | Two banks, each17421I32+67I64+640B =70860B. Source catalog only; no actor progress or travel permission. |
-| Source admission and read controls | -- | -- | -- | Quiescent outside load/read | 3 | -- | Fixed250B includes numeric controls and the packed rows above. Shared constants432B, maximum own numeric chain144B and temporary/expression264B fit4096B logical/helper reserve. One4096B decoder window,176B caller and32768B provisional native reserve. Joint Profiles18/194/1+Levels+Motion232436B fits existing262144B PROFILE_BYTES; single composed owner only. Native qualification and composed persistence remain open. |
+| Source admission and read controls | -- | -- | -- | Quiescent outside load/read | 3 | -- | Fixed250B includes numeric controls and the packed rows above. Shared constants432B, maximum own numeric chain144B and temporary/expression264B fit4096B logical/helper reserve. One4096B decoder window,176B caller and32768B provisional native reserve. Joint Profiles26/250/1+Levels+Motion237140B fits existing262144B PROFILE_BYTES; single composed owner only. Native qualification and composed persistence remain open. |
 
 ### `godot/scripts/core/underground_session.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Composed owner lifetime | -- | -- | -- | Unbound before configure | 3 | -- | ADR1146: no packed columns. Twenty-four borrowed/owned object aliases and27 numeric bytes. Fixed1024B wrapper/reference/native plus512B helper slice fits existing PROFILE_BYTES; existing Profile, Level, Motion, Routes, Space and Terrain banks counted once. Current source-derived joint233972/262144B. Native allocation and composed persistence remain open. |
+| Composed owner lifetime | -- | -- | -- | Unbound before configure | 3 | -- | ADR1146: no packed columns. Twenty-four borrowed/owned object aliases and27 numeric bytes. Fixed1024B wrapper/reference/native plus512B helper slice fits existing PROFILE_BYTES; existing Profile, Level, Motion, Routes, Space and Terrain banks counted once. Current source-derived Profile/Level/Motion/Session joint238676/262144B; the separately counted8192B retirement slice makes246868/262144B. Two additional retirement references belong to that slice, not the original24 aliases. Native allocation and composed persistence remain open. |
 
 ### `godot/scripts/core/underground_motion_clock.gd`
 
@@ -1978,3 +1978,32 @@ reference/header costs and whole-client peak qualification remain open.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Original approach lifetime | -- | -- | -- | No witness outside synchronous cold operation | 3 | -- | One additional reentry bool:227 logical retained bytes within existing512. Two handles: weak WorldRoutes and cold Witness, plus existing borrowed owners/native headers remain in existing bindings/control reservation, not measured native memory. Every cold packed/source/path and four-image Sites overlap is charged separately in1150 census. |
+
+
+### `godot/scripts/core/underground_room_world_bindings.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Bounded route-query remaining counter | `_ordinary_checks` | 4 | `1` = 1 | Empty before bind; overwritten after successful query | 3 | -- | ADR1152. One4B result shared sequentially by the directed path queries; included in the1024B contribution. |
+| Original ordinary Room provider wiring and synchronous phase request | -- | -- | -- | No pending phase outside original cold lease | 3 | -- | ADR1152. Inherits the existing Entry provider without duplicating its packed columns. Adds three weak references, one borrowed13-owner Configuration and one68B Request. Full reviewed fixed/helper/provisional-native contribution986 fits a separately counted1024B global contribution, including256B native allowance. Paid Site/Project state remains in its original canonical owners. Final full source/Room/Site/worker checks precede payment or publication; no saved callback permission. |
+
+### `godot/scripts/core/underground_world_retirement.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+| Exact original host owner tuple and bounded retirement Scope | -- | -- | -- | No active retirement at a save boundary | 3 | -- | ADR1155/1158. Stateless module with nested fixed Owners and Scope packets; no new bank or per-entity state. Session retains the exact original owners and at most one pending Scope. Host stops gameplay while preparing/clearing; a partial clear remains stopped. Original-live abandonment is distinct from successful clearing. Preparation/request references are transient and must not be serialized or treated as persistent authority. The8192B slice within PROFILE_BYTES includes5673/6144 provisional controls and1162/2048 helpers for the host alone; ADR1160 composes the actual UI caller into5995/6144 controls and1882/2048 helpers in that same slice. One typed reset-outcome packet is live at most; native allocation is unmeasured. Canonical rows remain in their actual owners until the reviewed release boundary. |
+
+### `godot/scripts/core/underground_room_frontier.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+| Derived canonical frontier and existing-contact observation | -- | -- | -- | Caller packets expire with the original cold lease | 3 | -- | ADR1157. Stateless module; caller Candidate99B and Request68B, private Query263B,1024B helper and512B provisional-native allowance total1966/2048B. This slice coexists with WorkFace only inside the existing1048960B cold arena; all packets die before the near-full paid-phase preparation. A returned Site/key is an observation, not paid progress or permission. Missing contact, ambiguity and exhausted scan do not mark a Room complete. No new canonical owner or global reservation. |
+
+### `godot/scripts/core/underground_routes.gd` — source approach clock
+
+ADR1156 reuses the existing authoritative MotionBank slots: the physical actor
+phase is the low two bits of the tagged source phase, and R_REQUEST_TICK contains
+two checked31-bit Q16 source-clock values while that tag is active. Route ticks
+alone advance it; the presentation Driver only reads it. This is future-affecting
+state in the already classified actor bank, not a presentation cache. Any future
+composed restore must validate the tag, exact content2 profile/source identity,
+clock range and actor mode together; legacy untagged state cannot be relabeled
+as source-qualified motion. No composed save adapter is claimed here.

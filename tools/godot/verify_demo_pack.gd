@@ -35,6 +35,7 @@ const PROFILE_SCRIPTS: Array[Script] = [
 	preload("res://demo/cast/underground_actor.gd"),
 	preload("res://demo/cast/underground_actor_content.gd"),
 	preload("res://data/underground/mole-worker/mole_profile_driver.gd"),
+	preload("res://data/underground/mole-worker/work-approach-v1/source_program.gd"),
 ]
 const ACTOR_CONTENT: String = "res://data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor"
 const ACTOR_BYTES: int = 648760

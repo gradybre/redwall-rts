@@ -58,8 +58,8 @@ func test_every_adopted_tick_matches_actual_source_phase() -> void:
 		var duration: int = 45 if program == 3 else 30
 		var step: int = 6 if program == 3 else 3
 		for tick: int in range(duration + 1):
-			assert_equal(Clock.sample_into(_fixture._motion, 1, program, 0, tick, pose, intervals), &"", "adopted tick")
-			assert_equal(_fixture._motion.phase_into(program, 1, tick * step * 65536, source), &"", "original phase equation")
+			assert_equal(Clock.sample_into(_fixture._motion, 2, program, 0, tick, pose, intervals), &"", "adopted tick")
+			assert_equal(_fixture._motion.phase_into(program, 2, tick * step * 65536, source), &"", "original phase equation")
 			assert_equal(pose, source, "root, heading and actual source frame pair match")
 			assert_equal(intervals, PackedInt32Array([0, tick * step]), "complete elapsed interval range")
 
@@ -76,9 +76,9 @@ func test_exact_terminal_roots_and_absolute_frames() -> void:
 	var intervals: PackedInt32Array = _array(2)
 	for index: int in 3:
 		var duration: int = 45 if index == 2 else 30
-		assert_equal(Clock.sample_into(_fixture._motion, 1, programs[index], 0, duration, pose, intervals), &"", "terminal tick")
+		assert_equal(Clock.sample_into(_fixture._motion, 2, programs[index], 0, duration, pose, intervals), &"", "terminal tick")
 		assert_equal(pose, expected[index], "exact source endpoint and frame identity")
-		_refuses(1, programs[index], duration, duration + 1, &"MOTION_CLOCK_TICK_RANGE")
+		_refuses(2, programs[index], duration, duration + 1, &"MOTION_CLOCK_TICK_RANGE")
 
 
 func test_crossed_ranges_cover_every_interval_once() -> void:
@@ -90,11 +90,11 @@ func test_crossed_ranges_cover_every_interval_once() -> void:
 		var duration: int = 45 if program == 3 else 30
 		var expected: int = 0
 		for tick: int in duration:
-			assert_equal(Clock.sample_into(_fixture._motion, 1, program, tick, tick + 1, pose, intervals), &"", "one tick")
+			assert_equal(Clock.sample_into(_fixture._motion, 2, program, tick, tick + 1, pose, intervals), &"", "one tick")
 			assert_equal(intervals[0], expected, "adjacent proof range starts exactly at prior end")
 			for interval: int in range(intervals[0], intervals[1]):
 				assert_equal(interval, expected, "no interval deduplicated by equal root")
-				assert_equal(_fixture._motion.interval_box_into(program, 1, interval, 0, body), &"", "actual full interval")
+				assert_equal(_fixture._motion.interval_box_into(program, 2, interval, 0, body), &"", "actual full interval")
 				expected += 1
 		assert_equal(expected, 270 if program == 3 else 90, "whole source timeline")
 
@@ -104,11 +104,11 @@ func test_stationary_root_interval_still_needs_source_proof() -> void:
 	var first: PackedInt32Array = _array(9)
 	var second: PackedInt32Array = _array(9)
 	var intervals: PackedInt32Array = _array(2)
-	assert_equal(_fixture._motion.phase_into(0, 1, 0, first), &"", "first source key")
-	assert_equal(_fixture._motion.phase_into(0, 1, 65536, second), &"", "stationary next key")
+	assert_equal(_fixture._motion.phase_into(0, 2, 0, first), &"", "first source key")
+	assert_equal(_fixture._motion.phase_into(0, 2, 65536, second), &"", "stationary next key")
 	assert_equal(first.slice(0, 3), second.slice(0, 3), "root is stationary")
 	assert_true(first[6] != second[6], "source pose progresses")
-	assert_equal(Clock.sample_into(_fixture._motion, 1, 0, 0, 1, first, intervals), &"", "first adopted tick")
+	assert_equal(Clock.sample_into(_fixture._motion, 2, 0, 0, 1, first, intervals), &"", "first adopted tick")
 	assert_equal(intervals, PackedInt32Array([0, 3]), "stationary interval zero included with both following intervals")
 	assert_equal(first[6], 3, "three complete source intervals in one tick")
 
@@ -119,11 +119,11 @@ func test_pause_and_repeated_sampling_are_stateless() -> void:
 	var prior: PackedInt32Array = _array(9)
 	var intervals: PackedInt32Array = _array(2)
 	for tick: int in [0, 7, 45]:
-		assert_equal(Clock.sample_into(_fixture._motion, 1, 3, 0, tick, prior, intervals), &"", "prior observation")
-		assert_equal(Clock.sample_into(_fixture._motion, 1, 3, tick, tick, pose, intervals), &"", "paused observation")
+		assert_equal(Clock.sample_into(_fixture._motion, 2, 3, 0, tick, prior, intervals), &"", "prior observation")
+		assert_equal(Clock.sample_into(_fixture._motion, 2, 3, tick, tick, pose, intervals), &"", "paused observation")
 		assert_equal(pose, prior, "same exact pose")
 		assert_equal(intervals, PackedInt32Array([tick * 6, tick * 6]), "no crossed interval")
-		assert_equal(Clock.sample_into(_fixture._motion, 1, 3, tick, tick, pose, intervals), &"", "repeat is deterministic")
+		assert_equal(Clock.sample_into(_fixture._motion, 2, 3, tick, tick, pose, intervals), &"", "repeat is deterministic")
 		assert_equal(pose, prior, "no internal advancement")
 
 
@@ -138,8 +138,8 @@ func test_chunked_ticks_keep_complete_proof_range() -> void:
 		for span: int in [2, 4]:
 			for first: int in range(0, duration, span):
 				var last: int = mini(first + span, duration)
-				assert_equal(Clock.sample_into(_fixture._motion, 1, program, first, last, pose, intervals), &"", "bounded batch")
-				assert_equal(_fixture._motion.phase_into(program, 1, last * step * 65536, expected), &"", "same final source phase")
+				assert_equal(Clock.sample_into(_fixture._motion, 2, program, first, last, pose, intervals), &"", "bounded batch")
+				assert_equal(_fixture._motion.phase_into(program, 2, last * step * 65536, expected), &"", "same final source phase")
 				assert_equal(pose, expected, "chunking does not change pose")
 				assert_equal(intervals, PackedInt32Array([first * step, last * step]), "all crossed intervals retained")
 
@@ -147,7 +147,7 @@ func test_chunked_ticks_keep_complete_proof_range() -> void:
 func test_unadopted_programs_never_borrow_tread_timing() -> void:
 	"""Approach and retreat remain untimed even though each happens to have ninety intervals."""
 	for program: int in [-1, 2, 4, 5, 9223372036854775807]:
-		_refuses(1, program, 0, 0, &"MOTION_CLOCK_TIMING")
+		_refuses(2, program, 0, 0, &"MOTION_CLOCK_TIMING")
 
 
 func test_noninteger_commands_refuse_before_conversion() -> void:
@@ -155,19 +155,19 @@ func test_noninteger_commands_refuse_before_conversion() -> void:
 	var invalid: Array[Variant] = [1.0, 1.5, true, false, "1", null]
 	for value: Variant in invalid:
 		_refuses(value, 0, 0, 1, &"MOTION_CLOCK_INTEGER")
-		_refuses(1, value, 0, 1, &"MOTION_CLOCK_INTEGER")
-		_refuses(1, 0, value, 1, &"MOTION_CLOCK_INTEGER")
-		_refuses(1, 0, 0, value, &"MOTION_CLOCK_INTEGER")
+		_refuses(2, value, 0, 1, &"MOTION_CLOCK_INTEGER")
+		_refuses(2, 0, value, 1, &"MOTION_CLOCK_INTEGER")
+		_refuses(2, 0, 0, value, &"MOTION_CLOCK_INTEGER")
 
 
 func test_negative_reverse_surplus_and_huge_ticks_preserve_outputs() -> void:
 	"""Bounds precede multiplication, so no wrap, clamping or reverse-playback permission occurs."""
-	_refuses(1, 0, -1, 0, &"MOTION_CLOCK_TICK_RANGE")
-	_refuses(1, 0, 0, -1, &"MOTION_CLOCK_TICK_RANGE")
-	_refuses(1, 1, 5, 4, &"MOTION_CLOCK_TICK_RANGE")
-	_refuses(1, 3, 0, 46, &"MOTION_CLOCK_TICK_RANGE")
-	_refuses(1, 0, 0, 9223372036854775807, &"MOTION_CLOCK_TICK_RANGE")
-	_refuses(1, 0, 9223372036854775807, 0, &"MOTION_CLOCK_TICK_RANGE")
+	_refuses(2, 0, -1, 0, &"MOTION_CLOCK_TICK_RANGE")
+	_refuses(2, 0, 0, -1, &"MOTION_CLOCK_TICK_RANGE")
+	_refuses(2, 1, 5, 4, &"MOTION_CLOCK_TICK_RANGE")
+	_refuses(2, 3, 0, 46, &"MOTION_CLOCK_TICK_RANGE")
+	_refuses(2, 0, 0, 9223372036854775807, &"MOTION_CLOCK_TICK_RANGE")
+	_refuses(2, 0, 9223372036854775807, 0, &"MOTION_CLOCK_TICK_RANGE")
 
 
 func test_wrong_output_shapes_preserve_both_arrays() -> void:
@@ -175,7 +175,7 @@ func test_wrong_output_shapes_preserve_both_arrays() -> void:
 	for sizes: Vector2i in [Vector2i(8, 2), Vector2i(9, 1), Vector2i(10, 3), Vector2i(0, 0)]:
 		var pose: PackedInt32Array = _array(sizes.x)
 		var intervals: PackedInt32Array = _array(sizes.y, 81)
-		assert_equal(Clock.sample_into(_fixture._motion, 1, 0, 0, 1, pose, intervals), &"MOTION_CLOCK_OUTPUT_SIZE", "wrong shape")
+		assert_equal(Clock.sample_into(_fixture._motion, 2, 0, 0, 1, pose, intervals), &"MOTION_CLOCK_OUTPUT_SIZE", "wrong shape")
 		assert_equal(pose, _array(sizes.x), "entire pose unchanged")
 		assert_equal(intervals, _array(sizes.y, 81), "entire interval output unchanged")
 
@@ -185,10 +185,10 @@ func test_foreign_and_unloaded_source_owners_refuse() -> void:
 	var pose: PackedInt32Array = _array(9)
 	var intervals: PackedInt32Array = _array(2, 81)
 	var foreign: ForeignMotion = ForeignMotion.new()
-	assert_equal(Clock.sample_into(null, 1, 0, 0, 1, pose, intervals), &"MOTION_CLOCK_SOURCE", "missing owner")
-	assert_equal(Clock.sample_into(foreign, 1, 0, 0, 1, pose, intervals), &"MOTION_CLOCK_SOURCE", "wrong actual Script")
+	assert_equal(Clock.sample_into(null, 2, 0, 0, 1, pose, intervals), &"MOTION_CLOCK_SOURCE", "missing owner")
+	assert_equal(Clock.sample_into(foreign, 2, 0, 0, 1, pose, intervals), &"MOTION_CLOCK_SOURCE", "wrong actual Script")
 	assert_false(foreign.called, "substituted phase method never called")
-	assert_equal(Clock.sample_into(Motion.new(), 1, 0, 0, 1, pose, intervals), &"MOTION_QUERY", "actual unloaded owner")
+	assert_equal(Clock.sample_into(Motion.new(), 2, 0, 0, 1, pose, intervals), &"MOTION_QUERY", "actual unloaded owner")
 	assert_equal(pose, _array(9), "all refused owners preserve pose")
 	assert_equal(intervals, _array(2, 81), "all refused owners preserve intervals")
 
@@ -196,24 +196,24 @@ func test_foreign_and_unloaded_source_owners_refuse() -> void:
 func test_revision_and_retired_world_expire_sample() -> void:
 	"""Original content revision and full World generation are rechecked by the actual source owner."""
 	_refuses(0, 0, 0, 1, &"MOTION_QUERY")
-	_refuses(2, 0, 0, 1, &"MOTION_QUERY")
+	_refuses(3, 0, 0, 1, &"MOTION_QUERY")
 	assert_true(_fixture._ids.destroy(_fixture._world), "retire actual bound World")
 	var replacement: Vector2i = _fixture._ids.create(Fixture.Directory.KIND_WORLD)
 	assert_equal(replacement.x, _fixture._world.x, "same slot reused")
 	assert_true(replacement.y != _fixture._world.y, "different full identity")
-	_refuses(1, 0, 0, 1, &"MOTION_WORLD_STALE")
+	_refuses(2, 0, 0, 1, &"MOTION_WORLD_STALE")
 
 
 func test_actual_profile_replacement_expires_sampling() -> void:
 	"""The original source owner cannot silently follow a newer loaded physical catalog."""
 	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(Fixture.Catalog.WIRE_PATH)
-	bytes.encode_s64(12, 2)
+	bytes.encode_s64(12, 3)
 	_fixture._write(bytes)
 	var hashing: HashingContext = HashingContext.new()
 	hashing.start(HashingContext.HASH_SHA256)
 	hashing.update(bytes)
-	assert_equal(_fixture._profiles.load_file(Fixture.TEMP, hashing.finish().hex_encode(), 2), &"", "real catalog replacement")
-	_refuses(1, 0, 0, 1, &"MOTION_SOURCE_STALE")
+	assert_equal(_fixture._profiles.load_file(Fixture.TEMP, hashing.finish().hex_encode(), 3), &"", "real catalog replacement")
+	_refuses(2, 0, 0, 1, &"MOTION_SOURCE_STALE")
 
 
 func test_timing_does_not_publish_rate_or_travel_permission() -> void:
@@ -224,8 +224,8 @@ func test_timing_does_not_publish_rate_or_travel_permission() -> void:
 	var longs: PackedInt64Array = PackedInt64Array()
 	longs.resize(7)
 	for program: int in [0, 1, 3]:
-		assert_equal(Clock.sample_into(_fixture._motion, 1, program, 0, 1, pose, intervals), &"", "time query")
-		assert_equal(_fixture._motion.program_into(program, 1, descriptor, longs), &"", "unchanged source metadata")
+		assert_equal(Clock.sample_into(_fixture._motion, 2, program, 0, 1, pose, intervals), &"", "time query")
+		assert_equal(_fixture._motion.program_into(program, 2, descriptor, longs), &"", "unchanged source metadata")
 		assert_equal(longs[4] + longs[5] + longs[6], 0, "runtime rate binding remains absent")
 		assert_equal(descriptor[9], -1, "qualifying traversal profile remains absent")
 	assert_equal(_fixture._motion.activation_refusal(), &"MOTION_SOURCE_ONLY", "sample is not travel permission")

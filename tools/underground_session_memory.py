@@ -13,6 +13,7 @@ REFS = {
     "_space": "Owner", "_terrain": "Terrain", "_levels": "Levels", "_profiles": "Profiles",
     "_domain": "Space.Domain", "_profile_bank": "Profiles.Bank",
 }
+RETIREMENT_REFS = {"_retirement_owners": "Retirement.Owners", "_retirement_scope": "Retirement.Scope"}
 SCALARS = {"_world_ref": "Vector2i", "_world_pid": "int", "_seed": "int",
            "_ready": "bool", "_busy": "bool", "_poisoned": "bool"}
 WIDTHS = {"int": 8, "bool": 1, "Vector2i": 8, "Vector3i": 12, "StringName": 8}
@@ -35,7 +36,7 @@ def functions(source):
         require(len(args) == parameters.count(":"), f"untyped argument in {name}")
         require(len(locals_) == len(re.findall(r"^\t+var ", body, re.M)), f"untyped local in {name}")
         values = args + locals_
-        require(all(kind in WIDTHS or kind in REFS.values() for _, kind in values),
+        require(all(kind in WIDTHS or kind in (*REFS.values(), *RETIREMENT_REFS.values(), "Object") for _, kind in values),
                 f"unaccounted caller/local shape in {name}")
         result[name] = {
             "numeric_and_name_bytes": sum(WIDTHS.get(kind, 0) for _, kind in values),
@@ -63,13 +64,13 @@ def census(source, motion_joint, envelope):
     members = re.findall(r"^var (\w+):\s*([\w.]+)\s*=", source, re.M)
     require(len(members) == len(re.findall(r"^var ", source, re.M)), "untyped retained field")
     require(len(dict(members)) == len(members), "duplicate retained member")
-    require(dict(members) == REFS | SCALARS, "Session retained member census changed")
+    require(dict(members) == REFS | RETIREMENT_REFS | SCALARS, "Session retained member census changed")
     require(not re.search(r"\b(?:Packed\w+Array|Array|Dictionary)\s*\(|\.resize\(|\.duplicate\(", source),
             "Session cannot allocate another retained or temporary bank")
     allocations = {}
     for kind in re.findall(r"\b([A-Z][\w.]*)\.new\(", source):
         allocations[kind] = allocations.get(kind, 0) + 1
-    require(allocations == ALLOCATIONS, "foundation allocation topology changed")
+    require(allocations == ALLOCATIONS | {"Retirement.Owners": 1, "Retirement.Scope": 1}, "foundation allocation topology changed")
     for name, value in (("CONTROL_BYTES", 1024), ("HELPER_BYTES", 512), ("PROFILE_SOURCE_COUNT", 1)):
         require(re.search(rf"^const {name}: int = {value}$", source, re.M), f"{name} reservation changed")
     require("_domain = _space._domain #" in source, "second retained Domain copy")
@@ -91,6 +92,7 @@ def census(source, motion_joint, envelope):
         "source_sha256": hashlib.sha256(source.encode()).hexdigest(),
         "retained_numeric_bytes": fixed,
         "strong_reference_or_alias_members": len(REFS),
+        "additional_retirement_reference_slots_charged_separately": len(RETIREMENT_REFS),
         "own_packed_columns": 0,
         "own_variable_bank_bytes": 0,
         "control_reservation_bytes": 1024,
@@ -103,14 +105,15 @@ def census(source, motion_joint, envelope):
         "references_are_not_measured_native_bytes": True,
         "own_total_slice_bytes": 1536,
         "slice_source": "existing PROFILE_BYTES; no global reserve increase",
-        "existing_profile_paired_plus_control_bytes": 14520 + 32768,
+        "existing_profile_paired_plus_control_bytes": 19224 + 32768,
         "existing_level_bytes": 2292,
-        "foundation_profile_level_session_bytes": 14520 + 32768 + 2292 + 1536,
+        "foundation_profile_level_session_bytes": 19224 + 32768 + 2292 + 1536,
         "source_counted_motion_joint_before_session_bytes": motion_joint,
         "profile_level_motion_session_joint_bytes": motion_joint + 1536,
         "profile_envelope_bytes": envelope,
         "joint_remaining_bytes": envelope - motion_joint - 1536,
-        "sequential_foundation_allocations": allocations,
+        "sequential_foundation_allocations": ALLOCATIONS,
+        "retirement_allocations_charged_separately": {"Retirement.Owners": 1, "Retirement.Scope": 1},
         "frames": frames,
         "native_memory_qualified": False,
         "runtime_activation_qualified": False,

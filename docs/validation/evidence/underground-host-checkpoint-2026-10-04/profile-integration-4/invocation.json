@@ -1,0 +1,104 @@
+{
+  "head": "4cd4aa8891a7cac2f0b2efd425506fcf7beb152c",
+  "scope": "Focused integration, not the required full no-argument milestone suite.",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.684,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "133/402",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-4"
+      ],
+      "exit_code": 0,
+      "seconds": 14.718,
+      "log": "test_underground_room_world_phases.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "247/402",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-4"
+      ],
+      "exit_code": 0,
+      "seconds": 7.798,
+      "log": "test_underground_room_frontier.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "25/402",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-4"
+      ],
+      "exit_code": 0,
+      "seconds": 18.725,
+      "log": "test_underground_connector_contacts.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "3/402",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-4"
+      ],
+      "exit_code": 0,
+      "seconds": 107.904,
+      "log": "test_underground_connector_delivery.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "252/402",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-4"
+      ],
+      "exit_code": 0,
+      "seconds": 4.673,
+      "log": "test_underground_profiles.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "234/402",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-4"
+      ],
+      "exit_code": 0,
+      "seconds": 4.59,
+      "log": "test_mole_profile_driver.gd.log"
+    }
+  ],
+  "assets_present_before": true,
+  "completed_suites": [
+    "test_underground_room_world_phases.gd",
+    "test_underground_room_frontier.gd",
+    "test_underground_connector_contacts.gd",
+    "test_underground_connector_delivery.gd",
+    "test_underground_profiles.gd",
+    "test_mole_profile_driver.gd"
+  ],
+  "project_restored": true,
+  "assets_restored": true,
+  "source_unchanged": true,
+  "exit_code": 0
+}

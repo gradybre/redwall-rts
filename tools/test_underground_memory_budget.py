@@ -3,8 +3,53 @@
 from __future__ import annotations
 
 import unittest
+from unittest import mock
+import hashlib
+import json
+from pathlib import Path
 
 import underground_memory_budget as budget
+import underground_retirement_memory as retirement_memory
+
+
+class RetirementWitnessTests(unittest.TestCase):
+    def refuses_before_import(self, replacements):
+        original = Path.read_bytes
+
+        def read(path):
+            return replacements[path] if path in replacements else original(path)
+
+        with mock.patch.object(Path, "read_bytes", read), mock.patch.object(
+                retirement_memory.importlib.util, "spec_from_file_location") as load:
+            with self.assertRaisesRegex(ValueError, "reviewed host retirement"):
+                retirement_memory.verified_census()
+            load.assert_not_called()
+
+    def test_transitive_producer_change_refuses_before_import(self):
+        self.refuses_before_import({retirement_memory.PRODUCER: b"raise RuntimeError('must not execute')\n"})
+
+    def test_coordinated_producer_and_manifest_change_refuses_before_import(self):
+        changed = retirement_memory.PRODUCER.read_bytes().replace(
+            b"'total_provisional': provisional_control", b"'total_provisional': 0")
+        self.assertNotEqual(changed, retirement_memory.PRODUCER.read_bytes())
+        rows = json.loads(retirement_memory.PREDECESSOR.read_bytes())
+        row = rows[str(retirement_memory.PRODUCER.relative_to(retirement_memory.ROOT))]
+        row["sha256"] = hashlib.sha256(changed).hexdigest()
+        self.refuses_before_import({retirement_memory.PRODUCER: changed,
+            retirement_memory.PREDECESSOR: json.dumps(rows).encode(),
+            retirement_memory.ROOT / row["locator"]: changed})
+
+    def test_manifest_change_refuses_before_import(self):
+        self.refuses_before_import({retirement_memory.PREDECESSOR:
+                                   retirement_memory.PREDECESSOR.read_bytes() + b"\n"})
+
+    def test_original_owner_snapshot_change_refuses_before_import(self):
+        rows = json.loads(retirement_memory.PREDECESSOR.read_bytes())
+        for name in ("underground_session", "settlement_system"):
+            key = next(key for key in rows if Path(key).stem == name)
+            path = retirement_memory.ROOT / rows[key]["locator"]
+            with self.subTest(owner=name):
+                self.refuses_before_import({path: path.read_bytes() + b"# unreviewed baseline\n"})
 
 
 class JointPackTests(unittest.TestCase):
@@ -27,9 +72,9 @@ class JointPackTests(unittest.TestCase):
     def test_motion_profiles_levels_share_the_existing_reservation(self) -> None:
         result = budget.build(self.index)
         joint = result["profile_motion_reservation"]["joint"]
-        self.assertEqual((joint["total"], joint["reservation"], joint["headroom"]), (232436, 262144, 29708))
+        self.assertEqual((joint["total"], joint["reservation"], joint["headroom"]), (237140, 262144, 25004))
         self.assertEqual(joint["independent_maxima_total_refuses"], 444284)
-        self.assertEqual(result["live_with_reserve_bytes"], 99998782)
+        self.assertEqual(result["live_with_reserve_bytes"], 99999806)
         self.assertFalse(result["runtime_qualified"])
 
     def test_session_fits_current_source_counted_joint_without_global_increase(self) -> None:
@@ -38,12 +83,52 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(session["source_counted_motion_joint_before_session_bytes"],
                          result["profile_motion_reservation"]["joint"]["total"])
         self.assertEqual((session["retained_numeric_bytes"], session["strong_reference_or_alias_members"]), (27, 24))
-        self.assertEqual((session["profile_level_motion_session_joint_bytes"], session["joint_remaining_bytes"]), (233972, 28172))
-        self.assertEqual(result["live_with_reserve_bytes"], 99998782)
+        self.assertEqual((session["profile_level_motion_session_joint_bytes"], session["joint_remaining_bytes"]), (238676, 23468))
+        self.assertEqual(result["live_with_reserve_bytes"], 99999806)
         self.assertFalse(session["native_memory_qualified"])
 
     def test_session_unaccounted_owner_is_rejected(self) -> None:
         self.refuses("underground_session", "var _ready: bool", "var _extra: Content = null\nvar _ready: bool")
+
+    def test_retirement_is_charged_once_inside_the_existing_profile_reserve(self) -> None:
+        result = budget.build(self.index)
+        row = result["host_retirement_reservation"]["accounting"]
+        self.assertEqual((row["retirement_reserved_bytes"], row["joint_with_retirement"],
+                          row["joint_remaining_bytes"]), (8192, 246868, 15276))
+        self.assertEqual(result["contributions"]["PROFILE_BYTES"], 262144)
+        self.assertEqual(result["session_reservation"]["additional_retirement_reference_slots_charged_separately"], 2)
+
+    def test_retirement_extra_retained_packet_cannot_hide_in_shared_reserve(self) -> None:
+        self.refuses("underground_world_retirement", "extends RefCounted\n",
+                     "extends RefCounted\nvar _extra: PackedInt32Array = PackedInt32Array()\n")
+
+    def test_ui_reset_reuses_current_host_reservation_without_an_additional_bank(self) -> None:
+        result = budget.build(self.index)
+        ui = result["ui_reset_reservation"]
+        self.assertEqual(ui["additional_reserved_bytes"], 0)
+        self.assertEqual((ui["accounting"]["controls"], ui["accounting"]["helpers"]), (5995, 1882))
+        self.assertEqual(ui["accounting"]["profile_joint_unchanged"],
+                         result["host_retirement_reservation"]["accounting"]["joint_with_retirement"])
+
+    def test_ui_current_text_mutation_is_not_replaced_with_disk_source(self) -> None:
+        for role, (name, _) in budget.ui_reset_memory.CURRENT.items():
+            path = ("godot/scripts/systems/" if role == "UI" else "godot/scripts/ui/") + name + ".gd"
+            original = budget.audit.parse_module(name, path, (budget.ROOT / path).read_text())
+            # Keep the cached SHA and parsed columns unchanged deliberately.
+            index = dict(self.index, **{name: original._replace(
+                         text=original.text + "\nfunc hidden_allocation() -> void:\n\tvar extra: Array = []\n")})
+            with self.subTest(owner=name), self.assertRaisesRegex(AssertionError, "UI reset call/allocation"):
+                budget.build(index)
+
+    def test_ordinary_provider_is_additional_to_existing_entry_and_cold_charges(self) -> None:
+        result = budget.build(self.index)
+        self.assertEqual(result["contributions"]["room_world_bindings"], 1024)
+        self.assertEqual(result["room_world_reservation"]["logical_helper_and_included_native_bytes"], 986)
+        self.assertEqual(result["room_world_reservation"]["maximum_shared_phase_bytes"], 1048912)
+        self.assertEqual(result["headroom_bytes"], 194)
+
+    def test_ordinary_provider_extra_allocation_requires_a_new_census(self) -> None:
+        self.refuses("underground_room_world_bindings", "_ordinary_checks.resize(1)", "_ordinary_checks.resize(2)")
 
     def test_session_unaccounted_bank_is_rejected(self) -> None:
         self.refuses("underground_session", "var _ready: bool", "var _bank: PackedByteArray = PackedByteArray()\nvar _ready: bool")
@@ -78,7 +163,7 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual((clock["additional_logical_counted"], clock["combined_logical_counted"]), (208, 1298))
         self.assertEqual((clock["clock_caller_bytes"], clock["shared_caller_reservation"]), (44, 176))
         self.assertEqual(clock["joint"], result["profile_motion_reservation"]["joint"])
-        self.assertEqual(result["live_with_reserve_bytes"], 99998782)
+        self.assertEqual(result["live_with_reserve_bytes"], 99999806)
 
     def test_clock_cannot_retain_per_actor_ticks(self) -> None:
         self.refuses("underground_motion_clock", "const TREAD_TICKS", "var _ticks: int = 0\nconst TREAD_TICKS")
@@ -434,10 +519,10 @@ class JointPackTests(unittest.TestCase):
 
     def test_positive_current_joint_pack_is_not_runtime_qualification(self) -> None:
         result = budget.build(self.index)
-        self.assertEqual(result["new_mutable_and_reserved_bytes"], 5006017)
+        self.assertEqual(result["new_mutable_and_reserved_bytes"], 5007041)
         self.assertEqual(result["declaration_bytes"], 23573)
-        self.assertEqual(result["live_with_reserve_bytes"], 99998782)
-        self.assertEqual(result["headroom_bytes"], 1218)
+        self.assertEqual(result["live_with_reserve_bytes"], 99999806)
+        self.assertEqual(result["headroom_bytes"], 194)
         self.assertFalse(result["runtime_qualified"])
         workpieces = result["connector_workpieces_reservation"]
         self.assertEqual(workpieces["two_bank_bytes"], 10752)

@@ -40,14 +40,14 @@ func _write(bytes: PackedByteArray) -> void:
 
 
 func test_actual_profile_actor_and_cached_sources_pass_without_world_permission() -> void:
-	"""The actual emitted artifacts and eight Script resources survive the check; no fake success flag is injected."""
+	"""The actual emitted artifacts and nine Script resources survive the check; no fake success flag is injected."""
 	var report: Dictionary = _check()
 	assert_equal(report.error, "", "same emitted artifacts and cached source")
-	assert_equal(report.profiles.bytes, 7268, "exact profile bytes")
+	assert_equal(report.profiles.bytes, 9620, "exact profile bytes")
 	assert_equal(report.profiles.sha256, Catalog.Pins.WIRE_SHA, "exact profile digest")
 	assert_equal(report.actor.bytes, 648760, "exact actor bytes")
 	assert_equal(report.actor.sha256, Catalog.Pins.ACTOR_SHA, "exact actor digest")
-	assert_equal(report.sources.count, 8, "complete consumer census")
+	assert_equal(report.sources.count, 9, "complete consumer census")
 	assert_true(report.sources.characters > 0, "nonempty cached source")
 	assert_false(report.world_activation_qualified, "packaging grants no World activation")
 

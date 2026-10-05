@@ -139,7 +139,7 @@ def build(index):
     joint = profile + level + 2*one_bank + 4096 + 176 + 4096 + 32768
     maximum_profiles = derived['maximum_profile_bytes']
     maximum_joint = joint - profile + maximum_profiles
-    require((profile, one_bank, joint, maximum_joint) == (47288, 70860, 232436, 444284), 'exact joint formula')
+    require((profile, one_bank, joint, maximum_joint) == (51992, 70860, 237140, 444284), 'exact joint formula')
     require(joint <= 262144 < maximum_joint, 'configured coexistence, no independent maxima')
     return {
         'source_sha256': hashlib.sha256(source.encode()).hexdigest(),
@@ -161,7 +161,7 @@ def build(index):
                              'one FileAccess and one HashingContext during load',
                              'bounded header/slice/string/digest temporaries and interpreter frames'],
         'native_measured': False,
-        'foreign_call_lifetime': 'MoleCatalog runtime source hashing and exact Profile wire check run sequentially before decoding. Their existing32KiB Profiles control reserve is included once in47288, not additionally allocated. Actual Content palettes in tests have separate declared presentation reservation; none is retained by Motion.',
+        'foreign_call_lifetime': 'MoleCatalog runtime source hashing and exact Profile wire check run sequentially before decoding. Their existing32KiB Profiles control reserve is included once in51992, not additionally allocated. Actual Content palettes in tests have separate declared presentation reservation; none is retained by Motion.',
         'profile_configuration': derived['configuration'],
         'joint': {'profiles': profile, 'levels': level, 'paired_motion': 2*one_bank, 'decode': 4096, 'caller': 176,
                   'logical_helper': 4096, 'native': 32768, 'total': joint, 'reservation': 262144, 'headroom': 262144-joint,
@@ -196,7 +196,7 @@ def joint_sources(index, memory):
     require(per_profile == resolve('underground_profiles', 'PROFILE_WIRE_BYTES') == 98, 'Profile row width')
     catalog = index['mole_profile_catalog']
     counts = (resolve(catalog.name, 'PROFILE_COUNT'), resolve(catalog.name, 'BOX_COUNT'), 1)
-    require(counts == (18, 194, 1), 'current accepted publication configuration')
+    require(counts == (26, 250, 1), 'current accepted publication configuration')
     control = resolve('underground_profiles', 'CONTROL_RESERVE')
     require(control == 32768, 'Profile helper/native envelope unchanged')
     level = resolve('underground_level_catalog', 'RESERVED_BYTES')

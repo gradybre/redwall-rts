@@ -1,0 +1,21 @@
+test_coordinated_producer_and_manifest_change_refuses_before_import (__main__.RetirementWitnessTests) ... ok
+test_manifest_change_refuses_before_import (__main__.RetirementWitnessTests) ... ok
+test_original_owner_snapshot_change_refuses_before_import (__main__.RetirementWitnessTests) ... ok
+test_transitive_producer_change_refuses_before_import (__main__.RetirementWitnessTests) ... ok
+test_ui_reset_reuses_current_host_reservation_without_an_additional_bank (__main__.JointPackTests) ... ok
+test_ui_current_text_mutation_is_not_replaced_with_disk_source (__main__.JointPackTests) ... ERROR
+
+======================================================================
+ERROR: test_ui_current_text_mutation_is_not_replaced_with_disk_source (__main__.JointPackTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-integration/tools/test_underground_memory_budget.py", line 119, in test_ui_current_text_mutation_is_not_replaced_with_disk_source
+    index = dict(self.index, **{name: dataclasses.replace(original,
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/dataclasses.py", line 1255, in replace
+    raise TypeError("replace() should be called on dataclass instances")
+TypeError: replace() should be called on dataclass instances
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.652s
+
+FAILED (errors=1)

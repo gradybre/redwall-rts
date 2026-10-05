@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated": "2026-10-04",
+  "updated": "2026-10-05T01:02:44.662868+00:00",
   "integration_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-integration",
   "integration_branch": "codex/underground-modular-integration",
   "base_commit": "82d60ba86dcecf6e7c6184eeaf77a389e8b2b5c2",
@@ -1124,13 +1124,14 @@
           {
             "agent": "/root/ug_furnishing",
             "branch": "codex/underground-world-retirement",
-            "state": "held",
+            "state": "released",
             "files": [
               "godot/scripts/core/buildings.gd",
               "godot/scripts/core/construction.gd",
               "godot/scripts/core/work.gd"
             ],
-            "handoff": "Construction explicitly confirmed no pending Buildings/Work edits2026-10-04; root stopped/released Construction. Narrow1155 concrete owner-owned whole-World retirement leaves only; ordinary clear retains once-bound protection. Existing tests read-only; new actual-kernel tests owned inUG24."
+            "handoff": "Construction explicitly confirmed no pending Buildings/Work edits2026-10-04; root stopped/released Construction. Narrow1155 concrete owner-owned whole-World retirement leaves only; ordinary clear retains once-bound protection. Existing tests read-only; new actual-kernel tests owned inUG24.",
+            "worker_stop_ack": "Author58343767 and review-onlye862965b committed; author explicitly stopped all source writes2026-10-04. Root81950fe5 source and5e741c3e review integrated. No push by worker."
           },
           {
             "agent": "/root",
@@ -1255,7 +1256,9 @@
         "docs/validation/evidence/underground-work-approach-2026-10-04/",
         "godot/data/underground/mole-worker/mole_profile_driver.gd",
         "godot/data/underground/mole-worker/work-approach-v1/",
-        "docs/decisions/1156-source-qualified-work-approach.md"
+        "docs/decisions/1156-source-qualified-work-approach.md",
+        "tools/underground_approach_memory.py",
+        "docs/validation/evidence/underground-approach-memory-2026-10-04/"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1870,6 +1873,36 @@
           "runtime_qualified": false,
           "proposal": "Two explicit fixed-heading forward/backward WALK-ready policies, eight cardinal rows, unchanged source keys/Actor image and record widths. Source q reversal must prove feet/root/fades/seam natively. Reuse existing Catalog ground WALK rate and fixed30Hz remainder; no new speed or backward penalty. Positive arrival/WORK/recovery/retreat remains required.",
           "canonical_clock_contract": "Root approved explicit versioned zero-width source-policy union in existing R_PHASE/R_REQUEST_TICK. Policy0 retains old semantics; public Actor.phase remains decoded. Integer30Hz Routes owns source progress/readiness; Driver samples only. Tagged Q16 bounds, preserved held/resume state, source/schema pins and headless replay tests required; Contacts/Delivery/1152 use public source-work leaf. New implementation/evidence still open."
+        },
+        "work_approach_1156_accepted": {
+          "source_commit": "fe79f9bc4fab8e837f8ce9e2ee8cc5a102773bba",
+          "integrated_commit": "97469852",
+          "review": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/approach-independent-review-1/review.json",
+          "tests": 155,
+          "assertions": 16185,
+          "failures": 0,
+          "unexpected_diagnostics": 0,
+          "leaks": 0,
+          "analyzer": "0/10",
+          "native_poses": 1504,
+          "native_scalar_comparisons": 469248,
+          "scope": "Reviewed source clock and source geometry; current publication/shared census integration and256 gameplay remain open."
+        },
+        "current_source_profile_publication": {
+          "state": "26-profile/250-box source publication generated after independent review; focused integration underway",
+          "wire_sha256": "a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204",
+          "manifest_sha256": "8f210e11768131779e6c825d7a3d2509cb32076aedd6891e6573489d1b6814c1",
+          "review": "docs/validation/evidence/underground-work-approach-2026-10-04/root-publication-review-1/README.md",
+          "world_activation_qualified": false
+        },
+        "approach_memory_1162": {
+          "author_commit": "9690c430aaa5ba0b166ec1df3ef7dc3c0a8f7212",
+          "integration_commit": "98cab6c9",
+          "independent_review": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/approach-memory-independent-review-1.json",
+          "tests": 22,
+          "optimized_mode_negative_checks": 2,
+          "additional_reserved_bytes": 0,
+          "limits": "Logical current-source census only; native and playable qualification remain open."
         }
       },
       "lease": {
@@ -1931,7 +1964,7 @@
           },
           {
             "agent": "/root/ug_geometry",
-            "state": "held",
+            "state": "released",
             "branch": "codex/underground-work-approach",
             "files": [
               "godot/scripts/core/underground_profiles.gd",
@@ -1943,7 +1976,29 @@
             ],
             "handoff": "Root explicitly stopped producer writes; Furnishing explicitly confirmed no pending Profiles/Driver/Routes/WorldRoutes/test edits and released2026-10-04. Narrow1156 distinct fixed-heading forward/backward WALK-ready policies from unchanged source keys; directed root travel remains distinct from body yaw. Keep default all-yaw selection, strict unknown-policy/ambiguity rejection, full body/tool/support/pose joins and native reversed-gait proof. Root retains publisher/Catalog consumer renewal, registry/memory; Construction retains WorkFace. 4704 paired bytes proposed within existing PROFILE_BYTES, subject to joint source-derived census.",
             "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach",
-            "base": "fresh origin/master82d60ba8, then fast-forward84acf740"
+            "base": "fresh origin/master82d60ba8, then fast-forward84acf740",
+            "worker_stop_ack": "Author explicitly stopped all reviewed source writes after fe79f9bc; root independently reviewed and integrated 97469852 on2026-10-04. Remaining child work has separate explicit ownership."
+          },
+          {
+            "agent": "/root/ug_geometry",
+            "branch": "codex/underground-approach-memory",
+            "state": "released",
+            "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-approach-memory",
+            "files": [
+              "tools/underground_approach_memory.py",
+              "docs/validation/evidence/underground-approach-memory-2026-10-04/"
+            ],
+            "handoff": "Portable strict current-source wrapper for unchanged reviewed1156 census. Pinned predecessor witnesses replace git-history dependency; supplied mutation index wins. No edits to main checker/registry/runtime, no larger reserve. Freeze for root review.",
+            "worker_stopped": "Geometry confirmed clean worktree and source writes stopped after9690c430; independent review evidence b9f90b39 accepted2026-10-04."
+          },
+          {
+            "agent": "/root/ug_geometry",
+            "branch": "codex/underground-approach-memory",
+            "state": "held",
+            "files": [
+              "docs/validation/evidence/underground-approach-memory-2026-10-04/frontier-physical-review/"
+            ],
+            "handoff": "Read-only exact-source physical frontier analysis; no runtime writes. Current source profiles do not fit the single next cube; identify a reachable paid expansion without granting uncut air."
           }
         ],
         "scope_narrowing": {
@@ -2078,7 +2133,13 @@
         "godot/test/test_underground_room_phase_refresh.gd",
         "godot/test/test_underground_room_phase_refresh.gd.uid",
         "docs/decisions/1153-ordinary-room-phase-refresh.md",
-        "docs/validation/evidence/underground-room-phase-refresh-2026-10-04/"
+        "docs/validation/evidence/underground-room-phase-refresh-2026-10-04/",
+        "godot/scripts/core/underground_room_frontier_publication.gd",
+        "godot/scripts/core/underground_room_frontier_publication.gd.uid",
+        "godot/test/test_underground_room_frontier_publication.gd",
+        "godot/test/test_underground_room_frontier_publication.gd.uid",
+        "docs/decisions/1161-ordinary-room-frontier-publication.md",
+        "docs/validation/evidence/underground-room-frontier-publication-2026-10-04/"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -2844,23 +2905,28 @@
           "runtime_qualified": false
         },
         "ordinary_room_publication": {
-          "status": "component accepted and integrated; actual approach composition remains open",
+          "status": "1152 independently reviewed and integrated; actual first-cube paid source checkpoint under diagnostic v3, whole-room/runtime publication open",
           "branch": "codex/underground-room-publication",
           "ownership": "SpaceOwner/Locations/FinalFacts and dedicated tests only; root Orders/Sites and Furnishing Bindings/Approach remain separate",
           "decision_number": 1151,
-          "source_commit": "546248509f4669dea8131827107962e6cb952246",
+          "source_commit": "2ac43b6c55db8c7ad9b2c1c4671e07e7e5122af1",
           "integration_commit": "65251114",
-          "tests": {
-            "tests": 41,
-            "assertions": 1354,
-            "failures": 0,
-            "unexpected_diagnostics": 0,
-            "leaks": 0,
-            "analyzer_warnings": 0,
-            "analyzer_files": 5
-          },
+          "tests": 43,
           "evidence": "docs/validation/evidence/underground-room-publication-2026-10-04/",
-          "reviewer": "/root"
+          "reviewer": "/root",
+          "integrated_commit": "8a046d70",
+          "review": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/room-provider-review-4.json",
+          "assertions": 496,
+          "failures": 0,
+          "unexpected_diagnostics": 0,
+          "leaks": 0,
+          "analyzer": "0/4",
+          "first_cube": {
+            "mwu": 9000,
+            "wood_milli": 250,
+            "stone_milli": 250,
+            "earth_milli": 2000
+          }
         },
         "ordinary_room_phase_refresh_1153": {
           "status": "independently accepted and integrated component",
@@ -2998,7 +3064,7 @@
           {
             "agent": "/root/ug_geometry",
             "branch": "codex/underground-support-clearance",
-            "state": "held",
+            "state": "released",
             "files": [
               "godot/scripts/core/underground_locations.gd",
               "godot/test/test_underground_locations.gd",
@@ -3007,7 +3073,8 @@
               "godot/test/test_underground_surface_anchor.gd",
               "godot/test/test_underground_surface_anchor.gd.uid"
             ],
-            "handoff": "Construction and root explicit stops recorded above.1133 separates authored foot support from independently proved body/tool air; preserve full actual source/paid datum, obstacle and section proofs,1130 brackets and existing limits. Existing EntryBindings lease remains held. No retained schema/bank or raised-WIP/stair bypass."
+            "handoff": "Construction and root explicit stops recorded above.1133 separates authored foot support from independently proved body/tool air; preserve full actual source/paid datum, obstacle and section proofs,1130 brackets and existing limits. Existing EntryBindings lease remains held. No retained schema/bank or raised-WIP/stair bypass.",
+            "worker_stop_ack": "Geometry explicitly confirmed no pending Locations edits/commands and released2026-10-04; new1161 ownership is Construction."
           },
           {
             "agent": "/root",
@@ -3031,7 +3098,7 @@
           {
             "agent": "/root/ug_construction",
             "branch": "codex/underground-room-phases",
-            "state": "held",
+            "state": "released",
             "files": [
               "godot/scripts/core/underground_work_face.gd",
               "godot/test/test_underground_work_face.gd",
@@ -3042,7 +3109,8 @@
               "docs/decisions/1152-ordinary-room-phase-composition.md",
               "docs/validation/evidence/underground-room-phases-2026-10-04/"
             ],
-            "handoff": "Root stopped WorkFace writes. New actual ordinary Room phase provider uses real completed approach/worker/material/output and paid Site stages, with Geometry1153 companion. No synthetic positive permission, fake Placement or new material costs. Exact API/census recorded before implementation; runtime profile fingerprints renewed by root after review."
+            "handoff": "Root stopped WorkFace writes. New actual ordinary Room phase provider uses real completed approach/worker/material/output and paid Site stages, with Geometry1153 companion. No synthetic positive permission, fake Placement or new material costs. Exact API/census recorded before implementation; runtime profile fingerprints renewed by root after review.",
+            "worker_stop_ack": "Author explicitly stopped all reviewed source writes after 2ac43b6c; root independently reviewed and integrated 8a046d70 on2026-10-04. Remaining child work has separate explicit ownership."
           },
           {
             "agent": "/root/ug_geometry",
@@ -3064,7 +3132,7 @@
           },
           {
             "agent": "/root/ug_geometry",
-            "state": "held",
+            "state": "released",
             "branch": "codex/underground-work-approach",
             "files": [
               "godot/scripts/core/underground_routes.gd",
@@ -3074,16 +3142,38 @@
             ],
             "handoff": "Root explicitly stopped producer writes; Furnishing explicitly confirmed no pending Profiles/Driver/Routes/WorldRoutes/test edits and released2026-10-04. Narrow1156 distinct fixed-heading forward/backward WALK-ready policies from unchanged source keys; directed root travel remains distinct from body yaw. Keep default all-yaw selection, strict unknown-policy/ambiguity rejection, full body/tool/support/pose joins and native reversed-gait proof. Root retains publisher/Catalog consumer renewal, registry/memory; Construction retains WorkFace. 4704 paired bytes proposed within existing PROFILE_BYTES, subject to joint source-derived census. Root additionally approved explicitly versioned tagged reuse of R_PHASE/R_REQUEST_TICK for source-clocked policies only; policy0/request-tick semantics and decoded Actor.phase retained. Canonical30Hz state owns readiness, with headless/replay and malformed-tag validation; rendering cannot authorize work. Root coordinates other consumers and schema/census.",
             "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach",
-            "base": "fresh origin/master82d60ba8, then fast-forward84acf740"
+            "base": "fresh origin/master82d60ba8, then fast-forward84acf740",
+            "worker_stop_ack": "Author explicitly stopped all reviewed source writes after fe79f9bc; root independently reviewed and integrated 97469852 on2026-10-04. Remaining child work has separate explicit ownership."
           },
           {
             "agent": "/root/ug_furnishing",
             "branch": "codex/underground-world-retirement",
-            "state": "held",
+            "state": "released",
             "files": [
               "godot/scripts/core/inventory.gd"
             ],
-            "handoff": "Geometry explicitly reconfirmed no pending Inventory/Reservations writes and released narrow1155 Inventory retirement/rebind2026-10-04. Original Directory/full-World/Locations composition and all-empty checks mandatory; owner-owned release only and identical preallocated endpoint arena reuse. No resize or weakening live once-bound semantics."
+            "handoff": "Geometry explicitly reconfirmed no pending Inventory/Reservations writes and released narrow1155 Inventory retirement/rebind2026-10-04. Original Directory/full-World/Locations composition and all-empty checks mandatory; owner-owned release only and identical preallocated endpoint arena reuse. No resize or weakening live once-bound semantics.",
+            "worker_stop_ack": "Author58343767 and review-onlye862965b committed; author explicitly stopped all source writes2026-10-04. Root81950fe5 source and5e741c3e review integrated. No push by worker."
+          },
+          {
+            "agent": "/root/ug_construction",
+            "branch": "codex/underground-room-frontier-publication",
+            "state": "held",
+            "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-room-frontier-publication",
+            "files": [
+              "godot/scripts/core/underground_locations.gd",
+              "godot/scripts/core/underground_world_routes.gd",
+              "godot/scripts/core/underground_routes.gd",
+              "godot/scripts/core/underground_work_face.gd",
+              "godot/scripts/core/underground_final_facts.gd",
+              "godot/scripts/core/underground_room_frontier_publication.gd",
+              "godot/scripts/core/underground_room_frontier_publication.gd.uid",
+              "godot/test/test_underground_room_frontier_publication.gd",
+              "godot/test/test_underground_room_frontier_publication.gd.uid",
+              "docs/decisions/1161-ordinary-room-frontier-publication.md",
+              "docs/validation/evidence/underground-room-frontier-publication-2026-10-04/"
+            ],
+            "handoff": "Root explicitly stops all named sources. Fresh origin/master82d60ba8 then FF721038a4 plus author1157. Implement exact existing-live-geometry add-only publication; actual corridor/Kitchen boundary requires one real transit point plus one WORK point and four directed section-contained spans. No new support/air/section, global reservation, bank or hidden per-Site state. Original owner/lease/context and unchanged old actors/rows/masks; all observers before one static commit. Frozen source review before commit; Catalog/source repinning remains root-owned."
           }
         ]
       }
@@ -3197,7 +3287,18 @@
         "godot/scripts/core/underground_world_retirement.gd.uid",
         "godot/test/test_underground_world_retirement.gd",
         "godot/test/test_underground_world_retirement.gd.uid",
-        "docs/validation/evidence/underground-world-retirement-2026-10-04/"
+        "docs/validation/evidence/underground-world-retirement-2026-10-04/",
+        "godot/scripts/core/underground_room_frontier.gd",
+        "godot/scripts/core/underground_room_frontier.gd.uid",
+        "godot/test/test_underground_room_frontier.gd",
+        "godot/test/test_underground_room_frontier.gd.uid",
+        "docs/decisions/1157-ordinary-room-frontier-progression.md",
+        "docs/validation/evidence/underground-room-frontier-2026-10-04/",
+        "docs/decisions/1158-underground-host-retirement.md",
+        "docs/validation/evidence/underground-host-retirement-2026-10-04/",
+        "godot/test/test_ui_world_session.gd",
+        "docs/decisions/1160-world-create-reset-outcome.md",
+        "docs/validation/evidence/underground-world-create-reset-2026-10-04/"
       ],
       "requirements": [
         "UG-BUILD-001",
@@ -3318,12 +3419,92 @@
           "integration_restoration": "All source,HEAD,project,registry,prerequisites,assets and import sidecars unchanged/restored."
         },
         "operational_retirement_packet_1155": {
-          "status": "implementation released after compact API/census proposal; source and independent acceptance open",
+          "status": "component_reviewed_integrated_host_composition_open",
           "owner": "/root/ug_furnishing",
           "decision": "docs/decisions/1155-operational-underground-world-retirement.md",
           "scope": "Explicit original-world, quiescent whole-store reset and owner-owned lifetime release after Directory retirement. Preserve one-way bindings while any World is live; no private weak resets, second banks, gameplay refunds or generation rewind.",
           "next": "Implement source-owned retirement leaves and independent actual-owner kernel in own codex/underground-world-retirement. Root retains Session/host integration; explicit Buildings/Work/Inventory/Construction release acknowledgements recorded.",
-          "api": "Caller-owned original full-World Scope; prepare_into, cleared_refusal, release_preflighted; owner-owned static leaves; callback/allocation-free release after entire original Directory/store tuple empties. Inventory identical endpoint arena reused without resizing; no general unbind."
+          "api": "Caller-owned original full-World Scope; prepare_into, cleared_refusal, release_preflighted; owner-owned static leaves; callback/allocation-free release after entire original Directory/store tuple empties. Inventory identical endpoint arena reused without resizing; no general unbind.",
+          "author_commit": "5834376761c19b9f88c71e5351412e1ac3d2077d",
+          "integration_commit": "81950fe5",
+          "independent_review": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/world-retirement-review-1.json",
+          "tests": 19,
+          "assertions": 1963,
+          "failures": 0,
+          "unexpected_errors": 0,
+          "unexpected_warnings": 0,
+          "leaked_objects": 0,
+          "leaked_resources": 0,
+          "analyzer_warnings": 0,
+          "selected_regression_tests": 430,
+          "selected_regression_assertions": 15829,
+          "runtime_qualified": false
+        },
+        "ordinary_frontier_packet_1157": {
+          "status": "implementation released; whole-room acceptance open",
+          "owner": "/root/ug_construction",
+          "branch": "codex/underground-room-phases",
+          "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-room-phases",
+          "scope": "Derived bounded ordinary Room/Site progression with actual paid history, current WorkFace, directed approach and retreat, existing Location/Route publication. Root retains Session/Settlement tick dispatch. No second authority ledger or increased ceiling.",
+          "priority": "Finish1152 real approach/paid/recovery positive when1156 API freezes; frontier advances independently while waiting.",
+          "decision": "docs/decisions/1157-ordinary-room-frontier-progression.md",
+          "limits": "No existing automatic next Site owner; blocked physical paths must return their actual refusal. One-cube success is not whole-room completion.",
+          "state": "component independently accepted and integrated; whole-room publication remains open",
+          "author_commit": "672f2349e0601fa062e046c1fa1d1825c3870070",
+          "independent_review": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/frontier-independent-review-1.json",
+          "tests": 9,
+          "assertions": 112,
+          "failures": 0,
+          "unexpected_errors": 0,
+          "unexpected_warnings": 0,
+          "leaked_objects": 0,
+          "leaked_resources": 0
+        },
+        "host_retirement_1158": {
+          "status": "independently reviewed and integrated; actual UI callers and operational Room construction remain open",
+          "agent": "/root/ug_furnishing",
+          "branch": "codex/underground-host-retirement",
+          "scope": "Actual host synchronous retirement, source-only foundation first; full operational composition remains required.",
+          "source_commit": "9d33513c0a029b9326eaa1570be0443210c2bda7",
+          "integrated_commit": "c37b3068",
+          "review": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/host-retirement-independent-review-1/review.json",
+          "tests": 250,
+          "assertions": 8529,
+          "failures": 0,
+          "expected": 5,
+          "unexpected_diagnostics": 0,
+          "leaks": 0,
+          "analyzer": "0/4"
+        },
+        "world_create_reset_1160": {
+          "author_commit": "380b47d3",
+          "integration_commit": "cba6f5bb",
+          "independent_review_commit": "b9f90b39be8986349ee512890fe834c69c906984",
+          "review_integration_commit": "2e4f74e2",
+          "evidence": "docs/validation/evidence/underground-world-create-reset-2026-10-04/",
+          "tests": 77,
+          "assertions": 548,
+          "failures": 0,
+          "expected_diagnostics": 1,
+          "unexpected_diagnostics": 0,
+          "leaks": 0,
+          "analyzer": "0/4",
+          "census_tests": 12,
+          "controls": "5995/6144",
+          "helpers": "1882/2048",
+          "limits": "Typed Create/reset protocol only; operational Room mounting and first playable Kitchen remain open."
+        },
+        "current_shared_memory_1162": {
+          "independent_author_commit": "5c91245665a7d25ea622ac84ddb7c11a17a1c321",
+          "integration_commit": "5f3868cb",
+          "evidence": "docs/validation/evidence/underground-world-create-reset-2026-10-04/root-budget-review/",
+          "tests": 235,
+          "tests_log": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/integrated-memory-tests-2.log",
+          "logical_live_plus_reserve_bytes": 99999806,
+          "unreserved_bytes": 194,
+          "joint_profile_session_retirement_bytes": 246868,
+          "fixed_finding": "Pin all transitive census producers, manifest and predecessor snapshots before import. Coordinated producer/manifest drift now refuses.",
+          "native_measured": false
         }
       },
       "lease": {
@@ -3365,7 +3546,7 @@
           {
             "agent": "/root/ug_furnishing",
             "branch": "codex/underground-world-retirement",
-            "state": "held",
+            "state": "released",
             "files": [
               "godot/scripts/core/underground_world_retirement.gd",
               "godot/scripts/core/underground_world_retirement.gd.uid",
@@ -3374,7 +3555,48 @@
               "docs/validation/evidence/underground-world-retirement-2026-10-04/",
               "docs/decisions/1155-operational-underground-world-retirement.md"
             ],
-            "handoff": "Root source/doc stop2026-10-04; separate own worktree from latest origin/master then accepted dc6baa12. Implement independent1155 kernel and exact census/tests; use owner-owned release leaves, not private weak-link resets. Root retains Session/host/shared registry/memory. No new bank/ceiling; review before commit."
+            "handoff": "Root source/doc stop2026-10-04; separate own worktree from latest origin/master then accepted dc6baa12. Implement independent1155 kernel and exact census/tests; use owner-owned release leaves, not private weak-link resets. Root retains Session/host/shared registry/memory. No new bank/ceiling; review before commit.",
+            "worker_stop_ack": "Author58343767 and review-onlye862965b committed; author explicitly stopped all source writes2026-10-04. Root81950fe5 source and5e741c3e review integrated. No push by worker."
+          },
+          {
+            "agent": "/root/ug_furnishing",
+            "branch": "codex/underground-host-retirement",
+            "state": "released",
+            "files": [
+              "godot/scripts/core/underground_session.gd",
+              "godot/test/test_underground_session.gd",
+              "godot/scripts/systems/settlement_system.gd",
+              "godot/test/test_underground_host.gd",
+              "docs/decisions/1158-underground-host-retirement.md",
+              "docs/validation/evidence/underground-host-retirement-2026-10-04/"
+            ],
+            "handoff": "Root stops all four existing sources. Fresh origin/master plus accepted81950fe5. Implement actual host prepare/stop/clear/release with original mounted15-owner proof, private Scope cycle teardown and repeated prepare; preserve unowned-authority refusal. Agree internal owned packet API before code. Operational activation, UI/demo/main and shared registry/memory remain root-owned. No synthetic production mount or larger ceiling.",
+            "worker_stop_ack": "Author explicitly stopped all reviewed source writes after 9d33513c; root independently reviewed and integrated c37b3068 on2026-10-04. Remaining child work has separate explicit ownership."
+          },
+          {
+            "agent": "/root/ug_furnishing",
+            "branch": "codex/underground-world-create-reset",
+            "state": "released",
+            "files": [
+              "godot/scripts/systems/ui_manager.gd",
+              "godot/scripts/ui/ui_world_session.gd",
+              "godot/test/test_ui_manager.gd",
+              "godot/test/test_ui_world_session.gd",
+              "docs/decisions/1160-world-create-reset-outcome.md",
+              "docs/validation/evidence/underground-world-create-reset-2026-10-04/"
+            ],
+            "handoff": "Root explicitly stops all four UI/test files2026-10-04. Fresh latestorigin/master thenFF721038a4. Approved1160 typedResetOutcome CLEARED/RETAINED/STOPPED, original-live abandonment before new preflight, exact staged request preserved after partial clear. Session/Host remain read-only/root-owned. No boolean fallback, authority adoption, warning allowance or global reserve increase; freeze/review before commit.",
+            "worker_stopped": "Furnishing committed380b47d3 and explicitly stopped all four UI source/test writes2026-10-04; shared budget review continues only in a separate evidence folder."
+          },
+          {
+            "agent": "/root/ug_furnishing",
+            "branch": "codex/underground-world-create-reset",
+            "state": "released",
+            "files": [
+              "docs/validation/evidence/underground-world-create-reset-2026-10-04/root-budget-review/"
+            ],
+            "handoff": "Independent read-only shared budget/registry review. Root owns all tools, registry, architecture and generated metadata writes.",
+            "worker_stopped": "Furnishing committed independent evidence5c912456, confirmed clean worktree and all writes stopped2026-10-04."
           }
         ]
       }
@@ -4585,7 +4807,7 @@
     },
     {
       "commit": "d3e3dc7b89004f0ae934c5f34ecd39783fbbc5ab",
-      "outcome": "remote CI in progress after accepted1154 integration",
+      "outcome": "all 14 CI jobs passed; eight downloaded shard reports independently reverified",
       "url": "https://github.com/gradybre/redwall-rts/actions/runs/37231051168",
       "integration_component": "dc6baa12",
       "focused_tests": 60,
@@ -4595,7 +4817,20 @@
       "focused_leaks": 0,
       "focused_analyzer": "0/6",
       "evidence": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/room-access-integrated-1/",
-      "limits": "Do not treat preceding84acf740 complete run as validation of later1154 source."
+      "limits": "Do not treat preceding84acf740 complete run as validation of later1154 source.",
+      "wall_seconds": 800,
+      "tests": 11068,
+      "assertions": 1022016,
+      "failures": 0,
+      "expected_diagnostics": 272,
+      "tolerated_diagnostics": 353,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "analyzer": "0 GDScript warning(s) in 0 of 1234 file(s)",
+      "ci_evidence": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/ci-d3e3dc7b",
+      "suite_files": 399
     }
   ],
   "crosscut_fixes": [

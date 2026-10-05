@@ -12,6 +12,9 @@ import audit_registry_capacities as audit
 import underground_motion_memory as motion_memory
 import underground_session_memory as session_memory
 import underground_motion_clock_memory as clock_memory
+import underground_retirement_memory as retirement_memory
+import underground_approach_memory as approach_memory
+import underground_ui_reset_memory as ui_reset_memory
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "docs/planning/underground_memory_pack.json"
@@ -896,13 +899,38 @@ def structure_peak_statements(source: str) -> None:
     assert statements == expected, "inherited structure peak statement drift"
 
 
+def room_world_reservation(index: dict) -> dict:
+    """Admit only the complete independently reviewed provider census and its unchanged source closure."""
+    path = ROOT / "docs/validation/evidence/underground-room-phases-2026-10-04/census.json"
+    raw = path.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == "74ece6f13efd76842751f8153faf912eba0b26c78c40497a5abaaa3a5478bea9", \
+        "reviewed ordinary Room provider census changed"
+    result = json.loads(raw)
+    for name, expected in result["source_sha256"].items():
+        assert name in index and hashlib.sha256(index[name].text.encode()).hexdigest() == expected, \
+            ("ordinary Room provider source changed; independent census required", name)
+    assert result["new_global_reservation"] == 1024 and result["control_accounted"] == 986
+    assert result["prospective_shared_total"] == 99999806
+    return {"reserved_bytes": 1024, "logical_helper_and_included_native_bytes": 986,
+            "census_path": str(path.relative_to(ROOT)), "census_sha256": hashlib.sha256(raw).hexdigest(),
+            "current_source_sha256": result["source_sha256"], "native_measured": False,
+            "maximum_shared_phase_bytes": max(result["sequential_cold_peaks"].values())}
+
+
 def build(index: dict | None = None) -> dict:
     index = audit.load_source_index() if index is None else index
     index = dict(index)
-    catalog_path = "godot/data/underground/mole-worker/mole_profile_catalog.gd"
-    if "mole_profile_catalog" not in index:
-        index["mole_profile_catalog"] = audit.parse_module("mole_profile_catalog", catalog_path,
-                                                          (ROOT / catalog_path).read_text())
+    extra_sources = {
+        "mole_profile_catalog": "godot/data/underground/mole-worker/mole_profile_catalog.gd",
+        "mole_profile_driver": "godot/data/underground/mole-worker/mole_profile_driver.gd",
+        "source_program": "godot/data/underground/mole-worker/work-approach-v1/source_program.gd",
+        "settlement_system": "godot/scripts/systems/settlement_system.gd",
+        "ui_manager": "godot/scripts/systems/ui_manager.gd",
+        "ui_world_session": "godot/scripts/ui/ui_world_session.gd",
+    }
+    for name, path in extra_sources.items():
+        if name not in index:
+            index[name] = audit.parse_module(name, path, (ROOT / path).read_text())
     budget = index["underground_budget"]
     keys = ("REGION_CAPACITY", "SOURCE_CAPACITY", "PROOF_CAPACITY", "PHASE_VOLUME_CAPACITY",
             "TIP_CAPACITY", "LAYOUT_ROOM_CAPACITY", "LAYOUT_PLACEMENT_CAPACITY",
@@ -943,6 +971,7 @@ def build(index: dict | None = None) -> dict:
     start = excavation_start_controls(index)
     entry_structure = entry_structure_reservation(index)
     entry_world = entry_world_reservation(index)
+    room_world = room_world_reservation(index)
     workpieces = connector_workpieces_reservation(index)
     haul_transfer = haul_transfer_reservation(index)
     delivery = connector_delivery_reservation(index)
@@ -951,8 +980,11 @@ def build(index: dict | None = None) -> dict:
     reserves = {key: resolve(index, budget.name, key) for key in reserve_names}
     try:
         motion = motion_memory.build(index)
+        approach = approach_memory.build(index, motion["joint"])
         clock = clock_memory.build(index, motion)
         session = session_memory.build(index, motion, reserves["PROFILE_BYTES"])
+        retirement = retirement_memory.build(index, session, reserves["PROFILE_BYTES"])
+        ui_reset = ui_reset_memory.build(index, retirement, reserves["PROFILE_BYTES"])
     except ValueError as error:
         raise AssertionError(str(error)) from error
     assert motion["joint"]["total"] <= reserves["PROFILE_BYTES"], "Motion/Profile/Level joint overbooking"
@@ -963,6 +995,7 @@ def build(index: dict | None = None) -> dict:
         "excavation_start_controls": start["numeric_bytes"],
         "entry_structure_bindings": entry_structure["reserved_bytes"],
         "entry_world_bindings": entry_world["reserved_bytes"],
+        "room_world_bindings": room_world["reserved_bytes"],
         "connector_workpieces": workpieces["reserved_bytes"],
         "guarded_haul_transfers": haul_transfer["reserved_bytes"],
         "connector_delivery": delivery["reserved_bytes"],
@@ -996,19 +1029,25 @@ def build(index: dict | None = None) -> dict:
                     "underground_connector_delivery", "work", "haul_planner",
                     "underground_motion_catalog", "underground_level_catalog", "mole_profile_catalog",
                     "underground_session", "underground_terrain", "underground_routes", "room_space", "underground_motion_clock",
-                    "underground_entry_structure", "underground_phase_structure", "underground_entry_world_bindings"))
+                    "underground_entry_structure", "underground_phase_structure", "underground_entry_world_bindings",
+                    "underground_room_world_bindings", "underground_work_face", "underground_world_retirement",
+                    "source_program", "mole_profile_driver", "settlement_system"))
     return {"schema": 1, "scope": "source-derived logical allocation pack; runtime qualification remains open",
             "runtime_qualified": False, "pack": pack, "columns": groups, "quote": quote,
             "furniture_bridge_cold": bridge, "connector_recipe_reservation": recipes,
             "excavation_start_controls": start,
             "entry_structure_reservation": entry_structure,
             "entry_world_reservation": entry_world,
+            "room_world_reservation": room_world,
             "connector_workpieces_reservation": workpieces,
             "haul_transfer_reservation": haul_transfer,
             "connector_delivery_reservation": delivery,
             "profile_motion_reservation": motion,
+            "source_approach_reservation": approach,
             "motion_clock_reservation": clock,
             "session_reservation": session,
+            "host_retirement_reservation": retirement,
+            "ui_reset_reservation": ui_reset,
             "contributions": contributions, "new_mutable_and_reserved_bytes": added,
             "declaration_bytes": declaration, "declaration_delta_bytes": declaration - 21185,
             "live_with_reserve_bytes": total, "headroom_bytes": 100000000 - total,

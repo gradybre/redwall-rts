@@ -1,6 +1,6 @@
 extends "res://test/framework/test_case.gd"
 ## Actual ordinary phase composition. Existing corridor bootstrap is explicit historical fixture state.
-## Published Mole motion rows are loaded unchanged; current consumer renewal remains a separate gate.
+## Legacy automatic-heading negatives stay pinned to v2; paid SourceFixture uses the reviewed current v3 publication.
 
 const Provider := preload("res://scripts/core/underground_room_world_bindings.gd")
 const WorldFixture := preload("res://test/test_underground_world_routes.gd")
@@ -9,6 +9,8 @@ const FirstPrefix := preload("res://test/test_underground_first_prefix.gd")
 const Registration := preload("res://test/test_underground_furniture_work.gd")
 const Published := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
 const Pins := preload("res://data/underground/mole-worker/profile-publication-v2/catalog_source.gd")
+const CurrentPins := preload("res://data/underground/mole-worker/profile-publication-v3/catalog_source.gd")
+const LEGACY_WIRE: String = "res://data/underground/mole-worker/profile-publication-v2/mole-worker.ugprof"
 const Locations := preload("res://scripts/core/underground_locations.gd")
 const Placements := preload("res://scripts/core/underground_connector_placements.gd")
 const Authority := preload("res://scripts/core/underground_space_authority.gd")
@@ -27,8 +29,6 @@ const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const Buildings := preload("res://scripts/core/buildings.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
-const DIAGNOSTIC_WIRE: String = "res://../docs/validation/evidence/underground-room-phases-2026-10-04/approach-profile-diagnostic-1/mole-worker.ugprof"
-const DIAGNOSTIC_SHA: String = "a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204"
 const FLOOR: int = -4608
 const X: int = WorldFixture.X
 const Z: int = WorldFixture.Z
@@ -112,10 +112,10 @@ class Fixture extends WorldFixture:
 		assert_true(_gear.bind_equipment(_inventory, _residents.directory(), _residents).ok, "actual Gear")
 		_work = Work.new(_jobs); assert_true(_work.bind_gear(_gear).ok, "actual Work")
 		_profiles = Profiles.new()
-		assert_equal(_profiles.configure(18, 194, 1, Published.PAIRED_BANK_BYTES + Published.CONTROL_RESERVE), &"", "exact published bank")
+		assert_equal(_profiles.configure(18, 194, 1, 14520 + Profiles.CONTROL_RESERVE), &"", "exact published bank")
 		assert_equal(_profiles.bind_actual(_residents, _transforms, _inventory, _gear, _carry, _work, _pool, _piles), &"", "actual profile owners")
-		assert_equal(FileAccess.get_sha256(Published.WIRE_PATH), Pins.WIRE_SHA, "immutable published bytes")
-		assert_equal(_profiles.load_file(Published.WIRE_PATH, Pins.WIRE_SHA, 1), &"", "unchanged physical source geometry")
+		assert_equal(FileAccess.get_sha256(LEGACY_WIRE), Pins.WIRE_SHA, "immutable published bytes")
+		assert_equal(_profiles.load_file(LEGACY_WIRE, Pins.WIRE_SHA, 1), &"", "unchanged physical source geometry")
 
 	func _actual_space(_obstruction: int) -> void:
 		"""Use exact concrete final-reader owners and an actual ordinary phase authority from the beginning."""
@@ -284,7 +284,7 @@ class Fixture extends WorldFixture:
 		super.after_each()
 
 class SourceFixture extends Fixture:
-	## Actual unchanged v3 source geometry; diagnostic certificate15 is not native/publication acceptance.
+	## Actual reviewed v3 source geometry; world construction and economic checks remain mandatory.
 	var tool: Vector2i = NULL_REF
 	var material: Vector2i = NULL_REF
 	var stock_wood: Vector2i = NULL_REF
@@ -328,10 +328,11 @@ class SourceFixture extends Fixture:
 		assert_true(_gear.bind_equipment(_inventory, _residents.directory(), _residents).ok, "actual Gear")
 		_work = Work.new(_jobs); assert_true(_work.bind_gear(_gear).ok, "actual Work")
 		_profiles = Profiles.new()
-		assert_equal(_profiles.configure(26, 250, 1, 19224 + Profiles.CONTROL_RESERVE), &"", "exact diagnostic two-bank size")
+		assert_equal(_profiles.configure(Published.PROFILE_COUNT, Published.BOX_COUNT, 1, Published.PAIRED_BANK_BYTES + Profiles.CONTROL_RESERVE), &"", "exact current two-bank size")
 		assert_equal(_profiles.bind_actual(_residents, _transforms, _inventory, _gear, _carry, _work, _pool, _piles), &"", "actual source owners")
-		assert_equal(FileAccess.get_sha256(DIAGNOSTIC_WIRE), DIAGNOSTIC_SHA, "immutable create-only diagnostic wire")
-		assert_equal(_profiles.load_file(DIAGNOSTIC_WIRE, DIAGNOSTIC_SHA, 2), &"", "actual source geometry; publication gate remains open")
+		assert_equal(FileAccess.get_sha256(Published.WIRE_PATH), CurrentPins.WIRE_SHA, "immutable reviewed current publication")
+		assert_equal(_profiles.load_file(Published.WIRE_PATH, CurrentPins.WIRE_SHA, Published.CONTENT_REVISION), &"", "reviewed actual source geometry")
+		assert_equal(Published.catalog_refusal(_profiles), &"", "complete current source rows and boxes")
 
 	func _load_catalog(revision: int) -> StringName:
 		"""Two exact ground selectors inherit actual Movement's existing Mole speed; no new pace is authored."""
@@ -621,7 +622,7 @@ func test_actual_profile_publication_or_replacement_invalidates_the_qualificatio
 	"""Source reload and equal-number foreign owner replacement cannot reuse the old cached phase epoch."""
 	_h = Fixture.new(); _h._actual_fixture()
 	var before: int = _h.provider.qualification_revision()
-	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(Published.WIRE_PATH)
+	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(LEGACY_WIRE)
 	bytes.encode_s64(12, 2)
 	assert_equal(_h._profiles.load_file(WorldFixture.PROFILE_TEMP, _h._write(WorldFixture.PROFILE_TEMP, bytes), 2), &"", "real monotone source reload")
 	assert_true(_h.provider.qualification_revision() > before, "profile alone changes qualification")

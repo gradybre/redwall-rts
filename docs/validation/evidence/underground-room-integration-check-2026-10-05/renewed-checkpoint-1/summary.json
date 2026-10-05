@@ -1,0 +1,39 @@
+{
+  "head": "9dad696ddb6485e9a8c4b8efd8c8dcee52c9c4c0",
+  "suite_count": 10,
+  "totals": {
+    "tests": 169,
+    "assertions": 18457,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 0,
+    "tolerated": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "raw_findings": {
+    "test_underground_room_composition.gd": [],
+    "test_underground_session.gd": [],
+    "test_underground_host.gd": [],
+    "test_underground_world_retirement.gd": [],
+    "test_room_catalog.gd": [],
+    "test_underground_connector_catalog.gd": [],
+    "test_mole_qualified_profiles.gd": [],
+    "test_underground_support_clearance.gd": [],
+    "test_underground_room_world_phases.gd": [],
+    "test_underground_motion_catalog.gd": []
+  },
+  "analyzer_files": 29,
+  "analyzer_warnings": 0,
+  "restoration": {
+    "source_unchanged_before_restoration": true,
+    "project_restored": true,
+    "registry_unchanged": true,
+    "assets_restored": true,
+    "sidecars_restored": true,
+    "source_restored": true,
+    "head_unchanged": true
+  },
+  "scope": "Focused actual integration only; full suite is a separate same-head run."
+}

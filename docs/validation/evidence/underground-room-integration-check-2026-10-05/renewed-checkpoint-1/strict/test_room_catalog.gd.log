@@ -1,0 +1,37 @@
+state_registry_coverage: PASS -- 153 modules, 730 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_room_catalog.gd
+  PASS  test_all_eight_protected_purposes_keep_ids_and_independent_labels
+  PASS  test_room_presets_are_aliases_and_ambiguous_building_or_style_names_refuse
+  PASS  test_complete_compatibility_matrix_specializes_equipment_and_keeps_shared_fittings
+  PASS  test_permanent_type_rule_is_independent_of_furniture_and_service_state
+  PASS  test_all_nine_furniture_facts_match_exact_gdd_footprints_work_and_materials
+  PASS  test_quarter_turns_preserve_physical_size_and_exact_recipe
+  PASS  test_unknown_equipment_and_bad_rotations_have_no_valid_looking_facts
+  PASS  test_returned_facts_and_requirements_do_not_mutate_source_tables
+  PASS  test_shared_shelves_and_hearths_do_not_gain_unrelated_service_capacity
+  PASS  test_every_room_keeps_required_live_owner_gates
+  PASS  test_sleeping_room_count_rules_and_exact_area_thresholds
+  PASS  test_kitchen_dining_and_common_count_rules_remain_distinct
+  PASS  test_infirmary_pantry_and_corridor_count_rules_do_not_attest_heat_or_routes
+  PASS  test_bad_count_input_and_overflow_values_refuse_without_mutation
+CI_SUITE_TIME {"assertions":606,"failures":0,"suite":"test_room_catalog.gd","tests":14,"usec":6121}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+14 test(s), 606 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 14 tests, 606 assertions, 0 failures.

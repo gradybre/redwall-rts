@@ -1,0 +1,41 @@
+{
+  "head": "9dad696ddb6485e9a8c4b8efd8c8dcee52c9c4c0",
+  "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-renewal",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 12.06,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh"
+      ],
+      "exit_code": 1,
+      "seconds": 1911.074,
+      "log": "full-suite.log"
+    }
+  ],
+  "source_unchanged": true,
+  "procedure_source_sha256": "c09d40ec7e464c331cc28cd80297fa33a6d0f3ddb8f3baba6cacccf295a9c1d8",
+  "custom_user_dir": "Redwall-ug-room-integration-full-20261005",
+  "analyzer_port": 6465,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "isolated_project_sha256": "eb181d88b9cea42e11f52acdea41c294794423f675858954beb19f6dfbcc45b4",
+  "assets_present_before": false,
+  "error": "full-suite.log",
+  "source_unchanged_before_cleanup": true,
+  "sidecars_restored": true,
+  "assets_restored": true,
+  "project_restored": true,
+  "head_unchanged": true,
+  "exit_code": 1
+}

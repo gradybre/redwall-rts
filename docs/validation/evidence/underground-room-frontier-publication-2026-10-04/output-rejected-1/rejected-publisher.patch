@@ -1,0 +1,28 @@
+--- a/godot/scripts/core/underground_room_frontier_publication.gd
++++ b/godot/scripts/core/underground_room_frontier_publication.gd
+@@ -103,7 +103,7 @@
+ 	if code != &"": return code
+ 	var query: Query = Query.new()
+ 	_hold(query, actual, candidate, request, cold, max_checks)
+-	code = _run(query, out)
++	code = _run(query)
+ 	if code == &"": _output(query, out)
+ 	_cleanup(query)
+ 	return code
+@@ -232,7 +232,7 @@
+ 		and c.revision == q.candidate.geometry_revision and c.routes == q.actual
+ 
+ 
+-static func _run(q: Query, out: Result) -> StringName:
++static func _run(q: Query) -> StringName:
+ 	"""Sequential images leave ample original cold headroom; the only mutation of live state is the last pure tail."""
+ 	var code: StringName = q.locations.hold_frontier(q.context)
+ 	if code == &"": code = _existing(q)
+@@ -243,7 +243,6 @@
+ 	if code == &"": code = _observe_final(q)
+ 	if code == &"": code = _final_leaf(q)
+ 	if code != &"": return code
+-	if out.get_script() != Result or out.locations.size() != 6 or out.edges.size() != 12: return REFUSE_SCOPE
+ 	q.actual._publishing = true
+ 	var published: bool = WorldRoutes.commit_frontier_preflighted(q.actual, q.context)
+ 	q.actual._publishing = false

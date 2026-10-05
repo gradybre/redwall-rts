@@ -1,0 +1,25 @@
+state_registry_coverage: PASS -- 151 modules, 728 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_room_frontier_publication.gd
+  PASS  test_cross_section_long_spans_refuse_and_four_directed_spans_fit
+  PASS  test_unbound_publication_and_direct_tail_preserve_output
+CI_SUITE_TIME {"assertions":10,"failures":0,"suite":"test_underground_room_frontier_publication.gd","tests":2,"usec":58091}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+2 test(s), 10 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 2 tests, 10 assertions, 0 failures.

@@ -1,0 +1,20 @@
+{
+ "test/test_underground_room_frontier_publication.gd": [
+  {
+   "code": 0,
+   "message": "(CONFUSABLE_LOCAL_DECLARATION): The variable \"out\" is declared below in the parent block.",
+   "range": {
+    "end": {
+     "character": 9,
+     "line": 402
+    },
+    "start": {
+     "character": 6,
+     "line": 402
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

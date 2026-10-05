@@ -1,0 +1,9 @@
+{
+  "godot/scripts/core/underground_room_frontier_publication.gd": "8fb6fba60349cf71b8df6a7a34155dca2277dd0f67b00f22477f894d1fc6869b",
+  "godot/scripts/core/underground_locations.gd": "78c10afd1fb0d737ae7ccd63727c5c18b1cc599097e40b44e9992fd32a7a1d58",
+  "godot/scripts/core/underground_routes.gd": "e9da2df5b115f50af3f65a4ba40c2956db09226799c18e43fb2852e57be92921",
+  "godot/scripts/core/underground_world_routes.gd": "3341260ee11ec2008ee1ab32fa797d971d13edc7136ee6fb38e65a0b15ab338e",
+  "godot/scripts/core/underground_work_face.gd": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
+  "godot/scripts/core/underground_final_facts.gd": "5aeedd84cffb46f363733bbe2b85f87a6e67b771170a0c3e0525e66e1f2a6a46",
+  "godot/test/test_underground_room_frontier_publication.gd": "684b06bbdb1eea62779bed130a52ba973f27c89a0bf067c2a34d582ddf1b9394"
+}

@@ -1,0 +1,59 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_room_frontier_publication.gd
+  PASS  test_cross_section_long_spans_refuse_and_four_directed_spans_fit
+  PASS  test_unbound_publication_and_direct_tail_preserve_output
+  PASS  test_held_scope_blocks_generic_preparation_before_first_candidate
+  PASS  test_actual_prospective_rows_do_not_gain_generic_publication_permission
+  PASS  test_prospective_observation_preserves_output_for_foreign_context_stale_generation_and_lost_lease
+  PASS  test_discard_keeps_original_hold_until_coordinator_cleanup
+FRONTIER-FIRST-CUBE-REFUSAL LOCATION_COVERAGE_MISSING
+  PASS  test_actual_paid_first_cube_preserves_full_geometry_refusal_and_every_live_owner
+FRONTIER-LATERAL-PUBLICATION 
+  PASS  test_actual_paid_first_cube_adds_lateral_corridor_contact_without_movement_or_free_work
+  PASS  test_late_location_free_heap_changes_refuse_without_rewriting_candidate
+  PASS  test_actual_final_room_observer_cannot_publish_corrupt_indices_or_escape_original_scope
+  PASS  test_sparse_heap_replay_covers_existing_allocator_extremes_without_a_second_bank
+  PASS  test_late_same_size_lease_replacement_refuses_and_preserves_the_new_lease
+  PASS  test_actual_work_face_reentry_poison_preserves_all_live_state_and_retry
+SCRIPT ERROR: Out of bounds set index '1' (on base: 'PackedInt32Array')
+          at: _output (res://scripts/core/underground_room_frontier_publication.gd:567)
+          GDScript backtrace (most recent call first):
+              [0] _output (res://scripts/core/underground_room_frontier_publication.gd:567)
+              [1] publish_into (res://scripts/core/underground_room_frontier_publication.gd:107)
+              [2] test_late_original_output_resize_refuses_before_every_bank_swap (res://test/test_underground_room_frontier_publication.gd:594)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-frontier-publication/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_late_original_output_resize_refuses_before_every_bank_swap
+        late output shape refuses before swap (expected ROOM_FRONTIER_PUBLICATION_SCOPE, got )
+        no coordinator handle write (expected (71, 9), got (4, 1))
+        no coordinator count write (expected 0, got 2)
+        no partial Location output (expected 77, got 3)
+        all coupled banks and paid owners unchanged (expected true, got false)
+        late output shape refuses before swap (expected ROOM_FRONTIER_PUBLICATION_SCOPE, got ROOM_FRONTIER_SOURCE_CHANGED)
+        actual successful Room output observer (expected 2, got 1)
+        only observer edge resize (expected 1, got 12)
+        all coupled banks and paid owners unchanged (expected true, got false)
+        fresh full output succeeds (expected , got ROOM_FRONTIER_SOURCE_CHANGED)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+CI_SUITE_TIME {"assertions":693,"failures":1,"suite":"test_underground_room_frontier_publication.gd","tests":14,"usec":7288486}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+14 test(s), 693 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

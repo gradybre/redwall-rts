@@ -1,0 +1,17 @@
+test_actual_joint_fits_existing_carve_out (__main__.CensusTests) ... ok
+test_callback_edge_is_required_for_peak (__main__.CensusTests) ... ok
+test_caller_retaining_outcome_across_child_allocation_refuses (__main__.CensusTests) ... ok
+test_existing_standalone_create_is_exact (__main__.CensusTests) ... ok
+test_hidden_extra_constructor_refuses (__main__.CensusTests) ... ok
+test_loop_cannot_hide_repeated_packet_lifetime (__main__.CensusTests) ... ok
+test_new_retained_owner_cannot_hide (__main__.CensusTests) ... ok
+test_outcome_cannot_grow_packed_payload (__main__.CensusTests) ... ok
+test_outcome_default_remains_closed (__main__.CensusTests) ... ok
+test_report_width_is_not_a_free_new_reference (__main__.CensusTests) ... ok
+test_transitive_new_reference_chain_is_charged (__main__.CensusTests) ... ok
+test_variable_helper_scratch_refuses (__main__.CensusTests) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.411s
+
+OK

@@ -1,0 +1,12 @@
+{
+  "source-sha256.json": {
+    "sha256": "cf0a8d5b12234452e0e11f603ace433b897cd1109eadfadb61179a0adb4c4a48",
+    "count": 7,
+    "mismatches": []
+  },
+  "output-sha256.json": {
+    "sha256": "34d8e5b8f9267d065525e53129c7b964a1d32dfc7cbcb72fbd64aaddfabe50f0",
+    "count": 30,
+    "mismatches": []
+  }
+}

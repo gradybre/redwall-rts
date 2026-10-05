@@ -1,0 +1,68 @@
+{
+  "head": "db03b1f7955afedb0aba87d1715498aaedca1623",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "log": "clean-import.log",
+      "exit_code": 0,
+      "seconds": 11.853
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "288/408",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-inspector-2026-10-05/candidate-2"
+      ],
+      "log": "suite.log",
+      "exit_code": 0,
+      "seconds": 7.044
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6469",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-inspector-2026-10-05/candidate-2/analyzer.json",
+        "godot/demo/burrow/modular_room_mode.gd",
+        "godot/test/test_modular_room_mode.gd"
+      ],
+      "log": "analyzer.log",
+      "exit_code": 0,
+      "seconds": 12.334
+    }
+  ],
+  "scope": "Focused official singleton suite plus zero-warning analyzer, not a full no-argument milestone",
+  "assets_present_before": true,
+  "runtime_qualified": false,
+  "import_findings": [],
+  "counts": {
+    "tests": 7,
+    "assertions": 108,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 0,
+    "tolerated": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "analyzer_raw_findings": [],
+  "project_restored": true,
+  "assets_restored": true,
+  "sources_unchanged": true,
+  "old_sidecars_restored": true,
+  "exit_code": 0
+}

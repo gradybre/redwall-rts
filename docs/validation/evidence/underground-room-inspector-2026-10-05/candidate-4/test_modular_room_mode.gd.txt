@@ -1,0 +1,206 @@
+extends "res://test/framework/test_case.gd"
+## Actual Session and RoomOrders composition; presentation cannot fabricate access, stock or a new World.
+
+const Mode := preload("res://demo/burrow/modular_room_mode.gd")
+const Host := preload("res://scripts/systems/settlement_system.gd")
+const Content := preload("res://demo/cast/underground_actor_content.gd")
+const Session := preload("res://scripts/core/underground_session.gd")
+
+var _host: Host = null
+var _mode: Mode = null
+var _camera: Camera3D = null
+var _modal: bool = false
+var _observer_action: int = 0
+
+
+func before_each() -> void:
+	"""Use the real generated settlement and source-bound owners, without a completed passage or test permissions."""
+	_host = Host.new()
+	assert_true(_host.create_generated_settlement(_host.item_definitions()), "actual settlement")
+	var content: Content = Content.new()
+	assert_equal(content.load_file(Session.ACTOR_PATH, Session.Catalog.Pins.ACTOR_SHA,
+		Session.PRESENTATION_BYTES), &"", "actual source")
+	var mounted: bool = _host.mount_underground(content)
+	assert_true(mounted, "foundation: %s" % _host.last_refusal())
+	var rooms: bool = _host.compose_underground_room_owners()
+	assert_true(rooms, "original Room owners: %s" % _host.last_refusal())
+	var routes: bool = _host.compose_underground_route_owners()
+	assert_true(routes, "original route owners: %s" % _host.last_refusal())
+	_mode = Mode.new()
+	_camera = Camera3D.new()
+	_modal = false
+	_observer_action = 0
+	assert_equal(_mode.configure(_host.underground_session(), _camera, _blocked, 8), &"", "actual view")
+	assert_true(_mode.set_active(true), "activate")
+
+
+func after_each() -> void:
+	"""Release only this test's view and settlement; accepted authority has no caller-owned substitute."""
+	_mode.free()
+	_camera.free()
+	_host.free()
+	_mode = null
+	_camera = null
+	_host = null
+
+
+func _blocked() -> Variant:
+	"""Exercise modal observation that changes the selected plane, loses its World, or returns malformed data."""
+	var action: int = _observer_action
+	_observer_action = 0
+	if action == 1: _mode.select_floor(2)
+	elif action == 2: _host.reset()
+	elif action == 3: return 0
+	return _modal
+
+
+func _paint() -> void:
+	"""A real quarter-metre draft lies within the original settlement's integer domain."""
+	_mode._editor.select_tool(Mode.Draft.ROUNDED, false, 2)
+	assert_true(_mode._editor.world_press(Vector2i(480, 480)), "begin real draft")
+	_mode._editor.world_motion(Vector2i(500, 496))
+	_mode._editor.world_release()
+	assert_equal(_mode._editor.draft.confirmation_error(), &"", "connected valid footprint")
+
+
+func _snapshot() -> Array[PackedByteArray]:
+	"""Read original identity/economy/work state independently of the inspector's reports."""
+	return [_host.directory().state_bytes(), _host.inventory().state_bytes(), _host.residents().state_bytes(),
+		_host.jobs().state_bytes(), _host.transforms().state_bytes(), _host.construction().state_bytes(),
+		_host.reservations().state_bytes()]
+
+
+func test_drawing_uses_original_world_bounds_floor_and_command_owners() -> void:
+	"""The inspector and picker use the actual 256m World and authored -4.5m first floor, not demo coordinates."""
+	var before: Array[PackedByteArray] = _snapshot()
+	var session: Session = _host.underground_session()
+	assert_equal(_mode._world, _host.world_ref(), "same full World identity")
+	assert_equal(_mode._tool.datum_u(), Vector3i(0, -4608, 0), "actual authored first floor")
+	assert_equal(_mode._bounds, Rect2i(0, 0, 1024, 1024), "entire real finite grid")
+	assert_equal(_mode._runtime._actual_orders(), session.room_orders(), "actual command owner")
+	assert_equal(_mode._floor.item_count, session.level_catalog().level_count() + 1, "all authored floors plus surface")
+	_paint()
+	assert_equal(_snapshot(), before, "drawing changes no simulation state")
+
+
+func test_inspecting_another_floor_preserves_plan_and_stops_painting() -> void:
+	"""Looking above/below never transplants a room; returning restores the same draft and undo history."""
+	_paint()
+	var original: Mode.Draft = _mode._editor.draft
+	var cells: PackedInt32Array = original.visible_cells()
+	var history: int = original._undo.size()
+	assert_equal(_mode.select_floor(2), &"", "inspect next floor")
+	assert_equal(_mode._read_view(), Vector3i(2, -9728, 1), "real second plane")
+	assert_equal(original._level, 1, "plan stays on its own level")
+	assert_false(_mode._tool._can_draw(), "other floor cannot paint into hidden plan")
+	assert_equal(original.visible_cells(), cells, "same cells")
+	assert_equal(original._undo.size(), history, "same history")
+	assert_equal(_mode.select_floor(1), &"", "return")
+	assert_true(_mode._tool._can_draw(), "original floor permits drawing")
+	assert_equal(_mode._editor.draft, original, "same exact draft")
+
+
+func test_purpose_and_floor_changes_require_explicit_discard() -> void:
+	"""Even undoable empty paint cannot change a retained room's purpose through an inspector selection."""
+	_paint()
+	assert_equal(_mode.select_purpose(1), Mode.REFUSE_DRAFT, "kitchen cannot become bedroom")
+	assert_equal(_mode._editor.draft._room_type, 2, "Kitchen remains Kitchen")
+	_mode._editor.draft.undo()
+	assert_true(_mode._editor.draft.visible_cells().is_empty(), "undo removes painted cells")
+	assert_equal(_mode.select_purpose(1), Mode.REFUSE_DRAFT, "redo history is retained")
+	_mode._editor._discard()
+	assert_equal(_mode.select_purpose(1), &"", "explicit discard permits new Bedroom")
+	assert_equal(_mode.select_floor(2), &"", "inspect second floor")
+	assert_equal(_mode.start_on_selected_floor(), &"", "explicit new empty plan")
+	assert_equal(_mode._tool.datum_u(), Vector3i(0, -9728, 0), "new picker datum")
+	assert_equal(_mode._editor.draft._room_type, 1, "new Bedroom purpose")
+
+
+func test_close_keeps_draft_and_modal_interrupts_only_current_gesture() -> void:
+	"""Inspector close and a modal do not submit, discard or reassign the player's existing cells."""
+	_paint()
+	var original: Mode.Draft = _mode._editor.draft
+	var cells: PackedInt32Array = original.visible_cells()
+	assert_true(_mode.set_active(false), "close")
+	assert_false(_mode._tool._can_draw(), "closed tool refuses input")
+	assert_true(_mode.set_active(true), "reopen original World")
+	assert_equal(_mode._editor.draft, original, "same draft identity")
+	assert_equal(original.visible_cells(), cells, "retained cells")
+	_modal = true
+	assert_false(_mode._tool._can_draw(), "actual modal gate")
+	assert_equal(original.visible_cells(), cells, "modal leaves prior paint")
+
+
+func test_surface_view_cannot_start_or_paint_an_underground_room() -> void:
+	"""A surface inspection is never a roofed floor or an implicit entry shaft."""
+	assert_equal(_mode.select_floor(0), &"", "actual surface")
+	assert_equal(_mode._read_view(), Vector3i(0, 512, 0), "surface is not a room plane")
+	assert_false(_mode._tool._can_draw(), "no painting on wrong floor")
+	assert_equal(_mode.start_on_selected_floor(), &"ROOM_VIEW_SELECT_UNDERGROUND", "choose underground first")
+	assert_equal(_mode._editor.draft._level, 1, "old original plan remains")
+
+
+func test_missing_actual_access_refuses_confirmation_without_spending() -> void:
+	"""A geometrically valid draft still goes through real RoomOrders and cannot excavate from an invented passage."""
+	_paint()
+	var before: Array[PackedByteArray] = _snapshot()
+	var cells: PackedInt32Array = _mode._editor.draft.visible_cells()
+	assert_false(_mode._editor.request_confirmation(), "actual RoomOrders refuses unsupported access")
+	assert_equal(_snapshot(), before, "no identity, goods, work or pose changed")
+	assert_equal(_mode._editor.draft.visible_cells(), cells, "refused plan retained")
+	assert_false(_mode._editor._last_refusal.is_empty(), "actionable explanation remains")
+
+
+func test_reset_and_remount_cannot_adopt_an_old_plan() -> void:
+	"""Weak original identity and full generations stop old marks before the replacement settlement exists."""
+	_paint()
+	var old: Vector2i = _host.world_ref()
+	assert_true(_host.reset(), "actual original clear")
+	assert_equal(_mode._live_session(), null, "retired original Session")
+	assert_false(_mode._tool._can_draw(), "old world cannot paint")
+	assert_true(_host.create_generated_settlement(_host.item_definitions()), "new actual World")
+	assert_true(_host.world_ref() != old, "full generation changed")
+	assert_false(_mode.set_active(true), "old plan never adopts new World")
+	assert_equal(_mode.select_floor(1), Mode.REFUSE_OWNER, "old floor binding remains refused")
+
+
+func test_source_drift_refuses_borrowed_owners_and_preserves_the_draft() -> void:
+	"""A still-live original Session can refuse its source; no nullable getter may be dereferenced."""
+	_paint()
+	var original: Mode.Draft = _mode._editor.draft
+	var cells: PackedInt32Array = original.visible_cells()
+	var original_seed: int = _host.world()._published_seed
+	_host.world()._published_seed += 1
+	assert_equal(_mode.select_floor(2), Mode.REFUSE_OWNER, "source drift refuses floor lookup")
+	assert_equal(_mode._view_level, 1, "selected view not moved")
+	assert_equal(original.visible_cells(), cells, "old drawing retained")
+	_host.world()._published_seed = original_seed
+	_mode._editor._discard()
+	_host.world()._published_seed += 1
+	assert_equal(_mode.start_on_selected_floor(), Mode.REFUSE_OWNER, "empty draft cannot adopt drift")
+	assert_equal(_mode.select_purpose(1), Mode.REFUSE_OWNER, "new purpose cannot adopt drift")
+	assert_equal(_mode._editor.draft, original, "refusal preserves original editor and draft")
+	_host.world()._published_seed = original_seed
+
+
+func test_late_modal_floor_switch_refuses_the_in_flight_paint() -> void:
+	"""The input observer cannot approve the old drawing after it switches the visible plane."""
+	_paint()
+	var original: Mode.Draft = _mode._editor.draft
+	var cells: PackedInt32Array = original.visible_cells()
+	_observer_action = 1
+	assert_false(_mode._tool._can_draw(), "late plane change blocks in-flight input")
+	assert_equal(_mode._view_level, 2, "observer changed the inspected floor")
+	assert_equal(original.visible_cells(), cells, "paint remains on its original plane")
+	assert_equal(original._level, 1, "retained plan was not transplanted")
+
+
+func test_late_owner_loss_and_malformed_modal_answer_refuse_input() -> void:
+	"""A callback must return a boolean and leave the same original owner live."""
+	_paint()
+	var cells: PackedInt32Array = _mode._editor.draft.visible_cells()
+	_observer_action = 3
+	assert_false(_mode._tool._can_draw(), "integer zero is not a valid modal answer")
+	_observer_action = 2
+	assert_false(_mode._tool._can_draw(), "World lost during callback refuses")
+	assert_equal(_mode._editor.draft.visible_cells(), cells, "no paint changed during owner loss")

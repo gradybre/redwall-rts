@@ -1,0 +1,30 @@
+state_registry_coverage: PASS -- 154 modules, 731 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_modular_room_mode.gd
+  PASS  test_drawing_uses_original_world_bounds_floor_and_command_owners
+  PASS  test_inspecting_another_floor_preserves_plan_and_stops_painting
+  PASS  test_purpose_and_floor_changes_require_explicit_discard
+  PASS  test_close_keeps_draft_and_modal_interrupts_only_current_gesture
+  PASS  test_surface_view_cannot_start_or_paint_an_underground_room
+  PASS  test_missing_actual_access_refuses_confirmation_without_spending
+  PASS  test_reset_and_remount_cannot_adopt_an_old_plan
+CI_SUITE_TIME {"assertions":108,"failures":0,"suite":"test_modular_room_mode.gd","tests":7,"usec":2552904}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+7 test(s), 108 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 7 tests, 108 assertions, 0 failures.

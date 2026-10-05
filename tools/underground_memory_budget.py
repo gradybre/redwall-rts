@@ -994,7 +994,7 @@ def build(index: dict | None = None) -> dict:
                                              for path in approach["historical_source_sha256"]}
         approach["portable_enforcement"]["historical_joint_source_sha256"] = approach["portable_enforcement"].pop("current_joint_source_sha256")
         approach["portable_enforcement"]["reviewed_current_extensions"] = str(room_memory.MANIFEST)
-        approach["portable_enforcement"]["scope"] += " Historical1156 frames are projected only after current1161/1163/1165/1166 recensus."
+        approach["portable_enforcement"]["scope"] += " Historical1156 frames are projected only after current1161/1163/1165/1166/1167 recensus."
         clock = clock_memory.build(index, motion)
         session = session_memory.build(historical, motion, reserves["PROFILE_BYTES"])
         retirement = retirement_memory.build(historical, session, reserves["PROFILE_BYTES"])
@@ -1046,7 +1046,7 @@ def build(index: dict | None = None) -> dict:
                     "underground_session", "underground_terrain", "underground_routes", "room_space", "underground_motion_clock",
                     "underground_entry_structure", "underground_phase_structure", "underground_entry_world_bindings",
                     "underground_room_world_bindings", "underground_work_face", "underground_world_retirement",
-                    "source_program", "mole_profile_driver", "settlement_system"))
+                    "source_program", "mole_profile_driver", "settlement_system", "underground_route_composition"))
     return {"schema": 1, "scope": "source-derived logical allocation pack; runtime qualification remains open",
             "runtime_qualified": False, "pack": pack, "columns": groups, "quote": quote,
             "furniture_bridge_cold": bridge, "connector_recipe_reservation": recipes,

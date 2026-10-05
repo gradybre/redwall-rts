@@ -107,9 +107,21 @@ class JointPackTests(unittest.TestCase):
         result = budget.build(self.index)
         ui = result["ui_reset_reservation"]
         self.assertEqual(ui["additional_reserved_bytes"], 0)
-        self.assertEqual((ui["accounting"]["controls"], ui["accounting"]["helpers"]), (6019, 1903))
+        self.assertEqual((ui["accounting"]["controls"], ui["accounting"]["helpers"]), (6067, 1919))
         self.assertEqual(ui["accounting"]["profile_joint_unchanged"],
                          result["host_retirement_reservation"]["accounting"]["joint_with_retirement"])
+
+    def test_route_constructor_is_current_and_uses_the_same_retirement_reserve(self) -> None:
+        result = budget.build(self.index)
+        route = result["room_extension_reservation"]["route_composition"]
+        self.assertEqual(route["constructor_exclusive_reuse"]["simultaneous_total"], 8161)
+        self.assertEqual(result["host_retirement_reservation"]["accounting"]["control_provisional_bytes"], 5745)
+        self.assertEqual(result["host_retirement_reservation"]["accounting"]["helper_provisional_bytes"], 1199)
+        self.assertEqual(result["ui_reset_reservation"]["current_constructor_exclusive_reuse"],
+                         route["constructor_exclusive_reuse"])
+        self.assertEqual(route["retained_reference_delta"], 0)
+        self.assertEqual(result["contributions"]["PROFILE_BYTES"], 262144)
+        self.assertEqual(result["live_with_reserve_bytes"], 99999806)
 
     def test_ui_current_text_mutation_is_not_replaced_with_disk_source(self) -> None:
         for role, (name, _) in budget.ui_reset_memory.CURRENT.items():
@@ -118,7 +130,8 @@ class JointPackTests(unittest.TestCase):
             # Keep the cached SHA and parsed columns unchanged deliberately.
             index = dict(self.index, **{name: original._replace(
                          text=original.text + "\nfunc hidden_allocation() -> void:\n\tvar extra: Array = []\n")})
-            with self.subTest(owner=name), self.assertRaisesRegex(AssertionError, "UI reset call/allocation"):
+            with self.subTest(owner=name), self.assertRaisesRegex(
+                    AssertionError, "room memory: current reviewed source changed: " + name):
                 budget.build(index)
 
     def test_ordinary_provider_is_additional_to_existing_entry_and_cold_charges(self) -> None:

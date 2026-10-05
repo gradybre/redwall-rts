@@ -19,12 +19,13 @@ import audit_registry_capacities as audit
 
 ROOT = Path(__file__).resolve().parents[1]
 E = Path("docs/validation/evidence/underground-room-memory-integration-2026-10-05")
-MANIFEST = E / "manifest.json"
-MANIFEST_SHA = "40097d0372f0bd4c351f51f75882e151778e8c94248a3af20b414349f9c675b7"
+MANIFEST = E / "route-owner-manifest.json"
+MANIFEST_SHA = "f396686d73684ce19c8d133d2c72aed782de43c99c4aaf3c63f7389c8bea3def"
 P = Path("docs/validation/evidence/underground-room-frontier-publication-2026-10-04")
 I = Path("docs/validation/evidence/underground-room-itinerary-census-2026-10-05")
 C = Path("docs/validation/evidence/underground-room-owner-composition-2026-10-04")
 G = Path("docs/validation/evidence/underground-ground-pace-2026-10-04")
+R = Path("docs/validation/evidence/underground-route-owner-composition-2026-10-04")
 
 
 def require(condition, message):
@@ -46,7 +47,7 @@ def verified_inputs(index):
         raw = (ROOT / relative).read_bytes()
         require(digest(raw) == expected, "reviewed witness changed: " + relative)
         blobs[relative] = raw
-    for group in ("baseline", "publisher_predecessors"):
+    for group in ("baseline", "publisher_predecessors", "route_predecessors"):
         for row in manifest[group].values():
             raw = (ROOT / row["locator"]).read_bytes()
             require(digest(raw) == row["sha256"], "reviewed predecessor changed: " + row["locator"])
@@ -196,6 +197,16 @@ def ground_catalog(current, historical, blobs):
     return result
 
 
+def route_composition(current, blobs):
+    """Recount the actual route constructor and its complete original owner reset."""
+    census = producer(R / "census.py", blobs)
+    result = census["build"]({role: current[Path(path).stem].text
+                              for role, path in census["FILES"].items()})
+    same_accounting(result, json.loads(blobs[str(R / "source-review-1/census.json")]),
+                    "route composition")
+    return result
+
+
 def build(index):
     """Return a current recount and separately labelled historical owner inputs."""
     manifest, blobs, current = verified_inputs(index)
@@ -203,17 +214,28 @@ def build(index):
     for name, row in manifest["baseline"].items():
         module = current[name]
         historical[name] = audit.parse_module(name, module.relative_path, blobs[row["locator"]].decode())
+    # Establish the newer allocation/lifetime closure before decomposing the
+    # older Room constructor. Only these three reviewed predecessors differ.
+    routes = route_composition(current, blobs)
+    room_inputs = dict(current)
+    for name, row in manifest["route_predecessors"].items():
+        module = current[name]
+        room_inputs[name] = audit.parse_module(name, module.relative_path, blobs[row["locator"]].decode())
     published = publication(current, manifest, blobs)
     paths = itinerary(current, blobs)
-    owners, closure = composition(current, historical, blobs)
+    owners, closure = composition(room_inputs, historical, blobs)
     ground = ground_catalog(current, historical, blobs)
-    require(published["new_global_reservation"] == 0 and owners["additional_packed_bytes"] == 0,
+    require(published["new_global_reservation"] == 0 and owners["additional_packed_bytes"] == 0
+            and routes["additional_packed_bytes"] == 0
+            and routes["retained_numeric_delta"] == 0 and routes["retained_reference_delta"] == 0,
             "new room reservation is not admitted")
     result = {
         "scope": __doc__, "manifest_sha256": MANIFEST_SHA,
         "current_source_sha256": {row["path"]: row["sha256"] for row in manifest["sources"].values()},
         "historical_projection": manifest["baseline"],
         "publication": published, "itinerary": paths, "composition": owners,
+        "route_composition": routes,
+        "room_composition_projection": manifest["route_predecessors"],
         "ground_catalog": ground,
         "unchanged_locations_constructor_closure": closure,
         "additional_global_reserved_bytes": 0, "runtime_qualified": False, "native_measured": False,
@@ -223,7 +245,7 @@ def build(index):
 
 def reconcile(result, index, session, retirement, ui_reset):
     """Replace historical lifecycle figures with the reviewed current coexistence."""
-    current = result["composition"]
+    current = result["route_composition"]
     accounting = current["accounting"]
     require(accounting["retirement_reserved_bytes"] == retirement["accounting"]["retirement_reserved_bytes"]
             and accounting["profile_joint"] == retirement["accounting"]["joint_with_retirement"],
@@ -234,7 +256,8 @@ def reconcile(result, index, session, retirement, ui_reset):
     session["retained_numeric_bytes"] += 16
     session["additional_composition_numeric_bytes_charged_to_retirement"] = 16
     session["historical_foundation_frames"] = session.pop("frames")
-    session["current_composition_frames"] = current["phases"]["composition_own_prefix"]["frames"]
+    session["current_composition_frames"] = current["phases"]["route_composition_own_prefix"]["frames"]
+    session["historical_room_composition_frames"] = result["composition"]["phases"]["composition_own_prefix"]["frames"]
     for report in (retirement, ui_reset):
         report["historical_accounting"] = dict(report["accounting"])
         report["historical_frames"] = report.pop("frames")
@@ -244,8 +267,10 @@ def reconcile(result, index, session, retirement, ui_reset):
         report["current_composition_source_sha256"] = current["source_sha256"]
         report["current_constructor_exclusive_reuse"] = current["constructor_exclusive_reuse"]
     direct = current["phases"]["direct_reset"]["provisional_bytes"]
-    retirement["accounting"].update(control_provisional_bytes=5673 + current["retained_numeric_delta"],
-        control_remaining=6144 - 5673 - current["retained_numeric_delta"],
+    controls = (5673 + result["composition"]["retained_numeric_delta"]
+                + current["immutable_numeric_constants_bytes"])
+    retirement["accounting"].update(control_provisional_bytes=controls,
+        control_remaining=6144 - controls,
         helper_provisional_bytes=direct, helper_remaining=2048 - direct)
     retirement["current_frames"] = current["phases"]["direct_reset"]["frames"]
     ui_reset["accounting"].update(controls=accounting["controls"], helpers=accounting["helpers"])

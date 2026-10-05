@@ -2025,3 +2025,10 @@ as source-qualified motion. No composed save adapter is claimed here.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Stateless actual Session constructor | -- | -- | -- | No retained members or packed bank | 3 | -- | ADR1163. Existing private Retirement.Owners holds actual component owners; no second packet or gameplay permission. Constructor transitive scratch and two Session plus one Scope scalar are covered within the existing8192 retirement slice. Failed published prefixes stay retained for owner-validated whole-World reset. Native memory and composed persistence remain open. |
+
+
+### `godot/scripts/core/underground_route_composition.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless actual Session constructor | -- | -- | -- | No retained members or packed bank | 3 | -- | ADR1167 accepted stateless actual route-owner composition. Existing private Retirement.Owners holds actual component owners; no second packet or gameplay permission. Constructor transitive scratch and unchanged existing Session/Scope controls are covered by the independently reviewed scoped source census. Native memory and whole-game qualification remain open. |

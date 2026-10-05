@@ -1,0 +1,31 @@
+{
+  "baseline_matches": false,
+  "counts": {
+    "assertions": 1027795,
+    "expected": 272,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 11207,
+    "tolerated": 353,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "shard_count": 8,
+  "suite_count": 405,
+  "version": 1,
+  "wall_seconds": [
+    573,
+    492,
+    487,
+    567,
+    505,
+    494,
+    611,
+    543
+  ],
+  "commit": "ae3c61e73bed2619a2b711bad62d461425320c53",
+  "run_id": 37260574688,
+  "wall_seconds_end_to_end": 861,
+  "analyzer": "0 GDScript warning(s) in 0 of 1250 file(s)"
+}

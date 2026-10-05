@@ -3650,6 +3650,22 @@
           "joint_profile_session_retirement_bytes": 246868,
           "fixed_finding": "Pin all transitive census producers, manifest and predecessor snapshots before import. Coordinated producer/manifest drift now refuses.",
           "native_measured": false
+        },
+        "route_owners_1167": {
+          "author_commit": "9a7b8789a497819f48b46a316bd4b281f638497f",
+          "integrated_commit": "e234bde0882695d9a0d28288f7bf45ca05b9a953",
+          "review_commit": "7d8edbd4795bd9a4779c1d3726a753fbf38db604",
+          "review_integrated_commit": "3c92d1cf",
+          "tests": 90,
+          "assertions": 3115,
+          "failures": 0,
+          "unexpected_diagnostics": 0,
+          "leaks": 0,
+          "analyzer": "0/8",
+          "census_tests": 17,
+          "constructor": "8161/8192, native provisional",
+          "scope": "Actual original route-owner composition only; SurfaceAnchor, actor, paid dispatch and demo playable integration remain open.",
+          "evidence_path": "docs/validation/evidence/underground-route-owner-composition-2026-10-04/"
         }
       },
       "lease": {
@@ -3768,7 +3784,7 @@
           },
           {
             "agent": "/root/ug_furnishing",
-            "state": "held",
+            "state": "released",
             "branch": "codex/underground-route-owner-composition",
             "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-route-owner-composition",
             "files": [
@@ -3785,7 +3801,27 @@
               "docs/decisions/1167-session-route-owner-composition.md",
               "docs/validation/evidence/underground-route-owner-composition-2026-10-05/"
             ],
-            "handoff": "Explicit author1163STOP and root sourceSTOP. Fresh origin/master\u219231e834f0 acknowledgedclean; ownaccepted1166cherry-pickfa9bf173. Reuse original private tuple/state/prefix; compose genuine Movement/Catalog/WorldRoutes/Routes with reviewed groundcontent, no new endpoint/actor/promise of clearance. Partial configure/bindprefix retains exactowners stoppedforreset. Shared consumers, UI/demo/main/registry/memory remain other owners. Actual mount currently refuses expected1161consumerdrift; no bypass, rootrenewalnext."
+            "handoff": "Explicit author1163STOP and root sourceSTOP. Fresh origin/master\u219231e834f0 acknowledgedclean; ownaccepted1166cherry-pickfa9bf173. Reuse original private tuple/state/prefix; compose genuine Movement/Catalog/WorldRoutes/Routes with reviewed groundcontent, no new endpoint/actor/promise of clearance. Partial configure/bindprefix retains exactowners stoppedforreset. Shared consumers, UI/demo/main/registry/memory remain other owners. Actual mount currently refuses expected1161consumerdrift; no bypass, rootrenewalnext.",
+            "worker_stop_ack": "Author9a7b8789 committed accepted exact1167 and explicitly STOPPED all source writes; root integratede234bde0. Construction review7d8edbd4 integrated3c92d1cf. Source/test90/3115all0,analyzer0/8,17censuschecks and8161/8192 retained constructor maximum."
+          },
+          {
+            "agent": "/root/ug_furnishing",
+            "branch": "codex/underground-surface-anchor-lifecycle",
+            "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-surface-anchor-lifecycle",
+            "state": "held",
+            "files": [
+              "godot/scripts/core/underground_session.gd",
+              "godot/test/test_underground_session.gd",
+              "godot/scripts/core/underground_world_retirement.gd",
+              "godot/test/test_underground_world_retirement.gd",
+              "godot/scripts/systems/settlement_system.gd",
+              "godot/test/test_underground_host.gd",
+              "godot/scripts/core/underground_surface_anchor.gd",
+              "godot/test/test_underground_surface_anchor.gd",
+              "docs/decisions/1171-session-surface-anchor-lifecycle.md",
+              "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/"
+            ],
+            "handoff": "Author1167 explicit STOP; root releases all listed shared/SurfaceAnchor files. Fresh origin/master then FFe234bde0. Retain one original SurfaceAnchor over actual completed1167 tuple, copy one typed anchor reference into Retirement.Scope as required, enforce original identity/quiescence and teardown. No duplicate owner tuple, fake endpoint/void/stock/actor, new bank or reserve increase. Count exact stage-exclusive lifetimes and review before commit. Root owns demo/main/sharedregistry/memory/queue."
           }
         ]
       }
@@ -5116,6 +5152,27 @@
       "reason": "Two FrontierPublication tests retained pre1170 source-drift expectations. Production guards and source qualification passed; narrow test-only correction independently reviewed.",
       "correction_tests": "37tests/1149assertions/0;all strict/raw diagnostic and leak counters0;analyzer0/3",
       "evidence_path": "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/ci-9dad696d/"
+    },
+    {
+      "commit": "9dad696ddb6485e9a8c4b8efd8c8dcee52c9c4c0",
+      "outcome": "failed",
+      "full_suite": "11207 test(s), 1027804 assertion(s), 2 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "procedure": "Clean assets/cache/editor import then unchanged no-argument ./tools/run_tests.sh; all405suites once; import/raw0; all10546sourcepins/assets/project/sidecars restored; full analyzer skipped after strict runner failure.",
+      "evidence_commit": "a69b1612",
+      "evidence": "docs/validation/evidence/underground-room-integration-check-2026-10-05/full-9dad696d/",
+      "finding": "Exactly the two old FrontierPublication source-drift expectations. Independently reviewed correction integratedae3c61e7; no geometry/paid-state assertion changed."
+    },
+    {
+      "commit": "ae3c61e73bed2619a2b711bad62d461425320c53",
+      "outcome": "CI green",
+      "ci_url": "https://github.com/gradybre/redwall-rts/actions/runs/37260574688",
+      "full_suite": "11207 test(s), 1027795 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "analyzer": "0 GDScript warning(s) in 0 of 1250 file(s)",
+      "procedure": "All14CIjobs green; eight real shards and unchanged complete gate,405testfiles once; rawdiagnostics/leaks0; end-to-end861seconds. Precedes1167sourceintegration; not latest-head full qualification.",
+      "evidence": "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/ci-ae3c61e7/",
+      "limitation": "No exact local full-versus-CI assertion equivalence claimed:9dadlocal had2knownfailures and9additionalassertions. Strict comparator unchanged."
     }
   ],
   "crosscut_fixes": [
@@ -5281,6 +5338,15 @@
       "correction": "Independent Movement callee-source gap fixed; reached 4096-byte temporary mutation now refuses before any producer. Original finding retained.",
       "tests": "246 Python tests passed; complete no-Git replay byte-identical; 99,999,806 logical bytes and 194 headroom, runtime qualification false.",
       "evidence": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/"
+    },
+    {
+      "scope": "1167 route composition shared memory and source closure renewal",
+      "source_commit": "e234bde0",
+      "review_commit": "c97bddd6",
+      "evidence": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/route-renewal.md",
+      "tests": "251memorytests and15extensiontests pass; independent17tests115mutations pass; fullpack byte-identical with no subprocess. Registry154modules731rows1055columns and all canonical/capacitychecks pass.",
+      "accounting": "Actual1167constructor8161/8192; controls6067/6144 helpers1919/2048. Session1536andretirement8192eachonce. Global99999806 unchanged; native/runtime false.",
+      "limitation": "Cold actual owner composition only. Surface access1171 and short-step1168 remain owned active; playable worker/resource/room integration remains open."
     }
   ]
 }

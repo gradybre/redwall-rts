@@ -55,3 +55,33 @@ under `underground-room-integration-check-2026-10-05/`.
 
 The next owner-composition or runtime change must renew its own current-source
 closure and lifetime evidence. It cannot silently inherit this acceptance.
+
+## 1167 route-owner renewal
+
+The subsequent route composer is replayed first against its actual integrated
+Session, Retirement, Host and stateless composer sources. Its full constructor
+closure includes the original Movement, level identity allocation, both Domain
+copies, graph banks and current Profile binding. The new outer manifest pins
+54 current modules, 41 immutable witnesses, and the three exact pre-route
+Session/Retirement/Host bodies. It checks all route engine-lifetime witnesses
+and inherited producers before any producer executes.
+
+Only after this new census agrees may the older 1163 Room constructor use those
+three archived bodies for its historical allocation decomposition. The generated
+pack names both projections, their source hashes and the actual new frames.
+Route composition has no new retained field or packed bank. Its six immutable
+integer constants add 48 bytes inside the existing retirement controls. The
+current UI reset uses 6,067 control bytes and 1,919 helper bytes; the independent
+direct-reset slice is 5,745 + 1,199. Constructor coexistence is 4,002 + 4,159 =
+8,161/8,192. Session remains charged once, and the global logical total remains
+99,999,806 bytes. These provisional terms still do not qualify native RAM.
+
+The original immutable manifest and its evidence are preserved. The new
+`route-owner-manifest.json` has SHA-256
+`f396686d73684ce19c8d133d2c72aed782de43c99c4aaf3c63f7389c8bea3def`.
+Tests mutate complete constructor sources, predecessor snapshots, engine
+lifetimes, producer code and claimed census headroom; each must refuse before
+historical replay. Independent review replayed the pack without subprocesses,
+passed 17 focused tests, and rejected all 54 current-source and 61 immutable
+closure mutations before producer execution. Review evidence is retained under
+`underground-room-integration-check-2026-10-05/`.

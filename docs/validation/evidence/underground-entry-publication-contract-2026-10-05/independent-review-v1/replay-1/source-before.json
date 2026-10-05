@@ -1,0 +1,20 @@
+{
+  "docs/decisions/1190-fixed-entry-source-publication-contract.md": "f09b3310e3a237921da45041ddd5dc4eb9995acd0f788625a3702c3c77c20eec",
+  "docs/validation/evidence/underground-entry-publication-contract-2026-10-05/constants-2/catalog_source.gd.txt": "dcce0c84001f6700ea2f926db1288ccb2b7a59f7706ddea35ff35f3e63558962",
+  "docs/validation/evidence/underground-entry-publication-contract-2026-10-05/constants-2/report.json": "d8a0d18f80915d89d5d99d3ba90508b1b16a88acaef0a9ec90599fcbc33fad80",
+  "docs/validation/evidence/underground-entry-publication-contract-2026-10-05/constants-2/tests.log": "c0a234441cecc9937a09c7cbc31cee2a9774cd3f1dce8048b17104e7e417c7f1",
+  "docs/validation/evidence/underground-entry-source-phases-2026-10-05/handling-diagnostic-1/assemblies.ugasmb": "3bb788bf250f4628cc4ab6a0c1a5748478d7909753cb5d1a8056d5eb7a8f4a54",
+  "docs/validation/evidence/underground-entry-source-phases-2026-10-05/handling-diagnostic-1/frontier.ugfront": "a8d30864cf8e79ae51a0fa2f2b317d5ef07fbf3ceebc1c6eac0e4380a11b038a",
+  "docs/validation/evidence/underground-entry-source-phases-2026-10-05/handling-diagnostic-1/ground-pace.ugconn": "877be0982eb6945c4c4f014e9de428b3ab278d1fddc630080e9c6bfe341a1ea8",
+  "docs/validation/evidence/underground-entry-source-phases-2026-10-05/handling-diagnostic-1/mole-worker.ugprof": "17d9c229fdfe8ad1923f004db136653ab9834994ba946061be38ec7a2c862ff9",
+  "docs/validation/evidence/underground-entry-source-phases-2026-10-05/handling-diagnostic-1/recipes.ugrecp": "3019f92d56713317550c417e732b057d238fe0b70adadca8b56289a1362391a8",
+  "docs/validation/evidence/underground-entry-source-phases-2026-10-05/handling-diagnostic-1/structure.ugconn": "eda41ce78d4a798e2160250e2d6760ec7507f0c651c1e7b9b8ad462ff65ab520",
+  "godot/data/underground/first-entry-prefix-v1/entry_source_constants.py": "0a9e2922ce025383d8a4fb53ae3843ac75eec7bc66ec1c99f4ccf393051f2ad6",
+  "godot/data/underground/first-entry-prefix-v1/test_entry_source_constants.py": "71224a2d96d90bf19e50d2f179347af0cc940fbd4ba80f1ef2ab1ef1a3f86613",
+  "godot/scripts/core/underground_connector_assemblies.gd": "62144588bea85df8eae608a821b5f62e62dde8427574805d815673ab146354a4",
+  "godot/scripts/core/underground_connector_catalog.gd": "4b98b9dc46841ea8b140134279b6706cfeb9ec31a7abaa968e276cd504f892b8",
+  "godot/scripts/core/underground_connector_recipes.gd": "64df84440250d7b64524a76e9c3ab2b31adb018edc18f056c08f93b4604fd2a2",
+  "godot/scripts/core/underground_connector_workpieces.gd": "7a462a41d5e5632c8f9708244a449de4e19228b8e7c0856593c09fe3dfaf7e7d",
+  "godot/scripts/core/underground_entry_frontier.gd": "a13de97fa8c528739db9e9ce73322f0d3ba580e7f6f6555aba44a68684b3886c",
+  "godot/scripts/core/underground_profiles.gd": "2dd505f98fe55b640fd96d254d155093a3f88baf42315ffe95baebcc6f0234ec"
+}

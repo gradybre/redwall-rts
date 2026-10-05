@@ -1,0 +1,14 @@
+{
+  "scope": "ADR1190 pure linked-metadata formatter; synthetic Workpieces serialization fixture only",
+  "source_pins": {
+    "godot/data/underground/first-entry-prefix-v1/test_entry_source_constants.py": "635401cfe2d37f24db8b61bada0d56467a17775837f36f1177274888abacd598",
+    "godot/data/underground/first-entry-prefix-v1/entry_source_constants.py": "4fca41995905c63c4d236325a9ee8d6a003b57514d6715da5bd5ccfabe0a361c"
+  },
+  "output_bytes": 2114,
+  "output_sha256": "dcce0c84001f6700ea2f926db1288ccb2b7a59f7706ddea35ff35f3e63558962",
+  "tests": 9,
+  "test_exit": 0,
+  "publication_emitted": false,
+  "physical_qualification": false,
+  "world_activation_qualified": false
+}

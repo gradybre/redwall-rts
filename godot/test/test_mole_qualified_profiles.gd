@@ -2,7 +2,7 @@ extends "res://test/framework/test_case.gd"
 ## Actual source artifact + real Resident/Job/Work/Gear identity. No World, paid target, support or WIP is fabricated.
 
 const Catalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
-const Pins := preload("res://data/underground/mole-worker/profile-publication-v3/catalog_source.gd")
+const Pins := preload("res://data/underground/mole-worker/profile-publication-v3-frontier/catalog_source.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Fixture := preload("res://test/test_underground_profiles.gd")
 const Content := preload("res://demo/cast/underground_actor_content.gd")

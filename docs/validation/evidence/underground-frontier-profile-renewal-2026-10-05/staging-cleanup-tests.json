@@ -1,0 +1,6 @@
+{
+  "known_generated_texture_removed": true,
+  "clone_removed": true,
+  "unknown_file_refused_and_preserved": true,
+  "scope": "Corrected cleanup helper in temporary directories; original native run remains separately recovered."
+}

@@ -1,0 +1,20 @@
+{
+  "initial_check": "Refused stale generated artifact after two Catalog preload/path edits; generator arithmetic passed.",
+  "changes": [
+    {
+      "path": "/source_approach_reservation/portable_enforcement/historical_joint_source_sha256/godot/data/underground/mole-worker/mole_profile_catalog.gd",
+      "before": "d5f28ac82d76a97ad3f11763b36e0d7e42ce286624bf2c968511662b1a3aaa9e",
+      "after": "0cda851709eab25720befa288364e9392cba4f9f629f70b7e7dd6d39138b83b5"
+    },
+    {
+      "path": "/source_sha256/godot/data/underground/mole-worker/mole_profile_catalog.gd",
+      "before": "d5f28ac82d76a97ad3f11763b36e0d7e42ce286624bf2c968511662b1a3aaa9e",
+      "after": "0cda851709eab25720befa288364e9392cba4f9f629f70b7e7dd6d39138b83b5"
+    }
+  ],
+  "arithmetic_unchanged": true,
+  "live_with_reserve_bytes": 99999806,
+  "headroom_bytes": 194,
+  "runtime_qualified": false,
+  "pack_sha256": "86893cb01bb590058136424178b0e3e18b72103a4384ab12609d5fdaf31157b2"
+}

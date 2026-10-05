@@ -2043,18 +2043,19 @@
           },
           {
             "agent": "/root/ug_construction",
-            "state": "held",
+            "state": "released",
             "branch": "codex/underground-ground-pace",
             "files": [
               "godot/scripts/core/underground_connector_catalog.gd",
               "godot/test/test_underground_connector_catalog.gd",
               "godot/data/underground/ground-pace-v1/",
               "docs/decisions/1166-ground-only-connector-pace-content.md",
-              "docs/validation/evidence/underground-ground-pace-2026-10-05/"
+              "docs/validation/evidence/underground-ground-pace-2026-10-04/"
             ],
             "handoff": "Construction confirmed exclusive1166 scope after releasing1161. Fresh origin/master thenFF38515845. Version1 unchanged; explicit version2 has zero six geometry tables and actual exact source-bound ground pace rows. No dummy connector, new speed, retained bank or global reserve. Root owns registry/memory/catalog consumer renewal; Geometry owns runtime Profile/Routes seams after census.",
             "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-ground-pace",
-            "base": "Fresh origin/master82d60ba8 thenFF38515845; worker acknowledged clean tree2026-10-05."
+            "base": "Fresh origin/master82d60ba8 thenFF38515845; worker acknowledged clean tree2026-10-05.",
+            "worker_stop_ack": "Authorb0e67f82 clean STOP acknowledged2026-10-05; integrated8003bfe1. Independent Furnishing review accepted six pins,7compiler tests/exactrebuild and corrected1468/2048 census.118tests/3730assertionsallzero,analyzer0/2. Component only; current profile-source renewal required for mounted use."
           },
           {
             "agent": "/root/ug_geometry",
@@ -2067,10 +2068,10 @@
               "godot/data/underground/mole-worker/mole_profile_driver.gd",
               "godot/test/test_mole_profile_driver.gd",
               "godot/data/underground/mole-worker/work-step-v1/",
-              "docs/decisions/1168-finite-work-step-runtime.md",
+              "docs/decisions/1168-canonical-short-step-runtime.md",
               "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/"
             ],
-            "handoff": "Explicit source-only1164 and1165 census STOP; clean fresh origin/master thenFF38515845 acknowledged2026-10-05. Actual finite232u terminal movement and automatic/READY transition/source recovery; no extra authoritative columns/banks, no turn/clipping grants, no resetting interrupted prefixes or successor distance spill. SourceProgram and Actor remain read-only pending exact seam handshake; no root profile publisher/census/shared source ownership."
+            "handoff": "Explicit source-only1164 and1165 census STOP; clean fresh origin/master thenFF38515845 acknowledged2026-10-05. Actual finite232u terminal movement and automatic/READY transition/source recovery; no extra authoritative columns/banks, no turn/clipping grants, no resetting interrupted prefixes or successor distance spill. SourceProgram and Actor remain read-only pending exact seam handshake; no root profile publisher/census/shared source ownership. Root subsequently approved additive work-step-v1 source program6 with no Actor edits; diagnostic29/271/content3 wire plus exact1166 loader dependency8003bfe1 are allowed. Production publication remains root-owned."
           }
         ],
         "scope_narrowing": {
@@ -3436,7 +3437,13 @@
         "godot/test/test_underground_room_composition.gd",
         "godot/test/test_underground_room_composition.gd.uid",
         "docs/decisions/1163-session-room-owner-composition.md",
-        "docs/validation/evidence/underground-room-owner-composition-2026-10-04/"
+        "docs/validation/evidence/underground-room-owner-composition-2026-10-04/",
+        "godot/scripts/core/underground_route_composition.gd",
+        "godot/scripts/core/underground_route_composition.gd.uid",
+        "godot/test/test_underground_route_composition.gd",
+        "godot/test/test_underground_route_composition.gd.uid",
+        "docs/decisions/1167-session-route-owner-composition.md",
+        "docs/validation/evidence/underground-route-owner-composition-2026-10-05/"
       ],
       "requirements": [
         "UG-BUILD-001",
@@ -3758,6 +3765,27 @@
             ],
             "handoff": "Root explicitly stopped listed source writes; fresh origin/master then FF ebdd5daa, clean worker acknowledged. Compose original host room owners into existing private Retirement.Owners, no second owner tuple. Installed constructor prefixes remain retained, stopped and owner-provable for reset. Exact private prefix retirement must preserve complete-owner guards. No actor/endpoint/room/route/phase activation or wider budget; complete census and independent review required. Root granted1163 optional borrowed original BuildingDefinitions constructor seam in room_catalog.gd; no eager duplicate, no-argument behavior preserved, exact current/prefix identity plus existing catalog tests required.",
             "worker_stop_ack": "Author09630a42 explicitly committed and STOPPED with clean WT; accepted12source pins unchanged. Root integrated7bc0e8db after independent source/census/pin review. Native/current-joint and playable acceptance remain open."
+          },
+          {
+            "agent": "/root/ug_furnishing",
+            "state": "held",
+            "branch": "codex/underground-route-owner-composition",
+            "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-route-owner-composition",
+            "files": [
+              "godot/scripts/core/underground_session.gd",
+              "godot/test/test_underground_session.gd",
+              "godot/scripts/core/underground_world_retirement.gd",
+              "godot/test/test_underground_world_retirement.gd",
+              "godot/scripts/systems/settlement_system.gd",
+              "godot/test/test_underground_host.gd",
+              "godot/scripts/core/underground_route_composition.gd",
+              "godot/scripts/core/underground_route_composition.gd.uid",
+              "godot/test/test_underground_route_composition.gd",
+              "godot/test/test_underground_route_composition.gd.uid",
+              "docs/decisions/1167-session-route-owner-composition.md",
+              "docs/validation/evidence/underground-route-owner-composition-2026-10-05/"
+            ],
+            "handoff": "Explicit author1163STOP and root sourceSTOP. Fresh origin/master\u219231e834f0 acknowledgedclean; ownaccepted1166cherry-pickfa9bf173. Reuse original private tuple/state/prefix; compose genuine Movement/Catalog/WorldRoutes/Routes with reviewed groundcontent, no new endpoint/actor/promise of clearance. Partial configure/bindprefix retains exactowners stoppedforreset. Shared consumers, UI/demo/main/registry/memory remain other owners. Actual mount currently refuses expected1161consumerdrift; no bypass, rootrenewalnext."
           }
         ]
       }
@@ -5061,6 +5089,14 @@
       "tests": "60 test(s),1198 assertion(s),0 failure(s); diagnostics:0unexpected errors,0unexpected warnings,0expected,0tolerated; leaked0objects/0resources; rawlogall0. Itinerary13/114, Phases24/290, Frontier9/112, Publisher14/682. Cleanassets/cache/import; project/assets/sources restored.",
       "evidence": "docs/validation/evidence/underground-room-itinerary-2026-10-05/integration-1161/",
       "limits": "Current source publication/joint memory renewal, native motion and playable Kitchen remain open.1163 source12/output71/history104/inherited34/currentconstructorcomparison5 pins independently verified;19 census tests pass; focused component84/3352 plus final16/371 allzero, no whole integrated claim."
+    },
+    {
+      "commit": "8003bfe155092e9a8bc8b5590228e6069b859173",
+      "outcome": "Focused actual Room composition refused stale v3 consumer hashes, before later suites or analyzer. Strict gates retained.",
+      "summary": "16 test(s), 102 assertion(s), 16 failure(s); 24 raw SCRIPT ERROR lines from the refused fixture mount.",
+      "source_project_registry_assets_restored": true,
+      "evidence": "docs/validation/evidence/underground-room-integration-check-2026-10-05/checkpoint-1/",
+      "followup": "Independently reviewed three-consumer renewal with unchanged geometry and fresh native clock replay; next coherent focused run remains required."
     }
   ],
   "crosscut_fixes": [
@@ -5216,6 +5252,16 @@
       "estimated_new_assignment_suite_seconds": "439.877\u2013439.879",
       "tests": "13 Python guard tests pass;5 optional engine fixtures not rerun for data-only change",
       "limits": "Scheduling estimates only; all test/diagnostic/leak/analyzer/gate logic and local no-arg behavior unchanged."
+    },
+    {
+      "id": "1169-current-room-memory-integration",
+      "commit": "b64dbf9a",
+      "independent_evidence_commit": "1a193d15",
+      "reviewer": "/root/ug_construction",
+      "scope": "Replay current 1161 publication,1163 Room constructor,1165 itinerary and1166 ground Catalog lifetimes before explicit unchanged historical accounting projection.",
+      "correction": "Independent Movement callee-source gap fixed; reached 4096-byte temporary mutation now refuses before any producer. Original finding retained.",
+      "tests": "246 Python tests passed; complete no-Git replay byte-identical; 99,999,806 logical bytes and 194 headroom, runtime qualification false.",
+      "evidence": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/"
     }
   ]
 }

@@ -1,0 +1,10 @@
+{
+  "poses": 1504,
+  "exact_native_scalar_comparisons": 469248,
+  "headings": 4,
+  "views": 2,
+  "screenshots": 64,
+  "assertions": 9336,
+  "production_qualified": false,
+  "scope": "sampled native palette/grounding/root and canonical Driver; synthetic physical provider and flags"
+}

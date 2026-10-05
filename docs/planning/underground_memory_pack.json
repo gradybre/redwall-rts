@@ -4208,7 +4208,7 @@
       "scope": "Logical existing reservation enforcement only; no native RAM, presentation, route, or World qualification. Historical1156 frames are projected only after current1161/1163/1165/1166 recensus.",
       "historical_joint_source_sha256": {
         "godot/scripts/core/underground_profiles.gd": "fd17b330165fff47177414ec15549fa53fcb60535aab7a9b9af3674485f3a78e",
-        "godot/data/underground/mole-worker/mole_profile_catalog.gd": "d5f28ac82d76a97ad3f11763b36e0d7e42ce286624bf2c968511662b1a3aaa9e",
+        "godot/data/underground/mole-worker/mole_profile_catalog.gd": "0cda851709eab25720befa288364e9392cba4f9f629f70b7e7dd6d39138b83b5",
         "godot/scripts/core/underground_level_catalog.gd": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
         "godot/scripts/core/underground_motion_catalog.gd": "46e71996e15c1ccc12906831775b23f7a7c66d69bc2d161ddfdd78d0f6db67e3",
         "godot/scripts/core/underground_session.gd": "a8cb243699af13b41669f41a0362742e73c8fa28b5ae7bb40f59aa8b0162b43e",
@@ -21401,7 +21401,7 @@
     "godot/scripts/core/inventory.gd": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
     "godot/scripts/core/modular_project_contract.gd": "9e8b9ed5f3778b959ed54385999a9c1b1713dc3b46e6829d2bd553760b140849",
     "godot/scripts/core/modular_projects.gd": "c6bd313698bee47685f7404c347a94852cee18efd2557109c8c673dc3467ada8",
-    "godot/data/underground/mole-worker/mole_profile_catalog.gd": "d5f28ac82d76a97ad3f11763b36e0d7e42ce286624bf2c968511662b1a3aaa9e",
+    "godot/data/underground/mole-worker/mole_profile_catalog.gd": "0cda851709eab25720befa288364e9392cba4f9f629f70b7e7dd6d39138b83b5",
     "godot/data/underground/mole-worker/mole_profile_driver.gd": "e9b46638976d1cc373de5363e0d72648098b0f9e50fe497cad8caa58899d31a4",
     "godot/scripts/core/reservations.gd": "2a2ce0b41cde10974f480184d0da53a7d27e1930030f80fee8c16dd1a9b74534",
     "godot/scripts/core/room_connectors.gd": "010a73355679d8b9f04a941b84520a0c0a904e622e7335562dbe35bcd0e7d067",

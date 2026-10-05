@@ -1,0 +1,49 @@
+{
+  "reviewer": "/root/ug_geometry",
+  "base_commit": "721038a4198df17d9bfab6c9994cc9916f875447",
+  "consumer_commit": "8003bfe155092e9a8bc8b5590228e6069b859173",
+  "accepted": true,
+  "geometry_or_clock_equations_changed": false,
+  "findings": [],
+  "consumer_sources": {
+    "godot/scripts/core/underground_profiles.gd": "fd17b330165fff47177414ec15549fa53fcb60535aab7a9b9af3674485f3a78e",
+    "godot/scripts/core/underground_work_face.gd": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
+    "godot/scripts/core/underground_connector_contacts.gd": "8dcde4f27ec783319332748e6c71a3b996be842601338e2c667c1346c96a3dd3",
+    "godot/scripts/core/underground_routes.gd": "e9da2df5b115f50af3f65a4ba40c2956db09226799c18e43fb2852e57be92921",
+    "godot/scripts/core/underground_world_routes.gd": "3341260ee11ec2008ee1ab32fa797d971d13edc7136ee6fb38e65a0b15ab338e",
+    "godot/demo/cast/underground_actor.gd": "b0ef7640d2b5626eb95c162d19318d9b3985a51479d19dfdf9a38e0176a06e91",
+    "godot/demo/cast/underground_actor_content.gd": "388374964d20879b6b896021ebde7927e472634ea8a32b6834ec7b1b5042157f",
+    "godot/data/underground/mole-worker/mole_profile_driver.gd": "e9b46638976d1cc373de5363e0d72648098b0f9e50fe497cad8caa58899d31a4",
+    "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4"
+  },
+  "changed_consumers": {
+    "godot/scripts/core/underground_work_face.gd": {
+      "before_sha256": "fefccffb1a1f6ea79204f129a96a1bac687eb555a32b298f1d61267c31f0a295",
+      "after_sha256": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
+      "historical_locator": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_work_face.gd.txt"
+    },
+    "godot/scripts/core/underground_routes.gd": {
+      "before_sha256": "c5b414aaf5c1679fc232ddccdbafa1491625c12b2dc41613063605f6a44934f4",
+      "after_sha256": "e9da2df5b115f50af3f65a4ba40c2956db09226799c18e43fb2852e57be92921",
+      "historical_locator": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_routes.gd.txt"
+    },
+    "godot/scripts/core/underground_world_routes.gd": {
+      "before_sha256": "7e2bc9f7d7f00f034f408be374f939664d98a3bd64e430283e3b300420991d1f",
+      "after_sha256": "3341260ee11ec2008ee1ab32fa797d971d13edc7136ee6fb38e65a0b15ab338e",
+      "historical_locator": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_world_routes.gd.txt"
+    }
+  },
+  "review": "WorkFace147\u2013167 factors identical live reads; ProspectiveCheck490+ preserves full descriptor/target/body/support under exact FrontierContext. Routes2069/2658 adds refusal while publication active; source clock/rational motion/phase equations3059+ unchanged. New3612+ leaves preserve path payloads. WorldRoutes profile/sweepcompiler784+ unchanged;1893+ proves actualsource and unchangedexisting masks before bank swap. Other6cachedconsumer blobs byte-identical.",
+  "native_report": {
+    "report.json": "a7466c759866b8902945d75c241920710ed6535438cc8f12b896666af98bbb31",
+    "verification.json": "5f1f39b49d23d2391918ca86163974c5381ac17448f5154993272635cbe10607",
+    "invocation.json": "bfa5bbe3f8e6bede5a0420ba6c2154074ca9c672b04c5322f1f5916e063fc868",
+    "sources-before.json": "29b7bbc4bef519aa446b80e708e215cecb12ab8fa3792ed084c5d07766e72f5f",
+    "sources-after.json": "29b7bbc4bef519aa446b80e708e215cecb12ab8fa3792ed084c5d07766e72f5f",
+    "native.bin": "f0db5014d644f057a4e4c7f7d1696ae77ff5045a28c0540321a6c35973856025"
+  },
+  "limits": [
+    "Source/native worker clock compatibility only.",
+    "No World/support/paid work permission or whole-room qualification."
+  ]
+}

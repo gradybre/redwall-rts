@@ -19,8 +19,8 @@ import audit_registry_capacities as audit
 
 ROOT = Path(__file__).resolve().parents[1]
 E = Path("docs/validation/evidence/underground-current-memory-2026-10-05")
-MANIFEST = Path("docs/validation/evidence/underground-memory-ui-alias-2026-10-05/manifest-2.json")
-MANIFEST_SHA = "781720cda89c158a169d87f32891c68f38372d58bb728ec511c4fe18a9362d4f"
+MANIFEST = Path("docs/validation/evidence/underground-entry-source-phases-2026-10-05/memory-manifest-3.json")
+MANIFEST_SHA = "0eb02a8f447fdea58032583e2828f4fe5f38dc28b15a9b810939cb532851ee7f"
 P = Path("docs/validation/evidence/underground-room-frontier-publication-2026-10-04")
 I = Path("docs/validation/evidence/underground-room-itinerary-census-2026-10-05")
 C = Path("docs/validation/evidence/underground-room-owner-composition-2026-10-04")
@@ -259,6 +259,42 @@ def ui_notice_alias(current, manifest, blobs):
             "additional_reserved_bytes": 0}
 
 
+def entry_air_contact_memory(current, manifest, blobs, view):
+    """Recount the exact current physical-plan predicate before selecting any historical source.
+
+    All complete volume rows and existing retained storage remain byte-exact.
+    The new scalar helper affects only additional positive air-contact rows;
+    real physical acceptance is independently recorded, not inferred here.
+    """
+    row = manifest["entry_air_contact"]
+    original = blobs[row["previous_locator"]].decode()
+    source = current["underground_entry_world_bindings"].text
+    helper = ('func _entry_has_air_contact(actual: PhaseContacts, role: int) -> bool:\n'
+              '\t"""Contacts already proves complete stance residuals; only above-plane primitives additionally describe air approach."""\n'
+              '\treturn _entry_is_approach(role) and _entry_box[4] > actual._location.point.y\n\n\n')
+    require(source.count(helper) == 1 and source.count("_entry_has_air_contact(actual, role)") == 1
+            and source.count("_entry_has_air_contact(actual, actual._box.role)") == 2,
+            "entry air-contact exact predicate and three uses")
+    reconstructed = source.replace(helper, "", 1).replace("_entry_has_air_contact(actual, role)",
+        "_entry_is_approach(role)").replace("_entry_has_air_contact(actual, actual._box.role)",
+        "_entry_is_approach(actual._box.role)")
+    require(reconstructed == original, "entry air-contact changed another source byte")
+    census = producer(Path(row["census"]), blobs, view=view)
+    retained, native = census["packet"](source)
+    old_retained, old_native = census["packet"](original)
+    frames, previous = census["frames"](source), census["frames"](original)
+    receipt = json.loads(blobs[row["receipt"]])
+    require(retained == old_retained and native == old_native and sum(retained.values()) == 202
+            and frames["bytes"] == previous["bytes"] == receipt["own_numeric_chain"]["bytes"] == 224
+            and receipt["source_sha256"] == digest(source.encode())
+            and receipt["own_helper_reserve_bytes"] == 1024
+            and receipt["fixed_plus_helper_bytes"] == 1226, "entry air-contact existing reservation")
+    return {"source_sha256": digest(source.encode()), "previous_source_sha256": digest(original.encode()),
+            "fixed_bytes": sum(retained.values()), "own_numeric_frames": frames,
+            "existing_helper_reservation": 1024, "existing_total_reservation": 2048,
+            "additional_reserved_bytes": 0, "native_measured": False}
+
+
 def publication(current, manifest, blobs, view):
     census = producer(P / "census.py", blobs, view=view)
 
@@ -418,6 +454,7 @@ def build(index):
     manifest, blobs, current = verified_inputs(index)
     alias = ui_notice_alias(current, manifest, blobs)
     view = FrozenInputs(blobs, current)
+    entry = entry_air_contact_memory(current, manifest, blobs, view)
     runtime, paths, metadata = source_extensions(current, manifest, blobs, view)
     # Only after all current changed-call/source proofs, select the exact old
     # source versions needed by immutable predecessor constructors and1156.
@@ -439,6 +476,7 @@ def build(index):
     result = {
         "scope": __doc__, "manifest_sha256": MANIFEST_SHA,
         "current_ui_alias": alias,
+        "current_entry_air_contact": entry,
         "current_source_sha256": {row["path"]: row["sha256"] for row in manifest["sources"].values()},
         "historical_projection": manifest["baseline"],
         "historical_current_projection": manifest["previous_current"],

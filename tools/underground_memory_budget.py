@@ -821,6 +821,7 @@ def entry_world_storage_statements(source: str) -> None:
         '_entry_air.resize(6)',
         '_entry_reach.resize(6)',
         'code = actual._profile_bounds(actual._box, _entry_box)',
+        'return _entry_is_approach(role) and _entry_box[4] > actual._location.point.y',
         'var code: StringName = actual._profile_bounds(actual._box, _entry_box)',
         '_entry_append_row(out.volumes, _entry_box, role, actual._location.level, _entry_room, out.owner_revision)',
         '_entry_air[axis] = maxi(_entry_box[axis], actual._location.envelope[axis])',

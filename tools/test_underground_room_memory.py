@@ -243,24 +243,85 @@ class RoomMemoryWitnessTests(unittest.TestCase):
         self.assertEqual(result["current_publication_metadata"]["joint"], 248632)
 
     def test_ui_successor_changes_only_reviewed_alias_and_dependency_closure(self):
-        row = self.manifest["ui_alias"]
+        # The UI successor remains independently pinned inside the later entry
+        # successor; its original exact-delta proof must not absorb that change.
+        ui = json.loads((room.ROOT / self.manifest["entry_air_contact"]["previous_manifest"]["path"]).read_bytes())
+        row = ui["ui_alias"]
         old = json.loads((room.ROOT / row["previous_manifest"]["path"]).read_bytes())
         sources = dict(old["sources"])
-        sources["ui_manager"] = self.manifest["sources"]["ui_manager"]
+        sources["ui_manager"] = ui["sources"]["ui_manager"]
         sources["ui_notices"] = row["dependency"]
-        self.assertEqual(self.manifest["sources"], sources)
+        self.assertEqual(ui["sources"], sources)
         witnesses = dict(old["witnesses"])
-        witnesses.update({self.manifest["sources"]["ui_manager"]["path"]:
-                          self.manifest["sources"]["ui_manager"]["sha256"],
+        witnesses.update({ui["sources"]["ui_manager"]["path"]:
+                          ui["sources"]["ui_manager"]["sha256"],
                           row["previous_manifest"]["path"]: row["previous_manifest"]["sha256"],
                           row["original"]["locator"]: row["original"]["sha256"],
                           row["dependency"]["path"]: row["dependency"]["sha256"]})
-        self.assertEqual(self.manifest["witnesses"], witnesses)
+        self.assertEqual(ui["witnesses"], witnesses)
         versions = dict(old["historical_versions"])
         versions[row["original"]["sha256"]] = row["original"]
-        self.assertEqual(self.manifest["historical_versions"], versions)
+        self.assertEqual(ui["historical_versions"], versions)
         for key in set(old) - {"checkpoint", "sources", "witnesses", "historical_versions"}:
+            self.assertEqual(ui[key], old[key])
+
+    def test_entry_successor_changes_only_reviewed_owner_and_evidence_closure(self):
+        row = self.manifest["entry_air_contact"]
+        old = json.loads((room.ROOT / row["previous_manifest"]["path"]).read_bytes())
+        sources = dict(old["sources"])
+        sources["underground_entry_world_bindings"] = self.manifest["sources"]["underground_entry_world_bindings"]
+        self.assertEqual(self.manifest["sources"], sources)
+        witnesses = dict(old["witnesses"])
+        extra = [row["previous_manifest"]["path"], row["previous_locator"], row["receipt"], row["census"],
+                 str(room.MANIFEST.parent / "independent-review-1/review.json"),
+                 str(room.MANIFEST.parent / "independent-review-1/review.py")]
+        witnesses.update({p: hashlib.sha256((room.ROOT / p).read_bytes()).hexdigest() for p in extra})
+        self.assertEqual(self.manifest["witnesses"], witnesses)
+        versions = dict(old["historical_versions"])
+        versions[row["previous_sha256"]] = dict(path=row["source"], locator=row["previous_locator"], sha256=row["previous_sha256"])
+        self.assertEqual(self.manifest["historical_versions"], versions)
+        self.assertEqual(set(self.manifest) - set(old), {"entry_air_contact"})
+        for key in set(old) - {"sources", "witnesses", "historical_versions"}:
             self.assertEqual(self.manifest[key], old[key])
+
+    def test_entry_recount_preserves_old_packet_and_current_numeric_ceiling(self):
+        result, historical = room.build(self.index)
+        entry = result["current_entry_air_contact"]
+        self.assertEqual(entry["fixed_bytes"], 202)
+        self.assertEqual(entry["own_numeric_frames"]["bytes"], 224)
+        self.assertEqual(entry["existing_helper_reservation"], 1024)
+        self.assertEqual(entry["existing_total_reservation"], 2048)
+        self.assertEqual(entry["additional_reserved_bytes"], 0)
+        self.assertFalse(entry["native_measured"])
+        self.assertEqual(hashlib.sha256(historical["underground_entry_world_bindings"].text.encode()).hexdigest(),
+                         self.manifest["entry_air_contact"]["previous_sha256"])
+
+    def test_entry_current_source_changes_refuse_before_producer(self):
+        _, _, current = room.verified_inputs(self.index)
+        source = current["underground_entry_world_bindings"]
+        for text in (source.text + "\nvar hidden: int = 1\n", source.text.replace("_entry_box[4] >", "_entry_box[4] >=", 1)):
+            with self.subTest(tail=text[-60:]), mock.patch.object(room, "producer") as execute:
+                with self.assertRaisesRegex(ValueError, "current reviewed source changed"):
+                    room.build(dict(self.index, underground_entry_world_bindings=source._replace(text=text)))
+                execute.assert_not_called()
+
+    def test_entry_exact_predicate_cannot_admit_other_source_bytes(self):
+        manifest, blobs, current = room.verified_inputs(self.index)
+        source = current["underground_entry_world_bindings"]
+        for text in (source.text + "\n# hidden\n", source.text.replace("_entry_box[4] >", "_entry_box[4] >=", 1),
+                     source.text.replace("and _entry_box[4] > actual._location.point.y", "", 1)):
+            changed = dict(current, underground_entry_world_bindings=source._replace(text=text))
+            with self.subTest(tail=text[-60:]), mock.patch.object(room, "producer") as execute:
+                with self.assertRaisesRegex(ValueError, "entry air-contact"):
+                    room.entry_air_contact_memory(changed, manifest, blobs, room.FrozenInputs(blobs, changed))
+                execute.assert_not_called()
+
+    def test_entry_receipt_census_and_original_cannot_drift_before_replay(self):
+        row = self.manifest["entry_air_contact"]
+        for relative in [row["previous_locator"], row["previous_manifest"]["path"], row["census"], row["receipt"]]:
+            path = room.ROOT / relative
+            with self.subTest(path=relative):
+                self.refuses_before_replay({path: path.read_bytes() + b"\n# changed\n"})
 
     def test_current_ui_alias_keeps_original_accounting_bytes_separate(self):
         result, historical = room.build(self.index)

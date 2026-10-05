@@ -32,8 +32,15 @@ assertion parity is not claimed. The earlier8f failures remain retained.
 Reviewed commits `c975e1bd`/`1ad0a090` additionally publish the authored L0/T0
 structure and wood-only bills. Actual generated-Host source readers pass
 2 tests/45 assertions/all-zero and analyzer0/1. This immutable data grants no
-paid progress or access. The source-bound excavation Frontier is in focused
-acceptance; paid handling and original entry-owner integration continue.
+paid progress or access. The source-bound excavation Frontier is committed at `b315b7c7`; its complete
+source paths and all six cuts were independently reviewed. The next actual
+source fixture now completes four L0 cubes through 12 real paid phases, including
+worker movement between them, while retaining unsupported-body refusals.
+Its three strict suites pass **61 tests / 11,093 assertions / zero failures**,
+all diagnostic/leak counters zero, analyzer **0/2**. This exercises the actual
+owners in a test fixture; demo worker dispatch, paid timber handling and the
+original entry-owner composition remain open. [Source-phase evidence](../../validation/evidence/underground-entry-source-phases-2026-10-05/README.md)
+retains the observed defect, fix, tests and limitations.
 
 The [previously completed successful remote CI](../../validation/evidence/underground-short-step-itinerary-2026-10-05/ci-ca1edc3f/README.md)
 was at `ca1edc3f`: all 14 jobs passed on attempt 2, with 406 files exactly once,

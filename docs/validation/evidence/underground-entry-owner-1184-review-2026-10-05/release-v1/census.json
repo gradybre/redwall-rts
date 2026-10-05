@@ -1,0 +1,235 @@
+{
+  "scope": "Three owner-local release APIs only. The full Session/kernel/constructor lifetime is not admitted.",
+  "source_sha256": {
+    "godot/scripts/core/underground_entry_bindings.gd": "f94bc772b7faace72464a000d1b0c71ea725f9ca573db788b094311391a3b183",
+    "godot/scripts/core/underground_connector_placements.gd": "07d41b2dfdb6294a13e681e21fbb93b8e4b643f4befd60ae5136888512009c7a",
+    "godot/scripts/core/underground_connector_delivery.gd": "ecfecabe1b3ed05e5d4ae7870c75383302330526879c7a6321f7afb25090a583"
+  },
+  "baseline_manifest_sha256": "e32f021d25986e02ca3f1330cfce32ce227495d7a72ac29bd2d1db93c96bb883",
+  "canonical_clear_sha256": "e893b278f8b1f35e6e8f6e3971e8ade136662a0d3f1f5b619042d18e17506fcd",
+  "producer_sha256": {
+    "docs/validation/evidence/underground-route-owner-composition-2026-10-04/census.py": "8bd2efa690a3bb8df310297300a4cc54135e5d15452f993a49b56fd4d8fb6fbe",
+    "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/census.py": "d1aeaf209dd9c400fc3cb6a8dc6adc46ad52a6a44f2d136a044ab3705a4d7a17"
+  },
+  "fixed_members": {
+    "Entry": {
+      "numeric_bytes": 74,
+      "reference_or_buffer_values": 12,
+      "retained_delta": 0
+    },
+    "Placement": {
+      "numeric_bytes": 135,
+      "reference_or_buffer_values": 38,
+      "retained_delta": 0
+    },
+    "Delivery": {
+      "numeric_bytes": 180,
+      "reference_or_buffer_values": 17,
+      "retained_delta": 0
+    }
+  },
+  "phases": {
+    "Entry": {
+      "numeric_bytes": 50,
+      "reference_values": 8,
+      "numeric_chain": [
+        "Entry.world_retirement_release_preflighted_in",
+        "Buildings.whole_world_retirement_refusal_in"
+      ],
+      "reference_chain": [
+        "Entry.world_retirement_release_preflighted_in",
+        "Entry.retirement_refusal_in",
+        "Entry._retirement_entry_pins_in",
+        "Entry._retirement_weak_in"
+      ],
+      "provisional_bytes": 562,
+      "frames": {
+        "Buildings.whole_world_retirement_refusal_in": {
+          "numeric_and_name_bytes": 25,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Entry._release_retired_buffers_in": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "void"
+        },
+        "Entry._retirement_entry_pins_in": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 2,
+          "calls": [
+            "Entry._retirement_weak_in"
+          ],
+          "returns": "StringName"
+        },
+        "Entry._retirement_weak_in": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "bool"
+        },
+        "Entry.retirement_refusal_in": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 2,
+          "calls": [
+            "Entry._retirement_entry_pins_in",
+            "Entry._retirement_weak_in"
+          ],
+          "returns": "StringName"
+        },
+        "Entry.world_retirement_release_preflighted_in": {
+          "numeric_and_name_bytes": 25,
+          "reference_values": 2,
+          "calls": [
+            "Buildings.whole_world_retirement_refusal_in",
+            "Entry._release_retired_buffers_in",
+            "Entry.retirement_refusal_in"
+          ],
+          "returns": "StringName"
+        }
+      }
+    },
+    "Placement": {
+      "numeric_bytes": 50,
+      "reference_values": 6,
+      "numeric_chain": [
+        "Placement.world_retirement_release_preflighted_in",
+        "Buildings.whole_world_retirement_refusal_in"
+      ],
+      "reference_chain": [
+        "Placement.retirement_refusal_in",
+        "Placement._retirement_owned_refusal_in",
+        "Placement._retirement_stores_in"
+      ],
+      "provisional_bytes": 498,
+      "frames": {
+        "Buildings.whole_world_retirement_refusal_in": {
+          "numeric_and_name_bytes": 25,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Placement._release_retired_bank_in": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "void"
+        },
+        "Placement._release_retired_links_in": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "void"
+        },
+        "Placement._release_retired_sources_in": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "void"
+        },
+        "Placement._retirement_owned_refusal_in": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [
+            "Placement._retirement_stores_in"
+          ],
+          "returns": "StringName"
+        },
+        "Placement._retirement_stores_in": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Placement._retirement_weak_in": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "bool"
+        },
+        "Placement.retirement_refusal_in": {
+          "numeric_and_name_bytes": 17,
+          "reference_values": 2,
+          "calls": [
+            "Placement._retirement_owned_refusal_in",
+            "Placement._retirement_weak_in"
+          ],
+          "returns": "StringName"
+        },
+        "Placement.world_retirement_release_preflighted_in": {
+          "numeric_and_name_bytes": 25,
+          "reference_values": 2,
+          "calls": [
+            "Buildings.whole_world_retirement_refusal_in",
+            "Placement._release_retired_bank_in",
+            "Placement._release_retired_links_in",
+            "Placement._release_retired_sources_in",
+            "Placement._retirement_owned_refusal_in"
+          ],
+          "returns": "StringName"
+        }
+      }
+    },
+    "Delivery": {
+      "numeric_bytes": 50,
+      "reference_values": 6,
+      "numeric_chain": [
+        "Delivery.world_retirement_release_preflighted_in",
+        "Buildings.whole_world_retirement_refusal_in"
+      ],
+      "reference_chain": [
+        "Delivery.world_retirement_release_preflighted_in",
+        "Delivery.retirement_refusal_in",
+        "Delivery._retirement_sources_in"
+      ],
+      "provisional_bytes": 498,
+      "frames": {
+        "Buildings.whole_world_retirement_refusal_in": {
+          "numeric_and_name_bytes": 25,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Delivery._release_retired_packet_in": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 1,
+          "calls": [],
+          "returns": "void"
+        },
+        "Delivery._retirement_sources_in": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 2,
+          "calls": [],
+          "returns": "StringName"
+        },
+        "Delivery.retirement_refusal_in": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 2,
+          "calls": [
+            "Delivery._retirement_sources_in"
+          ],
+          "returns": "StringName"
+        },
+        "Delivery.world_retirement_release_preflighted_in": {
+          "numeric_and_name_bytes": 25,
+          "reference_values": 2,
+          "calls": [
+            "Buildings.whole_world_retirement_refusal_in",
+            "Delivery._release_retired_packet_in",
+            "Delivery.retirement_refusal_in"
+          ],
+          "returns": "StringName"
+        }
+      }
+    }
+  },
+  "maximum_standalone_helper_bytes": 562,
+  "additional_retained_bytes": 0,
+  "additional_constructor_allocation_bytes": 0,
+  "future_composed_kernel_admitted": false,
+  "native_measured": false,
+  "runtime_qualified": false,
+  "accounting_note": "32 B references and one 256 B expression/native term are provisional. No new reserve or inference from the initial 8186/8192 constructor."
+}

@@ -1,0 +1,123 @@
+#!/usr/bin/env python3
+"""Independent read-only 1189 accounting and final-test review; write only beside this script."""
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+import sys
+import unittest
+from unittest import mock
+
+ROOT = Path('/Users/brendan/Developer/redwall-rts-codex-ug-integration')
+OUT = Path(__file__).resolve().parent
+PINS = {
+    'tools/underground_room_memory.py': '5f9e8286551da0839f4d83c27b81883974fc8dcffee26969baeba6e1a53c6647',
+    'tools/test_underground_room_memory.py': '526b9bea2e4f2a1beeded2e98a3f8fae63d53ff8542ee3b34ad46e567bff4ff7',
+    'tools/underground_memory_budget.py': 'f028aae48a7a99835f5aa5ec7121bc2bf816ec83a62da44851756b82e9a7f85e',
+    'tools/test_underground_memory_budget.py': 'f93ebe8c200210f7f08e2b3c82a9b4972f4152522e08ed7296c2ba71460cc6fa',
+    'godot/scripts/core/underground_entry_world_bindings.gd': 'dcc07743ea142f4665e939387726fdcbf2a4db609f1f9047c606d3e405550c0b',
+    'godot/test/test_underground_entry_source_phases.gd': '0529d1ba91efe782c2319e9b3edc12a32b9537a27bddd607f97ae4a67ce4fc76',
+    'docs/validation/evidence/underground-entry-source-phases-2026-10-05/memory-manifest-3.json': '0eb02a8f447fdea58032583e2828f4fe5f38dc28b15a9b810939cb532851ee7f',
+    'docs/validation/evidence/underground-first-prefix-2026-10-03/phase_census.py': '734673a527d9c89908e1357bfa30bbf671dcf5a663892c7fc33e0be0f5d59bd1',
+}
+
+
+def hashes():
+    return {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest() for p in PINS}
+
+
+def load(name, path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def main():
+    if hashes() != PINS:
+        raise ValueError('REVIEW_PINS_CHANGED')
+    sys.path.insert(0, str(ROOT / 'tools'))
+    import audit_registry_capacities as audit
+    import underground_room_memory as room
+    import underground_memory_budget as budget
+    tests = load('review_room_tests', ROOT / 'tools/test_underground_room_memory.py')
+    budget_tests = load('review_budget_tests', ROOT / 'tools/test_underground_memory_budget.py')
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(tests.RoomMemoryWitnessTests)
+    for name in ('test_negative_entry_world_air_predicate_cannot_hide_new_array_alias',
+                 'test_negative_entry_world_air_predicate_is_the_exact_read_only_statement'):
+        suite.addTest(budget_tests.JointPackTests(name))
+    with (OUT / 'tests.log').open('w') as log:
+        result = unittest.TextTestRunner(stream=log, verbosity=2).run(suite)
+    if not result.wasSuccessful():
+        raise ValueError('FOCUSED_TESTS_FAILED')
+    index = audit.load_source_index()
+    manifest, blobs, current = room.verified_inputs(index)
+    actual, historical = room.build(index)
+    name = 'underground_entry_world_bindings'
+    source = current[name]
+    line = 'return _entry_is_approach(role) and _entry_box[4] > actual._location.point.y'
+    mutants = {
+        'indexed_read_changed': source.text.replace('_entry_box[4] >', '_entry_box[5] >', 1),
+        'role_call_removed': source.text.replace('_entry_is_approach(role) and _entry_box[4]', '_entry_box[4]', 1),
+        'same_line_allocation': source.text.replace(line, line + '; var hidden: Array = [0, 0, 0]', 1),
+        'hidden_alias': source.text.replace(line, 'var alias: PackedInt32Array = _entry_box\n\talias.resize(1024)\n\t' + line, 1),
+        'mixed_doc_executable': source.text.replace('"""Contacts already proves complete stance residuals; only above-plane primitives additionally describe air approach."""',
+                     '"""Contacts already proves complete stance residuals; only above-plane primitives additionally describe air approach."""; _entry_box.resize(64)', 1),
+    }
+    refused = {}
+    for label, text in mutants.items():
+        if text == source.text:
+            raise ValueError('INEFFECTIVE_MUTANT:' + label)
+        injected = dict(current, **{name: source._replace(text=text)})
+        with mock.patch.object(room, 'producer') as execute:
+            try:
+                room.build(dict(index, **{name: source._replace(text=text)}))
+            except ValueError as error:
+                refused[label] = {'public': str(error)}
+            else:
+                raise ValueError('MUTANT_ACCEPTED:' + label)
+            execute.assert_not_called()
+            try:
+                room.entry_air_contact_memory(injected, manifest, blobs, room.FrozenInputs(blobs, injected))
+            except ValueError as error:
+                refused[label]['direct_reconstruction'] = str(error)
+            else:
+                raise ValueError('DIRECT_MUTANT_ACCEPTED:' + label)
+            execute.assert_not_called()
+        try:
+            budget.entry_world_storage_statements(text)
+        except AssertionError as error:
+            refused[label]['allocation_alias_guard'] = str(error)
+        else:
+            if label != 'mixed_doc_executable':
+                raise ValueError('STORAGE_MUTANT_ACCEPTED:' + label)
+            refused[label]['allocation_alias_guard'] = 'This pre-existing narrow scanner ignores docstring-prefixed lines. Both mandatory complete-source gates above reject the injected executable before census replay.'
+    row = manifest['entry_air_contact']
+    old = json.loads(blobs[row['previous_manifest']['path']])
+    changes = [key for key in old if manifest[key] != old[key]]
+    if set(changes) != {'sources', 'witnesses', 'historical_versions'}:
+        raise ValueError('UNEXPECTED_MANIFEST_DELTA')
+    if hashes() != PINS:
+        raise ValueError('REVIEW_PINS_CHANGED_DURING_EXECUTION')
+    receipt = {
+        'verdict': 'ACCEPTED within the exact source/accounting/test scope',
+        'source_sha256': PINS,
+        'focused_tests': result.testsRun,
+        'failures': 0,
+        'independent_mutants': refused,
+        'current_entry_air_contact': actual['current_entry_air_contact'],
+        'historical_source_sha256': hashlib.sha256(historical[name].text.encode()).hexdigest(),
+        'manifest_changed_existing_keys': changes,
+        'source_unchanged': True,
+        'engine_rerun': False,
+        'native_memory_qualified': False,
+        'whole_source4_integration_qualified': False,
+    }
+    (OUT / 'review.json').write_text(json.dumps(receipt, indent=2) + '\n')
+    print(json.dumps({'tests': result.testsRun, 'extra_mutants': len(refused), 'source_unchanged': True,
+                      'entry': actual['current_entry_air_contact']}, indent=2))
+
+
+if __name__ == '__main__':
+    main()

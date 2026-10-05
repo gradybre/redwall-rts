@@ -1,0 +1,2 @@
+PASS current EntryWorld source accepted and exact previous body reconstructed for historical producer replay
+{'absent_original_scope_and_copy_bytes': 2097, 'remaining_controls': 4034, 'constructor_stack_and_heap': 4151, 'simultaneous_total': 8185, 'ceiling': 8192, 'remaining': 7}

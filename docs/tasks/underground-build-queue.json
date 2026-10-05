@@ -4043,6 +4043,27 @@
           "tests": "2 test(s),45assertion(s),0failures; strict/raw diagnostics/leaks0, analyzer0/1;7Python tests and3independent source refusals",
           "evidence": "docs/validation/evidence/underground-first-entry-publication-2026-10-05/",
           "scope": "Actual current v4 Catalog/Grouping/Recipe bytes:14completeprisms8bearings2wood-onlybills,5wood44WU. NoFrontier/Workpieces/stairpace/activation; six-cube source-positive phases and complete descent remain open."
+        },
+        "frontier_source_1188": {
+          "integration_commit": "b315b7c7",
+          "tests": "8 Python tests;4 test(s),212 assertion(s),0 failure(s); strict/raw diagnostics/leaks0, analyzer0/1",
+          "review": "docs/validation/evidence/underground-entry-frontier-source-2026-10-05/independent-review-2/",
+          "scope": "All six cuts bind full source25/17 work envelopes and source12 routes over real retained-ground perimeter; immutable source only, no paid or demo activation."
+        },
+        "source_phases_1189": {
+          "status": "focused execution, exact final test and memory renewal independently accepted",
+          "evidence": "docs/validation/evidence/underground-entry-source-phases-2026-10-05/",
+          "focused": "61 test(s),11093 assertion(s),0 failure(s); strict/raw unexpected/expected/tolerated/leak counters0; analyzer0/2",
+          "physical": "Actual source fixture performs12 BRACE/CUT/FINISH phases across4L0 cubes using real perimeter motion:36000mWU,1000wood_milli and1000stone_milli consumed,8000earth_milli produced once. Only initial arrival and finite stock are explicit setup.",
+          "memory": "285 Python tests and190capacity checks pass; permanent pack99999806 B/headroom194 exactly matches evidence pack; --check passes; no native qualification.",
+          "limits": "No crew UI dispatch, timber handling/fastening, full entry or empty Kitchen acceptance; eb95 remains last full milestone.",
+          "review": "independent-memory-review-1:8exactsourcepins,39Pythonchecks,5independentmutants rejected; final4cube test accepted. independent-review-1:exactsource geometry and7diagnostic outputs accepted."
+        },
+        "owner_release_1184_review": {
+          "status": "independently accepted component; author full-kernel work continues",
+          "evidence": "docs/validation/evidence/underground-entry-owner-1184-review-2026-10-05/release-v1/",
+          "tests": "Independent11census tests and exact replay; author86tests11684assertions strict/raw allzero, analyzer0/4 and restoration verified",
+          "scope": "Three EntryBindings/Placement/Delivery release leaves only; no new retained fields/constructor allocations. Full original HostPlanner/clock and private Session retirement still require composition acceptance."
         }
       },
       "lease": {
@@ -4302,9 +4323,19 @@
               "godot/test/test_underground_entry_frontier_source.gd",
               "godot/test/test_underground_entry_frontier_source.gd.uid",
               "docs/decisions/1188-source-bound-first-entry-work-frontier.md",
-              "docs/validation/evidence/underground-entry-frontier-source-2026-10-05/"
+              "docs/validation/evidence/underground-entry-frontier-source-2026-10-05/",
+              "godot/test/test_underground_entry_source_phases.gd",
+              "godot/test/test_underground_entry_source_phases.gd.uid",
+              "docs/decisions/1189-actual-source-first-entry-phase-execution.md",
+              "docs/validation/evidence/underground-entry-source-phases-2026-10-05/",
+              "godot/scripts/core/underground_entry_world_bindings.gd",
+              "tools/underground_room_memory.py",
+              "tools/test_underground_room_memory.py",
+              "tools/underground_memory_budget.py",
+              "tools/test_underground_memory_budget.py",
+              "docs/validation/evidence/underground-entry-owner-1184-review-2026-10-05/"
             ],
-            "handoff": "1187 structural source independently accepted c975e1bd/1ad0a090. Root now owns separate1188 source-bound Frontier compiler/real-reader/physical candidate; no live activation.1178/1183 handling and1184 lifecycle remain separate leases."
+            "handoff": "1187 structural source independently accepted c975e1bd/1ad0a090. Root now owns separate1188 source-bound Frontier compiler/real-reader/physical candidate; no live activation.1178/1183 handling and1184 lifecycle remain separate leases. Root1189 owns separate actual-source paid-phase probe using real full v4 programs, real terrain/economy and perimeter routes; no paid-state injection or first-Kitchen claim. 1188 committed b315b7c7;1189 four-source-cube probe and strict61-test regressions pass; independent memory renewal and final test review accepted. Original1184 three release leaves independently reviewed in own evidence; author retains runtime ownership."
           }
         ]
       }
@@ -5895,6 +5926,15 @@
       "scope": "Complete current CI contract commands within15m hang guard; exported pack retains exact tenth short-step consumer",
       "focused": "12tests249assertions0failures; strict/raw diagnostics/leaks0; analyzer0/1",
       "evidence": "docs/validation/evidence/underground-export-consumers-2026-10-05/"
+    },
+    {
+      "id": "1189",
+      "status": "independently accepted; staged integration checkpoint",
+      "scope": "Exact full-source air-contact correction permits actual paid four-cube excavation; all volume/support/economy gates retained. Current memory successor explicitly pins and recounts source.",
+      "evidence": "docs/validation/evidence/underground-entry-source-phases-2026-10-05/",
+      "focused": "61tests11093assertions/allzero;analyzer0/2",
+      "memory": "285tests+190capacitychecks;independent39tests5mutants;99999806Bunchanged",
+      "limits": "Integration fixture, not demo dispatch, complete paid entry, Kitchen or runtime qualification."
     }
   ]
 }

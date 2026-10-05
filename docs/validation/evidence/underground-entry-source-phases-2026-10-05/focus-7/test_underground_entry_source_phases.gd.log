@@ -1,0 +1,27 @@
+state_registry_coverage: PASS -- 154 modules, 731 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_entry_source_phases.gd
+  PASS  test_real_source_first_cube_earns_paid_brace_cut_and_finish
+  PASS  test_wholly_negative_body_residual_cannot_be_omitted
+  PASS  test_four_landing_cubes_require_real_source_travel_and_paid_phases
+  PASS  test_mixed_body_residual_cannot_be_clipped_to_air
+CI_SUITE_TIME {"assertions":13,"failures":0,"suite":"test_underground_entry_source_phases.gd","tests":4,"usec":18783690}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+4 test(s), 13 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 4 tests, 13 assertions, 0 failures.

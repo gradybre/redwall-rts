@@ -1,0 +1,31 @@
+{
+  "tests": 39,
+  "extra_mutants": 5,
+  "source_unchanged": true,
+  "entry": {
+    "source_sha256": "dcc07743ea142f4665e939387726fdcbf2a4db609f1f9047c606d3e405550c0b",
+    "previous_source_sha256": "d6516eadfa67b28e3b46b01d1509d3977c4635e54c6b9e0b3e5c28241fb15ad2",
+    "fixed_bytes": 202,
+    "own_numeric_frames": {
+      "bytes": 224,
+      "path": [
+        "worker_refusal",
+        "_entry_contact_observation",
+        "_entry_pin",
+        "_entry_find",
+        "_entry_episode_matches"
+      ],
+      "frames": {
+        "worker_refusal": 68,
+        "_entry_contact_observation": 44,
+        "_entry_pin": 32,
+        "_entry_find": 16,
+        "_entry_episode_matches": 64
+      }
+    },
+    "existing_helper_reservation": 1024,
+    "existing_total_reservation": 2048,
+    "additional_reserved_bytes": 0,
+    "native_measured": false
+  }
+}

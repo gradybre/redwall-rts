@@ -956,6 +956,13 @@ class JointPackTests(unittest.TestCase):
     def test_negative_entry_world_wider_box(self) -> None:
         self.entry_world_refuses("_entry_box: PackedInt32Array", "_entry_box: PackedInt64Array")
 
+    def test_negative_entry_world_air_predicate_cannot_hide_new_array_alias(self) -> None:
+        line = "return _entry_is_approach(role) and _entry_box[4] > actual._location.point.y"
+        self.entry_world_refuses(line, "var alias: PackedInt32Array = _entry_box\n\talias.resize(64)\n\t" + line)
+
+    def test_negative_entry_world_air_predicate_is_the_exact_read_only_statement(self) -> None:
+        self.entry_world_refuses("and _entry_box[4] > actual._location.point.y", "and _entry_box[4] >= actual._location.point.y")
+
     def test_negative_entry_world_larger_box(self) -> None:
         self.entry_world_refuses("_entry_box.resize(6)", "_entry_box.resize(7)")
 

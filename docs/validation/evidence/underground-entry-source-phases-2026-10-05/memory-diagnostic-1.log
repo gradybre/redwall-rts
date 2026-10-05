@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "<stdin>", line 5, in <module>
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-integration/tools/underground_room_memory.py", line 424, in build
+    previous = projected(current, manifest["previous_current"], blobs, manifest["historical_versions"])
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-integration/tools/underground_room_memory.py", line 195, in projected
+    original = row if "locator" in row else versions[row["sha256"]]
+KeyError: 'd6516eadfa67b28e3b46b01d1509d3977c4635e54c6b9e0b3e5c28241fb15ad2'

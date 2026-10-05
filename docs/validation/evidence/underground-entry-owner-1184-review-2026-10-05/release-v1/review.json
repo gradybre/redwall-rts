@@ -1,0 +1,39 @@
+{
+  "scope": "Owner-local EntryBindings, Placements and Delivery release only; complete Session kernel remains open.",
+  "reviewer": "/root",
+  "source_sha256": {
+    "godot/scripts/core/underground_entry_bindings.gd": "f94bc772b7faace72464a000d1b0c71ea725f9ca573db788b094311391a3b183",
+    "godot/scripts/core/underground_connector_placements.gd": "07d41b2dfdb6294a13e681e21fbb93b8e4b643f4befd60ae5136888512009c7a",
+    "godot/scripts/core/underground_connector_delivery.gd": "ecfecabe1b3ed05e5d4ae7870c75383302330526879c7a6321f7afb25090a583",
+    "godot/test/test_underground_entry_composition.gd": "d8c2ba09d7d1357a2d7518cb5dfff4d1ce8f036f7e1195e1f92dc06b83c9bb46",
+    "godot/test/test_underground_entry_composition.gd.uid": "ea882f0046951dc33ac5ea9e243b8fa978a56332b9c7e23ba7446947a7101158",
+    "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/entry-release-v1/census.py": "c04d5853afc8f658e79f2b4395c4566b09092308b449af89238c3e1bdd13b2d4",
+    "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/entry-release-v1/test_census.py": "c81b4a0efc40886892c35d15984716d0b38c8d91a95fa0a4df1a72becdf23933",
+    "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/entry-release-v1/reproduce.py": "c1b04dd36eed5d94bf5a71da99667a0a0174f779ae043cde67981a038607d16f"
+  },
+  "source_locators": {
+    "godot/test/test_underground_entry_composition.gd": "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/entry-release-v1/candidate-2/executed-source/test_underground_entry_composition.gd.txt"
+  },
+  "source_unchanged": true,
+  "independent_census_tests": 11,
+  "census_byte_identical": true,
+  "author_engine_evidence_verified": {
+    "tests": 86,
+    "assertions": 11684
+  },
+  "engine_repeated_by_reviewer": false,
+  "additional_retained_bytes": 0,
+  "additional_constructor_allocation_bytes": 0,
+  "standalone_helper_bytes": {
+    "Entry": 562,
+    "Placement": 498,
+    "Delivery": 498
+  },
+  "verdict": "ACCEPTED for this narrow release component; no full-kernel, production publication or native qualification.",
+  "required_composition_checks": [
+    "Capture and match the original Host Planner and SimClock identities before any clear.",
+    "All owner and canonical core preflights must finish before the first release write.",
+    "Retain exact stopped constructor prefixes; foreign or active context links must refuse.",
+    "Prove the complete release order and new constructor/helper lifetimes within existing ceilings."
+  ]
+}

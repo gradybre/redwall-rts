@@ -1,0 +1,70 @@
+{
+  "head": "b315b7c7deb32be41b006aaea3601faa486370c9",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "log": "clean-import.log",
+      "exit_code": 0,
+      "seconds": 12.276
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "234/413",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-entry-source-phases-2026-10-05/focus-5/test_underground_entry_source_phases"
+      ],
+      "log": "test_underground_entry_source_phases.gd.log",
+      "exit_code": 0,
+      "seconds": 10.017
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6503",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-entry-source-phases-2026-10-05/focus-5/analyzer.json",
+        "godot/test/test_underground_entry_source_phases.gd",
+        "godot/scripts/core/underground_entry_world_bindings.gd"
+      ],
+      "log": "analyzer.log",
+      "exit_code": 0,
+      "seconds": 13.269
+    }
+  ],
+  "scope": "Focused official singleton suite plus zero-warning analyzer, not a full no-argument milestone",
+  "assets_present_before": true,
+  "runtime_qualified": false,
+  "import_findings": [],
+  "counts": {
+    "test_underground_entry_source_phases.gd": {
+      "tests": 3,
+      "assertions": 9,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    }
+  },
+  "analyzer_raw_findings": [],
+  "project_restored": true,
+  "assets_restored": true,
+  "sources_unchanged": true,
+  "old_sidecars_restored": true,
+  "exit_code": 0
+}

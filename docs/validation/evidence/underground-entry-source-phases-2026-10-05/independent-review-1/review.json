@@ -1,0 +1,64 @@
+{
+  "source_sha256": {
+    "godot/data/underground/first-entry-prefix-v1/rebind_handling_diagnostic.py": "cc19250c6ad2586aacd6510433bf01b6036007a10bee59547b71961b05a1ea77",
+    "godot/data/underground/first-entry-prefix-v1/test_rebind_handling_diagnostic.py": "c7cd80e158def000f4ecb973031547429a82d892307221d236b8be42ac989148",
+    "godot/data/underground/first-entry-prefix-v1/compile_entry_prefix.py": "5eaf2cf19cfcb1e1ac32dbcec53f04df7ca3832daa56a0c2c00382a5beeb94ba",
+    "godot/data/underground/first-entry-prefix-v1/compile_entry_frontier.py": "80e8446a89616982c9a6c39d0a2db4c4a388aa2e43534192a99f4728e2b548a0",
+    "godot/scripts/core/underground_entry_world_bindings.gd": "dcc07743ea142f4665e939387726fdcbf2a4db609f1f9047c606d3e405550c0b",
+    "docs/validation/evidence/underground-entry-source-phases-2026-10-05/focus-5/test_underground_entry_source_phases.gd.txt": "31f26a7e3165fe07ccb602248f42f179c9749553b5d609af5744989c8cc91fd9"
+  },
+  "source_unchanged": true,
+  "diagnostic_outputs": {
+    "mole-worker.ugprof": "17d9c229fdfe8ad1923f004db136653ab9834994ba946061be38ec7a2c862ff9",
+    "structure.ugconn": "eda41ce78d4a798e2160250e2d6760ec7507f0c651c1e7b9b8ad462ff65ab520",
+    "assemblies.ugasmb": "3bb788bf250f4628cc4ab6a0c1a5748478d7909753cb5d1a8056d5eb7a8f4a54",
+    "recipes.ugrecp": "3019f92d56713317550c417e732b057d238fe0b70adadca8b56289a1362391a8",
+    "frontier.ugfront": "a8d30864cf8e79ae51a0fa2f2b317d5ef07fbf3ceebc1c6eac0e4380a11b038a",
+    "ground-pace.ugconn": "877be0982eb6945c4c4f014e9de428b3ab278d1fddc630080e9c6bfe341a1ea8",
+    "manifest.json": "1c700c85e5aac0b31d298ab41cb98f7dd2b45f484f01a2cea9639e70acdd560f"
+  },
+  "diagnostic_tests": 6,
+  "entry_world": {
+    "retained_delta": 0,
+    "allocation_delta": 0,
+    "new_helper_numeric_bytes": 8,
+    "new_helper": {
+      "numeric_fields": [
+        [
+          "role",
+          "int"
+        ]
+      ],
+      "numeric_bytes": 8,
+      "calls": [
+        "_entry_is_approach"
+      ]
+    },
+    "old_own_chain": [
+      224,
+      [
+        "worker_refusal",
+        "_entry_contact_observation",
+        "_entry_pin",
+        "_entry_find",
+        "_entry_episode_matches"
+      ]
+    ],
+    "new_own_chain": [
+      224,
+      [
+        "worker_refusal",
+        "_entry_contact_observation",
+        "_entry_pin",
+        "_entry_find",
+        "_entry_episode_matches"
+      ]
+    ],
+    "existing_fixed": 202,
+    "existing_helper": 1024,
+    "reservation": 2048,
+    "scope": "Own numeric frame delta; foreign Contacts/phase caller ceilings retain their separately reviewed charge."
+  },
+  "verdict": "ACCEPTED narrow source/diagnostic scope; no production handling, World or native-memory qualification",
+  "reason": "Every source volume is retained; only positive-Y approach-role primitives emit additional air contacts. Unsupported complete negative and mixed BODY regressions still refuse before payment. Exact diagnostic content4 rebind preserves predecessor geometry, bills, and source selectors."
+}

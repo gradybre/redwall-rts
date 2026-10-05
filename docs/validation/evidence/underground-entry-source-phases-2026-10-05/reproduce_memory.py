@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+"""Evidence-only1189 reproduction; shared runtime/registry/generated pack stay untouched."""
+import argparse
+from datetime import datetime, timezone
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+
+ROOT=Path(__file__).resolve().parents[4]
+HERE=Path(__file__).resolve().parent
+FILES=[f'tools/underground_{n}.py' for n in ('room_memory','motion_memory','motion_clock_memory','memory_budget')]
+FILES += [f'tools/test_underground_{n}.py' for n in ('room_memory','motion_memory','motion_clock_memory','memory_budget')]
+
+
+def digest(path): return hashlib.sha256(path.read_bytes()).hexdigest()
+def stamp(): return datetime.now(timezone.utc).isoformat()
+
+
+def main():
+    parser=argparse.ArgumentParser();parser.add_argument('--out',type=Path,required=True)
+    args=parser.parse_args();out=args.out.resolve()
+    assert out.is_relative_to(HERE) and not out.exists()
+    out.mkdir()
+    manifest=json.loads((HERE/'memory-manifest-3.json').read_bytes())
+    protected={row['path'] for row in manifest['sources'].values()} | set(manifest['witnesses'])
+    protected |= {'godot/project.godot','docs/persistence_state_registry.md',
+                  'docs/planning/canonical_state_registry.json','docs/planning/registry_capacity_audit.json',
+                  'docs/planning/underground_memory_pack.json'}
+    pins=lambda paths:{p:digest(ROOT/p) for p in sorted(paths)}
+    start_sources=pins(FILES);before=pins(protected)
+    record={'checkpoint':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
+            'python':sys.executable,'started':stamp(),'source_sha256':start_sources,
+            'manifest_sha256':digest(HERE/'memory-manifest-3.json'),'protected_before':before,'commands':[]}
+    (out/'source-sha256.json').write_text(json.dumps(start_sources,indent=2)+'\n')
+    env=dict(os.environ,PYTHONPATH=str(ROOT/'tools'),PYTHONDONTWRITEBYTECODE='1')
+    def run(label,args):
+        now=time.monotonic();row={'label':label,'argv':args,'started':stamp()}
+        with (out/(label+'.log')).open('w') as stream:
+            completed=subprocess.run(args,cwd=ROOT,env=env,stdout=stream,stderr=subprocess.STDOUT)
+        row.update(exit_code=completed.returncode,seconds=time.monotonic()-now,finished=stamp(),log_sha256=digest(out/(label+'.log')))
+        record['commands'].append(row)
+        print(label,completed.returncode,round(row['seconds'],3),flush=True)
+        if completed.returncode: raise RuntimeError('gate failed: '+label)
+    try:
+        run('memory-tests',[sys.executable,'-B','tools/test_underground_memory_budget.py'])
+        proposed=out/'underground_memory_pack.json'
+        generate="import underground_memory_budget as m; from pathlib import Path; import sys; m.OUTPUT=Path(sys.argv[1]); sys.argv=['memory']; raise SystemExit(m.main())"
+        check=generate.replace("sys.argv=['memory']", "sys.argv=['memory','--check']")
+        run('pack-generate',[sys.executable,'-B','-c',generate,str(proposed)])
+        run('pack-check',[sys.executable,'-B','-c',check,str(proposed)])
+        run('registry-capacities',[sys.executable,'-B','tools/audit_registry_capacities.py','--check'])
+        run('capacity-tests',[sys.executable,'-B','tools/test_registry_capacity_audit.py'])
+        record['success']=True
+    except Exception as error:
+        record['success']=False;record['error']=str(error)
+    finally:
+        record.update(finished=stamp(),source_after=pins(FILES),protected_after=pins(protected))
+        record['source_unchanged']=record['source_after']==start_sources
+        record['protected_unchanged']=record['protected_after']==before
+        (out/'invocation.json').write_text(json.dumps(record,indent=2)+'\n')
+    return 0 if record['success'] and record['source_unchanged'] and record['protected_unchanged'] else 1
+
+
+if __name__=='__main__': raise SystemExit(main())

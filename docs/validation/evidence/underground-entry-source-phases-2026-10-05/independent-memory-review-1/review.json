@@ -1,0 +1,78 @@
+{
+  "verdict": "ACCEPTED within the exact source/accounting/test scope",
+  "source_sha256": {
+    "tools/underground_room_memory.py": "5f9e8286551da0839f4d83c27b81883974fc8dcffee26969baeba6e1a53c6647",
+    "tools/test_underground_room_memory.py": "526b9bea2e4f2a1beeded2e98a3f8fae63d53ff8542ee3b34ad46e567bff4ff7",
+    "tools/underground_memory_budget.py": "f028aae48a7a99835f5aa5ec7121bc2bf816ec83a62da44851756b82e9a7f85e",
+    "tools/test_underground_memory_budget.py": "f93ebe8c200210f7f08e2b3c82a9b4972f4152522e08ed7296c2ba71460cc6fa",
+    "godot/scripts/core/underground_entry_world_bindings.gd": "dcc07743ea142f4665e939387726fdcbf2a4db609f1f9047c606d3e405550c0b",
+    "godot/test/test_underground_entry_source_phases.gd": "0529d1ba91efe782c2319e9b3edc12a32b9537a27bddd607f97ae4a67ce4fc76",
+    "docs/validation/evidence/underground-entry-source-phases-2026-10-05/memory-manifest-3.json": "0eb02a8f447fdea58032583e2828f4fe5f38dc28b15a9b810939cb532851ee7f",
+    "docs/validation/evidence/underground-first-prefix-2026-10-03/phase_census.py": "734673a527d9c89908e1357bfa30bbf671dcf5a663892c7fc33e0be0f5d59bd1"
+  },
+  "focused_tests": 39,
+  "failures": 0,
+  "independent_mutants": {
+    "indexed_read_changed": {
+      "public": "room memory: current reviewed source changed: underground_entry_world_bindings",
+      "direct_reconstruction": "room memory: entry air-contact exact predicate and three uses",
+      "allocation_alias_guard": "entry World allocation/writer/borrowed-array alias drift"
+    },
+    "role_call_removed": {
+      "public": "room memory: current reviewed source changed: underground_entry_world_bindings",
+      "direct_reconstruction": "room memory: entry air-contact exact predicate and three uses",
+      "allocation_alias_guard": "entry World allocation/writer/borrowed-array alias drift"
+    },
+    "same_line_allocation": {
+      "public": "room memory: current reviewed source changed: underground_entry_world_bindings",
+      "direct_reconstruction": "room memory: entry air-contact exact predicate and three uses",
+      "allocation_alias_guard": "entry World allocation/writer/borrowed-array alias drift"
+    },
+    "hidden_alias": {
+      "public": "room memory: current reviewed source changed: underground_entry_world_bindings",
+      "direct_reconstruction": "room memory: entry air-contact exact predicate and three uses",
+      "allocation_alias_guard": "entry World allocation/writer/borrowed-array alias drift"
+    },
+    "mixed_doc_executable": {
+      "public": "room memory: current reviewed source changed: underground_entry_world_bindings",
+      "direct_reconstruction": "room memory: entry air-contact exact predicate and three uses",
+      "allocation_alias_guard": "This pre-existing narrow scanner ignores docstring-prefixed lines. Both mandatory complete-source gates above reject the injected executable before census replay."
+    }
+  },
+  "current_entry_air_contact": {
+    "source_sha256": "dcc07743ea142f4665e939387726fdcbf2a4db609f1f9047c606d3e405550c0b",
+    "previous_source_sha256": "d6516eadfa67b28e3b46b01d1509d3977c4635e54c6b9e0b3e5c28241fb15ad2",
+    "fixed_bytes": 202,
+    "own_numeric_frames": {
+      "bytes": 224,
+      "path": [
+        "worker_refusal",
+        "_entry_contact_observation",
+        "_entry_pin",
+        "_entry_find",
+        "_entry_episode_matches"
+      ],
+      "frames": {
+        "worker_refusal": 68,
+        "_entry_contact_observation": 44,
+        "_entry_pin": 32,
+        "_entry_find": 16,
+        "_entry_episode_matches": 64
+      }
+    },
+    "existing_helper_reservation": 1024,
+    "existing_total_reservation": 2048,
+    "additional_reserved_bytes": 0,
+    "native_measured": false
+  },
+  "historical_source_sha256": "d6516eadfa67b28e3b46b01d1509d3977c4635e54c6b9e0b3e5c28241fb15ad2",
+  "manifest_changed_existing_keys": [
+    "sources",
+    "witnesses",
+    "historical_versions"
+  ],
+  "source_unchanged": true,
+  "engine_rerun": false,
+  "native_memory_qualified": false,
+  "whole_source4_integration_qualified": false
+}

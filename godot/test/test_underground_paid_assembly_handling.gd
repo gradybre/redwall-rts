@@ -10,6 +10,7 @@ const Workpieces := preload("res://scripts/core/underground_connector_workpieces
 const PaidConstruction := preload("res://scripts/core/construction.gd")
 const PaidContract := preload("res://scripts/core/modular_project_contract.gd")
 const PaidRoutes := preload("res://scripts/core/underground_routes.gd")
+const Retirement := preload("res://scripts/core/underground_entry_contact_retirement.gd")
 const Assembly := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
 const DATA: String = "../docs/validation/evidence/underground-paid-assembly-handling-2026-10-05/"
 const PAID_PROFILE_SHA: String = "17d9c229fdfe8ad1923f004db136653ab9834994ba946061be38ec7a2c862ff9"
@@ -163,7 +164,12 @@ class PaidProbe extends WorkArea.Probe:
 		var project: Vector2i = prepare_l0()
 		if project == NULL_REF: return NULL_REF
 		var job: int = _router._primary_row(project)
-		if not _pay_installation(project, job): return NULL_REF
+		deliver_installation_inputs(project, job)
+		retire_first_pair(project, job)
+		if not failures.is_empty(): return NULL_REF
+		var started: Construction.OpResult = _router.start_work(project, 0)
+		assert_true(started.ok, "actual paid installation START: %s" % started.error)
+		if not started.ok: return NULL_REF
 		var placement: Vector2i = _world._construction.subject_ref_of(project)
 		assert_equal(pieces._live.present[placement.x], Workpieces.PENDING_HANDLING, "START is pending only")
 		assert_equal(_world._inventory.lot_quantity_milli(_wood), 1500, "one whole L0 bill paid")
@@ -185,6 +191,25 @@ class PaidProbe extends WorkArea.Probe:
 		assert_equal(pieces._live.present[placement.x], Workpieces.HANDLED, "only complete positioning promotes")
 		handled_l0 = failures.is_empty()
 		return project if handled_l0 else NULL_REF
+
+	func retire_first_pair(project: Vector2i, job: int) -> void:
+		"""ADR1191: the worker is READY at H and the bill unpaid; only then the first dig pair retires."""
+		var owners: Retirement.Owners = Retirement.Owners.new()
+		owners.contacts = _contacts
+		owners.locations = _world._locations
+		owners.binding = _world._binding
+		owners.routes = _world._routes
+		owners.budget = _world._budget
+		owners.placement = _world._construction.subject_ref_of(project)
+		owners.project = project
+		owners.worker = _world._worker
+		owners.job = _world._jobs.ref_of(job)
+		owners.first = _endpoints[3]
+		owners.second = _endpoints[4]
+		var locations_before: int = _world._locations._live.count
+		assert_equal(Retirement.retire_completed_pair(owners), &"", "completed first dig pair retires")
+		assert_equal(_world._locations._live.count, locations_before - 2, "exactly two Locations leave")
+		assert_false(_world._locations.is_live_location(_endpoints[3]) or _world._locations.is_live_location(_endpoints[4]), "retired handles are gone")
 
 	func deliver_installation_inputs(project: Vector2i, job: int) -> void:
 		"""Existing Inventory claims make the complete real bill READY before the separate unfunded worker observation."""

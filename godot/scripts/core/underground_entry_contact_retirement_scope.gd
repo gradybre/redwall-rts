@@ -14,6 +14,7 @@ const REFUSE_HISTORY: StringName = &"ENTRY_CONTACT_RETIREMENT_HISTORY"
 const REFUSE_RETAINED: StringName = &"ENTRY_CONTACT_RETIREMENT_RETAINED"
 const REFUSE_WORKER: StringName = &"ENTRY_CONTACT_RETIREMENT_WORKER"
 const REFUSE_CAPACITY: StringName = &"ENTRY_CONTACT_RETIREMENT_CAPACITY"
+const SURFACE_ANCHOR: int = 0 # Mirrors underground_entry_frontier.gd; no Frontier preload (see header).
 const PIECES_SCRIPT: String = "res://scripts/core/underground_connector_workpieces.gd"
 const ROUTES_SCRIPT: String = "res://scripts/core/underground_routes.gd"
 const FRONTIER_SCRIPT: String = "res://scripts/core/underground_entry_frontier.gd"
@@ -428,7 +429,7 @@ func _selectors_refusal() -> StringName:
 		if _frontier._endpoint[3 * 12 + selector] != 2: continue
 		code = _travel_air_into(selector)
 		if code != &"": return code
-		if not _air_overlaps_piece(selector): continue
+		if not _air_overlaps_piece(selector) or _install_station(selector): continue
 		if not _unused_completed_selector(selector): return REFUSE_RETAINED
 		var handle: Vector2i = _resolve_selector(selector)
 		if handle == NULL_REF or not selected(handle): return REFUSE_SOURCE
@@ -484,12 +485,25 @@ func _selector_axis(selector: int, axis: int) -> int:
 
 func _resolve_selector(selector: int) -> Vector2i:
 	"""Resolve one exact source geometry to a unique original live full handle; aliases are not first-match permission."""
+	if selector >= 0 and selector < 12 and _frontier._endpoint[selector] == SURFACE_ANCHOR:
+		return _resolve_anchor(selector)
 	var result: Vector2i = NULL_REF
 	for row: int in _locations._capacity:
 		if _live.present[row] != 1 or not _selector_row_matches(selector, row): continue
 		if result != NULL_REF: return NULL_REF
 		result = Vector2i(row, _live.i32[row])
 	return result
+
+
+func _resolve_anchor(selector: int) -> Vector2i:
+	"""The SURFACE_ANCHOR selector (H) names the Placement's own anchor; its role and point must still match."""
+	var capacity: int = _locations._capacity
+	var anchor: Vector2i = Vector2i(_placement_row[_placements.ANCHOR_SLOT], _placement_row[_placements.ANCHOR_SLOT + 1])
+	if anchor.x < 0 or anchor.x >= capacity or _live.present[anchor.x] != 1 or _live.i32[anchor.x] != anchor.y \
+			or _live.i32[9 * capacity + anchor.x] != _frontier._endpoint[3 * 12 + selector]: return NULL_REF
+	for axis: int in 3:
+		if _live.i32[(axis + 1) * capacity + anchor.x] != _selector_axis(selector, axis): return NULL_REF
+	return anchor
 
 
 func _selector_row_matches(selector: int, row: int) -> bool:
@@ -523,6 +537,15 @@ func _station_uses(station: int, selector: int) -> bool:
 	return station < 0 or station >= 8 or _same_selector(_frontier._station[station], selector)
 
 
+func _install_station(selector: int) -> bool:
+	"""ADR1191: the INSTALL station H overlaps its own pending bearer by design; the endpoint certificate,
+	not retirement, admits it. It is never a retirement candidate and never counts toward the pair."""
+	for install: int in 2:
+		var station: int = _frontier._install[install]
+		if station >= 0 and station < 8 and _same_selector(_frontier._station[station], selector): return true
+	return false
+
+
 func _unused_completed_selector(selector: int) -> bool:
 	"""No INSTALL, future phase, material or spoil alias may require a completed work contact."""
 	var used: bool = false
@@ -544,10 +567,12 @@ func _unused_completed_selector(selector: int) -> bool:
 
 
 func _project_refusal() -> StringName:
-	"""Retirement changes traversal metadata only while the exact original L0 Project is unfunded and ready."""
+	"""Retirement changes traversal metadata only while the exact original L0 Project is unfunded and ready.
+	The crew count is published by START itself, so a READY pre-START Project has none; the worker is proven
+	through its Jobs assignment in _worker_refusal instead."""
 	if _directory_row(_project, 1) != _project_row or _construction._phase[_project_row] != 1 \
 			or _construction._paused[_project_row] != 0 or _construction._work_begun[_project_row] != 0 \
-			or _construction._type_id[_project_row] != 0 or _construction._assigned_count[_project_row] != 1 \
+			or _construction._type_id[_project_row] != 0 or _construction._assigned_count[_project_row] != 0 \
 			or _funding._project_slot[_project_row] != -1 or _funding._project_generation[_project_row] != 0 \
 			or _funding._head[_project_row] != -1 or _funding._output_slot[_project_row] != -1 \
 			or _funding._output_generation[_project_row] != 0 or _funding._output_mass_g[_project_row] != 0 \
@@ -638,6 +663,30 @@ func contact_retirement_publish_refusal(context: RefCounted) -> StringName:
 	if not _location_publish or _graph_publish or context != _context or context.phase != LOCATIONS_PREPARED:
 		return REFUSE_SCOPE
 	return contact_retirement_scope_refusal(context)
+
+
+func open_graph_publication(context: RefCounted) -> StringName:
+	"""Open the private graph window for the one sealed original candidate; Locations stays closed."""
+	if _graph_publish or _location_publish: return REFUSE_SCOPE
+	_graph_publish = true
+	var code: StringName = contact_retirement_graph_publish_refusal(context)
+	if code != &"": _graph_publish = false
+	return code
+
+
+func open_location_publication(context: RefCounted) -> StringName:
+	"""Open the private Locations window only after the graph receipt and the prepared pair removal."""
+	if _graph_publish or _location_publish: return REFUSE_SCOPE
+	_location_publish = true
+	var code: StringName = contact_retirement_publish_refusal(context)
+	if code != &"": _location_publish = false
+	return code
+
+
+func close_publication() -> void:
+	"""Both windows close after each attempt, whether the publication succeeded or refused."""
+	_graph_publish = false
+	_location_publish = false
 
 
 func owns_location_preparation(context: RefCounted, token: int, cold: int) -> bool:

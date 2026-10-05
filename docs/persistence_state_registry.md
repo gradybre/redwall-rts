@@ -2050,3 +2050,9 @@ as source-qualified motion. No composed save adapter is claimed here.
 | Route search scratch | `_heap` | 4 | `_routes._edge_capacity` runtime | Only during a synchronous check | 3 | -- | ADR1191. Borrowed-capacity scratch; no retained route state. |
 | Workpiece bounds | `_piece_bounds` | 4 | `6` = 6 | Zero before bind | 3 | -- | ADR1191. |
 | Surveyed air box | `_air` | 4 | `6` = 6 | Zero before bind | 3 | -- | ADR1191. |
+
+### `godot/scripts/core/underground_entry_contact_retirement.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless two-publication retirement driver | -- | -- | -- | No members; borrowed Owners packet dies with the call | 3 | -- | ADR1191/1192. Static coordinator acquires the original full cold lease, publishes WorldRoutes edge removals then Locations endpoint removals, and always discards its bracket, clears the Scope and releases the lease before returning. No retained permission or bank. |

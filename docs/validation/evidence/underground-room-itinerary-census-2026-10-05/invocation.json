@@ -1,0 +1,31 @@
+{
+  "commands": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "docs/validation/evidence/underground-room-itinerary-census-2026-10-05/census.py",
+        "--runtime-root",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration",
+        "--verify-pins"
+      ],
+      "exit_code": 0,
+      "result_matches_census_json": true
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "docs/validation/evidence/underground-room-itinerary-census-2026-10-05/test_census.py",
+        "--runtime-root",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration"
+      ],
+      "exit_code": 0,
+      "tests": 26,
+      "log": "tests-current-1161.log"
+    }
+  ],
+  "runtime_head": "55b19dd4bcc60880c6bbaa9bf553fb20cdae3d6f",
+  "own_head": "5b440aedc2dc70cd1703686f10cc4b7366a6f3d4",
+  "engine_rerun": false
+}

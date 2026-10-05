@@ -1,0 +1,13 @@
+{
+  "census.py": "c4a4d714b85806db0eb6d670fd2284753c70bcf7bf070bf7863114b5df04d708",
+  "test_census.py": "9ad8fb3c0c9bc5ad016496f981ffebdff75033560849ab6f57718225ab1dd7c1",
+  "storage-topology.json": "b8f4580f86bb6f2166a216a1eb708867db203337415e48153652071a952c205d",
+  "predecessor-sha256.json": "86aaaf81890ae4a22c8a7fd9475b5bb6b66c25711098e3ef731c382f89280da0",
+  "itinerary-source.gd.txt": "e2d53bb2fab86633016f5263ec364f54bad66579032bec11f046ce0f4c80c1e0",
+  "underground_room_world_bindings.gd.txt": "95d13b1d36daec7d6a5993d2aa5d6d673618a25020acb6b949b6cccc51d4bb68",
+  "underground_room_frontier.gd.txt": "c012d8eae1346fb1785ad71d105e79e3da747fbc9158fb3a74f749217bf233c6",
+  "source-sha256.json": "5e0a041a8f712bf858ff45d996483edb4063834654cc1ce8fd8e825c28996217",
+  "predecessors/turn-census.py.txt": "3d531ce5ba7329ffd8641344304f42abd2c952cb87b86e2425e24fa08e15d278",
+  "predecessors/underground_room_frontier.gd.txt": "554fbf053c377c0305ac9d2e5890dee90b7b511d056ee2a8b9388b1b3f06f52d",
+  "predecessors/underground_room_world_bindings.gd.txt": "699d17a27796f55cbaa4b08b22568de2ed838a5ceef1e10c90f6329d855e8ed9"
+}

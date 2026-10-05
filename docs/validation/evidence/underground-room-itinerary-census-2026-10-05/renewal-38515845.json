@@ -1,0 +1,28 @@
+{
+  "runtime_checkpoint": "3851584553399ee41fbdcb41c08e35543a416ffe",
+  "compared_to": "5b440aedc2dc70cd1703686f10cc4b7366a6f3d4",
+  "scope": "Read-only repeat using every current runtime source, three frozen reviewed helper/caller snapshots; complete structured census equal except the five whole-file pins. No engine run or runtime acceptance inferred.",
+  "all_census_data_equal_except_source_hashes": true,
+  "changed_sources": {
+    "underground_final_facts": {
+      "before": "c4aed2a5b75571822cba6f40cffd8efe9bd3863b12a5bead6db22daed8e9e93a",
+      "after": "5aeedd84cffb46f363733bbe2b85f87a6e67b771170a0c3e0525e66e1f2a6a46"
+    },
+    "underground_locations": {
+      "before": "55dc0bdb2f50ba53629c81c6c93ebbb8dfc6079508c02d9cf1096dc5cb33f929",
+      "after": "78c10afd1fb0d737ae7ccd63727c5c18b1cc599097e40b44e9992fd32a7a1d58"
+    },
+    "underground_routes": {
+      "before": "c5b414aaf5c1679fc232ddccdbafa1491625c12b2dc41613063605f6a44934f4",
+      "after": "e9da2df5b115f50af3f65a4ba40c2956db09226799c18e43fb2852e57be92921"
+    },
+    "underground_work_face": {
+      "before": "fefccffb1a1f6ea79204f129a96a1bac687eb555a32b298f1d61267c31f0a295",
+      "after": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26"
+    },
+    "underground_world_routes": {
+      "before": "7e2bc9f7d7f00f034f408be374f939664d98a3bd64e430283e3b300420991d1f",
+      "after": "3341260ee11ec2008ee1ab32fa797d971d13edc7136ee6fb38e65a0b15ab338e"
+    }
+  }
+}

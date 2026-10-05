@@ -427,8 +427,8 @@ func compose_route_owners() -> StringName:
 	if _operations_state == 2 and _operations_prefix == 8:
 		return RouteComposition.complete_refusal(_retirement_owners)
 	if _operations_state != 2 or _operations_prefix != 4: return &"UNDERGROUND_ROUTE_COMPOSITION_SCOPE"
-	code = _route_start_refusal()
-	if code != &"": return code
+	if not _budget.is_quiescent() or _space.has_prepared() or _routes._edge_capacity != 0:
+		return &"UNDERGROUND_SESSION_NOT_QUIESCENT"
 	_busy = true
 	_poisoned = false
 	_operations_state = 1
@@ -437,32 +437,9 @@ func compose_route_owners() -> StringName:
 	if code == &"": code = _original_refusal()
 	if code == &"": code = _foundation_refusal()
 	if code == &"": code = RouteComposition.complete_refusal(_retirement_owners)
-	if code == &"": code = RouteComposition.unpublished_refusal(_retirement_owners)
-	_finish_route_composition(code)
+	_operations_state = 2 if code == &"" or _operations_prefix == 4 else 3
 	_busy = false
 	return code
-
-
-func _route_start_refusal() -> StringName:
-	"""Initial graph construction precedes operational publication, preserving the exact empty-prefix retirement contract."""
-	if not _budget.is_quiescent() or _space.has_prepared() or _routes._edge_capacity != 0:
-		return &"UNDERGROUND_SESSION_NOT_QUIESCENT"
-	var o: Retirement.Owners = _retirement_owners
-	if o.sites._count != 0 or o.sites._funding._free_count != o.sites._funding._capacity \
-			or o.locations._live.count != 0 or o.locations._stage.count != 0:
-		return &"UNDERGROUND_ROUTE_COMPOSITION_OCCUPIED"
-	return &""
-
-
-func _finish_route_composition(code: StringName) -> void:
-	"""A private refusal restores Room-ready only after fresh source checks and a pure original-owner closure."""
-	var restored: bool = code != &"" and _operations_prefix == 4 and _content_refusal() == &""
-	_operations_state = 2 if code == &"" or restored else 3
-	if not restored: return
-	# Keep the original reentry error/poison; these independent pure leaves prove only the prior group.
-	if _owners_refusal() != &"" or _foundation_refusal() != &"" or _retirement_packet_refusal() != &"" \
-			or _directory._persistent_id[_world_ref.x] != _world_pid or _world._published_seed != _seed:
-		_operations_state = 3
 
 
 func world_route_provider() -> WorldRoutes:
@@ -533,14 +510,9 @@ func _operational_retirement_refusal(o: Retirement.Owners) -> StringName:
 	if _operations_state == 2 and _operations_prefix == 8:
 		return RouteComposition.complete_refusal(o)
 	if _operations_state == 2 and _operations_prefix == 4:
-		if o.world_routes != null or o.room_bindings._room_routes != null:
-			return &"UNDERGROUND_ROUTE_COMPOSITION_SCOPE"
-		var code: StringName = Retirement._pristine_graph_refusal(o)
-		return Composition.complete_refusal(o) if code == &"" else code
+		return Composition.complete_refusal(o)
 	if _operations_state == 3:
-		var code: StringName = Retirement.constructor_original_refusal(self, o, _operations_prefix)
-		if code == &"" and _operations_prefix >= 5: code = RouteComposition._source_refusal(o)
-		return code
+		return Retirement.constructor_original_refusal(self, o, _operations_prefix)
 	if _operations_state != 0 or _operations_prefix != 0: return &"UNDERGROUND_COMPOSITION_SCOPE"
 	if o.rooms != null or o.room_bindings != null or o.world_bindings != null or o.sites != null \
 			or o.router != null or o.authority != null or o.locations != null or o.inventory_locations != null \

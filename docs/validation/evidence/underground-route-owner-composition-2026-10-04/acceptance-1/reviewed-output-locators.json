@@ -1,0 +1,10 @@
+{
+  "docs/decisions/1167-session-route-owner-composition.md": {
+    "path": "docs/validation/evidence/underground-route-owner-composition-2026-10-04/acceptance-1/reviewed-decision.md.txt",
+    "sha256": "036a5475c34e02ce0c3e8e2ebcabfd9e7a29bfee50ce88401f5464cdc2a48e66"
+  },
+  "docs/validation/evidence/underground-route-owner-composition-2026-10-04/README.md": {
+    "path": "docs/validation/evidence/underground-route-owner-composition-2026-10-04/acceptance-1/reviewed-readme.md.txt",
+    "sha256": "a52ac7f050783d6192f82774482ef7114353aa782d8aa0ffcbd5daaedf6f2c74"
+  }
+}

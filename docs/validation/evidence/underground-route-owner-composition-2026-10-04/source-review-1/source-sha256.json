@@ -1,0 +1,12 @@
+{
+  "godot/scripts/core/underground_session.gd": "c0e67daf30de3604873b743ba95ab5c196c1baf2b96aee407bddf088cf285a77",
+  "godot/scripts/core/underground_world_retirement.gd": "db439ef3a968b63666154e97cbdda91921c723ee8546b4ac2a0db0f7acce3467",
+  "godot/scripts/systems/settlement_system.gd": "71baf27780c8652b39958a566fede60f42edbe494b4f3907f1ff58040c99b129",
+  "godot/scripts/core/underground_route_composition.gd": "f47e5fd013bd106c5efa7368c7c7192985687d2b72d0c7750cebb5225532c227",
+  "godot/scripts/core/underground_route_composition.gd.uid": "87402e511d81ebb6c4329b2b8501695229b13ccf6d467bc30a91de1440738c98",
+  "godot/test/test_underground_route_composition.gd": "d6bf32d4cc5a8babe79930642b097d851e61db6ecdba2991c4f5a98be2e4167d",
+  "godot/test/test_underground_route_composition.gd.uid": "47f1c44b9d745798909518078102d517863c574168a9781fadd1b692f5857db2",
+  "docs/validation/evidence/underground-route-owner-composition-2026-10-04/census.py": "8bd2efa690a3bb8df310297300a4cc54135e5d15452f993a49b56fd4d8fb6fbe",
+  "docs/validation/evidence/underground-route-owner-composition-2026-10-04/test_census.py": "035df0df5c6d9c259f6d1ca86e433c251754f6bc015d3d34abb285021a9f8a20",
+  "docs/validation/evidence/underground-route-owner-composition-2026-10-04/reproduce.py": "a49d409740ca1f15df8dfec1c9aac3cf96f5288e5fe8748d890a3548ceefe845"
+}

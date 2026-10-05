@@ -558,11 +558,11 @@ static func _route_aliases_refusal(o: Owners, prefix: int) -> StringName:
 static func _pristine_graph_refusal(o: Owners) -> StringName:
 	"""A stopped before-write graph cannot hide an expired, foreign or partly copied binding."""
 	var graph: Routes = o.routes
-	if graph._owner_ref != null or graph._locations_ref != null or graph._sources_ref != null or graph._bindings_ref != null \
+	if graph._locations_ref != null or graph._sources_ref != null or graph._bindings_ref != null \
 			or graph._buildings != null or graph._cold != null or graph._domain != null \
 			or graph._world != NULL_REF or graph._edge_capacity != 0 or graph._location_capacity != 0 \
 			or graph._vertex_capacity != 0 or graph._link_capacity != 0 or graph._retention != null \
-			or graph._profiles_ref != null or graph._work_ref != null or graph._jobs != null or graph._extent_revision != 0 \
+			or graph._profiles_ref != null or graph._work_ref != null or graph._jobs != null \
 			or o.locations._retention != null or not graph._live.fields.is_empty() or not graph._motion.resident.is_empty():
 		return &"WORLD_RETIREMENT_ROUTE"
 	return &""

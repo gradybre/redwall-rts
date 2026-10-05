@@ -1,0 +1,19 @@
+{
+  "status": "accepted_component_only",
+  "reviewer": "ug_construction",
+  "review_commit": "7d8edbd4795bd9a4779c1d3726a753fbf38db604",
+  "review_path": "docs/validation/evidence/underground-room-integration-check-2026-10-05/route-owner-review-1/README.md",
+  "review_readme_sha256": "0efd1c2166ab2e4a4eac0111f08b0a390116fff5c686c38d1978ad7511162554",
+  "source_manifest_sha256": "683d1ba51fe98a1e7828d2110b93dbc59bbc93ef982e742a83c1e52fd4ecc59a",
+  "independent_census_tests": 17,
+  "author_tests": 90,
+  "author_assertions": 3115,
+  "author_failures": 0,
+  "analyzer_warnings": 0,
+  "analyzer_files": 8,
+  "limits": [
+    "No physical travel, endpoints, paid work or playable room permission.",
+    "Native allocation and whole-client performance remain unqualified."
+  ],
+  "documentation_changes": "Only acceptance status and references; original reviewed README and ADR bytes are preserved through exact locator records."
+}

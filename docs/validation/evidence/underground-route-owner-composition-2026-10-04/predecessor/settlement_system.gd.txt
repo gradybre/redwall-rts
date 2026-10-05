@@ -1856,22 +1856,6 @@ func compose_underground_room_owners() -> bool:
 	return true
 
 
-func compose_underground_route_owners() -> bool:
-	"""Configure the mounted Session's actual empty graph through its existing original owner packet."""
-	if _underground_mutations_stopped(): return _refuse(&"UNDERGROUND_HOST_RESETTING")
-	var original: UndergroundSession = _underground_session
-	var starting: bool = original != null and original._operations_state == 2 and original._operations_prefix == 4
-	var code: StringName = _mounted_underground_refusal(original)
-	if code == &"": code = original.compose_route_owners()
-	var final_code: StringName = _mounted_underground_refusal(original)
-	if code == &"": code = final_code
-	if starting and (final_code != &"" or (code != &"" and original._operations_prefix >= 5)):
-		original._operations_state = 3
-	if code != &"": return _refuse(code)
-	_last_refusal = REFUSE_NONE
-	return true
-
-
 func _underground_mutations_stopped() -> bool:
 	"""A failed constructor prefix remains stopped even if an original-live reset is abandoned."""
 	if _underground_session != null and _underground_session._operations_state == 1:

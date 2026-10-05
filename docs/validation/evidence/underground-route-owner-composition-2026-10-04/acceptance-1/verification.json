@@ -1,0 +1,11 @@
+{
+  "all_pins_match": true,
+  "counts": {
+    "source": 10,
+    "output": 53,
+    "inherited": 47,
+    "history": 186
+  },
+  "executable_pins_unchanged": true,
+  "two_documentation_locators_only": true
+}

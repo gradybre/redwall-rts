@@ -1,0 +1,5 @@
+usage: gdscript_warnings.py [-h] [--project PROJECT]
+                            [--editor-project EDITOR_PROJECT] [--port PORT]
+                            [--godot GODOT] [--max MAX] [--json JSON]
+                            [paths ...]
+gdscript_warnings.py: error: unrecognized arguments: godot/scripts/core/underground_route_composition.gd godot/test/test_underground_route_composition.gd godot/scripts/core/underground_session.gd godot/scripts/core/underground_world_retirement.gd godot/scripts/systems/settlement_system.gd godot/test/test_underground_session.gd godot/test/test_underground_world_retirement.gd godot/test/test_underground_host.gd

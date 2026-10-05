@@ -1863,9 +1863,8 @@ func compose_underground_route_owners() -> bool:
 	var starting: bool = original != null and original._operations_state == 2 and original._operations_prefix == 4
 	var code: StringName = _mounted_underground_refusal(original)
 	if code == &"": code = original.compose_route_owners()
-	var final_code: StringName = _mounted_underground_refusal(original)
-	if code == &"": code = final_code
-	if starting and (final_code != &"" or (code != &"" and original._operations_prefix >= 5)):
+	if code == &"": code = _mounted_underground_refusal(original)
+	if code != &"" and starting and original._operations_prefix >= 5:
 		original._operations_state = 3
 	if code != &"": return _refuse(code)
 	_last_refusal = REFUSE_NONE

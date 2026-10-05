@@ -1,0 +1,35 @@
+{
+  "baseline": "ebdd5daa2b723a63dd71e2018d2bed9b279cf894",
+  "files": {
+    "godot/scripts/core/buildings.gd": {
+      "current_sha256": "e893b278f8b1f35e6e8f6e3971e8ade136662a0d3f1f5b619042d18e17506fcd",
+      "accepted1163_baseline_sha256": "e893b278f8b1f35e6e8f6e3971e8ade136662a0d3f1f5b619042d18e17506fcd",
+      "same_bytes": true
+    },
+    "godot/scripts/core/construction.gd": {
+      "current_sha256": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a",
+      "accepted1163_baseline_sha256": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a",
+      "same_bytes": true
+    },
+    "godot/scripts/core/inventory.gd": {
+      "current_sha256": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
+      "accepted1163_baseline_sha256": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
+      "same_bytes": true
+    },
+    "godot/scripts/core/work.gd": {
+      "current_sha256": "a79363ab3e6a116e89b32fc89ded50aa32a0849a81e34b6737043a3362255338",
+      "accepted1163_baseline_sha256": "a79363ab3e6a116e89b32fc89ded50aa32a0849a81e34b6737043a3362255338",
+      "same_bytes": true
+    },
+    "godot/scripts/systems/ui_manager.gd": {
+      "current_sha256": "3cf277da410c6b45bb19800a9db8a42cb97f735342d3ab38739a143a6e52d59b",
+      "accepted1163_baseline_sha256": "3cf277da410c6b45bb19800a9db8a42cb97f735342d3ab38739a143a6e52d59b",
+      "same_bytes": true
+    },
+    "godot/scripts/ui/ui_world_session.gd": {
+      "current_sha256": "263dfba991975ffa0fabe79946610e992d164e95eba04e739423862d072f6fb6",
+      "accepted1163_baseline_sha256": "263dfba991975ffa0fabe79946610e992d164e95eba04e739423862d072f6fb6",
+      "same_bytes": true
+    }
+  }
+}

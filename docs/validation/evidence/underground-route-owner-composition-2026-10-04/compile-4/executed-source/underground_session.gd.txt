@@ -437,7 +437,6 @@ func compose_route_owners() -> StringName:
 	if code == &"": code = _original_refusal()
 	if code == &"": code = _foundation_refusal()
 	if code == &"": code = RouteComposition.complete_refusal(_retirement_owners)
-	if code == &"": code = RouteComposition.unpublished_refusal(_retirement_owners)
 	_finish_route_composition(code)
 	_busy = false
 	return code

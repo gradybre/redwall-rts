@@ -515,12 +515,7 @@ static func route_constructor_refusal(o: Owners, prefix: int) -> StringName:
 	"""Exact source-owned graph stages only; no receiver is cleared or arbitrary partial tuple registered."""
 	if prefix < 5 or prefix > 8 or o.world_routes == null or o.world_routes.get_script() != WorldRoutes \
 			or o.routes.get_script() != Routes or o.world_routes._domain == null \
-			or o.world_routes._domain._world != o.world_ref or o.world_routes._catalog == null \
-			or o.world_routes._catalog.get_script() != Catalog or o.world_routes._movement == null \
-			or o.world_routes._movement.get_script() != Movement \
-			or o.world_routes._catalog_identity != o.world_routes._catalog.get_instance_id() \
-			or o.world_routes._profile_identity != o.profiles.get_instance_id() \
-			or o.world_routes._levels_identity != o.levels.get_instance_id():
+			or o.world_routes._domain._world != o.world_ref:
 		return &"WORLD_RETIREMENT_ROUTE"
 	var code: StringName = _route_aliases_refusal(o, prefix)
 	if code == &"": code = _route_profiles_refusal(o, prefix)
@@ -558,11 +553,11 @@ static func _route_aliases_refusal(o: Owners, prefix: int) -> StringName:
 static func _pristine_graph_refusal(o: Owners) -> StringName:
 	"""A stopped before-write graph cannot hide an expired, foreign or partly copied binding."""
 	var graph: Routes = o.routes
-	if graph._owner_ref != null or graph._locations_ref != null or graph._sources_ref != null or graph._bindings_ref != null \
+	if graph._locations_ref != null or graph._sources_ref != null or graph._bindings_ref != null \
 			or graph._buildings != null or graph._cold != null or graph._domain != null \
 			or graph._world != NULL_REF or graph._edge_capacity != 0 or graph._location_capacity != 0 \
 			or graph._vertex_capacity != 0 or graph._link_capacity != 0 or graph._retention != null \
-			or graph._profiles_ref != null or graph._work_ref != null or graph._jobs != null or graph._extent_revision != 0 \
+			or graph._profiles_ref != null or graph._work_ref != null or graph._jobs != null \
 			or o.locations._retention != null or not graph._live.fields.is_empty() or not graph._motion.resident.is_empty():
 		return &"WORLD_RETIREMENT_ROUTE"
 	return &""

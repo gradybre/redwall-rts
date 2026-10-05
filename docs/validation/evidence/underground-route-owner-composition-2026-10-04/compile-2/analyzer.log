@@ -1,0 +1,3 @@
+error: more than the allowed 0 warning(s)
+test/test_underground_route_composition.gd:104: (STATIC_CALLED_ON_INSTANCE): The function "_required_bytes()" is a static function but was called from an instance. Instead, it should be directly called from the type: "res://scripts/core/underground_routes.gd._required_bytes()".
+1 GDScript warning(s) in 1 of 8 file(s)

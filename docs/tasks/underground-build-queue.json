@@ -1158,9 +1158,12 @@
               "godot/test/test_underground_paid_assembly_handling.gd",
               "godot/test/test_underground_paid_assembly_handling.gd.uid",
               "docs/decisions/1183-paid-timber-handling-before-fastening.md",
-              "docs/validation/evidence/underground-paid-assembly-handling-2026-10-05/"
+              "docs/validation/evidence/underground-paid-assembly-handling-2026-10-05/",
+              "godot/scripts/core/modular_projects.gd",
+              "godot/scripts/core/modular_project_contract.gd",
+              "godot/test/test_modular_projects.gd"
             ],
-            "handoff": "Explicit1179reviewSTOP7e54c4a1; root stopped all listed runtime/test files. New own branch from freshly fetched origin/master82d60ba8 thenFF8f6bad86. Minimal original Routes phase/request-tick union and Workpieces presence byte versioned for pending/handled; existing30+30 handling ticks and original work/price conserved. Geometry owns source certificate/Profiles/WorldRoutes/Contacts; root owns publisher/Session/registry. Real paid first L0/T0 handling before fastening plus cancel/recovery, no synthetic permission or extra bank."
+            "handoff": "Explicit1179reviewSTOP7e54c4a1; root stopped all listed runtime/test files. New own branch from freshly fetched origin/master82d60ba8 thenFF8f6bad86. Minimal original Routes phase/request-tick union and Workpieces presence byte versioned for pending/handled; existing30+30 handling ticks and original work/price conserved. Geometry owns source certificate/Profiles/WorldRoutes/Contacts; root owns publisher/Session/registry. Real paid first L0/T0 handling before fastening plus cancel/recovery, no synthetic permission or extra bank. Root additionally STOPPED Router/Contract/test for narrow connector-only pre-release pause guard: pause immediately; retain original worker/tool/material claim until physically READY, no work credit. All nonconnector release behavior unchanged; reentrant/final identity tests required."
           }
         ]
       }
@@ -1958,7 +1961,7 @@
           "scope": "One original Actor and compatible image registry; no physical World/Metal numerical or multi-Actor/reload qualification"
         },
         "timber_handling_1178_review": {
-          "source_manifest_sha256": "c423bf6a",
+          "source_manifest_sha256": "c423bf6aa01d4a1fb5abf3f81f8641e7d54bbfb3d4bddaf99b208c16d76e1852",
           "review_commit": "a296df116a43e98c6fe26ca42c4d92769d1363a7",
           "integration_commit": "06ffa913",
           "review": "docs/validation/evidence/underground-paid-assembly-handling-2026-10-05/source-review-3/acceptance.json",
@@ -4032,6 +4035,14 @@
             "318a61d0",
             "53541c91"
           ]
+        },
+        "structural_source_1187": {
+          "source_commit": "c975e1bd",
+          "review_commit": "c2e2a154",
+          "review_integration": "1ad0a090",
+          "tests": "2 test(s),45assertion(s),0failures; strict/raw diagnostics/leaks0, analyzer0/1;7Python tests and3independent source refusals",
+          "evidence": "docs/validation/evidence/underground-first-entry-publication-2026-10-05/",
+          "scope": "Actual current v4 Catalog/Grouping/Recipe bytes:14completeprisms8bearings2wood-onlybills,5wood44WU. NoFrontier/Workpieces/stairpace/activation; six-cube source-positive phases and complete descent remain open."
         }
       },
       "lease": {
@@ -4246,6 +4257,48 @@
             ],
             "handoff": "Independent read-only1179 source/visual/input handover review; no root/source mutations. Root owns all fixes and tests.",
             "worker_stop_ack": "Construction committed7e54c4a144eb8101fb75b5584de5d23766dd2ff4 and explicitly STOPPED all1179review writes/processes2026-10-05; own worktree clean. All seven source pins,1285 native paths and74 native checks accepted."
+          },
+          {
+            "agent": "/root/ug_furnishing",
+            "branch": "codex/underground-entry-owner-composition",
+            "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-entry-owner-composition",
+            "state": "held",
+            "files": [
+              "godot/scripts/core/underground_session.gd",
+              "godot/test/test_underground_session.gd",
+              "godot/scripts/core/underground_world_retirement.gd",
+              "godot/test/test_underground_world_retirement.gd",
+              "godot/scripts/systems/settlement_system.gd",
+              "godot/test/test_underground_host.gd",
+              "godot/scripts/core/underground_room_composition.gd",
+              "godot/test/test_underground_room_composition.gd",
+              "godot/scripts/core/underground_route_composition.gd",
+              "godot/test/test_underground_route_composition.gd",
+              "godot/scripts/core/underground_entry_composition.gd",
+              "godot/scripts/core/underground_entry_composition.gd.uid",
+              "godot/test/test_underground_entry_composition.gd",
+              "godot/test/test_underground_entry_composition.gd.uid",
+              "docs/decisions/1184-original-session-entry-owner-composition.md",
+              "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/"
+            ],
+            "handoff": "Root explicitly STOPPED listed files after1181 author STOP. Fresh origin/master then FF eb95c0dd. Implement approved1184 original Host Planner/StorePolicy retention and initial exact EntryBindings first; closed immutable startup source choice before WorldRoutes bind and original Session entry composition follow actual reviewed source publication. Root owns that publication. No synthetic runtime source or second owner tuple; incomplete original prefixes remain stopped/retained for exact retirement. Actual original clock, one-way boundaries and all retained references counted within existing ceilings; no new reserves or implicit qualification. Independent review before commit."
+          },
+          {
+            "agent": "/root",
+            "branch": "codex/underground-modular-integration",
+            "state": "held",
+            "files": [
+              "godot/data/underground/first-entry-prefix-v1/",
+              "godot/test/test_underground_entry_structure_source.gd",
+              "godot/test/test_underground_entry_structure_source.gd.uid",
+              "docs/decisions/1187-authored-first-entry-structural-publication.md",
+              "docs/validation/evidence/underground-first-entry-publication-2026-10-05/",
+              "godot/test/test_underground_entry_frontier_source.gd",
+              "godot/test/test_underground_entry_frontier_source.gd.uid",
+              "docs/decisions/1188-source-bound-first-entry-work-frontier.md",
+              "docs/validation/evidence/underground-entry-frontier-source-2026-10-05/"
+            ],
+            "handoff": "1187 structural source independently accepted c975e1bd/1ad0a090. Root now owns separate1188 source-bound Frontier compiler/real-reader/physical candidate; no live activation.1178/1183 handling and1184 lifecycle remain separate leases."
           }
         ]
       }
@@ -5610,6 +5663,47 @@
       "evidence_commit": "3e9e92a8",
       "evidence": "docs/validation/evidence/underground-route-integration-check-2026-10-05/",
       "procedure": "assetsaside,deleteown.godot,cleanimport,noarg./tools/run_tests.sh,analyzer,restore andverify10551pins"
+    },
+    {
+      "commit": "8f6bad864c4833f32395e7004e8a2042e41c1460",
+      "outcome": "FAILED: same three export-profile verifier failures as CI; corrected53541c91 is not part of this frozen source",
+      "full_suite": "11282 test(s), 1082441 assertion(s), 3 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "procedure": "CI clean-assets/cache/import then no-argument ./tools/run_tests.sh; analyzer skipped after strict suite failure. All sources/project/assets/sidecars/HEAD restored unchanged.1928.022seconds suite.",
+      "evidence": "docs/validation/evidence/underground-integration-checkpoint-2026-10-05/full-8f6bad86/",
+      "limits": "CI same410files11282tests and diagnostic/leak totals; CI1082433 vs local1082441 assertions. No exact assertion equality claimed."
+    },
+    {
+      "commit": "eb95c0dd418d97719a1772790265ae7d834b0291",
+      "outcome": "All14CIjobs passed, independently reverified410files exactly once against frozen source",
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37277106463",
+      "tests": 11283,
+      "assertions": 1082436,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected_diagnostics": 272,
+      "tolerated_diagnostics": 353,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "analyzer": "0 GDScript warning(s) in 0 of 1264 file(s)",
+      "wall_seconds": 870,
+      "evidence": "docs/validation/evidence/underground-integration-checkpoint-2026-10-05/ci-eb95c0dd/",
+      "local_status": "same-head frozen full checkpoint still running; no assertion equivalence claimed",
+      "limits": "Precedes1187 source publication; complete playable workflow and runtime qualification remain open"
+    },
+    {
+      "commit": "eb95c0dd418d97719a1772790265ae7d834b0291",
+      "outcome": "passed",
+      "full_suite": "11283 test(s), 1082447 assertion(s), 0 failure(s)",
+      "diagnostics": "0 unexpected errors/warnings;272 expected;353 tolerated;0 leaked objects/resources; raw log all zero",
+      "analyzer": "0 GDScript warning(s) in 0 of 1264 file(s); raw editor findings zero",
+      "procedure": "own frozen qualification checkout; assets aside if present; delete .godot; clean editor import; no-argument ./tools/run_tests.sh; all-file analyzer; decision/memory/registry/queue checks; restore all",
+      "seconds": 1936.692,
+      "restoration": "HEAD/sources/project/assets/original sidecars all restored; tracked clean",
+      "evidence": "docs/validation/evidence/underground-integration-checkpoint-2026-10-05/full-eb95c0dd/",
+      "same_commit_ci": "37277106463;all14 jobs pass/870seconds/410files exactly once/11283tests1082436assertions/all-zero unexpected and leak counters",
+      "parity": "Same410 files and11283 named cases and all diagnostic totals. Local+11 assertions unattributed; all-counter equality explicitly false."
     }
   ],
   "crosscut_fixes": [

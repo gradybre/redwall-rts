@@ -1,0 +1,31 @@
+{
+  "head": "8f6bad864c4833f32395e7004e8a2042e41c1460",
+  "branch": "codex/underground-integration-qualification-2026-10-05",
+  "scope": "Full no-argument suite and all-file zero-warning analyzer; no hardware qualification",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "log": "clean-import.log",
+      "exit_code": 0,
+      "seconds": 12.129
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh"
+      ],
+      "log": "full-suite.log",
+      "exit_code": 1,
+      "seconds": 1928.022
+    }
+  ],
+  "assets_present_before": false,
+  "user_dir": "Redwall-ug-checkpoint-761cc97f4f2d",
+  "import_findings": []
+}

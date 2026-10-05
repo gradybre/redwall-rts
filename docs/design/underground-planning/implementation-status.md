@@ -2,7 +2,7 @@
 
 ## Current delivery status — 2026-10-05
 
-The owned integration checkpoint is **`53541c91`**, queued for publication in
+The accepted full integration checkpoint is **`eb95c0dd`**, published in
 [draft PR #230](https://github.com/gradybre/redwall-rts/pull/230).
 Players can open **Plan an underground room** from the demo Tunnels panel,
 choose a room purpose and floor, and draw directly on the actual World's dirt.
@@ -16,18 +16,24 @@ passes **30 focused tests / 1,132 assertions / zero failures**, with zero
 unexpected diagnostics or leaks and analyzer **0/6**. Its native Metal/Forward+
 run passes **74 checks / zero failures**, with five inspected 1280×720 captures.
 Independent review verified the corrected modal, keyboard-focus and actual
-World-reset paths. The frozen8f checkpoint's clean-assets/cache/import,
+World-reset paths. The corrected eb95 checkpoint passes the isolated clean-assets/cache/import,
 **no-argument full suite**, all-file zero-warning analyzer and registry/memory
-checks are running in an isolated frozen checkout. Their result is pending.
+checks. [Local evidence](../../validation/evidence/underground-integration-checkpoint-2026-10-05/full-eb95c0dd/README.md):
+**11,283 tests / 1,082,447 assertions / zero failures**, zero unexpected
+errors/warnings and leaks,272 expected/353 tolerated, analyzer **0/1,264**.
+Sources, HEAD, project, assets and original import sidecars were restored.
 
-The latest8f remote run completed410 suites exactly once:11,282 tests /
-1,082,433 assertions /3 failures, all in the stale exported-profile verifier.
-Unexpected diagnostics and leaks remain zero; analyzer passes0/1264. The separate
-contract job timed out before all checks ran. Reviewed corrections318a61d0 and
-53541c91 preserve every check, give contracts sufficient time, and retain the
-actual tenth published Script in the export verifier. The correction passes
-12 focused tests/249 assertions/all-zero with analyzer0/1. A corrected remote run
-is pending. This failed run remains recorded.
+[Same-commit CI](../../validation/evidence/underground-integration-checkpoint-2026-10-05/ci-eb95c0dd/README.md)
+passes all14 jobs in **14m30s**:410 files exactly once across8 shards,
+11,283 tests/1,082,436 assertions/zero failures. Named tests and every diagnostic
+and leak total match local. Local has11 more assertions, unattributed; exact
+assertion parity is not claimed. The earlier8f failures remain retained.
+
+Reviewed commits `c975e1bd`/`1ad0a090` additionally publish the authored L0/T0
+structure and wood-only bills. Actual generated-Host source readers pass
+2 tests/45 assertions/all-zero and analyzer0/1. This immutable data grants no
+paid progress or access. The source-bound excavation Frontier is in focused
+acceptance; paid handling and original entry-owner integration continue.
 
 The [previously completed successful remote CI](../../validation/evidence/underground-short-step-itinerary-2026-10-05/ci-ca1edc3f/README.md)
 was at `ca1edc3f`: all 14 jobs passed on attempt 2, with 406 files exactly once,

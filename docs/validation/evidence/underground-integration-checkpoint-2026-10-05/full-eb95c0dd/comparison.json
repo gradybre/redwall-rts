@@ -1,0 +1,33 @@
+{
+  "head": "eb95c0dd418d97719a1772790265ae7d834b0291",
+  "same_named_cases": true,
+  "named_case_count": 11283,
+  "same_discovered_files": true,
+  "local_files_exactly_once": true,
+  "full_counts": {
+    "tests": 11283,
+    "assertions": 1082447,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 272,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "sharded_counts": {
+    "tests": 11283,
+    "assertions": 1082436,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 272,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "same_test_and_diagnostic_totals": true,
+  "assertion_difference_local_minus_remote": 11,
+  "all_counter_equality": false,
+  "assertion_difference_attributed": false
+}

@@ -1,0 +1,20 @@
+{
+  "godot/scripts/systems/ui_manager.gd": {
+    "sha256": "bdb01f609234acc2786d9b0768e075e2ea14b5f5c7c88fe5db70a15f56a734e2",
+    "locator": "docs/validation/evidence/underground-world-create-reset-2026-10-04/predecessor/ui_manager.gd.txt",
+    "commit": "721038a4198df17d9bfab6c9994cc9916f875447"
+  },
+  "godot/scripts/ui/ui_world_session.gd": {
+    "sha256": "94a3bf3cdc5be0d6198a2c40139f846db2d4c5b328b3c202a81f26fd092776a1",
+    "locator": "docs/validation/evidence/underground-world-create-reset-2026-10-04/predecessor/ui_world_session.gd.txt",
+    "commit": "721038a4198df17d9bfab6c9994cc9916f875447"
+  },
+  "docs/validation/evidence/underground-host-retirement-2026-10-04/census.py": {
+    "sha256": "fcf045d97239a993cde1dede85b4bfcaca33fbe5816b4acb5d09a64784a1630b",
+    "locator": "docs/validation/evidence/underground-host-retirement-2026-10-04/census.py"
+  },
+  "docs/validation/evidence/underground-host-retirement-2026-10-04/census.json": {
+    "sha256": "b35ca5044bd6d06eec360c22fab66e102796043516da02d14671c05a9e727c61",
+    "locator": "docs/validation/evidence/underground-host-retirement-2026-10-04/census.json"
+  }
+}

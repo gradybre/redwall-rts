@@ -1,0 +1,683 @@
+diff --git a/godot/scripts/systems/ui_manager.gd b/godot/scripts/systems/ui_manager.gd
+index e887b9c0..5469af8e 100644
+--- a/godot/scripts/systems/ui_manager.gd
++++ b/godot/scripts/systems/ui_manager.gd
+@@ -97,6 +97,7 @@ var _session: UiWorldSession = UiWorldSession.new()
+ var _player_has_resumed: bool = false
+ var _opening_pause_applied: bool = false
+ var _last_refusal: StringName = REFUSE_NONE
++var _creating_world: bool = false
+ ## What each roster row IS, as three packed columns of the same length, indexed by row.
+ ##
+ ## ARCH-UI-002: "View commands use generation-validated persistent identity, never render
+@@ -195,64 +196,96 @@ func _on_shell_action(element_id: int) -> void:
+ 
+ 
+ func create_world() -> bool:
+-	"""UI-SET-103's Create: discard the current settlement and create §5.1's world AND cohort.
+-
+-	R-INIT-ID-001 requires preflight, reset, stream seeding, cohort creation, then World publication.
+-	The UI shares the host's generator and retains its attempt report and refusal codes.
+-	A preflight or reset refusal preserves the live settlement. After the player's discard
+-	succeeds, a later failure leaves it empty and reports that outcome explicitly.
+-	An already mounted underground foundation is restored using its same immutable Content.
+-	"""
++	"""Create through the actual host, preserving its retained/stopped/cleared reset outcome."""
++	if _creating_world:
++		return _refuse(&"UI_WORLD_CREATE_BUSY")
+ 	if SettlementSystem == null:
+ 		return _refuse(REFUSE_NO_SETTLEMENT)
+-	var underground_content: UndergroundContent = SettlementSystem.underground_content()
++	_creating_world = true
+ 	var report: UiWorldSession.Report = _session.last_report()
++	report.reset()
++	var ok: bool = false
++	if _prepare_world_create(report):
++		ok = _create_world_after_abandon(report)
++	_reconcile_economy_after_create(ok)
++	_report_generation(ok, report)
++	if ok:
++		refresh_roster()
++	_last_refusal = report.error
++	_creating_world = false
++	return ok
++
++
++func _prepare_world_create(report: UiWorldSession.Report) -> bool:
++	"""Validate first, then release only an original-live Scope before borrowing or preflight."""
++	var code: StringName = _session.form_refusal()
++	if code != UiWorldSession.REFUSE_NONE:
++		return _session.refuse_create(report, code, UiWorldSession.inline_reason(code))
++	if SettlementSystem.abandon_world_reset():
++		return true
++	var outcome: UiWorldSession.ResetOutcome = UiWorldSession.ResetOutcome.new()
++	outcome.error = SettlementSystem.last_refusal()
++	_session.record_reset_outcome(report, outcome)
++	return _session.refuse_create(report, UiWorldSession.REFUSE_RESET,
++		"the previous reset has not completed")
++
++
++func _create_world_after_abandon(report: UiWorldSession.Report) -> bool:
++	"""Borrow the original image only after its pending Scope has been safely abandoned."""
++	var content: UndergroundContent = SettlementSystem.underground_content()
+ 	var ok: bool = _session.create_with_cohort_into(SettlementSystem.directory(),
+ 		SettlementSystem.ecology().resource_nodes(), SettlementSystem.ecology().forage(),
+ 		SettlementSystem.ecology().fishing(), SettlementSystem.rng(),
+ 		SettlementSystem.crop_weather().farming(), SettlementSystem.ecology().orchard_hive(),
+ 		SettlementSystem.jobs(), SettlementSystem.commands(), report,
+-		SettlementSystem.reset.bind(true), SettlementSystem.create_placed_cohort_on, SettlementSystem.world())
++		_reset_for_create_into, SettlementSystem.create_placed_cohort_on, SettlementSystem.world())
+ 	if not ok and report.error == UiWorldSession.REFUSE_COHORT:
+ 		report.error = SettlementSystem.last_refusal()
+ 	ok = _materialize_after_create(ok, report)
+-	ok = _restore_underground_after_create(ok, report, underground_content)
+-	_reconcile_economy_after_create(ok)
+-	_report_generation(ok, report)
+-	if ok:
+-		refresh_roster()
+-	return ok
++	return _restore_underground_after_create(ok, report, content)
+ 
+ 
+-func _materialize_after_create(ok: bool, report: UiWorldSession.Report) -> bool:
+-	"""Decision 0533: Create's colony step. A refusal empties the settlement, as boot's does.
++func _reset_for_create_into(out: UiWorldSession.ResetOutcome, allow_prepared: bool = true) -> void:
++	"""Capture the original reset error before asking the actual host whether it can resume."""
++	out.state = UiWorldSession.RESET_STOPPED
++	out.error = UiWorldSession.REFUSE_RESET_OUTCOME
++	if SettlementSystem.reset(allow_prepared):
++		out.state = UiWorldSession.RESET_CLEARED
++		out.error = UiWorldSession.REFUSE_NONE
++		return
++	out.error = SettlementSystem.last_refusal()
++	if SettlementSystem.abandon_world_reset():
++		out.state = UiWorldSession.RESET_RETAINED
+ 
+-	The session has published a world and its cohort by now. A world without its colony is not a
+-	§5.1 settlement, so a refused colony fails the whole action: the settlement is reset to
+-	empty -- what boot's `_abandon_transaction()` leaves -- and the session forgets the map it
+-	published, so no panel reads a world whose rows the reset destroyed.
+-	"""
++
++func _materialize_after_create(ok: bool, report: UiWorldSession.Report) -> bool:
++	"""A colony refusal attempts actual cleanup and reports any failure of that cleanup."""
+ 	if not ok:
+ 		return false
+ 	if SettlementSystem.materialize_starter_colony():
+ 		return true
+-	var code: StringName = SettlementSystem.last_refusal()
+-	SettlementSystem.reset()
+-	return _session.refuse_published_world(report, code,
+-		"the world was generated but its starter colony could not be placed.")
++	return _cleanup_failed_create(report, SettlementSystem.last_refusal(),
++		"the world was generated but its starter colony could not be placed")
+ 
+ 
+ func _restore_underground_after_create(ok: bool, report: UiWorldSession.Report,
+ 		content: UndergroundContent) -> bool:
+-	"""A mounted demo retains its one immutable image across reset and opens a fresh World-bound Session."""
++	"""Remount the original immutable image; a failed cleanup never masquerades as an empty World."""
+ 	if not ok or content == null:
+ 		return ok
+ 	if SettlementSystem.mount_underground(content):
+ 		return true
+-	var code: StringName = SettlementSystem.last_refusal()
+-	SettlementSystem.reset()
+-	return _session.refuse_published_world(report, code,
+-		"the world was generated but its underground foundation could not be restored.")
++	return _cleanup_failed_create(report, SettlementSystem.last_refusal(),
++		"the world was generated but its underground foundation could not be restored")
++
++
++func _cleanup_failed_create(report: UiWorldSession.Report, code: StringName, detail: String) -> bool:
++	"""Only verified clearing withdraws the published UI map; otherwise retain its exact identity."""
++	var outcome: UiWorldSession.ResetOutcome = UiWorldSession.ResetOutcome.new()
++	_reset_for_create_into(outcome, false)
++	if _session.record_reset_outcome(report, outcome):
++		return _session.refuse_published_world(report, code, detail)
++	return _session.refuse_create(report, code, detail)
+ 
+ 
+ func _reconcile_economy_after_create(ok: bool) -> void:
+@@ -321,13 +354,26 @@ func _report_generation_failure(shell: UiShell, report: UiWorldSession.Report) -
+ 	and the ruling gives the alert card an authored summary that discloses the same record. The
+ 	message is written once and used by both, so the two displays cannot drift apart.
+ 	"""
+-	var message: String = "Generation refused (%s): %s The settlement is now empty." \
+-		% [report.error, report.detail]
++	var message: String = "Generation refused (%s): %s." % [report.error, report.detail]
++	var recovery: String = GENERATION_RECOVERY
++	if report.reset_observed:
++		message += " " + _reset_outcome_text(report)
++		if report.reset_state == UiWorldSession.RESET_STOPPED:
++			recovery = ""
+ 	shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, message, GENERATION_SOURCE,
+-		String(report.error), GENERATION_RECOVERY)
++		String(report.error), recovery)
+ 	shell.set_refusal_display(message)
+ 
+ 
++func _reset_outcome_text(report: UiWorldSession.Report) -> String:
++	"""Describe only the host observation; CLEARED does not claim a later partial World is empty."""
++	if report.reset_state == UiWorldSession.RESET_CLEARED:
++		return "The previous settlement was cleared."
++	if report.reset_state == UiWorldSession.RESET_RETAINED:
++		return "The World was retained (reset: %s)." % report.reset_error
++	return "Reset did not complete; creation remains stopped (reset: %s)." % report.reset_error
++
++
+ func refresh_roster() -> bool:
+ 	"""Fill UI-SET-069's rows from the living residents, or report that there are none.
+ 
+diff --git a/godot/scripts/ui/ui_world_session.gd b/godot/scripts/ui/ui_world_session.gd
+index 4dd13ef2..e65e1d9e 100644
+--- a/godot/scripts/ui/ui_world_session.gd
++++ b/godot/scripts/ui/ui_world_session.gd
+@@ -98,6 +98,10 @@ const REFUSE_NONE: StringName = &""
+ ## reason; this names the stage so the report is not silent about which half failed.
+ const REFUSE_COHORT: StringName = &"SETTLEMENT_COHORT_REFUSED"
+ const REFUSE_RESET: StringName = &"SETTLEMENT_RESET_REFUSED"
++const REFUSE_RESET_OUTCOME: StringName = &"UI_RESET_OUTCOME"
++const RESET_CLEARED: int = 0
++const RESET_RETAINED: int = 1
++const RESET_STOPPED: int = 2
+ const REFUSE_WORLD_BINDING: StringName = &"UI_GENERATOR_BINDING"
+ 
+ ## Directory kinds the `reset` Callable clears that `world_init.gd` does not own itself.
+@@ -146,12 +150,18 @@ const FIELD_REASONS: Dictionary = {
+ }
+ 
+ 
++class ResetOutcome:
++	"""One synchronous host reset observation; an unwritten callback never grants success."""
++
++	var state: int = RESET_STOPPED
++	var error: StringName = REFUSE_RESET_OUTCOME
++
++
+ class Report:
+ 	"""What one generation attempt did, or the exact assertion that stopped it.
+ 
+-	`ok` MUST be read first. A refusal carries the owning module's own code -- `world_init.gd`'s
+-	failed assertion or the binding boundary's refusal -- and leaves every store untouched,
+-	because `world_init.gd` decides refusals before it writes anything.
++	`ok` MUST be read first. Standalone preflight refuses without changing stores. Composed
++	creation records the actual reset outcome separately: a later failure cannot claim rollback.
+ 	"""
+ 
+ 	var ok: bool = false
+@@ -162,6 +172,9 @@ class Report:
+ 	var resource_nodes: int = 0
+ 	var basins: int = 0
+ 	var fish_stocks: int = 0
++	var reset_observed: bool = false
++	var reset_state: int = RESET_STOPPED
++	var reset_error: StringName = REFUSE_NONE
+ 
+ 	func reset() -> void:
+ 		"""Clear the report so a refused attempt cannot show the previous one's counts."""
+@@ -173,6 +186,9 @@ class Report:
+ 		resource_nodes = 0
+ 		basins = 0
+ 		fish_stocks = 0
++		reset_observed = false
++		reset_state = RESET_STOPPED
++		reset_error = REFUSE_NONE
+ 
+ 
+ # --- form state ------------------------------------------------------------------------------------
+@@ -327,25 +343,7 @@ func create_with_cohort_into(directory: EntityDirectoryScript, nodes: ResourceNo
+ 		farming: FarmingScript, orchards: OrchardHiveScript, jobs: JobsScript,
+ 		commands: CommandsScript, out: Report, reset: Callable, cohort: Callable,
+ 		actual_world: WorldInitScript) -> bool:
+-	"""Generate §5.1's world with its cohort allocated FIRST, so residents take ids 1-12.
+-
+-	R-INIT-ID-001 orders initialization preflight -> single reset -> seed -> cohort -> publish,
+-	and `world_init.gd` says in terms that the composed initializer must not use `generate()`:
+-	"the reset in the middle clears the directory, which would destroy a cohort allocated
+-	first, which is exactly how ids 1-12 were lost". `create_into()` uses `generate()`, so the
+-	Create button gave the cohort 1714-1725 while booting gave it 1-12 -- the same seed and the
+-	same authored scenario producing two different identities, which §5.3's
+-	`hash(persistent_id, world_seed)` naming hangs off.
+-
+-	This session shares the host's actual map and retains its attempt report and refusal codes.
+-	Generation uses that map's existing staged banks; it allocates no second WorldInit.
+-	The caller supplies its reset and cohort as Callables, retaining the ruled transaction order.
+-
+-	`cohort` RECEIVES THE PREPARED WORLD. INIT-POSE-R01 places the twelve against the prepared
+-	plan before publication, and this session's `_world` is that plan; a cohort callable that
+-	could not see it could create residents but never stand them anywhere, which is what
+-	Create did until the placement was given the world it must be proved against.
+-	"""
++	"""Preflight/reset/seed/cohort/publish; caller abandons its original-live Scope before entry."""
+ 	out.reset()
+ 	if not can_create():
+ 		return _report_refusal(out, form_refusal(), inline_reason(form_refusal()))
+@@ -360,7 +358,19 @@ func create_with_cohort_into(directory: EntityDirectoryScript, nodes: ResourceNo
+ 		return _report_refusal(out, REFUSE_WORLD_BINDING, "the form must use its settlement's actual World")
+ 	if not _open_catalog():
+ 		return _report_refusal(out, REFUSE_CATALOG, inline_reason(REFUSE_CATALOG))
+-	var candidate: WorldInitScript = actual_world
++	if not _preflight_cohort_world(actual_world, out):
++		return false
++	var outcome: ResetOutcome = ResetOutcome.new()
++	reset.call(outcome)
++	if not record_reset_outcome(out, outcome):
++		if out.reset_state == RESET_RETAINED:
++			actual_world.discard_prepared_plan()
++		return _report_refusal(out, REFUSE_RESET, "the settlement could not be reset")
++	return _publish_cohort_world(actual_world, cohort, out)
++
++
++func _preflight_cohort_world(candidate: WorldInitScript, out: Report) -> bool:
++	"""Prepare only the caller's original generator; the reset callback owns all external clears."""
+ 	candidate.declare_externally_cleared(_caller_cleared_kinds)
+ 	var request: WorldInitScript.RequestResult = WorldInitScript.bound_request(_items, _seed)
+ 	if not request.ok:
+@@ -369,10 +379,25 @@ func create_with_cohort_into(directory: EntityDirectoryScript, nodes: ResourceNo
+ 	out.attempts = planned.attempts
+ 	if not planned.ok:
+ 		return _report_refusal(out, planned.error, "generation refused during preflight")
+-	var reset_result: Variant = reset.call()
+-	if not (reset_result is bool) or not reset_result:
+-		candidate.discard_prepared_plan()
+-		return _report_refusal(out, REFUSE_RESET, "the current settlement is busy; its world was retained")
++	return true
++
++
++func record_reset_outcome(out: Report, outcome: ResetOutcome) -> bool:
++	"""Copy a complete typed observation; malformed or unwritten packets stay STOPPED."""
++	out.reset_observed = true
++	out.reset_state = RESET_STOPPED
++	out.reset_error = REFUSE_RESET_OUTCOME
++	if outcome == null or outcome.state < RESET_CLEARED or outcome.state > RESET_STOPPED:
++		return false
++	if (outcome.state == RESET_CLEARED) != (outcome.error == REFUSE_NONE):
++		return false
++	out.reset_state = outcome.state
++	out.reset_error = outcome.error
++	return out.reset_state == RESET_CLEARED
++
++
++func _publish_cohort_world(candidate: WorldInitScript, cohort: Callable, out: Report) -> bool:
++	"""Continue only after actual clearing, retaining the established seed/cohort/publication order."""
+ 	var seeded: StringName = candidate.seed_prepared_streams()
+ 	if seeded != REFUSE_NONE:
+ 		candidate.discard_prepared_plan()
+@@ -395,6 +420,11 @@ func create_with_cohort_into(directory: EntityDirectoryScript, nodes: ResourceNo
+ 	return true
+ 
+ 
++func refuse_create(out: Report, code: StringName, detail: String) -> bool:
++	"""Report an adapter refusal without discarding any World, staged request or host Scope."""
++	return _report_refusal(out, code, detail)
++
++
+ func _generate_into(out: Report) -> bool:
+ 	"""Build the bound request and run one generation, copying its own counts into the report."""
+ 	var request: WorldInitScript.RequestResult = WorldInitScript.bound_request(_items, _seed)
+diff --git a/godot/test/test_ui_manager.gd b/godot/test/test_ui_manager.gd
+index 3a2f607d..f6af48ad 100644
+--- a/godot/test/test_ui_manager.gd
++++ b/godot/test/test_ui_manager.gd
+@@ -38,6 +38,8 @@ const StarterColonyScript := preload("res://scripts/core/starter_colony.gd")
+ const CatalogScript := preload("res://scripts/core/catalog.gd")
+ const UndergroundSessionScript := preload("res://scripts/core/underground_session.gd")
+ const UndergroundContentScript := preload("res://demo/cast/underground_actor_content.gd")
++const WorldInitScript := preload("res://scripts/core/world_init.gd")
++const GroundPilesScript := preload("res://scripts/core/ground_piles.gd")
+ const BuildingsScript := preload("res://scripts/core/buildings.gd")
+ 
+ const HUD_SCENE_PATH: String = "res://scenes/ui/hud.tscn"
+@@ -452,12 +454,8 @@ func test_a_generated_world_is_populated_and_beds_stay_unpopulated() -> void:
+ 
+ func test_create_refuses_busy_underground_reset_and_retains_actual_world_and_stores() -> void:
+ 	"""The actual Create path cannot continue seeding after its host refused to discard the current World."""
+-	assert_true(_ui.create_world(), "first actual UI World")
+-	var content: UndergroundContentScript = UndergroundContentScript.new()
+-	assert_equal(content.load_file(UndergroundSessionScript.ACTOR_PATH,
+-		UndergroundSessionScript.Catalog.Pins.ACTOR_SHA, UndergroundSessionScript.PRESENTATION_BYTES), &"", "actual source")
+-	assert_true(SettlementSystem.mount_underground(content), "actual foundation on UI-created World")
+-	var session: UndergroundSessionScript = SettlementSystem.underground_session()
++	var session: UndergroundSessionScript = _mount_created_world()
++	var content: UndergroundContentScript = session._content
+ 	var token: int = session._budget.acquire(64)
+ 	assert_true(token > 0, "own operation")
+ 	var original: RefCounted = _ui.world_session().world()
+@@ -466,6 +464,9 @@ func test_create_refuses_busy_underground_reset_and_retains_actual_world_and_sto
+ 	var stock: PackedByteArray = SettlementSystem.inventory().state_bytes()
+ 	assert_false(_ui.create_world(), "Create stops at refused reset")
+ 	assert_equal(_ui.world_session().last_report().error, UiWorldSessionScript.REFUSE_RESET, "reset refusal reported")
++	assert_equal(_ui.world_session().last_report().reset_state, UiWorldSessionScript.RESET_RETAINED, "actual abandon permits retained")
++	assert_equal(_ui.world_session().last_report().reset_error, &"UNDERGROUND_SESSION_NOT_QUIESCENT", "original reset cause")
++	assert_equal(SettlementSystem.world()._prepared_request, null, "retained refusal discards only new plan")
+ 	assert_equal(_ui.world_session().world(), original, "published UI map retained")
+ 	assert_equal(SettlementSystem.world(), original, "same simulation World retained")
+ 	assert_equal(SettlementSystem.world_ref(), world_ref, "same full identity")
+@@ -1124,3 +1125,154 @@ func _swap_persistent_ids(directory: EntityDirectoryScript, first: int, second:
+ 	persistent[second] = held
+ 	assert_true(directory.restore_columns(active, generation, retired, persistent, kind,
+ 		typed_row), "the swapped world is restored: %s" % directory.last_column_refusal())
++
++
++func _mount_created_world() -> UndergroundSessionScript:
++	"""Use actual UI generation and immutable source; no catalog/profile acceptance substitute."""
++	assert_true(_ui.create_world(), "actual UI World")
++	var content: UndergroundContentScript = UndergroundContentScript.new()
++	assert_equal(content.load_file(UndergroundSessionScript.ACTOR_PATH,
++		UndergroundSessionScript.Catalog.Pins.ACTOR_SHA, UndergroundSessionScript.PRESENTATION_BYTES), &"", "actual image")
++	assert_true(SettlementSystem.mount_underground(content), "actual mount")
++	return SettlementSystem.underground_session()
++
++
++func _stage_ui_replacement() -> WorldInitScript.Request:
++	"""Stage the same declared external owners as Create, before retaining an original retirement Scope."""
++	SettlementSystem.world().declare_externally_cleared(_ui.world_session()._caller_cleared_kinds)
++	var request: WorldInitScript.RequestResult = WorldInitScript.bound_request(
++		SettlementSystem.item_definitions(), WorldInitScript.TUTORIAL_WORLD_SEED + 1)
++	assert_true(request.ok, "bound source request")
++	assert_true(SettlementSystem.world().preflight(request.request).ok, "actual plan")
++	return request.request
++
++
++func test_create_abandons_original_prepared_scope_before_new_request_and_content_borrow() -> void:
++	"""A valid new World form submission can replace a live prepared reset without losing Content."""
++	var old: UndergroundSessionScript = _mount_created_world()
++	var content: UndergroundContentScript = old._content
++	var request: WorldInitScript.Request = _stage_ui_replacement()
++	assert_true(SettlementSystem.prepare_world_reset(true), "original request pinned")
++	var scope_life: WeakRef = weakref(old._retirement_scope)
++	assert_equal(SettlementSystem.underground_content(), null, "pending scope denies fresh image borrow")
++	assert_true(_ui.create_world(), "Create abandons before replacing request")
++	assert_equal(scope_life.get_ref(), null, "old Scope released")
++	assert_true(SettlementSystem.world()._prepared_request != request, "original plan no longer retained")
++	var current: UndergroundSessionScript = SettlementSystem.underground_session()
++	assert_not_null(current, "foundation remounted, not silently lost")
++	assert_true(current != old, "new full World identity")
++	assert_equal(current._content, content, "original immutable image survived")
++	assert_equal(_ui.world_session().last_report().reset_state, UiWorldSessionScript.RESET_CLEARED, "real clear")
++	assert_true(SettlementSystem.reset(), "cleanup")
++
++
++func test_invalid_form_preserves_prepared_scope_and_request_without_abandoning() -> void:
++	"""Form validation precedes original-live abandonment, so an invalid choice mutates no retirement state."""
++	var session: UndergroundSessionScript = _mount_created_world()
++	var request: WorldInitScript.Request = _stage_ui_replacement()
++	assert_true(SettlementSystem.prepare_world_reset(true), "original request pinned")
++	var scope: RefCounted = session._retirement_scope
++	_ui.world_session().set_architecture(ARCHITECTURE_HOLT)
++	assert_false(_ui.create_world(), "invalid form refuses")
++	assert_equal(session._retirement_scope, scope, "same Scope")
++	assert_equal(SettlementSystem.world()._prepared_request, request, "same exact request")
++	assert_false(_ui.world_session().last_report().reset_observed, "no reset observation invented")
++	assert_true(SettlementSystem.abandon_world_reset(), "original-live test cleanup")
++	SettlementSystem.world().discard_prepared_plan()
++	assert_true(SettlementSystem.reset(), "cleanup")
++
++
++func test_create_stopped_scope_preserves_plan_and_reports_no_false_empty_or_retry() -> void:
++	"""A deliberately replaced source bank prevents abandonment before any replacement preflight."""
++	var session: UndergroundSessionScript = _mount_created_world()
++	var request: WorldInitScript.Request = _stage_ui_replacement()
++	assert_true(SettlementSystem.prepare_world_reset(true), "original request pinned")
++	var scope: RefCounted = session._retirement_scope
++	var original: UndergroundSessionScript.Profiles.Bank = session._profiles._live
++	session._profiles._live = UndergroundSessionScript.Profiles.Bank.new() # Adverse immutable source substitution.
++	_ui.register_hud(_hud)
++	assert_false(_ui.create_world(), "no abandonment or new preflight")
++	var report: UiWorldSessionScript.Report = _ui.world_session().last_report()
++	assert_equal(report.reset_state, UiWorldSessionScript.RESET_STOPPED, "truthful stopped state")
++	assert_equal(SettlementSystem.world()._prepared_request, request, "original plan not discarded")
++	assert_equal(session._retirement_scope, scope, "original Scope remains")
++	var panel: Control = _hud.shell().control_for(ERROR_PANEL_ID)
++	assert_true(panel.accessibility_description.contains("remains stopped"), "player sees stopped result")
++	assert_false(panel.accessibility_description.contains("now empty"), "no empty claim")
++	var notice: UiNoticesScript.Notice = UiNoticesScript.Notice.new()
++	assert_true(_hud.shell().notices().notice_into(0, 0, notice), "actual notice")
++	assert_equal(notice.recovery, "", "no unsafe blind retry advice")
++	session._profiles._live = original
++	assert_true(SettlementSystem.abandon_world_reset(), "restore only test substitution")
++	SettlementSystem.world().discard_prepared_plan()
++	assert_true(SettlementSystem.reset(), "cleanup")
++
++
++class ReentrantPlacement extends RefCounted:
++	var actual: GroundPilesScript = null
++	var ui: UIManagerScript = null
++	var invoked: bool = false
++	var nested_ok: bool = true
++	var original_report: UiWorldSessionScript.Report = null
++	var report_unchanged: bool = false
++
++	func building_tile_refusal(tile: int) -> StringName:
++		"""A genuine placement read attempts one nested Create without replacing the outer result."""
++		var code: StringName = actual.building_tile_refusal(tile)
++		if not invoked:
++			invoked = true
++			original_report = ui.world_session().last_report()
++			nested_ok = ui.create_world()
++			report_unchanged = original_report == ui.world_session().last_report() and original_report.ok
++		return code
++
++
++func test_nested_create_during_actual_colony_placement_preserves_outer_generation() -> void:
++	"""The real external placement observer cannot recursively reset the new World under construction."""
++	var probe: ReentrantPlacement = ReentrantPlacement.new()
++	probe.actual = SettlementSystem.ground_piles()
++	probe.ui = _ui
++	assert_true(SettlementSystem.buildings().set_placement_authority(probe).ok, "observed actual authority")
++	var ok: bool = _ui.create_world()
++	SettlementSystem.buildings().set_placement_authority(SettlementSystem.ground_piles())
++	probe.ui = null
++	assert_true(probe.invoked, "real observer called")
++	assert_false(probe.nested_ok, "nested action refused")
++	assert_true(probe.report_unchanged, "outer published report retained")
++	assert_true(ok, "outer actual creation succeeds")
++	assert_equal(SettlementSystem.population(), 12, "one complete cohort")
++	assert_true(SettlementSystem.world().is_published(), "actual World remains live")
++	assert_equal(_ui.world_session().generated_count(), 1, "no nested generation")
++	assert_true(SettlementSystem.reset(), "cleanup")
++
++
++func test_late_cleanup_refusal_keeps_actual_world_and_original_failure_code() -> void:
++	"""The post-colony/remount cleanup helper checks a real busy reset rather than claiming empty."""
++	var session: UndergroundSessionScript = _mount_created_world()
++	var token: int = session._budget.acquire(64)
++	var before: PackedByteArray = SettlementSystem.directory().state_bytes()
++	var report: UiWorldSessionScript.Report = _ui.world_session().last_report()
++	assert_false(_ui._cleanup_failed_create(report, &"TEST_REMOUNT_STAGE", "remount failed"), "stage remains failed")
++	assert_equal(report.error, &"TEST_REMOUNT_STAGE", "original stage error preserved")
++	assert_equal(report.reset_error, &"UNDERGROUND_SESSION_NOT_QUIESCENT", "original cleanup error preserved")
++	assert_equal(report.reset_state, UiWorldSessionScript.RESET_RETAINED, "actual host retained World")
++	assert_equal(SettlementSystem.directory().state_bytes(), before, "no store clear")
++	assert_true(_ui.world_session().has_world(), "UI did not discard still-live map")
++	assert_equal(session._budget.release(token), &"", "only test lease released")
++	assert_false(_ui._cleanup_failed_create(report, &"TEST_REMOUNT_STAGE", "remount failed"), "retry cleanup, no success claim")
++	assert_equal(report.reset_state, UiWorldSessionScript.RESET_CLEARED, "actual clear verified")
++	assert_false(_ui.world_session().has_world(), "only now map withdrawn")
++	assert_equal(SettlementSystem.population(), 0, "actual clear emptied population")
++
++
++func test_actual_remount_refusal_checks_cleanup_before_withdrawing_map() -> void:
++	"""An unloaded image really refuses remount; successful cleanup then withdraws the map."""
++	assert_true(_ui.create_world(), "actual generated World")
++	var report: UiWorldSessionScript.Report = _ui.world_session().last_report()
++	var missing: UndergroundContentScript = UndergroundContentScript.new()
++	assert_false(_ui._restore_underground_after_create(true, report, missing), "actual source refusal")
++	assert_true(report.error != &"", "exact owner refusal retained")
++	assert_equal(report.reset_state, UiWorldSessionScript.RESET_CLEARED, "actual cleanup checked")
++	assert_equal(report.reset_error, &"", "cleanup itself succeeded")
++	assert_false(_ui.world_session().has_world(), "map no longer live")
++	assert_equal(SettlementSystem.population(), 0, "actual cleanup")
+diff --git a/godot/test/test_ui_world_session.gd b/godot/test/test_ui_world_session.gd
+index 6800c163..36979962 100644
+--- a/godot/test/test_ui_world_session.gd
++++ b/godot/test/test_ui_world_session.gd
+@@ -26,6 +26,9 @@ const ResourceNodesScript := preload("res://scripts/core/resource_nodes.gd")
+ const ForageScript := preload("res://scripts/core/forage.gd")
+ const FishingScript := preload("res://scripts/core/fishing.gd")
+ const RngScript := preload("res://scripts/core/rng.gd")
++const SettlementScript := preload("res://scripts/systems/settlement_system.gd")
++const UndergroundSession := preload("res://scripts/core/underground_session.gd")
++const UndergroundContent := preload("res://demo/cast/underground_actor_content.gd")
+ const WorldInitScript := preload("res://scripts/core/world_init.gd")
+ 
+ ## Task 04.3's recorded output of one §5.1 generation, quoted: "1695 resource nodes, 7 basins,
+@@ -52,6 +55,10 @@ var _fishing: FishingScript = null
+ var _rng: RngScript = null
+ var _session: UiWorldSession = null
+ var _report: UiWorldSession.Report = null
++var _reset_host: SettlementScript = null
++var _cohort_calls: int = 0
++var _captured_request: WorldInitScript.Request = null
++var _reset_cause: StringName = &""
+ 
+ 
+ func before_each() -> void:
+@@ -69,6 +76,12 @@ func before_each() -> void:
+ 
+ func after_each() -> void:
+ 	"""Drop every store so no generated world crosses a test boundary."""
++	if _reset_host != null:
++		_reset_host.free()
++	_reset_host = null
++	_captured_request = null
++	_cohort_calls = 0
++	_reset_cause = &""
+ 	_session = null
+ 	_report = null
+ 	_rng = null
+@@ -248,3 +261,133 @@ func test_a_refused_create_leaves_the_stores_exactly_as_they_were() -> void:
+ 	assert_false(_create(), "the next Create refuses")
+ 	assert_equal(_nodes.count(), nodes_before, "the previous world is untouched")
+ 	assert_true(_session.has_world(), "and is still published")
++
++
++class PartialClearHost extends SettlementScript:
++	var stop_during_clear: bool = false
++	var captured_request: WorldInitScript.Request = null
++	var captured_scope: RefCounted = null
++
++	func _clear_stores() -> void:
++		"""Negative fixture interrupts the real clear; it never overrides a successful owner proof."""
++		if not stop_during_clear:
++			super._clear_stores()
++			return
++		captured_request = world()._prepared_request
++		captured_scope = _underground_session._retirement_scope
++		residents().clear()
++
++
++func _create_on_reset_host(reset_into: Callable) -> bool:
++	"""Use the actual host's existing World and all nine original stores through the composed form."""
++	return _session.create_with_cohort_into(_reset_host.directory(),
++		_reset_host.ecology().resource_nodes(), _reset_host.ecology().forage(),
++		_reset_host.ecology().fishing(), _reset_host.rng(), _reset_host.crop_weather().farming(),
++		_reset_host.ecology().orchard_hive(), _reset_host.jobs(), _reset_host.commands(),
++		_report, reset_into, _create_host_cohort, _reset_host.world())
++
++
++func _create_host_cohort(world: WorldInitScript) -> bool:
++	"""Count whether the gate was crossed, then perform the real placed cohort operation."""
++	_cohort_calls += 1
++	return _reset_host.create_placed_cohort_on(world)
++
++
++func _actual_reset_into(out: UiWorldSession.ResetOutcome) -> void:
++	"""Test-owned actual host uses the same public reset/abandon result contract as UIManager."""
++	if _reset_host.reset(true):
++		out.state = UiWorldSession.RESET_CLEARED
++		out.error = &""
++		return
++	_reset_cause = _reset_host.last_refusal()
++	out.error = _reset_cause
++	out.state = UiWorldSession.RESET_RETAINED if _reset_host.abandon_world_reset() else UiWorldSession.RESET_STOPPED
++
++
++func _unwritten_boolean_reset(_out: UiWorldSession.ResetOutcome) -> bool:
++	"""A legacy-looking return value must not grant clearing or erase the staged plan."""
++	_captured_request = _reset_host.world()._prepared_request
++	return true
++
++
++func _malformed_reset(out: UiWorldSession.ResetOutcome) -> void:
++	"""A success enum paired with a failure code is not a complete host observation."""
++	_captured_request = _reset_host.world()._prepared_request
++	out.state = UiWorldSession.RESET_CLEARED
++	out.error = &"TEST_RESET_FAILED"
++
++
++func test_default_reset_outcome_and_invalid_states_never_report_cleared() -> void:
++	"""Incomplete callback output stays stopped; a previous successful report cannot leak through."""
++	var outcome: UiWorldSession.ResetOutcome = UiWorldSession.ResetOutcome.new()
++	assert_equal(outcome.state, UiWorldSession.RESET_STOPPED, "default is stopped")
++	assert_false(_session.record_reset_outcome(_report, outcome), "unwritten refuses")
++	outcome.state = UiWorldSession.RESET_CLEARED
++	outcome.error = &""
++	assert_true(_session.record_reset_outcome(_report, outcome), "complete observation")
++	outcome.state = 3
++	assert_false(_session.record_reset_outcome(_report, outcome), "unknown enum refuses")
++	assert_equal(_report.reset_state, UiWorldSession.RESET_STOPPED, "previous cleared value erased")
++	outcome.state = UiWorldSession.RESET_RETAINED
++	assert_false(_session.record_reset_outcome(_report, outcome), "retained requires original failure")
++	assert_equal(_report.reset_error, UiWorldSession.REFUSE_RESET_OUTCOME, "malformed protocol identified")
++	assert_false(_session.record_reset_outcome(_report, null), "missing packet refuses")
++
++
++func test_boolean_return_cannot_replace_typed_reset_observation() -> void:
++	"""A true return leaves the exact prepared request and all live owners untouched."""
++	_reset_host = SettlementScript.new()
++	var before: PackedByteArray = _reset_host.directory().state_bytes()
++	assert_false(_create_on_reset_host(_unwritten_boolean_reset), "return true is not proof")
++	assert_equal(_cohort_calls, 0, "no cohort callback")
++	assert_equal(_report.reset_state, UiWorldSession.RESET_STOPPED, "truthful stopped state")
++	assert_equal(_report.reset_error, UiWorldSession.REFUSE_RESET_OUTCOME, "missing output identified")
++	assert_not_null(_captured_request, "actual staged request existed")
++	assert_equal(_reset_host.world()._prepared_request, _captured_request, "request not discarded")
++	assert_equal(_reset_host.directory().state_bytes(), before, "no authority writes")
++	assert_false(_reset_host.world().is_published(), "no fake publication")
++
++
++func test_malformed_cleared_result_preserves_original_plan() -> void:
++	"""Contradictory packet fields cannot seed the prepared streams or clear request identity."""
++	_reset_host = SettlementScript.new()
++	assert_false(_create_on_reset_host(_malformed_reset), "contradictory callback refuses")
++	assert_equal(_cohort_calls, 0, "no cohort callback")
++	assert_equal(_report.reset_state, UiWorldSession.RESET_STOPPED, "refusal remains stopped")
++	assert_equal(_reset_host.world()._prepared_request, _captured_request, "same staged request")
++	assert_equal(_session.generated_count(), 0, "no generated count")
++
++
++func test_actual_typed_reset_preserves_cohort_first_publication() -> void:
++	"""An actual cleared host continues through its original generator and real placed cohort."""
++	_reset_host = SettlementScript.new()
++	assert_true(_create_on_reset_host(_actual_reset_into), "typed real reset creates World")
++	assert_equal(_cohort_calls, 1, "exactly one actual cohort")
++	assert_equal(_reset_host.population(), 12, "all starter residents")
++	assert_equal(_report.reset_state, UiWorldSession.RESET_CLEARED, "actual clear recorded")
++	assert_equal(_report.reset_error, &"", "no reset failure")
++	assert_equal(_session.world(), _reset_host.world(), "one actual World")
++	assert_true(_reset_host.world().is_published(), "published after cohort")
++	assert_equal(_reset_host.ecology().resource_nodes().count(), 1695, "actual content count")
++
++
++func test_partial_actual_clear_preserves_scope_request_and_original_reset_error() -> void:
++	"""A real mounted host with a deliberately incomplete clear cannot be disguised as retained."""
++	var host: PartialClearHost = PartialClearHost.new()
++	_reset_host = host
++	assert_true(host.create_generated_settlement(host.item_definitions()), "actual old World")
++	var content: UndergroundContent = UndergroundContent.new()
++	assert_equal(content.load_file(UndergroundSession.ACTOR_PATH, UndergroundSession.Catalog.Pins.ACTOR_SHA,
++		UndergroundSession.PRESENTATION_BYTES), &"", "actual source")
++	assert_true(host.mount_underground(content), "actual foundation")
++	host.stop_during_clear = true
++	assert_false(_create_on_reset_host(_actual_reset_into), "actual empty-owner proof refuses")
++	assert_equal(_report.reset_state, UiWorldSession.RESET_STOPPED, "no rollback claimed")
++	assert_equal(_report.reset_error, _reset_cause, "original error survives failed abandonment")
++	assert_true(_reset_cause != &"UNDERGROUND_HOST_RESETTING", "abandon did not replace first error")
++	assert_equal(host.world()._prepared_request, host.captured_request, "same exact request")
++	assert_equal(host._underground_session._retirement_scope, host.captured_scope, "same exact Scope")
++	assert_equal(_cohort_calls, 0, "no replacement cohort")
++	assert_false(host.run_tick(1), "partial clear remains stopped")
++	assert_false(host.abandon_world_reset(), "no unsafe abandon")
++	host.captured_scope = null # Only release this test's extra observation; the actual Scope remains private.

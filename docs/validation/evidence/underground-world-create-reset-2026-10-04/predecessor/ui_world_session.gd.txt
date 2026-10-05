@@ -98,10 +98,6 @@ const REFUSE_NONE: StringName = &""
 ## reason; this names the stage so the report is not silent about which half failed.
 const REFUSE_COHORT: StringName = &"SETTLEMENT_COHORT_REFUSED"
 const REFUSE_RESET: StringName = &"SETTLEMENT_RESET_REFUSED"
-const REFUSE_RESET_OUTCOME: StringName = &"UI_RESET_OUTCOME"
-const RESET_CLEARED: int = 0
-const RESET_RETAINED: int = 1
-const RESET_STOPPED: int = 2
 const REFUSE_WORLD_BINDING: StringName = &"UI_GENERATOR_BINDING"
 
 ## Directory kinds the `reset` Callable clears that `world_init.gd` does not own itself.
@@ -150,18 +146,12 @@ const FIELD_REASONS: Dictionary = {
 }
 
 
-class ResetOutcome:
-	"""One synchronous host reset observation; an unwritten callback never grants success."""
-
-	var state: int = RESET_STOPPED
-	var error: StringName = REFUSE_RESET_OUTCOME
-
-
 class Report:
 	"""What one generation attempt did, or the exact assertion that stopped it.
 
-	`ok` MUST be read first. Standalone preflight refuses without changing stores. Composed
-	creation records the actual reset outcome separately: a later failure cannot claim rollback.
+	`ok` MUST be read first. A refusal carries the owning module's own code -- `world_init.gd`'s
+	failed assertion or the binding boundary's refusal -- and leaves every store untouched,
+	because `world_init.gd` decides refusals before it writes anything.
 	"""
 
 	var ok: bool = false
@@ -172,9 +162,6 @@ class Report:
 	var resource_nodes: int = 0
 	var basins: int = 0
 	var fish_stocks: int = 0
-	var reset_observed: bool = false
-	var reset_state: int = RESET_STOPPED
-	var reset_error: StringName = REFUSE_NONE
 
 	func reset() -> void:
 		"""Clear the report so a refused attempt cannot show the previous one's counts."""
@@ -186,9 +173,6 @@ class Report:
 		resource_nodes = 0
 		basins = 0
 		fish_stocks = 0
-		reset_observed = false
-		reset_state = RESET_STOPPED
-		reset_error = REFUSE_NONE
 
 
 # --- form state ------------------------------------------------------------------------------------
@@ -343,7 +327,25 @@ func create_with_cohort_into(directory: EntityDirectoryScript, nodes: ResourceNo
 		farming: FarmingScript, orchards: OrchardHiveScript, jobs: JobsScript,
 		commands: CommandsScript, out: Report, reset: Callable, cohort: Callable,
 		actual_world: WorldInitScript) -> bool:
-	"""Preflight/reset/seed/cohort/publish; caller abandons its original-live Scope before entry."""
+	"""Generate §5.1's world with its cohort allocated FIRST, so residents take ids 1-12.
+
+	R-INIT-ID-001 orders initialization preflight -> single reset -> seed -> cohort -> publish,
+	and `world_init.gd` says in terms that the composed initializer must not use `generate()`:
+	"the reset in the middle clears the directory, which would destroy a cohort allocated
+	first, which is exactly how ids 1-12 were lost". `create_into()` uses `generate()`, so the
+	Create button gave the cohort 1714-1725 while booting gave it 1-12 -- the same seed and the
+	same authored scenario producing two different identities, which §5.3's
+	`hash(persistent_id, world_seed)` naming hangs off.
+
+	This session shares the host's actual map and retains its attempt report and refusal codes.
+	Generation uses that map's existing staged banks; it allocates no second WorldInit.
+	The caller supplies its reset and cohort as Callables, retaining the ruled transaction order.
+
+	`cohort` RECEIVES THE PREPARED WORLD. INIT-POSE-R01 places the twelve against the prepared
+	plan before publication, and this session's `_world` is that plan; a cohort callable that
+	could not see it could create residents but never stand them anywhere, which is what
+	Create did until the placement was given the world it must be proved against.
+	"""
 	out.reset()
 	if not can_create():
 		return _report_refusal(out, form_refusal(), inline_reason(form_refusal()))
@@ -358,19 +360,7 @@ func create_with_cohort_into(directory: EntityDirectoryScript, nodes: ResourceNo
 		return _report_refusal(out, REFUSE_WORLD_BINDING, "the form must use its settlement's actual World")
 	if not _open_catalog():
 		return _report_refusal(out, REFUSE_CATALOG, inline_reason(REFUSE_CATALOG))
-	if not _preflight_cohort_world(actual_world, out):
-		return false
-	var outcome: ResetOutcome = ResetOutcome.new()
-	reset.call(outcome)
-	if not record_reset_outcome(out, outcome):
-		if out.reset_state == RESET_RETAINED:
-			actual_world.discard_prepared_plan()
-		return _report_refusal(out, REFUSE_RESET, "the settlement could not be reset")
-	return _publish_cohort_world(actual_world, cohort, out)
-
-
-func _preflight_cohort_world(candidate: WorldInitScript, out: Report) -> bool:
-	"""Prepare only the caller's original generator; the reset callback owns all external clears."""
+	var candidate: WorldInitScript = actual_world
 	candidate.declare_externally_cleared(_caller_cleared_kinds)
 	var request: WorldInitScript.RequestResult = WorldInitScript.bound_request(_items, _seed)
 	if not request.ok:
@@ -379,25 +369,10 @@ func _preflight_cohort_world(candidate: WorldInitScript, out: Report) -> bool:
 	out.attempts = planned.attempts
 	if not planned.ok:
 		return _report_refusal(out, planned.error, "generation refused during preflight")
-	return true
-
-
-func record_reset_outcome(out: Report, outcome: ResetOutcome) -> bool:
-	"""Copy a complete typed observation; malformed or unwritten packets stay STOPPED."""
-	out.reset_observed = true
-	out.reset_state = RESET_STOPPED
-	out.reset_error = REFUSE_RESET_OUTCOME
-	if outcome == null or outcome.state < RESET_CLEARED or outcome.state > RESET_STOPPED:
-		return false
-	if (outcome.state == RESET_CLEARED) != (outcome.error == REFUSE_NONE):
-		return false
-	out.reset_state = outcome.state
-	out.reset_error = outcome.error
-	return out.reset_state == RESET_CLEARED
-
-
-func _publish_cohort_world(candidate: WorldInitScript, cohort: Callable, out: Report) -> bool:
-	"""Continue only after actual clearing, retaining the established seed/cohort/publication order."""
+	var reset_result: Variant = reset.call()
+	if not (reset_result is bool) or not reset_result:
+		candidate.discard_prepared_plan()
+		return _report_refusal(out, REFUSE_RESET, "the current settlement is busy; its world was retained")
 	var seeded: StringName = candidate.seed_prepared_streams()
 	if seeded != REFUSE_NONE:
 		candidate.discard_prepared_plan()
@@ -418,11 +393,6 @@ func _publish_cohort_world(candidate: WorldInitScript, cohort: Callable, out: Re
 	_generated_count += 1
 	_last_refusal = REFUSE_NONE
 	return true
-
-
-func refuse_create(out: Report, code: StringName, detail: String) -> bool:
-	"""Report an adapter refusal without discarding any World, staged request or host Scope."""
-	return _report_refusal(out, code, detail)
 
 
 func _generate_into(out: Report) -> bool:

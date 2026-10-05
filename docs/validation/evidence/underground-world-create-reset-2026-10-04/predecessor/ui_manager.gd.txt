@@ -97,7 +97,6 @@ var _session: UiWorldSession = UiWorldSession.new()
 var _player_has_resumed: bool = false
 var _opening_pause_applied: bool = false
 var _last_refusal: StringName = REFUSE_NONE
-var _creating_world: bool = false
 ## What each roster row IS, as three packed columns of the same length, indexed by row.
 ##
 ## ARCH-UI-002: "View commands use generation-validated persistent identity, never render
@@ -196,96 +195,64 @@ func _on_shell_action(element_id: int) -> void:
 
 
 func create_world() -> bool:
-	"""Create through the actual host, preserving its retained/stopped/cleared reset outcome."""
-	if _creating_world:
-		return _refuse(&"UI_WORLD_CREATE_BUSY")
+	"""UI-SET-103's Create: discard the current settlement and create §5.1's world AND cohort.
+
+	R-INIT-ID-001 requires preflight, reset, stream seeding, cohort creation, then World publication.
+	The UI shares the host's generator and retains its attempt report and refusal codes.
+	A preflight or reset refusal preserves the live settlement. After the player's discard
+	succeeds, a later failure leaves it empty and reports that outcome explicitly.
+	An already mounted underground foundation is restored using its same immutable Content.
+	"""
 	if SettlementSystem == null:
 		return _refuse(REFUSE_NO_SETTLEMENT)
-	_creating_world = true
+	var underground_content: UndergroundContent = SettlementSystem.underground_content()
 	var report: UiWorldSession.Report = _session.last_report()
-	report.reset()
-	var ok: bool = false
-	if _prepare_world_create(report):
-		ok = _create_world_after_abandon(report)
-	_reconcile_economy_after_create(ok)
-	_report_generation(ok, report)
-	if ok:
-		refresh_roster()
-	_last_refusal = report.error
-	_creating_world = false
-	return ok
-
-
-func _prepare_world_create(report: UiWorldSession.Report) -> bool:
-	"""Validate first, then release only an original-live Scope before borrowing or preflight."""
-	var code: StringName = _session.form_refusal()
-	if code != UiWorldSession.REFUSE_NONE:
-		return _session.refuse_create(report, code, UiWorldSession.inline_reason(code))
-	if SettlementSystem.abandon_world_reset():
-		return true
-	var outcome: UiWorldSession.ResetOutcome = UiWorldSession.ResetOutcome.new()
-	outcome.error = SettlementSystem.last_refusal()
-	_session.record_reset_outcome(report, outcome)
-	return _session.refuse_create(report, UiWorldSession.REFUSE_RESET,
-		"the previous reset has not completed")
-
-
-func _create_world_after_abandon(report: UiWorldSession.Report) -> bool:
-	"""Borrow the original image only after its pending Scope has been safely abandoned."""
-	var content: UndergroundContent = SettlementSystem.underground_content()
 	var ok: bool = _session.create_with_cohort_into(SettlementSystem.directory(),
 		SettlementSystem.ecology().resource_nodes(), SettlementSystem.ecology().forage(),
 		SettlementSystem.ecology().fishing(), SettlementSystem.rng(),
 		SettlementSystem.crop_weather().farming(), SettlementSystem.ecology().orchard_hive(),
 		SettlementSystem.jobs(), SettlementSystem.commands(), report,
-		_reset_for_create_into, SettlementSystem.create_placed_cohort_on, SettlementSystem.world())
+		SettlementSystem.reset.bind(true), SettlementSystem.create_placed_cohort_on, SettlementSystem.world())
 	if not ok and report.error == UiWorldSession.REFUSE_COHORT:
 		report.error = SettlementSystem.last_refusal()
 	ok = _materialize_after_create(ok, report)
-	return _restore_underground_after_create(ok, report, content)
-
-
-func _reset_for_create_into(out: UiWorldSession.ResetOutcome, allow_prepared: bool = true) -> void:
-	"""Capture the original reset error before asking the actual host whether it can resume."""
-	out.state = UiWorldSession.RESET_STOPPED
-	out.error = UiWorldSession.REFUSE_RESET_OUTCOME
-	if SettlementSystem.reset(allow_prepared):
-		out.state = UiWorldSession.RESET_CLEARED
-		out.error = UiWorldSession.REFUSE_NONE
-		return
-	out.error = SettlementSystem.last_refusal()
-	if SettlementSystem.abandon_world_reset():
-		out.state = UiWorldSession.RESET_RETAINED
+	ok = _restore_underground_after_create(ok, report, underground_content)
+	_reconcile_economy_after_create(ok)
+	_report_generation(ok, report)
+	if ok:
+		refresh_roster()
+	return ok
 
 
 func _materialize_after_create(ok: bool, report: UiWorldSession.Report) -> bool:
-	"""A colony refusal attempts actual cleanup and reports any failure of that cleanup."""
+	"""Decision 0533: Create's colony step. A refusal empties the settlement, as boot's does.
+
+	The session has published a world and its cohort by now. A world without its colony is not a
+	§5.1 settlement, so a refused colony fails the whole action: the settlement is reset to
+	empty -- what boot's `_abandon_transaction()` leaves -- and the session forgets the map it
+	published, so no panel reads a world whose rows the reset destroyed.
+	"""
 	if not ok:
 		return false
 	if SettlementSystem.materialize_starter_colony():
 		return true
-	return _cleanup_failed_create(report, SettlementSystem.last_refusal(),
-		"the world was generated but its starter colony could not be placed")
+	var code: StringName = SettlementSystem.last_refusal()
+	SettlementSystem.reset()
+	return _session.refuse_published_world(report, code,
+		"the world was generated but its starter colony could not be placed.")
 
 
 func _restore_underground_after_create(ok: bool, report: UiWorldSession.Report,
 		content: UndergroundContent) -> bool:
-	"""Remount the original immutable image; a failed cleanup never masquerades as an empty World."""
+	"""A mounted demo retains its one immutable image across reset and opens a fresh World-bound Session."""
 	if not ok or content == null:
 		return ok
 	if SettlementSystem.mount_underground(content):
 		return true
-	return _cleanup_failed_create(report, SettlementSystem.last_refusal(),
-		"the world was generated but its underground foundation could not be restored")
-
-
-func _cleanup_failed_create(report: UiWorldSession.Report, code: StringName, detail: String) -> bool:
-	"""Only verified clearing withdraws the published UI map; otherwise retain its exact identity."""
-	var outcome: UiWorldSession.ResetOutcome = UiWorldSession.ResetOutcome.new()
-	_reset_for_create_into(outcome, false)
-	if _session.record_reset_outcome(report, outcome):
-		return _session.refuse_published_world(report, code, detail)
-	return _session.refuse_create(report, code, detail)
+	var code: StringName = SettlementSystem.last_refusal()
+	SettlementSystem.reset()
+	return _session.refuse_published_world(report, code,
+		"the world was generated but its underground foundation could not be restored.")
 
 
 func _reconcile_economy_after_create(ok: bool) -> void:
@@ -354,24 +321,11 @@ func _report_generation_failure(shell: UiShell, report: UiWorldSession.Report) -
 	and the ruling gives the alert card an authored summary that discloses the same record. The
 	message is written once and used by both, so the two displays cannot drift apart.
 	"""
-	var message: String = "Generation refused (%s): %s." % [report.error, report.detail]
-	var recovery: String = GENERATION_RECOVERY
-	if report.reset_observed:
-		message += " " + _reset_outcome_text(report)
-		if report.reset_state == UiWorldSession.RESET_STOPPED:
-			recovery = ""
+	var message: String = "Generation refused (%s): %s The settlement is now empty." \
+		% [report.error, report.detail]
 	shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, message, GENERATION_SOURCE,
-		String(report.error), recovery)
+		String(report.error), GENERATION_RECOVERY)
 	shell.set_refusal_display(message)
-
-
-func _reset_outcome_text(report: UiWorldSession.Report) -> String:
-	"""Describe only the host observation; CLEARED does not claim a later partial World is empty."""
-	if report.reset_state == UiWorldSession.RESET_CLEARED:
-		return "The previous settlement was cleared."
-	if report.reset_state == UiWorldSession.RESET_RETAINED:
-		return "The World was retained (reset: %s)." % report.reset_error
-	return "Reset did not complete; creation remains stopped (reset: %s)." % report.reset_error
 
 
 func refresh_roster() -> bool:

@@ -1,0 +1,32 @@
+{
+  "reviewed_sources": 51,
+  "immutable_witnesses": 29,
+  "original_mutant_sha256": "89eb1c8e91633624a874a28e1202023b614b2c57c3553c75a88c6776c55b83ad",
+  "original_mutant_refusal": "room memory: current reviewed source changed: movement",
+  "refused_before_producer": true,
+  "normal_build_without_git": true,
+  "generated_pack_delta": [
+    {
+      "path": "/room_extension_reservation/current_source_sha256/godot/scripts/core/movement.gd",
+      "before": null,
+      "after": "4121be883c9fab58ec98d274a7e712703b61c2b5d2e46d34d0f0258c6287eb69"
+    },
+    {
+      "path": "/room_extension_reservation/manifest_sha256",
+      "before": "c84b0a1dec81c909d6057ee5242362d3a08d4dc09834a4dd979e4577d217070a",
+      "after": "40097d0372f0bd4c351f51f75882e151778e8c94248a3af20b414349f9c675b7"
+    }
+  ],
+  "reviewer_rebuilt_pack_sha256": "c140c8f8c0870fd8f37036e3495fd13d897a1f696fcf5effadb006aeef0f72c9",
+  "lifecycle_controls": 6019,
+  "lifecycle_helpers": 1903,
+  "lifecycle_reservation": 8192,
+  "constructor_simultaneous_total": 7493,
+  "ground_catalog_fixed": 1468,
+  "ground_catalog_fixed_reserve": 2048,
+  "live_with_reserve_bytes": 99999806,
+  "headroom_bytes": 194,
+  "runtime_qualified": false,
+  "native_measured": false,
+  "source_and_metadata_pins_unchanged": true
+}

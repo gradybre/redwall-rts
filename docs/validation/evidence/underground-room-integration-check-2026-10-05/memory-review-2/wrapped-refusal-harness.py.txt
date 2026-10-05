@@ -1,0 +1,99 @@
+#!/usr/bin/env python3
+"""Read-only narrow re-review of the added actual Movement source closure."""
+import hashlib
+import json
+from pathlib import Path
+import subprocess
+import sys
+from unittest import mock
+
+ROOT = Path('/Users/brendan/Developer/redwall-rts-codex-ug-integration')
+OUT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT / 'tools'))
+import audit_registry_capacities as audit
+import underground_room_memory as room
+import underground_memory_budget as budget
+
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def differences(before, after, prefix=''):
+    if isinstance(before, dict) and isinstance(after, dict):
+        result = []
+        for key in sorted(before.keys() | after.keys()):
+            path = prefix + '/' + key
+            if key not in before or key not in after:
+                result.append({'path': path, 'before': before.get(key), 'after': after.get(key)})
+            else:
+                result.extend(differences(before[key], after[key], path))
+        return result
+    return [] if before == after else [{'path': prefix, 'before': before, 'after': after}]
+
+
+def main():
+    pins = json.loads((OUT / 'review-inputs.json').read_text())
+    assert all(sha((ROOT / path).read_bytes()) == expected for path, expected in pins.items())
+    manifest = json.loads((ROOT / room.MANIFEST).read_text())
+    assert len(manifest['sources']) == 51
+    assert manifest['sources']['movement']['sha256'] == '4121be883c9fab58ec98d274a7e712703b61c2b5d2e46d34d0f0258c6287eb69'
+    index = audit.load_source_index()
+    old = index['movement']
+    needle = '\treturn _profile_field_into(_profile_speed_u_per_s, profile_id, out)'
+    replacement = ('\tvar review_scratch: PackedByteArray = PackedByteArray()\n'
+                   '\treview_scratch.resize(4096)\n'
+                   '\tif review_scratch.size() != 4096: return false\n' + needle)
+    assert old.text.count(needle) == 1
+    changed = audit.parse_module(old.name, old.relative_path, old.text.replace(needle, replacement))
+    assert sha(changed.text.encode()) == '89eb1c8e91633624a874a28e1202023b614b2c57c3553c75a88c6776c55b83ad'
+    with mock.patch.object(room, 'producer') as execute:
+        try:
+            budget.build(dict(index, movement=changed))
+        except ValueError as error:
+            refusal = str(error)
+            assert refusal == 'room memory: current reviewed source changed: movement'
+        else:
+            raise AssertionError('original reached-method scratch mutant was accepted')
+        execute.assert_not_called()
+    manifest_checked, _, current = room.verified_inputs(index)
+    assert manifest_checked == manifest
+    assert len(manifest['witnesses']) == 29
+    assert sha(current['movement'].text.encode()) == manifest['sources']['movement']['sha256']
+    with mock.patch.object(subprocess, 'check_output', side_effect=AssertionError('normal build must not use Git')):
+        result = budget.build()
+    normalized = json.loads(json.dumps(result))
+    previous = json.loads((ROOT / 'docs/planning/underground_memory_pack.json').read_text())
+    delta = differences(previous, normalized)
+    permitted = {
+        '/room_extension_reservation/manifest_sha256',
+        '/room_extension_reservation/current_source_sha256/godot/scripts/core/movement.gd',
+    }
+    assert all(row['path'] in permitted for row in delta), delta
+    extension = result['room_extension_reservation']
+    assert result['live_with_reserve_bytes'] == 99999806 and result['headroom_bytes'] == 194
+    assert result['ui_reset_reservation']['accounting']['controls'] == 6019
+    assert result['ui_reset_reservation']['accounting']['helpers'] == 1903
+    assert extension['composition']['constructor_exclusive_reuse']['simultaneous_total'] == 7493
+    assert extension['ground_catalog']['fixed_peak_accounted'] == 1468
+    assert not result['runtime_qualified'] and not extension['native_measured']
+    assert all(sha((ROOT / path).read_bytes()) == expected for path, expected in pins.items())
+    report = {
+        'reviewed_sources': len(manifest['sources']), 'immutable_witnesses': len(manifest['witnesses']),
+        'original_mutant_sha256': sha(changed.text.encode()), 'original_mutant_refusal': refusal,
+        'refused_before_producer': True, 'normal_build_without_git': True,
+        'generated_pack_delta': delta,
+        'reviewer_rebuilt_pack_sha256': sha((json.dumps(result, indent=2) + '\n').encode()),
+        'lifecycle_controls': 6019, 'lifecycle_helpers': 1903, 'lifecycle_reservation': 8192,
+        'constructor_simultaneous_total': 7493, 'ground_catalog_fixed': 1468,
+        'ground_catalog_fixed_reserve': 2048, 'live_with_reserve_bytes': 99999806,
+        'headroom_bytes': 194, 'runtime_qualified': False, 'native_measured': False,
+        'source_and_metadata_pins_unchanged': True,
+    }
+    (OUT / 'recheck.json').write_text(json.dumps(report, indent=2) + '\n')
+    print('PASS: 51 source pins, original Movement mutant refused before producer; no-Git full build; accounting unchanged')
+    print('Generated-pack provenance deltas:', len(delta))
+
+
+if __name__ == '__main__':
+    main()

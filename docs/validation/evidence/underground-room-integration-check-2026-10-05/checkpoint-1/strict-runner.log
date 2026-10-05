@@ -1,0 +1,30 @@
+starting clean-import.log
+starting test_underground_room_composition.gd.log
+SCRIPT ERROR: Invalid access to property or key '_retirement_owners' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid access to property or key '_retirement_owners' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid access to property or key '_operations_state' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid access to property or key '_retirement_owners' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid access to property or key '_operations_state' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid access to property or key '_retirement_owners' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid access to property or key '_operations_state' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid access to property or key '_retirement_owners' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid access to property or key '_operations_state' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid access to property or key '_operations_state' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid access to property or key '_profiles' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid access to property or key '_budget' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid assignment of property or key '_operations_prefix' with value of type 'int' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid access to property or key '_retirement_owners' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid access to property or key '_operations_state' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid access to property or key '_retirement_owners' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid access to property or key '_operations_state' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid access to property or key '_retirement_scope' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid access to property or key '_operations_state' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid assignment of property or key 'source_code' with value of type 'String' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid access to property or key '_retirement_owners' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid access to property or key '_retirement_owners' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid access to property or key '_operations_state' on a base object of type 'Nil'.
+SCRIPT ERROR: Invalid access to property or key '_retirement_owners' on a base object of type 'Nil'.
+16 test(s), 102 assertion(s), 16 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+error: 16 failing test(s).
+refused: test_underground_room_composition.gd.log

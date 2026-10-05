@@ -1,0 +1,339 @@
+state_registry_coverage: PASS -- 153 modules, 730 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_room_composition.gd
+SCRIPT ERROR: Invalid access to property or key '_retirement_owners' on a base object of type 'Nil'.
+          at: test_actual_host_composes_exact_empty_owner_graph_without_gameplay_mutation (res://test/test_underground_room_composition.gd:159)
+          GDScript backtrace (most recent call first):
+              [0] test_actual_host_composes_exact_empty_owner_graph_without_gameplay_mutation (res://test/test_underground_room_composition.gd:159)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_actual_host_composes_exact_empty_owner_graph_without_gameplay_mutation
+        source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        actual composition: UNDERGROUND_HOST_OWNER (expected true, got false)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_retirement_owners' on a base object of type 'Nil'.
+          at: test_actual_reset_releases_original_graph_then_reuses_inventory_arena (res://test/test_underground_room_composition.gd:183)
+          GDScript backtrace (most recent call first):
+              [0] test_actual_reset_releases_original_graph_then_reuses_inventory_arena (res://test/test_underground_room_composition.gd:183)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_actual_reset_releases_original_graph_then_reuses_inventory_arena
+        source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        compose (expected true, got false)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_operations_state' on a base object of type 'Nil'.
+          at: _assert_stopped_prefix (res://test/test_underground_room_composition.gd:218)
+          GDScript backtrace (most recent call first):
+              [0] _assert_stopped_prefix (res://test/test_underground_room_composition.gd:218)
+              [1] test_constructor_missing_authority_backlink_keeps_prefix_then_retires (res://test/test_underground_room_composition.gd:255)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_retirement_owners' on a base object of type 'Nil'.
+          at: test_constructor_missing_authority_backlink_keeps_prefix_then_retires (res://test/test_underground_room_composition.gd:256)
+          GDScript backtrace (most recent call first):
+              [0] test_constructor_missing_authority_backlink_keeps_prefix_then_retires (res://test/test_underground_room_composition.gd:256)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_constructor_missing_authority_backlink_keeps_prefix_then_retires
+        source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        observed source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        real Authority refused (expected SPACE_SITE_OWNER_MISMATCH, got UNDERGROUND_HOST_OWNER)
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_operations_state' on a base object of type 'Nil'.
+          at: _assert_stopped_prefix (res://test/test_underground_room_composition.gd:218)
+          GDScript backtrace (most recent call first):
+              [0] _assert_stopped_prefix (res://test/test_underground_room_composition.gd:218)
+              [1] test_constructor_missing_room_backlink_keeps_prefix_then_retires (res://test/test_underground_room_composition.gd:269)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_retirement_owners' on a base object of type 'Nil'.
+          at: test_constructor_missing_room_backlink_keeps_prefix_then_retires (res://test/test_underground_room_composition.gd:270)
+          GDScript backtrace (most recent call first):
+              [0] test_constructor_missing_room_backlink_keeps_prefix_then_retires (res://test/test_underground_room_composition.gd:270)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_constructor_missing_room_backlink_keeps_prefix_then_retires
+        source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        observed source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_operations_state' on a base object of type 'Nil'.
+          at: _assert_stopped_prefix (res://test/test_underground_room_composition.gd:218)
+          GDScript backtrace (most recent call first):
+              [0] _assert_stopped_prefix (res://test/test_underground_room_composition.gd:218)
+              [1] test_reentrant_constructor_after_router_retains_both_original_bindings (res://test/test_underground_room_composition.gd:293)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_retirement_owners' on a base object of type 'Nil'.
+          at: test_reentrant_constructor_after_router_retains_both_original_bindings (res://test/test_underground_room_composition.gd:294)
+          GDScript backtrace (most recent call first):
+              [0] test_reentrant_constructor_after_router_retains_both_original_bindings (res://test/test_underground_room_composition.gd:294)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_reentrant_constructor_after_router_retains_both_original_bindings
+        source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        observed source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        actual selected reader executed (expected false, got true)
+        recursive reset refuses (expected false, got true)
+        recursive tick refuses (expected false, got true)
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_operations_state' on a base object of type 'Nil'.
+          at: test_refusal_before_first_binding_keeps_foundation_and_can_retry (res://test/test_underground_room_composition.gd:306)
+          GDScript backtrace (most recent call first):
+              [0] test_refusal_before_first_binding_keeps_foundation_and_can_retry (res://test/test_underground_room_composition.gd:306)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_refusal_before_first_binding_keeps_foundation_and_can_retry
+        source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        observed source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        real source reader executed (expected false, got true)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_operations_state' on a base object of type 'Nil'.
+          at: _assert_stopped_prefix (res://test/test_underground_room_composition.gd:218)
+          GDScript backtrace (most recent call first):
+              [0] _assert_stopped_prefix (res://test/test_underground_room_composition.gd:218)
+              [1] test_late_source_drift_retains_bound_prefix_and_refuses_reset_until_restored (res://test/test_underground_room_composition.gd:327)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_profiles' on a base object of type 'Nil'.
+          at: test_late_source_drift_retains_bound_prefix_and_refuses_reset_until_restored (res://test/test_underground_room_composition.gd:330)
+          GDScript backtrace (most recent call first):
+              [0] test_late_source_drift_retains_bound_prefix_and_refuses_reset_until_restored (res://test/test_underground_room_composition.gd:330)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_late_source_drift_retains_bound_prefix_and_refuses_reset_until_restored
+        source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        observed source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        actual late observation executed (expected false, got true)
+        changed original source cannot attest retirement (expected false, got true)
+        no store clear on stale source (expected ["ecddadc9bf7d855295073dc1989551ccae3d297515af21097f3ee0aea4de8fc9", "9a53af1edbb507e41c9ebcc1cdb3c86282744e0b826703332f169ea2663fc423", "f1016ceb2ecd9d4fa4bef366ceb84c7818dfc13c26c941f76e0a60296f8bed64", "3da22331c0103e796c241c15fe8f772fcf622c59508533b21d463e9d2868ad91", "92aa96d432412504e3f60a5ed54b09e514fe0eca7613ec3059cf5be08e791f59", "84be9b4f63bf6e3ab57a5ba1056da50178c5084cea7b957935f44f8c5ecab813", "9f6848e3c479a653de4dd1856cebc53f2c69cad85d3603be869db063ce725f3d", "c453b871d108bc511d33714cc698244927d2e7aa823846b6fd12ff7fc0b3b8bb"], got ["288eeead47a915045ac8dc4c35fb13454567e2443490f986d4d3d55e64ded7e8", "53fe0b29788b00c32e8dd6d136ab34b157bea0dc7256478e38c4d48fc4815bfa", "c7702262db7a6408aece9e6deefa61b98816967c1f96443ca7c9c3852c3974e9", "25620ec62b711f8ebae1fe4169521175d77edb7dc552df8624dda12a5adb4d69", "c3b50c0903f053c35b851f9884664e8907c2428001dfca61677816da8b8c7abe", "84be9b4f63bf6e3ab57a5ba1056da50178c5084cea7b957935f44f8c5ecab813", "9f6848e3c479a653de4dd1856cebc53f2c69cad85d3603be869db063ce725f3d", "3a3ed164e42500a1c5b2d0093f0a813d27dc50d038f330cc100a7e70ece2e6e4"])
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_budget' on a base object of type 'Nil'.
+          at: test_busy_foundation_refuses_before_allocating_any_operational_owner (res://test/test_underground_room_composition.gd:337)
+          GDScript backtrace (most recent call first):
+              [0] test_busy_foundation_refuses_before_allocating_any_operational_owner (res://test/test_underground_room_composition.gd:337)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_busy_foundation_refuses_before_allocating_any_operational_owner
+        source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid assignment of property or key '_operations_prefix' with value of type 'int' on a base object of type 'Nil'.
+          at: test_captured_prefix_rejects_tuple_and_prefix_replacement (res://test/test_underground_room_composition.gd:355)
+          GDScript backtrace (most recent call first):
+              [0] test_captured_prefix_rejects_tuple_and_prefix_replacement (res://test/test_underground_room_composition.gd:355)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_captured_prefix_rejects_tuple_and_prefix_replacement
+        source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        observed source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_retirement_owners' on a base object of type 'Nil'.
+          at: test_constructor_prefix_entry_refuses_arbitrary_supplied_session (res://test/test_underground_room_composition.gd:370)
+          GDScript backtrace (most recent call first):
+              [0] test_constructor_prefix_entry_refuses_arbitrary_supplied_session (res://test/test_underground_room_composition.gd:370)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_constructor_prefix_entry_refuses_arbitrary_supplied_session
+        source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_operations_state' on a base object of type 'Nil'.
+          at: _assert_stopped_prefix (res://test/test_underground_room_composition.gd:218)
+          GDScript backtrace (most recent call first):
+              [0] _assert_stopped_prefix (res://test/test_underground_room_composition.gd:218)
+              [1] test_final_inventory_boundary_retains_complete_failed_prefix_for_reset (res://test/test_underground_room_composition.gd:384)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_retirement_owners' on a base object of type 'Nil'.
+          at: test_final_inventory_boundary_retains_complete_failed_prefix_for_reset (res://test/test_underground_room_composition.gd:385)
+          GDScript backtrace (most recent call first):
+              [0] test_final_inventory_boundary_retains_complete_failed_prefix_for_reset (res://test/test_underground_room_composition.gd:385)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_final_inventory_boundary_retains_complete_failed_prefix_for_reset
+        source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        observed source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_operations_state' on a base object of type 'Nil'.
+          at: _assert_stopped_prefix (res://test/test_underground_room_composition.gd:218)
+          GDScript backtrace (most recent call first):
+              [0] _assert_stopped_prefix (res://test/test_underground_room_composition.gd:218)
+              [1] test_final_host_tuple_mismatch_stops_newly_bound_composition (res://test/test_underground_room_composition.gd:405)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_retirement_scope' on a base object of type 'Nil'.
+          at: _assert_prefix_reset (res://test/test_underground_room_composition.gd:234)
+          GDScript backtrace (most recent call first):
+              [0] _assert_prefix_reset (res://test/test_underground_room_composition.gd:234)
+              [1] test_final_host_tuple_mismatch_stops_newly_bound_composition (res://test/test_underground_room_composition.gd:410)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_final_host_tuple_mismatch_stops_newly_bound_composition
+        source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        observed source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        foreign host alias cannot authorize release (expected false, got true)
+        no clear with wrong mounted tuple (expected ["ecddadc9bf7d855295073dc1989551ccae3d297515af21097f3ee0aea4de8fc9", "9a53af1edbb507e41c9ebcc1cdb3c86282744e0b826703332f169ea2663fc423", "f1016ceb2ecd9d4fa4bef366ceb84c7818dfc13c26c941f76e0a60296f8bed64", "3da22331c0103e796c241c15fe8f772fcf622c59508533b21d463e9d2868ad91", "92aa96d432412504e3f60a5ed54b09e514fe0eca7613ec3059cf5be08e791f59", "84be9b4f63bf6e3ab57a5ba1056da50178c5084cea7b957935f44f8c5ecab813", "9f6848e3c479a653de4dd1856cebc53f2c69cad85d3603be869db063ce725f3d", "c453b871d108bc511d33714cc698244927d2e7aa823846b6fd12ff7fc0b3b8bb"], got ["288eeead47a915045ac8dc4c35fb13454567e2443490f986d4d3d55e64ded7e8", "53fe0b29788b00c32e8dd6d136ab34b157bea0dc7256478e38c4d48fc4815bfa", "c7702262db7a6408aece9e6deefa61b98816967c1f96443ca7c9c3852c3974e9", "25620ec62b711f8ebae1fe4169521175d77edb7dc552df8624dda12a5adb4d69", "c3b50c0903f053c35b851f9884664e8907c2428001dfca61677816da8b8c7abe", "84be9b4f63bf6e3ab57a5ba1056da50178c5084cea7b957935f44f8c5ecab813", "9f6848e3c479a653de4dd1856cebc53f2c69cad85d3603be869db063ce725f3d", "3a3ed164e42500a1c5b2d0093f0a813d27dc50d038f330cc100a7e70ece2e6e4"])
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_operations_state' on a base object of type 'Nil'.
+          at: _assert_stopped_prefix (res://test/test_underground_room_composition.gd:218)
+          GDScript backtrace (most recent call first):
+              [0] _assert_stopped_prefix (res://test/test_underground_room_composition.gd:218)
+              [1] test_final_cached_consumer_drift_cannot_publish_ready_owner_state (res://test/test_underground_room_composition.gd:427)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid assignment of property or key 'source_code' with value of type 'String' on a base object of type 'Nil'.
+          at: test_final_cached_consumer_drift_cannot_publish_ready_owner_state (res://test/test_underground_room_composition.gd:429)
+          GDScript backtrace (most recent call first):
+              [0] test_final_cached_consumer_drift_cannot_publish_ready_owner_state (res://test/test_underground_room_composition.gd:429)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_final_cached_consumer_drift_cannot_publish_ready_owner_state
+        source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        observed source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        source guard remains strict (expected MOLE_CATALOG_SOURCE_DRIFT, got UNDERGROUND_HOST_OWNER)
+        changed runtime proof cannot release original source (expected false, got true)
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_retirement_owners' on a base object of type 'Nil'.
+          at: test_complete_composition_refuses_equal_value_foreign_catalog_owner (res://test/test_underground_room_composition.gd:438)
+          GDScript backtrace (most recent call first):
+              [0] test_complete_composition_refuses_equal_value_foreign_catalog_owner (res://test/test_underground_room_composition.gd:438)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_complete_composition_refuses_equal_value_foreign_catalog_owner
+        source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        compose with borrowed facts (expected true, got false)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_retirement_owners' on a base object of type 'Nil'.
+          at: test_failed_room_prefix_refuses_foreign_fact_owner_before_clear (res://test/test_underground_room_composition.gd:454)
+          GDScript backtrace (most recent call first):
+              [0] test_failed_room_prefix_refuses_foreign_fact_owner_before_clear (res://test/test_underground_room_composition.gd:454)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_failed_room_prefix_refuses_foreign_fact_owner_before_clear
+        source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        observed source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_operations_state' on a base object of type 'Nil'.
+          at: _assert_stopped_prefix (res://test/test_underground_room_composition.gd:218)
+          GDScript backtrace (most recent call first):
+              [0] _assert_stopped_prefix (res://test/test_underground_room_composition.gd:218)
+              [1] test_null_original_facts_refuse_before_default_catalog_allocation (res://test/test_underground_room_composition.gd:480)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_retirement_owners' on a base object of type 'Nil'.
+          at: test_null_original_facts_refuse_before_default_catalog_allocation (res://test/test_underground_room_composition.gd:481)
+          GDScript backtrace (most recent call first):
+              [0] test_null_original_facts_refuse_before_default_catalog_allocation (res://test/test_underground_room_composition.gd:481)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_null_original_facts_refuse_before_default_catalog_allocation
+        source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        observed source foundation: MOLE_CATALOG_SOURCE_DRIFT (expected true, got false)
+        actual pre-room observer executed (expected false, got true)
+        no default constructor fallback (expected UNDERGROUND_COMPOSITION_CATALOG, got UNDERGROUND_HOST_OWNER)
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+CI_SUITE_TIME {"assertions":102,"failures":16,"suite":"test_underground_room_composition.gd","tests":16,"usec":9540433}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+16 test(s), 102 assertion(s), 16 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 16 failing test(s).

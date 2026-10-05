@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/docs/validation/evidence/underground-room-integration-check-2026-10-05/memory-review-1/independent_probe.py", line 105, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/docs/validation/evidence/underground-room-integration-check-2026-10-05/memory-review-1/independent_probe.py", line 80, in main
+    assert result == expected
+AssertionError

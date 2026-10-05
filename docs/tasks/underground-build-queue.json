@@ -1161,9 +1161,15 @@
               "docs/validation/evidence/underground-paid-assembly-handling-2026-10-05/",
               "godot/scripts/core/modular_projects.gd",
               "godot/scripts/core/modular_project_contract.gd",
-              "godot/test/test_modular_projects.gd"
+              "godot/test/test_modular_projects.gd",
+              "godot/scripts/core/underground_entry_contact_retirement.gd",
+              "godot/scripts/core/underground_entry_contact_retirement.gd.uid",
+              "godot/test/test_underground_entry_contact_retirement.gd",
+              "godot/test/test_underground_entry_contact_retirement.gd.uid",
+              "godot/scripts/core/underground_entry_contact_retirement_scope.gd",
+              "godot/scripts/core/underground_entry_contact_retirement_scope.gd.uid"
             ],
-            "handoff": "Explicit1179reviewSTOP7e54c4a1; root stopped all listed runtime/test files. New own branch from freshly fetched origin/master82d60ba8 thenFF8f6bad86. Minimal original Routes phase/request-tick union and Workpieces presence byte versioned for pending/handled; existing30+30 handling ticks and original work/price conserved. Geometry owns source certificate/Profiles/WorldRoutes/Contacts; root owns publisher/Session/registry. Real paid first L0/T0 handling before fastening plus cancel/recovery, no synthetic permission or extra bank. Root additionally STOPPED Router/Contract/test for narrow connector-only pre-release pause guard: pause immediately; retain original worker/tool/material claim until physically READY, no work credit. All nonconnector release behavior unchanged; reentrant/final identity tests required."
+            "handoff": "Explicit1179reviewSTOP7e54c4a1; root stopped all listed runtime/test files. New own branch from freshly fetched origin/master82d60ba8 thenFF8f6bad86. Minimal original Routes phase/request-tick union and Workpieces presence byte versioned for pending/handled; existing30+30 handling ticks and original work/price conserved. Geometry owns source certificate/Profiles/WorldRoutes/Contacts; root owns publisher/Session/registry. Real paid first L0/T0 handling before fastening plus cancel/recovery, no synthetic permission or extra bank. Root additionally STOPPED Router/Contract/test for narrow connector-only pre-release pause guard: pause immediately; retain original worker/tool/material claim until physically READY, no work credit. All nonconnector release behavior unchanged; reentrant/final identity tests required. Root1191 explicitly grants new completed-contact retirement coordinator/test on2026-10-05 after paid12/parse6 finish: graph then endpoint publication with explicit retry semantics, original Sites/Jobs/actors/source guards and complete cold helper census. Root retains Locations/Placements shared leaves; Geometry retains WorldRoutes. Exact cross-owner APIs agreed before writing peers; no reserve increase or paid-history mutation."
           }
         ]
       }
@@ -4072,6 +4078,19 @@
           "source_manifest_sha256": "dfc6c17f24e2bf4561007b8ac7df0894ff369217da0ff9f0cb5760b6eaf530a0",
           "tests": "Independent17census checks/exact replay; verified5source182input33output30history pins. Author27tests2134assertions strict/rawall0, analyzer0/5;28temporary peers restored.",
           "accounting": "6195/6208controls,1968/1984helpers; existing8192 unchanged; actual newconstructor/currentpeer closure remains open."
+        },
+        "entry_work_area_1191": {
+          "status": "Actual original graph and four paid cuts proven with frozen diagnostic peers; paid handling/retirement/publication still open",
+          "decision": "docs/decisions/1191-original-entry-work-area-and-contact-retirement.md",
+          "static_review": "docs/validation/evidence/underground-entry-work-area-2026-10-05/independent-static-review-1/replay-1/review.json",
+          "static_tests": "8 tests; rebuilt exact2292-byte Frontier/4112-byte reader;38 inputs unchanged",
+          "source_frontier_sha256": "1068db6b1217e6542f6489cd56add7af52db663c756e572c86c1128e8227a058",
+          "actual_fixture_sha256": "18ecb45242350430df2f9585a334936604f5b80c34b4835dd8458ca205d01826",
+          "strict_summary": "2 test(s), 6 assertion(s), 0 failure(s)",
+          "diagnostics": "0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+          "analyzer": "0 GDScript warning(s) in 0 of 23 file(s)",
+          "evidence": "docs/validation/evidence/underground-entry-work-area-2026-10-05/focus-4/",
+          "limits": "No paid timber START, native handling route, constructor activation, demo dispatch or new lane acceptance. Unrelated geometry refresh during raised workpiece WIP is not yet concurrent-work qualified."
         }
       },
       "lease": {
@@ -4311,12 +4330,12 @@
               "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/",
               "godot/scripts/core/underground_entry_bindings.gd",
               "godot/test/test_underground_entry_bindings.gd",
-              "godot/scripts/core/underground_connector_placements.gd",
-              "godot/test/test_underground_connector_placements.gd",
               "godot/scripts/core/underground_connector_delivery.gd",
-              "godot/test/test_underground_connector_delivery.gd"
+              "godot/test/test_underground_connector_delivery.gd",
+              "godot/scripts/core/underground_connector_assemblies.gd",
+              "godot/scripts/core/underground_connector_recipes.gd"
             ],
-            "handoff": "Root explicitly STOPPED listed files after1181 author STOP. Fresh origin/master then FF eb95c0dd. Implement approved1184 original Host Planner/StorePolicy retention and initial exact EntryBindings first; closed immutable startup source choice before WorldRoutes bind and original Session entry composition follow actual reviewed source publication. Root owns that publication. No synthetic runtime source or second owner tuple; incomplete original prefixes remain stopped/retained for exact retirement. Actual original clock, one-way boundaries and all retained references counted within existing ceilings; no new reserves or implicit qualification. Independent review before commit. Next1184 slice granted after initial lifecycle source freeze: EntryBindings/Placements/Delivery own post-clear release/tombstone leaves and finite stopped constructor prefixes. Contacts remains Geometry; ConnectorWork/Workpieces remain Construction; no private cross-owner release or reserve growth. Initial e316ad07 source/census independently accepted; full entry closure separate."
+            "handoff": "Root explicitly STOPPED listed files after1181 author STOP. Fresh origin/master then FF eb95c0dd. Implement approved1184 original Host Planner/StorePolicy retention and initial exact EntryBindings first; closed immutable startup source choice before WorldRoutes bind and original Session entry composition follow actual reviewed source publication. Root owns that publication. No synthetic runtime source or second owner tuple; incomplete original prefixes remain stopped/retained for exact retirement. Actual original clock, one-way boundaries and all retained references counted within existing ceilings; no new reserves or implicit qualification. Independent review before commit. Next1184 slice granted after initial lifecycle source freeze: EntryBindings/Placements/Delivery own post-clear release/tombstone leaves and finite stopped constructor prefixes. Contacts remains Geometry; ConnectorWork/Workpieces remain Construction; no private cross-owner release or reserve growth. Initial e316ad07 source/census independently accepted; full entry closure separate. Placement source/test explicitly STOPPED and transferred to root on 2026-10-05 after author-only a9e45dbaef9d4456eb3a0491cbc5022822a82a2d. EntryComposition consumes these read-only. Root grants narrow Assemblies/Recipes original-loaded-source retirement leaves; Placement preflight/tail remains root-owned. Existing EntryComposition tests, no new state/reserve."
           },
           {
             "agent": "/root",
@@ -4346,6 +4365,33 @@
               "docs/validation/evidence/underground-entry-publication-contract-2026-10-05/"
             ],
             "handoff": "1187 structural source independently accepted c975e1bd/1ad0a090. Root now owns separate1188 source-bound Frontier compiler/real-reader/physical candidate; no live activation.1178/1183 handling and1184 lifecycle remain separate leases. Root1189 owns separate actual-source paid-phase probe using real full v4 programs, real terrain/economy and perimeter routes; no paid-state injection or first-Kitchen claim. 1188 committed b315b7c7;1189 four-source-cube probe and strict61-test regressions pass; independent memory renewal and final test review accepted. Original1184 three release leaves independently reviewed in own evidence; author retains runtime ownership. ADR1190 reserves immutable typed source accessor and exact startup order; no diagnostic activation or stub. Root owns new create-only successor publication and acceptance."
+          },
+          {
+            "agent": "/root/ug_furnishing",
+            "branch": "codex/underground-entry-owner-composition",
+            "state": "released",
+            "files": [
+              "godot/scripts/core/underground_connector_placements.gd",
+              "godot/test/test_underground_connector_placements.gd"
+            ],
+            "handoff": "Accepted 1184 original-context release leaf only; no constructor WIP transferred.",
+            "worker_stop_ack": "Explicit STOP on 2026-10-05; author a9e45dbaef9d4456eb3a0491cbc5022822a82a2d, source SHA07d41b2dfdb6294a13e681e21fbb93b8e4b643f4befd60ae5136888512009c7a and unchanged test SHA4462db4c9c037653bed67849015eefc0feebda5f4a281cb22af2412f6bd84c79; both paths clean."
+          },
+          {
+            "agent": "/root",
+            "branch": "codex/underground-modular-integration",
+            "state": "held",
+            "files": [
+              "godot/scripts/core/underground_connector_placements.gd",
+              "godot/test/test_underground_connector_placements.gd",
+              "godot/scripts/core/underground_locations.gd",
+              "godot/test/test_underground_locations.gd",
+              "godot/test/test_underground_entry_work_area.gd",
+              "godot/test/test_underground_entry_work_area.gd.uid",
+              "docs/decisions/1191-original-entry-work-area-and-contact-retirement.md",
+              "docs/validation/evidence/underground-entry-work-area-2026-10-05/"
+            ],
+            "handoff": "Root1191 owns original L0 work area, exact prepared handling endpoint certificate caller and completed unused dig-contact retirement. Separate original graph/Frontier successor under existing first-entry data lease. Geometry retains WorldRoutes/Profiles/Contacts and qualified endpoint certificate; Construction retains Routes/Workpieces/ConnectorWork; Furnishing retains EntryComposition. Existing static final leaves and explicit two-publication retry semantics only after exact source/census review; no reserve growth or private mask clearing."
           }
         ]
       }

@@ -1,0 +1,323 @@
+extends RefCounted
+## Prepared-only certificate for the exact original handling endpoint and complete pending bearer.
+## Locations retains every foreign blocker, actual support and the remaining generic air proof.
+## No reverse preload of Locations, Routes, Placements, Workpieces or Contacts is permitted here.
+
+const Owner := preload("res://scripts/core/underground_space_owner.gd")
+const Space := preload("res://scripts/core/room_space.gd")
+const Directory := preload("res://scripts/core/entity_directory.gd")
+const Source := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
+const Step := preload("res://data/underground/mole-worker/work-step-v1/source_program.gd")
+const REFUSE: StringName = &"ASSEMBLY_ENDPOINT_CERTIFICATE"
+const BUDGET: StringName = &"LOCATION_OPERATION_BUDGET"
+
+
+static func prepared_record_refusal(actual_locations: RefCounted, original_context: RefCounted,
+		record: RefCounted, snapshot_volume_row: int) -> StringName:
+	"""Call after the actual installation scope leaf; only this one full pending prism receives its source proof."""
+	var code: StringName = _context_refusal(actual_locations, original_context, record)
+	if code != &"": return code
+	if not _spend(actual_locations, 4096 + 64 * actual_locations._capacity): return BUDGET
+	var issuer: RefCounted = original_context.issuer.get_ref()
+	code = _issuer_refusal(actual_locations, original_context, issuer)
+	if code == &"": code = _piece_refusal(actual_locations, original_context, issuer)
+	if code == &"": code = _profiles_refusal(issuer._profiles, original_context.profile_revision)
+	if code == &"": code = _record_refusal(actual_locations, original_context, issuer, record)
+	if code == &"": code = _snapshot_refusal(actual_locations, original_context, record, snapshot_volume_row)
+	return code
+
+
+static func _context_refusal(a: RefCounted, c: RefCounted, record: RefCounted) -> StringName:
+	"""The existing original cold preparation, not a caller flag or a live refresh, selects this finite source."""
+	if a == null or c == null or record == null or not ("_installation" in a) \
+			or a._installation != c or c.issuer == null or c.issuer.get_ref() == null \
+			or c.space == null or c.space.get_ref() != a._owner or c.locations == null \
+			or c.locations.get_ref() != a or c.budget == null or c.budget != a._cold \
+			or c.world != a._world or c.action != Owner.ModularContract.START \
+			or c.assembly < 0 or c.assembly > 1 or a._owner == null or a._snapshot == null \
+			or not a._sources is Owner.CoreSources or a._owner._sources != a._sources \
+			or a._sources._directory != a._ids or a._capacity <= 0 or a._capacity > a.MAX_LOCATIONS:
+		return REFUSE
+	if c.cold_token <= 0 or c.cold_token != a._cold_token or a._cold._token != c.cold_token \
+			or a._cold._used < Owner.Budget.COLD_BYTES or c.location_token <= 0 \
+			or c.location_token != a._token or c.space_token <= 0 or c.space_token != a._owner_token \
+			or c.space_token != a._owner._stage_token or not a._owner._sealed \
+			or a._retention_reentered or c.base_revision != a._owner._header[17] \
+			or c.base_revision != a._base_geometry_revision or c.target_revision != c.base_revision + 1 \
+			or c.target_revision != a._owner._s_header[17] or c.target_revision != a._target_geometry_revision \
+			or a._snapshot.world_ref != c.world or a._snapshot.revision != c.target_revision:
+		return REFUSE
+	return &""
+
+
+static func _issuer_refusal(a: RefCounted, c: RefCounted, p: RefCounted) -> StringName:
+	"""Retain the actual original Placement, Router, paid owner, source and immutable companion tuple."""
+	if p == null or p._context != c or p._space != a._owner or p._locations != a \
+			or p._budget != a._cold or p._sources != a._sources or p._ids != a._ids \
+			or p._world != c.world or p._poisoned or p._admission_mode or p._phase_mode \
+			or p._prepared_action != c.action or p._prepared_placement != c.placement \
+			or p._prepared_project != c.project or p._prepared_assembly != c.assembly \
+			or p._prepared_obstacle != c.obstacle or p._cold_token != c.cold_token \
+			or p._space_token != c.space_token or p._location_token != c.location_token \
+			or p._route_token != c.route_token or p._base_geometry_revision != c.base_revision \
+			or p._target_geometry_revision != c.target_revision or p._payload_revision != c.payload_revision \
+			or p._live.header[p.H_REVISION] != c.placement_revision or p._profiles == null \
+			or p._profiles._live.header[0] != c.profile_revision or p._catalog == null \
+			or p._catalog._live.header[0] != c.catalog_revision or c.router == null or c.paid_owner == null \
+			or p._router == null or p._router.get_ref() != c.router.get_ref() \
+			or p._paid_owner == null or p._paid_owner.get_ref() != c.paid_owner.get_ref() \
+			or p._construction != c.construction or c.construction != a._sources._construction:
+		return REFUSE
+	return _placement_refusal(a, c, p)
+
+
+static func _placement_refusal(a: RefCounted, c: RefCounted, p: RefCounted) -> StringName:
+	"""Full original generations and a real current Project are mandatory before any prepared-region exception."""
+	if c.placement.x < 0 or c.placement.x >= p._capacity or c.placement.y <= 0 \
+			or p._live.present[c.placement.x] != 1 \
+			or p._live.i32[p.GENERATION * p._capacity + c.placement.x] != c.placement.y \
+			or p._live.i32[p.ROTATION * p._capacity + c.placement.x] != 0 \
+			or p._live.i32[p.INSTALLED * p._capacity + c.placement.x] != c.assembly \
+			or p._live.i64[p.PAYLOAD_REVISION * p._capacity + c.placement.x] != c.payload_revision \
+			or p._live.i32[p.PROJECT_SLOT * p._capacity + c.placement.x] != c.project.x \
+			or p._live.i32[(p.PROJECT_SLOT + 1) * p._capacity + c.placement.x] != c.project.y \
+			or Owner.CoreSources._final_row(a._ids, c.world, Directory.KIND_WORLD) < 0:
+		return REFUSE
+	var row: int = Owner.CoreSources._final_row(a._ids, c.project, Directory.KIND_CONSTRUCTION)
+	if row < 0 or c.construction._directory != a._ids or c.construction._present[row] != 1 \
+			or c.construction._ref_slot[row] != c.project.x or c.construction._ref_generation[row] != c.project.y \
+			or c.construction._subject_slot[row] != c.placement.x \
+			or c.construction._subject_generation[row] != c.placement.y \
+			or c.construction._purpose[row] != Owner.Construction.PURPOSE_CONNECTOR_INSTALL \
+			or c.construction._type_id[row] != c.assembly:
+		return REFUSE
+	return &""
+
+
+static func _piece_refusal(a: RefCounted, c: RefCounted, p: RefCounted) -> StringName:
+	"""Use the already-bound real pending request and exact part transform; no Workpieces import or callback runs."""
+	var piece: RefCounted = p._workpieces.get_ref() if p._workpieces != null else null
+	if piece == null or not piece._configured or not piece._loaded or piece._placements != p \
+			or piece._budget != a._cold or piece._profiles != p._profiles or piece._catalog != p._catalog \
+			or piece._router != c.router.get_ref() or piece._paid_owner == null \
+			or piece._paid_owner.get_ref() != c.paid_owner.get_ref() \
+			or c.paid_owner.get_ref() == null or c.paid_owner.get_ref()._workpieces != piece \
+			or piece._stage_placement != c.placement or piece._stage_project != c.project \
+			or piece._stage_action != c.action or piece._stage_assembly != c.assembly \
+			or piece._stage_payload != c.payload_revision or piece._cold_token != c.cold_token \
+			or piece._live.present[c.placement.x] != 0 or piece._assembly_capacity <= c.assembly \
+			or piece._header[piece.H_PROFILES] != c.profile_revision \
+			or piece._header[piece.H_PROGRAM] != Source.SOURCE \
+			or piece._parts[piece.PROFILE * piece._assembly_capacity + c.assembly] != Source.PROFILE \
+			or piece._profile_revisions[c.assembly] != 1:
+		return REFUSE
+	return Source.part_refusal(c.assembly, piece._parts[piece.PART * piece._assembly_capacity + c.assembly],
+		piece._parts[piece.ROTATION * piece._assembly_capacity + c.assembly],
+		Vector3i(piece._parts[piece.X * piece._assembly_capacity + c.assembly],
+		piece._parts[(piece.X + 1) * piece._assembly_capacity + c.assembly],
+		piece._parts[(piece.X + 2) * piece._assembly_capacity + c.assembly]))
+
+
+static func _profiles_refusal(profiles: Source.Profiles, revision: int) -> StringName:
+	"""Every complete source descriptor/role and both full image digests stay current; profile indexes alone never suffice."""
+	var code: StringName = Source.profile_refusal(profiles, Source.PROFILE, 1, revision)
+	if code == &"": code = _source_row_refusal(profiles, 2, revision)
+	if code == &"": code = _source_row_refusal(profiles, 6, revision)
+	if code == &"": code = _source_row_refusal(profiles, 16, revision)
+	return code
+
+
+static func _source_row_refusal(p: Source.Profiles, profile: int, revision: int) -> StringName:
+	"""Clock identity alone is insufficient for a triangle exception: compare every published numerical word."""
+	var code: StringName = Step.profile_refusal(p, profile, 1, revision)
+	if code != &"": return code
+	for field: int in Source.Profiles.I32_FIELDS:
+		if p._live.fields[field * p._profile_capacity + profile] != _source_field(profile, field): return REFUSE
+	if p._live.quantities[Source.Profiles.L_QUANTITY_MIN * p._profile_capacity + profile] != 0 \
+			or p._live.quantities[Source.Profiles.L_QUANTITY_MAX * p._profile_capacity + profile] != 0: return REFUSE
+	var first: int = _source_field(profile, Source.Profiles.F_FIRST_BOX)
+	for ordinal: int in _source_field(profile, Source.Profiles.F_BOX_COUNT):
+		for field: int in 7:
+			if p._live.boxes[field * p._box_capacity + first + ordinal] \
+					!= (_install_word(ordinal, field) if profile == 16 else _travel_word(ordinal, field)): return REFUSE
+	return &""
+
+
+static func _source_field(profile: int, field: int) -> int:
+	"""These three exact source rows keep their real actor, tool, cargo, heading, contact and role census."""
+	match field:
+		Source.Profiles.F_SPECIES, Source.Profiles.F_RIG: return 6
+		Source.Profiles.F_MODE: return Source.Profiles.MODE_WORK if profile == 16 else Source.Profiles.MODE_WALK
+		Source.Profiles.F_TOOL: return 54
+		Source.Profiles.F_CARGO, Source.Profiles.F_CARGO_VARIANT: return -1
+		Source.Profiles.F_STATES: return 329 if profile == 16 else 451
+		Source.Profiles.F_FIRST_BOX: return 125 if profile == 16 else (14 if profile == 2 else 42)
+		Source.Profiles.F_BOX_COUNT: return 11 if profile == 16 else 7
+		Source.Profiles.F_WORK_KIND: return 1 if profile == 16 else -1
+		Source.Profiles.F_CONTACT_KIND: return Source.Profiles.CONTACT_ANCHOR_AND_PATCH if profile == 16 else Source.Profiles.CONTACT_NONE
+	return 0
+
+
+static func _travel_word(ordinal: int, field: int) -> int:
+	"""Forward2 and backward6 share every whole gait/READY/fade box; direction and clock stay distinct."""
+	match ordinal:
+		0: return _box_word(field, Vector3i(-445, 0, -474), Vector3i(546, 930, 346), 0)
+		1: return _box_word(field, Vector3i(-239, -1, -274), Vector3i(284, 0, 249), 0)
+		2: return _box_word(field, Vector3i(182, 379, -732), Vector3i(910, 1036, 64), 0)
+		3: return _box_word(field, Vector3i(-274, -1, -274), Vector3i(299, 0, 249), 1)
+		4: return _box_word(field, Vector3i(-445, 0, -474), Vector3i(546, 930, 346), 2)
+		5: return _box_word(field, Vector3i(-239, -1, -274), Vector3i(284, 0, 249), 2)
+		6: return _box_word(field, Vector3i(182, 379, -732), Vector3i(910, 1036, 64), 2)
+	return -2147483648
+
+
+static func _install_word(ordinal: int, field: int) -> int:
+	"""Keep full INSTALL16 stroke/contact geometry even though this endpoint proof itself grants no work."""
+	match ordinal:
+		0: return _box_word(field, Vector3i(-409, 0, -350), Vector3i(321, 840, 234), 0)
+		1: return _box_word(field, Vector3i(-134, -1, 44), Vector3i(-126, 0, 60), 0)
+		2: return _box_word(field, Vector3i(-274, -1, -169), Vector3i(299, 0, 174), 1)
+		3: return _box_word(field, Vector3i(-274, 0, -169), Vector3i(299, 128, 189), 2)
+		4: return _box_word(field, Vector3i(-409, 128, -732), Vector3i(548, 842, 234), 2)
+		5: return _box_word(field, Vector3i(-274, 0, -169), Vector3i(299, 128, 189), 3)
+		6: return _box_word(field, Vector3i(-409, 128, -732), Vector3i(548, 840, 234), 3)
+		7: return _box_word(field, Vector3i(112, 125, -459), Vector3i(141, 128, -437), 4)
+		8: return _box_word(field, Vector3i(-30, 128, -674), Vector3i(259, 669, -212), 4)
+		9: return _box_word(field, Vector3i(128, 128, -448), Vector3i(128, 128, -448), 5)
+		10: return _box_word(field, Vector3i(127, 128, -449), Vector3i(129, 128, -447), 6)
+	return -2147483648
+
+
+static func _box_word(field: int, low: Vector3i, high: Vector3i, role: int) -> int:
+	"""Vector values are bounded stack scalars; no array, constant table or source image is allocated."""
+	return role if field == 6 else (low[field] if field < 3 else high[field - 3])
+
+
+static func _record_refusal(a: RefCounted, c: RefCounted, p: RefCounted, record: RefCounted) -> StringName:
+	"""Only the original narrow complete source endpoint qualifies; automatic ground12 cannot fit this envelope."""
+	if record.role != a.ROLE_WORK or record.room != Vector2i(-1, 0) or record.level != 0 \
+			or record.envelope.size() != 6 or record.support.size() != 6 \
+			or record.point.x != int(p._live.i32[p.X * p._capacity + c.placement.x]) + (-832 if c.assembly == 0 else 0) \
+			or record.point.y != p._live.i32[(p.X + 1) * p._capacity + c.placement.x] \
+			or record.point.z != int(p._live.i32[(p.X + 2) * p._capacity + c.placement.x]) + (512 if c.assembly == 0 else -1536):
+		return REFUSE
+	for axis: int in 6:
+		if int(record.envelope[axis]) - record.point[axis % 3] != _envelope_word(axis) \
+				or int(record.support[axis]) - record.point[axis % 3] != _support_word(axis): return REFUSE
+	var found: int = -1
+	for row: int in a._capacity:
+		if a._live.present[row] != 1 or not _record_matches(a, row, record): continue
+		if found >= 0 or a._stage.present[row] != 1 \
+				or a._stage.i32[a.GENERATION * a._capacity + row] != a._live.i32[a.GENERATION * a._capacity + row] \
+				or a._stage.i64[a.PAYLOAD_REVISION * a._capacity + row] != a._live.i64[a.PAYLOAD_REVISION * a._capacity + row]:
+			return REFUSE
+		for field: int in a.I32_FIELDS:
+			if a._stage.i32[field * a._capacity + row] != a._live.i32[field * a._capacity + row]: return REFUSE
+		found = row
+	return &"" if found >= 0 else REFUSE
+
+
+static func _record_matches(a: RefCounted, row: int, record: RefCounted) -> bool:
+	"""Do not create a new endpoint inside the exception: compare the complete original immutable live payload."""
+	if a._live.i32[a.GENERATION * a._capacity + row] <= 0 \
+			or a._live.i64[a.PAYLOAD_REVISION * a._capacity + row] <= 0 \
+			or a._live.i32[a.ROLE * a._capacity + row] != record.role \
+			or a._live.i32[a.LEVEL * a._capacity + row] != record.level \
+			or a._live.i32[a.ROOM_SLOT * a._capacity + row] != record.room.x \
+			or a._live.i32[a.ROOM_GENERATION * a._capacity + row] != record.room.y \
+			or a._live.i32[a.SECTION_SLOT * a._capacity + row] != record.section.x \
+			or a._live.i32[a.SECTION_GENERATION * a._capacity + row] != record.section.y:
+		return false
+	for axis: int in 3:
+		if a._live.i32[(a.X + axis) * a._capacity + row] != record.point[axis]: return false
+	for axis: int in 6:
+		if a._live.i32[(a.ENVELOPE + axis) * a._capacity + row] != record.envelope[axis] \
+				or a._live.i32[(a.SUPPORT + axis) * a._capacity + row] != record.support[axis]: return false
+	return true
+
+
+static func _snapshot_refusal(a: RefCounted, c: RefCounted, record: RefCounted, row: int) -> StringName:
+	"""The selected survey row must be the complete exact original candidate Region, never an equal foreign solid."""
+	var s: Owner = a._owner
+	var at: int = c.obstacle.x
+	var v: Space.Volumes = a._snapshot.volumes
+	if at < 0 or at >= s._region_capacity or c.obstacle.y <= 0 or s._s_r_present[at] != 1 \
+			or s._s_r_generation[at] != c.obstacle.y or s._s_r_owner_slot[at] != c.project.x \
+			or s._s_r_owner_generation[at] != c.project.y or s._s_r_role[at] != Space.OBSTACLE \
+			or s._s_r_claim_kind[at] != Owner.CLAIM_NONE or s._s_r_claim_slot[at] != -1 \
+			or s._s_r_claim_generation[at] != 0 or row < 0 or row >= v.role.size() \
+			or v.role[row] != Space.OBSTACLE or v.owner_slot[row] != c.project.x \
+			or v.owner_generation[row] != c.project.y or v.owner_revision[row] != s._s_r_owner_revision[at] \
+			or v.level[row] != s._s_r_level[at] or v.owner_revision[row] <= 0: return REFUSE
+	var p: RefCounted = c.issuer.get_ref()
+	if s._s_r_section_slot[at] != p._live.i32[p.SECTION_SLOT * p._capacity + c.placement.x] \
+			or s._s_r_section_generation[at] != p._live.i32[(p.SECTION_SLOT + 1) * p._capacity + c.placement.x] \
+			or s._s_r_level[at] != p._live.i32[p.LEVEL * p._capacity + c.placement.x]: return REFUSE
+	for axis: int in 6:
+		if _region_axis(s, at, axis) != _snapshot_axis(v, row, axis) \
+				or _snapshot_axis(v, row, axis) - record.point[axis % 3] != _bearer_word(c.assembly, axis): return REFUSE
+	return &""
+
+
+static func _envelope_word(axis: int) -> int:
+	"""Union of all complete BODY/TURN words for exact2/6/16/29, with independently retained negative footing."""
+	match axis:
+		0: return -445
+		1: return 0
+		2: return -732
+		3: return 910
+		4: return 1036
+	return 346
+
+
+static func _support_word(axis: int) -> int:
+	"""Complete union of authored stance extents, never a root-point-only footing claim."""
+	match axis:
+		0: return -274
+		1: return -1
+		2: return -274
+		3: return 299
+		4: return 0
+	return 249
+
+
+static func _bearer_word(assembly: int, axis: int) -> int:
+	"""These are the two full source-certified prisms relative to their unchanged canonical handling roots."""
+	match axis:
+		0: return -192 if assembly == 0 else -256
+		1: return 0
+		2: return -512
+		3: return 1856 if assembly == 0 else 256
+		4: return 128
+	return -384
+
+
+static func _region_axis(s: Owner, row: int, axis: int) -> int:
+	"""Read the exact staged Region columns without calling a virtual Region observation."""
+	match axis:
+		0: return s._s_r_lo_x[row]
+		1: return s._s_r_lo_y[row]
+		2: return s._s_r_lo_z[row]
+		3: return s._s_r_hi_x[row]
+		4: return s._s_r_hi_y[row]
+	return s._s_r_hi_z[row]
+
+
+static func _snapshot_axis(v: Space.Volumes, row: int, axis: int) -> int:
+	"""Read only the original already-owned survey row; no box copy or image is allocated."""
+	match axis:
+		0: return v.lo_x[row]
+		1: return v.lo_y[row]
+		2: return v.lo_z[row]
+		3: return v.hi_x[row]
+		4: return v.hi_y[row]
+	return v.hi_z[row]
+
+
+static func _spend(actual: RefCounted, amount: int) -> bool:
+	"""Use the original Locations operation budget; refusal cannot reset or replenish it."""
+	if amount < 0 or amount > actual._remaining:
+		actual._remaining = -1
+		return false
+	actual._remaining -= amount
+	return true

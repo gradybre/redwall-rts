@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "scope": "Diagnostic work area, same exact content4 profiles",
+  "production_qualified": false,
+  "paid_execution_qualified": false,
+  "native_route_qualified": false,
+  "frontier_revision": 2,
+  "table_counts": [
+    2,
+    8,
+    2,
+    10,
+    12,
+    6
+  ],
+  "reader_bank_bytes": 4112,
+  "profile_sha256": "17d9c229fdfe8ad1923f004db136653ab9834994ba946061be38ec7a2c862ff9",
+  "producer_sha256": "efcd47c39b67004410592cf1de106eeebe2226663d1d276eab6c9b3dc7c1a164",
+  "predecessor_manifest_sha256": "1c700c85e5aac0b31d298ab41cb98f7dd2b45f484f01a2cea9639e70acdd560f",
+  "outputs": {
+    "frontier.ugfront": {
+      "bytes": 2292,
+      "sha256": "1068db6b1217e6542f6489cd56add7af52db663c756e572c86c1128e8227a058"
+    },
+    "layout.json": {
+      "bytes": 5405,
+      "sha256": "56e1357ba712c2bdc6f888c8668126bd43922c5ab4dfae56c03addece8064755"
+    }
+  },
+  "remaining": [
+    "current World source/masks/retirement proof",
+    "actual paid START/handling/fastening",
+    "native canonical forward/backward replay",
+    "complete memory closure and independent review"
+  ]
+}

@@ -104,8 +104,15 @@ class FrontierPublication(unittest.TestCase):
             self.assertIs(record[key], False)
         self.assertEqual(record["reader_bank_bytes"], 2048 + len(self.packet["frontier.ugfront"]) - 228)
         self.assertEqual(self.packet, M.build())
+        # Historical publication: scripts are pinned at their publishing commits, data inputs are live.
+        commits = {name: M.STRUCTURE.PUBLISHED_AT for name in (M.STRUCTURE.PRODUCER, *M.STRUCTURE.OWNERS)}
+        commits.update({M.PRODUCER: M.PUBLISHED_AT, M.OWNER: M.PUBLISHED_AT})
         for name, expected in record["inputs"].items():
-            self.assertEqual(hashlib.sha256((M.ROOT / name).read_bytes()).hexdigest(), expected)
+            raw = (M.STRUCTURE.published(M.ROOT, name, commits[name]) if name in commits
+                   else (M.ROOT / name).read_bytes())
+            self.assertEqual(hashlib.sha256(raw).hexdigest(), expected)
+        for name, raw in self.packet.items():
+            self.assertEqual((M.ROOT / M.OUTPUT / name).read_bytes(), raw, name)
 
 
 if __name__ == "__main__":

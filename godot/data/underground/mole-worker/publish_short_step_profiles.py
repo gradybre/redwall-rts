@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Create one reviewed protocol-6 source publication; never grant actual World access."""
+"""Create one reviewed protocol-6 source publication; never grant actual World access.
+
+qualified-step-v4 is now a historical publication: it binds profile content 3,
+which content 5 (`qualified-haul-v6`, ADR 1200) superseded at runtime. Its pins
+describe the tree at CONSUMER_COMMIT, so every pinned file git tracks there is
+read from that commit, never from the live tree; untracked inputs are read live
+and must still match exactly. A module this replay executes must also match live.
+"""
 from __future__ import annotations
 
 import argparse
@@ -8,6 +15,7 @@ import importlib.util
 import json
 from pathlib import Path, PurePosixPath
 import struct
+import subprocess
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
@@ -30,6 +38,7 @@ ACTOR_SHA = "adc617642313ac004c050d4877ef0b9f4024bb9c88e3ea92ce9a924471bd5ab9"
 BASIS_SHA = "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9"
 BASIS_PRODUCER = "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f"
 CONSUMER_COMMIT = "912de685b423c5eedd36ee68bc78f18670276cb7"
+PUBLISHED_AT = "84739fcc1569ad34596e3deac32a010563a1c844"
 CONSUMERS = (
     "godot/scripts/core/underground_profiles.gd",
     "godot/scripts/core/underground_work_face.gd",
@@ -60,32 +69,77 @@ def digest(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
-def canonical(name, maximum=32 * 1024 * 1024):
-    """Canonical bounded regular files only; a symlink cannot move a proof outside its repository."""
+_BATCHES = {}
+LFS = b"version https://git-lfs.github.com/spec/v1\n"
+
+
+def relative(name):
     require(type(name) is str and str(PurePosixPath(name)) == name and not name.startswith("/")
             and ".." not in PurePosixPath(name).parts, "PATH")
+
+
+def historical(name, commit=CONSUMER_COMMIT):
+    """Bytes of `name` tracked at `commit`, or None when ROOT is not a checkout that tracks it there."""
+    relative(name)
+    key = (str(ROOT), commit)
+    if key not in _BATCHES:
+        probe = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+        tracked = probe.returncode == 0 and Path(probe.stdout.strip()).resolve() == ROOT.resolve()
+        _BATCHES[key] = subprocess.Popen(["git", "-C", str(ROOT), "cat-file", "--batch"],
+                                         stdin=subprocess.PIPE, stdout=subprocess.PIPE) if tracked else None
+    batch = _BATCHES[key]
+    if batch is None:
+        return None
+    batch.stdin.write(f"{commit}:{name}\n".encode())
+    batch.stdin.flush()
+    header = batch.stdout.readline().split()
+    require(len(header) in (2, 3), "HISTORICAL:" + name)
+    if header[-1] == b"missing":
+        return None
+    require(header[1] == b"blob", "HISTORICAL:" + name)
+    raw = batch.stdout.read(int(header[2]))
+    require(len(raw) == int(header[2]) and batch.stdout.read(1) == b"\n", "HISTORICAL:" + name)
+    return raw
+
+
+def canonical(name, maximum=32 * 1024 * 1024):
+    """Canonical bounded regular files only; a symlink cannot move a proof outside its repository."""
+    relative(name)
     path = ROOT / name
     require(path.is_file() and not path.is_symlink() and path.resolve().is_relative_to(ROOT)
             and 0 <= path.stat().st_size <= maximum, "FILE:" + name)
     return path
 
 
-def check(name, expected, pins):
-    """Stream even large archived mesh/import inputs; do not materialize their aggregate payload."""
+def admit(name, expected, pins):
+    """Pin one input; return its historical bytes, or None when the live file itself was verified."""
     require(type(expected) is str and len(expected) == 64 and all(c in "0123456789abcdef" for c in expected), "DIGEST")
-    path = canonical(name, 512 * 1024 * 1024)
-    hashing = hashlib.sha256()
-    with path.open("rb") as stream:
-        while chunk := stream.read(1048576):
-            hashing.update(chunk)
-    require(hashing.hexdigest() == expected, "HASH:" + name)
+    raw = historical(name)
+    if raw is None or raw.startswith(LFS):
+        # Stream even large archived mesh/import inputs; do not materialize their aggregate payload.
+        hashing = hashlib.sha256()
+        with canonical(name, 512 * 1024 * 1024).open("rb") as stream:
+            while chunk := stream.read(1048576):
+                hashing.update(chunk)
+        actual = hashing.hexdigest()
+        # An LFS pointer names its content by SHA-256, so the checkout must hold exactly those bytes.
+        require(raw is None or b"oid sha256:" + actual.encode() + b"\n" in raw, "HISTORICAL_LFS:" + name)
+        raw = None
+    else:
+        actual = digest(raw)
+    require(actual == expected, "HASH:" + name)
     require(name not in pins or pins[name] == expected, "PIN_CONFLICT")
     pins[name] = expected
+    return raw
+
+
+def check(name, expected, pins):
+    admit(name, expected, pins)
 
 
 def read(name, expected, pins):
-    check(name, expected, pins)
-    return canonical(name).read_bytes()
+    raw = admit(name, expected, pins)
+    return canonical(name).read_bytes() if raw is None else raw
 
 
 def add_pins(values, pins):
@@ -96,6 +150,7 @@ def add_pins(values, pins):
 
 def module(name, expected, pins):
     read(name, expected, pins)
+    require(digest(canonical(name).read_bytes()) == expected, "MODULE_DRIFT:" + name)
     spec = importlib.util.spec_from_file_location("step_publication_" + Path(name).stem, ROOT / name)
     result = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(result)
@@ -268,7 +323,8 @@ def inputs():
                                 bytes.fromhex(ground.LEVEL_SHA), movement, rows)
     require([row["profile_id"] for row in rows] == list(range(1, 13)) and digest(ground_wire) == GROUND_SHA, "GROUND_ROWS")
     producer = str(Path(__file__).relative_to(ROOT))
-    pins[producer] = digest(Path(__file__).read_bytes())
+    published = historical(producer, PUBLISHED_AT)
+    pins[producer] = digest(Path(__file__).read_bytes() if published is None else published)
     manifest = {"schema": 1, "source_geometry_qualified": True, "world_activation_qualified": False,
         "native_memory_qualified": False, "performance_qualified": False,
         "scope": "Accepted complete source geometry and sampled protocol-6 native clock; actual World admission remains mandatory.",

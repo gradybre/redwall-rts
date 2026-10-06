@@ -80,7 +80,20 @@ class StructuralPublication(unittest.TestCase):
                     "frontier_emitted", "workpieces_emitted"):
             self.assertIs(record[key], False)
         for path, expected in record["inputs"].items():
-            self.assertEqual(hashlib.sha256((M.ROOT / path).read_bytes()).hexdigest(), expected)
+            # Historical publication: scripts are pinned at PUBLISHED_AT, data inputs are still live.
+            raw = (M.published(M.ROOT, path, M.PUBLISHED_AT) if path in (M.PRODUCER, *M.OWNERS)
+                   else (M.ROOT / path).read_bytes())
+            self.assertEqual(hashlib.sha256(raw).hexdigest(), expected)
+
+    def test_committed_publication_is_the_exact_rebuild(self):
+        out = M.ROOT / M.OUTPUT
+        self.assertEqual({p.name for p in out.iterdir()}, set(self.packet))
+        for name, raw in self.packet.items():
+            self.assertEqual((out / name).read_bytes(), raw, name)
+
+    def test_historical_scripts_come_from_the_publishing_commit(self):
+        with self.assertRaisesRegex(ValueError, "HISTORICAL_SOURCE"):
+            M.published(M.ROOT, M.OWNERS[0], "0" * 40)
 
     def test_invalid_partition_bill_and_cut_bearing_are_refused(self):
         changes = [lambda s: s["assemblies"][1]["included_parts"].append(0),

@@ -361,16 +361,24 @@ func _long(bank: Bank, row: int, field: int) -> int:
 func _validate_stage() -> StringName:
 	"""Cold O(P²) admission keeps movement unique; WORK contacts require an explicit choice if ambiguous."""
 	var next_box: int = 0
-	var same_key_count: int = 0
+	# ADR1198: rows are key-sorted within each source; an appended source never renumbers earlier rows.
+	var last_of: PackedInt32Array = PackedInt32Array()
+	last_of.resize(_stage.header[3])
+	last_of.fill(-1)
+	var same_key: PackedInt32Array = PackedInt32Array()
+	same_key.resize(_stage.header[3])
 	for row: int in _stage.header[1]:
 		var code: StringName = _profile_refusal(row, next_box)
 		if code != &"":
 			return code
 		next_box += _field(_stage, row, F_BOX_COUNT)
-		var order: int = _compare_rows(row - 1, row) if row > 0 else -1
+		var source: int = _field(_stage, row, F_SOURCE)
+		var order: int = _compare_rows(last_of[source], row) if last_of[source] >= 0 else -1
 		if order > 0:
 			return &"PROFILE_KEY_ORDER"
-		same_key_count = same_key_count + 1 if order == 0 else 1
+		same_key[source] = same_key[source] + 1 if order == 0 else 1
+		last_of[source] = row
+		var same_key_count: int = same_key[source]
 		# Automatic lookup still sees every eligible row in its original16-row
 		# window. Only one explicit nonproductive handling tail may follow it.
 		if same_key_count > MAX_KEY_VARIANTS and (same_key_count != MAX_KEY_VARIANTS + 1 \
@@ -532,16 +540,15 @@ func query_into(worker: Vector2i, job: Vector2i, mode: int, posture: int, connec
 	var code: StringName = _prepare_query(worker, job, mode, posture, connector_family, equipped_tool_hint, out)
 	if code != &"":
 		return code
-	var first: int = _lower_bound(mode, posture)
-	var row: int = first
-	var end: int = mini(first + MAX_KEY_VARIANTS, _live.header[1])
+	# ADR1198: per-source sorted blocks may interleave, so automatic lookup scans every row (<= MAX_PROFILES);
+	# any second automatic match anywhere is ambiguous rather than file-order selected.
 	var selected: int = -1
-	while row < end:
-		if _live.flags[_profile_capacity + row] == POLICY_AUTOMATIC and _matches(row, mode, posture, connector_family):
+	for row: int in _live.header[1]:
+		if _field(_live, row, F_MODE) != mode or _live.flags[_profile_capacity + row] != POLICY_AUTOMATIC: continue
+		if _matches(row, mode, posture, connector_family):
 			if selected >= 0:
 				return &"PROFILE_SELECTION_AMBIGUOUS"
 			selected = row
-		row += 1
 	if selected < 0:
 		return &"PROFILE_VARIANT_UNAUTHORED"
 	_write_selection(selected, worker, job, out)
@@ -850,37 +857,6 @@ func _compare_rows(a: int, b: int) -> int:
 		if left != right:
 			return -1 if left < right else 1
 	return 0
-
-
-func _query_key(index: int, mode: int, posture: int) -> int:
-	"""Read scratch without constructing an Array for every worker lookup."""
-	if index < 3:
-		return _identity[index]
-	if index == 3:
-		return mode
-	if index == 4:
-		return posture
-	return _query_values[index - 5] if index < 9 else _query_values[4]
-
-
-func _lower_bound(mode: int, posture: int) -> int:
-	"""At most nine binary-search comparisons plus sixteen exact physical variants."""
-	var low: int = 0
-	var high: int = _live.header[1]
-	while low < high:
-		@warning_ignore("integer_division") var middle: int = (low + high) / 2
-		var comparison: int = 0
-		for index: int in 10:
-			var stored: int = _field(_live, middle, _key_field(index))
-			var requested: int = _query_key(index, mode, posture)
-			if stored != requested:
-				comparison = -1 if stored < requested else 1
-				break
-		if comparison < 0:
-			low = middle + 1
-		else:
-			high = middle
-	return low
 
 
 func _required_states(mode: int) -> int:

@@ -196,3 +196,10 @@ qualified.
   because wood's single path drives the lump into the snout. With those, the four-phase program, the loaded gait
   and the stand joins all pass wood's exact provers. The motion review packet is
   `haul-handling-v1/evidence/stone-motion-review-v1/`. Native image v9 waits for Brendan's approval.
+- **Stone carry runtime, ADR 1206 steps 10–13:**
+  - Native stone image v9 (`49ff3018…`, a real Metal replay) and the integer stone rows.
+  - Content 6 (`qualified-stone-v7`, wire `30c3dc1f…`) and bundle `qualified-stone-v5`.
+  - The two-family grip certificate, and Delivery generalized to certified cargo.
+  - A tool-free mole hauls one staged stone unit from R to M through Delivery (rows 39 → 37 → 41) on wood's
+    stands.
+  - In content 6 an empty HAUL lift must be named explicitly; automatic selection is ambiguous by design.

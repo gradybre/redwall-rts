@@ -1,9 +1,10 @@
 extends "res://test/framework/test_case.gd"
-## ADR1200: the published content-5 tool-free haul rows with actual Resident/Inventory/Carry/Jobs owners.
+## ADR1200/1206: the published tool-free haul rows (content 6: wood 30-36, stone 37-41) with actual
+## Resident/Inventory/Carry/Jobs owners.
 ## Selection identity only; no World support, route, station seam, grip certificate or presentation is granted.
 
 const Catalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
-const Pins := preload("res://data/underground/mole-worker/qualified-haul-v6/catalog_source.gd")
+const Pins := preload("res://data/underground/mole-worker/qualified-stone-v7/catalog_source.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Fixture := preload("res://test/test_underground_profiles.gd")
 const Content := preload("res://demo/cast/underground_actor_content.gd")
@@ -24,6 +25,9 @@ const WALK: int = 31
 const CARRY: int = 32
 const LOAD: int = 33 # yaw 0; 34 is yaw 16384
 const UNLOAD: int = 35 # yaw 0; 36 is yaw 16384
+const STONE_CARRY: int = 37
+const STONE_LOAD: int = 38 # yaw 0; 39 is yaw 16384
+const STONE_UNLOAD: int = 40 # yaw 0; 41 is yaw 16384
 var _fixture: Fixture = null
 var _content: Content = null
 var _domain: Space.Domain = null
@@ -46,7 +50,7 @@ func before_each() -> void:
 	assert_equal(_fixture._profiles.configure(Catalog.PROFILE_COUNT, Catalog.BOX_COUNT, Catalog.SOURCE_COUNT,
 		Catalog.PAIRED_BANK_BYTES + Catalog.CONTROL_RESERVE), &"", "complete peak admission")
 	assert_equal(_fixture._bind(_fixture._profiles), &"", "actual same-owner profile identity")
-	assert_equal(Catalog.load_into(_fixture._profiles, _content, _domain), &"", "published content 5")
+	assert_equal(Catalog.load_into(_fixture._profiles, _content, _domain), &"", "published content 6")
 	assert_true(_fixture.failures.is_empty(), "actual fixture assertions propagated")
 
 
@@ -60,9 +64,9 @@ func after_each() -> void:
 	_fixture = null
 
 
-func _wood_lot(quantity: int, job: Vector2i) -> Vector2i:
-	"""Load one actual wood lot of exactly `quantity` milli into the worker's real satchel."""
-	var wood: int = _fixture._items.compiled_id(&"wood")
+func _wood_lot(quantity: int, job: Vector2i, item: StringName = &"wood") -> Vector2i:
+	"""Load one actual lot of `item` (wood unless named) of exactly `quantity` milli into the worker's real satchel."""
+	var wood: int = _fixture._items.compiled_id(item)
 	var source: Vector2i = _fixture._inventory.create_lot(_fixture._store, wood, 5000, 0, 0, -1, 0, 0).ref
 	var batch: PackedInt64Array = PackedInt64Array([source.x, source.y, Pool.PURPOSE_HAUL_SOURCE, quantity, 300])
 	assert_true(_fixture._pool.claim_batch(job, batch, 1, _fixture._inventory).ok, "actual source claim")
@@ -86,7 +90,7 @@ func test_published_content_5_keeps_content_4_and_appends_the_haul_source_block(
 	"""Rows 30-36 are the tool-free source-2 block; the full live wire still hashes to the published pin."""
 	var profiles: Profiles = _fixture._profiles
 	assert_equal(Catalog.catalog_refusal(profiles), &"", "complete live wire matches the published digest")
-	assert_equal(profiles.profile_count(Catalog.CONTENT_REVISION), 37, "content 4 plus seven haul rows")
+	assert_equal(profiles.profile_count(Catalog.CONTENT_REVISION), 42, "content 4, seven haul rows, five stone rows")
 	var digest: PackedByteArray = PackedByteArray()
 	digest.resize(32)
 	assert_true(profiles.source_hash_into(2, Catalog.CONTENT_REVISION, digest), "third source exists")
@@ -146,8 +150,14 @@ func test_haul_work_rows_follow_actual_cargo_and_exact_heading() -> void:
 	var job: Vector2i = _haul_job()
 	for heading: int in [0, 16384]:
 		assert_true(_fixture._transforms.place(_fixture._worker, 4096, 512, 4096, heading), "station heading")
-		assert_equal(profiles.query_into(_fixture._worker, job, Profiles.MODE_WORK, 0, -1, NULL_REF, out), &"", "load")
-		assert_equal(out.profile_id, LOAD + (1 if heading != 0 else 0), "empty grip at this heading")
+		# ADR1206: an empty lift cannot tell wood from stone, so content 6 refuses to guess; Delivery names the row.
+		assert_equal(profiles.query_into(_fixture._worker, job, Profiles.MODE_WORK, 0, -1, NULL_REF, out),
+			&"PROFILE_SELECTION_AMBIGUOUS", "empty lift is not selected by file order")
+		for row: int in [LOAD, STONE_LOAD]:
+			var exact: int = row + (1 if heading != 0 else 0)
+			assert_equal(profiles.query_work_profile_into(_fixture._worker, job, exact, 1, Catalog.CONTENT_REVISION, 0, -1,
+				NULL_REF, out), &"", "explicit empty grip %d" % exact)
+			assert_equal(out.profile_id, exact, "named row at this heading")
 	assert_true(_fixture._transforms.place(_fixture._worker, 4096, 512, 4096, 32768), "unauthored heading")
 	assert_equal(profiles.query_into(_fixture._worker, job, Profiles.MODE_WORK, 0, -1, NULL_REF, out),
 		&"PROFILE_VARIANT_UNAUTHORED", "no rotation is inferred")
@@ -172,3 +182,40 @@ func test_quarter_turn_rows_are_the_exact_integer_rotation() -> void:
 			assert_equal(b.low, Vector3i(a.low.z, a.low.y, -a.high.x), "low corner")
 			assert_equal(b.high, Vector3i(a.high.z, a.high.y, -a.low.x), "high corner")
 			assert_equal(b.role, a.role, "same role")
+
+
+func test_stone_rows_are_their_own_source_block_and_select_by_actual_cargo() -> void:
+	"""ADR1206: rows 37-41 are source 3 (native stone image v9), stone item 53, whole-unit trips."""
+	var profiles: Profiles = _fixture._profiles
+	var digest: PackedByteArray = PackedByteArray()
+	digest.resize(32)
+	assert_true(profiles.source_hash_into(3, Catalog.CONTENT_REVISION, digest), "fourth source exists")
+	assert_equal(digest.hex_encode(), Pins.STONE_SOURCE_SHA, "native stone image v9")
+	var stone: int = _fixture._items.compiled_id(&"stone")
+	assert_equal(stone, 53, "stone's compiled id")
+	var row: Profiles.Descriptor = Profiles.Descriptor.new()
+	for profile: int in range(STONE_CARRY, 42):
+		assert_equal(profiles.descriptor_into(profile, Catalog.CONTENT_REVISION, row), &"", "published row")
+		assert_equal(row.source_id, 3, "own source block")
+		assert_equal(row.tool_item, -1, "tool-free")
+		var loaded: bool = profile == STONE_CARRY or profile >= STONE_UNLOAD
+		assert_equal(row.cargo_item, stone if loaded else -1, "stone cargo")
+		assert_equal(row.quantity_min_milli, 1000 if loaded else 0, "exact whole-unit trip")
+	var out: Profiles.Selection = Profiles.Selection.new()
+	var job: Vector2i = _haul_job()
+	var lot: Vector2i = _wood_lot(1000, job, &"stone")
+	assert_equal(profiles.query_into(_fixture._worker, NULL_REF, Profiles.MODE_CARRY, 0, -1, NULL_REF, out), &"", "carry")
+	assert_equal(out.profile_id, STONE_CARRY, "stone loaded gait, not wood's")
+	assert_equal(out.cargo, lot, "actual carried stone lot")
+	for heading: int in [0, 16384]:
+		assert_true(_fixture._transforms.place(_fixture._worker, 4096, 512, 4096, heading), "station heading")
+		assert_equal(profiles.query_into(_fixture._worker, job, Profiles.MODE_WORK, 0, -1, NULL_REF, out), &"", "unload")
+		assert_equal(out.profile_id, STONE_UNLOAD + (1 if heading != 0 else 0), "stone set-down at this heading")
+	var a: Profiles.Box = Profiles.Box.new()
+	var b: Profiles.Box = Profiles.Box.new()
+	for pair: Array in [[STONE_LOAD, STONE_LOAD + 1], [STONE_UNLOAD, STONE_UNLOAD + 1]]:
+		assert_equal(profiles.descriptor_into(pair[0], Catalog.CONTENT_REVISION, row), &"", "source row")
+		for ordinal: int in row.box_count:
+			assert_equal(profiles.box_into(pair[0], 1, Catalog.CONTENT_REVISION, ordinal, a), &"", "yaw 0 box")
+			assert_equal(profiles.box_into(pair[1], 1, Catalog.CONTENT_REVISION, ordinal, b), &"", "yaw 16384 box")
+			assert_equal(b.low, Vector3i(a.low.z, a.low.y, -a.high.x), "quarter turn")

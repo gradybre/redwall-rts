@@ -1,11 +1,11 @@
 extends "res://test/framework/test_case.gd"
-## ADR1198 steps 6 and 8: the certified curved haul grip and the Delivery station seam, on the real published
-## content-5 bank and the production work area. The worker is a real adult mole with no tool equipped.
+## ADR1198 steps 6 and 8, ADR1206: the certified curved haul grips (wood and stone) and the Delivery station seam,
+## on the real published content-6 bank and the production work area. The worker is a real adult mole with no tool.
 
 const WorkArea := preload("res://test/test_underground_entry_work_area.gd")
 const Prefix := preload("res://test/test_underground_first_prefix.gd")
 const WorkAreaSource := preload("res://scripts/core/underground_entry_work_area.gd")
-const Grip := preload("res://data/underground/mole-worker/qualified-haul-v6/grip_certificate.gd")
+const Grip := preload("res://data/underground/mole-worker/qualified-stone-v7/grip_certificate.gd")
 const Delivery := preload("res://scripts/core/underground_connector_delivery.gd")
 const Planner := preload("res://scripts/core/haul_planner.gd")
 const StorePolicy := preload("res://scripts/core/store_policy.gd")
@@ -16,7 +16,9 @@ const Jobs := Prefix.Jobs
 const Profiles := Prefix.Profiles
 const Routes := Prefix.Routes
 const NULL_REF: Vector2i = Vector2i(-1, 0)
-const ROWS_PATH: String = "res://data/underground/mole-worker/haul-handling-v1/evidence/haul-rows-v1/rows.json"
+const ROWS_PATHS: Array[String] = [
+	"res://data/underground/mole-worker/haul-handling-v1/evidence/haul-rows-v1/rows.json",
+	"res://data/underground/mole-worker/haul-handling-v1/evidence/stone-rows-v1/rows.json"]
 const EXPIRY: int = 100000
 
 var _probe: WorkArea.Probe = null
@@ -37,23 +39,28 @@ func after_each() -> void:
 
 
 func test_certificate_constants_are_the_rows_json_witnesses() -> void:
-	"""R-S, both hand-contact cells and every yaw-0 box are copied from the step-2 derivation, never authored here."""
-	var rows: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(ROWS_PATH))
-	var station: Dictionary = rows["station"]
-	var r_minus_s: Array = station["R_minus_S_u"]
-	assert_equal(Grip.R_MINUS_S, Vector3i(int(r_minus_s[0]), int(r_minus_s[1]), int(r_minus_s[2])), "R-S")
-	for contact: int in 2:
-		var cell: Array = station["grip_contacts"][contact]["C_minus_S_cell_u"]
-		for axis: int in 6:
-			assert_equal(Grip.CONTACT_CELLS[6 * contact + axis], int(cell[axis]), "contact %d cell word %d" % [contact, axis])
-	var expected: Array = [Grip.BOXES_CARRY, Grip.BOXES_LOAD, Grip.BOXES_UNLOAD]
-	for index: int in 3:
-		var boxes: Array = rows["rows"][index]["boxes"]
-		assert_equal(boxes.size() * 7, (expected[index] as Array).size(), "row %d box count" % index)
-		for ordinal: int in boxes.size():
-			for field: int in 6:
-				assert_equal((expected[index] as Array)[7 * ordinal + field], int(boxes[ordinal]["bounds_u"][field]), "box word")
-			assert_equal((expected[index] as Array)[7 * ordinal + 6], int(boxes[ordinal]["role_id"]), "box role")
+	"""Per family, R-S, both hand-contact cells and every yaw-0 box are copied from its derivation, never authored."""
+	for family: int in 2:
+		var rows: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(ROWS_PATHS[family]))
+		var station: Dictionary = rows["station"]
+		var r_minus_s: Array = station["R_minus_S_u"]
+		assert_equal(Grip.R_MINUS_S, Vector3i(int(r_minus_s[0]), int(r_minus_s[1]), int(r_minus_s[2])), "R-S")
+		for contact: int in 2:
+			var cell: Array = station["grip_contacts"][contact]["C_minus_S_cell_u"]
+			for axis: int in 6:
+				assert_equal(Grip.CONTACT_CELLS[12 * family + 6 * contact + axis], int(cell[axis]), "contact cell word")
+		for kind: int in 3:
+			var row: int = Grip.carry_of(family) + [0, 1, 3][kind]
+			var boxes: Array = rows["rows"][kind]["boxes"]
+			assert_equal(boxes.size(), Grip.word(row, Profiles.F_BOX_COUNT), "row %d box count" % row)
+			for ordinal: int in boxes.size():
+				for field: int in 6:
+					assert_equal(Grip.box_word(row, ordinal, field), int(boxes[ordinal]["bounds_u"][field]), "box word")
+				assert_equal(Grip.box_word(row, ordinal, 6), int(boxes[ordinal]["role_id"]), "box role")
+	assert_equal(Grip.carry_row_for(60), 32, "wood carries on row 32")
+	assert_equal(Grip.carry_row_for(53), 37, "stone carries on row 37")
+	assert_equal(Grip.carry_row_for(0), -1, "no other compiled item is certified")
+	assert_equal(Grip.carry_row_for(-1), -1, "no cargo is not a cargo family")
 
 
 func test_certificate_admits_only_the_exact_station_transform() -> void:
@@ -61,7 +68,7 @@ func test_certificate_admits_only_the_exact_station_transform() -> void:
 	_probe = WorkArea.Probe.new()
 	_probe.before_each()
 	var profiles: Profiles = _probe._world._profiles
-	assert_true(Grip.uses(profiles), "real content 5 carries all five certified rows")
+	assert_true(Grip.uses(profiles), "real content 6 carries all ten certified rows")
 	var stock: Vector3i = WorkAreaSource.point(Prefix.ORIGIN, 1)
 	var root: Vector3i = WorkAreaSource.point(Prefix.ORIGIN, WorkAreaSource.STAND_M)
 	assert_equal(Grip.station_refusal(profiles, 34, root, 16384, stock), &"", "load grip at M's stand")
@@ -71,6 +78,9 @@ func test_certificate_admits_only_the_exact_station_transform() -> void:
 	assert_equal(Grip.station_refusal(profiles, 34, root + Vector3i(1, 0, 0), 16384, stock), Grip.REFUSE_STATION, "one unit off")
 	assert_equal(Grip.station_refusal(profiles, 32, root, 16384, stock), Grip.REFUSE_PROFILE, "CARRY is not a grip")
 	assert_equal(Grip.station_refusal(profiles, 29, root, 16384, stock), Grip.REFUSE_PROFILE, "assembly palm is not a grip")
+	assert_equal(Grip.station_refusal(profiles, 39, root, 16384, stock), &"", "stone load grip at M's stand")
+	assert_equal(Grip.station_refusal(profiles, 41, root, 16384, stock), &"", "stone unload grip at M's stand")
+	assert_equal(Grip.station_refusal(profiles, 37, root, 16384, stock), Grip.REFUSE_PROFILE, "stone CARRY is not a grip")
 
 
 func test_delivery_refuses_a_part_unit_haul_trip() -> void:
@@ -130,6 +140,40 @@ func test_toolless_mole_hauls_one_staged_wood_unit_to_m_through_delivery() -> vo
 	assert_equal(world._inventory.container_lot_count(_probe._storage), before + 1, "one new wood lot in M's container")
 
 
+func test_toolless_mole_hauls_one_staged_stone_unit_to_m_through_delivery() -> void:
+	"""ADR1206: staged surface stone at R reaches M's container by WALK, the stone grip lift (row 39), the stone
+	CARRY (row 37) and the stone grip set-down (row 41), on the same stands as wood."""
+	if not _ready(): return
+	var world: RefCounted = _probe._world
+	var lot: Vector2i = _stage(1000, &"stone")
+	var before: int = world._inventory.container_lot_count(_probe._storage)
+	var job: Jobs.OpResult = _haul_job()
+	var result: Prefix.Inventory.OpResult = _delivery.admit(job.ref, lot, 1000, EXPIRY)
+	assert_true(result.ok, "admission reaches R's stand by WALK and M's stand by stone CARRY: %s" % result.error)
+	if not result.ok: return
+	assert_true(world._jobs.set_state(job.value, Jobs.JOB_STATE_TRAVEL).ok, "source travel")
+	if not _travel(job, WorkAreaSource.STAND_R, Profiles.MODE_WALK): return
+	if not _grip(job, 34): return
+	assert_equal(_delivery.begin_load(job.ref), Delivery.REFUSE_HANDLING, "the wood lift never grips stone")
+	if not _grip(job, 39): return
+	assert_equal(_delivery.begin_load(job.ref), &"", "stone grip contains S at R")
+	assert_true(_work(job.value), "lift work")
+	result = _delivery.load_payload(job.ref)
+	assert_true(result.ok, "guarded load: %s" % result.error)
+	if not result.ok: return
+	if not _travel(job, WorkAreaSource.STAND_M, Profiles.MODE_CARRY): return
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(world._routes.read_actor_into(world._worker, actor), &"", "actual actor")
+	assert_equal(actor.profile_id, Grip.carry_row_for(world._items.compiled_id(&"stone")), "carried on the stone gait")
+	if not _grip(job, 41): return
+	assert_true(_work(job.value), "set-down work")
+	result = _delivery.unload_payload(job.ref)
+	assert_true(result.ok, "guarded unload at M: %s" % result.error)
+	assert_equal(world._jobs._state[job.value], Jobs.JOB_STATE_COMPLETE, "goods commit completes the haul")
+	assert_equal(world._inventory.container_lot_count(_probe._output), 0, "staging at R emptied")
+	assert_equal(world._inventory.container_lot_count(_probe._storage), before + 1, "one new stone lot in M's container")
+
+
 func _ready() -> bool:
 	"""Real entry, an open BRACE phase whose Site holds M's container, Delivery composed, and the tool unequipped."""
 	_probe = WorkArea.Probe.new()
@@ -168,11 +212,11 @@ func _compose_delivery() -> void:
 		_clock, Delivery.RESERVED_BYTES), &"", "one bounded Delivery")
 
 
-func _stage(quantity: int) -> Vector2i:
+func _stage(quantity: int, item: StringName = &"wood") -> Vector2i:
 	"""Surface stock staged at R: R's container is real create_spatial_ground_staging storage (ADR1197 G4)."""
 	var made: Prefix.Inventory.OpResult = _probe._world._inventory.create_lot(_probe._output,
-		_probe._world._items.compiled_id(&"wood"), quantity, 1, Prefix.Provenance.PROVENANCE_ORDINARY, -1, 0, 0)
-	assert_true(made.ok, "staged surface wood: %s" % made.error)
+		_probe._world._items.compiled_id(item), quantity, 1, Prefix.Provenance.PROVENANCE_ORDINARY, -1, 0, 0)
+	assert_true(made.ok, "staged surface %s: %s" % [item, made.error])
 	return made.ref
 
 
@@ -207,10 +251,10 @@ func _grip(job: Jobs.OpResult, row: int) -> bool:
 	var world: RefCounted = _probe._world
 	var actor: Routes.Actor = Routes.Actor.new()
 	assert_equal(world._routes.read_actor_into(world._worker, actor), &"", "actual actor")
-	if Grip.is_load(row):
+	if Grip.is_load(row) and actor.yaw != Grip.yaw_of(row):
 		assert_equal(Prefix.WorldRoutes.turn_actor(world._binding, world._worker, job.ref, Grip.yaw_of(row),
 			Prefix.Space.MAX_CHECKS), &"", "empty-handed supported turn to face the stock")
-	else:
+	elif not Grip.is_load(row):
 		assert_equal(actor.yaw, Grip.yaw_of(row), "the CARRY edge arrives on the grip heading; no loaded turn exists")
 	assert_equal(world._routes.refresh_work_actor(world._worker, job.ref, row, 1, Grip.CONTENT_REVISION, 0, -1, NULL_REF),
 		&"", "certified grip row %d" % row)

@@ -1,6 +1,6 @@
 # 1206 — Stone carry: the procedural stone lump as the hauled stone
 
-Date: 2026-10-06 · Status: In progress. Native image v9 and the stone rows done; content 6 next
+Date: 2026-10-06 · Status: Implemented. Content 6 loads at runtime, and a tool-free mole hauls stone through Delivery
 
 ## Brendan's decisions (2026-10-06)
 
@@ -274,16 +274,83 @@ from grip v1: C−S cells `[-155,112,37 …]` and `[122,171,30 …]`.
 **The stone's floor contact is off-centre.** The lowest vertex of the lump is 67 u toward the worker from S.
 `test_derive_stone_rows.py` holds 5 tests, including a byte-identical re-derivation.
 
-## Remaining steps
+## Step 12 — content 6 and its bundle (done)
 
-1. ~~Static contact candidates and exact witnesses~~ (step 4); v1 approved.
-2. The four-phase program.
-3. The loaded gait.
-4. The stand/walk joins.
-5. Native image v9, using sibling tools; v8 stays untouched.
-6. The integer rows, with the corrected `clipped_triangle_floor` maximum.
-7. Content 6, as the successor of `qualified-haul-v6`.
-8. The certificate extension, the consumer switch and renewed pins.
-9. The Delivery test for a tool-free stone haul from R to M.
+`publish_stone_runtime.py` creates `mole-worker/qualified-stone-v7` (content 6). It follows ADR 1200's model:
 
-Image sizes and the joint memory census (ADR 1198 open item, 100 MB gate) are recorded at step 5.
+- source 3 is the native stone image v9 (`49ff3018…`);
+- it adds five tool-free stone rows, stone item 53:
+  - 37: CARRY, YAW_ALL, stone 1000..1000;
+  - 38 / 39: HAUL load, yaw 0 / 16384;
+  - 40 / 41: HAUL unload, yaw 0 / 16384;
+- the 16384 rows are the exact quarter turn;
+- every box is copied from `stone-rows-v1`;
+- rows 0–36, boxes 0–333 and sources 0–2 stay byte-identical to content 5;
+- one RATE_GROUND_CAP pace row covers 37. It reuses the adopted Movement cap, so there is no new constant;
+- the motion bank is rebound to revision 6 (`3024e922…`), and its tables are unchanged.
+
+**Result:** wire `30c3dc1f…`, 14,840 B, with a paired bank of 29,664 B (+3,452 B over content 5).
+
+`first-entry-prefix-v1/publish_qualified_stone.py` creates the successor bundle `qualified-stone-v5` from
+`qualified-landing-v4`:
+
+- content 6 with 15 paces;
+- the linked files change only their content words and digests;
+- the Frontier stays at revision 4.
+
+Python tests: 10 for the publication and 6 for the bundle.
+
+## Step 13 — certificate, consumer switch and Delivery (done)
+
+- **Certificate.** `qualified-stone-v7/grip_certificate.gd` certifies both cargo families exactly: wood
+  rows 32–36 (source 2) and stone rows 37–41 (source 3). Each family has its own exact words, boxes, contact
+  cells and image digest. `carry_row_for(item)` maps wood to 32 and stone to 37; any other item gets −1.
+  Content 5's certificate stays as history.
+- **Consumers switched to content 6:**
+  - `mole_profile_catalog.gd`: 42 rows, 377 boxes, 4 sources, and it hashes the stone digest;
+  - route and entry composition and the entry site: bundle `qualified-stone-v5`, `GROUND_PACE_COUNT` 15;
+  - motion catalog and clock: revision 6;
+  - `tools/renew_source_pins.py`: the active publication is v7.
+- **Delivery** (`underground_connector_delivery.gd`):
+  - it admits only certified cargo, at exactly one unit;
+  - it reaches the destination stand over the shipped item's own CARRY row;
+  - the grip leaf refuses a lift by the other family's row, so wood rows never lift stone.
+
+**Decision: an empty HAUL lift is not selected automatically in content 6.** Both load rows (33 and 38) carry
+no cargo, so the worker's state cannot tell wood from stone. Automatic WORK selection now reports
+`PROFILE_SELECTION_AMBIGUOUS` instead of choosing by file order. Delivery, and the ADR 1203 foreman hook, name
+the lift row explicitly from the lot's item. Unload and CARRY stay automatic, because the carried cargo decides
+them.
+
+**Test:** `test_toolless_mole_hauls_one_staged_stone_unit_to_m_through_delivery` (`test_underground_haul_grip.gd`).
+A real adult mole holding no tool:
+
+- walks from R to R's stand;
+- is refused when it tries the wood lift row on stone;
+- lifts with row 39 and calls `load_payload`;
+- carries on row 37 to M's stand, arriving on the grip heading;
+- sets down with row 41 and calls `unload_payload`.
+
+The Job completes, R's staging is emptied and M gains one stone lot. The stands, edges and work area are wood's,
+unchanged.
+
+**Presentation is not switched.** `ContentSet` holds 3 sources, so the stone image is not drawn yet.
+
+## Memory census (v9)
+
+| Item | Bytes |
+|---|---|
+| Stone image | 791,844 (palette 791,028) |
+| Declared presentation peak | 7,285,004 |
+| Presentation set if stone is drawn | 28,541,580 declared |
+| Profile paired bank | 29,664 (+3,452) |
+| Motion catalog admitted bytes | 247,580 (was 244,128) |
+
+The simulation-owned growth is the +3,452 B bank. `tools/underground_memory_budget.py --check` fails before
+this change on the qualified-step-v4 witness digest, so no 100 MB total was recomputed. The registry audit
+reconciles; its other drift comes from other workers' files.
+
+## Remaining (not in this work)
+
+- Presentation of source 3: `ContentSet.MAX_SOURCES` is 3, and a stone material is still needed.
+- The foreman hookup for stone, using ADR 1203's hook sequence with rows 39, 37 and 41.

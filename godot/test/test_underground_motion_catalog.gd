@@ -7,12 +7,12 @@ const Levels := preload("res://scripts/core/underground_level_catalog.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const Space := preload("res://scripts/core/room_space.gd")
 const Catalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
-const Pins := preload("res://data/underground/mole-worker/qualified-haul-v6/catalog_source.gd")
+const Pins := preload("res://data/underground/mole-worker/qualified-stone-v7/catalog_source.gd")
 const Content := preload("res://demo/cast/underground_actor_content.gd")
 const SOURCE_ROOT: String = "res://data/underground/mole-worker/evidence/contact-qualification/"
 const ACTOR_PATHS: Array[String] = ["stair-motion-v15/mole-worker.ugactor", "stair-descent-v7/mole-worker.ugactor",
 	"stair-handoffs-v1/candidate-6/result/mole-worker.ugactor"]
-const WIRE: String = "res://data/underground/mole-worker/qualified-haul-v6/motion.ugmotion"
+const WIRE: String = "res://data/underground/mole-worker/qualified-stone-v7/motion.ugmotion"
 const LEVEL_PATH: String = "res://data/underground/initial_level_pack.uglvl"
 const LEVEL_SHA: String = "c5deb094b335bf6e5db018eeed591a115086b79bd909f829ed6e34166db81f94"
 const TEMP: String = "user://motion-catalog-mutant.bin"
@@ -78,7 +78,7 @@ func test_actual_joint_banks_and_activation_refusal() -> void:
 	"""The concrete three-column banks preserve the full70860-byte schema twice."""
 	_load()
 	assert_equal(_motion.packed_memory_bytes(), 141720, "paired numeric banks")
-	assert_equal(_motion.admitted_bytes(), 244128, "Profiles/Levels/banks/decode/caller/controls counted (ADR1200 content 5)")
+	assert_equal(_motion.admitted_bytes(), 247580, "Profiles/Levels/banks/decode/caller/controls counted (ADR1206 content 6: +3,452 B paired profile bank)")
 	assert_equal(_motion._live.ints.size(), 17421, "all I32 columns")
 	assert_equal(_motion._live.longs.size(), 67, "all I64 columns")
 	assert_equal(_motion._live.bytes.size(), 640, "all digest columns")

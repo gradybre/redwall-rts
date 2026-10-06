@@ -9,14 +9,14 @@ const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
 const Movement := preload("res://scripts/core/movement.gd")
 const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-landing-v4/catalog_source.gd")
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stone-v5/catalog_source.gd")
 const PROFILE_CONTENT_REVISION: int = Bundle.CONTENT_REVISION
 # ADR1190/1195: the mounted graph selects the published first-entry structure, which carries the same
 # ground paces plus the L0/T0 regions; selecting it before the first WorldRoutes binding is final.
 const CATALOG_REVISION: int = Bundle.CATALOG_REVISION
 const CATALOG_PATH: String = Bundle.CATALOG_PATH
 const CATALOG_SHA: String = Bundle.CATALOG_SHA
-const GROUND_PACE_COUNT: int = 14 # ADR1200: twelve ground rows plus tool-free WALK 31 and CARRY 32.
+const GROUND_PACE_COUNT: int = 15 # ADR1200/1206: twelve ground rows, tool-free WALK 31, CARRY 32 and stone CARRY 37.
 
 const CATALOG_DIGEST_0: int = Bundle.CATALOG_DIGEST_0
 const CATALOG_DIGEST_1: int = Bundle.CATALOG_DIGEST_1

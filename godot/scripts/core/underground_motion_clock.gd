@@ -2,7 +2,7 @@ extends RefCounted
 ## DEC-050 timing for three exact source programs; no retained clock or movement permission.
 
 const Motion := preload("res://scripts/core/underground_motion_catalog.gd")
-const SOURCE_WIRE_SHA: String = "b9eb5b950669c8356a3f7d97997b8cf209ff0588384833e98c4e0da84bc58f5b"
+const SOURCE_WIRE_SHA: String = "3024e922f8959f0c386ba9c5d136cdc2a96c35c9de5c860dec03030a9b4d292c"
 const TREAD_TICKS: int = 30
 const HALF_TURN_TICKS: int = 45
 

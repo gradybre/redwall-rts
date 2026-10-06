@@ -29,7 +29,7 @@ const Buildings := preload("res://scripts/core/buildings.gd")
 const Definitions := preload("res://scripts/core/building_definitions.gd")
 const WorkScript := preload("res://scripts/core/work.gd")
 const Clock := preload("res://scripts/core/sim_clock.gd")
-const Grip := preload("res://data/underground/mole-worker/qualified-haul-v6/grip_certificate.gd")
+const Grip := preload("res://data/underground/mole-worker/qualified-stone-v7/grip_certificate.gd")
 const RESERVED_BYTES: int = 4096
 const HELPER_BYTES: int = 1024
 const NATIVE_RESERVE: int = 2048 # A declaration ceiling, not measured native allocation.
@@ -392,8 +392,8 @@ func _size_admission(requested: int) -> StringName:
 	if not Planner.payload_milli_into(mini(requested, inventory.lot_available_milli(_source_lot)), mass,
 		_number.value, 0, _number) or _number.value <= 0: return REFUSE_TRANSFER
 	_quantity = _number.value
-	if grip and (_quantity != Grip.QUANTITY_MILLI or inventory.lot_item_id(_source_lot) \
-			!= _placements._profiles._field(_placements._profiles._live, Grip.CARRY, Profiles.F_CARGO)): return REFUSE_TRANSFER
+	if grip and (_quantity != Grip.QUANTITY_MILLI or Grip.carry_row_for(inventory.lot_item_id(_source_lot)) < 0):
+		return REFUSE_TRANSFER
 	if not IntMath.inventory_capacity_debit_g_into(_quantity, mass, _number): return REFUSE_TRANSFER
 	_grams = _number.value
 	return &""
@@ -568,7 +568,8 @@ func _reach_stands(origin: Vector2i) -> StringName:
 	if source == NULL_REF or destination == NULL_REF: return REFUSE_STAND
 	var code: StringName = _reach(origin, source) if origin != source else &""
 	if code != &"": return code
-	return _reach(source, destination, Grip.CARRY, 1, Grip.CONTENT_REVISION)
+	var carry: int = Grip.carry_row_for(_placements._inventory.lot_item_id(_source_lot))
+	return _reach(source, destination, carry, 1, Grip.CONTENT_REVISION) if carry >= 0 else REFUSE_TRANSFER
 
 
 static func _admission_profile_leaf(a: RefCounted) -> StringName:
@@ -643,6 +644,10 @@ static func _grip_profile_leaf(a: RefCounted) -> StringName:
 	if not Grip.is_grip(row) or Grip.profile_refusal(a._placements._profiles, row) != &"" \
 			or a._selection.profile_revision != 1 or a._selection.content_revision != Grip.CONTENT_REVISION \
 			or Grip.is_load(row) != (a._action == LOAD) or a._quantity != Grip.QUANTITY_MILLI: return REFUSE_HANDLING
+	# ADR1206: the grip row's cargo family must be the shipped item's (wood rows never lift stone).
+	var inventory: Inventory = a._placements._inventory
+	if a._action == LOAD and inventory.is_lot_valid(a._source_lot) \
+			and inventory.lot_item_id(a._source_lot) != Grip.item_of(row): return REFUSE_HANDLING
 	return &""
 
 

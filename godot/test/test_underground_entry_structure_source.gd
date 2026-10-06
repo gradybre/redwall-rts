@@ -8,7 +8,7 @@ const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Assemblies := preload("res://scripts/core/underground_connector_assemblies.gd")
 const Recipes := preload("res://scripts/core/underground_connector_recipes.gd")
 const Contract := preload("res://scripts/core/modular_project_contract.gd")
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-landing-v4/catalog_source.gd")
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stone-v5/catalog_source.gd")
 # ADR1194: the content-3 structural-v1 bytes are superseded by the same structure rebound to content 4.
 const CATALOG_PATH: String = Bundle.CATALOG_PATH
 const CATALOG_SHA: String = Bundle.CATALOG_SHA

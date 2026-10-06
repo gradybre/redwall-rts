@@ -23,7 +23,7 @@ import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-ACTIVE = ROOT / "godot/data/underground/mole-worker/qualified-haul-v6"
+ACTIVE = ROOT / "godot/data/underground/mole-worker/qualified-stone-v7"
 LIST = re.compile(r"const (PATHS|DIGESTS): PackedStringArray = \[\n(.*?)\n\]", re.S)
 
 

@@ -178,3 +178,8 @@ qualified.
   Job completes, R's staging is emptied and M gains the lot. The foreman hookup is not built here. ADR 1203
   ("Open") lists the hook sequence and the two blockers for the live G4: stone has no authored grip rows, and
   R's container is shared with spoil.
+- **Stone carry, ADR 1206:** Brendan chose the procedural lump (`bore_dressing.gd::stone_mesh()`) as the
+  carried stone (item 53, 5,000 g/unit like wood). Step 1 captured the unit lump natively and reproducibly
+  (`evidence/stone-source-v1/native-stone.json`, 70 vertices / 108 triangles, `ddcb70bf…`). The remaining
+  steps wait on one decision: the lump's carried size. No constant defines it; the recommendation is the
+  dressing's `STONE_MAX_M`.

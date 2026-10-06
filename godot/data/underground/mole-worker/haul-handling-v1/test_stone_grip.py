@@ -19,6 +19,8 @@ import author_handling as A
 import author_stone_grip as G
 import prove_static_contact as PS
 import prove_stone_contact as P
+import prove_stone_star as SP
+import stone_geometry as SG
 
 HERE = Path(__file__).resolve().parent
 ARGS = None
@@ -80,6 +82,21 @@ class StoneGripTests(unittest.TestCase):
         cases[1]["matrices"][0, 24, 10] += np.float32(4 / 1024)
         floor = self.prove(cases)["floor"]
         self.assertFalse(floor["three_contacts_present"])
+
+    def test_star_containment_clears_the_approved_pose_and_catches_a_buried_stone(self):
+        cases, _ = G.author(self.inputs, recipe(), True)
+        case = {"frames": 1, "matrices": cases[1]["matrices"], "grounding": cases[1]["grounding"]}
+        vertices = SP.solid_vertices(self.body, self.topology)
+        self.assertEqual(SG.solid_inside(case, self.body, self.stone, self.stone_tri, vertices), [])
+        buried = {**case, "matrices": case["matrices"].copy()}
+        buried["matrices"][0, 24, 11] += np.float32(200 / 1024)  # 200 u toward the worker, into the snout
+        buried["matrices"][0, 24, 10] += np.float32(150 / 1024)
+        self.assertTrue(SG.solid_inside(buried, self.body, self.stone, self.stone_tri, vertices))
+        o, rows = SG.faces(case, self.stone, self.stone_tri)
+        self.assertTrue(SG.contained(o, o, rows))
+        self.assertFalse(SG.contained((o[0] + 1000, o[1], o[2]), o, rows))
+        stored = json.loads((HERE / "evidence/stone-contact-v1/static-contact-star.json").read_text())
+        self.assertTrue(stored["no_solid_vertex_inside"])
 
     def test_inward_shift_beyond_the_authoring_bound_is_refused(self):
         with self.assertRaises(ValueError):

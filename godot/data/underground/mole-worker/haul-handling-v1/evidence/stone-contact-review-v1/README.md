@@ -70,3 +70,8 @@ Grip (distal palm) triangles are tinted orange. These are orthographic painter r
 `invocation.json` lists every command and SHA-256 pin. `tests.log` holds both test runs:
 `test_stone_grip.py`, 8 tests (rebuilds, exact proofs, and the counterexamples: short hands, buried hands, a
 lifted stone, an unplanted pose); and `test_stone_source.py`.
+
+## Verdict
+
+Brendan approved **candidate v1** on 2026-10-06; see `review-acceptance.md`. That note also records the
+star-shaped containment successor proof.

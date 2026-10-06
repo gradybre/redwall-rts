@@ -1,6 +1,6 @@
 # 1206 — Stone carry: the procedural stone lump as the hauled stone
 
-Date: 2026-10-06 · Status: In progress. Static grip authored and proved; awaiting Brendan's grip review
+Date: 2026-10-06 · Status: In progress. Static grip v1 approved by Brendan; motion program next
 
 ## Brendan's decisions (2026-10-06)
 
@@ -10,6 +10,7 @@ Date: 2026-10-06 · Status: In progress. Static grip authored and proved; awaiti
 | Which mesh is the carried stone | **The procedural stone lump**, `bore_dressing.gd::stone_mesh()` (`godot/demo/tunnel/bore_dressing.gd:329`). |
 | Carried size | **Sized to the log grip**: scale the lump so the existing carry pose's two certified hand contacts fit it. Keep the 0.8 vertical squash and no rotation unless the derivation shows they cannot seat both hands. Brendan explicitly approved this new size constant. Catalog mass stays 5,000 g/unit, and Brendan accepts that the stone looks larger than a solid 5 kg rock. |
 | Carried size, after step 2 | **A smaller lump with a new grip.** Keep the squashed lump at the largest size clear of the body. Author a brand-new two-hand grip, lift, place, loaded gait and joins for it. Stop for Brendan's grip review before the lift. |
+| Grip review (step 4) | **Candidate v1 approved**: R−S 576 u, the same stands as wood. Brendan accepted the about 1.7 mm snout gap. |
 
 The pinned demo assets have no stone part. `all-cast-v5…v9`, `mole-grip-v1…v3` and `pilot-v1…v4` carry
 only the body, `log`, `mole_pick` and eleven vegetable props. The demo's hall and infirmary draw carried stone
@@ -133,9 +134,28 @@ judge), `invocation.json`, `tests.log` and these images:
 - `candidate-v1/overview.png` and `candidate-v1/hands.png`
 - `candidate-v4/overview.png` and `candidate-v4/hands.png`
 
-## Remaining steps (after Brendan approves the grip)
+## Step 5 — approval and exact star containment (done)
 
-1. ~~Static contact candidates and exact witnesses~~ (step 4); **Brendan's grip review is pending.**
+`evidence/stone-contact-review-v1/review-acceptance.md` records Brendan's approval of v1, in the same way wood's
+reviews record theirs. The frozen packet hashes are unchanged.
+
+**Finding: the shared provers' containment test assumes a convex stock.** `prove_static_contact.solid_containment`
+counts a point inside only if it is behind every face plane. That is exact for the wood cylinder, but it can miss
+points inside a non-convex lump.
+
+The lump is star-shaped about its origin, the stock translation, because its sphere vertices were only pushed
+radially. `stone_geometry.py` tests containment exactly on that basis:
+
+- it refuses a mesh whose faces are not all oriented alike about the origin;
+- it refuses any direction that no face covers.
+
+`prove_stone_star.py` confirms the approved v1 pose has no solid vertex inside or on the lump
+(`stone-contact-v1/static-contact-star.json`). A buried-stone counterexample refuses. Every later stone proof uses
+the star test for containment, alongside the unchanged surface separation.
+
+## Remaining steps
+
+1. ~~Static contact candidates and exact witnesses~~ (step 4); v1 approved.
 2. The four-phase program.
 3. The loaded gait.
 4. The stand/walk joins.

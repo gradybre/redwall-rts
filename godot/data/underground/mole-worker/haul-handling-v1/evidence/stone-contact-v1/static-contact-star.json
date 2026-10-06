@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "adr": "1206",
+  "production_qualified": false,
+  "poses": "poses.npz",
+  "solid_vertices": 15715,
+  "frames": [
+    {
+      "frame": 1,
+      "solid_vertices_inside": []
+    }
+  ],
+  "no_solid_vertex_inside": true,
+  "scope": "Exact star-shaped containment about the lump's origin; surface separation is proved separately.",
+  "source_sha256": {
+    "godot/data/underground/mole-worker/haul-handling-v1/prove_stone_star.py": "a3281ab1c72d55f32a71f0d23dfaafac10e1a94a3c793e0b5e481985516bdc30",
+    "godot/data/underground/mole-worker/haul-handling-v1/stone_geometry.py": "68f3117e7932c6359b6bfc05b206fd61e692b350422fe2634b9f599f8b9bab87",
+    "godot/data/underground/mole-worker/haul-handling-v1/author_stone_grip.py": "a2ba6bd458b19e4440576d4d17f059892fd56756db3b30bba431054307e3e0d8",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/stone-contact-v1/poses.npz": "a0cf83ad906e78f1a57f7ed16aa456154c5143210f18bd95be0c282d66df702d"
+  }
+}

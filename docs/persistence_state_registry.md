@@ -2056,3 +2056,9 @@ as source-qualified motion. No composed save adapter is claimed here.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Stateless two-publication retirement driver | -- | -- | -- | No members; borrowed Owners packet dies with the call | 3 | -- | ADR1191/1192. Static coordinator acquires the original full cold lease, publishes WorldRoutes edge removals then Locations endpoint removals, and always discards its bracket, clears the Scope and releases the lease before returning. No retained permission or bank. |
+
+### `godot/scripts/core/underground_entry_composition.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless entry-owner constructor stages | -- | -- | -- | No members or packed bank | 3 | -- | ADR1184. Static stages construct the entry owners into the existing private Retirement.Owners prefix; failed prefixes stay retained for owner-validated whole-World reset. Constructor scratch is covered by the existing Session/retirement slice; complete source census remains open. |

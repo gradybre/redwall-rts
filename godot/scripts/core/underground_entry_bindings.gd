@@ -140,7 +140,7 @@ var _timber_token: int = 0
 
 func bind_entry(frontier: Frontier, placements: Placements) -> StringName:
 	"""Share exact source/owner objects once; all variable confirmation buffers use the existing World lease."""
-	if _entry_frontier != null or _entry_busy or _room_token != 0 or _actual_orders() == null \
+	if _entry_frontier != null or _entry_authority != null or _entry_checks < 0 or _entry_busy or _room_token != 0 or _actual_orders() == null \
 			or frontier == null or placements == null or _budget == null or not _budget.is_quiescent():
 		return REFUSE_ENTRY_SOURCE
 	if not frontier.binding_matches(placements._catalog, placements._assemblies, placements._recipes, placements._profiles) \
@@ -1746,3 +1746,78 @@ func _timber_profile_foot(proof: TimberClearance, endpoint: int) -> StringName:
 			if not proof.subtract_cover(): return REFUSE_MASK_BUDGET
 		if proof.count != 0: return REFUSE_TIMBER_CONTACT
 	return &""
+
+
+static func retirement_refusal_in(actual: RefCounted, original: RefCounted,
+		stopped_constructor: bool = false) -> StringName:
+	"""Inspect original owned references only; the kernel proves private stopped-prefix authority separately."""
+	if actual == null or original == null or original.room_bindings != actual or actual._budget == null \
+			or actual._budget != original.budget or actual._entry_checks < 0:
+		return REFUSE_ENTRY_SOURCE
+	if actual._reading or actual._room_token != 0 or actual._room_request != null or actual._room_pin != null \
+			or actual._room_approach != null or actual._entry_busy or actual._entry_token != 0 \
+			or actual._entry_space_token != 0 or actual._entry_request != null or actual._entry_pin != null \
+			or actual._placement_request != null or actual._entry_candidate != null or actual._timber_token != 0:
+		return REFUSE_ENTRY_COLD
+	if not _retirement_weak_in(actual._provider, original.world_bindings) \
+			or not _retirement_weak_in(actual._sites, original.sites) \
+			or not _retirement_weak_in(actual._orders, original.rooms) \
+			or not _retirement_weak_in(actual._levels, original.levels) \
+			or not _retirement_weak_in(actual._room_routes, original.world_routes):
+		return REFUSE_ENTRY_SOURCE
+	return _retirement_entry_pins_in(actual, original, stopped_constructor)
+
+
+static func _retirement_entry_pins_in(actual: RefCounted, original: RefCounted,
+		stopped_constructor: bool) -> StringName:
+	"""An unbound initial subtype or exact pre-authority prefix never becomes arbitrary incomplete permission."""
+	if actual._entry_frontier == null:
+		if actual._entry_placements != null or actual._entry_authority != null:
+			return REFUSE_ENTRY_SOURCE
+		return &"" if original.placements == null or (stopped_constructor and original.placements._authority == null) \
+			else REFUSE_ENTRY_SOURCE
+	if original.placements == null or actual._entry_placements != original.placements \
+			or actual._entry_authority == null or not _retirement_weak_in(actual._entry_authority.host, actual) \
+			or not _retirement_weak_in(original.placements._authority, actual._entry_authority):
+		return REFUSE_ENTRY_SOURCE
+	if actual._entry_frontier._catalog != original.placements._catalog \
+			or actual._entry_frontier._assemblies != original.placements._assemblies \
+			or actual._entry_frontier._recipes != original.placements._recipes \
+			or actual._entry_frontier._profiles != original.profiles or actual._entry_frontier._busy:
+		return REFUSE_ENTRY_SOURCE
+	return &""
+
+
+static func _retirement_weak_in(binding: WeakRef, expected: RefCounted) -> bool:
+	"""An expired once-bound reference is never treated as an optional null original."""
+	return binding == null if expected == null else binding != null and binding.get_ref() == expected
+
+
+static func world_retirement_release_preflighted_in(actual: RefCounted, original: RefCounted,
+		persistent_id: int, stopped_constructor: bool = false) -> StringName:
+	"""After all kernel preflights, release this binding's own borrows and buffers without a World callback."""
+	var code: StringName = retirement_refusal_in(actual, original, stopped_constructor)
+	if code != &"": return code
+	code = Buildings.whole_world_retirement_refusal_in(original.directory, original.world_ref, persistent_id, true)
+	if code != &"": return code
+	if original.world == null or original.world._published: return REFUSE_ENTRY_SOURCE
+	actual._entry_checks = -1
+	actual._entry_frontier = null
+	actual._entry_placements = null
+	actual._budget = null
+	# Keep the inert weak AdmissionAuthority identity until Placement releases its original weak link.
+	_release_retired_buffers_in(actual)
+	return &""
+
+
+static func _release_retired_buffers_in(actual: RefCounted) -> void:
+	"""The old handle retains no variable entry or inherited Room proof storage."""
+	actual._entry_anchor.envelope.clear()
+	actual._entry_anchor.support.clear()
+	actual._entry_contact.envelope.clear()
+	actual._entry_contact.support.clear()
+	actual._entry_row.clear()
+	actual._entry_bearing.clear()
+	actual._cube.clear()
+	actual._clip.clear()
+	actual._region.box.clear()

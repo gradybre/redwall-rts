@@ -103,7 +103,9 @@ func configure(placements: Placements, frontier: Frontier, planner: Planner,
 	var code: StringName = _binding_leaf(self)
 	if code == &"": code = work.bind_spatial_delivery(self)
 	if code != &"":
-		_placements = null; _frontier = null; _planner = null; _provider = null; _work = null; _clock = null
+		# A late refusal must not hide an already installed one-way Work binding.
+		if work._spatial_delivery == null or work._spatial_delivery.get_ref() != self:
+			_placements = null; _frontier = null; _planner = null; _provider = null; _work = null; _clock = null
 		return code
 	_allocate()
 	_configured = true
@@ -1139,3 +1141,67 @@ static func _terrain_building(t: Terrain, tile: int, bounds: PackedInt32Array) -
 	if dx < 0 or dz < 0 or dx >= width or dz >= depth: return &"TERRAIN_BUILDING_FOOTPRINT"
 	if Terrain._vertical_overlap(bounds, World.LAND_Y_UNITS - t._depth[type_id], World.LAND_Y_UNITS): return Terrain.REFUSE_FOUNDATION
 	return Terrain.REFUSE_BODY if Terrain._vertical_overlap(bounds, World.LAND_Y_UNITS, World.LAND_Y_UNITS + t._height[type_id]) else &""
+
+
+static func retirement_refusal_in(actual: RefCounted, original: RefCounted,
+		stopped_constructor: bool = false) -> StringName:
+	"""Match the original configured delivery or an exact retained late-refusal prefix, never another planner."""
+	if actual == null or original == null or original.delivery != actual \
+			or (not actual._configured and not stopped_constructor) or actual._placements == null \
+			or actual._placements != original.placements or actual._provider != original.world_routes \
+			or actual._work != original.work or actual._frontier == null or actual._planner == null \
+			or actual._clock == null or actual._clock.get_script() != Clock:
+		return REFUSE_BINDING
+	if actual._busy or actual._work_tick or actual._action != -1 or actual._job != NULL_REF:
+		return REFUSE_BUSY
+	if original.work._spatial_delivery == null or original.work._spatial_delivery.get_ref() != actual \
+			or original.work._delivery_script != actual.get_script():
+		return REFUSE_BINDING
+	return _retirement_sources_in(actual, original)
+
+
+static func _retirement_sources_in(actual: RefCounted, original: RefCounted) -> StringName:
+	"""The kernel additionally matches the exact private Host Planner/clock, using its already retained Host."""
+	if original.room_bindings == null or actual._frontier != original.room_bindings._entry_frontier \
+			or actual._planner.get_script() != Planner or actual._planner._inventory != original.inventory \
+			or actual._planner._reservations != original.reservations or actual._planner._residents != original.residents \
+			or actual._planner._buildings != original.buildings or actual._planner._piles != original.piles \
+			or actual._planner._store_policy == null or actual._planner._store_policy._directory != original.directory \
+			or actual._planner._store_policy._buildings != original.buildings \
+			or actual._planner._store_policy._inventory != original.inventory:
+		return REFUSE_BINDING
+	return &""
+
+
+static func world_retirement_release_preflighted_in(actual: RefCounted, original: RefCounted,
+		persistent_id: int, stopped_constructor: bool = false) -> StringName:
+	"""First in the new-owner tail: drop only Delivery memory after the exact canonical World clear."""
+	var code: StringName = retirement_refusal_in(actual, original, stopped_constructor)
+	if code != &"": return code
+	code = Buildings.whole_world_retirement_refusal_in(original.directory, original.world_ref, persistent_id, true)
+	if code != &"": return code
+	if original.world == null or original.world._published: return REFUSE_BINDING
+	actual._configured = true # Once-bound tombstone also covers a failed post-bind allocation/configuration.
+	actual._placements = null
+	actual._frontier = null
+	actual._planner = null
+	actual._provider = null
+	actual._work = null
+	actual._clock = null
+	_release_retired_packet_in(actual)
+	return &""
+
+
+static func _release_retired_packet_in(actual: RefCounted) -> void:
+	"""Release all owned caller scratch without allocating another packet or clearing a foreign Work link."""
+	actual._order = null
+	actual._selection = null
+	actual._location = null
+	actual._box = null
+	actual._number = null
+	actual._frame.clear()
+	actual._install.clear()
+	actual._endpoint.clear()
+	actual._bounds.clear()
+	actual._support.clear()
+	actual._remaining.clear()

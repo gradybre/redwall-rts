@@ -5,6 +5,7 @@ extends RefCounted
 
 const Connectors := preload("res://scripts/core/underground_connector_catalog.gd")
 const SourceFacts := preload("res://scripts/core/underground_connector_source_facts.gd")
+const Buildings := preload("res://scripts/core/buildings.gd")
 const Construction := preload("res://scripts/core/construction.gd")
 const Contract := preload("res://scripts/core/modular_project_contract.gd")
 const Inventory := preload("res://scripts/core/inventory.gd")
@@ -359,7 +360,7 @@ func content_hash_into(revision: int, out: PackedByteArray) -> bool:
 
 func packed_memory_bytes() -> int:
 	"""Report the one64P+128 bank plus68 fixed digest/part scratch bytes, never native RAM."""
-	return PART_BYTES * _capacity + BANK_HEADER_BYTES + 68 if _configured else 0
+	return PART_BYTES * _capacity + BANK_HEADER_BYTES + 68 if _configured and _capacity > 0 else 0
 
 
 func _clear_bank() -> void:
@@ -374,3 +375,86 @@ func _clear_bank() -> void:
 	_catalog_row = -1
 	_variant_revision = 0
 	_loaded = false
+
+
+static func retirement_refusal_in(actual: RefCounted, original: RefCounted) -> StringName:
+	"""Only the complete original loaded bill reader can enter whole-World retirement; no partial source exception."""
+	if actual == null or original == null or original.placements == null or original.world_routes == null \
+			or actual.get_script() != ResourceLoader.get_cached_ref("res://scripts/core/underground_connector_recipes.gd"):
+		return REFUSE_BINDING
+	if original.placements._recipes != actual or not original.placements._ready \
+			or original.placements._world != original.world_ref or not actual._configured or not actual._loaded \
+			or actual._busy or actual._catalog == null or actual._catalog != original.placements._catalog \
+			or actual._catalog != original.world_routes._catalog or actual._items != original.items \
+			or actual._inventory != original.inventory or actual._items == null or actual._inventory == null:
+		return REFUSE_BINDING
+	if not actual._items._loaded or actual._items._registered_inventory == null \
+			or actual._items._registered_inventory.get_ref() != actual._inventory:
+		return REFUSE_BINDING
+	if _retirement_shape_in(actual) != &"": return REFUSE_SOURCE
+	return _retirement_source_in(actual, original.placements)
+
+
+static func _retirement_shape_in(actual: RefCounted) -> StringName:
+	"""Check all original bank and scratch dimensions before the direct immutable pin reads."""
+	if actual._capacity < 1 or actual._capacity > MAX_PARTS \
+			or actual._input_capacity != actual._capacity * Contract.INPUT_CAPACITY \
+			or actual._header.size() != 4 or actual._digests.size() != 96 \
+			or actual._part_id.size() != actual._capacity or actual._input_count.size() != actual._capacity \
+			or actual._input_key.size() != actual._input_capacity or actual._work_mwu.size() != actual._capacity \
+			or actual._quantity.size() != actual._input_capacity or actual._hash.size() != 32 \
+			or actual._part.size() != 9 or actual._math == null:
+		return REFUSE_SOURCE
+	return &"" if actual._header[3] > 0 and actual._header[3] <= actual._capacity else REFUSE_SOURCE
+
+
+static func _retirement_source_in(actual: RefCounted, placement: RefCounted) -> StringName:
+	"""Compare this reader with Placement's captured source pins, never an already released Assemblies reader."""
+	if placement._live.header.size() != 16 or placement._live.digests.size() != 128:
+		return REFUSE_SOURCE
+	if actual._header[0] != placement._live.header[placement.H_RECIPE_REV] \
+			or actual._header[1] != placement._live.header[placement.H_CATALOG_REV] \
+			or actual._header[2] != placement._live.header[placement.H_GROUP_REV] \
+			or actual._header[3] != placement._live.header[placement.H_GROUP_COUNT] \
+			or actual._catalog_row != placement._live.header[placement.H_CATALOG_ROW] \
+			or actual._variant_revision != placement._live.header[placement.H_VARIANT_REV]:
+		return REFUSE_SOURCE
+	for index: int in 32:
+		if actual._digests[index] != placement._live.digests[64 + index] \
+				or actual._digests[32 + index] != placement._live.digests[index] \
+				or actual._digests[64 + index] != placement._live.digests[32 + index]:
+			return REFUSE_SOURCE
+	return &""
+
+
+static func world_retirement_release_preflighted_in(actual: RefCounted, original: RefCounted,
+		persistent_id: int) -> StringName:
+	"""After every owner preflight and canonical clear, release only this reader's own memory and links."""
+	var code: StringName = retirement_refusal_in(actual, original)
+	if code != &"": return code
+	code = Buildings.whole_world_retirement_refusal_in(original.directory, original.world_ref, persistent_id, true)
+	if code != &"": return code
+	if original.world == null or original.world._published: return REFUSE_BINDING
+	actual._loaded = false
+	actual._busy = true # Configured plus busy is an irreversible tombstone, not an active read frame.
+	actual._capacity = 0
+	actual._input_capacity = 0
+	actual._catalog = null
+	actual._items = null
+	actual._inventory = null
+	actual._math = null
+	_release_retired_arrays_in(actual)
+	return &""
+
+
+static func _release_retired_arrays_in(actual: RefCounted) -> void:
+	"""The old public source handle retains no packed bank, digest or fixed scratch payload."""
+	actual._header.clear()
+	actual._digests.clear()
+	actual._part_id.clear()
+	actual._input_count.clear()
+	actual._input_key.clear()
+	actual._work_mwu.clear()
+	actual._quantity.clear()
+	actual._hash.clear()
+	actual._part.clear()

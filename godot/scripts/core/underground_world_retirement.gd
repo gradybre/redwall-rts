@@ -124,6 +124,8 @@ static func prepare_into(original_host: Object, original_session: RefCounted, or
 		return _prepared_refusal(out)
 	var code: StringName = _owners_refusal(original)
 	if code != &"": return code
+	code = delivery_host_refusal(original_host, original)
+	if code != &"": return code
 	var persistent_id: int = original.directory._persistent_id[original.world_ref.x]
 	code = _live_refusal(original, persistent_id, allow_prepared_world)
 	if code != &"": return code
@@ -154,7 +156,7 @@ static func constructor_session_matches(session: RefCounted) -> bool:
 static func constructor_original_refusal(session: RefCounted, o: Owners, prefix: int) -> StringName:
 	"""The incomplete tuple is the stopped actual Session's own constructor output, never a supplied registration."""
 	if not constructor_session_matches(session) or session._operations_state != 3 or session._busy \
-			or prefix < 1 or prefix > 9 or session._operations_prefix != prefix or session._retirement_owners != o:
+			or prefix < 1 or prefix > 17 or session._operations_prefix != prefix or session._retirement_owners != o:
 		return &"WORLD_RETIREMENT_CONSTRUCTOR"
 	if o.world != session._world or o.world_ref != session._world_ref or o.directory != session._directory \
 			or o.buildings != session._buildings or o.construction != session._construction \
@@ -169,28 +171,42 @@ static func constructor_original_refusal(session: RefCounted, o: Owners, prefix:
 
 
 static func _constructor_shape_refusal(o: Owners, prefix: int) -> StringName:
-	"""Only the nine finite installed prefixes exist; constructor-only allowances require empty new owners."""
+	"""Only the actual finite installed prefix exists; all once-bound owners stay captured on a late refusal."""
 	if o.world_bindings == null or o.authority == null or o.sites == null \
 			or (o.router != null) != (prefix >= 2) or (o.rooms != null) != (prefix >= 3) \
 			or (o.room_bindings != null) != (prefix >= 3) or (o.inventory_locations != null) != (prefix >= 4) \
 			or (prefix < 3 and o.locations != null) or (prefix >= 4 and o.locations == null):
 		return &"WORLD_RETIREMENT_CONSTRUCTOR"
-	if (o.world_routes != null) != (prefix >= 5) or (o.surface_anchor != null) != (prefix == 9) \
-			or o.connector != null or o.contacts != null or o.placements != null \
-			or o.workpieces != null or o.delivery != null or o.furniture != null or o.tips != null:
+	if (o.world_routes != null) != (prefix >= 5) or (o.surface_anchor != null) != (prefix >= 9) \
+			or o.furniture != null or o.tips != null:
 		return &"WORLD_RETIREMENT_CONSTRUCTOR"
-	if o.sites._count != 0 or o.sites._funding == null \
+	if prefix < 10 and (o.sites._count != 0 or o.sites._funding == null \
 			or o.sites._funding._free_count != o.sites._funding._capacity \
-			or (o.locations != null and (o.locations._live.count != 0 or o.locations._stage.count != 0)):
+			or (o.locations != null and (o.locations._live.count != 0 or o.locations._stage.count != 0))):
 		return &"WORLD_RETIREMENT_CONSTRUCTOR"
-	if o.rooms != null and constructor_catalog_refusal(o) != &"":
-		return &"WORLD_RETIREMENT_CONSTRUCTOR"
-	if prefix >= 3 and o.room_bindings.get_script() != EntryBindings:
-		return &"WORLD_RETIREMENT_CONSTRUCTOR"
-	if prefix >= 5 and (o.routes._live.edge_count != 0 or o.routes._stage.edge_count != 0 \
-			or o.routes._proposed_count != 0):
-		return &"WORLD_RETIREMENT_CONSTRUCTOR"
-	return _owners_refusal(o, prefix)
+	if o.rooms != null and constructor_catalog_refusal(o) != &"": return &"WORLD_RETIREMENT_CONSTRUCTOR"
+	if prefix >= 3 and o.room_bindings.get_script() != EntryBindings: return &"WORLD_RETIREMENT_CONSTRUCTOR"
+	if prefix >= 5 and prefix < 10 and (o.routes._live.edge_count != 0 or o.routes._stage.edge_count != 0 \
+			or o.routes._proposed_count != 0): return &"WORLD_RETIREMENT_CONSTRUCTOR"
+	var code: StringName = entry_constructor_shape_refusal(o, prefix)
+	return _owners_refusal(o, prefix) if code == &"" else code
+
+
+static func entry_constructor_shape_refusal(o: Owners, prefix: int) -> StringName:
+	"""Each retained entry candidate is complete privately before the next explicit one-way boundary."""
+	if (o.placements != null) != (prefix >= 10) or (o.contacts != null) != (prefix >= 12) \
+			or (o.connector != null) != (prefix >= 14) or (o.workpieces != null) != (prefix >= 15) \
+			or (o.delivery != null) != (prefix >= 17): return &"WORLD_RETIREMENT_CONSTRUCTOR"
+	if prefix < 10: return &""
+	if o.placements.get_script() != Placements or o.room_bindings.get_script() != EntryBindings \
+			or (o.room_bindings._entry_authority != null) != (prefix >= 11) \
+			or (o.room_bindings._entry_frontier != null) != (prefix >= 11): return &"WORLD_RETIREMENT_CONSTRUCTOR"
+	if (o.world_bindings._entry_contacts != null) != (prefix >= 13): return &"WORLD_RETIREMENT_CONSTRUCTOR"
+	if o.contacts != null and o.contacts.get_script() != Contacts: return &"WORLD_RETIREMENT_CONSTRUCTOR"
+	if o.connector != null and o.connector.get_script() != ConnectorWork: return &"WORLD_RETIREMENT_CONSTRUCTOR"
+	if o.workpieces != null and o.workpieces.get_script() != Workpieces: return &"WORLD_RETIREMENT_CONSTRUCTOR"
+	if o.delivery != null and o.delivery.get_script() != Delivery: return &"WORLD_RETIREMENT_CONSTRUCTOR"
+	return &""
 
 
 static func constructor_catalog_refusal(o: Owners) -> StringName:
@@ -215,6 +231,8 @@ static func prepare_constructor_prefix_into(host: Object, session: RefCounted, o
 				or out._allow_prepared_world != allow_prepared_world or not _same_owners(original, out._owners):
 			return &"WORLD_RETIREMENT_SCOPE"
 		return _prepared_refusal(out)
+	code = delivery_host_refusal(host, original)
+	if code != &"": return code
 	var persistent_id: int = original.directory._persistent_id[original.world_ref.x]
 	code = _live_refusal(original, persistent_id, allow_prepared_world)
 	if code != &"": return code
@@ -252,6 +270,14 @@ static func release_preflighted(scope: Scope, original_host: Object, original_se
 	"""Recheck every leaf before the first write; static owners release only their own expected links and borrows."""
 	var code: StringName = cleared_refusal(scope, original_host, original_session)
 	if code != &"": return code
+	code = _release_entry_owners(scope)
+	assert(code == &"", "preflighted static entry-owner retirement")
+	return _release_core_owners(scope)
+
+
+static func _release_core_owners(scope: Scope) -> StringName:
+	"""Original core leaves run after all entry owners dropped only their own references."""
+	var code: StringName = &""
 	var o: Owners = scope._owners
 	code = Buildings.world_retirement_release_preflighted_in(o.buildings, o.directory, o.world_ref,
 		scope._persistent_id, o.rooms)
@@ -271,6 +297,30 @@ static func release_preflighted(scope: Scope, original_host: Object, original_se
 		assert(code == &"", "preflighted static SurfaceAnchor retirement")
 	scope._stage = 2
 	return &""
+
+
+static func _release_entry_owners(scope: Scope) -> StringName:
+	"""No observer or allocation runs between the last complete preflight and these exact owned releases."""
+	var o: Owners = scope._owners
+	var code: StringName = &""
+	if o.delivery != null:
+		code = Delivery.world_retirement_release_preflighted_in(o.delivery, o, scope._persistent_id, scope._constructor_prefix == 17)
+		assert(code == &"", "preflighted Delivery retirement")
+	if o.workpieces != null:
+		code = Workpieces.world_retirement_release_preflighted_in(o.workpieces, o, scope._persistent_id, scope._constructor_prefix == 15)
+		assert(code == &"", "preflighted Workpieces retirement")
+	if o.contacts != null:
+		code = Contacts.world_retirement_release_preflighted_in(o.contacts, o, scope._persistent_id)
+		assert(code == &"", "preflighted Contacts retirement")
+	if o.connector != null:
+		code = ConnectorWork.world_retirement_release_preflighted_in(o.connector, o, scope._persistent_id, scope._constructor_prefix == 14 or scope._constructor_prefix == 15)
+		assert(code == &"", "preflighted ConnectorWork retirement")
+	if o.placements != null:
+		code = EntryBindings.world_retirement_release_preflighted_in(o.room_bindings, o, scope._persistent_id, scope._constructor_prefix >= 10)
+		assert(code == &"", "preflighted EntryBindings retirement")
+		code = Placements.world_retirement_release_preflighted_in(o.placements, o, scope._persistent_id)
+		assert(code == &"", "preflighted Placements retirement")
+	return code
 
 
 static func _prepared_refusal(scope: Scope) -> StringName:
@@ -299,6 +349,8 @@ static func _capture_sources(o: Owners, out: Scope) -> void:
 static func _original_sources_refusal(scope: Scope) -> StringName:
 	"""A synchronous clear cannot substitute source objects or introduce/replace the preflighted next World."""
 	var o: Owners = scope._owners
+	var code: StringName = delivery_host_refusal(scope._host, o)
+	if code != &"": return code
 	if o.profiles._live != scope._profile_bank:
 		return &"WORLD_RETIREMENT_SOURCE"
 	if o.world_routes != null and (o.world_routes._catalog != scope._catalog \
@@ -308,6 +360,17 @@ static func _original_sources_refusal(scope: Scope) -> StringName:
 			or o.world._prepared_request != scope._prepared_request or o.world._prepared_seed != scope._prepared_seed \
 			or o.world._prepared_attempts != scope._prepared_attempts:
 		return &"WORLD_RETIREMENT_WORLD"
+	return &""
+
+
+static func delivery_host_refusal(host: Object, o: Owners) -> StringName:
+	"""The captured actual Host already retains Planner/Policy/clock; no second Scope copy or registration exists."""
+	if o.delivery == null: return &""
+	var actual: Script = ResourceLoader.get_cached_ref("res://scripts/systems/settlement_system.gd") as Script
+	if not is_instance_valid(host) or actual == null or host.get_script() != actual \
+			or host._haul_planner != o.delivery._planner or host._store_policy != o.delivery._planner._store_policy \
+			or host._commands == null or host._commands._clock != o.delivery._clock:
+		return &"WORLD_RETIREMENT_DELIVERY"
 	return &""
 
 
@@ -341,11 +404,11 @@ static func _owners_refusal(o: Owners, constructor_prefix: int = -1) -> StringNa
 	if code == &"": code = _route_refusal(o)
 	if code == &"" and constructor_prefix >= 5: code = route_constructor_refusal(o, mini(constructor_prefix, 8))
 	if code == &"": code = surface_refusal(o, constructor_prefix == 9)
-	if code == &"": code = _project_refusal(o)
-	if code == &"": code = _connector_refusal(o)
-	if code == &"": code = _placement_refusal(o)
-	if code == &"": code = _handling_refusal(o)
-	return code
+	if code == &"": code = _project_refusal(o, constructor_prefix)
+	if code == &"": code = _connector_refusal(o, constructor_prefix)
+	if code == &"": code = _placement_refusal(o, constructor_prefix)
+	if code == &"": code = _handling_refusal(o, constructor_prefix)
+	return _entry_context_refusal(o) if code == &"" else code
 
 
 static func _base_refusal(o: Owners) -> StringName:
@@ -390,7 +453,7 @@ static func _foundation_refusal(o: Owners) -> StringName:
 		return &"WORLD_RETIREMENT_SOURCE"
 	if o.budget._token != 0 or o.budget._used != 0 or o.space._stage_token != 0 or o.space._sealed \
 			or o.space._room_callback or o.space._room_input != null or o.space._room_authority != null \
-			or o.space._installation_context != null or o.space._phase_context != null or o.profiles._loading:
+			or o.profiles._loading:
 		return &"WORLD_RETIREMENT_BUSY"
 	return _profile_refusal(o)
 
@@ -492,7 +555,7 @@ static func _location_refusal(o: Owners) -> StringName:
 		return &"WORLD_RETIREMENT_LOCATION"
 	if o.locations._token != 0 or o.locations._cold_token != 0 or o.locations._owner_token != 0 \
 			or o.locations._in_retention or o.locations._sealed or o.locations._room_admission \
-			or o.locations._world_preparation or o.locations._installation != null or o.locations._phase_context != null:
+			or o.locations._world_preparation:
 		return &"WORLD_RETIREMENT_BUSY"
 	return &""
 
@@ -616,14 +679,15 @@ static func _catalog_refusal(o: Owners, binding: WorldRoutes) -> StringName:
 	return &"WORLD_RETIREMENT_BUSY" if catalog._loading else &""
 
 
-static func _project_refusal(o: Owners) -> StringName:
+static func _project_refusal(o: Owners, constructor_prefix: int = -1) -> StringName:
 	"""Retain every actually installed router leaf, including otherwise optional furniture and spoil owners."""
 	if o.router == null:
 		return &"" if o.connector == null and o.furniture == null and o.tips == null else &"WORLD_RETIREMENT_PROJECT"
 	if o.router._construction != o.construction or o.router._inventory != o.inventory \
 			or o.router._pool != o.reservations or o.router._jobs != o.jobs or o.router._work != o.work \
 			or o.router._sites != o.sites or o.router._world != o.world_ref \
-			or not _weak_matches(o.router._connector_owner, o.connector) \
+			or (not _weak_matches(o.router._connector_owner, o.connector) \
+			and not (constructor_prefix == 14 and o.router._connector_owner == null)) \
 			or not _weak_matches(o.router._furniture_owner, o.furniture) or not _weak_matches(o.router._tip_owner, o.tips):
 		return &"WORLD_RETIREMENT_PROJECT"
 	if o.router._busy or o.router._admitting != null or o.router._batch_candidates != null \
@@ -642,54 +706,73 @@ static func _project_refusal(o: Owners) -> StringName:
 	return &""
 
 
-static func _connector_refusal(o: Owners) -> StringName:
-	"""Paid installation and contact episodes retain their actual objects and have no active permit."""
+static func _connector_refusal(o: Owners, constructor_prefix: int = -1) -> StringName:
+	"""The owners attest exact original reciprocal prefixes; no released peer is deep-read in the later tail."""
+	var code: StringName = &""
 	if o.connector != null:
-		if o.connector._construction != o.construction or o.connector._placements != o.placements \
-				or o.connector._world != o.world_ref or not _weak_matches(o.connector._router, o.router) \
-				or not _weak_matches(o.connector._contacts, o.contacts) or o.connector._workpieces != o.workpieces:
-			return &"WORLD_RETIREMENT_CONNECTOR"
-		if o.connector._busy or o.connector._stage_action != -1 or o.connector._cold_token != 0 \
-				or o.connector._stage_contacts != null: return &"WORLD_RETIREMENT_BUSY"
-	if o.contacts == null: return &""
-	if o.contacts._placements != o.placements or o.contacts._sites != o.sites \
-			or not _weak_matches(o.contacts._router, o.router): return &"WORLD_RETIREMENT_CONNECTOR"
-	if o.contacts._busy or o.contacts._phase_mode or o.contacts._phase_cold_token != 0 \
-			or o.contacts._phase_space_token != 0 or o.contacts._phase_companion_token != 0:
-		return &"WORLD_RETIREMENT_BUSY"
-	return &""
+		code = ConnectorWork.retirement_refusal_in(o.connector, o, constructor_prefix == 14 or constructor_prefix == 15)
+	if code == &"" and o.contacts != null: code = Contacts.retirement_refusal_in(o.contacts, o)
+	return code
 
 
-static func _placement_refusal(o: Owners) -> StringName:
-	"""Paid prefix and workpiece stages are quiescent; their live rows survive until the old composition is dropped."""
+static func _placement_refusal(o: Owners, constructor_prefix: int = -1) -> StringName:
+	"""Normal complete owners remain strict; only an exact captured constructor state gets its finite allowance."""
+	var code: StringName = &""
 	if o.placements != null:
-		if o.placements._ids != o.directory or o.placements._world != o.world_ref \
-				or o.placements._construction != o.construction or o.placements._inventory != o.inventory \
-				or o.placements._space != o.space or o.placements._locations != o.locations \
-				or o.placements._routes != o.routes or o.placements._world_routes != o.world_routes \
-				or not _weak_matches(o.placements._workpieces, o.workpieces): return &"WORLD_RETIREMENT_CONNECTOR"
-		if o.placements._busy or o.placements._reading_state or o.placements._cold_token != 0 \
-				or o.placements._space_token != 0 or o.placements._location_token != 0 or o.placements._route_token != 0 \
-				or o.placements._prepared_project != NULL_REF or o.placements._admission_mode or o.placements._phase_mode:
-			return &"WORLD_RETIREMENT_BUSY"
-	if o.workpieces == null: return &""
-	if o.workpieces._placements != o.placements or o.workpieces._router != o.router \
-			or o.workpieces._budget != o.budget or not _weak_matches(o.workpieces._paid_owner, o.connector):
-		return &"WORLD_RETIREMENT_CONNECTOR"
-	if o.workpieces._busy or o.workpieces._stage_action != -1 or o.workpieces._cold_token != 0 \
-			or o.workpieces._context != null: return &"WORLD_RETIREMENT_BUSY"
-	return &""
+		code = Placements.retirement_refusal_in(o.placements, o, constructor_prefix >= 10)
+		if code == &"": code = EntryBindings.retirement_refusal_in(o.room_bindings, o, constructor_prefix >= 10)
+	if code == &"" and o.workpieces != null:
+		code = Workpieces.retirement_refusal_in(o.workpieces, o, constructor_prefix == 15)
+	return code
 
 
-static func _handling_refusal(o: Owners) -> StringName:
-	"""The original concrete delivery cannot be replaced by a same-shaped or currently observing helper."""
-	if o.delivery == null: return &""
-	if o.delivery.get_script() != Delivery or o.delivery._work != o.work or o.delivery._placements != o.placements \
-			or o.delivery._provider != o.world_routes or o.delivery._planner == null \
-			or o.delivery._planner._residents != o.residents:
-		return &"WORLD_RETIREMENT_DELIVERY"
-	if o.delivery._busy or o.delivery._work_tick: return &"WORLD_RETIREMENT_BUSY"
-	return &""
+static func _handling_refusal(o: Owners, constructor_prefix: int = -1) -> StringName:
+	"""A retained failed Delivery may only be the same original post-Work-bind configure prefix."""
+	return Delivery.retirement_refusal_in(o.delivery, o, constructor_prefix == 17) if o.delivery != null else &""
+
+
+static func _entry_context_refusal(o: Owners) -> StringName:
+	"""Permanent shared contexts are original identity links; their live operation tokens, not presence, bar reset."""
+	if o.placements == null:
+		if o.space._installation_context != null or o.space._phase_context != null \
+				or (o.locations != null and (o.locations._installation != null or o.locations._phase_context != null)) \
+				or (o.world_routes != null and o.world_routes._installation != null): return &"WORLD_RETIREMENT_CONNECTOR"
+		return &""
+	var code: StringName = _installation_context_refusal(o)
+	return _phase_context_refusal(o) if code == &"" else code
+
+
+static func _installation_context_refusal(o: Owners) -> StringName:
+	"""Either every foreign context link is absent or all refer to the same original Placement-owned packet."""
+	var p: Placements = o.placements
+	if p._publisher == null:
+		return &"" if o.space._installation_context == null and o.locations._installation == null \
+			and o.world_routes._installation == null else &"WORLD_RETIREMENT_CONNECTOR"
+	if not _weak_matches(o.space._installation_context, p._context) or o.locations._installation != p._context \
+			or o.world_routes._installation != p._context or not _weak_matches(p._context.issuer, p) \
+			or not _weak_matches(p._context.router, o.router) or not _weak_matches(p._context.paid_owner, o.connector) \
+			or not _weak_matches(p._context.space, o.space) or not _weak_matches(p._context.locations, o.locations) \
+			or p._context.construction != o.construction or p._context.budget != o.budget \
+			or p._context.world != o.world_ref: return &"WORLD_RETIREMENT_CONNECTOR"
+	return &"WORLD_RETIREMENT_BUSY" if p._context.cold_token != 0 or p._context.space_token != 0 \
+		or p._context.location_token != 0 or p._context.route_token != 0 else &""
+
+
+static func _phase_context_refusal(o: Owners) -> StringName:
+	"""The original entry provider and Space/Locations share one exact idle phase packet, without another binding."""
+	var p: Placements = o.placements
+	if not o.world_bindings is EntryWorldBindings: return &"WORLD_RETIREMENT_CONNECTOR"
+	if o.world_bindings._entry_contacts == null:
+		return &"" if o.space._phase_context == null and o.locations._phase_context == null \
+			and p._phase_context.authority == null else &"WORLD_RETIREMENT_CONNECTOR"
+	if not _weak_matches(o.world_bindings._entry_contacts, o.contacts) \
+			or not _weak_matches(o.space._phase_context, p._phase_context) or o.locations._phase_context != p._phase_context \
+			or not _weak_matches(p._phase_context.issuer, p) or not _weak_matches(p._phase_context.authority, o.authority) \
+			or not _weak_matches(p._phase_context.sites, o.sites) or not _weak_matches(p._phase_context.space, o.space) \
+			or not _weak_matches(p._phase_context.locations, o.locations) or p._phase_context.budget != o.budget \
+			or p._phase_context.world != o.world_ref: return &"WORLD_RETIREMENT_CONNECTOR"
+	return &"WORLD_RETIREMENT_BUSY" if p._phase_context.cold_token != 0 or p._phase_context.space_token != 0 \
+		or p._phase_context.location_token != 0 or p._phase_context.route_token != 0 else &""
 
 
 static func _weak_matches(binding: WeakRef, expected: RefCounted) -> bool:

@@ -128,3 +128,129 @@ No high/medium finding remains for the initial lifecycle increment. This
 supersedes its awaiting-review status above; the broader Entry composition,
 owner-specific post-clear release and full source bundle remain pending.
 Original reviewed decision bytes are retained with an explicit output locator.
+
+## Full-prefix lifetime — next implementation packet
+
+The accepted initial increment is commit `8a7f83b33d465b9ff4b8d8908777d909a4317bb6`.
+Its source and evidence remain historical inputs to this separate packet.
+
+The original Owners packet already contains the five nullable Placement,
+Contacts, ConnectorWork, Workpieces and Delivery references. The extension
+uses those slots and the existing private Session state/prefix, without another
+retained packet, bank or retirement token. The initial 8,186/8,192 constructor
+result does not qualify the extension: complete source, constructor, reset,
+Scope and UI coexistence will be counted again before acceptance.
+
+Purely private source readers and Contacts/Workpieces candidates can be
+configured and loaded before retention because they install no foreign link.
+Retain Placement before EntryBindings installs its authority, Contacts before
+the provider installs its phase context, ConnectorWork before its Router bind,
+Workpieces before the reciprocal paid-owner bind, and Delivery whenever Work
+has installed its exact weak link. A refused Delivery configure must preserve
+its own original borrows if that link already exists. Dropping them would hide
+an exposed constructor prefix.
+
+The proposed finite prefixes after original surface-owner construction are:
+
+| Prefix | Retained group or attempted one-way boundary |
+| --- | --- |
+| 10 | Fully source-bound Placement, no Entry authority yet |
+| 11 | Original EntryBindings authority installed |
+| 12 | Fully configured Contacts, before provider phase binding |
+| 13 | Original provider phase contact/context installed |
+| 14 | ConnectorWork retained across its Router/publisher binding |
+| 15 | Fully loaded Workpieces retained across reciprocal binding |
+| 16 | Workpieces fully bound to the original paid owner/Placement |
+| 17 | Original Work Delivery link installed |
+
+Only the actual private Session constructor may establish these states. A
+stopped ConnectorWork may have no reciprocal links, only the exact Router
+link, or all exact links; it still retains every original owned pointer.
+Workpieces may have both reciprocal links absent or both present. Contacts
+remains fully configured in every retained prefix. Normal complete-group
+retirement does not inherit any incomplete-prefix allowance.
+
+Every original graph, source, reciprocal, quiescence and whole-World empty
+predicate runs before the first release. The proposed new-owner tail is
+Delivery, Workpieces, Contacts, ConnectorWork, EntryBindings, then Placement,
+followed by the existing SurfaceAnchor and core-owner release leaves. Each
+static leaf rechecks its own unchanged original pins and canonical cleared
+Directory identity, then drops only its own references and fixed buffers.
+It does not call a World observer or revalidate a peer already released.
+Installation/Phase/Room contexts are owned by Placement: clear their strong
+Construction/Budget borrows within Placement, without clearing foreign
+Locations/WorldRoutes fields that reference the now inert packets.
+
+Existing once-bound state supplies an irreversible tombstone; no extra member
+is presumed necessary. Retained external handles must refuse rebinding and
+release all old heavy arenas. Refused or partial clears preserve every link
+and buffer. Tests must cover actual complete owners, every finite constructor
+failure, unchanged data on refusal, repeated release, stale external handles
+and weak collection after real reset/remount. Source-qualified complete entry
+construction still awaits the actual full published bundle; synthetic fixture
+geometry may test lifetime mechanics only.
+
+### Diagnostic retirement-kernel acceptance
+
+Root independently accepted the five-source kernel manifest
+`dfc6c17f24e2bf4561007b8ac7df0894ff369217da0ff9f0cb5760b6eaf530a0`.
+It verified 182 inherited, 33 output and 30 historical pins, replayed all 17
+census tests and reproduced the complete census byte-identically. The actual
+diagnostic owner graph passed 27 tests / 2,134 assertions with no strict or raw
+diagnostics or leaks, zero-warning analysis of five files, and full temporary
+source/project/registry/assets restoration. The copied reviewer receipt is in
+`entry-kernel-v1/independent-root-review/` beneath this decision's evidence root.
+
+The accepted release order is Delivery, Workpieces, Contacts, ConnectorWork,
+EntryBindings, Placements, the original Buildings/Construction/Work/Inventory
+leaves, then SurfaceAnchor. All original owner and clear preflights precede
+the first release. This is a diagnostic lifetime component, not an actual
+mounted Entry success. The private Session constructor, reachable failed
+prefixes 10–17, current peer closure and complete constructor census remain
+the next slice. The kernel has 6,195/6,208 controls and 1,968/1,984 helper bytes
+within the unchanged retirement envelope; it does not spend the initial
+constructor's six-byte margin.
+
+### Fixed startup source selection
+
+The Host and Session route-composition entry points gain an explicit
+`entry_source: bool = false` argument. Both selected immutable Catalogs have
+revision 1, and their exact source digests distinguish them. Selection occurs
+before the original WorldRoutes binding; an already-bound graph must match
+the requested original source and cannot switch it. No additional retained
+selector is needed. The parent-owned publication will supply the coherent
+content-4 ground and Entry artifacts; diagnostic content is not activated.
+
+### Exported immutable source retirement
+
+The full lifetime trace found that `Placements.assemblies_owner()` and
+`recipes_owner()` export the actual reader objects. Keeping either old handle
+would retain the former Catalog and its Profile/Level/Movement graph after
+Placement dropped its own references. The original six-handle weak-lifetime
+test did not cover these two exported borrows. This resource-lifetime gap must
+close before complete Entry lifecycle acceptance.
+
+Each reader owns a static `retirement_refusal_in(actual, original)` and
+`world_retirement_release_preflighted_in(actual, original, persistent_id)`.
+They require the original Placement source object, complete loaded shape,
+original Catalog/Items/Inventory identities and an idle reader. There is no
+incomplete-reader exception: the private constructor retains Placement only
+after both immutable readers are fully loaded. Before any reset/release,
+Placement includes both reader predicates in its complete preflight.
+
+After canonical World clear, Placement calls Assemblies then Recipes release
+before clearing its own source links. These are owner-owned static releases,
+not private clearing of foreign fields. The Recipe leaf never consults the
+already retired Assemblies object. Each reader drops its own references and
+packed arrays, retaining configured/busy tombstones that prohibit rebinding,
+reloading or queries. This adds no Owners/Scope field, bank or reserve. The
+parent owns the Placement hook; this lane owns only the two readers and its
+existing EntryComposition regression tests. Exact helper/coexistence census
+and stale-handle collection checks remain required for the successor packet.
+
+The fixed ADR1190 accessor's 20 integer constants (160 bytes) and all twelve
+path/hash strings belong to the immutable source lifetime within the existing
+28,597-byte source slice. Complete readers, loader/decode overlap, string and
+provisional native/reference charges must coexist there. The constructor's
+six-byte margin is not an accessor allowance, and old RouteComposition
+constants may be subtracted only when the actual source no longer owns them.

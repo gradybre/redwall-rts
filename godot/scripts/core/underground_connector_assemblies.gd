@@ -5,6 +5,7 @@ extends RefCounted
 const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Recipes := preload("res://scripts/core/underground_connector_recipes.gd")
 const SourceFacts := preload("res://scripts/core/underground_connector_source_facts.gd")
+const Buildings := preload("res://scripts/core/buildings.gd")
 const Items := preload("res://scripts/core/item_definitions.gd")
 const Inventory := preload("res://scripts/core/inventory.gd")
 const MAX_GROUPS: int = Catalog.MAX_PARTS
@@ -321,7 +322,7 @@ func content_hash_into(revision: int, out: PackedByteArray) -> bool:
 
 func packed_memory_bytes() -> int:
 	"""Return actual allocated packed payload, separately from fixed frames and native owner overhead."""
-	return GROUP_BYTES * _capacity + BANK_HEADER_BYTES + 68 if _configured else 0
+	return GROUP_BYTES * _capacity + BANK_HEADER_BYTES + 68 if _configured and _capacity > 0 else 0
 
 
 func _clear_bank() -> void:
@@ -333,3 +334,86 @@ func _clear_bank() -> void:
 	_part_count.fill(0)
 	_recipe_anchor.fill(-1)
 	_loaded = false
+
+
+static func retirement_refusal_in(actual: RefCounted, original: RefCounted) -> StringName:
+	"""Require the complete original loaded partition and exact owner tuple before any lifetime release."""
+	if actual == null or original == null or original.placements == null or original.world_routes == null \
+			or actual.get_script() != ResourceLoader.get_cached_ref("res://scripts/core/underground_connector_assemblies.gd"):
+		return REFUSE_BINDING
+	if original.placements._assemblies != actual or not original.placements._ready \
+			or original.placements._world != original.world_ref or not actual._configured or not actual._loaded \
+			or actual._busy or actual._catalog == null or actual._catalog != original.placements._catalog \
+			or actual._catalog != original.world_routes._catalog or actual._recipes == null \
+			or actual._recipes != original.placements._recipes or actual._items != original.items \
+			or actual._inventory != original.inventory or actual._items == null or actual._inventory == null:
+		return REFUSE_BINDING
+	if not actual._items._loaded or actual._items._registered_inventory == null \
+			or actual._items._registered_inventory.get_ref() != actual._inventory:
+		return REFUSE_BINDING
+	if _retirement_shape_in(actual) != &"": return REFUSE_SOURCE
+	return _retirement_source_in(actual, original.placements)
+
+
+static func _retirement_shape_in(actual: RefCounted) -> StringName:
+	"""Validate every own bank/scratch dimension before immutable Placement pin comparisons."""
+	if actual._capacity < 1 or actual._capacity > MAX_GROUPS \
+			or actual._header.size() != 7 or actual._digests.size() != 96 \
+			or actual._kind.size() != actual._capacity or actual._first_part.size() != actual._capacity \
+			or actual._part_count.size() != actual._capacity or actual._recipe_anchor.size() != actual._capacity \
+			or actual._hash.size() != 32 or actual._part.size() != 9:
+		return REFUSE_SOURCE
+	if actual._header[5] < 1 or actual._header[5] > actual._capacity \
+			or actual._header[6] < actual._header[5] or actual._header[6] > Catalog.MAX_PARTS:
+		return REFUSE_SOURCE
+	return &""
+
+
+static func _retirement_source_in(actual: RefCounted, placement: RefCounted) -> StringName:
+	"""Read captured partition identity without another source observer or a fresh live-World query."""
+	if placement._live.header.size() != 16 or placement._live.digests.size() != 128:
+		return REFUSE_SOURCE
+	if actual._header[0] != placement._live.header[placement.H_GROUP_REV] \
+			or actual._header[1] != placement._live.header[placement.H_CATALOG_REV] \
+			or actual._header[2] != placement._live.header[placement.H_RECIPE_REV] \
+			or actual._header[3] != placement._live.header[placement.H_CATALOG_ROW] \
+			or actual._header[4] != placement._live.header[placement.H_VARIANT_REV] \
+			or actual._header[5] != placement._live.header[placement.H_GROUP_COUNT]:
+		return REFUSE_SOURCE
+	for index: int in 32:
+		if actual._digests[index] != placement._live.digests[32 + index] \
+				or actual._digests[32 + index] != placement._live.digests[index] \
+				or actual._digests[64 + index] != placement._live.digests[64 + index]:
+			return REFUSE_SOURCE
+	return &""
+
+
+static func world_retirement_release_preflighted_in(actual: RefCounted, original: RefCounted,
+		persistent_id: int) -> StringName:
+	"""Release this owner after full preflight/clear; the independent Recipe leaf may run next."""
+	var code: StringName = retirement_refusal_in(actual, original)
+	if code != &"": return code
+	code = Buildings.whole_world_retirement_refusal_in(original.directory, original.world_ref, persistent_id, true)
+	if code != &"": return code
+	if original.world == null or original.world._published: return REFUSE_BINDING
+	actual._loaded = false
+	actual._busy = true # Configured plus busy prevents any old public handle from acquiring another source.
+	actual._capacity = 0
+	actual._catalog = null
+	actual._recipes = null
+	actual._items = null
+	actual._inventory = null
+	_release_retired_arrays_in(actual)
+	return &""
+
+
+static func _release_retired_arrays_in(actual: RefCounted) -> void:
+	"""Keep the inert object identity but release all partition, digest and scratch payloads."""
+	actual._header.clear()
+	actual._digests.clear()
+	actual._kind.clear()
+	actual._first_part.clear()
+	actual._part_count.clear()
+	actual._recipe_anchor.clear()
+	actual._hash.clear()
+	actual._part.clear()

@@ -607,8 +607,10 @@ func _entry_retained_box(bounds: PackedInt32Array, natural: bool) -> StringName:
 	"""Actual sparse rows protect furniture, claims and removed matter; metadata alone grants no clearance."""
 	var owner: Owner = _entry_placements._space
 	for row: int in owner._r_present.size():
+		if owner._r_present[row] == 0: continue
+		# The budget bounds live fragmentation; empty capacity slots cost nothing (scales with a real Session).
 		if not _entry_spend(): return REFUSE_MASK_BUDGET
-		if owner._r_present[row] == 0 or owner._r_role[row] == Space.FLOOR_DATUM: continue
+		if owner._r_role[row] == Space.FLOOR_DATUM: continue
 		if natural and (owner._r_role[row] == Space.DRY_SOLID or _entry_natural_support_row(owner, row)): continue
 		if not natural and (owner._r_role[row] == Space.SUPPORTED_VOID): continue
 		if bounds[0] < owner._r_hi_x[row] and owner._r_lo_x[row] < bounds[3] \

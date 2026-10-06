@@ -5,6 +5,9 @@ extends RefCounted
 const Terrain := preload("res://scripts/core/underground_terrain.gd")
 const Frontier := preload("res://scripts/core/underground_entry_frontier.gd")
 const WorkArea := preload("res://scripts/core/underground_entry_work_area.gd")
+const EntryPlan := preload("res://scripts/core/underground_entry_plan.gd")
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-handling-v1/catalog_source.gd")
+const CATALOG_ROW: int = 0 # The bundle structure has exactly one entry variant.
 const CELL_U: int = 1024
 const REFUSE_NONE_FOUND: StringName = &"ENTRY_SITE_NONE_FOUND"
 
@@ -64,3 +67,26 @@ static func _ring_offset(ring: int, step: int) -> Vector3i:
 		1: return Vector3i(ring, 0, -ring + along)
 		2: return Vector3i(ring - along, 0, ring)
 	return Vector3i(-ring, 0, ring - along)
+
+
+static func entry_plan(world: Vector2i, space_revision: int, origin: Vector3i, anchor: Vector2i,
+		catalog: RefCounted, frontier: Frontier) -> EntryPlan.Request:
+	"""Every field comes from the mounted bundle Catalog/Frontier and the published anchor; null on refusal."""
+	var plan: EntryPlan.Request = EntryPlan.Request.new()
+	plan.world = world; plan.space_revision = space_revision
+	plan.base_level = 0; plan.origin_u = origin; plan.rotation = 0; plan.anchor = anchor
+	plan.catalog_row = CATALOG_ROW; plan.catalog_revision = Bundle.CATALOG_REVISION
+	plan.variant_revision = catalog._live.variant_revisions[CATALOG_ROW]
+	plan.grouping_revision = Bundle.GROUPING_REVISION; plan.recipe_revision = Bundle.RECIPE_REVISION
+	plan.frontier_revision = Bundle.FRONTIER_REVISION
+	plan.source_digests.resize(128)
+	for index: int in 96: plan.source_digests[index] = frontier._digests[32 + index]
+	for index: int in 32: plan.source_digests[96 + index] = frontier._digests[index]
+	var cut: PackedInt32Array = PackedInt32Array()
+	cut.resize(Frontier.row_fields(Frontier.CUT))
+	for row: int in frontier.row_count(Frontier.CUT, frontier.content_revision()):
+		if frontier.cut_into(row, cut) != &"": return null
+		plan.claims.append_array(PackedInt32Array([cut[0] + origin.x, cut[1] + origin.y, cut[2] + origin.z,
+			cut[3] + origin.x, cut[4] + origin.y, cut[5] + origin.z]))
+	plan.opening_targets = PackedInt32Array([-1, 0, -1, 0])
+	return plan if EntryPlan.shape_refusal(plan) == &"" else null

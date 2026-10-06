@@ -672,6 +672,15 @@ func test_suggested_entry_site_publishes_the_whole_work_area_on_generated_ground
 		o.profiles.content_revision()), &"", "all 28 paths publish")
 	assert_equal(o.locations._live.count, 9, "exactly the work area's endpoints")
 	assert_equal(o.routes._live.edge_count, 28, "exactly the work area's paths")
+	var plan: RefCounted = EntrySite.entry_plan(session._world_ref, o.space.revision(), at, published.endpoints[0],
+		o.world_routes._catalog, frontier)
+	assert_true(plan != null, "entry plan derived from the mounted bundle")
+	var confirmed: RefCounted = o.rooms.confirm_entry(plan)
+	assert_true(confirmed.ok, "real entry confirmation at the suggested site: %s" % confirmed.error)
+	var live: int = 0
+	for row: int in o.placements._capacity:
+		if o.placements._is_live(o.placements._live, Vector2i(row, o.placements._live.i32[row])): live += 1
+	assert_equal(live, 1, "exactly one entry Placement")
 
 
 func test_actual_surface_publication_retires_and_remounts_without_old_scope_or_endpoint_alias() -> void:

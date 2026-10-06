@@ -1,0 +1,11 @@
+test_carry_boxes_are_radially_swept (__main__.StoneRowTests.test_carry_boxes_are_radially_swept) ... ok
+test_floor_portions_lie_on_the_floor_plane (__main__.StoneRowTests.test_floor_portions_lie_on_the_floor_plane) ... ok
+test_rederivation_is_byte_identical (__main__.StoneRowTests.test_rederivation_is_byte_identical) ... ok
+test_rows_are_the_three_stone_rows (__main__.StoneRowTests.test_rows_are_the_three_stone_rows) ... ok
+test_station_is_wood_station_and_both_contacts_are_exact (__main__.StoneRowTests.test_station_is_wood_station_and_both_contacts_are_exact) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 14.843s
+
+OK
+[test_derive_stone_rows.py exit 0 in 15.0s]

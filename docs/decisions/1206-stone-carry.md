@@ -1,6 +1,6 @@
 # 1206 — Stone carry: the procedural stone lump as the hauled stone
 
-Date: 2026-10-06 · Status: In progress. Native image v9 done; rows and content 6 next
+Date: 2026-10-06 · Status: In progress. Native image v9 and the stone rows done; content 6 next
 
 ## Brendan's decisions (2026-10-06)
 
@@ -255,6 +255,24 @@ join: v8's `stand`@8 equals v9's `enter_haul_stone`@0.
 28,541,580 B. That is a presentation reservation, not simulation-owned memory under the 100 MB gate.
 `tools/underground_memory_budget.py --check` still fails on the pre-existing qualified-step-v4 witness digest;
 this change does not touch it.
+
+## Step 11 — integer stone rows (done)
+
+`derive_stone_rows.py` writes `evidence/stone-rows-v1/rows.json` (`caa36d82…`). It is `derive_haul_rows.py`'s
+derivation, unchanged, including the corrected `clip_below` floor maximum (ADR 1198), both native heading tables
+and the residuals, applied to the ten v9 stone clips:
+
+| Row | Boxes (u, root-relative, yaw 0) |
+|---|---|
+| CARRY stone, YAW_ALL | body `[-556,0,-556,556,937,556]`; body floor `[-286,-1,-286,286,0,286]`; stone `[-598,447,-598,598,821,598]`; stance `[-375,-1,-375,375,0,375]` |
+| HAUL load stone, yaw 0 | body `[-349,0,-637,346,860,234]` and floor; stroke: stone `[-174,0,-779,154,704,-229]` and floor contact `[57,-1,-514,60,0,-504]` |
+| HAUL unload stone, yaw 0 | the same, with the approach adding the held stone |
+
+**Station:** R−S = (0,0,576), wood's station, and S = (0,0,−576). Both hand contacts are re-derived exactly
+from grip v1: C−S cells `[-155,112,37 …]` and `[122,171,30 …]`.
+
+**The stone's floor contact is off-centre.** The lowest vertex of the lump is 67 u toward the worker from S.
+`test_derive_stone_rows.py` holds 5 tests, including a byte-identical re-derivation.
 
 ## Remaining steps
 

@@ -186,6 +186,33 @@ containment at every key:
 
 Renders of lift keys 0, 30 and 60 are in `render-lift-*/`. `test_stone_program.py` holds 6 tests.
 
+## Step 7 — the loaded gait (done)
+
+`author_stone_gait.py` writes `evidence/stone-gait-v1/`. It follows wood's recipe (`author_loaded_gait`) with no
+change:
+
+- the held upper body and stone come from the proved lift's final key;
+- the hips and legs come from every key of the supplied `carry_heavy_object_walk`;
+- the stone follows the spine rigidly;
+- the entry is a smoothstep blend into the loop;
+- lower-envelope sole-transfer keys are added where support would otherwise fail.
+
+The clips are hold 2, enter 65, carry 219 (looped) and exit 65 keys, the same counts as wood. The variant is
+exactly 1,000 milli of stone at the Catalog's 5,000 g/unit. No rate or density is adopted.
+
+**Proofs:** all four clips pass wood's `prove_loaded_gait.prove`, including the carry loop's wrap
+(`*-proof.json`), plus exact star containment at every key:
+
+- every interval separates;
+- support alternates between the soles;
+- nothing goes below the floor;
+- both rotating-stock hand certificates hold (Bernstein sign proofs).
+
+The carry proof checks 10,436 pairs in about 66 s.
+
+**Joins:** lift → hold → enter → carry → exit join byte for byte. Renders of carry keys 0, 54 and 110 are in
+`render-carry-*/`. `test_stone_gait.py` holds 4 tests, including a stone pushed into the chest, which refuses.
+
 ## Remaining steps
 
 1. ~~Static contact candidates and exact witnesses~~ (step 4); v1 approved.

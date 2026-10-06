@@ -1,0 +1,15 @@
+test_box_check_is_not_vacuous (__main__.DerivedRows.test_box_check_is_not_vacuous) ... ok
+test_changed_input_refuses (__main__.DerivedRows.test_changed_input_refuses) ... ok
+test_clip_encloses_every_plane_crossing (__main__.DerivedRows.test_clip_encloses_every_plane_crossing) ... ok
+test_every_box_contains_the_sampled_source_vertices_it_claims (__main__.DerivedRows.test_every_box_contains_the_sampled_source_vertices_it_claims) ... ok
+test_input_pins_are_unchanged (__main__.DerivedRows.test_input_pins_are_unchanged) ... ok
+test_output_reproduces_byte_identically (__main__.DerivedRows.test_output_reproduces_byte_identically) ... ok
+test_rows_meet_profile_admission_shape (__main__.DerivedRows.test_rows_meet_profile_admission_shape) ... ok
+test_stance_top_plane_is_zero_and_covers_soles (__main__.DerivedRows.test_stance_top_plane_is_zero_and_covers_soles) ... ok
+test_station_offsets_and_both_grip_contacts (__main__.DerivedRows.test_station_offsets_and_both_grip_contacts) ... ok
+test_turn_recovery_contains_full_rotational_sweep (__main__.DerivedRows.test_turn_recovery_contains_full_rotational_sweep) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 18.202s
+
+OK

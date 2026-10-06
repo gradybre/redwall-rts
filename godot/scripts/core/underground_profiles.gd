@@ -35,6 +35,7 @@ const CONTACT_NONE: int = 0
 const CONTACT_ANCHOR_ONLY: int = 1
 const CONTACT_ANCHOR_AND_PATCH: int = 2
 const CONTACT_ASSEMBLY_PALM: int = 3
+const CONTACT_HAUL_GRIP: int = 4 # ADR1198: certified two-hand grip on the stock at S; no point/patch boxes.
 const MODE_STAND: int = 0
 const MODE_WALK: int = 1
 const MODE_CARRY: int = 2
@@ -448,7 +449,7 @@ func _key_refusal(row: int) -> StringName:
 		return &"PROFILE_QUANTITY"
 	if _field(_stage, row, F_WORK_KIND) < -1 or _field(_stage, row, F_WORK_KIND) >= 12 \
 			or _field(_stage, row, F_CONTACT_KIND) < CONTACT_NONE \
-			or _field(_stage, row, F_CONTACT_KIND) > CONTACT_ASSEMBLY_PALM:
+			or _field(_stage, row, F_CONTACT_KIND) > CONTACT_HAUL_GRIP:
 		return &"PROFILE_WORK_IDENTITY"
 	if (_stage.flags[_profile_capacity + row] == POLICY_ASSEMBLY_HANDLING) \
 			!= (_field(_stage, row, F_CONTACT_KIND) == CONTACT_ASSEMBLY_PALM):
@@ -476,6 +477,8 @@ func _roles_refusal(profile: int, first: int, count: int) -> StringName:
 		elif role == CONTACT_PATCH:
 			patch_row = row
 	var working: bool = _field(_stage, profile, F_MODE) == MODE_WORK
+	if _field(_stage, profile, F_CONTACT_KIND) == CONTACT_HAUL_GRIP:
+		return _haul_grip_roles_refusal(profile, working, mask, points + patches)
 	if _stage.flags[_profile_capacity + profile] == POLICY_ASSEMBLY_HANDLING:
 		# Curved source contact is a separate certificate, never a made-up point,
 		# planar patch or productive stroke. Exact source matching remains required.
@@ -487,6 +490,14 @@ func _roles_refusal(profile: int, first: int, count: int) -> StringName:
 	if not working and (_field(_stage, profile, F_WORK_KIND) != -1 or _field(_stage, profile, F_CONTACT_KIND) != 0):
 		return &"PROFILE_WORK_IDENTITY"
 	return _contact_patch_refusal(profile, patches, point_row, patch_row)
+
+
+func _haul_grip_roles_refusal(profile: int, working: bool, mask: int, contact_boxes: int) -> StringName:
+	"""ADR1198: the curved two-hand grip is a separate certificate, like row 29's palm; the row keeps body,
+	stance, recovery, approach and the carried-stock stroke, and authors no planar point or patch."""
+	return &"" if working and mask == 31 and contact_boxes == 0 \
+		and _field(_stage, profile, F_WORK_KIND) == Work.JobsScript.JOB_KIND_HAUL \
+		and _field(_stage, profile, F_TOOL) == -1 else &"PROFILE_ROLE_MISSING"
 
 
 func _box_shape_refusal(row: int, role: int) -> StringName:

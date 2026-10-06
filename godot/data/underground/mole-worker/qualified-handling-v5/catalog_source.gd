@@ -20,7 +20,7 @@ const PATHS: PackedStringArray = [
 	"res://data/underground/mole-worker/work-step-v1/source_program.gd",
 ]
 const DIGESTS: PackedStringArray = [
-	"7fdcb6a40869c1563d8766a5af9ced736f271c33ee5146a2971eab0d3e64516f",
+	"64325eed6772207817a043220fe4db371fe5aa68a89fec60a287099ea589dfaf",
 	"2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
 	"4d0aa197154ce4d8ea30b6107ddd408950a32efc0a8cd69a64670567458d2fd1",
 	"8a4cd2a60b05f7c34e9baef32b8bdc6e38d458bb5594fb4999730dee3f74fef0",

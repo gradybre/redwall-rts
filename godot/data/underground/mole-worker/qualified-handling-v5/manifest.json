@@ -23,7 +23,7 @@
   },
   "motion_numerical_input_sha256": "29c63c658ab5f1a49bade158c9a4ccfcc5998df1dfbd96e9d439ddf0de9263a0",
   "consumers": {
-    "godot/scripts/core/underground_profiles.gd": "7fdcb6a40869c1563d8766a5af9ced736f271c33ee5146a2971eab0d3e64516f",
+    "godot/scripts/core/underground_profiles.gd": "64325eed6772207817a043220fe4db371fe5aa68a89fec60a287099ea589dfaf",
     "godot/scripts/core/underground_work_face.gd": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
     "godot/scripts/core/underground_connector_contacts.gd": "4d0aa197154ce4d8ea30b6107ddd408950a32efc0a8cd69a64670567458d2fd1",
     "godot/scripts/core/underground_routes.gd": "8a4cd2a60b05f7c34e9baef32b8bdc6e38d458bb5594fb4999730dee3f74fef0",
@@ -50,6 +50,11 @@
       "path": "godot/scripts/core/underground_profiles.gd",
       "from": "ed6c4ba5ae878d065c7e07ade93793c22264a73b56fbef8ee38d8253f9de79ca",
       "to": "7fdcb6a40869c1563d8766a5af9ced736f271c33ee5146a2971eab0d3e64516f"
+    },
+    {
+      "path": "godot/scripts/core/underground_profiles.gd",
+      "from": "7fdcb6a40869c1563d8766a5af9ced736f271c33ee5146a2971eab0d3e64516f",
+      "to": "64325eed6772207817a043220fe4db371fe5aa68a89fec60a287099ea589dfaf"
     }
   ]
 }

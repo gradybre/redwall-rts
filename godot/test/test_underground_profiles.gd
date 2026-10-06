@@ -1035,3 +1035,51 @@ func test_work_choices_keep_certificate_state_capacity_and_replacement_guards() 
 	legacy_source.encode_u32(8, 2)
 	assert_equal(_load(legacy_source, 3), &"PROFILE_KEY_CAPACITY", "seventeenth explicit legacy WORK is still forbidden")
 	assert_equal(_profiles.content_revision(), 2, "refused overcapacity preserves live source")
+
+
+func _haul_grip_case() -> Dictionary:
+	"""Synthetic format fixture only: a tool-free HAUL row whose curved grip is a separate certificate (ADR1198)."""
+	var row: Dictionary = _row(Profiles.MODE_WORK)
+	row.fields[Profiles.F_YAW_KIND] = Profiles.YAW_EXACT
+	row.fields[Profiles.F_BOX_COUNT] = 5
+	row.fields[Profiles.F_WORK_KIND] = Jobs.JOB_KIND_HAUL
+	row.fields[Profiles.F_CONTACT_KIND] = Profiles.CONTACT_HAUL_GRIP
+	var boxes: Array[PackedInt32Array] = _boxes()
+	boxes.append(PackedInt32Array([-128, -20, -256, 128, 900, 128, Profiles.WORK_APPROACH]))
+	boxes.append(PackedInt32Array([-100, 0, -600, 100, 500, -300, Profiles.WORK_STROKE]))
+	return {"row": row, "boxes": boxes}
+
+
+func test_haul_grip_row_needs_all_body_roles_and_no_planar_contact() -> void:
+	"""ADR1198: the two-hand grip is never a planar point/patch alias, and the row stays tool-free HAUL."""
+	assert_equal(_load(_image([_haul_grip_case().row], _haul_grip_case().boxes)), &"", "tool-free certified HAUL grip row")
+	var planar: Dictionary = _haul_grip_case()
+	planar.row.fields[Profiles.F_BOX_COUNT] = 6
+	planar.boxes.append(PackedInt32Array([0, 0, -400, 0, 0, -400, Profiles.CONTACT_POINT]))
+	_profiles = Profiles.new()
+	assert_equal(_profiles.configure(4, 16, 2, Profiles.ARENA_BYTES), &"", "fresh arena")
+	assert_equal(_bind(_profiles), &"", "actual owners")
+	assert_equal(_load(_image([planar.row], planar.boxes)), &"PROFILE_ROLE_MISSING", "no planar contact alias")
+	var tooled: Dictionary = _haul_grip_case()
+	tooled.row.fields[Profiles.F_TOOL] = _items.compiled_id(&"tool")
+	tooled.row.fields[Profiles.F_TOOL_VARIANT] = Gear.MANUFACTURE_BASIC
+	assert_equal(_load(_image([tooled.row], tooled.boxes)), &"PROFILE_ROLE_MISSING", "hauling is tool-free")
+	var build: Dictionary = _haul_grip_case()
+	build.row.fields[Profiles.F_WORK_KIND] = Jobs.JOB_KIND_BUILD
+	assert_equal(_load(_image([build.row], build.boxes)), &"PROFILE_ROLE_MISSING", "only HAUL work grips stock")
+
+
+func test_appended_source_need_not_sort_against_earlier_sources() -> void:
+	"""ADR1198: key order binds within a source; a later source never renumbers earlier rows."""
+	var walk: Dictionary = _row(Profiles.MODE_WALK)
+	var stand: Dictionary = _row(Profiles.MODE_STAND)
+	stand.fields[Profiles.F_SOURCE] = 1
+	stand.fields[Profiles.F_FIRST_BOX] = 3
+	var boxes: Array[PackedInt32Array] = _boxes()
+	boxes.append_array(_boxes())
+	assert_equal(_load(_image([walk, stand], boxes, 1, 2)), &"", "lower key in a later source is accepted")
+	_profiles = Profiles.new()
+	assert_equal(_profiles.configure(4, 16, 2, Profiles.ARENA_BYTES), &"", "fresh arena")
+	assert_equal(_bind(_profiles), &"", "actual owners")
+	stand.fields[Profiles.F_SOURCE] = 0
+	assert_equal(_load(_image([walk, stand], boxes, 1, 2)), &"PROFILE_KEY_ORDER", "same-source order still binds")

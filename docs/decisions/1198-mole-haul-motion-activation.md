@@ -183,3 +183,7 @@ qualified.
   (`evidence/stone-source-v1/native-stone.json`, 70 vertices / 108 triangles, `ddcb70bf…`). The remaining
   steps wait on one decision: the lump's carried size. No constant defines it; the recommendation is the
   dressing's `STONE_MAX_M`.
+- **Stone size, ADR 1206 step 2:** Brendan's rule was to size the lump to the log grip, keeping the 0.8 squash.
+  The derivation (`evidence/stone-scale-v1/derivation.json`) finds that no lump scale seats both certified
+  contacts without entering the body. Only a stretched stone bar fits, about 0.98 × 0.17 × 0.20 m. This awaits
+  Brendan's choice.

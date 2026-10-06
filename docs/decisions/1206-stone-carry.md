@@ -1,6 +1,6 @@
 # 1206 — Stone carry: the procedural stone lump as the hauled stone
 
-Date: 2026-10-06 · Status: In progress. Step 1 (source capture) done; blocked on the carried scale (Brendan)
+Date: 2026-10-06 · Status: In progress. Step 1 done; step 2 shows the approved size rule cannot seat the wood grip, so it awaits Brendan
 
 ## Brendan's decisions (2026-10-06)
 
@@ -8,6 +8,7 @@ Date: 2026-10-06 · Status: In progress. Step 1 (source capture) done; blocked o
 |---|---|
 | Stone inputs (ADR 1203) | **Author a stone carry**: carry, load and unload rows, with the same native capture, proofs and grip certificate as wood. |
 | Which mesh is the carried stone | **The procedural stone lump**, `bore_dressing.gd::stone_mesh()` (`godot/demo/tunnel/bore_dressing.gd:329`). |
+| Carried size | **Sized to the log grip**: scale the lump so the existing carry pose's two certified hand contacts fit it. Keep the 0.8 vertical squash and no rotation unless the derivation shows they cannot seat both hands. Brendan explicitly approved this new size constant. Catalog mass stays 5,000 g/unit, and Brendan accepts that the stone looks larger than a solid 5 kg rock. |
 
 The pinned demo assets have no stone part. `all-cast-v5…v9`, `mole-grip-v1…v3` and `pilot-v1…v4` carry
 only the body, `log`, `mole_pick` and eleven vegetable props. The demo's hall and infirmary draw carried stone
@@ -40,29 +41,54 @@ only the carry clip's body pose, and that pose is reused unchanged for stone. Ba
 palette would first need a stone hold binding in `demo_actor.gd`, which does not exist. Authoring one would
 invent presentation. So no palette was written. The existing palettes are untouched.
 
-## Blocked — the carried stone's size (needs Brendan)
+## Step 2 — deriving the size from the wood grip (done; the rule does not fit)
 
-The factory makes a **unit** lump. The wood's carried size came from demo constants, `0.9 × 0.055` radius, in
-`demo_actor.gd::_build_load`. No constant gives a carried stone's size. The only existing values are the
-tunnel dressing's:
+`haul-handling-v1/derive_stone_scale.py` writes `evidence/stone-scale-v1/derivation.json`. It reads:
 
-- `STONE_MIN_M` 0.035 and `STONE_MAX_M` 0.09;
-- the dressing's literal 0.8 vertical squash;
-- a random orientation.
+- the captured lump;
+- the certified contacts C − S from `haul-rows-v1/rows.json` (station `grip_contacts`): (−344.7, 101.4, −0.1) u
+  and (354.2, 92.9, 28.0) u;
+- the reviewed static pose (`static-contact-review-v1/candidate/poses.npz`). Its 9,283 solid (non-grip)
+  triangles come from the review's own hand partition.
 
-Every later step depends on this choice: the grip contact, the program, the loaded gait, the boxes and the
-certificate offsets.
+The lump rests 1/512 u above the floor at S, as the wood stock does. It is a radially displaced sphere, so it is
+star-shaped. "Inside" is tested exactly along each ray from the centre. These are float diagnostics, not the
+exact static proof.
 
-**Recommendation:** use `STONE_MAX_M` with the 0.8 squash and identity orientation. This gives about
-0.191 × 0.150 × 0.180 m. Both values are existing constants, and it is the largest stone the world already
-draws. **Consequence:** the hands sit about 0.19 m apart, against about 0.68 m on the log. That is a new
-two-hand grip, not a retargeted one, so it needs the full static-contact candidate series and its review
-(ADR 1144 took eight candidates for wood).
+**With the 0.8 squash and no rotation, no scale seats both contacts** (sweep 0.02–0.80 m/unit, step 0.01):
 
-**Alternative:** a larger stone sized to the existing carry clip's hand span. That would be a new size
-constant, so it needs Brendan's explicit approval.
+| Uniform scale s (m/unit) | Contact ratio (≤ 1 seats) | Solid body vertices inside the stone |
+|---|---|---|
+| 0.15, the largest clear | 2.20 / 2.68 | 0 |
+| 0.18 | 1.84 / 2.23 | 236 |
+| 0.66 | 1.03 / 0.997 | 5,053 |
+| 0.80 | above 1 on the left | about 6,000 |
 
-## Remaining steps (after the size is set)
+The certified contacts sit 0.09–0.10 m above the floor and about 0.35 m either side of S. The pose's arms and
+torso reach down to 42 u within 0.3 m of S, so the free space there is about the log's own envelope. A lump
+wide enough to reach both hands at that height rises into the leaning body. It never quite seats, because its
+lower flanks are lumpy.
+
+**Relaxing the squash is not enough either.** A stretched rod does fit. The derivation's shape sweep (sx
+0.32–0.56, sy 0.04–0.12, sz 0.04–0.56 m/unit) finds 29 scales that seat both contacts with no solid vertex
+inside at the static pose. The smallest are:
+
+- (0.44, 0.08, 0.10), a stone bar about 0.98 × 0.17 × 0.20 m;
+- (0.48, 0.06, 0.08), about 1.04 × 0.13 × 0.16 m.
+
+Each is longer than the 0.82 m log. Neither is a lump in the sense Brendan approved: it is a stone bar
+following the log's envelope. The size rule therefore needs Brendan's choice before the grip is authored.
+
+**Options:**
+
+1. **Stone bar**: adopt a rod scale from the sweep (recommended: (0.44, 0.08, 0.10)). The whole reviewed wood
+   motion is reused rigidly in the log's frame. The exact static proof, then every program, gait and join
+   proof, must still pass for the new shape.
+2. **Lump with its own grip**: keep the 0.8 squash at a clear size (0.15 m/unit or less, about
+   0.33 × 0.26 × 0.31 m). Author new contacts and a new static pose and program for it. This needs new static
+   candidates and a grip review like wood's `static-contact-review-v1`, then new lift, place, gait and joins.
+
+## Remaining steps (after the shape is chosen)
 
 1. Static contact candidates and the exact hand–stone witnesses. Then a grip review, as wood's
    static-contact-review-v1 had.

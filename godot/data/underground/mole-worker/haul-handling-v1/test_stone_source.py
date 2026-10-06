@@ -54,6 +54,16 @@ class StoneSourceTests(unittest.TestCase):
             self.assertAlmostEqual(max(values), bounds[axis] + bounds[axis + 3], delta=1e-6)
         self.assertTrue(1.9 < min(bounds[3:]) and max(bounds[3:]) < 2.5)
 
+    def test_scale_derivation_inputs_are_current_and_record_no_seating_lump(self):
+        derivation = json.loads((HERE / "evidence/stone-scale-v1/derivation.json").read_text())
+        for name, expected in derivation["inputs_sha256"].items():
+            self.assertEqual(digest(ROOT / name), expected, name)
+        self.assertFalse(derivation["feasible"])
+        self.assertIsNone(derivation["smallest_seating_scale"])
+        self.assertEqual(derivation["largest_clear_scale"]["scale_m"], [0.15, 0.12, 0.15])
+        self.assertTrue(all(row["seats_both"] and row["solid_vertices_inside"] == 0
+                            for row in derivation["rod_sweep_seats_and_clears"]))
+
     def test_native_capture_is_reproducible(self):
         if ARGS is None or ARGS.godot is None:
             self.skipTest("pass --godot to re-run the native capture")

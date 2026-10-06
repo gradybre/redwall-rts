@@ -72,3 +72,39 @@ qualified.
 - Joint memory census for the extra images, inside the 100 MB gate.
 - Partial unload (still-loaded HAUL_OUTPUT) and BUILD set-down remain open.
   Delivery's whole-unit trips do not need them.
+
+## Progress and findings (2026-10-06)
+
+- **Step 3 (part 1), `4098b849`:** profile rows are key-sorted within each
+  source, so an appended source never renumbers earlier rows. Automatic
+  lookup scans every row (bounded by `MAX_PROFILES`), and any second automatic
+  match is ambiguous.
+- **Step 2, `f72134a7`:** `haul-handling-v1/derive_haul_rows.py` produces
+  `evidence/haul-rows-v1/rows.json`:
+  - CARRY all-yaw: body above floor `[-679,0,-679,679,932,679]`, stock
+    `[-714,447,-714,714,704,714]`, stance `[-375,-1,-375,375,0,375]`.
+  - Haul load and unload rows at yaw 0.
+  - R−S = (0,0,576) and both exact hand-contact witnesses (C−S ≈
+    (−344.7,101.4,−0.1) and (354.2,92.9,28.0)).
+
+  Ten tests, including the full rotational sweep at every heading.
+- **Step 1 (empty walk), `390f3482`:** tool-free stand (122 keys) and walk
+  (45 keys) from the supplied `idle.plain`/`walk.plain`, plus joins into and
+  out of the haul program. Rows A and A′ have body `[-651,0,-651,651,930,651]`
+  and stance `[-406,-1,-406,406,0,406]`. Recorded in ADR 1199. Seventeen tests.
+- **Heading convention:** yaw 0 faces −Z (native table metadata). S sits at
+  z = −576 from R.
+- **Contact rows C and D** carry no CONTACT_POINT or PATCH yet. The certified
+  grip (`CONTACT_HAUL_GRIP` and its certificate) supplies them next. Until then
+  they would fail the current WORK-row rule, as intended.
+- **The stock rests at S, outside R's stance.** Floor support at S must be
+  proved separately by the station seam (step 6).
+- **Inputs outside the repository:** the derivations read
+  `all-cast-v9.ugpal`, `mole-grip-v3.ugpal` and `world-yaw-v1.ugyaw` from the
+  demo-assets checkout, pinned by SHA-256. This is the repository's existing
+  convention for uncommitted demo assets. Running them needs NumPy, from
+  `/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3`.
+- **Shared-tool bug:** `compile_profiles.clipped_triangle_floor` takes `.min()`
+  where `.max()` belongs for the maximum crossing. The haul derivation uses a
+  corrected copy. Fixing the shared function, and checking whether published
+  rows change, is a separate task.

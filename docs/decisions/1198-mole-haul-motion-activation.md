@@ -157,3 +157,12 @@ qualified.
     decision.** Options: (a) raise the cold preparation budget for the work area; (b) make route
     requalification incremental, so it checks only edges whose swept volume meets the changed geometry; (c)
     publish haul edges only while a haul is pending, and retire them after.
+- **Step 6 (Delivery station seam), ADR 1203:** `qualified-haul-v6/grip_certificate.gd` proves the exact rows 32–36
+  and, at runtime, the stand transform: S − R at the row's heading, and both rows.json hand contacts inside the hand
+  and stock volumes. Delivery derives each stand from the certificate. It reaches the source stand by WALK and the
+  destination stand by CARRY row 32, and rechecks the stand plus `station_refusal` in the final leaf. It proves the
+  stock's floor contact on the stand's footing, which is floor support at S. Trips are exactly 1,000 milli of wood.
+  - The CARRY edge now arrives on the grip heading, because no loaded turn exists and ground turns admit only
+    STAND/WALK.
+  - Tests in `test_underground_haul_grip.gd`: certificate words against rows.json, station refusals, a part-unit
+    refusal, and a wrong-heading refusal at begin_load.

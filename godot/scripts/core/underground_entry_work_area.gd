@@ -137,12 +137,22 @@ static func _edge(origin: Vector3i, published: Published, first: int, last: int,
 	edge.mode = mode; edge.posture = Profiles.POSTURE_UPRIGHT
 	edge.content_revision = content_revision
 	edge.geometry_revision = owner.revision()
-	var points: Array[Vector3i] = _perimeter(origin, first, last)
+	var points: Array[Vector3i] = _carry_approach(origin, first, last) if mode == Profiles.MODE_CARRY \
+		else _perimeter(origin, first, last)
 	for at: Vector3i in points: edge.points.append_array(PackedInt32Array([at.x, at.y, at.z]))
 	edge.point_count = points.size()
 	for i: int in range(1, points.size()):
 		edge.length_u += absi(points[i].x - points[i - 1].x) + absi(points[i].z - points[i - 1].z)
 	return edge
+
+
+static func _carry_approach(origin: Vector3i, first: int, last: int) -> Array[Vector3i]:
+	"""A loaded worker cannot turn in place (ground turns admit STAND/WALK only, and no loaded turn is authored), so
+	the CARRY edge arrives already on the grip heading: it steps out by the stand offset on +X, runs along, and enters
+	the destination stand moving -X (yaw 16384)."""
+	var start: Vector3i = point(origin, first)
+	var stand: Vector3i = point(origin, last)
+	return [start, start + STAND_OFFSET, stand + STAND_OFFSET, stand]
 
 
 static func _perimeter(origin: Vector3i, first: int, last: int) -> Array[Vector3i]:

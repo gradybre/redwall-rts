@@ -100,6 +100,36 @@ func test_grip_facing_away_from_the_stock_refuses_loading() -> void:
 	assert_equal(world._jobs._state[job.value], Jobs.JOB_STATE_TRAVEL, "no WORK entered")
 
 
+func test_toolless_mole_hauls_one_staged_wood_unit_to_m_through_delivery() -> void:
+	"""ADR1198 step 8: staged surface wood at R reaches M's container by WALK, grip lift, CARRY and grip set-down."""
+	if not _ready(): return
+	var world: RefCounted = _probe._world
+	var lot: Vector2i = _stage(1000)
+	var before: int = _probe._world._inventory.container_lot_count(_probe._storage)
+	var job: Jobs.OpResult = _haul_job()
+	var result: Prefix.Inventory.OpResult = _delivery.admit(job.ref, lot, 4000, EXPIRY)
+	assert_true(result.ok, "admission reaches R's stand by WALK and M's stand by CARRY: %s" % result.error)
+	if not result.ok: return
+	assert_equal(result.value, Grip.QUANTITY_MILLI, "one whole unit per trip")
+	assert_true(world._jobs.set_state(job.value, Jobs.JOB_STATE_TRAVEL).ok, "source travel")
+	if not _travel(job, WorkAreaSource.STAND_R, Profiles.MODE_WALK): return
+	assert_equal(_delivery.begin_load(job.ref), Delivery.REFUSE_HANDLING, "no grip before the certified heading")
+	if not _grip(job, 34): return
+	assert_equal(_delivery.begin_load(job.ref), &"", "grip contains S at R")
+	assert_true(_work(job.value), "lift work")
+	result = _delivery.load_payload(job.ref)
+	assert_true(result.ok, "guarded load: %s" % result.error)
+	if not result.ok: return
+	if not _travel(job, WorkAreaSource.STAND_M, Profiles.MODE_CARRY): return
+	if not _grip(job, 36): return
+	assert_true(_work(job.value), "set-down work")
+	result = _delivery.unload_payload(job.ref)
+	assert_true(result.ok, "guarded unload at M: %s" % result.error)
+	assert_equal(world._jobs._state[job.value], Jobs.JOB_STATE_COMPLETE, "goods commit completes the haul")
+	assert_equal(world._inventory.container_lot_count(_probe._output), 0, "staging at R emptied")
+	assert_equal(world._inventory.container_lot_count(_probe._storage), before + 1, "one new wood lot in M's container")
+
+
 func _ready() -> bool:
 	"""Real entry, an open BRACE phase whose Site holds M's container, Delivery composed, and the tool unequipped."""
 	_probe = WorkArea.Probe.new()

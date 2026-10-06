@@ -166,3 +166,15 @@ qualified.
     STAND/WALK.
   - Tests in `test_underground_haul_grip.gd`: certificate words against rows.json, station refusals, a part-unit
     refusal, and a wrong-heading refusal at begin_load.
+- **Step 8, Delivery part:** surface stock is staged as a 1,000-milli wood lot in R's real
+  `create_spatial_ground_staging` container. In `test_toolless_mole_hauls_one_staged_wood_unit_to_m_through_delivery`
+  a real adult mole holds no tool and hauls it through Delivery into the BRACE Site's validated container at M:
+  - WALK to R's stand, then an empty-handed turn to 16384;
+  - row 34 lift, `load_payload`;
+  - CARRY to M's stand, arriving at 16384;
+  - row 36 set-down, `unload_payload`.
+
+  This runs on the real content-5 bank, the production work area and the real Room/Site/Inventory owners. The
+  Job completes, R's staging is emptied and M gains the lot. The foreman hookup is not built here. ADR 1203
+  ("Open") lists the hook sequence and the two blockers for the live G4: stone has no authored grip rows, and
+  R's container is shared with spoil.

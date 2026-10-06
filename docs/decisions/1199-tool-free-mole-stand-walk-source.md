@@ -67,9 +67,10 @@ Rejected alternatives:
 
 ## Open
 
-- Native replay (ADR 1198's native-program v8). The existing compiler and capture are fixed
-  to the eight clips with body and stock. The tool-free clips have one part, so they need
-  their own image or a per-source image (ADR 1198 "Presentation").
+- ~~Native replay (ADR 1198's native-program v8).~~ Done in
+  `evidence/native-program-v8/`. The four clips share the haul image. Stand/walk hide the
+  stock with the Actor part mask, and the stock coefficient stays at the S fixture value.
+  See ADR 1198, step 4a.
 - Body self-clearance.
 - Foot sliding and root advance on the joins.
 - Profile wire rows and states, per-source blocks, the presentation binding, and joint memory

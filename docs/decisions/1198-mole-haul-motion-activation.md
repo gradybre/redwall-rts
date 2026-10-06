@@ -108,3 +108,22 @@ qualified.
   where `.max()` belongs for the maximum crossing. The haul derivation uses a
   corrected copy. Fixing the shared function, and checking whether published
   rows change, is a separate task.
+- **Step 4a (native haul image v8):** `haul-handling-v1/evidence/native-program-v8/`
+  holds one 12-clip image (`cc854271…`, 993,008 bytes, 824 keys). It contains
+  the eight reviewed haul clips, byte-identical to v7, plus stand (122), walk (45),
+  enter_haul (31) and leave_haul (31). New sibling tools
+  (`compile/run/verify/test_native_program_v8.py`, `native_replay_v8/`) leave
+  the v7 tools and outputs unchanged.
+  - **Format finding:** the `.ugactor` wire has no per-clip part presence. Every
+    frame carries every part's transform. Presence is the existing per-Actor
+    `set_parts_visible` mask.
+  - **Decision:** the tool-free stand/walk keep the stock column at the exact S
+    fixture value, with mask 1 (body only). `plan.json` binds the per-clip
+    masks into the image digest. No format change and no faked geometry.
+  - **The presentation owner must apply the clip's mask on every clip
+    selection (step 7).**
+  - **Native replay:** a real Metal replay ran 9,780 rows and 39,220 assertions
+    with zero failures, and checked native part visibility on every row. It
+    found zero coefficient mismatches, 13 exact joins and 4 reversals per view,
+    and 17 passing tests. The declared offline peak is 7,486,168 bytes; this is
+    not runtime admission.

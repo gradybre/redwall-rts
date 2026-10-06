@@ -2086,3 +2086,9 @@ as source-qualified motion. No composed save adapter is claimed here.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Stateless entry-site survey | -- | -- | -- | No members | 3 | -- | ADR1197. Read-only Terrain local-facts survey and cube-grid suggestion; caller-owned output only. |
+
+### `godot/scripts/core/underground_entry_runtime.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Live entry chain progress | -- | -- | -- | No packed columns | UNRESOLVED | §6 AUXILIARY_STATE | ADR1197. Step, origin, published handles, containers and crew are future-affecting while the entry is in progress. QUESTION: re-derive on load from the published Locations/Placement/containers, or save with the Host? Cleared with the Session. |

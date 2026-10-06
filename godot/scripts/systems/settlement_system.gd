@@ -589,6 +589,7 @@ const HaulCarryScript := preload("res://scripts/core/haul_carry.gd")
 const HaulPlannerScript := preload("res://scripts/core/haul_planner.gd")
 const StorePolicyScript := preload("res://scripts/core/store_policy.gd")
 const UndergroundSession := preload("res://scripts/core/underground_session.gd")
+const UndergroundEntryRuntime := preload("res://scripts/core/underground_entry_runtime.gd")
 const UndergroundContent := preload("res://demo/cast/underground_actor_content.gd")
 const DemolitionAdmissionsScript := preload("res://scripts/core/demolition_admissions.gd")
 const DemolitionWorkScript := preload("res://scripts/core/demolition_work.gd")
@@ -917,6 +918,7 @@ var _haul_planner: HaulPlannerScript = null
 var _store_policy: StorePolicyScript = null
 ## ADR1149: one existing-reserve Session, retained before initialization so reentry cannot reset its stores.
 var _underground_session: UndergroundSession = null
+var _underground_entry: UndergroundEntryRuntime = null
 ## ADR1158: one synchronous host stop, including the pre-clear interval held by boot/UI.
 var _underground_reset_phase: int = 0 # 0 idle, 1 preparing, 2 prepared, 3 clearing.
 ## Producer of the authored starter plan (decision 0184). Holds only its last refusal code.
@@ -1861,11 +1863,13 @@ func mount_underground(content: UndergroundContent) -> bool:
 	if _underground_session != null:
 		return _refuse(&"UNDERGROUND_SESSION_ALREADY_BOUND")
 	_underground_session = UndergroundSession.new()
+	_underground_entry = null
 	var code: StringName = _underground_session.configure(_world, world_ref(), _buildings,
 		_construction, _inventory, _item_definitions, _residents, _jobs, _work, _reservations,
 		_transforms, _gear, _haul_carry, _ground_piles, content)
 	if code != &"":
 		_underground_session = null
+		_underground_entry = null
 		return _refuse(code)
 	_last_refusal = REFUSE_NONE
 	return true
@@ -1939,6 +1943,23 @@ func _finish_surface_owner_composition(original: UndergroundSession, code: Strin
 	if code != &"": return _refuse(code)
 	_last_refusal = REFUSE_NONE
 	return true
+
+
+func begin_underground_entry(near: Vector3i) -> bool:
+	"""ADR1197: run the real first-entry chain from where it last stopped; a refusal is an explicit gap alert."""
+	if _underground_mutations_stopped(): return _refuse(&"UNDERGROUND_HOST_RESETTING")
+	var code: StringName = _mounted_underground_refusal(_underground_session)
+	if code != &"": return _refuse(code)
+	if _underground_entry == null: _underground_entry = UndergroundEntryRuntime.new()
+	code = _underground_entry.start(_underground_session, near)
+	if code != &"": return _refuse(code)
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func underground_entry() -> UndergroundEntryRuntime:
+	"""Borrow the entry runtime for status and alerts; null before the first request."""
+	return _underground_entry
 
 
 func compose_underground_entry_owners() -> bool:
@@ -2053,6 +2074,7 @@ func _release_underground_after_clear() -> bool:
 	if code == &"": code = original.release_retirement(self)
 	if code != &"": return _refuse(code)
 	_underground_session = null
+	_underground_entry = null
 	return true
 
 

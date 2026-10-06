@@ -683,6 +683,41 @@ func test_suggested_entry_site_publishes_the_whole_work_area_on_generated_ground
 	assert_equal(live, 1, "exactly one entry Placement")
 
 
+func test_live_entry_chain_publishes_confirms_then_alerts_each_missing_capability() -> void:
+	"""ADR1197: real steps stay done; the first missing capability stops the chain with its gap row."""
+	var session: Session = _generate_and_mount()
+	assert_true(_host.compose_underground_room_owners() and _host.compose_underground_route_owners()
+		and _host.compose_underground_surface_anchor() and _host.compose_underground_entry_owners(), "every owner composed")
+	var near: Vector3i = Vector3i(60 * 2048 + 512, 512, 50 * 2048 + 512)
+	assert_false(_host.begin_underground_entry(near), "no settlement mole holds a tool yet")
+	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
+	assert_equal(entry.error(), Settlement.UndergroundEntryRuntime.REFUSE_NO_TOOLED_MOLE, "exact refusal")
+	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G11"), "named gap row")
+	assert_equal(entry.step(), Settlement.UndergroundEntryRuntime.STEP_CONTAINERS, "site, work area, entry and containers are real")
+	var o: Session.Retirement.Owners = session._retirement_owners
+	assert_equal(o.locations._live.count, 9, "published work area retained")
+	_equip_first_mole(o, entry._output)
+	assert_false(_host.begin_underground_entry(near), "retry resumes and meets the next gap")
+	assert_equal(entry.error(), Settlement.UndergroundEntryRuntime.REFUSE_INPUTS, "inputs not hauled")
+	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G4"), "haul gap row")
+	assert_equal(entry.step(), Settlement.UndergroundEntryRuntime.STEP_CREW, "crew chosen; nothing republished")
+	assert_equal(o.locations._live.count, 9, "no second work area")
+
+
+func _equip_first_mole(o: Session.Retirement.Owners, container: Vector2i) -> void:
+	"""Test stand-in for future tool gameplay: one real basic tool lot equipped by the first adult mole."""
+	var residents: RefCounted = o.residents
+	for slot: int in residents._present.size():
+		if not residents.is_present(slot) or residents.species_key(residents.species_of(slot).value) != &"mole": continue
+		var owner: Vector2i = residents.ref_of(slot)
+		var lot: RefCounted = o.inventory.create_lot(container, o.items.compiled_id(&"tool"), 1000, 1, 0, -1, 0, 0)
+		assert_true(lot.ok, "real tool lot: %s" % lot.error)
+		assert_true(o.gear.create_gear(o.inventory, o.items, lot.ref, o.gear.MANUFACTURE_BASIC).ok, "real basic tool")
+		assert_true(o.gear.equip(lot.ref, owner).ok, "mole equips it")
+		return
+	assert_true(false, "starting cohort has a mole")
+
+
 func test_actual_surface_publication_retires_and_remounts_without_old_scope_or_endpoint_alias() -> void:
 	"""The actual publisher creates natural facts; complete host clear releases its lifetime before the next World."""
 	var session: Session = _surface_session()

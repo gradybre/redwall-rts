@@ -82,6 +82,7 @@ var _box: Profiles.Box = null
 var _number: IntMath.IntResult = null
 var _frame: PackedInt32Array = PackedInt32Array()
 var _install: PackedInt32Array = PackedInt32Array()
+var _excavation: bool = false # ADR1197 G3: cut inputs for an entry excavation phase Project.
 var _endpoint: PackedInt32Array = PackedInt32Array()
 var _bounds: PackedInt32Array = PackedInt32Array()
 var _support: PackedInt32Array = PackedInt32Array()
@@ -167,6 +168,7 @@ static func _clear(a: RefCounted) -> void:
 	a._busy = false
 	a._poisoned = false
 	a._work_tick = false
+	a._excavation = false
 	a._job = NULL_REF
 	a._worker = NULL_REF
 	a._project = NULL_REF
@@ -238,17 +240,19 @@ static func _full_row(ids: Directory, ref: Vector2i, kind: int) -> int:
 
 
 func _pin_project() -> StringName:
-	"""Only the current unpaid connector assembly may request its actual material container."""
+	"""The current unpaid connector assembly, or an entry cut awaiting inputs, may request its material container."""
 	var row: int = _directory_row(_project, Directory.KIND_CONSTRUCTION)
 	var construction: Construction = _placements._construction
 	if row < 0 or construction._present[row] != 1 or construction._ref_slot[row] != _project.x \
-			or construction._ref_generation[row] != _project.y or construction._purpose[row] != Construction.PURPOSE_CONNECTOR_INSTALL \
+			or construction._ref_generation[row] != _project.y \
 			or construction._phase[row] > Construction.PHASE_READY or construction._paused[row] != 0:
 		return REFUSE_JOB
-	_placement = Vector2i(construction._subject_slot[row], construction._subject_generation[row])
+	_excavation = construction._purpose[row] == Construction.PURPOSE_EXCAVATION
+	if not _excavation and construction._purpose[row] != Construction.PURPOSE_CONNECTOR_INSTALL: return REFUSE_JOB
 	_destination = Vector2i(construction._material_container_slot[row], construction._material_container_generation[row])
+	_placement = _entry_placement() if _excavation else Vector2i(construction._subject_slot[row], construction._subject_generation[row])
 	var code: StringName = _placements.placement_into(_placement, _order)
-	if code != &"" or _order.project != _project: return REFUSE_SOURCE
+	if code != &"" or (not _excavation and _order.project != _project): return REFUSE_SOURCE
 	_geometry_revision = _placements._space._header[17]
 	_frontier_revision = _frontier._header[0]
 	_location_receipt = _placements._locations._last_published_token
@@ -258,9 +262,24 @@ func _pin_project() -> StringName:
 	return code if code != &"" else _pin_material()
 
 
+func _entry_placement() -> Vector2i:
+	"""Excavation hauls serve the one live entry Placement; zero or several refuse rather than choose."""
+	var found: Vector2i = NULL_REF
+	for row: int in _placements._capacity:
+		var ref: Vector2i = Vector2i(row, _placements._live.i32[Placements.GENERATION * _placements._capacity + row])
+		if not _placements._is_live(_placements._live, ref): continue
+		if found != NULL_REF: return NULL_REF
+		found = ref
+	return found
+
+
 func _pin_material() -> StringName:
 	"""The selected Inventory endpoint must match the immutable assembly material selector exactly."""
 	if _frame.size() != 9 or _install.size() != 9: return REFUSE_SOURCE
+	if _excavation:
+		_destination_location = _placements._inventory.spatial_location_of(_destination)
+		var read: StringName = _placements._locations.read_location_into(_destination_location, _location)
+		return read if read != &"" else _material_leaf(self)
 	var code: StringName = _frontier.endpoint_into(_install[7], _endpoint)
 	if code != &"" or _endpoint.size() != 7 or _endpoint[3] != Locations.ROLE_STORAGE:
 		return REFUSE_ENDPOINT
@@ -287,11 +306,12 @@ static func _material_leaf(a: RefCounted) -> StringName:
 	var row: int = a._destination_location.x
 	if _location32(locations, Locations.ROLE, row) != Locations.ROLE_STORAGE:
 		return REFUSE_ENDPOINT
+	var section: Vector2i = _location_pair(locations, Locations.SECTION_SLOT, row)
+	if a._excavation: return _excavation_material_leaf(a, row, section)
 	for axis: int in 3:
 		var point: int = _coordinate(a._frame, a._endpoint[4], a._endpoint[5], a._endpoint[6], axis)
 		if not Space.int32(point) or _location32(locations, Locations.X + axis, row) != point:
 			return REFUSE_ENDPOINT
-	var section: Vector2i = _location_pair(locations, Locations.SECTION_SLOT, row)
 	if a._endpoint[0] == Frontier.SURFACE_ANCHOR or a._endpoint[0] == Frontier.SURFACE_CONTACT:
 		var anchor: Vector2i = Vector2i(a._frame[7], a._frame[8])
 		if not _location_live(locations, anchor) \
@@ -304,6 +324,15 @@ static func _material_leaf(a: RefCounted) -> StringName:
 			or _location_pair(locations, Locations.ROOM_SLOT, row) != a._order.corridor:
 		return REFUSE_ENDPOINT
 	return _installed_material_leaf(a, section)
+
+
+static func _excavation_material_leaf(a: RefCounted, row: int, section: Vector2i) -> StringName:
+	"""Sites already proved this container for the cut at bind time and re-proves it at delivery; Delivery
+	additionally requires a live room-free storage endpoint in the entry anchor's own surface section."""
+	var locations: Locations = a._placements._locations
+	var entry: Vector2i = Vector2i(a._frame[7], a._frame[8])
+	return &"" if _location_live(locations, entry) and _location_pair(locations, Locations.ROOM_SLOT, row) == NULL_REF \
+		and _location_pair(locations, Locations.SECTION_SLOT, entry.x) == section else REFUSE_ENDPOINT
 
 
 static func _installed_material_leaf(a: RefCounted, section: Vector2i) -> StringName:
@@ -646,7 +675,7 @@ static func _source_leaf(a: RefCounted) -> StringName:
 	if not _spend(a, 512) or p._busy or not p._ready or not p._is_live(p._live, a._placement): return REFUSE_SOURCE
 	if p._space._header[17] != a._geometry_revision or a._frontier._header[0] != a._frontier_revision \
 			or p._locations._last_published_token != a._location_receipt or p._routes._last_published_token != a._route_receipt \
-			or p._pair(p._live, Placements.PROJECT_SLOT, a._placement.x) != a._project \
+			or (not a._excavation and p._pair(p._live, Placements.PROJECT_SLOT, a._placement.x) != a._project) \
 			or p._pair(p._live, Placements.ROOM_SLOT, a._placement.x) != a._order.corridor \
 			or p._get64(p._live, Placements.PAYLOAD_REVISION, a._placement.x) != a._order.payload_revision \
 			or p._get32(p._live, Placements.CATALOG_ROW, a._placement.x) != a._order.catalog_row \
@@ -682,11 +711,13 @@ static func _job_leaf(a: RefCounted) -> StringName:
 			or jobs._agent_job_slot[worker] != a._job.x or jobs._agent_job_generation[worker] != a._job.y: return REFUSE_JOB
 	row = _full_row(ids, a._project, Directory.KIND_CONSTRUCTION)
 	var c: Construction = a._placements._construction
-	return &"" if row >= 0 and c._present[row] == 1 and c._ref_slot[row] == a._project.x \
-		and c._ref_generation[row] == a._project.y and c._purpose[row] == Construction.PURPOSE_CONNECTOR_INSTALL \
-		and c._phase[row] <= Construction.PHASE_READY and c._paused[row] == 0 and c._type_id[row] == a._order.installed_count \
-		and Vector2i(c._subject_slot[row], c._subject_generation[row]) == a._placement \
-		and Vector2i(c._material_container_slot[row], c._material_container_generation[row]) == a._destination else REFUSE_JOB
+	if row < 0 or c._present[row] != 1 or c._ref_slot[row] != a._project.x or c._ref_generation[row] != a._project.y \
+			or c._phase[row] > Construction.PHASE_READY or c._paused[row] != 0 \
+			or Vector2i(c._material_container_slot[row], c._material_container_generation[row]) != a._destination:
+		return REFUSE_JOB
+	if a._excavation: return &"" if c._purpose[row] == Construction.PURPOSE_EXCAVATION else REFUSE_JOB
+	return &"" if c._purpose[row] == Construction.PURPOSE_CONNECTOR_INSTALL and c._type_id[row] == a._order.installed_count \
+		and Vector2i(c._subject_slot[row], c._subject_generation[row]) == a._placement else REFUSE_JOB
 
 
 static func _endpoint_leaf(a: RefCounted, container: Vector2i, endpoint: Vector2i) -> StringName:

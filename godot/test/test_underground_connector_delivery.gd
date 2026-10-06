@@ -1,6 +1,7 @@
 extends "res://test/framework/test_case.gd"
 ## Actual geometry/economy/Jobs/Work/Inventory; all added HAUL motion certificates below are explicitly synthetic.
 
+const DeliveryIntMath := preload("res://scripts/core/int_math.gd")
 const Delivery := preload("res://scripts/core/underground_connector_delivery.gd")
 const WorkpieceTests := preload("res://test/test_underground_connector_workpieces.gd")
 const Prefix := preload("res://test/test_underground_first_prefix.gd")
@@ -757,3 +758,50 @@ func _other_ground_worker() -> int:
 func _read_other_factor(row: int) -> void:
 	"""The late observer uses the public read API only; it mutates no gameplay input."""
 	assert_true(_fixture._world._work.work_factor_of(row, Jobs.JOB_KIND_HAUL).ok, "ordinary public factor read")
+
+
+func test_excavation_cut_inputs_haul_through_delivery_to_the_bound_site_container() -> void:
+	"""ADR1197 G3: brace inputs for an entry cut travel by a real HAUL into the Site's own validated container."""
+	if _fixture._confirm_prefix() == NULL_REF: return
+	var world: Prefix.ActualWorld = _fixture._world
+	var cube: PackedInt32Array = Prefix.Source.cube(0)
+	var site: Vector2i = _fixture._sites.site_at(Prefix.ORIGIN + Vector3i(cube[0], cube[1], cube[2]))
+	var opened: RefCounted = _fixture._sites.open_phase(site, Prefix.Contract.OP_BRACE)
+	assert_true(opened.ok, "real BRACE phase Project: %s" % opened.error)
+	if not opened.ok: return
+	_project = opened.ref
+	var amount: DeliveryIntMath.IntResult = DeliveryIntMath.IntResult.new()
+	assert_true(world._construction.remaining_mwu_into(_project, amount), "quoted phase work")
+	var build: Jobs.OpResult = world._jobs.create_job(Jobs.JOB_KIND_BUILD, 0, 0, amount.value, 0)
+	assert_true(world._jobs.set_requester(build.value, _project).ok, "BUILD names the phase Project")
+	assert_true(world._jobs.set_tool_gate(build.value, Jobs.GATE_SATISFIED).ok, "tool gate")
+	assert_true(_fixture._sites.bind_job(site, build.ref).ok, "Site job")
+	assert_true(_fixture._sites.bind_material_container(site, _fixture._storage).ok, "Site validates its own container")
+	assert_true(world._gear.unequip(_fixture._tool, _fixture._storage, false).ok, "no-tool handling")
+	var job: Jobs.OpResult = _excavation_haul_job()
+	if job == null: return
+	var result: Inventory.OpResult = _delivery.admit(job.ref, _fixture.remote_wood, 1000, 100000)
+	assert_true(result.ok, "excavation haul admission: %s" % result.error)
+	if not result.ok: return
+	assert_true(world._jobs.set_state(job.value, Jobs.JOB_STATE_TRAVEL).ok, "source travel")
+	if not _walk(job.value, _fixture._endpoints[2], Profiles.MODE_WALK): return
+	_handling(job.value, 4)
+	assert_true(_delivery.load_payload(job.ref).ok, "guarded load")
+	if not _walk(job.value, _fixture._endpoints[1], Profiles.MODE_CARRY): return
+	_handling(job.value, 5)
+	assert_true(_delivery.unload_payload(job.ref).ok, "guarded unload into the Site container")
+	assert_equal(world._jobs._state[job.value], Jobs.JOB_STATE_COMPLETE, "goods commit completes the haul")
+
+
+func _excavation_haul_job() -> Jobs.OpResult:
+	"""A solo HAUL sourced by the phase Project; the idle worker is admitted where it really stands."""
+	var world: Prefix.ActualWorld = _fixture._world
+	var made: Jobs.OpResult = world._jobs.create_job(Jobs.JOB_KIND_HAUL, 0, 0, Planner.HAUL_LOAD_MILLI_WU, 0)
+	assert_true(world._jobs.set_requester(made.value, _project).ok and world._jobs.set_source(made.value, _project).ok, "HAUL source")
+	assert_true(world._jobs.assign_worker(world._residents.directory().get_typed_row(world._worker), made.value).ok, "solo assignment")
+	var record: Prefix.Locations.Record = Prefix.Locations.Record.new()
+	record.envelope.resize(6); record.support.resize(6)
+	assert_equal(world._locations.read_location_into(_fixture._endpoints[2], record), &"", "source endpoint")
+	assert_true(world._transforms.place(world._worker, record.point.x, record.point.y, record.point.z, 0), "worker stands on the endpoint")
+	assert_equal(world._routes.admit_actor(world._worker, made.ref, _fixture._endpoints[2], Profiles.MODE_WALK, 0, -1), &"", "real walking admission")
+	return made if failures.is_empty() else null

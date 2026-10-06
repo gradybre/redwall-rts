@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "decision": "1206",
+  "predecessor": "qualified-landing-v4 (ADR 1202)",
+  "content_revision": 6,
+  "frontier_revision": 4,
+  "census": {
+    "INSTALL": 2,
+    "STATION": 8,
+    "CUT": 2,
+    "BEARING": 10,
+    "ENDPOINT": 14,
+    "EPISODE": 6
+  },
+  "added_ground_pace_profiles": [
+    37
+  ],
+  "files": {
+    "structure.ugconn": {
+      "role": "CATALOG",
+      "sha256": "7ea0d26c6420075536ab3e542273b13dd2b45a7f1f0cc8cdd11e620af77907d6",
+      "predecessor_sha256": "82dff49dc3da23383b9e22b05ee82b267378dcc801ca42931806946db8392aa3",
+      "change": "content 6 + v7 ground pace table"
+    },
+    "assemblies.ugasmb": {
+      "role": "GROUPING",
+      "sha256": "c185a5c4ff0e256f7af134d26cd25d077951276853ab5fcb02f08c0b3c202904",
+      "predecessor_sha256": "9cf6d8bbd7748f3756f766592215eb2ac836afd3fbf4b68e5bb3c1677306b7de",
+      "change": "content revision word and linked digests only"
+    },
+    "recipes.ugrecp": {
+      "role": "RECIPE",
+      "sha256": "2009f54ca7059b4cbc52486bc2fe2962eeda6cca1b69729bb994cafe04ccb5ef",
+      "predecessor_sha256": "d18ac338c76a9b3d03d5aa864d1cb36ffbef815fa98b47d44f8e6219eeac27fc",
+      "change": "content revision word and linked digests only"
+    },
+    "frontier.ugfront": {
+      "role": "FRONTIER",
+      "sha256": "2d5c36163ed5e5f8e96a3f1b0611d85937c075abcb8b02c7d7f01f7cf0738660",
+      "predecessor_sha256": "eda902ec90f2b8cede3badb7a96a91f224fccb4d42af78a2342498dda4e3e019",
+      "change": "content revision word and linked digests only"
+    },
+    "workpieces.ugwipc": {
+      "role": "WORKPIECES",
+      "sha256": "ba98db4330ead65cdda4a5bc2d66ce72271621699ca960b272911a53140d246e",
+      "predecessor_sha256": "3999e4c0064c8336a5268171c6f74ed14abd257a04c54f910c7ffdcab2f43421",
+      "change": "content revision word and linked digests only"
+    },
+    "ground-pace.ugconn": {
+      "role": "GROUND",
+      "sha256": "7fc1eeb45200292dd90e5659c494159485e56b0b487cbfc5c70d1346b2c6dc13",
+      "predecessor_sha256": "1ae7ffc421f2a93deac4ccde12a843652da1fd46c91f58c28c559979015422f0",
+      "change": "copied from qualified-stone-v7"
+    },
+    "mole-worker.ugprof": {
+      "role": "PROFILE",
+      "sha256": "30c3dc1f5e9162f5530f410c437ed6f85d28dc6879f88dec81cb193ea87b0df5",
+      "predecessor_sha256": "dc4969e4dc562e39b941a7fefa4be4b72851490f59492f0b04b3f26954bc5d8e",
+      "change": "copied from qualified-stone-v7"
+    }
+  }
+}

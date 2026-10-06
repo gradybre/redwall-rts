@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "decision": "1206",
+  "content_revision": 6,
+  "profile_count": 42,
+  "box_count": 377,
+  "source_count": 4,
+  "wire_sha256": "30c3dc1f5e9162f5530f410c437ed6f85d28dc6879f88dec81cb193ea87b0df5",
+  "wire_bytes": 14840,
+  "paired_bank_bytes": 29664,
+  "stone_source_sha256": "49ff3018d363c7dbad05df0af91368e8fec11e30525c2f8231e6a959f80a7b95",
+  "superset_of": {
+    "wire_sha256": "dc4969e4dc562e39b941a7fefa4be4b72851490f59492f0b04b3f26954bc5d8e",
+    "rows": "0-36",
+    "boxes": "0-333",
+    "sources": "0-2"
+  },
+  "stone_rows": {
+    "37": "CARRY stone 1000",
+    "38": "HAUL load stone yaw 0",
+    "39": "HAUL load stone yaw 16384",
+    "40": "HAUL unload stone yaw 0",
+    "41": "HAUL unload stone yaw 16384"
+  },
+  "stone_item": {
+    "compiled_id": 53,
+    "mass_g": 5000
+  },
+  "rotation": "yaw 16384 boxes = (z0, y0, -x1, z1, y1, -x0) of yaw 0 (the content-5 convention)",
+  "inputs": {
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/stone-rows-v1/rows.json": "caa36d82092d775fd9acaacac8c11a3e6a082964400875fd3430ba4f84cca004",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v9/compiled/stone-handling.ugactor": "49ff3018d363c7dbad05df0af91368e8fec11e30525c2f8231e6a959f80a7b95",
+    "godot/data/item_definitions.json": "a44243af22c22258ce2999f42504b22e33f7584d6d374b2063c01efefaa981ab"
+  },
+  "ground_sha256": "7fc1eeb45200292dd90e5659c494159485e56b0b487cbfc5c70d1346b2c6dc13",
+  "ground_pace_profiles": [
+    37
+  ],
+  "ground_pace_rule": "RATE_GROUND_CAP row reusing the existing Movement profile; no new pace constant",
+  "motion_sha256": "3024e922f8959f0c386ba9c5d136cdc2a96c35c9de5c860dec03030a9b4d292c",
+  "motion_inputs": {
+    "godot/data/underground/mole-worker/qualified-haul-v6/motion.ugmotion": "b9eb5b950669c8356a3f7d97997b8cf209ff0588384833e98c4e0da84bc58f5b",
+    "godot/data/underground/mole-worker/qualified-stone-v7/mole-worker.ugprof": "30c3dc1f5e9162f5530f410c437ed6f85d28dc6879f88dec81cb193ea87b0df5",
+    "godot/data/underground/mole-worker/publish_stone_runtime.py": "148c97845b7bdfd0cbb87f9215b1de0271a605aca5cedd1f562b95eb30de3412"
+  },
+  "motion_numerical_input_sha256": "7c6448df41694a85a06b30d4cdb965b0e369c6a1bd95cdede71395d115329984",
+  "consumers": {
+    "godot/scripts/core/underground_profiles.gd": "64325eed6772207817a043220fe4db371fe5aa68a89fec60a287099ea589dfaf",
+    "godot/scripts/core/underground_work_face.gd": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
+    "godot/scripts/core/underground_connector_contacts.gd": "1c8a641e1a680637e7be922bb42d9928d6c1066095ded3dca46800701766143e",
+    "godot/scripts/core/underground_routes.gd": "8a4cd2a60b05f7c34e9baef32b8bdc6e38d458bb5594fb4999730dee3f74fef0",
+    "godot/scripts/core/underground_world_routes.gd": "0da30151fc38cbc8b329ec01e5067e134099f370799b52e69cfea04e4102915c",
+    "godot/demo/cast/underground_actor.gd": "b0ef7640d2b5626eb95c162d19318d9b3985a51479d19dfdf9a38e0176a06e91",
+    "godot/demo/cast/underground_actor_content.gd": "388374964d20879b6b896021ebde7927e472634ea8a32b6834ec7b1b5042157f",
+    "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
+    "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
+    "godot/data/underground/mole-worker/work-step-v1/source_program.gd": "7134c58f0a48c8eb1184484f1caf41089696cc90083c5cd7038fafeb3fce7879"
+  },
+  "not_qualified": [
+    "presentation of the source-3 image (ContentSet holds three sources)"
+  ]
+}

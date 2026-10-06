@@ -1,0 +1,314 @@
+{
+  "schema": 1,
+  "adr": "1206",
+  "production_qualified": false,
+  "rule": "largest uniform scale (0.001 m/unit grid) with squash 0.8, no rotation, no solid vertex of the reviewed static pose inside the lump at S",
+  "adopted_scale_m": [
+    0.15,
+    0.12,
+    0.15
+  ],
+  "adopted": {
+    "scale_m": [
+      0.15,
+      0.12,
+      0.15
+    ],
+    "contact_ratio": [
+      2.2024,
+      2.6787
+    ],
+    "seats_both": false,
+    "solid_vertices_inside": 0,
+    "lump_bounds_u": [
+      -173.0,
+      0.0,
+      -729.5,
+      152.7,
+      255.5,
+      -422.4
+    ]
+  },
+  "first_refused": {
+    "scale_m": [
+      0.151,
+      0.1208,
+      0.151
+    ],
+    "contact_ratio": [
+      2.1867,
+      2.6609
+    ],
+    "seats_both": false,
+    "solid_vertices_inside": 2,
+    "lump_bounds_u": [
+      -174.1,
+      0.0,
+      -730.5,
+      153.7,
+      257.2,
+      -421.4
+    ]
+  },
+  "sweep": [
+    {
+      "scale_m": [
+        0.14,
+        0.112,
+        0.14
+      ],
+      "contact_ratio": [
+        2.3724,
+        2.8704
+      ],
+      "seats_both": false,
+      "solid_vertices_inside": 0,
+      "lump_bounds_u": [
+        -161.4,
+        0.0,
+        -719.2,
+        142.5,
+        238.5,
+        -432.6
+      ]
+    },
+    {
+      "scale_m": [
+        0.141,
+        0.1128,
+        0.141
+      ],
+      "contact_ratio": [
+        2.3543,
+        2.85
+      ],
+      "seats_both": false,
+      "solid_vertices_inside": 0,
+      "lump_bounds_u": [
+        -162.6,
+        0.0,
+        -720.2,
+        143.5,
+        240.2,
+        -431.6
+      ]
+    },
+    {
+      "scale_m": [
+        0.142,
+        0.1136,
+        0.142
+      ],
+      "contact_ratio": [
+        2.3365,
+        2.8299
+      ],
+      "seats_both": false,
+      "solid_vertices_inside": 0,
+      "lump_bounds_u": [
+        -163.8,
+        0.0,
+        -721.3,
+        144.6,
+        241.9,
+        -430.6
+      ]
+    },
+    {
+      "scale_m": [
+        0.143,
+        0.1144,
+        0.143
+      ],
+      "contact_ratio": [
+        2.3189,
+        2.8101
+      ],
+      "seats_both": false,
+      "solid_vertices_inside": 0,
+      "lump_bounds_u": [
+        -164.9,
+        0.0,
+        -722.3,
+        145.6,
+        243.6,
+        -429.6
+      ]
+    },
+    {
+      "scale_m": [
+        0.144,
+        0.1152,
+        0.144
+      ],
+      "contact_ratio": [
+        2.3016,
+        2.7905
+      ],
+      "seats_both": false,
+      "solid_vertices_inside": 0,
+      "lump_bounds_u": [
+        -166.1,
+        0.0,
+        -723.3,
+        146.6,
+        245.3,
+        -428.5
+      ]
+    },
+    {
+      "scale_m": [
+        0.145,
+        0.116,
+        0.145
+      ],
+      "contact_ratio": [
+        2.2845,
+        2.7712
+      ],
+      "seats_both": false,
+      "solid_vertices_inside": 0,
+      "lump_bounds_u": [
+        -167.2,
+        0.0,
+        -724.3,
+        147.6,
+        247.0,
+        -427.5
+      ]
+    },
+    {
+      "scale_m": [
+        0.146,
+        0.1168,
+        0.146
+      ],
+      "contact_ratio": [
+        2.2676,
+        2.7522
+      ],
+      "seats_both": false,
+      "solid_vertices_inside": 0,
+      "lump_bounds_u": [
+        -168.4,
+        0.0,
+        -725.4,
+        148.6,
+        248.7,
+        -426.5
+      ]
+    },
+    {
+      "scale_m": [
+        0.147,
+        0.1176,
+        0.147
+      ],
+      "contact_ratio": [
+        2.251,
+        2.7335
+      ],
+      "seats_both": false,
+      "solid_vertices_inside": 0,
+      "lump_bounds_u": [
+        -169.5,
+        0.0,
+        -726.4,
+        149.6,
+        250.4,
+        -425.5
+      ]
+    },
+    {
+      "scale_m": [
+        0.148,
+        0.1184,
+        0.148
+      ],
+      "contact_ratio": [
+        2.2346,
+        2.7149
+      ],
+      "seats_both": false,
+      "solid_vertices_inside": 0,
+      "lump_bounds_u": [
+        -170.7,
+        0.0,
+        -727.4,
+        150.7,
+        252.1,
+        -424.4
+      ]
+    },
+    {
+      "scale_m": [
+        0.149,
+        0.1192,
+        0.149
+      ],
+      "contact_ratio": [
+        2.2184,
+        2.6967
+      ],
+      "seats_both": false,
+      "solid_vertices_inside": 0,
+      "lump_bounds_u": [
+        -171.8,
+        0.0,
+        -728.4,
+        151.7,
+        253.8,
+        -423.4
+      ]
+    },
+    {
+      "scale_m": [
+        0.15,
+        0.12,
+        0.15
+      ],
+      "contact_ratio": [
+        2.2024,
+        2.6787
+      ],
+      "seats_both": false,
+      "solid_vertices_inside": 0,
+      "lump_bounds_u": [
+        -173.0,
+        0.0,
+        -729.5,
+        152.7,
+        255.5,
+        -422.4
+      ]
+    },
+    {
+      "scale_m": [
+        0.151,
+        0.1208,
+        0.151
+      ],
+      "contact_ratio": [
+        2.1867,
+        2.6609
+      ],
+      "seats_both": false,
+      "solid_vertices_inside": 2,
+      "lump_bounds_u": [
+        -174.1,
+        0.0,
+        -730.5,
+        153.7,
+        257.2,
+        -421.4
+      ]
+    }
+  ],
+  "inputs_sha256": {
+    "godot/data/underground/mole-worker/haul-handling-v1/refine_stone_scale.py": "e8cee6c95aa25e1f4588539ac2979cdfda92e5f550be5c09e1c42efc546da9f4",
+    "godot/data/underground/mole-worker/haul-handling-v1/derive_stone_scale.py": "af725002878049ea26fa8ac42e443132cdc0bb56d9fc3db3e15bcb4bcf2661b6",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/stone-source-v1/native-stone.json": "ddcb70bf666021ded1b12741f3a741e25ffb9d37b79ed9c95f71f74dcb091a6e",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/haul-rows-v1/rows.json": "9919b1cd181116e94eadb50739ad3b38d7b5b4de86582e64388a3226cbca92e7",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/static-contact-review-v1/candidate/poses.npz": "996d0b4a0666e57d01c5f3592632e4c1f36c914854aae78a61ed91f8c3750894"
+  }
+}

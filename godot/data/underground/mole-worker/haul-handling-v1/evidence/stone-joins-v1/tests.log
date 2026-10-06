@@ -1,0 +1,9 @@
+test_endpoints_join_the_stand_and_the_stone_program_exactly (__main__.StoneJoinTests.test_endpoints_join_the_stand_and_the_stone_program_exactly) ... ok
+test_rebuild_is_byte_identical (__main__.StoneJoinTests.test_rebuild_is_byte_identical) ... ok
+test_stored_proof_passes (__main__.StoneJoinTests.test_stored_proof_passes) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.263s
+
+OK
+[test_stone_joins.py exit 0 in 0.4s]

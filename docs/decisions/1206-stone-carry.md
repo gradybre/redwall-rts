@@ -213,6 +213,20 @@ The carry proof checks 10,436 pairs in about 66 s.
 **Joins:** lift → hold → enter → carry → exit join byte for byte. Renders of carry keys 0, 54 and 110 are in
 `render-carry-*/`. `test_stone_gait.py` holds 4 tests, including a stone pushed into the chest, which refuses.
 
+## Step 8 — the stand joins (done)
+
+`author_stone_joins.py` writes `evidence/stone-joins-v1/` and follows wood's join recipe
+(`author_empty_walk.join_keys`, `support_keys`, `with_fixture`):
+
+- `enter_haul_stone` (31 keys) blends from wood's stand ready key 8 into the stone approach's first key.
+- `leave_haul_stone` is its exact reverse, out of the stone recovery's last key.
+
+The stand and walk clips are wood's own, reused byte for byte.
+
+`prove_stone_joins.py` applies wood's join rules: exact floor and one-foot support, plus non-grip separation from
+the floor stone (`prove_empty_walk.support_proof` / `join_proof`). It adds exact star containment. Both joins pass
+(`joins-proof.json`). `test_stone_joins.py` holds 3 tests: a rebuild, the exact endpoints and the stored proof.
+
 ## Remaining steps
 
 1. ~~Static contact candidates and exact witnesses~~ (step 4); v1 approved.

@@ -58,24 +58,34 @@ This is a local no-argument `./tools/run_tests.sh` run plus `tools/gdscript_warn
 It replaces `4972a96d` (11,293 tests) as the latest green full-suite commit. It is not a strict-procedure
 qualification: there was no assets-aside clean import, no captures and no soak.
 
+## Since the last update (2026-10-06)
+
+| Commit | Change |
+|---|---|
+| `969f8e72` | Fixed first-entry source bundle `qualified-handling-v1` (ADR 1190). Full suite green: 11,341 tests. |
+| `ed783c46` | Runtime loads the content-4 profile publication `qualified-handling-v5`, which includes handling row 29 (ADR 1194). |
+| `f55a1f10` | Structure/frontier source suites read the bundle. |
+| `4b06f840` | The real SettlementSystem composes the entry owners from the bundle (ADR 1195): prefix 17, no gameplay change. |
+| `ae46328b` | The base source-phases fixture keeps its own content-3 pins. |
+
+Full suite on `4b06f840`: 11,342 tests, 4 failures. All four were in the base
+source-phases fixture and are fixed in the next commit. 0 unexpected
+diagnostics, 0 leaks.
+
 ## Next, in order
 
-1. **Fixed first-entry source bundle (ADR 1190).** The paid test still reads
-   its catalog, recipes, groups, frontier and workpieces from
-   `docs/validation/evidence/`. Publish them once under
-   `godot/data/underground/first-entry-prefix-v1/qualified-handling-v1/`
-   with a generated accessor, and point the tests at it.
-2. **Content-4 runtime profile publication.** Runtime still loads
-   `qualified-step-v4` (content 3), which has no handling row 29. In-game
-   paid handling needs a content-4 publication, and the motion catalog needs
-   native frames for row 29.
-3. **UG24 demo composition.** Mount the entry owners in the real
-   SettlementSystem session (`underground_entry_composition.gd`, ADR 1184) and
-   dispatch real workers on fixed ticks.
-4. **UG09 first empty Kitchen.** Paint and confirm the Kitchen in the demo,
-   then real workers dig the shell. Verify with native 1280×720 input and
-   screenshots.
-5. Then UG10 onward, per `docs/tasks/underground-build-queue.json`.
+1. **Underground dispatcher (UG24).** Nothing drives a worker through the
+   entry episodes automatically: travel, BRACE/CUT/FINISH, handling and
+   install. Only test fixtures do, step by step. A fixed-tick dispatcher must
+   create the Jobs, assign workers, route them, run phases, deliver wood,
+   retire the dig pair, and run START, handling and INSTALL using the real
+   owners and their final guards.
+2. **Demo wiring.** `demo_village.gd` composes room and route owners only.
+   It also needs to compose the surface anchor and entry owners at mount.
+3. **Row 29 presentation.** The mole actor matches profile rows by actor
+   source digest, so a handling worker has no clip yet.
+4. **UG09 first empty Kitchen.** Paint and confirm, then the dispatcher digs
+   the entry and room. Verify with native 1280×720 input and screenshots.
 
 ## Not yet claimed
 

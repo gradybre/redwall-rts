@@ -16,17 +16,17 @@ var _timing: PackedInt32Array = PackedInt32Array([0, 0])
 var _pose: PackedInt32Array = PackedInt32Array([0, 0, 0])
 
 
-func configure(budget_bytes: int) -> StringName:
+func configure(total_bytes: int) -> StringName:
 	"""Fix the total declared reservation before any image is admitted; tables are cold and bounded."""
 	if _budget != 0:
 		return &"CONTENT_SET_ALREADY_CONFIGURED"
-	if budget_bytes <= 0:
+	if total_bytes <= 0:
 		return &"CONTENT_SET_ARGUMENT"
 	_contents.resize(MAX_SOURCES)
 	_masks.resize(MAX_SOURCES * Content.MAX_CLIPS)
 	_spans.resize(MAX_SOURCES * CLIP_STRIDE)
 	_reserves.resize(MAX_SOURCES)
-	_budget = budget_bytes
+	_budget = total_bytes
 	return &""
 
 

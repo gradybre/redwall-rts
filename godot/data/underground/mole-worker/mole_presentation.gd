@@ -87,26 +87,26 @@ func configure(sources: ContentSet) -> StringName:
 	return &""
 
 
-func configure_actor(source: int, actor: Actor, meshes: Array[Mesh], materials: Array[Material]) -> StringName:
+func configure_actor(source: int, bound: Actor, meshes: Array[Mesh], materials: Array[Material]) -> StringName:
 	"""Bind an Actor to one source's shared Palette (Content.configure_actor), then adopt it hidden."""
 	if _sources == null or not _sources.has_source(source):
 		return &"MOLE_PRESENTATION_SOURCE_ABSENT"
-	var code: StringName = _sources.content(source).configure_actor(actor, meshes, materials)
-	return adopt_actor(source, actor) if code == &"" else code
+	var code: StringName = _sources.content(source).configure_actor(bound, meshes, materials)
+	return adopt_actor(source, bound) if code == &"" else code
 
 
-func adopt_actor(source: int, actor: Actor) -> StringName:
+func adopt_actor(source: int, bound: Actor) -> StringName:
 	"""Accept an Actor already configured from this source's own image; it starts hidden."""
 	if _sources == null or not _sources.has_source(source):
 		return &"MOLE_PRESENTATION_SOURCE_ABSENT"
-	if actor == null or actor._palette == null \
-			or actor._palette.source_digest() != _sources.content(source).source_digest():
+	if bound == null or bound._palette == null \
+			or bound._palette.source_digest() != _sources.content(source).source_digest():
 		return &"MOLE_PRESENTATION_ACTOR_SOURCE"
 	if _actors[source] != null:
 		return &"MOLE_PRESENTATION_ACTOR_BOUND"
-	var code: StringName = actor.set_parts_visible(0)
+	var code: StringName = bound.set_parts_visible(0)
 	if code == &"":
-		_actors[source] = actor
+		_actors[source] = bound
 	return code
 
 
@@ -143,12 +143,12 @@ func _show(source: int, frames: PackedInt32Array) -> StringName:
 	var mask: int = _sources.frames_mask(source, frames)
 	if mask < 1:
 		return &"MOLE_PRESENTATION_CLIP_MASK"
-	var actor: Actor = _actors[source]
-	if actor == null:
+	var shown: Actor = _actors[source]
+	if shown == null:
 		return &"MOLE_PRESENTATION_ACTOR"
-	var code: StringName = actor.apply_pose(frames)
+	var code: StringName = shown.apply_pose(frames)
 	if code == &"":
-		code = actor.set_parts_visible(mask)
+		code = shown.set_parts_visible(mask)
 	if code != &"":
 		return code
 	for other: int in _actors.size():

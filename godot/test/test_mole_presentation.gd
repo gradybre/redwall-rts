@@ -188,6 +188,7 @@ func test_haul_clips_apply_their_own_mask_and_hidden_actors_keep_their_pose() ->
 	assert_equal(pick.poses, 1, "hidden actor not posed")
 	assert_equal(pick.last_frames, pick_frames, "hidden actor pose stable")
 	assert_equal(haul.poses, 12, "one pose per haul clip")
+	@warning_ignore("integer_division")
 	var blend: PackedInt32Array = [595, 596, 0, 311, 312, 0, ONE / 2]
 	assert_equal(presenter._sources.frames_mask(2, blend), -1, "stand-to-carry blend has no single mask")
 	assert_equal(presenter.present_clip(2, 12, 0), &"ACTOR_CONTENT_CLIP_QUERY", "no thirteenth clip")

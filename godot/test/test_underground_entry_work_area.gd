@@ -159,22 +159,22 @@ func test_entry_foreman_drives_all_twelve_l0_phases_from_the_frontier() -> void:
 	_assert_l0_ledgers()
 
 
-static func foreman_owners(_probe: RefCounted) -> Foreman.Owners:
+static func foreman_owners(probe: RefCounted) -> Foreman.Owners:
 	"""The probe's actual composed owners, unchanged; shared with the paid suite."""
 	var o: Foreman.Owners = Foreman.Owners.new()
-	var w: RefCounted = _probe._world
-	o.sites = _probe._sites; o.jobs = w._jobs; o.work = w._work; o.routes = w._routes; o.binding = w._binding
+	var w: RefCounted = probe._world
+	o.sites = probe._sites; o.jobs = w._jobs; o.work = w._work; o.routes = w._routes; o.binding = w._binding
 	o.residents = w._residents; o.pool = w._pool; o.construction = w._construction; o.inventory = w._inventory
-	o.profiles = w._profiles; o.frontier = _probe._source; o.placements = _probe._placements; o.locations = w._locations
+	o.profiles = w._profiles; o.frontier = probe._source; o.placements = probe._placements; o.locations = w._locations
 	return o
 
 
-static func foreman_crew(_probe: RefCounted) -> Foreman.Crew:
+static func foreman_crew(probe: RefCounted) -> Foreman.Crew:
 	"""One worker, its tool, the source storage/output containers and the finite wood/stone lots."""
 	var c: Foreman.Crew = Foreman.Crew.new()
-	c.worker = _probe._world._worker; c.tool = _probe._tool
-	c.storage = _probe._storage; c.output = _probe._output
-	c.lot_keys = [&"wood", &"stone"]; c.lots = [_probe._wood, _probe._stone]
+	c.worker = probe._world._worker; c.tool = probe._tool
+	c.storage = probe._storage; c.output = probe._output
+	c.lot_keys = [&"wood", &"stone"]; c.lots = [probe._wood, probe._stone]
 	return c
 
 

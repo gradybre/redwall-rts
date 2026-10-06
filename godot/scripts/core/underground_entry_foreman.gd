@@ -210,7 +210,7 @@ func _open(tick: int) -> StringName:
 	_job = made.value
 	var ref: Vector2i = _owners.jobs.ref_of(_job)
 	var code: StringName = _bind_phase_job(task, opened.ref, ref)
-	if code == &"": code = _assign(ref)
+	if code == &"": code = _assign()
 	return _place_actor(task, ref, tick) if code == &"" else code
 
 
@@ -238,7 +238,7 @@ func _bind_phase_job(task: Task, project: Vector2i, job: Vector2i) -> StringName
 	return &"" if result.ok else result.error
 
 
-func _assign(job: Vector2i) -> StringName:
+func _assign() -> StringName:
 	"""The same real worker takes the Job and claims its equipped tool for work."""
 	var worker: int = _owners.residents.directory().get_typed_row(_crew.worker)
 	var result: RefCounted = _owners.jobs.assign_worker(worker, _job)

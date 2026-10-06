@@ -10,8 +10,10 @@ const Workpieces := preload("res://scripts/core/underground_connector_workpieces
 const PaidConstruction := preload("res://scripts/core/construction.gd")
 const PaidContract := preload("res://scripts/core/modular_project_contract.gd")
 const PaidRoutes := preload("res://scripts/core/underground_routes.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
 const Retirement := preload("res://scripts/core/underground_entry_contact_retirement.gd")
 const Assembly := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
+const NULL_REF: Vector2i = Vector2i(-1, 0)
 const DATA: String = "../docs/validation/evidence/underground-paid-assembly-handling-2026-10-05/"
 const PAID_PROFILE_SHA: String = "17d9c229fdfe8ad1923f004db136653ab9834994ba946061be38ec7a2c862ff9"
 const PAID_CATALOG_SHA: String = "eda41ce78d4a798e2160250e2d6760ec7507f0c651c1e7b9b8ad462ff65ab520"
@@ -227,13 +229,21 @@ class PaidProbe extends WorkArea.Probe:
 		var project: Vector2i = handle_l0()
 		if project == NULL_REF: return
 		var job: int = _router._primary_row(project)
+		begin_install(job)
+		if failures.is_empty(): finish_install(job)
+
+	func begin_install(job: int) -> void:
+		"""Handled READY normalizes, then the unchanged INSTALL source reaches WORK without earning anything."""
 		assert_equal(_world._routes.request_source_ready(_world._worker, _world._jobs.ref_of(job)), &"", "handled state normalizes to READY")
 		assert_equal(_world._routes.refresh_work_actor(_world._worker, _world._jobs.ref_of(job), 16, 1, 4, 0, -1, _tool), &"", "actual unchanged INSTALL source")
 		for step: int in 240:
 			if Routes.source_work_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, 4) == &"": break
 			_world._routes.advance_tick(_tick); _tick += 1
 		assert_equal(Routes.source_work_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, 4), &"", "actual INSTALL WORK")
-		if not failures.is_empty(): return
+
+	func finish_install(job: int) -> void:
+		"""Earn all fastening work, recover the INSTALL source and commit the one whole group."""
+		var project: Vector2i = _router_project(job)
 		_earn_actual_phase(job)
 		if not failures.is_empty(): return
 		assert_equal(_world._routes.request_source_ready(_world._worker, _world._jobs.ref_of(job)), &"", "actual INSTALL recovery")
@@ -245,6 +255,18 @@ class PaidProbe extends WorkArea.Probe:
 		var completed: Construction.OpResult = _router.complete_order(project)
 		assert_true(completed.ok, "actual paid L0 commit: %s" % completed.error)
 		installed_l0 = completed.ok and failures.is_empty()
+
+	func recover_install(job: int) -> void:
+		"""A paused worker finishes the real INSTALL recovery before any cancellation may settle."""
+		assert_equal(_world._routes.request_source_ready(_world._worker, _world._jobs.ref_of(job)), &"", "INSTALL recovery requested")
+		for step: int in 240:
+			if Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, 4) == &"": break
+			_world._routes.advance_tick(_tick); _tick += 1
+		assert_equal(Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, 4), &"", "INSTALL recovered")
+
+	func _router_project(job: int) -> Vector2i:
+		"""The Job's requester is the exact paid Project."""
+		return Vector2i(_world._jobs._requester_slot[job], _world._jobs._requester_generation[job])
 
 
 var _probe: PaidProbe = null
@@ -501,3 +523,115 @@ func test_actual_start_refuses_changed_pre_stage_context_and_original_cold_lease
 	for kind: int in 3:
 		_check_pre_stage_refusal(project, kind)
 	assert_equal(_probe._accepted_work_mwu, 36000, "only the four actual completed excavation cubes earned work")
+
+
+func _installing_probe() -> Vector2i:
+	"""Real L0 through handling and the INSTALL source handoff, before any fastening work is earned."""
+	_probe = PaidProbe.new()
+	_probe.before_each()
+	var project: Vector2i = _probe.handle_l0()
+	if project == NULL_REF: return NULL_REF
+	_probe.begin_install(_probe._router._primary_row(project))
+	return project if _probe.failures.is_empty() else NULL_REF
+
+
+func test_real_install_removes_piece_before_retiring_project_and_installs_once() -> void:
+	"""Moved from the synthetic workpieces suite (ADR1183): the genuine receipt becomes one complete installed L0."""
+	var project: Vector2i = _installing_probe()
+	if project == NULL_REF: return
+	var placement: Vector2i = _probe._world._construction.subject_ref_of(project)
+	var region: Vector2i = _probe.pieces.workpiece_region(placement, project)
+	_probe.finish_install(_probe._router._primary_row(project))
+	assert_true(_probe.installed_l0, "actual paid completion")
+	if not _probe.installed_l0: return
+	assert_equal(_probe.pieces._live.present.count(Workpieces.PENDING_HANDLING) + _probe.pieces._live.present.count(Workpieces.HANDLED),
+		0, "no WIP row remains")
+	assert_equal(Workpieces._removed_leaf(_probe.pieces, project, region), &"", "exact Region and Project source removed")
+	assert_false(_probe._world._construction._directory.is_valid(project), "Project retires only after physical cleanup")
+	assert_equal(_probe._placements._get32(_probe._placements._live, Prefix.Placements.INSTALLED, placement.x), 1,
+		"one whole billed group, no partial installed bearer")
+	assert_equal(_probe._world._inventory.lot_quantity_milli(_probe._wood), 1500, "wood charged once including temporary bearer")
+
+
+func test_real_blocked_refund_keeps_piece_and_receipt_then_partial_work_refunds_exactly() -> void:
+	"""Moved from the synthetic workpieces suite: a refused destination cannot delete paid WIP."""
+	var project: Vector2i = _installing_probe()
+	if project == NULL_REF: return
+	var placement: Vector2i = _probe._world._construction.subject_ref_of(project)
+	var region: Vector2i = _probe.pieces.workpiece_region(placement, project)
+	assert_true(_probe._world._work.tick_solo(_probe._router._primary_row(project)).ok, "actual partial useful work")
+	var refund: IntMath.IntResult = IntMath.IntResult.new()
+	assert_true(_probe._world._construction.cancellation_refund_milli_into(project, 0, refund), "actual refund policy")
+	assert_true(refund.value > 0 and refund.value < 4000, "partial progress incurs actual material loss")
+	assert_true(_probe._world._construction.set_paused(project, true).ok, "paused cancellation remains legal")
+	_probe.recover_install(_probe._router._primary_row(project))
+	assert_true(_probe._world._inventory.set_container_reachable(_probe._storage, false).ok, "real destination blocked")
+	var funding: PackedByteArray = _probe._router._funding.state_bytes()
+	var geometry: PackedByteArray = _probe._world._owner.state_bytes()
+	assert_false(_probe._router.cancel_order(project, _probe._storage).ok, "refused physical refund")
+	assert_equal(_probe.pieces.workpiece_region(placement, project), region, "the same full obstacle stays live")
+	assert_equal(_probe._router._funding.state_bytes(), funding, "same actual receipt")
+	assert_equal(_probe._world._owner.state_bytes(), geometry, "no partial spatial removal")
+	assert_true(_probe._world._inventory.set_container_reachable(_probe._storage, true).ok, "real destination restored")
+	var item: int = _probe._world._items.compiled_id(&"wood")
+	var before: int = _probe._world._inventory.total_live_milli(item)
+	var result: PaidConstruction.OpResult = _probe._router.cancel_order(project, _probe._storage)
+	assert_true(result.ok, "actual paid cancellation: %s" % result.error)
+	if not result.ok: return
+	assert_equal(_probe._world._inventory.total_live_milli(item), before + refund.value, "only actual refund enters Inventory")
+	assert_equal(_probe._router._funding.purpose_cancellation_loss_milli(PaidConstruction.PURPOSE_CONNECTOR_INSTALL, item),
+		4000 - refund.value, "actual shared loss domain, no duplicate escrow")
+	assert_equal(Workpieces._removed_leaf(_probe.pieces, project, region), &"", "physical and source retirement before Project")
+	assert_equal(_probe._placements._get32(_probe._placements._live, Prefix.Placements.INSTALLED, placement.x), 0,
+		"cancel preserves the original installed prefix")
+	assert_false(_probe._world._construction._directory.is_valid(project), "paid Project retired")
+
+
+func test_real_productive_terrain_observer_moving_worker_refuses_then_retry_earns() -> void:
+	"""Moved from the synthetic workpieces suite: an ordinary terrain observation cannot credit a moved worker."""
+	var project: Vector2i = _installing_probe()
+	if project == NULL_REF: return
+	var actor: PaidRoutes.Actor = PaidRoutes.Actor.new()
+	assert_equal(_probe._world._routes.read_actor_into(_probe._world._worker, actor), &"", "actual installing actor")
+	var terrain: ObservedPaidTerrain = _probe._world._terrain as ObservedPaidTerrain
+	var fired: Array[int] = [0]
+	terrain.source_probe = func() -> void:
+		fired[0] += 1
+		_probe._world._transforms.place(_probe._world._worker, actor.point.x, actor.point.y, actor.point.z + 512, actor.yaw)
+	_assert_refused_tick(project)
+	assert_equal(fired[0], 1, "one ordinary local terrain observation ran")
+	assert_true(_probe._world._transforms.place(_probe._world._worker, actor.point.x, actor.point.y, actor.point.z, actor.yaw),
+		"restore actual arrived pose")
+	assert_true(_probe._world._work.tick_solo(_probe._router._primary_row(project)).ok, "exact real retry earns work")
+
+
+func test_real_productive_terrain_observer_cannot_replace_actual_binding() -> void:
+	"""Moved from the synthetic workpieces suite: an equal fresh Terrain is not the original once-bound reader."""
+	var project: Vector2i = _installing_probe()
+	if project == NULL_REF: return
+	var world: PaidWorld = _probe._world as PaidWorld
+	var replacement: ObservedPaidTerrain = ObservedPaidTerrain.new()
+	assert_equal(replacement.configure(world._world, world._nodes, world._owner, world._sources, world._items, world._budget),
+		&"", "valid equal foreign reader")
+	var terrain: ObservedPaidTerrain = world._terrain as ObservedPaidTerrain
+	var fired: Array[int] = [0]
+	terrain.source_probe = func() -> void:
+		fired[0] += 1
+		world._binding._terrain = replacement
+	_assert_refused_tick(project)
+	assert_equal(fired[0], 1, "late valid reader replacement happened")
+	world._binding._terrain = terrain
+	assert_true(world._work.tick_solo(_probe._router._primary_row(project)).ok, "original binding retry succeeds")
+
+
+func _assert_refused_tick(project: Vector2i) -> void:
+	"""An observer can mutate its own facts, but cannot earn WU, XP, wear or change the paid receipt."""
+	var work: PackedByteArray = _probe._world._work.state_bytes()
+	var gear: PackedByteArray = _probe._world._gear.state_bytes()
+	var payment: PackedByteArray = _probe._router._funding.state_bytes()
+	var inventory: PackedByteArray = _probe._world._inventory.state_bytes()
+	assert_false(_probe._world._work.tick_solo(_probe._router._primary_row(project)).ok, "changed final facts refuse work")
+	assert_equal(_probe._world._work.state_bytes(), work, "no WU or XP")
+	assert_equal(_probe._world._gear.state_bytes(), gear, "no durability or wear")
+	assert_equal(_probe._router._funding.state_bytes(), payment, "same paid receipt")
+	assert_equal(_probe._world._inventory.state_bytes(), inventory, "no inventory change")

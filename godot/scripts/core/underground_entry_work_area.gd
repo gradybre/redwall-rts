@@ -1,5 +1,5 @@
 extends RefCounted
-## ADR1197 G1: runtime publication of the ADR1191 first-entry work area (11 Locations, 31 directed paths).
+## ADR1197 G1: runtime publication of the ADR1191 first-entry work area (11 Locations, 36 directed paths).
 ## Geometry is the accepted focus-4 work area relative to the entry origin; SurfaceAnchor and WorldRoutes keep
 ## every terrain, air, footing and profile proof. This publishes no Room, Site, Job or permission.
 ## ADR1198 step 5 appends two haul stands beside M and R (indices 9, 10); the first nine keep their indices.
@@ -23,13 +23,19 @@ const STAND_YAW: int = 16384
 ## Union of every floor box the stand must carry, relative to the stand: content-5 rows 30-32 (all-yaw stance and
 ## foot residual, x/z +-406) and rows 34/36 (stance, foot residual and the stock's floor contact at S, x -579..-573).
 const STAND_FOOT: Array[int] = [-579, -1, -412, 406, 0, 412]
-## ADR1198 step 5 haul edges (from, to, mode), the fewest Delivery needs: an empty worker walks R -> R's stand (the
-## source over WALK), carries one whole unit between the stands (the destination over CARRY) and walks M's stand -> M
-## back onto the original graph. Every further edge costs ~26k of the 1,048,576-check entry confirmation (ADR1198).
+## ADR1198 step 5 haul edges (from, to, mode): the full symmetric set (ADR1205). Each storage endpoint and its
+## stand are joined both ways over WALK, the stands both ways over CARRY (loaded) and WALK (empty), so a return
+## trip walks stand M -> stand R directly instead of via H. ADR1205's incremental requalification keeps the entry
+## confirmation's cost to the edges a change actually meets; the first three keep their original order.
 const HAUL_EDGES: Array[Vector3i] = [
 	Vector3i(2, STAND_R, Profiles.MODE_WALK),
 	Vector3i(STAND_R, STAND_M, Profiles.MODE_CARRY),
 	Vector3i(STAND_M, 1, Profiles.MODE_WALK),
+	Vector3i(STAND_R, 2, Profiles.MODE_WALK),
+	Vector3i(1, STAND_M, Profiles.MODE_WALK),
+	Vector3i(STAND_M, STAND_R, Profiles.MODE_CARRY),
+	Vector3i(STAND_M, STAND_R, Profiles.MODE_WALK),
+	Vector3i(STAND_R, STAND_M, Profiles.MODE_WALK),
 ]
 const GATEWAY_X: int = 2560
 const GATEWAY_Z: int = 1536

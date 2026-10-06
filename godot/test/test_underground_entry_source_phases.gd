@@ -70,7 +70,7 @@ class SourceWorld extends Prefix.ActualWorld:
 		config.terrain = _terrain; config.budget = _budget
 		assert_equal(_binding.configure(config), &"", "actual complete route provider")
 		assert_equal(_routes.configure(_locations, _owner, _sources, _buildings, _budget, _binding,
-			1024, 32, 128, 128, Routes.ARENA_BYTES), &"", "existing production cell query bound")
+			1024, 64, 256, 128, Routes.ARENA_BYTES), &"", "existing production cell query bound; ADR1205 work area has 36 paths")
 		assert_equal(_routes.bind_profiles(_profiles, _inventory, _gear, _carry, _work, _pool, _piles), &"", "original worker owners")
 
 class Probe extends PhaseFixture:

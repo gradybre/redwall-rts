@@ -102,7 +102,7 @@ class Probe extends Previous.Probe:
 		pass
 
 	func _surface_routes() -> void:
-		"""ADR1197 G1: the production publisher seals and publishes all 31 directed paths once."""
+		"""ADR1197 G1: the production publisher seals and publishes all 36 directed paths once."""
 		assert_equal(WorkAreaSource.publish_paths(_world._binding, _world._routes, _world._budget, _world._owner,
 			ORIGIN, _published, _content_revision()), &"", "production work-area paths")
 
@@ -135,7 +135,7 @@ func test_actual_material_aliases_do_not_create_extra_locations() -> void:
 	_probe = Probe.new()
 	_probe.before_each()
 	assert_equal(_probe._world._locations._live.count, 11, "original nine plus the two ADR1198 haul stands")
-	assert_equal(_probe._world._routes._live.edge_count, 31, "original 28 directed paths plus three haul edges")
+	assert_equal(_probe._world._routes._live.edge_count, 36, "original 28 directed paths plus eight haul edges")
 	assert_equal(_probe._source.row_count(4, Bundle.FRONTIER_REVISION), 14,
 		"explicit extra travel selectors and the two installed arrival selectors only")
 
@@ -207,6 +207,13 @@ func test_haul_stands_derive_from_the_content5_grip_rows_and_qualify_walk_and_ca
 	assert_true(_edge_admits(binding, _probe._endpoints[2], _probe._endpoints[WorkAreaSource.STAND_R], 31), "tool-free WALK to R's stand")
 	assert_true(_edge_admits(binding, _probe._endpoints[WorkAreaSource.STAND_R], _probe._endpoints[WorkAreaSource.STAND_M], 32), "CARRY between stands")
 	assert_true(_edge_admits(binding, _probe._endpoints[WorkAreaSource.STAND_M], _probe._endpoints[1], 31), "tool-free WALK back to M")
+	var stand_m: Vector2i = _probe._endpoints[WorkAreaSource.STAND_M]
+	var stand_r: Vector2i = _probe._endpoints[WorkAreaSource.STAND_R]
+	assert_true(_edge_admits(binding, stand_r, _probe._endpoints[2], 31), "ADR1205: WALK R's stand back to R")
+	assert_true(_edge_admits(binding, _probe._endpoints[1], stand_m, 31), "ADR1205: WALK M to M's stand")
+	assert_true(_edge_admits(binding, stand_m, stand_r, 32), "ADR1205: CARRY M's stand to R's stand")
+	assert_true(_edge_admits(binding, stand_m, stand_r, 31), "ADR1205: empty return walk between the stands")
+	assert_true(_edge_admits(binding, stand_r, stand_m, 31), "ADR1205: empty walk R's stand to M's stand")
 
 
 static func _floor_union(profiles: RefCounted) -> Array[int]:
@@ -223,7 +230,7 @@ static func _floor_union(profiles: RefCounted) -> Array[int]:
 
 
 static func _edge_admits(binding: RefCounted, first: Vector2i, last: Vector2i, profile: int) -> bool:
-	"""The published edge between two endpoints carries the profile's certificate bit."""
+	"""Some published edge between two endpoints carries the profile's certificate bit (the stands have two)."""
 	var routes: RefCounted = binding._routes_ref.get_ref()
 	var capacity: int = routes._edge_capacity
 	for row: int in capacity:
@@ -233,5 +240,18 @@ static func _edge_admits(binding: RefCounted, first: Vector2i, last: Vector2i, p
 				or Vector2i(fields[Prefix.Routes.E_TO_SLOT * capacity + row], fields[Prefix.Routes.E_TO_GENERATION * capacity + row]) != last:
 			continue
 		@warning_ignore("integer_division")
-		return (binding._live.masks[row * Prefix.WorldRoutes.MASK_BYTES + profile / 8] & (1 << (profile % 8))) != 0
+		if (binding._live.masks[row * Prefix.WorldRoutes.MASK_BYTES + profile / 8] & (1 << (profile % 8))) != 0:
+			return true
 	return false
+
+
+
+func test_entry_confirmation_carries_every_work_area_path() -> void:
+	"""ADR1205: the Room's only geometry change is floor metadata, so all 36 paths carry and the proof stays small."""
+	_probe = Probe.new()
+	_probe.before_each()
+	var room: Vector2i = _probe._confirm_prefix()
+	if room == Vector2i(-1, 0): return
+	var binding: RefCounted = _probe._world._binding
+	assert_equal(binding._carried_edges, 36, "every published path carried")
+	assert_true(binding._proof_checks * 2 < Prefix.Space.MAX_CHECKS, "entry confirmation well inside the check budget: %d" % binding._proof_checks)

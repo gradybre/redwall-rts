@@ -50,7 +50,7 @@ The seam is in `underground_connector_delivery.gd`.
 ### Work area
 
 - **Three haul edges only:** WALK R→stand R, CARRY stand R→stand M, WALK stand M→M. See the check-budget finding
-  in ADR 1198, step 5.
+  in ADR 1198, step 5. *Superseded by ADR 1205: all eight haul edges are now published.*
 - **The CARRY edge arrives on the grip heading.** Ground turns admit only STAND and WALK, and no loaded turn is
   authored. So the CARRY polyline steps out by the stand offset on +X, runs along, and enters stand M moving −X
   (yaw 16384). The empty worker turns in place at stand R.

@@ -23,6 +23,7 @@ const Budget := preload("res://scripts/core/underground_budget.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const SourceFacts := preload("res://scripts/core/underground_connector_source_facts.gd")
 const FinalFacts := preload("res://scripts/core/underground_final_facts.gd")
+const Journal := preload("res://scripts/core/underground_geometry_journal.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const MASK_BYTES: int = 32
 const EDGE_CAPACITY: int = Routes.MAX_EDGES
@@ -30,8 +31,13 @@ const CERTIFICATE_BYTES: int = 2 * EDGE_CAPACITY * (MASK_BYTES + 4 + 16)
 const CONTROL_RESERVE: int = 4096 # Fixed packets, weak links and numeric controls; not measured native RAM.
 const RESERVED_BYTES: int = CERTIFICATE_BYTES + CONTROL_RESERVE
 const FRAGMENT_CAPACITY: int = 1024
+const CHANGE_CAPACITY: int = Journal.CAPACITY # ADR1205: staged changed sides, Journal.STAGED_STRIDE I32 each.
+## ADR1205: no clearance predicate reads a FLOOR_DATUM row (Clearance.blocked and _body_blocked skip it; coverage
+## subtracts only SUPPORTED_VOID, SUPPORT and the pending OBSTACLE bearer; contacts read DRY_SOLID and SUPPORT),
+## so a change that only adds, moves or removes floor metadata cannot alter any certificate.
+const CLEARANCE_INERT_ROLE: int = Space.FLOOR_DATUM
 const SNAPSHOT_BYTES: int = 48 * Budget.REGION_CAPACITY + 16 * Budget.SOURCE_CAPACITY
-const COLD_BYTES: int = SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 1024
+const COLD_BYTES: int = SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 28 * CHANGE_CAPACITY + 1024
 const SOURCE_PASS_CHECKS: int = Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY
 const REACH_SCOPE_CHECKS: int = 1024 # Fixed source/digest/Domain leaves, charged at both query boundaries.
 const REACH_WITNESS_CHECKS: int = 64 # Per configured Location, reserved on both warm and fresh queries.
@@ -116,6 +122,9 @@ class Clearance extends RefCounted:
 	var cover: PackedInt32Array = PackedInt32Array()
 	var cut: PackedInt32Array = PackedInt32Array()
 	var core: PackedInt32Array = PackedInt32Array()
+	## ADR1205: boxes the sealed Space stage changes against live; -1 means unknown, so nothing is carried.
+	var changes: PackedInt32Array = PackedInt32Array()
+	var change_count: int = -1
 
 	func allocate(snapshot: Space.Snapshot, checks: int) -> void:
 		"""Caller proves the actual shared lease before constructing this entire cold packet."""
@@ -123,6 +132,7 @@ class Clearance extends RefCounted:
 		remaining = checks
 		fragments.resize(6 * FRAGMENT_CAPACITY)
 		next_fragments.resize(6 * FRAGMENT_CAPACITY)
+		changes.resize(Journal.STAGED_STRIDE * CHANGE_CAPACITY)
 		box.resize(6)
 		cover.resize(6)
 		cut.resize(6)
@@ -318,6 +328,17 @@ var _support: PackedInt32Array = PackedInt32Array()
 var _scratch: PackedInt32Array = PackedInt32Array()
 var _first_point: PackedInt32Array = PackedInt32Array()
 var _last_point: PackedInt32Array = PackedInt32Array()
+## ADR1205 incremental requalification. `_envelope` is one profile box swept along one segment; `_since` is the
+## live certificate's geometry revision and `_relevant` the number of changed boxes after it. `_carry_edge` holds
+## for an edge no such change meets; `_carried` for a profile its live certificate already admitted.
+var _envelope: PackedInt32Array = PackedInt32Array()
+var _since: int = 0
+var _relevant: int = 0
+var _carry_edge: bool = false
+var _carried: bool = false
+## Measurements only: checks the last sealed proof spent, and how many of its edges were carried.
+var _proof_checks: int = 0
+var _carried_edges: int = 0
 
 
 func configure(config: Configuration) -> StringName:
@@ -384,6 +405,7 @@ func _allocate_scratch() -> void:
 	_scratch.resize(6)
 	_first_point.resize(3)
 	_last_point.resize(3)
+	_envelope.resize(6)
 	_endpoint.envelope.resize(6)
 	_endpoint.support.resize(6)
 	_section.box.resize(6)
@@ -769,11 +791,91 @@ func _begin_proof() -> StringName:
 		return REFUSE_BUDGET
 	_proof = Clearance.new()
 	_proof.allocate(snapshot, _domain._checks)
-	return &"" if _proof.spend(3 * (Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY)) else _proof.error
+	if not _proof.spend(3 * (Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY)):
+		return _proof.error
+	return _prepare_carry()
+
+
+func _prepare_carry() -> StringName:
+	"""ADR1205: derive the staged changes once; any doubt leaves carrying off for this whole proof."""
+	_proof.change_count = -1
+	_carried_edges = 0
+	if _live_catalog_revision != _catalog_revision:
+		return &""
+	if _space_token == 0:
+		_proof.change_count = 0
+		return &""
+	if not _proof.spend(_owner().region_capacity()):
+		return _proof.error
+	_proof.change_count = Journal.staged_changes_into(_owner(), _proof.changes, CHANGE_CAPACITY)
+	return &""
+
+
+func _kind_matches(edge: Routes.Edge) -> bool:
+	"""Only a certified profile of the edge's own mode, posture and connector family can ever serve it."""
+	return _descriptor.certificate_flags == Profiles.CERT_REQUIRED and _descriptor.mode == edge.mode \
+		and _descriptor.posture == edge.posture \
+		and (edge.family < 0 or (_descriptor.family_mask & (1 << edge.family)) != 0)
+
+
+func _carry_eligible(edge: Routes.Edge) -> bool:
+	"""The same live path, generation and content, proved at a revision whose later changes miss every sweep."""
+	if _proof.change_count < 0 or edge == null or edge.ref.x < 0 or edge.ref.x >= EDGE_CAPACITY \
+			or edge.point_count < 2 or edge.points.size() < edge.point_count * 3:
+		return false
+	var row: int = edge.ref.x
+	_since = _live.geometry[row]
+	if _live.generations[row] != edge.ref.y or _live.content[row] != _content_revision \
+			or _since <= 0 or _since > _base_revision or _since < _owner()._journal.floor_revision():
+		return false
+	_relevant = _owner()._journal.count_after(_since) + _proof.change_count
+	for profile: int in _profiles.profile_count(_content_revision):
+		if not _proof.spend() or _profiles.descriptor_into(profile, _content_revision, _descriptor) != &"":
+			return false
+		if _kind_matches(edge) and not _profile_sweeps_clean(edge):
+			return false
+	return true
+
+
+func _profile_sweeps_clean(edge: Routes.Edge) -> bool:
+	"""Every box of this profile swept along every segment misses each change since the certificate's revision."""
+	if _relevant == 0:
+		return true
+	for segment: int in edge.point_count - 1:
+		for ordinal: int in _descriptor.box_count:
+			if not _proof.spend(1 + _relevant) or _profile_box_into(ordinal, _body) != &"" \
+					or _sweep_into(_body, _point(edge, segment), _point(edge, segment + 1), _envelope) != &"" \
+					or not _owner()._journal.clean(_envelope, _since, CLEARANCE_INERT_ROLE) \
+					or _staged_change_meets(_envelope):
+				return false
+	return true
+
+
+func _staged_change_meets(box: PackedInt32Array) -> bool:
+	"""Whether any non-inert side the sealed Space stage changes against live overlaps `box`."""
+	for index: int in _proof.change_count:
+		var at: int = index * Journal.STAGED_STRIDE
+		if _proof.changes[at + 6] == CLEARANCE_INERT_ROLE:
+			continue
+		for axis: int in 6:
+			_scratch[axis] = _proof.changes[at + axis]
+		if Space.overlaps(box, _scratch):
+			return true
+	return false
 
 
 func _preparation_refusal() -> StringName:
 	"""Lease expiry, content reload and physical preparation drift invalidate the complete candidate."""
+	var code: StringName = _carried_context_refusal()
+	if code != &"" or _space_token == 0:
+		return code
+	if _proof != null and not _proof.spend(SOURCE_PASS_CHECKS):
+		return _proof.error
+	return _owner().prepared_refusal(_space_token)
+
+
+func _carried_context_refusal() -> StringName:
+	"""Everything but the source and claim pass: a carried edge reads no Space truth beyond the pinned image."""
 	if _route_token <= 0 or not _budget.covers(_cold_token, Budget.COLD_BYTES):
 		return REFUSE_BUDGET
 	var code: StringName = binding_refusal()
@@ -783,9 +885,7 @@ func _preparation_refusal() -> StringName:
 			or _owner().revision() != _base_revision:
 		return REFUSE_CONTEXT
 	if _space_token != 0:
-		if _proof != null and not _proof.spend(SOURCE_PASS_CHECKS):
-			return _proof.error
-		return _owner().prepared_refusal(_space_token)
+		return _owner().prepared_identity_refusal(_space_token)
 	return &"SPACE_TRANSACTION_BUSY" if _owner().has_prepared() else &""
 
 
@@ -795,11 +895,15 @@ func edge_refusal(edge: Routes.Edge, route_token: int, space_token: int, locatio
 			or route_token != _route_token or space_token != _space_token or location_token != _location_token:
 		return REFUSE_CONTEXT
 	_compiling = true
-	var code: StringName = _preparation_refusal()
+	_carry_edge = _carry_eligible(edge)
+	var code: StringName = _proof.error
+	if code == &"":
+		code = _carried_context_refusal() if _carry_edge else _preparation_refusal()
 	if code == &"":
 		code = _compile_edge(edge)
 	if code == &"":
-		code = _preparation_refusal()
+		code = _carried_context_refusal() if _carry_edge else _preparation_refusal()
+	_carry_edge = false
 	_compiling = false
 	return code
 
@@ -811,24 +915,34 @@ func _compile_edge(edge: Routes.Edge) -> StringName:
 		return REFUSE_CONTEXT
 	_stage.clear_row(edge.ref.x)
 	var code: StringName = _path_refusal(edge)
+	if code == &"" and _carry_edge:
+		code = _endpoint_observation_refusal(edge.from_location, _point(edge, 0))
+		if code == &"": code = _endpoint_observation_refusal(edge.to_location, _point(edge, edge.point_count - 1))
+	if code == &"":
+		code = _compile_profiles(edge)
+	_carried = false
 	if code != &"":
 		return code
+	_carried_edges += 1 if _carry_edge else 0
+	_stage.generations[edge.ref.x] = edge.ref.y
+	_stage.geometry[edge.ref.x] = _target_revision
+	_stage.content[edge.ref.x] = _content_revision
+	return &""
+
+
+func _compile_profiles(edge: Routes.Edge) -> StringName:
+	"""Each profile is proved on its own; a carried edge skips only what its unchanged inputs already proved."""
 	var accepted: int = 0
 	for profile: int in _profiles.profile_count(_content_revision):
 		if not _proof.spend():
 			return _proof.error
-		code = _profile_edge_refusal(profile, edge)
+		var code: StringName = _profile_edge_refusal(profile, edge)
 		if _proof.error != &"":
 			return _proof.error
 		if code == &"":
 			_stage.admit(edge.ref.x, profile)
 			accepted += 1
-	if accepted == 0:
-		return &"WORLD_ROUTE_NO_FITTING_PROFILE"
-	_stage.generations[edge.ref.x] = edge.ref.y
-	_stage.geometry[edge.ref.x] = _target_revision
-	_stage.content[edge.ref.x] = _content_revision
-	return &""
+	return &"" if accepted > 0 else &"WORLD_ROUTE_NO_FITTING_PROFILE"
 
 
 func _path_refusal(edge: Routes.Edge) -> StringName:
@@ -853,9 +967,9 @@ func _profile_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
 	var code: StringName = _profiles.descriptor_into(profile, _content_revision, _descriptor)
 	if code != &"":
 		return code
-	if _descriptor.certificate_flags != Profiles.CERT_REQUIRED or _descriptor.mode != edge.mode \
-			or _descriptor.posture != edge.posture or (edge.family >= 0 and (_descriptor.family_mask & (1 << edge.family)) == 0):
+	if not _kind_matches(edge):
 		return &"WORLD_ROUTE_PROFILE_KIND"
+	_carried = _carry_edge and _live.admits(edge.ref.x, profile) and not _may_excuse_pending()
 	code = _catalog.pace_into(profile, _descriptor.profile_revision, _content_revision,
 		edge.family, edge.variant, _catalog_revision, _pace)
 	if code != &"":
@@ -863,13 +977,14 @@ func _profile_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
 	if Routes.ShortStep.uses(_profiles) and Routes.ShortStep.is_short(profile):
 		code = Routes.ShortStep.span_refusal(profile, _point(edge, 0), _point(edge, edge.point_count - 1), edge.point_count, _pace.value)
 		if code != &"": return code
-	code = _profile_endpoint_refusal(edge.from_location, _point(edge, 0))
-	if code == &"": code = _profile_endpoint_refusal(edge.to_location, _point(edge, edge.point_count - 1))
+	if not _carried:
+		code = _profile_endpoint_refusal(edge.from_location, _point(edge, 0))
+		if code == &"": code = _profile_endpoint_refusal(edge.to_location, _point(edge, edge.point_count - 1))
 	return _profile_segments_refusal(edge) if code == &"" else code
 
 
-func _profile_endpoint_refusal(location: Vector2i, point: Vector3i) -> StringName:
-	"""A source mask never promises arrival at an endpoint which cannot contain its full body and held tool."""
+func _endpoint_observation_refusal(location: Vector2i, point: Vector3i) -> StringName:
+	"""The endpoint is live, refreshed to this proof's revision and still at the path's end; its payload is immutable."""
 	if not _proof.spend(Locations.PREPARED_OBSERVATION_CHECKS): return _proof.error
 	var code: StringName = _prepared_endpoint_into(self, location, _endpoint) \
 		if _location_token != 0 else _locations().read_location_into(location, _endpoint)
@@ -878,6 +993,13 @@ func _profile_endpoint_refusal(location: Vector2i, point: Vector3i) -> StringNam
 			or _endpoint.geometry_revision != (_target_revision if _location_token != 0 else _base_revision) \
 			or _endpoint.point != point or _endpoint.payload_revision <= 0:
 		return &"WORLD_ROUTE_ENDPOINT_STALE"
+	return &""
+
+
+func _profile_endpoint_refusal(location: Vector2i, point: Vector3i) -> StringName:
+	"""A source mask never promises arrival at an endpoint which cannot contain its full body and held tool."""
+	var code: StringName = _endpoint_observation_refusal(location, point)
+	if code != &"": return code
 	for ordinal: int in _descriptor.box_count:
 		if not _proof.spend(1 + _descriptor.box_count): return _proof.error
 		code = _profile_box_into(ordinal, _body)
@@ -1002,7 +1124,8 @@ func _profile_segment_refusal(first: Vector3i, last: Vector3i) -> StringName:
 			code = _terrain.exclusions_refusal(_bounds)
 		if code != &"":
 			return code
-		if _body_blocked(first, last) or not _body_covered(first, last) or not _solid_contacts_covered(first, last):
+		if not _carried and (_body_blocked(first, last) or not _body_covered(first, last) \
+				or not _solid_contacts_covered(first, last)):
 			return _proof.error if _proof.error != &"" else REFUSE_COVERAGE
 	return &""
 
@@ -1021,10 +1144,15 @@ func _body_blocked(first: Vector3i, last: Vector3i) -> bool:
 
 func _pending_span_refusal(first: Vector3i, last: Vector3i, row: int) -> StringName:
 	"""No new permission is retained: recheck the original START scope and full source after every observer."""
-	if _installation == null or (_descriptor.profile_id != 2 and _descriptor.profile_id != 6) \
+	if _installation == null or not _may_excuse_pending() \
 			or _proof.image.volumes.role[row] != Space.OBSTACLE: return REFUSE_COVERAGE
 	if not _proof.spend(4096): return _proof.error
 	return AssemblyEndpoint.prepared_span_refusal(self, first, last, row)
+
+
+func _may_excuse_pending() -> bool:
+	"""Only source profiles 2 and 6 may omit a pending bearer, so their old proofs never carry (ADR1205)."""
+	return _descriptor.profile_id == 2 or _descriptor.profile_id == 6
 
 
 func _subtract_pending_bearer(first: Vector3i, last: Vector3i) -> bool:
@@ -1085,7 +1213,7 @@ func _stance_sweeps_refusal(first: Vector3i, last: Vector3i) -> StringName:
 			code = _terrain.exclusions_refusal(_support)
 		if code != &"":
 			return code
-		if _proof.blocked(_support, true) or not _proof.covered(_support, Space.SUPPORT):
+		if not _carried and (_proof.blocked(_support, true) or not _proof.covered(_support, Space.SUPPORT)):
 			return _proof.error if _proof.error != &"" else &"WORLD_ROUTE_SUPPORT"
 	return &""
 
@@ -1135,6 +1263,7 @@ func seal(token: int) -> StringName:
 		code = _preparation_refusal()
 	if code == &"":
 		_sealed = true
+		_proof_checks = _domain._checks - _proof.remaining
 		_proof = null
 	_compiling = false
 	return code

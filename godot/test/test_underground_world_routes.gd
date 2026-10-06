@@ -33,6 +33,7 @@ const Forage := preload("res://scripts/core/forage.gd")
 const Fishing := preload("res://scripts/core/fishing.gd")
 const Rng := preload("res://scripts/core/rng.gd")
 const Terrain := preload("res://scripts/core/underground_terrain.gd")
+const Journal := preload("res://scripts/core/underground_geometry_journal.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const X: int = 60 * 2048
 const Z: int = 50 * 2048
@@ -1415,3 +1416,141 @@ func _arm_turn_location_probe(probe: Callable) -> void:
 	"""Keep the negative-only subclass type explicit for suites that inherit this actual fixture."""
 	var observed: RefusingLocations = _locations as RefusingLocations
 	observed.turn_probe = probe
+
+
+func _publish_owner_rows(boxes: Array[PackedInt32Array], role: int) -> void:
+	"""ADR1205: one actual published Space transaction adding the given rows."""
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	for box: PackedInt32Array in boxes:
+		_region(token, box, role)
+	assert_equal(_owner.seal(token), &"", "actual geometry candidate")
+	_owner.publish(token)
+
+
+func _far_rows(count: int) -> Array[PackedInt32Array]:
+	"""Small obstacles four metres and more from the fixture path; none meets any profile sweep."""
+	var rows: Array[PackedInt32Array] = []
+	for index: int in count:
+		var x: int = X + 4096 + (index % 16) * 128
+		@warning_ignore("integer_division")
+		var z: int = Z + (index / 16) * 128
+		rows.append(PackedInt32Array([x, 512, z, x + 64, 768, z + 64]))
+	return rows
+
+
+func _refresh(edge: Vector2i, space_token: int = 0) -> StringName:
+	"""Requalify one edge in its own route preparation; publish on success."""
+	if space_token == 0:
+		_refresh_endpoints()
+	_lease = _budget.acquire(Budget.COLD_BYTES)
+	var begun: Routes.Result = _binding.begin_prepare(_lease, space_token)
+	var code: StringName = begun.error
+	if code == &"": code = _routes.stage_refresh(begun.token, edge)
+	if code == &"": code = _binding.seal(begun.token)
+	if code == &"" and space_token != 0: _owner.publish(space_token)
+	if code == &"": code = _binding.publish(begun.token)
+	_end(begun.token)
+	return code
+
+
+func _refresh_endpoints() -> void:
+	"""Both endpoints requalified at the current published revision, as every revision bump requires."""
+	var cold: int = _budget.acquire(Budget.COLD_BYTES)
+	var token: int = _locations.begin_prepare(cold).token
+	for location: Vector2i in [_first, _last]:
+		assert_equal(_locations.stage_refresh(token, location), &"", "endpoint requalified")
+	assert_equal(_locations.seal(token), &"", "endpoints sealed")
+	assert_true(_locations.publish(token), "endpoints published")
+	assert_equal(_budget.release(cold), &"", "no output retained")
+
+
+func test_far_change_carries_the_certificate_without_volume_checks() -> void:
+	"""ADR1205: a carried edge's proof cost does not grow with the image; a full recheck's does."""
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	var mask: PackedByteArray = _binding._live.masks.slice(edge.x * Binding.MASK_BYTES, (edge.x + 1) * Binding.MASK_BYTES)
+	_publish_owner_rows(_far_rows(1), Space.OBSTACLE)
+	assert_equal(_refresh(edge), &"", "carried refresh publishes")
+	assert_equal(_binding._carried_edges, 1, "the far change misses every sweep")
+	var one: int = _binding._proof_checks
+	_publish_owner_rows(_far_rows(60), Space.OBSTACLE)
+	assert_equal(_refresh(edge), &"", "carried again over sixty more rows")
+	assert_equal(_binding._carried_edges, 1, "still carried")
+	_publish_owner_rows([PackedInt32Array([X + 8192, 512, Z, X + 8256, 768, Z + 64])], Space.OBSTACLE)
+	assert_equal(_refresh(edge), &"", "one more far row, sixty-one more image rows than the first refresh")
+	assert_equal(_binding._carried_edges, 1, "carried a third time")
+	assert_equal(_binding._proof_checks, one, "same cost as the first one-row change: no check scans an image row")
+	assert_true(_binding._live.masks.slice(edge.x * Binding.MASK_BYTES, (edge.x + 1) * Binding.MASK_BYTES) == mask,
+		"same certificate bits")
+	_owner._journal.reset(_owner.revision() + 1)
+	assert_equal(_refresh(edge), &"", "full recheck of the same image")
+	assert_equal(_binding._carried_edges, 0, "a raised floor forces the full proof")
+	assert_true(_binding._proof_checks > one, "the full proof scans the image rows")
+
+
+func test_change_meeting_the_path_is_rechecked_and_refused() -> void:
+	"""ADR1205: a blocker across the span is journaled, so the edge is fully rechecked and refused."""
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	_publish_owner_rows([PackedInt32Array([X + 1024, 512, Z, X + 1025, 1536, Z + 2048])], Space.UNFINISHED)
+	assert_equal(_refresh(edge), &"WORLD_ROUTE_NO_FITTING_PROFILE", "journaled blocker refuses the refresh")
+	assert_equal(_binding._carried_edges, 0, "nothing carried across the blocker")
+
+
+func test_staged_change_meeting_the_path_is_rechecked_and_refused() -> void:
+	"""ADR1205: the same holds for a sealed, unpublished Space stage compared against live."""
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	_region(token, PackedInt32Array([X + 1024, 512, Z, X + 1025, 1536, Z + 2048]), Space.UNFINISHED)
+	assert_equal(_owner.seal(token), &"", "staged blocker")
+	assert_equal(_refresh(edge, token), &"WORLD_ROUTE_NO_FITTING_PROFILE", "staged blocker refuses the refresh")
+	assert_equal(_binding._carried_edges, 0, "nothing carried across the staged blocker")
+	assert_true(_owner.abort(token), "candidate discarded")
+	token = _stage_distant_geometry()
+	assert_equal(_refresh(edge, token), &"", "a distant staged change carries")
+	assert_equal(_binding._carried_edges, 1, "staged far change misses every sweep")
+
+
+func test_journal_overflow_falls_back_to_a_full_recheck() -> void:
+	"""ADR1205: evicted history raises the floor above the certificate, which is then proved in full."""
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	_publish_owner_rows(_far_rows(Journal.CAPACITY + 1), Space.OBSTACLE)
+	assert_true(_owner._journal.floor_revision() > _binding._live.geometry[edge.x], "ring overflowed past the certificate")
+	assert_equal(_refresh(edge), &"", "full recheck still qualifies the clear path")
+	assert_equal(_binding._carried_edges, 0, "nothing carried after overflow")
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	for box: PackedInt32Array in _far_rows(Journal.CAPACITY + 1):
+		box[1] += 1024
+		box[4] += 1024
+		_region(token, box, Space.OBSTACLE)
+	assert_equal(_owner.seal(token), &"", "oversized staged candidate")
+	assert_equal(_refresh(edge, token), &"", "full recheck against the oversized stage")
+	assert_equal(_binding._carried_edges, 0, "staged overflow carries nothing")
+
+
+func test_content_revision_change_forces_a_full_recheck() -> void:
+	"""ADR1205: new catalog content never inherits a mask, even with no geometry change near the edge."""
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	_publish_owner_rows(_far_rows(1), Space.OBSTACLE)
+	assert_equal(_load_catalog(2), &"", "actual immutable catalog replaced")
+	assert_equal(_refresh(edge), &"", "complete new proof")
+	assert_equal(_binding._carried_edges, 0, "content change forces a full check")
+	_binding._live.content[edge.x] += 1
+	_publish_owner_rows(_far_rows(1), Space.OBSTACLE)
+	_refresh_endpoints()
+	var token: int = _begin()
+	assert_equal(_routes.stage_refresh(token, edge), &"", "profile-content mismatch is proved in full")
+	assert_equal(_binding._carried_edges, 0, "a stale profile content revision is never carried")
+	_end(token)
+
+
+func test_floor_metadata_change_is_inert_to_route_clearance() -> void:
+	"""ADR1205: a new FLOOR_DATUM row across the path changes no predicate, so the edge is carried."""
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	_publish_owner_rows([PackedInt32Array([X, 512, Z, X + 2048, 513, Z + 2048])], Space.FLOOR_DATUM)
+	assert_equal(_refresh(edge), &"", "floor metadata leaves the span clear")
+	assert_equal(_binding._carried_edges, 1, "inert role carried")

@@ -12,6 +12,7 @@ const Construction := preload("res://scripts/core/construction.gd")
 const ModularContract := preload("res://scripts/core/modular_project_contract.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
+const Journal := preload("res://scripts/core/underground_geometry_journal.gd")
 const MAX_REGIONS: int = Space.MAX_REGIONS
 const HEADER_FIELDS: int = 18
 const SCHEMA: int = 1
@@ -317,6 +318,8 @@ var _validation_sources: int = -1
 var _changed_rows: PackedInt32Array = PackedInt32Array()
 var _changed_mask: PackedByteArray = PackedByteArray()
 var _facts: Facts = Facts.new()
+## ADR1205: derived, unsaved record of the traversal volumes each publication changed.
+var _journal: Journal = Journal.new()
 var _header: PackedInt64Array = PackedInt64Array()
 var _s_header: PackedInt64Array = PackedInt64Array()
 var _region_free_heap: PackedInt32Array = PackedInt32Array()
@@ -433,6 +436,8 @@ func configure(domain: Space.Domain, region_rows: int, source_capacity: int) -> 
 	_source_capacity = source_capacity
 	_allocate_columns()
 	_write_header(binding)
+	_journal.allocate()
+	_journal.reset(_header[17])
 	_domain = _copy_domain(binding)
 	_initialize_free_rows()
 	_bind_initial_world(binding.world_ref)
@@ -947,12 +952,17 @@ func seal(token: int) -> StringName:
 
 func prepared_refusal(token: int) -> StringName:
 	"""Immediate final preflight rechecks real source generations and facts without copying geometry."""
+	var code: StringName = prepared_identity_refusal(token)
+	if code == &"":
+		code = _sources_refusal(true)
+	return _claims_refusal(true) if code == &"" else code
+
+
+func prepared_identity_refusal(token: int) -> StringName:
+	"""The sealed candidate's own identity and revision only; source and claim truth stay with prepared_refusal."""
 	if token == 0 or token != _stage_token or not _sealed:
 		return &"SPACE_TRANSACTION_UNSEALED"
-	if _s_header[17] != revision() + 1:
-		return &"SPACE_REVISION_STALE"
-	var code: StringName = _sources_refusal(true)
-	return _claims_refusal(true) if code == &"" else code
+	return &"SPACE_REVISION_STALE" if _s_header[17] != revision() + 1 else &""
 
 
 func prepared_has_changes(token: int) -> bool:
@@ -1970,6 +1980,7 @@ func restore_state_bytes(bytes: PackedByteArray) -> StringName:
 	_sealed = true
 	publish(begun.token)
 	_last_published_token = 0
+	_journal.reset(revision()) # ADR1205: no pre-load history describes the loaded image.
 	return &""
 
 
@@ -2972,6 +2983,7 @@ func _swap_columns_0() -> void:
 
 static func _commit_columns_0(actual: RefCounted) -> void:
 	"""One fixed publication group in the declared packed-field order."""
+	Journal.record(actual) # ADR1205: every publication path swaps this group first, with both banks intact.
 	var saved_0: PackedInt64Array = actual._header
 	actual._header = actual._s_header
 	actual._s_header = saved_0

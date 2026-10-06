@@ -671,7 +671,7 @@ func test_suggested_entry_site_publishes_the_whole_work_area_on_generated_ground
 	assert_equal(EntryWorkArea.publish_paths(o.world_routes, o.routes, o.budget, o.space, at, published,
 		o.profiles.content_revision()), &"", "all 31 paths publish")
 	assert_equal(o.locations._live.count, EntryWorkArea.ENDPOINTS, "exactly the work area's endpoints")
-	assert_equal(o.routes._live.edge_count, 31, "exactly the work area's paths, three of them ADR1198 haul edges")
+	assert_equal(o.routes._live.edge_count, 36, "exactly the work area's paths, eight of them ADR1198/1205 haul edges")
 	var plan: RefCounted = EntrySite.entry_plan(session._world_ref, o.space.revision(), at, published.endpoints[0],
 		o.world_routes._catalog, frontier)
 	assert_true(plan != null, "entry plan derived from the mounted bundle")

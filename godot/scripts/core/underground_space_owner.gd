@@ -320,6 +320,8 @@ var _changed_mask: PackedByteArray = PackedByteArray()
 var _facts: Facts = Facts.new()
 ## ADR1205: derived, unsaved record of the traversal volumes each publication changed.
 var _journal: Journal = Journal.new()
+## ADR1207: the same record in the full view (Room markers included), for World-preparation Location carries.
+var _location_journal: Journal = Journal.new()
 var _header: PackedInt64Array = PackedInt64Array()
 var _s_header: PackedInt64Array = PackedInt64Array()
 var _region_free_heap: PackedInt32Array = PackedInt32Array()
@@ -438,6 +440,8 @@ func configure(domain: Space.Domain, region_rows: int, source_capacity: int) -> 
 	_write_header(binding)
 	_journal.allocate()
 	_journal.reset(_header[17])
+	_location_journal.allocate(true)
+	_location_journal.reset(_header[17])
 	_domain = _copy_domain(binding)
 	_initialize_free_rows()
 	_bind_initial_world(binding.world_ref)
@@ -1981,6 +1985,7 @@ func restore_state_bytes(bytes: PackedByteArray) -> StringName:
 	publish(begun.token)
 	_last_published_token = 0
 	_journal.reset(revision()) # ADR1205: no pre-load history describes the loaded image.
+	_location_journal.reset(revision()) # ADR1207: likewise; Locations' own load re-proves every row here.
 	return &""
 
 

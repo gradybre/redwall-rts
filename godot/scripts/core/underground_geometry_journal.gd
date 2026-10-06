@@ -5,6 +5,8 @@ extends RefCounted
 ## certificate forward only when its sweeps meet none of the volumes changed since the
 ## certificate's own geometry revision. Anything the journal cannot vouch for is rechecked in full.
 ## Derived and unsaved: a load or an out-of-sequence revision empties it and raises the floor.
+## ADR1207: a second instance keeps the *full* view (every present row, Room reservation markers
+## included), which is the image a World preparation proves Locations against.
 
 const Space := preload("res://scripts/core/room_space.gd")
 const CAPACITY: int = 256
@@ -19,14 +21,16 @@ var _revisions: PackedInt64Array = PackedInt64Array()
 var _roles: PackedByteArray = PackedByteArray()
 var _boxes: PackedInt32Array = PackedInt32Array()
 var _box: PackedInt32Array = PackedInt32Array()
+var _full: bool = false
 var _head: int = 0
 var _count: int = 0
 ## Every change made by a revision above the floor is still in the ring.
 var _floor: int = 0
 
 
-func allocate() -> void:
-	"""Fixed ring and one scratch box; nothing grows after configuration."""
+func allocate(full: bool = false) -> void:
+	"""Fixed ring and one scratch box; nothing grows after configuration. `full` selects the full-image view."""
+	_full = full
 	_revisions.resize(CAPACITY)
 	_roles.resize(CAPACITY)
 	_boxes.resize(6 * CAPACITY)
@@ -91,8 +95,13 @@ func _push(revision: int, role: int, box: PackedInt32Array) -> void:
 
 
 static func record(owner: RefCounted) -> void:
-	"""Called before the live/stage swap: journal every slot whose traversal row differs between the two banks."""
-	var journal: RefCounted = owner._journal
+	"""Called before the live/stage swap: journal both views (ADR1205 traversal, ADR1207 full) of the change."""
+	_record_into(owner, owner._journal)
+	_record_into(owner, owner._location_journal)
+
+
+static func _record_into(owner: RefCounted, journal: RefCounted) -> void:
+	"""Journal every slot whose row in this journal's view differs between the two banks."""
 	if journal == null or journal._revisions.size() != CAPACITY:
 		return
 	var base: int = owner._header[REVISION_FIELD]
@@ -101,17 +110,45 @@ static func record(owner: RefCounted) -> void:
 		journal.reset(target + 1 if target == base else target)
 		return
 	for row: int in owner._region_capacity:
-		if not _row_changed(owner, row):
+		if not _row_changed(owner, row, journal._full):
 			continue
 		_push_side(journal, owner, row, false, target)
 		_push_side(journal, owner, row, true, target)
 
 
 static func _push_side(journal: RefCounted, owner: RefCounted, row: int, staged: bool, target: int) -> void:
-	"""Journal one bank's side of a changed slot when that side is traversal-visible."""
-	if _visible(owner, row, staged):
+	"""Journal one bank's side of a changed slot when that side is visible in the journal's view."""
+	if _visible(owner, row, staged, journal._full):
 		_box_into(owner, row, staged, journal._box)
 		journal._push(target, _role(owner, row, staged), journal._box)
+
+
+static func staged_clean(owner: RefCounted, envelope: PackedInt32Array, inert_role: int) -> bool:
+	"""ADR1207: no full-view side of a sealed stage's changed rows but `inert_role` meets the envelope.
+	Reads SpaceOwner's own changed-row index, which every staged region edit marks."""
+	for index: int in owner._changed_count:
+		var row: int = owner._changed_rows[index]
+		if _row_changed(owner, row, true) and (_side_meets(owner, row, false, envelope, inert_role) \
+				or _side_meets(owner, row, true, envelope, inert_role)):
+			return false
+	return true
+
+
+static func _side_meets(owner: RefCounted, row: int, staged: bool, envelope: PackedInt32Array, inert_role: int) -> bool:
+	"""One full-view side of a changed slot that is present, not inert, and overlaps the envelope."""
+	return _visible(owner, row, staged, true) and _role(owner, row, staged) != inert_role \
+		and side_overlaps(owner, row, staged, envelope)
+
+
+static func side_overlaps(owner: RefCounted, row: int, staged: bool, box: PackedInt32Array) -> bool:
+	"""Half-open overlap of one bank's slot box with `box`, without copying the slot."""
+	if staged:
+		return owner._s_r_lo_x[row] < box[3] and box[0] < owner._s_r_hi_x[row] \
+			and owner._s_r_lo_y[row] < box[4] and box[1] < owner._s_r_hi_y[row] \
+			and owner._s_r_lo_z[row] < box[5] and box[2] < owner._s_r_hi_z[row]
+	return owner._r_lo_x[row] < box[3] and box[0] < owner._r_hi_x[row] \
+		and owner._r_lo_y[row] < box[4] and box[1] < owner._r_hi_y[row] \
+		and owner._r_lo_z[row] < box[5] and box[2] < owner._r_hi_z[row]
 
 
 static func staged_changes_into(owner: RefCounted, out: PackedInt32Array, limit: int) -> int:
@@ -140,10 +177,10 @@ static func _staged_side(owner: RefCounted, row: int, staged: bool, out: PackedI
 	return count + 1
 
 
-static func _row_changed(owner: RefCounted, row: int) -> bool:
-	"""Compare exactly what the traversal snapshot copies: visibility, effective role and the half-open box."""
-	var before: bool = _visible(owner, row, false)
-	if before != _visible(owner, row, true):
+static func _row_changed(owner: RefCounted, row: int, full: bool = false) -> bool:
+	"""Compare exactly what the view's snapshot copies: visibility, effective role and the half-open box."""
+	var before: bool = _visible(owner, row, false, full)
+	if before != _visible(owner, row, true, full):
 		return true
 	if not before:
 		return false
@@ -153,8 +190,10 @@ static func _row_changed(owner: RefCounted, row: int) -> bool:
 		or owner._r_hi_y[row] != owner._s_r_hi_y[row] or owner._r_hi_z[row] != owner._s_r_hi_z[row]
 
 
-static func _visible(owner: RefCounted, row: int, staged: bool) -> bool:
-	"""Present and not a Room's own typed reservation marker, mirroring SpaceOwner's traversal image."""
+static func _visible(owner: RefCounted, row: int, staged: bool, full: bool = false) -> bool:
+	"""Traversal: present and not a Room's own typed reservation marker. Full: every present row."""
+	if full:
+		return (owner._s_r_present[row] if staged else owner._r_present[row]) != 0
 	if staged:
 		return owner._s_r_present[row] != 0 and not (owner._s_r_claim_kind[row] == CLAIM_ROOM \
 			and owner._s_r_role[row] == Space.OBSTACLE and owner._s_r_owner_slot[row] == owner._s_r_claim_slot[row] \

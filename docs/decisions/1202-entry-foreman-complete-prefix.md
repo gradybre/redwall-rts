@@ -1,8 +1,8 @@
 # 1202 — Entry foreman: the T0 cuts, the contact path, and two blockers before the T0 installation
 
-Date: 2026-10-06 · Status: Accepted (partial). ADR 1197 G9 is **not closed**: blockers 1–3 are resolved, but
-blocker 4 (a check budget, at the end of this record) stops the T0 installation, so the Kitchen excavation was not
-scoped.
+Date: 2026-10-06 · Status: Accepted. Blockers 1–4 are resolved; the foreman completes the whole first-entry
+prefix (see "Blocker 4 resolved" at the end). The Kitchen's own excavation is scoped, not built ("Kitchen
+excavation: scope"). ADR 1197 G9 stays open for the Kitchen.
 
 ## What was built
 
@@ -399,3 +399,98 @@ contact → arrival, and source 12 is refused onto the contact. Both doublings w
 
 The complete-prefix test waits on this choice and on the route budget, so the Kitchen excavation is still not
 scoped. The live demo's G9 alert now carries `SURFACE_ANCHOR_CHECK_CAPACITY`.
+
+## Decision (2026-10-06): Brendan chose option 1 for blocker 4, "re-check only touched Locations"
+
+### Blocker 4 resolved (ADR 1207)
+
+A World preparation now carries every existing Location whose air and footing no change since its own proof
+touches (full-view geometry journal, a direct blocker scan, identity facts rerun); touched ones are re-proved
+as before. A carried Location spends none of SurfaceAnchor's checks. Measured:
+
+| Create | Before | After |
+|---|---:|---:|
+| Last work-area create (11 Locations) | 1,001,833 | 775,313 |
+| T0 crossing survey (12 Locations) | refused `SURFACE_ANCHOR_CHECK_CAPACITY` | 551,353 (9 carried, 2 re-proved) |
+
+The route budget at the T0 commit is incremental already (ADR 1205), and no other blocker appeared. The
+blocker-4 test became `test_entry_foreman_runs_the_complete_prefix_from_the_confirmed_prefix`, driven only by
+`Foreman.advance` from the confirmed prefix:
+
+| Ledger | Value |
+|---|---|
+| INSTALLED | 2 (L0 and T0, each exactly once) |
+| Wood | 0 |
+| Stone | 0 |
+| Spoil | 12,000 |
+| Work | 54,000 cut + 44,000 fastening = 98,000 mWU |
+| Conservation refusals | empty |
+| Audits | pass |
+| Live Projects | 0 |
+
+Reachability: source 12 M ↔ arrival, source 2 arrival → contact, source 6 contact → arrival; source 12 is
+refused onto the narrow contact.
+
+## Kitchen excavation: scope (not implemented)
+
+### What exists (component level, proven only in tests)
+
+- **Room admission.** `RoomOrders.confirm_room` (`underground_room_orders.gd`) admits a painted Room and
+  splits its cells into one Site per metre cube (`_prepare_room_claims` → `Sites.prepare_room_claim_batch_into`).
+  It requires an `Approach.Request` (`underground_room_approach.gd`): an existing access Location, an existing
+  WORK Location, travel/work profiles, the first target cube, face and yaw (ADR 1150). The mounted session binds
+  the approach observer (`underground_route_composition.gd` `configure_room_approach`); nothing in production
+  builds a request. The only Kitchen is the fixture in `test_underground_room_world_phases.gd` (`room_request`:
+  2×2 at level 1, height 4096, 16 cubes, bootstrapped corridor endpoints).
+- **Paid phases.** Sites' phase API (`open_phase`, `bind_job`, `bind_material_container`, `bind_output`,
+  `begin_phase_work`, `settle_phase`) is generic and works for Room Sites.
+- **Phase contacts for Room Sites.** `underground_room_world_bindings.gd` `bind_room_phase_contacts` selects the
+  unique ROLE_WORK Location whose contact lies on the target face, with one fixed retreat and travel profile.
+  Only tests call it; entry composition binds only the entry provider.
+- **Next cube.** `underground_room_frontier.gd` `next_site_into` walks the Room's Sites in canonical order and
+  derives BRACE/CUT/FINISH; `contact_into` proves an existing contact or refuses
+  `ROOM_FRONTIER_EXISTING_CONTACT_REQUIRED`.
+- **New stations.** `underground_room_frontier_publication.gd` `publish_into` publishes a gateway plus 1–3
+  Locations and their spans on already-paid Space (ADR 1161). The caller supplies every section, point,
+  profile, face and yaw.
+- **Itineraries.** `underground_room_itinerary.gd` (ADRs 1165/1172).
+- **The foreman's per-task loop** (open, travel, enter, start, earn, recover) is reusable; only its task source
+  (Frontier EPISODE rows) is entry-specific.
+- One Kitchen cube (BRACE/CUT/FINISH plus retreat) is proven end to end in `test_underground_room_world_phases.gd`.
+
+### What is missing
+
+1. **Geometry from T0 to the Kitchen.** `confirm_entry` admits only the Corridor; its far opening is null
+   (`underground_entry_site.gd` `entry_plan`, `opening_targets`), and the prefix artifact
+   (`first-entry-prefix-v1.json`) leaves the half metre beyond T0 nontraversable and excludes room completion.
+   No authored descent reaches the Kitchen's depth.
+2. **A Kitchen confirmation step in the runtime** (`underground_entry_runtime.gd` has no room step): a painted
+   plan whose first cube is face-adjacent to the reachable end, and an `Approach.Request` built from live
+   Locations (access = the installed T0 contact or the arrival).
+3. **Mounted Room phase binding**: `bind_room_phase_contacts` in entry composition, with a retreat and travel
+   profile that suit every cube (it binds once).
+4. **A Room-station planner**: from a Site key, face and yaw, derive the `FrontierPublication.Request` (gateway,
+   stations, profiles). This is the Room counterpart of the Frontier STATION/ENDPOINT rows and the core missing
+   piece. Interior cubes need underground standing Locations on cut floor; upper cubes need the 232u step source,
+   and a multi-heading retreat needs more than the single backward-9 retreat (ADR 1161's three open seams).
+5. **A foreman Room loop**: after the last installation, repeat `next_site_into` → plan → `publish_into` →
+   `contact_into` → the existing phase loop, until the scan ends and every Kitchen Site is SUPPORTED_VOID.
+6. **Logistics.** Delivery pins cut Projects to the entry Placement (`underground_connector_delivery.gd`
+   `_pin_project`, `_entry_placement`); Room Projects need their own pin. Spoil and inputs sit at surface M/R, so
+   they need routes from Room stations or underground staging. Haul motion (G4, ADR 1198) and the stone carry
+   (ADR 1203) remain open.
+7. **Budgets.** Each published Room station adds route edges (ADR 1205) and Locations. Room stations are
+   published by Room/phase preparations, which ADR 1207 did not make incremental. Measure as stations land.
+
+### Ordered steps
+
+1. **Brendan: where the Kitchen sits relative to the entry** and how T0 connects to it (a stair/descent of
+   further Frontier rows, or the Kitchen's first face placed at T0's far end). Everything below depends on it.
+2. Author that connection (Frontier successor or descent episodes) and prove it on the hand fixture.
+3. Runtime Kitchen confirmation: build the `Approach.Request` from live Locations; `confirm_room`.
+4. Compose `bind_room_phase_contacts` in entry composition.
+5. Room-station planner; prove it on the ADR 1161 fixture's lower and upper cubes (closing the 232u step and
+   retreat seams).
+6. Foreman Room loop to all 16 Sites SUPPORTED_VOID, with exact ledgers.
+7. Delivery pinning for Room Projects and underground spoil/input logistics.
+8. Live demo: one G9 alert code per missing row until each lands.

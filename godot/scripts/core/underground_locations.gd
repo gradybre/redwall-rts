@@ -22,6 +22,7 @@ const ConnectorCatalog := preload("res://scripts/core/underground_connector_cata
 const ConnectorFacts := preload("res://scripts/core/underground_connector_source_facts.gd")
 const ContactRetirementScope := preload("res://scripts/core/underground_entry_contact_retirement_scope.gd")
 const AssemblyEndpoint := preload("res://data/underground/mole-worker/qualified-assembly-v1/endpoint_certificate.gd")
+const Journal := preload("res://scripts/core/underground_geometry_journal.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const SCHEMA: int = 1
 const HEADER_FIELDS: int = 16
@@ -51,6 +52,9 @@ const ENVELOPE: int = 10
 const SUPPORT: int = 16
 const PAYLOAD_REVISION: int = 0
 const GEOMETRY_REVISION: int = 1
+## Every role whose volume an endpoint's air may not meet (the envelope obstacle predicate).
+const BLOCKING_ROLES: Array[int] = [Space.DRY_SOLID, Space.OBSTACLE, Space.PROTECTED_ACCESS, Space.SUPPORT,
+	Space.OPENABLE_SHELL, Space.WATER, Space.RESOURCE, Space.OCCUPANT, Space.UNFINISHED]
 
 
 class Record extends RefCounted:
@@ -357,6 +361,13 @@ var _world_preparation: bool = false
 var _installation: InstallationContext = null
 var _phase_context: PhaseContext = null
 var _resolve_source_ref: Vector2i = NULL_REF
+## ADR1207: connector content revision under which the last World publication (or load) proved every live
+## row; -1 until one has. A World refresh may carry a row only while the bound content is still this one.
+var _carry_content: int = -1
+## ADR1207: true only while a carried row's identity facts are re-checked without its volume proof.
+var _carry_geometry: bool = false
+## ADR1207 measurement: rows the current (or last) World preparation carried instead of re-proving.
+var _carried_locations: int = 0
 var _resolve_source_hint: int = -1
 
 
@@ -1046,6 +1057,7 @@ func begin_world_prepare(cold_token: int, owner_token: int) -> Result:
 	if result.error == &"":
 		_world_preparation = true
 		_target_geometry_revision = _owner.revision() + 1
+		_carried_locations = 0
 	return result
 
 
@@ -1570,7 +1582,10 @@ func stage_add(token: int, record: Record) -> Result:
 
 
 func stage_refresh(token: int, location: Vector2i) -> StringName:
-	"""Revalidate an existing immutable endpoint without changing Inventory's payload revision."""
+	"""Revalidate an existing immutable endpoint without changing Inventory's payload revision.
+	ADR1207: in a World preparation, an endpoint that no change since its own proof touches is carried."""
+	if _world_preparation and _carry_eligible(token, location):
+		return _stage_carry(location)
 	var code: StringName = _editable(token)
 	if code != &"" or not _live_ref(_stage, location):
 		return code if code != &"" else &"LOCATION_STALE"
@@ -1580,6 +1595,74 @@ func stage_refresh(token: int, location: Vector2i) -> StringName:
 	if code == &"":
 		_set64(_stage, GEOMETRY_REVISION, location.x, _snapshot.revision)
 	return code
+
+
+func _carry_eligible(token: int, location: Vector2i) -> bool:
+	"""ADR1207: cheap candidate identity, then the journal and the blocker scan; anything unproved is re-proved."""
+	if _in_retention or _contact_retirement != null or token <= 0 or token != _token or _sealed \
+			or _carry_content < 0 or not _content_current() \
+			or not _cold.covers(_cold_token, cold_peak_bytes()) or not _live_ref(_live, location) \
+			or not _live_ref(_stage, location) or not _row_payload_unchanged(location.x):
+		return false
+	if not _world_scope_current(_actual_world_scope(), _cold_token, _owner_token) \
+			or _owner._stage_token != _owner_token or not _owner._sealed or _owner._validation_sources >= 0 \
+			or _owner.prepared_identity_refusal(_owner_token) != &"" or _owner.revision() + 1 != _target_geometry_revision:
+		return false
+	var since: int = _get64(_live, GEOMETRY_REVISION, location.x)
+	var cost: int = 4 * Journal.CAPACITY + 2 * _owner._changed_count + _owner._region_capacity + 64
+	if since > _owner.revision() or cost > _remaining:
+		return false
+	_remaining -= cost
+	_prepare_record_scratch()
+	_read_row(_live, location.x, _record)
+	return _untouched(_record, since) and _envelope_unblocked(_record.envelope)
+
+
+func _untouched(record: Record, since: int) -> bool:
+	"""No full-view change after `since`, journaled or staged, meets the air or the footing (FLOOR_DATUM is inert)."""
+	var journal: Journal = _owner._location_journal
+	return journal.clean(record.envelope, since, Space.FLOOR_DATUM) \
+		and journal.clean(record.support, since, Space.FLOOR_DATUM) \
+		and Journal.staged_clean(_owner, record.envelope, Space.FLOOR_DATUM) \
+		and Journal.staged_clean(_owner, record.support, Space.FLOOR_DATUM)
+
+
+func _envelope_unblocked(envelope: PackedInt32Array) -> bool:
+	"""No blocking volume of the sealed full image meets the air, whatever image or exemption the older proof used."""
+	for row: int in _owner._region_capacity:
+		if _owner._s_r_present[row] == 0 or not Journal.side_overlaps(_owner, row, true, envelope):
+			continue
+		var role: int = Space.OBSTACLE if _owner._s_r_claim_kind[row] != Owner.CLAIM_NONE else _owner._s_r_role[row]
+		if role in BLOCKING_ROLES:
+			return false
+	return true
+
+
+func _stage_carry(location: Vector2i) -> StringName:
+	"""ADR1207: re-check identity, section and Room/Site facts only; the journal vouches for the unchanged volumes."""
+	_prepare_record_scratch()
+	_read_row(_stage, location.x, _record)
+	_carry_geometry = true
+	var code: StringName = _validate_record(_record)
+	_carry_geometry = false
+	if code == &"":
+		_set64(_stage, GEOMETRY_REVISION, location.x, _target_geometry_revision)
+		_carried_locations += 1
+	return code
+
+
+func _content_current() -> bool:
+	"""ADR1207: unchanged bound content. A first binding is no revision: no earlier proof read any content, and a
+	carried row still re-derives its installed witness from the content now bound."""
+	return _carry_content == 0 or _carry_content == _content_stamp()
+
+
+func _content_stamp() -> int:
+	"""ADR1207: the bound connector Catalog's content revision, which installed-endpoint witnesses read; else 0."""
+	if _installation == null or _installation.issuer == null:
+		return 0
+	var issuer: RefCounted = _installation.issuer.get_ref()
+	return issuer._catalog.content_revision() if issuer != null and issuer._catalog != null else 0
 
 
 func stage_remove(token: int, location: Vector2i) -> StringName:
@@ -1707,12 +1790,20 @@ func publish(token: int) -> bool:
 		return false
 	if _final_inventory_refusal(_cold_token, cold_peak_bytes()) != &"":
 		return false
+	_swap_published(token)
+	return true
+
+
+func _swap_published(token: int) -> void:
+	"""Swap the banks; a World publication also stamps the content every live row was just proved under."""
+	var world: bool = _world_preparation
 	var previous: Bank = _live
 	_live = _stage
 	_stage = previous
 	_last_published_token = token
 	_reset_preparation()
-	return true
+	if world:
+		_carry_content = _content_stamp()
 
 
 func _world_publication_refusal() -> StringName:
@@ -1886,7 +1977,7 @@ func _record_geometry_refusal(record: Record) -> StringName:
 	var code: StringName = _section_refusal(record)
 	if code == &"":
 		code = _survey_for(record)
-	if code != &"":
+	if code != &"" or _carry_geometry:
 		return code
 	code = _record_obstacles_refusal(record)
 	if code != &"": return code
@@ -1901,8 +1992,7 @@ func _record_obstacles_refusal(record: Record) -> StringName:
 	for row: int in rows.role.size():
 		if not _spend():
 			return &"LOCATION_OPERATION_BUDGET"
-		if rows.role[row] in [Space.DRY_SOLID, Space.OBSTACLE, Space.PROTECTED_ACCESS, Space.SUPPORT, Space.OPENABLE_SHELL,
-				Space.WATER, Space.RESOURCE, Space.OCCUPANT, Space.UNFINISHED] and Space.overlaps(record.envelope, rows.box_at(row)):
+		if rows.role[row] in BLOCKING_ROLES and Space.overlaps(record.envelope, rows.box_at(row)):
 			var code: StringName = _pending_entry_record_refusal(record, row)
 			if code != &"": return code
 	return &""
@@ -1969,6 +2059,8 @@ func _survey_for(record: Record) -> StringName:
 			return scope
 	if _world_preparation and not _world_scope_current(_actual_world_scope(), _cold_token, _owner_token):
 		return &"LOCATION_WORLD_SCOPE"
+	if _carry_geometry:
+		return &"" # ADR1207: a carried row copies no image; its volumes are vouched for by the journal.
 	var image: Space.Snapshot = Space.Snapshot.new()
 	var code: StringName = _snapshot_for_into(record, physical, site, image)
 	if code == &"":
@@ -2589,6 +2681,7 @@ func restore_state_bytes(cold_token: int, bytes: PackedByteArray) -> StringName:
 	_live = _stage
 	_stage = previous
 	_last_published_token = 0
+	_carry_content = _content_stamp() # ADR1207: the load just re-proved every live row against this image.
 	return &""
 
 

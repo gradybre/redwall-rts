@@ -655,22 +655,51 @@ func test_entry_foreman_drives_cuts_retirement_paid_handling_and_install() -> vo
 
 
 
-func test_entry_foreman_splits_the_l0_landing_then_the_crossing_survey_exceeds_the_anchor_check_budget() -> void:
-	"""ADR1202 split landing: only Foreman.advance(tick) runs six cubes and the paid L0, which now creates a narrow
-	WORK contact and one arrival; publishing the T0 contact path then refuses on SurfaceAnchor's check budget."""
+func test_entry_foreman_runs_the_complete_prefix_from_the_confirmed_prefix() -> void:
+	"""ADR1202/1207: only Foreman.advance(tick) runs six cubes, the paid L0 (split landing), the crossing survey,
+	which now re-proves only the Locations it touches, and the paid T0, each group INSTALLED exactly once."""
 	_probe = PaidProbe.new()
 	_probe.before_each()
 	var foreman: Foreman = _complete_prefix_foreman()
 	if foreman == null: return
 	var tick: int = _probe._tick
-	while not foreman.is_done() and foreman.error() == &"" and tick < _probe._tick + 80000:
+	while not foreman.is_done() and foreman.error() == &"" and tick < _probe._tick + 120000:
 		foreman.advance(tick)
 		tick += 1
-	assert_equal(foreman.error(), &"SURFACE_ANCHOR_CHECK_CAPACITY",
-		"the crossing survey refreshes one more live Location (the arrival) than the World check budget covers")
-	assert_true(foreman._installer == null, "the T0 order was never opened")
-	_assert_t0_cut_ledger(foreman)
+	assert_equal(foreman.error(), &"", "no refusal on the whole prefix")
+	assert_true(foreman.is_done(), "every planned task finished")
+	assert_true(_probe._anchor._last_checks < 600000,
+		"the crossing survey carries the untouched Locations: %d of 1048576 checks" % _probe._anchor._last_checks)
+	_assert_complete_prefix_ledger(foreman)
 	_assert_split_landing()
+	_assert_crossing_reachability()
+
+
+func _assert_complete_prefix_ledger(foreman: Foreman) -> void:
+	"""Both groups installed once; every adopted input spent; spoil, work and conservation exact; no live Project."""
+	var world: RefCounted = _probe._world
+	assert_equal(_probe._placements._get32(_probe._placements._live, Prefix.Placements.INSTALLED, 0), 2,
+		"L0 and T0 each installed exactly once")
+	assert_equal(world._inventory.lot_quantity_milli(_probe._wood), 0, "all adopted wood spent")
+	assert_equal(world._inventory.lot_quantity_milli(_probe._stone), 0, "all 1500 adopted brace stone spent")
+	assert_equal(_probe._sites.virgin_sourced_milli(), 12000, "six 2000 spoil outputs")
+	assert_equal(foreman.accepted_mwu(), 54000, "six cubes x 9000 phase work")
+	assert_equal(foreman.accepted_mwu() + foreman.install_mwu(), 98000, "cuts plus both installations' fastening")
+	assert_equal(_probe._sites.earth_conservation_refusal(), &"", "complete spoil conservation")
+	assert_equal(_probe._sites.support_conservation_refusal(), &"", "complete brace conservation")
+	assert_true(world._inventory.audit().ok and world._pool.audit(world._inventory).ok, "real conservation audits")
+	assert_equal(world._construction.live_project_count(), 0, "every Project retired")
+
+
+func _assert_crossing_reachability() -> void:
+	"""The published crossing joins M and the arrival; the narrow contact admits only its backward/forward sources."""
+	var arrival: Vector2i = _installed_l0_arrival()
+	var contact: Vector2i = _probe._installed_l0_contact()
+	assert_equal(_reach(_probe._endpoints[1], arrival, 12), &"", "source12 reaches the arrival from M")
+	assert_equal(_reach(arrival, _probe._endpoints[1], 12), &"", "source12 returns to M")
+	assert_equal(_reach(arrival, contact, 2), &"", "source2 steps onto the contact")
+	assert_equal(_reach(contact, arrival, 6), &"", "source6 backs off the contact")
+	assert_true(_reach(arrival, contact, 12) != &"", "source12 is refused onto the narrow contact")
 
 
 func _complete_prefix_foreman() -> Foreman:
@@ -690,21 +719,6 @@ func _complete_prefix_foreman() -> Foreman:
 	assert_equal(foreman.configure_installation(paid, 1), &"", "T0 cuts and installation from install row 1")
 	assert_equal(foreman.task_count(), 18, "six cubes x BRACE/CUT/FINISH")
 	return foreman if failures.is_empty() else null
-
-
-func _assert_t0_cut_ledger(foreman: Foreman) -> void:
-	"""All six cubes and the whole L0 are paid exactly once; nothing of the T0 group is admitted or spent."""
-	var world: RefCounted = _probe._world
-	assert_equal(_probe._placements._get32(_probe._placements._live, Prefix.Placements.INSTALLED, 0), 1, "only L0 installed")
-	assert_equal(world._inventory.lot_quantity_milli(_probe._wood), 1000, "only the T0 assembly wood remains")
-	assert_equal(world._inventory.lot_quantity_milli(_probe._stone), 0, "all 1500 adopted brace stone spent")
-	assert_equal(_probe._sites.virgin_sourced_milli(), 12000, "six 2000 spoil outputs")
-	assert_equal(foreman.accepted_mwu(), 54000, "six cubes x 9000 phase work")
-	assert_equal(foreman.install_mwu(), 32000, "L0 landing fastening only")
-	assert_equal(_probe._sites.earth_conservation_refusal(), &"", "complete spoil conservation")
-	assert_equal(_probe._sites.support_conservation_refusal(), &"", "complete brace conservation")
-	assert_true(world._inventory.audit().ok and world._pool.audit(world._inventory).ok, "real conservation audits")
-	assert_equal(world._construction.live_project_count(), 0, "every Project retired; no T0 Project admitted")
 
 
 func _assert_split_landing() -> void:
@@ -728,7 +742,6 @@ func _assert_split_landing() -> void:
 	assert_equal(_relative(record.support, record.point), PackedInt32Array([-406, -1, -406, 406, 0, 406]),
 		"arrival footing: the source12 stance on the deck")
 	assert_equal(record.envelope[2], bearer_far_z, "arrival air ends exactly at the T0 bearer's far face")
-	assert_true(_reach(_probe._endpoints[1], arrival, 12) != &"", "no ground path yet: the survey refused")
 	var row: PackedInt32Array = PackedInt32Array()
 	row.resize(Foreman.Frontier.row_fields(Foreman.Frontier.INSTALL))
 	assert_equal(_probe._source.installation_into(1, row), &"", "successor T0 install row")

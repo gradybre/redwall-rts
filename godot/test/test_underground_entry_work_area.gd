@@ -5,7 +5,7 @@ const Previous := preload("res://test/test_underground_entry_source_phases.gd")
 const Prefix := preload("res://test/test_underground_first_prefix.gd")
 const Foreman := preload("res://scripts/core/underground_entry_foreman.gd")
 const WorkAreaSource := preload("res://scripts/core/underground_entry_work_area.gd")
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-haul-v2/catalog_source.gd")
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-install-v3/catalog_source.gd")
 const MoleCatalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
 const WA_PROFILE_SHA: String = Bundle.PROFILE_SHA
 const WA_CATALOG_SHA: String = Bundle.CATALOG_SHA
@@ -19,7 +19,7 @@ class WorkAreaImages extends RefCounted:
 		return Bundle.FRONTIER_PATH.get_base_dir().path_join(name)
 
 	static func frontier() -> String:
-		"""The work-area Frontier is the bundle's revision-2 successor."""
+		"""The work-area Frontier is the bundle's current successor (ADR 1202: revision 3)."""
 		return Bundle.FRONTIER_PATH
 
 
@@ -64,7 +64,7 @@ class Probe extends Previous.Probe:
 	func _entry_plan() -> EntryPlan.Request:
 		"""The new selector revision is explicit in the original Room confirmation request."""
 		var plan: EntryPlan.Request = super._entry_plan()
-		plan.frontier_revision = 2
+		plan.frontier_revision = Bundle.FRONTIER_REVISION
 		return plan
 
 	func _load_real_bills() -> void:
@@ -83,7 +83,7 @@ class Probe extends Previous.Probe:
 		_source = Frontier.new()
 		assert_equal(_source.configure(PackedInt32Array([2, 8, 2, 10, 12, 6]), 4112), &"", "exact successor arena")
 		assert_equal(_source.bind_actual(_world._catalog, _groups._reader, _groups._recipes, _world._profiles), &"", "original source chain")
-		assert_equal(_source.load_file(WorkAreaImages.frontier(), WA_FRONTIER_SHA, 2), &"", "immutable work-area Frontier")
+		assert_equal(_source.load_file(WorkAreaImages.frontier(), WA_FRONTIER_SHA, Bundle.FRONTIER_REVISION), &"", "immutable work-area Frontier")
 
 	func _natural_surface() -> void:
 		"""ADR1197 G1: the production publisher creates all nine endpoints from the accepted geometry."""
@@ -135,7 +135,7 @@ func test_actual_material_aliases_do_not_create_extra_locations() -> void:
 	_probe.before_each()
 	assert_equal(_probe._world._locations._live.count, 9, "unchanged original Location count")
 	assert_equal(_probe._world._routes._live.edge_count, 28, "all exact original directed paths")
-	assert_equal(_probe._source.row_count(4, 2), 12, "explicit extra travel selectors only")
+	assert_equal(_probe._source.row_count(4, Bundle.FRONTIER_REVISION), 12, "explicit extra travel selectors only")
 
 
 func test_entry_foreman_drives_all_twelve_l0_phases_from_the_frontier() -> void:

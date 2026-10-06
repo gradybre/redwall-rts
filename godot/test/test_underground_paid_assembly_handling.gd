@@ -655,8 +655,8 @@ func test_entry_foreman_drives_cuts_retirement_paid_handling_and_install() -> vo
 
 
 
-func test_entry_foreman_runs_t0_cuts_then_t0_admission_refuses_the_narrow_material_selector() -> void:
-	"""ADR1202: only Foreman.advance(tick) runs six cubes and the paid L0; the T0 order then refuses exactly."""
+func test_entry_foreman_opens_t0_then_handling_footing_refuses_on_the_l0_deck() -> void:
+	"""ADR1202: only Foreman.advance(tick) runs six cubes, the paid L0 and the T0 order; T0 handling then refuses."""
 	_probe = PaidProbe.new()
 	_probe.before_each()
 	var foreman: Foreman = _complete_prefix_foreman()
@@ -665,9 +665,12 @@ func test_entry_foreman_runs_t0_cuts_then_t0_admission_refuses_the_narrow_materi
 	while not foreman.is_done() and foreman.error() == &"" and tick < _probe._tick + 80000:
 		foreman.advance(tick)
 		tick += 1
-	assert_equal(foreman.error(), &"ROUTE_NOT_CONNECTED", "T0 admission needs a source2 path from M to the L0 contact")
+	assert_equal(foreman.error(), &"ASSEMBLY_FOREIGN_SOLID",
+		"the handling foot on the installed L0 deck meets the excavation Room's reservation marker")
 	assert_false(foreman.is_done(), "the T0 group is not installed")
 	_assert_t0_cut_ledger(foreman)
+	assert_equal(_probe._world._construction.live_project_count(), 1,
+		"the successor Frontier's all-yaw M selector admits the T0 order; it stays open, unfunded")
 	_assert_contact_path()
 
 
@@ -691,7 +694,7 @@ func _complete_prefix_foreman() -> Foreman:
 
 
 func _assert_t0_cut_ledger(foreman: Foreman) -> void:
-	"""All six cubes and the whole L0 are paid exactly once; the refused T0 order paid and created nothing."""
+	"""All six cubes and the whole L0 are paid exactly once; the refused T0 handling delivered and paid nothing."""
 	var world: RefCounted = _probe._world
 	assert_equal(_probe._placements._get32(_probe._placements._live, Prefix.Placements.INSTALLED, 0), 1, "only L0 installed")
 	assert_equal(world._inventory.lot_quantity_milli(_probe._wood), 1000, "only the T0 assembly wood remains")
@@ -702,7 +705,6 @@ func _assert_t0_cut_ledger(foreman: Foreman) -> void:
 	assert_equal(_probe._sites.earth_conservation_refusal(), &"", "complete spoil conservation")
 	assert_equal(_probe._sites.support_conservation_refusal(), &"", "complete brace conservation")
 	assert_true(world._inventory.audit().ok and world._pool.audit(world._inventory).ok, "real conservation audits")
-	assert_equal(world._construction.live_project_count(), 0, "every Project retired; no T0 Project admitted")
 
 
 func _assert_contact_path() -> void:
@@ -717,4 +719,8 @@ func _assert_contact_path() -> void:
 	assert_equal(Foreman.WorldRoutes.profile_reachability_refusal(_probe._world._binding, contact, material, 12, 1,
 		content, checks, remaining), &"", "the L0 contact back to M on all-yaw source12")
 	assert_true(Foreman.WorldRoutes.profile_reachability_refusal(_probe._world._binding, material, contact, 2, 1,
-		content, checks, remaining) != &"", "the Frontier's M selector names source2, which only walks -Z")
+		content, checks, remaining) != &"", "source2 (install row 0's M selector) only walks -Z, so T0 names selector 10")
+	var row: PackedInt32Array = PackedInt32Array()
+	row.resize(Foreman.Frontier.row_fields(Foreman.Frontier.INSTALL))
+	assert_equal(_probe._source.installation_into(1, row), &"", "successor T0 install row")
+	assert_equal(row[7], 10, "ADR1202 successor: T0 material is M's all-yaw selector")

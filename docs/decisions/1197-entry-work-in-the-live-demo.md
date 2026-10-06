@@ -60,7 +60,7 @@ never rolled back to hide a later gap.
 | G4 | **Blocked on mole haul motion** (ADR 1198, in progress). The live chain stops with `ENTRY_INPUTS_NOT_DELIVERED`. |
 | G6 | **Partly done.** Crew selection is real (an adult mole with an equipped tool). |
 | G7 | The Host API `begin_underground_entry` runs the chain (`93977843`). Foreman ticking starts once G4 clears. |
-| G9 | **Partly done (ADR 1202).** The foreman runs the T0 cuts after L0 and publishes the ground ↔ L0-contact path. The T0 installation is blocked by the Frontier's M selector (`ROUTE_NOT_CONNECTED`) and then by the handling footing certificate on the deck (`ASSEMBLY_FOREIGN_SOLID`). The Kitchen excavation is not scoped yet. |
+| G9 | **Partly done (ADR 1202).** The foreman runs the T0 cuts after L0 and publishes the ground ↔ L0-contact path. The Frontier successor `qualified-install-v3` lets the T0 order open; the T0 installation is blocked by the handling footing certificate on the deck (`ASSEMBLY_FOREIGN_SOLID`), which awaits a decision (ADR 1202 follow-up). The Kitchen excavation is not scoped yet. |
 | **G11 (new)** | **No settlement resident ever gets a tool equipped.** Only tests call `gear.equip`. Equipping tools has to become gameplay, for example from a workshop or stores. The live chain stops with `ENTRY_CREW_NO_TOOLED_MOLE`. |
 
 ### G11 decision (Brendan, 2026-10-06)

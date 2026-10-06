@@ -130,3 +130,75 @@ passing claim.
 The Kitchen room's own excavation was not scoped, because the prefix does not complete. The Frontier
 successor (blocker 1) and the footing certificate (blocker 2) come first. Until then, the live demo's
 G9 alert should carry `ROUTE_NOT_CONNECTED`.
+
+## Follow-up (2026-10-06): blocker 1 fixed by a Frontier successor; blocker 2 stopped for a decision
+
+### Why the hand fixture never met either blocker
+
+`test_underground_entry_world_bindings.gd::test_complete_paid_l0_t0_prefix_...` does not load the published
+Frontier. It encodes its own (`test_underground_first_prefix.gd::_frontier_image`, revision 31) in which every
+endpoint names the same synthetic travel profile, and it publishes the M → L0 path by hand
+(`_l0_ground_connection`). It also never enters paid handling (row 29): it moves the worker and selects the
+INSTALL profile directly. So it says nothing about selector 1's real source2 profile or about the handling
+foot, and it offers no cheaper fix.
+
+### Blocker 1: Frontier successor `qualified-install-v3` (done)
+
+`publish_qualified_install.py` creates `first-entry-prefix-v1/qualified-install-v3/` once from the pinned
+`qualified-haul-v2` bytes, following the haul-v2 convention (create-only, every input pinned, refuses any
+foreign delta). Exactly two Frontier words change:
+
+- self revision 2 → 3, because the authored install table changed (as revision 1 → 2 did for the endpoints);
+- install row 1 (T0), field 7, material selector 1 → 10.
+
+Selector 10 is selector 1's M (same kind, datum, role and point) on all-yaw source 12; the publisher checks
+that. Every episode already names it as its material endpoint. Install row 0 (L0) keeps selector 1: its leg
+to H is straight −Z on source 2, which is exactly that selector's purpose. Nothing links the Frontier's
+digest, so every other file is copied byte-identically; EntryPlan source digests are read from the loaded
+Frontier, so they follow automatically. Consumers switched: `underground_route_composition.gd`,
+`underground_entry_composition.gd`, `underground_entry_site.gd`, and the work-area and structure-source tests
+(the work area's two literal revision-2 values now read `Bundle.FRONTIER_REVISION`). No runtime pin drifted.
+
+With the successor, the foreman's T0 `open_order` admits; the worker walks to M, turns and reaches the L0
+contact on source 12.
+
+### Blocker 2: the handling foot meets the Room's own reservation marker (stopped)
+
+Confirmed on the real data: handling admission at the L0 contact refuses `ASSEMBLY_FOREIGN_SOLID`. The foot box
+`[-274,-1,-169,299,0,174]` at (0, 0, −1536) is inside the contact's proved SUPPORT (ADR 1193), but its 1-unit
+contact layer y ∈ [−1, 0) also lies in the excavation Room's claim region `[-1024,-1024,-2048,1024,0,0]`
+(OBSTACLE, `CLAIM_ROOM`). The geometry is not off by one: the claim is the cut cavity, the L0 deck is installed
+inside it, and every stance probes 1 unit into its support. Nor is the foot box wrong.
+
+The disagreement is a rule: Space owner (`_traversal_marker`), WorldRoutes and Locations treat a Room's own
+typed reservation (CLAIM_ROOM, OBSTACLE, owner = claim) as nonphysical and omit it, and Contacts' bearing proof
+skips the same Corridor's marker. `qualified-assembly-v1/physical_certificate.gd::_volume` and its twin
+`underground_connector_contacts.gd::_assembly_start_volume` treat it as foreign solid, for bodies and feet.
+Both sit in the certified assembly program; `physical_certificate.gd` is recorded by the native-program-v8
+evidence (sha `72c3fa5e…`).
+
+Options:
+
+1. **Foot-only own-marker exception (recommended).** In both twins, a foot (already required to lie inside
+   the station Location's proved SUPPORT) may overlap only the station Room's own reservation marker:
+   CLAIM_ROOM, OBSTACLE, claim = owner = the Location's Room. Bodies and tools keep the current rule; every
+   other claim, foreign OBSTACLE and DRY_SOLID still blocks. This matches how every other owner already reads
+   the marker, so it has no physical trade-off, but it changes a certified rule and the v8 evidence hash.
+2. Cut the claim at the installed deck (claim geometry follows installed parts). This changes Room/claim
+   ownership for every installed part and is far wider.
+3. Prove the foot against the installed L0 part's SUPPORT row instead of all Regions. This loses the
+   "nothing foreign overlaps the foot" check, which is weaker than option 1.
+
+An implementation of option 1 was attempted here and refused by the session's permission classifier as a
+weakening of a security/verification check, so it was not made. The decision belongs to Brendan.
+
+### Evidence
+
+`test_underground_paid_assembly_handling.gd::test_entry_foreman_opens_t0_then_handling_footing_refuses_on_the_l0_deck`:
+only `Foreman.advance(tick)` runs from the confirmed prefix through the six cubes, the paid L0, the retreat,
+the contact path and the T0 `open_order`, then refuses exactly `ASSEMBLY_FOREIGN_SOLID`. INSTALLED 1, wood
+1,000, stone 0, spoil 12,000, 54,000 + 32,000 mWU, conservation refusals empty, audits pass, one live
+(unfunded) T0 Project. The complete-prefix ledger test (INSTALLED 2, wood 0, 98,000 mWU) still waits on
+blocker 2.
+
+The live demo's G9 alert now carries `ASSEMBLY_FOREIGN_SOLID` instead of `ROUTE_NOT_CONNECTED` until blocker 2 is decided.

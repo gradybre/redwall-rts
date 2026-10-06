@@ -2068,3 +2068,9 @@ as source-qualified motion. No composed save adapter is claimed here.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Entry dispatch cursor | -- | -- | -- | No packed columns; Task list derived from the immutable Frontier | UNRESOLVED | §6 AUXILIARY_STATE | ADR1196. Current task index, stage, Job slot and stage tick count are future-affecting while a phase is in flight. Open question: is the cursor re-derived on load from Sites/Jobs/Routes state (category 2), or saved with the dispatcher (category 1)? No save adapter exists yet. |
+
+### `godot/scripts/core/underground_entry_installer.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Installation dispatch cursor | -- | -- | -- | No packed columns; Plan derived from the Frontier install row | UNRESOLVED | §6 AUXILIARY_STATE | ADR1196 increment 2. Stage, Project ref and Job slot are future-affecting while an installation is in flight. QUESTION: are they re-derived on load from Router/Workpieces/Routes state, or saved with the foreman? |

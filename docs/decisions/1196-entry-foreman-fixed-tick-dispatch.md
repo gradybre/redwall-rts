@@ -1,6 +1,6 @@
 # 1196 — Entry foreman: fixed-tick dispatch of the first entry
 
-Date: 2026-10-06 · Status: Accepted (increment 1 of 3)
+Date: 2026-10-06 · Status: Accepted (increments 1–2 of 3)
 
 ## Decision
 
@@ -46,10 +46,37 @@ only `advance(tick)` runs the four cubes on the real ADR 1191 work-area world.
 The ledgers equal the hand-driven fixture's: wood 5,500, stone 500, spoil
 8,000, both conservations balanced, all Projects retired.
 
-## Next increments
+## Increment 2 — paid installation (`underground_entry_installer.gd`)
 
-2. Paid L0 installation: material delivery, first-pair retirement, START,
-   handling, INSTALL, commit.
+`Foreman.configure_installation(paid, ordinal)` derives the plan:
+
+- H comes from the install row's station, and M from its material selector.
+- The approach profile is H's explicit travel profile.
+- The walking profile is the last cut's travel profile.
+- The INSTALL profile comes from the station row, and the handling profile is
+  `Assembly.PROFILE` at its loaded revision.
+- The retired pair is the stations of episodes 0 and 1. The ADR 1191 scope
+  re-proves that choice exactly.
+
+The installer then runs:
+
+1. `open_order` and the quoted BUILD Job.
+2. The all-yaw leg to M, the certified turn to the approach heading, and the
+   narrow leg to H. Arrival must already face the handling yaw.
+3. Handling READY, then delivery of the quoted inputs, retirement of the pair,
+   and `start_work`.
+4. `begin_assembly_handling`, then ticks until the handled-ready leaf passes,
+   then `complete_handling`.
+5. The INSTALL source to WORK, Work ticks, recovery, and `complete_order`.
+
+Evidence:
+`test_underground_paid_assembly_handling.gd::test_entry_foreman_drives_cuts_retirement_paid_handling_and_install`.
+Only `advance(tick)` runs, from a confirmed prefix to the installed L0:
+68,000 mWU (36,000 + 32,000), wood 1,500, L0 `INSTALLED` = 1, and every
+Project retired.
+
+## Next increment
+
 3. Live use in the demo:
    - Surface arrival: walk the resident to the first station before
      admission. This increment admits only where the worker already stands.

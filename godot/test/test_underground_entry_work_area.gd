@@ -202,7 +202,7 @@ func test_entry_foreman_drives_all_twelve_l0_phases_from_the_frontier() -> void:
 		"worker physically stands at the first authored station")
 	var foreman: Foreman = Foreman.new()
 	var placement: Vector2i = Vector2i(0, _probe._placements._get32(_probe._placements._live, Prefix.Placements.GENERATION, 0))
-	assert_equal(foreman.configure(_foreman_owners(), _foreman_crew(), placement), &"", "plan from Frontier and Placement")
+	assert_equal(foreman.configure(foreman_owners(_probe), foreman_crew(_probe), placement), &"", "plan from Frontier and Placement")
 	assert_equal(foreman.task_count(), 12, "four cubes x BRACE/CUT/FINISH")
 	var tick: int = _probe._tick
 	while not foreman.is_done() and foreman.error() == &"" and tick < _probe._tick + 30000:
@@ -213,17 +213,17 @@ func test_entry_foreman_drives_all_twelve_l0_phases_from_the_frontier() -> void:
 	_assert_l0_ledgers()
 
 
-func _foreman_owners() -> Foreman.Owners:
-	"""The probe's actual composed owners, unchanged."""
+static func foreman_owners(_probe: RefCounted) -> Foreman.Owners:
+	"""The probe's actual composed owners, unchanged; shared with the paid suite."""
 	var o: Foreman.Owners = Foreman.Owners.new()
-	var w: Prefix.ActualWorld = _probe._world
+	var w: RefCounted = _probe._world
 	o.sites = _probe._sites; o.jobs = w._jobs; o.work = w._work; o.routes = w._routes; o.binding = w._binding
 	o.residents = w._residents; o.pool = w._pool; o.construction = w._construction; o.inventory = w._inventory
 	o.profiles = w._profiles; o.frontier = _probe._source; o.placements = _probe._placements; o.locations = w._locations
 	return o
 
 
-func _foreman_crew() -> Foreman.Crew:
+static func foreman_crew(_probe: RefCounted) -> Foreman.Crew:
 	"""One worker, its tool, the source storage/output containers and the finite wood/stone lots."""
 	var c: Foreman.Crew = Foreman.Crew.new()
 	c.worker = _probe._world._worker; c.tool = _probe._tool

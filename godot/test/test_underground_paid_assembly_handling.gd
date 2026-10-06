@@ -12,6 +12,8 @@ const PaidContract := preload("res://scripts/core/modular_project_contract.gd")
 const PaidRoutes := preload("res://scripts/core/underground_routes.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const Retirement := preload("res://scripts/core/underground_entry_contact_retirement.gd")
+const Foreman := preload("res://scripts/core/underground_entry_foreman.gd")
+const WorkAreaTests := preload("res://test/test_underground_entry_work_area.gd")
 const Assembly := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 
@@ -622,3 +624,30 @@ func _assert_refused_tick(project: Vector2i) -> void:
 	assert_equal(_probe._world._gear.state_bytes(), gear, "no durability or wear")
 	assert_equal(_probe._router._funding.state_bytes(), payment, "same paid receipt")
 	assert_equal(_probe._world._inventory.state_bytes(), inventory, "no inventory change")
+
+
+func test_entry_foreman_drives_cuts_retirement_paid_handling_and_install() -> void:
+	"""ADR1196: only Foreman.advance(tick) runs twelve phases and the whole paid L0; ledgers match the hand path."""
+	_probe = PaidProbe.new()
+	_probe.before_each()
+	if _probe._confirm_prefix() == NULL_REF: return
+	var first: Vector3i = _probe._surface_point(3)
+	assert_true(_probe._world._transforms.place(_probe._world._worker, first.x, first.y, first.z, 49152),
+		"worker physically stands at the first authored station")
+	var foreman: Foreman = Foreman.new()
+	var placement: Vector2i = Vector2i(0, _probe._placements._get32(_probe._placements._live, Prefix.Placements.GENERATION, 0))
+	assert_equal(foreman.configure(WorkAreaTests.foreman_owners(_probe), WorkAreaTests.foreman_crew(_probe), placement),
+		&"", "cut plan")
+	var paid: Foreman.Installer.Paid = Foreman.Installer.Paid.new()
+	paid.router = _probe._router; paid.connector = _probe._paid; paid.contacts = _probe._contacts; paid.budget = _probe._world._budget
+	assert_equal(foreman.configure_installation(paid, 0), &"", "installation plan from the Frontier install row")
+	var tick: int = _probe._tick
+	while not foreman.is_done() and foreman.error() == &"" and tick < _probe._tick + 40000:
+		foreman.advance(tick)
+		tick += 1
+	assert_equal(foreman.error(), &"", "no refusal")
+	assert_true(foreman.is_done(), "cuts, retirement, handling, fastening and commit all completed")
+	assert_equal(foreman.accepted_mwu() + foreman.install_mwu(), 68000, "36000 excavation plus 32000 fastening")
+	assert_equal(_probe._world._inventory.lot_quantity_milli(_probe._wood), 1500, "one whole L0 bill paid once")
+	assert_equal(_probe._placements._get32(_probe._placements._live, Prefix.Placements.INSTALLED, 0), 1, "L0 installed")
+	assert_equal(_probe._world._construction.live_project_count(), 0, "every Project retired")

@@ -61,3 +61,10 @@ never rolled back to hide a later gap.
 | G6 | **Partly done.** Crew selection is real (an adult mole with an equipped tool). |
 | G7 | The Host API `begin_underground_entry` runs the chain (`93977843`). Foreman ticking starts once G4 clears. |
 | **G11 (new)** | **No settlement resident ever gets a tool equipped.** Only tests call `gear.equip`. Equipping tools has to become gameplay, for example from a workshop or stores. The live chain stops with `ENTRY_CREW_NO_TOOLED_MOLE`. |
+
+### G11 decision (Brendan, 2026-10-06)
+
+Moles will take their tools **from stores**. That gameplay is built **later**,
+after the overall entry functionality has been tested end to end. Until then,
+tests equip a real basic tool lot to an adult mole explicitly, as a labelled
+stand-in for stores. The live demo keeps raising the G11 alert.

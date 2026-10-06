@@ -1,6 +1,6 @@
 # 1206 — Stone carry: the procedural stone lump as the hauled stone
 
-Date: 2026-10-06 · Status: In progress. Static grip v1 approved by Brendan; motion program next
+Date: 2026-10-06 · Status: In progress. Grip v1 approved; motion authored and proved, awaiting Brendan's motion review
 
 ## Brendan's decisions (2026-10-06)
 
@@ -226,6 +226,14 @@ The stand and walk clips are wood's own, reused byte for byte.
 `prove_stone_joins.py` applies wood's join rules: exact floor and one-foot support, plus non-grip separation from
 the floor stone (`prove_empty_walk.support_proof` / `join_proof`). It adds exact star containment. Both joins pass
 (`joins-proof.json`). `test_stone_joins.py` holds 3 tests: a rebuild, the exact endpoints and the stored proof.
+
+## Step 9 — motion review packet (awaiting Brendan)
+
+Wood's program and gait each had a review before native capture, so the stone motion stops here.
+
+**Packet:** `haul-handling-v1/evidence/stone-motion-review-v1/`. It contains `README.md` (what to judge),
+`motion-review.json` (the closest approach per clip), `invocation.json` and renders of the lift, the carry loop
+and the join. Native image v9 and everything after it wait for Brendan's approval.
 
 ## Remaining steps
 

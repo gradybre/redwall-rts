@@ -191,3 +191,8 @@ qualified.
   0.150 m/unit. Five static grip candidates pass wood's exact static proof. The review packet is
   `haul-handling-v1/evidence/stone-contact-review-v1/`, and v1 (R−S 576, shared stands) is recommended. The
   lift, place, gait and joins wait for Brendan's grip review.
+- **Stone motion, ADR 1206 steps 5–9:** Brendan approved stone grip v1. Two pieces are new for stone: exact
+  star-shaped containment, because the shared containment test assumes a convex stock, and a staged lift path,
+  because wood's single path drives the lump into the snout. With those, the four-phase program, the loaded gait
+  and the stand joins all pass wood's exact provers. The motion review packet is
+  `haul-handling-v1/evidence/stone-motion-review-v1/`. Native image v9 waits for Brendan's approval.

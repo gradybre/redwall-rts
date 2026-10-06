@@ -62,14 +62,16 @@ def main() -> None:
     parser = argparse.ArgumentParser(__doc__)
     for name in ("palette", "grip-palette", "candidate", "out"):
         parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--poses", default="poses.npz", help="image inside --candidate (a clip .npz)")
+    parser.add_argument("--frame", type=int, default=1)
     args = parser.parse_args()
     A.require(not args.out.exists(), "STONE_OUTPUT_EXISTS")
     _, body, _, _, topology, _, _, _ = A.I.current_inputs(args.palette, args.grip_palette)
     stone, stone_tri = G.stone_part()
-    source = np.load(args.candidate / "poses.npz", allow_pickle=False)
-    case = {"frames": 2, "matrices": source["matrices"], "grounding": source["grounding"]}
-    points = A.I.points_at(case, body, 1)
-    cargo = A.I.points_at(case, stone, 1, 24)
+    source = np.load(args.candidate / args.poses, allow_pickle=False)
+    case = {"frames": len(source["matrices"]), "matrices": source["matrices"], "grounding": source["grounding"]}
+    points = A.I.points_at(case, body, args.frame)
+    cargo = A.I.points_at(case, stone, args.frame, 24)
     body_tri = np.asarray(topology["parts"][0]["surfaces"][0]["indices"], dtype=np.int32).reshape(-1, 3)
     _, hands = PS.hand_partition(body, body_tri, topology["rig_binding"])
     grip = np.zeros(len(body_tri), dtype=bool)

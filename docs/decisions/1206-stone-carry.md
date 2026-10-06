@@ -153,6 +153,39 @@ radially. `stone_geometry.py` tests containment exactly on that basis:
 (`stone-contact-v1/static-contact-star.json`). A buried-stone counterexample refuses. Every later stone proof uses
 the star test for containment, alongside the unchanged surface separation.
 
+## Step 6 — the four-phase program (done)
+
+`author_stone_program.py` writes `evidence/stone-program-v1/` (61 keys per clip).
+
+**Wood's single lift path fails for the stone.** It raises the stock and draws it in on one smoothstep, which
+pulls the lump into the snout: it penetrates up to 57 u around key 8 of 16. The test
+`test_wood_unstaged_path_buries_the_snout` proves the refusal exactly.
+
+The stone path is staged instead, in sixteenths of the clip:
+
+1. Over [0, 8], the stone eases 48 u away from the worker.
+2. Over [2, 12], it rises 448 u.
+3. Over [8, 16], it is drawn in to z = −384 u, once the head has lifted clear.
+
+The body follows wood's recipe unchanged: the squat and lean, then a hub lean of 15° (wood used 20°). The stone
+never rotates, and both arms keep the approved hand–stone relation.
+
+**Proofs:** all four clips pass wood's continuous `prove_program.prove` (`*-proof.json`), plus exact star
+containment at every key:
+
+- all intervals separate;
+- the feet are supported on every interval;
+- nothing goes below the floor;
+- both exact hand certificates hold on every lift and place interval.
+
+**Structure:**
+
+- Lift key 0 is the approved v1 pose, byte for byte.
+- Place reverses lift, and recovery reverses approach.
+- During approach and recovery the floor stone is fixed world geometry.
+
+Renders of lift keys 0, 30 and 60 are in `render-lift-*/`. `test_stone_program.py` holds 6 tests.
+
 ## Remaining steps
 
 1. ~~Static contact candidates and exact witnesses~~ (step 4); v1 approved.

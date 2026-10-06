@@ -199,3 +199,11 @@ Rotating the key means updating all three.
 
 Prompts live in `chatgpt-prompts/`. Outputs go **into `docs/` in this
 repository** — see decision 0007 for what happened when they did not.
+
+## Test runs use a private `user://` (ADR 1204)
+
+`./tools/run_tests.sh` points Godot's `user://` at a fresh temporary directory
+for each run. It does this by setting `HOME` (macOS) or `XDG_DATA_HOME` (Linux)
+for the Godot process only, and deletes the directory on exit. Do not run the
+suite with a bare `godot --script`: every checkout shares one `user://`, so
+concurrent runs overwrite each other's fixture files and fail at random.

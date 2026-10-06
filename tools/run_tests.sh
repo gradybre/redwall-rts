@@ -82,11 +82,16 @@ python3 "$repo_root/tools/renew_source_pins.py" --check || {
     exit 1
 }
 
+# Fixtures write fixed user:// paths. user:// is per project name, so every checkout and every
+# concurrent run shared one directory and overwrote each other's files mid-test (ADR 1204).
+# Each run gets its own empty user:// (HOME on macOS, XDG_DATA_HOME on Linux), removed on exit.
+test_home="$(mktemp -d)"
 if [[ -n "$shard_spec" ]]; then
     output_file="$shard_output_dir/shard-$shard_index.log"
+    trap 'rm -rf "$test_home"' EXIT
 else
     output_file="$(mktemp)"
-    trap 'rm -f "$output_file"' EXIT
+    trap 'rm -f "$output_file"; rm -rf "$test_home"' EXIT
 fi
 
 report_line() {
@@ -97,7 +102,8 @@ report_line() {
 }
 
 shard_started_seconds="$SECONDS"
-godot --headless --path godot --script "$godot_script" 2>&1 | tee "$output_file"
+HOME="$test_home" XDG_DATA_HOME="$test_home/.local/share" \
+    godot --headless --path godot --script "$godot_script" 2>&1 | tee "$output_file"
 godot_status="${PIPESTATUS[0]}"
 
 summary="$(grep -E '^[0-9]+ test\(s\), [0-9]+ assertion\(s\), [0-9]+ failure\(s\)$' \

@@ -12,6 +12,7 @@ const WA_CATALOG_SHA: String = Bundle.CATALOG_SHA
 const WA_GROUP_SHA: String = Bundle.GROUPING_SHA
 const WA_RECIPE_SHA: String = Bundle.RECIPE_SHA
 const WA_FRONTIER_SHA: String = Bundle.FRONTIER_SHA
+const ROWS_PATH: String = "res://data/underground/mole-worker/haul-handling-v1/evidence/haul-rows-v1/rows.json"
 
 class WorkAreaImages extends RefCounted:
 	static func source(name: String) -> String:
@@ -93,15 +94,15 @@ class Probe extends Previous.Probe:
 		_published = WorkAreaSource.Published.new()
 		assert_equal(WorkAreaSource.publish_locations(_anchor, ORIGIN, _published), &"", "production work-area endpoints")
 		_section = _published.section
-		_endpoints.resize(9)
+		_endpoints.resize(WorkAreaSource.ENDPOINTS)
 		for index: int in _published.endpoints.size(): _endpoints[index] = _published.endpoints[index]
 
 	func _remaining_surface_contacts() -> void:
-		"""All nine endpoints were published together by the production module."""
+		"""All eleven endpoints were published together by the production module."""
 		pass
 
 	func _surface_routes() -> void:
-		"""ADR1197 G1: the production publisher seals and publishes all 28 directed paths once."""
+		"""ADR1197 G1: the production publisher seals and publishes all 31 directed paths once."""
 		assert_equal(WorkAreaSource.publish_paths(_world._binding, _world._routes, _world._budget, _world._owner,
 			ORIGIN, _published, _content_revision()), &"", "production work-area paths")
 
@@ -130,11 +131,11 @@ func test_actual_work_area_preserves_all_four_paid_cuts() -> void:
 
 
 func test_actual_material_aliases_do_not_create_extra_locations() -> void:
-	"""Only nine initial actual endpoints exist although twelve immutable selectors describe this source."""
+	"""Nine original endpoints plus two haul stands exist although twelve immutable selectors describe this source."""
 	_probe = Probe.new()
 	_probe.before_each()
-	assert_equal(_probe._world._locations._live.count, 9, "unchanged original Location count")
-	assert_equal(_probe._world._routes._live.edge_count, 28, "all exact original directed paths")
+	assert_equal(_probe._world._locations._live.count, 11, "original nine plus the two ADR1198 haul stands")
+	assert_equal(_probe._world._routes._live.edge_count, 31, "original 28 directed paths plus three haul edges")
 	assert_equal(_probe._source.row_count(4, Bundle.FRONTIER_REVISION), 12, "explicit extra travel selectors only")
 
 
@@ -187,3 +188,49 @@ func _assert_l0_ledgers() -> void:
 	assert_equal(_probe._sites.support_conservation_refusal(), &"", "support ledgers balance")
 	assert_equal(_probe._sites.earth_conservation_refusal(), &"", "spoil conserved")
 	assert_equal(_probe._world._construction.live_project_count(), 0, "all twelve phases retired")
+
+
+func test_haul_stands_derive_from_the_content5_grip_rows_and_qualify_walk_and_carry() -> void:
+	"""ADR1198 step 5: each stand is its stock point plus R-S at yaw 16384 and carries every row's floor, S included."""
+	_probe = Probe.new()
+	_probe.before_each()
+	var rows: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(ROWS_PATH))
+	var r_minus_s: Array = rows["station"]["R_minus_S_u"]
+	assert_equal(WorkAreaSource.STAND_OFFSET, Vector3i(int(r_minus_s[2]), int(r_minus_s[1]), -int(r_minus_s[0])),
+		"stand offset is the certified R-S turned a quarter (x,y,z) -> (z,y,-x)")
+	for stand: int in [WorkAreaSource.STAND_M, WorkAreaSource.STAND_R]:
+		assert_equal(WorkAreaSource.point(Prefix.ORIGIN, stand) - WorkAreaSource.point(Prefix.ORIGIN, WorkAreaSource.stock_of(stand)),
+			WorkAreaSource.STAND_OFFSET, "stand beside its own storage endpoint")
+	assert_equal(_floor_union(_probe._world._profiles), WorkAreaSource.STAND_FOOT, "stand footing is the exact floor union")
+	var binding: RefCounted = _probe._world._binding
+	assert_true(_edge_admits(binding, _probe._endpoints[2], _probe._endpoints[WorkAreaSource.STAND_R], 31), "tool-free WALK to R's stand")
+	assert_true(_edge_admits(binding, _probe._endpoints[WorkAreaSource.STAND_R], _probe._endpoints[WorkAreaSource.STAND_M], 32), "CARRY between stands")
+	assert_true(_edge_admits(binding, _probe._endpoints[WorkAreaSource.STAND_M], _probe._endpoints[1], 31), "tool-free WALK back to M")
+
+
+static func _floor_union(profiles: RefCounted) -> Array[int]:
+	"""Union of every floor (y <= 0) box of the tool-free ground rows 30-32 and the yaw-16384 grip rows 34/36."""
+	var out: Array[int] = [0, 0, 0, 0, 0, 0]
+	var box: Prefix.Profiles.Box = Prefix.Profiles.Box.new()
+	for row: int in [30, 31, 32, 34, 36]:
+		for ordinal: int in profiles._field(profiles._live, row, Prefix.Profiles.F_BOX_COUNT):
+			if profiles.box_into(row, 1, Bundle.CONTENT_REVISION, ordinal, box) != &"" or box.high.y > 0: continue
+			for axis: int in 3:
+				out[axis] = mini(out[axis], box.low[axis])
+				out[axis + 3] = maxi(out[axis + 3], box.high[axis])
+	return out
+
+
+static func _edge_admits(binding: RefCounted, first: Vector2i, last: Vector2i, profile: int) -> bool:
+	"""The published edge between two endpoints carries the profile's certificate bit."""
+	var routes: RefCounted = binding._routes_ref.get_ref()
+	var capacity: int = routes._edge_capacity
+	for row: int in capacity:
+		if routes._live.present[row] != 1: continue
+		var fields: PackedInt32Array = routes._live.fields
+		if Vector2i(fields[Prefix.Routes.E_FROM_SLOT * capacity + row], fields[Prefix.Routes.E_FROM_GENERATION * capacity + row]) != first \
+				or Vector2i(fields[Prefix.Routes.E_TO_SLOT * capacity + row], fields[Prefix.Routes.E_TO_GENERATION * capacity + row]) != last:
+			continue
+		@warning_ignore("integer_division")
+		return (binding._live.masks[row * Prefix.WorldRoutes.MASK_BYTES + profile / 8] & (1 << (profile % 8))) != 0
+	return false

@@ -1,7 +1,8 @@
 extends RefCounted
-## ADR1197 G1: runtime publication of the ADR1191 first-entry work area (9 Locations, 28 directed paths).
+## ADR1197 G1: runtime publication of the ADR1191 first-entry work area (11 Locations, 31 directed paths).
 ## Geometry is the accepted focus-4 work area relative to the entry origin; SurfaceAnchor and WorldRoutes keep
 ## every terrain, air, footing and profile proof. This publishes no Room, Site, Job or permission.
+## ADR1198 step 5 appends two haul stands beside M and R (indices 9, 10); the first nine keep their indices.
 
 const Anchor := preload("res://scripts/core/underground_surface_anchor.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
@@ -10,9 +11,26 @@ const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
-const ENDPOINTS: int = 9
+const ENDPOINTS: int = 11
 const STORAGE: Array[int] = [1, 2]
 const WORK: Array[int] = [0, 3, 4, 5, 6, 7, 8]
+const STAND_M: int = 9
+const STAND_R: int = 10
+## Stand = stock point + the content-5 grip offset R-S at yaw 16384: (0,0,576) turned a quarter is (576,0,0),
+## so the worker at the stand faces -X onto the stock resting exactly on the storage point (ADR1198/1200).
+const STAND_OFFSET: Vector3i = Vector3i(576, 0, 0)
+const STAND_YAW: int = 16384
+## Union of every floor box the stand must carry, relative to the stand: content-5 rows 30-32 (all-yaw stance and
+## foot residual, x/z +-406) and rows 34/36 (stance, foot residual and the stock's floor contact at S, x -579..-573).
+const STAND_FOOT: Array[int] = [-579, -1, -412, 406, 0, 412]
+## ADR1198 step 5 haul edges (from, to, mode), the fewest Delivery needs: an empty worker walks R -> R's stand (the
+## source over WALK), carries one whole unit between the stands (the destination over CARRY) and walks M's stand -> M
+## back onto the original graph. Every further edge costs ~26k of the 1,048,576-check entry confirmation (ADR1198).
+const HAUL_EDGES: Array[Vector3i] = [
+	Vector3i(2, STAND_R, Profiles.MODE_WALK),
+	Vector3i(STAND_R, STAND_M, Profiles.MODE_CARRY),
+	Vector3i(STAND_M, 1, Profiles.MODE_WALK),
+]
 const GATEWAY_X: int = 2560
 const GATEWAY_Z: int = 1536
 const H_AIR: Array[int] = [-445, 0, -732, 910, 1036, 346]
@@ -28,18 +46,24 @@ const RIGHT_FOOT: Array[int] = [1130, -1, -4096, 2966, 0, 2454]
 
 
 class Published extends RefCounted:
-	## Exact handles of the nine endpoints (0 H, 1 M, 2 R, 3-8 cut stations) and their shared section.
+	## Exact handles of the endpoints (0 H, 1 M, 2 R, 3-8 cut stations, 9/10 haul stands) and their section.
 	var section: Vector2i = NULL_REF
 	var endpoints: Array[Vector2i] = []
 
 
 static func point(origin: Vector3i, index: int) -> Vector3i:
-	"""Authored source points: H, material M, output R, then six cut stations at -/+1536."""
+	"""Authored source points: H, material M, output R, six cut stations at -/+1536, then the M and R stands."""
 	if index == 0: return origin + Vector3i(-832, 0, 512)
 	if index == 1: return origin + Vector3i(-832, 0, 2048)
 	if index == 2: return origin + Vector3i(-832, 0, 1536)
+	if index >= STAND_M: return point(origin, stock_of(index)) + STAND_OFFSET
 	@warning_ignore("integer_division")
 	return origin + Vector3i(-1536 if index % 2 == 1 else 1536, 0, -512 - ((index - 3) / 2) * 1024)
+
+
+static func stock_of(stand: int) -> int:
+	"""The storage endpoint whose stock point a haul stand faces: M for stand 9, R for stand 10."""
+	return 1 if stand == STAND_M else 2
 
 
 static func publish_locations(anchor: Anchor, origin: Vector3i, out: Published) -> StringName:
@@ -52,7 +76,7 @@ static func publish_locations(anchor: Anchor, origin: Vector3i, out: Published) 
 	out.section = created.section
 	out.endpoints.append(created.location)
 	for index: int in range(1, ENDPOINTS):
-		var role: int = Locations.ROLE_STORAGE if index < 3 else Locations.ROLE_WORK
+		var role: int = Locations.ROLE_STORAGE if index == 1 or index == 2 else Locations.ROLE_WORK
 		var added: Anchor.Result = anchor.create_in_section(point(origin, index), air(origin, index),
 			foot(origin, index), out.section, role)
 		if added.error != &"": return added.error
@@ -61,17 +85,18 @@ static func publish_locations(anchor: Anchor, origin: Vector3i, out: Published) 
 
 
 static func air(origin: Vector3i, index: int) -> PackedInt32Array:
-	"""Storage and the first pair survey their outer corridors; later cut stations their full stroke air."""
+	"""Storage, stands and the first pair survey their outer corridors; later cut stations their full stroke air."""
 	if index == 0: return _offset(H_AIR, point(origin, 0))
-	if index < 3: return _offset(STORAGE_AIR, origin)
+	if index < 3 or index >= STAND_M: return _offset(STORAGE_AIR, origin)
 	if index == 3: return _offset(LEFT_PAIR_AIR, origin)
 	if index == 4: return _offset(RIGHT_PAIR_AIR, origin)
 	return _offset(CUT_AIR, point(origin, index))
 
 
 static func foot(origin: Vector3i, index: int) -> PackedInt32Array:
-	"""Ground footing strips lie outside all six canonical cut identities."""
+	"""Ground footing strips lie outside all six canonical cut identities; a stand carries its own floor and S."""
 	if index == 0: return _offset(H_FOOT, point(origin, 0))
+	if index >= STAND_M: return _offset(STAND_FOOT, point(origin, index))
 	if index < 3: return _offset(STORAGE_FOOT, origin)
 	return _offset(LEFT_FOOT if index % 2 == 1 else RIGHT_FOOT, origin)
 
@@ -83,7 +108,7 @@ static func _offset(box: Array[int], at: Vector3i) -> PackedInt32Array:
 
 static func publish_paths(binding: WorldRoutes, routes: Routes, budget: Budget, owner: RefCounted,
 		origin: Vector3i, published: Published, content_revision: int) -> StringName:
-	"""Both directions between each storage endpoint and each work endpoint, sealed and published once."""
+	"""Both directions between each storage and work endpoint plus the haul stands, sealed and published once."""
 	var lease: int = budget.acquire(Budget.COLD_BYTES)
 	if lease <= 0: return &"ENTRY_WORK_AREA_LEASE"
 	var begun: Routes.Result = binding.begin_prepare(lease)
@@ -92,6 +117,8 @@ static func publish_paths(binding: WorldRoutes, routes: Routes, budget: Budget, 
 		for work: int in WORK:
 			if code == &"": code = routes.stage_add(begun.token, _edge(origin, published, storage, work, owner, content_revision)).error
 			if code == &"": code = routes.stage_add(begun.token, _edge(origin, published, work, storage, owner, content_revision)).error
+	for pair: Vector3i in HAUL_EDGES:
+		if code == &"": code = routes.stage_add(begun.token, _edge(origin, published, pair.x, pair.y, owner, content_revision, pair.z)).error
 	if code == &"": code = binding.seal(begun.token)
 	if code == &"": code = binding.publish(begun.token)
 	binding.abort(begun.token)
@@ -100,14 +127,14 @@ static func publish_paths(binding: WorldRoutes, routes: Routes, budget: Budget, 
 
 
 static func _edge(origin: Vector3i, published: Published, first: int, last: int, owner: RefCounted,
-		content_revision: int) -> Routes.Edge:
-	"""One walking polyline: direct between H and storage, outside the gateways for every cut station."""
+		content_revision: int, mode: int = Profiles.MODE_WALK) -> Routes.Edge:
+	"""One ground polyline: direct between H, storage and stands, outside the gateways for every cut station."""
 	var edge: Routes.Edge = Routes.Edge.new()
 	edge.from_location = published.endpoints[first]
 	edge.to_location = published.endpoints[last]
 	edge.section = published.section
 	edge.level = 0; edge.family = -1; edge.variant = 0
-	edge.mode = Profiles.MODE_WALK; edge.posture = Profiles.POSTURE_UPRIGHT
+	edge.mode = mode; edge.posture = Profiles.POSTURE_UPRIGHT
 	edge.content_revision = content_revision
 	edge.geometry_revision = owner.revision()
 	var points: Array[Vector3i] = _perimeter(origin, first, last)
@@ -120,7 +147,7 @@ static func _edge(origin: Vector3i, published: Published, first: int, last: int,
 
 static func _perimeter(origin: Vector3i, first: int, last: int) -> Array[Vector3i]:
 	"""Same-heading H approach has no invented turn; every cut path bends only on surveyed outer ground."""
-	if first < 3 and last < 3: return [point(origin, first), point(origin, last)]
+	if (first < 3 and last < 3) or first >= STAND_M or last >= STAND_M: return [point(origin, first), point(origin, last)]
 	var work: int = first if first >= 3 else last
 	var storage: int = last if first >= 3 else first
 	var root: Vector3i = point(origin, work)

@@ -86,7 +86,7 @@ func _choose_site(session: RefCounted, o: RefCounted, near: Vector3i) -> StringN
 
 
 func _publish(session: RefCounted, o: RefCounted) -> StringName:
-	"""All nine endpoints, then all 28 paths, through the real SurfaceAnchor and WorldRoutes."""
+	"""All eleven endpoints, then all 31 paths, through the real SurfaceAnchor and WorldRoutes."""
 	var code: StringName = WorkArea.publish_locations(session.surface_anchor(), _origin, _published)
 	if code == &"": code = WorkArea.publish_paths(o.world_routes, o.routes, o.budget, o.space, _origin, _published,
 		o.profiles.content_revision())

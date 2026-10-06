@@ -652,7 +652,7 @@ func test_actual_entry_owners_compose_from_the_fixed_bundle_without_gameplay_cha
 
 
 func test_suggested_entry_site_publishes_the_whole_work_area_on_generated_ground() -> void:
-	"""ADR1197 G1/G2: the read-only survey predicts real publication of all nine endpoints and 28 paths."""
+	"""ADR1197 G1/G2: the read-only survey predicts real publication of all eleven endpoints and 31 paths."""
 	var session: Session = _generate_and_mount()
 	assert_true(_host.compose_underground_room_owners(), "actual Room owners")
 	assert_true(_host.compose_underground_route_owners(), "actual route owners: %s" % _host.last_refusal())
@@ -667,11 +667,11 @@ func test_suggested_entry_site_publishes_the_whole_work_area_on_generated_ground
 	assert_equal(_snapshot(), before, "survey and suggestion are read-only")
 	var at: Vector3i = Vector3i(origin[0], origin[1], origin[2])
 	var published: EntryWorkArea.Published = EntryWorkArea.Published.new()
-	assert_equal(EntryWorkArea.publish_locations(session.surface_anchor(), at, published), &"", "all nine endpoints publish")
+	assert_equal(EntryWorkArea.publish_locations(session.surface_anchor(), at, published), &"", "all eleven endpoints publish")
 	assert_equal(EntryWorkArea.publish_paths(o.world_routes, o.routes, o.budget, o.space, at, published,
-		o.profiles.content_revision()), &"", "all 28 paths publish")
-	assert_equal(o.locations._live.count, 9, "exactly the work area's endpoints")
-	assert_equal(o.routes._live.edge_count, 28, "exactly the work area's paths")
+		o.profiles.content_revision()), &"", "all 31 paths publish")
+	assert_equal(o.locations._live.count, EntryWorkArea.ENDPOINTS, "exactly the work area's endpoints")
+	assert_equal(o.routes._live.edge_count, 31, "exactly the work area's paths, three of them ADR1198 haul edges")
 	var plan: RefCounted = EntrySite.entry_plan(session._world_ref, o.space.revision(), at, published.endpoints[0],
 		o.world_routes._catalog, frontier)
 	assert_true(plan != null, "entry plan derived from the mounted bundle")
@@ -695,13 +695,13 @@ func test_live_entry_chain_publishes_confirms_then_alerts_each_missing_capabilit
 	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G11"), "named gap row")
 	assert_equal(entry.step(), Settlement.UndergroundEntryRuntime.STEP_CONTAINERS, "site, work area, entry and containers are real")
 	var o: Session.Retirement.Owners = session._retirement_owners
-	assert_equal(o.locations._live.count, 9, "published work area retained")
+	assert_equal(o.locations._live.count, EntryWorkArea.ENDPOINTS, "published work area retained")
 	_equip_first_mole(o, entry._output)
 	assert_false(_host.begin_underground_entry(near), "retry resumes and meets the next gap")
 	assert_equal(entry.error(), Settlement.UndergroundEntryRuntime.REFUSE_INPUTS, "inputs not hauled")
 	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G4"), "haul gap row")
 	assert_equal(entry.step(), Settlement.UndergroundEntryRuntime.STEP_CREW, "crew chosen; nothing republished")
-	assert_equal(o.locations._live.count, 9, "no second work area")
+	assert_equal(o.locations._live.count, EntryWorkArea.ENDPOINTS, "no second work area")
 
 
 func _equip_first_mole(o: Session.Retirement.Owners, container: Vector2i) -> void:

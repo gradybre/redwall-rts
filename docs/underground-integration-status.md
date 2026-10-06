@@ -66,7 +66,7 @@ qualification: there was no assets-aside clean import, no captures and no soak.
 | `ed783c46` | Runtime loads the content-4 profile publication `qualified-handling-v5`, which includes handling row 29 (ADR 1194). |
 | `f55a1f10` | Structure/frontier source suites read the bundle. |
 | `4b06f840` | The real SettlementSystem composes the entry owners from the bundle (ADR 1195): prefix 17, no gameplay change. |
-| `ae46328b` | The base source-phases fixture keeps its own content-3 pins. |
+| `5dd13208`/HEAD | The base source-phases fixture keeps its own content-3 pins. |
 
 Full suite on `4b06f840`: 11,342 tests, 4 failures. All four were in the base
 source-phases fixture and are fixed in the next commit. 0 unexpected

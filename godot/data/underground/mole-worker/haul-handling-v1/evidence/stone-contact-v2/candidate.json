@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "status": "UNQUALIFIED_SOURCE_CANDIDATE",
+  "production_qualified": false,
+  "adr": "1206",
+  "source_palette_sha256": "5b368eb3ad594b4a6f82b5981a891150e6f7053944daf888d4ab5aa293c822fe",
+  "body_mesh_sha256": "29f8d3218fddfaa6f2369c1c1c7dfd9b0a429b3df5cbefa38c6bf6ab9364fe14",
+  "stone_capture_sha256": "ddcb70bf666021ded1b12741f3a741e25ffb9d37b79ed9c95f71f74dcb091a6e",
+  "recipe": {
+    "maximum_arm_link_error_m": 1.3877787807814457e-17,
+    "lean_degrees": 95,
+    "hip_drop_u": 96,
+    "grip_raise_u": 112,
+    "grip_back_u": [
+      192,
+      160
+    ],
+    "grip_in_u": [
+      208,
+      200
+    ],
+    "station_R_minus_S_u": [
+      0,
+      0,
+      576
+    ],
+    "stone_scale_m": [
+      0.15,
+      0.12,
+      0.15
+    ],
+    "stock_mesh_bounds_u": [
+      -172.97587280273436,
+      0.001953125,
+      -729.4553009033203,
+      152.69392089843748,
+      255.51788574218745,
+      -422.4
+    ],
+    "sole_contact": {
+      "ankle_y_correction_u": [
+        -1.426887687673939,
+        -3.4076906657691124
+      ],
+      "iterations": 2,
+      "contact_vertices": [
+        16125,
+        3622
+      ],
+      "source_gap_u": [
+        0.0019748655653752945,
+        0.0020049018961025844
+      ],
+      "complete_foot_vertices": [
+        1666,
+        1559
+      ],
+      "complete_foot_bounds_u": [
+        [
+          -273.0460837170829,
+          0.0019748655653752945,
+          -168.3016950881437,
+          -80.94507214919767,
+          101.88869586638613,
+          94.46180098922306
+        ],
+        [
+          70.10195331156534,
+          0.0020049018961025844,
+          -63.67122843346161,
+          297.67120785832344,
+          106.54794869666645,
+          169.6627491188031
+        ]
+      ],
+      "source_solve_lift_u": [
+        1,
+        512
+      ],
+      "source_solve_tolerance_u": [
+        1,
+        1024
+      ]
+    }
+  },
+  "producer_sources": {
+    "godot/data/underground/mole-worker/haul-handling-v1/author_stone_grip.py": "a2ba6bd458b19e4440576d4d17f059892fd56756db3b30bba431054307e3e0d8",
+    "godot/data/underground/mole-worker/haul-handling-v1/author_handling.py": "bf96731c5cba21f300f46b7db307c78e465f1c9f2dbfc8c7e41c97a2786eca26",
+    "godot/data/underground/mole-worker/haul-handling-v1/inspect_source.py": "cde1ca83928aa18ddc22d5f6555a83c6e92634aaf7b836a5b0f4bb0966d519b4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "e843ebc713118ef165cc3e114d84b860d8a2513a1144adff94ebdf0256f24c6e"
+  }
+}

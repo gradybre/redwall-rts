@@ -1,6 +1,6 @@
 # 1206 — Stone carry: the procedural stone lump as the hauled stone
 
-Date: 2026-10-06 · Status: In progress. Step 1 done; step 2 shows the approved size rule cannot seat the wood grip, so it awaits Brendan
+Date: 2026-10-06 · Status: In progress. Static grip authored and proved; awaiting Brendan's grip review
 
 ## Brendan's decisions (2026-10-06)
 
@@ -9,6 +9,7 @@ Date: 2026-10-06 · Status: In progress. Step 1 done; step 2 shows the approved 
 | Stone inputs (ADR 1203) | **Author a stone carry**: carry, load and unload rows, with the same native capture, proofs and grip certificate as wood. |
 | Which mesh is the carried stone | **The procedural stone lump**, `bore_dressing.gd::stone_mesh()` (`godot/demo/tunnel/bore_dressing.gd:329`). |
 | Carried size | **Sized to the log grip**: scale the lump so the existing carry pose's two certified hand contacts fit it. Keep the 0.8 vertical squash and no rotation unless the derivation shows they cannot seat both hands. Brendan explicitly approved this new size constant. Catalog mass stays 5,000 g/unit, and Brendan accepts that the stone looks larger than a solid 5 kg rock. |
+| Carried size, after step 2 | **A smaller lump with a new grip.** Keep the squashed lump at the largest size clear of the body. Author a brand-new two-hand grip, lift, place, loaded gait and joins for it. Stop for Brendan's grip review before the lift. |
 
 The pinned demo assets have no stone part. `all-cast-v5…v9`, `mole-grip-v1…v3` and `pilot-v1…v4` carry
 only the body, `log`, `mole_pick` and eleven vegetable props. The demo's hall and infirmary draw carried stone
@@ -88,10 +89,53 @@ following the log's envelope. The size rule therefore needs Brendan's choice bef
    0.33 × 0.26 × 0.31 m). Author new contacts and a new static pose and program for it. This needs new static
    candidates and a grip review like wood's `static-contact-review-v1`, then new lift, place, gait and joins.
 
-## Remaining steps (after the shape is chosen)
+Brendan chose option 2.
 
-1. Static contact candidates and the exact hand–stone witnesses. Then a grip review, as wood's
-   static-contact-review-v1 had.
+## Step 3 — the adopted scale (done)
+
+`refine_stone_scale.py` writes `evidence/stone-scale-v2/fine.json`. It walks the squashed lump up in
+0.001 m/unit steps against the reviewed body:
+
+- **0.150 m/unit is adopted**, which gives (0.150, 0.120, 0.150). It is the last scale with no solid vertex
+  inside the stone. At 0.151, two vertices of the snout are inside.
+- The stone is then about 0.33 × 0.26 × 0.31 m.
+
+This is Brendan's approved size constant.
+
+## Step 4 — the static grip candidates (done; awaiting review)
+
+The authoring tool, `author_stone_grip.py`, reuses wood's whole pose recipe (`author_handling.contact_pose`):
+the carry hub, a 95° lean, a 96 u squat, fixed-length arm solves and `plant_soles`. Only two things change:
+
+- the stock is the lump at S;
+- each hand keeps its wood-grip orientation and is moved inward along X by its own amount.
+
+The rest of the series follows wood's process:
+
+- **Search.** `probe_stone_grip.py` ranks recipes by sampled vertices (`evidence/stone-grip-probe-v1/`).
+- **Proof.** `prove_stone_contact.py` applies wood's exact `prove_static_contact.prove` to the lump unchanged.
+- **Review numbers.** `review_stone_grip.py` adds float clearances for the reviewer.
+
+All five candidates (`evidence/stone-contact-v1…v5`) pass the exact static rules: complete solid separation,
+two exact hand witnesses, and three floor contacts.
+
+- **v1 is recommended.** It keeps wood's station, R−S = (0,0,576), so the existing haul stands serve stone too.
+  Its snout is 1.7 mm from the stone.
+- **v4 is the alternative.** R−S = 640 gives the snout 63 mm of clearance, but stone hauls would then need
+  their own stands.
+
+`test_stone_grip.py` holds 8 tests: byte-identical rebuilds, the exact proofs, and the counterexamples (short
+hands, buried hands, a lifted stone, an unplanted pose).
+
+**Review packet:** `haul-handling-v1/evidence/stone-contact-review-v1/`. It contains `README.md` (what to
+judge), `invocation.json`, `tests.log` and these images:
+
+- `candidate-v1/overview.png` and `candidate-v1/hands.png`
+- `candidate-v4/overview.png` and `candidate-v4/hands.png`
+
+## Remaining steps (after Brendan approves the grip)
+
+1. ~~Static contact candidates and exact witnesses~~ (step 4); **Brendan's grip review is pending.**
 2. The four-phase program.
 3. The loaded gait.
 4. The stand/walk joins.

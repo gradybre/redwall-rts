@@ -187,3 +187,7 @@ qualified.
   The derivation (`evidence/stone-scale-v1/derivation.json`) finds that no lump scale seats both certified
   contacts without entering the body. Only a stretched stone bar fits, about 0.98 × 0.17 × 0.20 m. This awaits
   Brendan's choice.
+- **Stone grip, ADR 1206 steps 3–4:** Brendan chose a smaller lump with its own grip. The lump is fixed at
+  0.150 m/unit. Five static grip candidates pass wood's exact static proof. The review packet is
+  `haul-handling-v1/evidence/stone-contact-review-v1/`, and v1 (R−S 576, shared stands) is recommended. The
+  lift, place, gait and joins wait for Brendan's grip review.

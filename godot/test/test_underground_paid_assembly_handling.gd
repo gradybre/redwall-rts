@@ -14,19 +14,6 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const Retirement := preload("res://scripts/core/underground_entry_contact_retirement.gd")
 const Assembly := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
-const DATA: String = "../docs/validation/evidence/underground-paid-assembly-handling-2026-10-05/"
-const PAID_PROFILE_SHA: String = "17d9c229fdfe8ad1923f004db136653ab9834994ba946061be38ec7a2c862ff9"
-const PAID_CATALOG_SHA: String = "eda41ce78d4a798e2160250e2d6760ec7507f0c651c1e7b9b8ad462ff65ab520"
-const PAID_GROUP_SHA: String = "3bb788bf250f4628cc4ab6a0c1a5748478d7909753cb5d1a8056d5eb7a8f4a54"
-const PAID_RECIPE_SHA: String = "3019f92d56713317550c417e732b057d238fe0b70adadca8b56289a1362391a8"
-const PAID_FRONTIER_SHA: String = "a8d30864cf8e79ae51a0fa2f2b317d5ef07fbf3ceebc1c6eac0e4380a11b038a"
-const PAID_WORKPIECE_SHA: String = "e68a7d9340675c495d875d97f5c51b063ba2a20b17041dc881b25a3e8b0f79ee"
-
-
-class Images extends RefCounted:
-	static func path(name: String) -> String:
-		"""Only individually pinned evidence is read; no production Catalog source guard is replaced."""
-		return ProjectSettings.globalize_path("res://").path_join(DATA + name).simplify_path()
 
 
 class ObservedPaidTerrain extends PaidGroundTests.CountedTerrain:
@@ -93,7 +80,7 @@ class PaidProbe extends WorkArea.Probe:
 		pieces = Workpieces.new()
 		assert_equal(pieces.configure(4, 2, Workpieces.required_bytes(4, 2)), &"", "original finite banks")
 		assert_equal(pieces.bind_actual(_placements, _router, _paid), &"", "original paid source tuple")
-		assert_equal(pieces.load_file(Images.path("diagnostic-workpieces-1/workpieces.ugwipc"), PAID_WORKPIECE_SHA, 1), &"", "exact two source-derived workpieces")
+		assert_equal(pieces.load_file(WorkArea.Bundle.WORKPIECES_PATH, WorkArea.Bundle.WORKPIECES_SHA, WorkArea.Bundle.WORKPIECES_REVISION), &"", "exact two source-derived workpieces")
 		assert_equal(_paid.bind_workpieces(pieces), &"", "actual reciprocal activation")
 
 	func after_each() -> void:

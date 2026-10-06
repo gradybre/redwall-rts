@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "decision": "1190",
+  "content_revision": 4,
+  "census": {
+    "INSTALL": 2,
+    "STATION": 8,
+    "CUT": 2,
+    "BEARING": 10,
+    "ENDPOINT": 12,
+    "EPISODE": 6
+  },
+  "files": {
+    "structure.ugconn": {
+      "role": "CATALOG",
+      "sha256": "eda41ce78d4a798e2160250e2d6760ec7507f0c651c1e7b9b8ad462ff65ab520",
+      "source": "docs/validation/evidence/underground-paid-assembly-handling-2026-10-05/diagnostic-content-1/structure.ugconn"
+    },
+    "assemblies.ugasmb": {
+      "role": "GROUPING",
+      "sha256": "3bb788bf250f4628cc4ab6a0c1a5748478d7909753cb5d1a8056d5eb7a8f4a54",
+      "source": "docs/validation/evidence/underground-paid-assembly-handling-2026-10-05/diagnostic-content-1/assemblies.ugasmb"
+    },
+    "recipes.ugrecp": {
+      "role": "RECIPE",
+      "sha256": "3019f92d56713317550c417e732b057d238fe0b70adadca8b56289a1362391a8",
+      "source": "docs/validation/evidence/underground-paid-assembly-handling-2026-10-05/diagnostic-content-1/recipes.ugrecp"
+    },
+    "frontier.ugfront": {
+      "role": "FRONTIER",
+      "sha256": "1068db6b1217e6542f6489cd56add7af52db663c756e572c86c1128e8227a058",
+      "source": "docs/validation/evidence/underground-entry-work-area-2026-10-05/source-1/frontier.ugfront"
+    },
+    "workpieces.ugwipc": {
+      "role": "WORKPIECES",
+      "sha256": "e68a7d9340675c495d875d97f5c51b063ba2a20b17041dc881b25a3e8b0f79ee",
+      "source": "docs/validation/evidence/underground-paid-assembly-handling-2026-10-05/diagnostic-workpieces-1/workpieces.ugwipc"
+    },
+    "ground-pace.ugconn": {
+      "role": "GROUND",
+      "sha256": "877be0982eb6945c4c4f014e9de428b3ab278d1fddc630080e9c6bfe341a1ea8",
+      "source": "docs/validation/evidence/underground-paid-assembly-handling-2026-10-05/diagnostic-content-1/ground-pace.ugconn"
+    },
+    "mole-worker.ugprof": {
+      "role": "PROFILE",
+      "sha256": "17d9c229fdfe8ad1923f004db136653ab9834994ba946061be38ec7a2c862ff9",
+      "source": "docs/validation/evidence/underground-paid-assembly-handling-2026-10-05/diagnostic-content-1/mole-worker.ugprof"
+    }
+  }
+}

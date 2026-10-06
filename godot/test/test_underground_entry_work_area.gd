@@ -3,22 +3,21 @@ extends "res://test/framework/test_case.gd"
 
 const Previous := preload("res://test/test_underground_entry_source_phases.gd")
 const Prefix := preload("res://test/test_underground_first_prefix.gd")
-const DATA: String = "../docs/validation/evidence/underground-entry-source-phases-2026-10-05/handling-diagnostic-1/"
-const WORK_AREA: String = "../docs/validation/evidence/underground-entry-work-area-2026-10-05/source-1/"
-const WA_PROFILE_SHA: String = "17d9c229fdfe8ad1923f004db136653ab9834994ba946061be38ec7a2c862ff9"
-const WA_CATALOG_SHA: String = "eda41ce78d4a798e2160250e2d6760ec7507f0c651c1e7b9b8ad462ff65ab520"
-const WA_GROUP_SHA: String = "3bb788bf250f4628cc4ab6a0c1a5748478d7909753cb5d1a8056d5eb7a8f4a54"
-const WA_RECIPE_SHA: String = "3019f92d56713317550c417e732b057d238fe0b70adadca8b56289a1362391a8"
-const WA_FRONTIER_SHA: String = "1068db6b1217e6542f6489cd56add7af52db663c756e572c86c1128e8227a058"
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-handling-v1/catalog_source.gd")
+const WA_PROFILE_SHA: String = Bundle.PROFILE_SHA
+const WA_CATALOG_SHA: String = Bundle.CATALOG_SHA
+const WA_GROUP_SHA: String = Bundle.GROUPING_SHA
+const WA_RECIPE_SHA: String = Bundle.RECIPE_SHA
+const WA_FRONTIER_SHA: String = Bundle.FRONTIER_SHA
 
 class WorkAreaImages extends RefCounted:
 	static func source(name: String) -> String:
-		"""Fixed diagnostic artifacts retain their original individual SHA guards."""
-		return ProjectSettings.globalize_path("res://").path_join(DATA + name).simplify_path()
+		"""ADR1190: the fixed published bundle, never a validation-evidence copy."""
+		return Bundle.FRONTIER_PATH.get_base_dir().path_join(name)
 
 	static func frontier() -> String:
-		"""This successor has a distinct immutable Frontier revision; earlier packets remain untouched."""
-		return ProjectSettings.globalize_path("res://").path_join(WORK_AREA + "frontier.ugfront").simplify_path()
+		"""The work-area Frontier is the bundle's revision-2 successor."""
+		return Bundle.FRONTIER_PATH
 
 
 class SourceWorld extends Previous.SourceWorld:

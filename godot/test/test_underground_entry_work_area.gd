@@ -3,6 +3,7 @@ extends "res://test/framework/test_case.gd"
 
 const Previous := preload("res://test/test_underground_entry_source_phases.gd")
 const Prefix := preload("res://test/test_underground_first_prefix.gd")
+const Foreman := preload("res://scripts/core/underground_entry_foreman.gd")
 const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-handling-v1/catalog_source.gd")
 const WA_PROFILE_SHA: String = Bundle.PROFILE_SHA
 const WA_CATALOG_SHA: String = Bundle.CATALOG_SHA
@@ -188,3 +189,54 @@ func test_actual_material_aliases_do_not_create_extra_locations() -> void:
 	assert_equal(_probe._world._locations._live.count, 9, "unchanged original Location count")
 	assert_equal(_probe._world._routes._live.edge_count, 28, "all exact original directed paths")
 	assert_equal(_probe._source.row_count(4, 2), 12, "explicit extra travel selectors only")
+
+
+func test_entry_foreman_drives_all_twelve_l0_phases_from_the_frontier() -> void:
+	"""ADR1196: only Foreman.advance(tick) runs the four cubes; ledgers match the hand-driven fixture exactly."""
+	_probe = Probe.new()
+	_probe.before_each()
+	var room: Vector2i = _probe._confirm_prefix()
+	if room == Vector2i(-1, 0): return
+	var first: Vector3i = _probe._surface_point(3)
+	assert_true(_probe._world._transforms.place(_probe._world._worker, first.x, first.y, first.z, 49152),
+		"worker physically stands at the first authored station")
+	var foreman: Foreman = Foreman.new()
+	var placement: Vector2i = Vector2i(0, _probe._placements._get32(_probe._placements._live, Prefix.Placements.GENERATION, 0))
+	assert_equal(foreman.configure(_foreman_owners(), _foreman_crew(), placement), &"", "plan from Frontier and Placement")
+	assert_equal(foreman.task_count(), 12, "four cubes x BRACE/CUT/FINISH")
+	var tick: int = _probe._tick
+	while not foreman.is_done() and foreman.error() == &"" and tick < _probe._tick + 30000:
+		foreman.advance(tick)
+		tick += 1
+	assert_equal(foreman.error(), &"", "no refusal")
+	assert_true(foreman.is_done(), "all twelve phases settled")
+	_assert_l0_ledgers()
+
+
+func _foreman_owners() -> Foreman.Owners:
+	"""The probe's actual composed owners, unchanged."""
+	var o: Foreman.Owners = Foreman.Owners.new()
+	var w: Prefix.ActualWorld = _probe._world
+	o.sites = _probe._sites; o.jobs = w._jobs; o.work = w._work; o.routes = w._routes; o.binding = w._binding
+	o.residents = w._residents; o.pool = w._pool; o.construction = w._construction; o.inventory = w._inventory
+	o.profiles = w._profiles; o.frontier = _probe._source; o.placements = _probe._placements; o.locations = w._locations
+	return o
+
+
+func _foreman_crew() -> Foreman.Crew:
+	"""One worker, its tool, the source storage/output containers and the finite wood/stone lots."""
+	var c: Foreman.Crew = Foreman.Crew.new()
+	c.worker = _probe._world._worker; c.tool = _probe._tool
+	c.storage = _probe._storage; c.output = _probe._output
+	c.lot_keys = [&"wood", &"stone"]; c.lots = [_probe._wood, _probe._stone]
+	return c
+
+
+func _assert_l0_ledgers() -> void:
+	"""The same exact quantities the hand-driven execute_l0_cubes asserts."""
+	assert_equal(_probe._world._inventory.lot_quantity_milli(_probe._wood), 5500, "four real brace wood bills")
+	assert_equal(_probe._world._inventory.lot_quantity_milli(_probe._stone), 500, "four real brace stone bills")
+	assert_equal(_probe._sites.virgin_sourced_milli(), 8000, "four whole CUT outputs")
+	assert_equal(_probe._sites.support_conservation_refusal(), &"", "support ledgers balance")
+	assert_equal(_probe._sites.earth_conservation_refusal(), &"", "spoil conserved")
+	assert_equal(_probe._world._construction.live_project_count(), 0, "all twelve phases retired")

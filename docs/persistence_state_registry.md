@@ -2062,3 +2062,9 @@ as source-qualified motion. No composed save adapter is claimed here.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Stateless entry-owner constructor stages | -- | -- | -- | No members or packed bank | 3 | -- | ADR1184. Static stages construct the entry owners into the existing private Retirement.Owners prefix; failed prefixes stay retained for owner-validated whole-World reset. Constructor scratch is covered by the existing Session/retirement slice; complete source census remains open. |
+
+### `godot/scripts/core/underground_entry_foreman.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Entry dispatch cursor | -- | -- | -- | No packed columns; Task list derived from the immutable Frontier | UNRESOLVED | §6 AUXILIARY_STATE | ADR1196. Current task index, stage, Job slot and stage tick count are future-affecting while a phase is in flight. Open question: is the cursor re-derived on load from Sites/Jobs/Routes state (category 2), or saved with the dispatcher (category 1)? No save adapter exists yet. |

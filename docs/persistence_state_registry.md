@@ -2074,3 +2074,9 @@ as source-qualified motion. No composed save adapter is claimed here.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Installation dispatch cursor | -- | -- | -- | No packed columns; Plan derived from the Frontier install row | UNRESOLVED | §6 AUXILIARY_STATE | ADR1196 increment 2. Stage, Project ref and Job slot are future-affecting while an installation is in flight. QUESTION: are they re-derived on load from Router/Workpieces/Routes state, or saved with the foreman? |
+
+### `godot/scripts/core/underground_entry_work_area.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless work-area publisher | -- | -- | -- | No members; Published packet is caller-owned | 3 | -- | ADR1197 G1. Publishes the accepted ADR1191 work area through SurfaceAnchor and one WorldRoutes publication; the resulting Locations and edges live in their canonical owners. |

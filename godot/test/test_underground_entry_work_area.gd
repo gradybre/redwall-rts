@@ -4,6 +4,7 @@ extends "res://test/framework/test_case.gd"
 const Previous := preload("res://test/test_underground_entry_source_phases.gd")
 const Prefix := preload("res://test/test_underground_first_prefix.gd")
 const Foreman := preload("res://scripts/core/underground_entry_foreman.gd")
+const WorkAreaSource := preload("res://scripts/core/underground_entry_work_area.gd")
 const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-handling-v1/catalog_source.gd")
 const WA_PROFILE_SHA: String = Bundle.PROFILE_SHA
 const WA_CATALOG_SHA: String = Bundle.CATALOG_SHA
@@ -49,6 +50,8 @@ class SourceWorld extends Previous.SourceWorld:
 
 
 class Probe extends Previous.Probe:
+	var _published: WorkAreaSource.Published = null
+
 	func _make_world() -> Prefix.ActualWorld:
 		"""Select the immutable two-source bank at initial construction only."""
 		return SourceWorld.new()
@@ -82,85 +85,28 @@ class Probe extends Previous.Probe:
 		assert_equal(_source.load_file(WorkAreaImages.frontier(), WA_FRONTIER_SHA, 2), &"", "immutable work-area Frontier")
 
 	func _natural_surface() -> void:
-		"""H keeps only the complete directional/work envelope; metadata grants no air or support."""
+		"""ADR1197 G1: the production publisher creates all nine endpoints from the accepted geometry."""
 		_anchor = Anchor.new()
 		assert_equal(_anchor.configure(_world._world, _world._terrain, _world._owner, _world._sources,
 			_world._locations, _world._budget, Anchor.RESERVED_BYTES), &"", "actual Anchor")
+		_published = WorkAreaSource.Published.new()
+		assert_equal(WorkAreaSource.publish_locations(_anchor, ORIGIN, _published), &"", "production work-area endpoints")
+		_section = _published.section
 		_endpoints.resize(9)
-		var air: PackedInt32Array = _translated(PackedInt32Array([-445, 0, -732, 910, 1036, 346]), _surface_point(0))
-		var foot: PackedInt32Array = _translated(PackedInt32Array([-274, -1, -274, 299, 0, 249]), _surface_point(0))
-		var metadata: PackedInt32Array = Source.world_box(PackedInt32Array([-4096, 0, -5120, 4096, 1, 4096]))
-		var created: Anchor.Result = _anchor.create(_surface_point(0), air, foot, Locations.ROLE_WORK, metadata)
-		assert_equal(created.error, &"", "actual complete handling contact")
-		_section = created.section
-		_endpoints[0] = created.location
+		for index: int in _published.endpoints.size(): _endpoints[index] = _published.endpoints[index]
 
 	func _remaining_surface_contacts() -> void:
-		"""Real terrain surveys cover the full retained-ground paths; no future cut receives footing."""
-		for index: int in range(1, 9):
-			var role: int = Locations.ROLE_STORAGE if index < 3 else Locations.ROLE_WORK
-			var added: Anchor.Result = _anchor.create_in_section(_surface_point(index),
-				_source_air(index), _source_foot(index), _section, role)
-			assert_equal(added.error, &"", "actual source work-area endpoint %d" % index)
-			_endpoints[index] = added.location
+		"""All nine endpoints were published together by the production module."""
+		pass
 
-	func _source_air(index: int) -> PackedInt32Array:
-		"""The first pair surveys outer corridors and is retired before the bearer; storage air clears it."""
-		if index < 3:
-			return Source.world_box(PackedInt32Array([-3816, 0, 280, 3816, 1036, 3304]))
-		if index < 5:
-			return Source.world_box(PackedInt32Array([-3816, 0, -3816, -280, 1422, 2792]) if index == 3 else
-				PackedInt32Array([280, 0, -3816, 3816, 1422, 2792]))
-		return _translated(PackedInt32Array([-1256, 0, -1256, 1256, 1422, 1256]), _surface_point(index))
-
-	func _source_foot(index: int) -> PackedInt32Array:
-		"""All complete ground contact sweeps are observed outside the six canonical cut identities."""
-		if index < 3:
-			return Source.world_box(PackedInt32Array([-2966, -1, 238, 2966, 0, 2454]))
-		return Source.world_box(PackedInt32Array([-2966, -1, -4096, -1130, 0, 2454]) if index % 2 == 1 else
-			PackedInt32Array([1130, -1, -4096, 2966, 0, 2454]))
-
-	static func _translated(box: PackedInt32Array, point: Vector3i) -> PackedInt32Array:
-		"""Only integer translation is applied to complete source extents."""
-		return PackedInt32Array([box[0] + point.x, box[1] + point.y, box[2] + point.z,
-			box[3] + point.x, box[4] + point.y, box[5] + point.z])
+	func _surface_routes() -> void:
+		"""ADR1197 G1: the production publisher seals and publishes all 28 directed paths once."""
+		assert_equal(WorkAreaSource.publish_paths(_world._binding, _world._routes, _world._budget, _world._owner,
+			ORIGIN, _published, _content_revision()), &"", "production work-area paths")
 
 	func _surface_point(index: int) -> Vector3i:
-		"""Immutable material/output selectors and runtime storage names share these exact points."""
-		if index == 1: return ORIGIN + Vector3i(-832, 0, 2048)
-		if index == 2: return ORIGIN + Vector3i(-832, 0, 1536)
-		return super._surface_point(index)
-
-	func _surface_edge(first: int, last: int) -> Routes.Edge:
-		"""Directional H paths and all-yaw outside perimeter paths are authored before mask compilation."""
-		var edge: Routes.Edge = Routes.Edge.new()
-		edge.from_location = _endpoints[first]; edge.to_location = _endpoints[last]
-		edge.section = _section; edge.level = 0; edge.family = -1; edge.variant = 0
-		edge.mode = Profiles.MODE_WALK; edge.posture = Profiles.POSTURE_UPRIGHT
-		edge.content_revision = _content_revision(); edge.geometry_revision = _world._owner.revision()
-		var points: Array[Vector3i] = _perimeter(first, last)
-		for point: Vector3i in points: edge.points.append_array(PackedInt32Array([point.x, point.y, point.z]))
-		edge.point_count = points.size()
-		for i: int in range(1, points.size()):
-			edge.length_u += absi(points[i].x - points[i - 1].x) + absi(points[i].z - points[i - 1].z)
-		return edge
-
-	func _perimeter(first: int, last: int) -> Array[Vector3i]:
-		"""Same-heading approach has no invented turn; every all-yaw bend stays on surveyed outer ground."""
-		if first < 3 and last < 3: return [_surface_point(first), _surface_point(last)]
-		var work: int = first if first >= 3 else last
-		var storage: int = last if first >= 3 else first
-		var root: Vector3i = _surface_point(work)
-		var start: Vector3i = _surface_point(storage)
-		var side: int = ORIGIN.x + (-2560 if work % 2 == 1 else 2560)
-		var result: Array[Vector3i] = [start]
-		var near: Vector3i = Vector3i(start.x, ORIGIN.y, ORIGIN.z + 1536)
-		if near != start: result.append(near)
-		result.append(Vector3i(side, ORIGIN.y, near.z))
-		result.append(Vector3i(side, ORIGIN.y, root.z))
-		result.append(root)
-		if first >= 3: result.reverse()
-		return result
+		"""The same authored points the production publisher uses."""
+		return WorkAreaSource.point(ORIGIN, index)
 
 
 var _probe: Probe = null

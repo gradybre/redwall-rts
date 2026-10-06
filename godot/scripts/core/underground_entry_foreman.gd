@@ -1,7 +1,7 @@
 extends RefCounted
-## ADR1196: fixed-tick dispatcher for the first-entry L0 excavation (increment 1).
-## The plan is derived from the immutable Frontier and Placement only; every step is a real owner call whose
-## own final guards decide. Arrival from the surface and material hauling are outside this increment.
+## ADR1196/ADR1202: fixed-tick dispatcher for the first-entry prefix: the L0 cuts, the paid L0 installation,
+## the T0 cuts and the paid T0 installation. The plan is derived from the immutable Frontier and Placement only;
+## every step is a real owner call whose own final guards decide. Surface arrival and hauling are outside it.
 
 const Sites := preload("res://scripts/core/excavation_sites.gd")
 const Contract := preload("res://scripts/core/excavation_contract.gd")
@@ -16,8 +16,8 @@ const Space := preload("res://scripts/core/room_space.gd")
 const Installer := preload("res://scripts/core/underground_entry_installer.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Assembly := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
+const ContactPath := preload("res://scripts/core/underground_entry_contact_path.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
-const L0_EPISODES: int = 4
 const OPERATIONS: Array[int] = [Contract.OP_BRACE, Contract.OP_CUT, Contract.OP_FINISH]
 const STAGE_OPEN: int = 0
 const STAGE_TRAVEL: int = 1
@@ -49,6 +49,7 @@ class Owners extends RefCounted:
 	var frontier: Frontier = null
 	var placements: RefCounted = null
 	var locations: Locations = null
+	var anchor: RefCounted = null # SurfaceAnchor; needed only when an installation stands on an installed contact.
 
 
 class Crew extends RefCounted:
@@ -62,7 +63,8 @@ class Crew extends RefCounted:
 
 
 class Task extends RefCounted:
-	## One paid phase: its Site, operation, work station endpoint, heading and exact work/travel profiles.
+	## One paid phase (Site, operation, station, heading, work/travel profiles), or one paid installation step.
+	var install_ordinal: int = -1
 	var site: Vector2i = NULL_REF
 	var operation: int = -1
 	var station: Vector2i = NULL_REF
@@ -86,8 +88,18 @@ var _accepted_mwu: int = 0
 var _math: IntMath.IntResult = IntMath.IntResult.new()
 var _actor: Routes.Actor = Routes.Actor.new()
 var _installer: Installer = null
+var _paid: Installer.Paid = null
+var _install_count: int = 0
+var _install_mwu: int = 0
 var _last_install_stage: int = -1
 var _placement: Vector2i = NULL_REF
+var _leg_target: Vector2i = NULL_REF
+var _leg_profile: int = -1
+var _leg_revision: int = 0
+var _retreat: Vector2i = NULL_REF
+var _retreat_profile: int = -1
+var _retreat_revision: int = 0
+var _pending_retreat: Vector2i = NULL_REF
 
 
 func configure(owners: Owners, crew: Crew, placement: Vector2i) -> StringName:
@@ -110,15 +122,22 @@ func configure(owners: Owners, crew: Crew, placement: Vector2i) -> StringName:
 
 
 func _plan(placement: Vector2i) -> StringName:
-	"""Each L0 episode contributes BRACE, CUT and FINISH at its single authored station."""
+	"""Only episodes that need no installed prefix are planned before any installation is configured."""
 	var row: int = placement.x
 	if row < 0 or _owners.placements._live.i32[row] != placement.y \
 			or _owners.placements._live.i32[_owners.placements.ROTATION * _owners.placements._capacity + row] != 0:
 		return REFUSE_PLAN
+	return _append_episodes(0)
+
+
+func _append_episodes(prefix: int) -> StringName:
+	"""Each episode needing exactly this installed prefix contributes BRACE, CUT and FINISH at its station."""
+	var row: int = _placement.x
 	var episode: PackedInt32Array = PackedInt32Array()
 	episode.resize(Frontier.row_fields(Frontier.EPISODE))
-	for ordinal: int in L0_EPISODES:
+	for ordinal: int in _owners.frontier.row_count(Frontier.EPISODE, _owners.frontier.content_revision()):
 		if _owners.frontier.episode_into(ordinal, episode) != &"" or episode[6] != 7: return REFUSE_PLAN
+		if episode[7] != prefix: continue
 		var site: Vector2i = _owners.sites.site_at(_world_point(row, episode[0], episode[1], episode[2]))
 		if site == NULL_REF: return REFUSE_PLAN
 		for operation: int in OPERATIONS:
@@ -247,22 +266,37 @@ func _assign() -> StringName:
 
 
 func _begin_travel(task: Task, job: Vector2i, tick: int) -> StringName:
-	"""Hand the recovered source to its explicit travel profile and request the real itinerary."""
-	var code: StringName = _owners.routes.refresh_travel_actor(_crew.worker, job, task.travel_profile,
-		task.travel_revision, _content, 0, -1, _crew.tool)
-	return _owners.routes.request_route(_crew.worker, task.station, tick) if code == &"" else code
+	"""A pending installation retreat leg goes first on its own profile; then the station's travel profile."""
+	if _retreat != NULL_REF:
+		var target: Vector2i = _retreat
+		_retreat = NULL_REF
+		return _leg(job, target, _retreat_profile, _retreat_revision, tick)
+	return _leg(job, task.station, task.travel_profile, task.travel_revision, tick)
+
+
+func _leg(job: Vector2i, target: Vector2i, profile: int, revision: int, tick: int) -> StringName:
+	"""Hand the recovered source to one explicit travel profile and request the real itinerary."""
+	_leg_target = target
+	_leg_profile = profile
+	_leg_revision = revision
+	var code: StringName = _owners.routes.refresh_travel_actor(_crew.worker, job, profile, revision, _content,
+		0, -1, _crew.tool)
+	return _owners.routes.request_route(_crew.worker, target, tick) if code == &"" else code
 
 
 func _travel(tick: int) -> StringName:
-	"""Advance real route ticks; on source-ready arrival, take the certified work-facing turn."""
+	"""Advance real route ticks; a source-ready retreat arrival starts the next leg, the station arrival turns."""
 	var task: Task = _tasks[_index]
 	var job: Vector2i = _owners.jobs.ref_of(_job)
 	_owners.routes.advance_tick(tick)
 	var code: StringName = _owners.routes.read_actor_into(_crew.worker, _actor)
 	if code != &"": return code
 	if _actor.phase == Routes.PHASE_HELD: return &"ENTRY_FOREMAN_ROUTE_HELD"
-	if _actor.location != task.station or Routes.source_ready_leaf_refusal(_owners.routes, _crew.worker, job,
-			task.travel_profile, task.travel_revision, _content) != &"": return &""
+	if _actor.location != _leg_target or Routes.source_ready_leaf_refusal(_owners.routes, _crew.worker, job,
+			_leg_profile, _leg_revision, _content) != &"": return &""
+	if _leg_target != task.station:
+		_stage_ticks = 0
+		return _begin_travel(task, job, tick)
 	code = WorldRoutes.turn_actor(_owners.binding, _crew.worker, job, task.yaw, Space.MAX_CHECKS)
 	if code == &"": code = _refresh_work(task, job)
 	if code == &"": _set_stage(STAGE_ENTER)
@@ -338,9 +372,20 @@ func _recover(tick: int) -> StringName:
 	var settled: RefCounted = _owners.sites.settle_phase(task.site)
 	if not settled.ok: return settled.error
 	_index += 1
-	if _index < _tasks.size(): _set_stage(STAGE_OPEN)
-	else: _set_stage(STAGE_INSTALL if _installer != null else STAGE_DONE)
-	return &""
+	return _next_step()
+
+
+func _next_step() -> StringName:
+	"""Start the next planned step: a cut phase opens, an installation derives its plan now, or all is done."""
+	if _index >= _tasks.size():
+		_set_stage(STAGE_DONE)
+		return &""
+	if _tasks[_index].install_ordinal < 0:
+		_set_stage(STAGE_OPEN)
+		return &""
+	var code: StringName = _begin_installation(_tasks[_index].install_ordinal)
+	if code == &"": _set_stage(STAGE_INSTALL)
+	return code
 
 
 func _set_stage(stage: int) -> void:
@@ -367,8 +412,11 @@ func error() -> StringName:
 
 
 func task_count() -> int:
-	"""Number of planned phases."""
-	return _tasks.size()
+	"""Number of planned cut phases; installation steps are not phases."""
+	var count: int = 0
+	for task: Task in _tasks:
+		if task.install_ordinal < 0: count += 1
+	return count
 
 
 func accepted_mwu() -> int:
@@ -377,25 +425,47 @@ func accepted_mwu() -> int:
 
 
 func configure_installation(paid: Installer.Paid, ordinal: int) -> StringName:
-	"""Derive the paid L0 installation plan from the Frontier install row after the cut plan exists."""
-	if _tasks.size() != L0_EPISODES * OPERATIONS.size() or _stage != STAGE_OPEN or _index != 0: return REFUSE_PLAN
-	var plan: Installer.Plan = _installation_plan(ordinal)
+	"""Append the episodes needing this installed prefix, then the paid installation; nothing is touched."""
+	if paid == null or ordinal != _install_count or _stage != STAGE_OPEN or _index != 0 or _tasks.is_empty():
+		return REFUSE_PLAN
+	var install: PackedInt32Array = PackedInt32Array()
+	install.resize(Frontier.row_fields(Frontier.INSTALL))
+	if _owners.frontier.installation_into(ordinal, install) != &"": return REFUSE_PLAN
+	var before: int = _tasks.size()
+	var code: StringName = _append_episodes(ordinal) if ordinal > 0 else &""
+	if code != &"" or _tasks[_tasks.size() - 1].install_ordinal >= 0:
+		_tasks.resize(before)
+		return REFUSE_PLAN
+	var step: Task = Task.new()
+	step.install_ordinal = ordinal
+	_tasks.append(step)
+	_paid = paid
+	_install_count += 1
+	return &""
+
+
+func _begin_installation(ordinal: int) -> StringName:
+	"""Resolve the plan against the live Locations now, publish a contact path if needed, then configure."""
+	var install: PackedInt32Array = PackedInt32Array()
+	install.resize(Frontier.row_fields(Frontier.INSTALL))
+	if _owners.frontier.installation_into(ordinal, install) != &"": return REFUSE_PLAN
+	var plan: Installer.Plan = _installation_plan(ordinal, install)
 	if plan == null: return REFUSE_PLAN
+	var code: StringName = _connect_contact(install, plan)
+	if code != &"": return code
 	_installer = Installer.new()
-	var code: StringName = _installer.configure(_owners, _crew, paid, plan)
-	if code != &"": _installer = null
+	_last_install_stage = -1
+	code = _installer.configure(_owners, _crew, _paid, plan)
+	if code == &"": code = _plan_retreat(install, plan)
 	return code
 
 
-func _installation_plan(ordinal: int) -> Installer.Plan:
+func _installation_plan(ordinal: int, install: PackedInt32Array) -> Installer.Plan:
 	"""H from the install station, M from its material selector, profiles from the source; aliases refuse."""
-	var install: PackedInt32Array = PackedInt32Array()
-	install.resize(Frontier.row_fields(Frontier.INSTALL))
 	var station: PackedInt32Array = PackedInt32Array()
 	station.resize(Frontier.row_fields(Frontier.STATION))
 	var revision: IntMath.IntResult = IntMath.IntResult.new()
-	if _owners.frontier.installation_into(ordinal, install) != &"" \
-			or _owners.frontier.station_into(install[0], station, revision) != &"": return null
+	if _owners.frontier.station_into(install[1], station, revision) != &"": return null
 	var plan: Installer.Plan = Installer.Plan.new()
 	plan.ordinal = ordinal
 	plan.placement = _placement
@@ -411,26 +481,67 @@ func _installation_plan(ordinal: int) -> Installer.Plan:
 
 
 func _finish_plan(plan: Installer.Plan) -> Installer.Plan:
-	"""The worker leaves the last cut on its all-yaw profile; episodes 0 and 1 name the retired pair."""
-	var last: Task = _tasks[_tasks.size() - 1]
+	"""The worker leaves the preceding cut on its profile; only L0's START retires episodes 0 and 1 (ADR1191)."""
+	var last: Task = _tasks[_index - 1]
 	plan.walk_profile = last.travel_profile
 	plan.walk_revision = last.travel_revision
 	var profiles: RefCounted = _owners.profiles
 	plan.handling_revision = profiles._live.quantities[Profiles.L_REVISION * profiles._profile_capacity + Assembly.PROFILE]
-	plan.retired_first = _tasks[0].station
-	plan.retired_second = _tasks[OPERATIONS.size()].station
+	if plan.ordinal == 0:
+		plan.retired_first = _tasks[0].station
+		plan.retired_second = _tasks[OPERATIONS.size()].station
 	return plan if plan.station != NULL_REF and plan.material != NULL_REF else null
 
 
+func _connect_contact(install: PackedInt32Array, plan: Installer.Plan) -> StringName:
+	"""A station on an installed contact has no route edge yet: publish M <-> contact through WorldRoutes."""
+	var station: PackedInt32Array = PackedInt32Array()
+	station.resize(Frontier.row_fields(Frontier.STATION))
+	var endpoint: PackedInt32Array = PackedInt32Array()
+	endpoint.resize(Frontier.row_fields(Frontier.ENDPOINT))
+	var revision: IntMath.IntResult = IntMath.IntResult.new()
+	if _owners.frontier.station_into(install[1], station, revision) != &"" \
+			or _owners.frontier.endpoint_into(station[0], endpoint) != &"": return REFUSE_PLAN
+	if endpoint[0] != Frontier.INSTALLED_CONTACT: return &""
+	var ends: ContactPath.Ends = ContactPath.Ends.new()
+	ends.ground = plan.material
+	ends.contact = plan.station
+	ends.origin = _world_point(_placement.x, 0, 0, 0)
+	ends.content_revision = _content
+	return ContactPath.publish(_owners.anchor, _owners.binding, _owners.routes, _paid.budget,
+		_owners.binding._owner(), ends, _owners.locations)
+
+
+func _plan_retreat(install: PackedInt32Array, plan: Installer.Plan) -> StringName:
+	"""A distinct authored retreat endpoint becomes the first leg after this installation, on its own profile."""
+	var retreat: Vector2i = _resolve_endpoint(_placement.x, install[8])
+	if retreat == NULL_REF: return REFUSE_PLAN
+	if retreat == plan.station: return &""
+	var profile: IntMath.IntResult = IntMath.IntResult.new()
+	var revision: IntMath.IntResult = IntMath.IntResult.new()
+	if _owners.frontier.endpoint_travel_into(install[8], profile, revision) != &"": return REFUSE_PLAN
+	_retreat_profile = profile.value
+	_retreat_revision = revision.value
+	_pending_retreat = retreat
+	return &""
+
+
 func _install(tick: int) -> StringName:
-	"""Delegate every tick to the installer until its one whole-group commit."""
+	"""Delegate every tick to the installer until its one whole-group commit, then take the next step."""
 	var code: StringName = _installer.advance(tick)
-	if code == &"" and _installer.stage() == Installer.STAGE_DONE: _set_stage(STAGE_DONE)
-	if code == &"": _stage_ticks = 0 if _installer.stage() != _last_install_stage else _stage_ticks
+	if code != &"": return code
+	if _installer.stage() == Installer.STAGE_DONE:
+		_install_mwu += _installer.accepted_mwu()
+		_installer = null
+		_retreat = _pending_retreat
+		_pending_retreat = NULL_REF
+		_index += 1
+		return _next_step()
+	_stage_ticks = 0 if _installer.stage() != _last_install_stage else _stage_ticks
 	_last_install_stage = _installer.stage()
-	return code
+	return &""
 
 
 func install_mwu() -> int:
-	"""Fastening work accepted during installation, or zero."""
-	return _installer.accepted_mwu() if _installer != null else 0
+	"""Fastening work accepted across completed and current installations, or zero."""
+	return _install_mwu + (_installer.accepted_mwu() if _installer != null else 0)

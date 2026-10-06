@@ -170,12 +170,15 @@ func _leg_material(tick: int) -> StringName:
 
 
 func _leg_station(tick: int) -> StringName:
-	"""The same-heading approach must already face the handling yaw; H admits no turn."""
+	"""A same-heading approach must already face the handling yaw (H admits no turn); an all-yaw one turns."""
 	var arrived: int = _arrived(_plan.station, _plan.approach_profile, _plan.approach_revision, tick)
 	if arrived < 0: return &"ENTRY_INSTALLER_ROUTE_HELD"
 	if arrived == 0: return &""
-	if _actor.yaw != _yaw(Assembly.PROFILE): return REFUSE_HEADING
-	var code: StringName = _o.routes.refresh_work_actor(_crew.worker, _job_ref(), Assembly.PROFILE,
+	var code: StringName = &""
+	if _actor.yaw != _yaw(Assembly.PROFILE):
+		if not _all_yaw(_plan.approach_profile): return REFUSE_HEADING
+		code = WorldRoutes.turn_actor(_o.binding, _crew.worker, _job_ref(), _yaw(Assembly.PROFILE), Space.MAX_CHECKS)
+	if code == &"": code = _o.routes.refresh_work_actor(_crew.worker, _job_ref(), Assembly.PROFILE,
 		_plan.handling_revision, _content, 0, -1, _crew.tool)
 	if code == &"": _stage = STAGE_FUND
 	return code
@@ -185,6 +188,12 @@ func _yaw(profile: int) -> int:
 	"""The authored exact heading of one loaded profile row."""
 	var profiles: RefCounted = _o.profiles
 	return profiles._live.fields[Profiles.F_YAW * profiles._profile_capacity + profile]
+
+
+func _all_yaw(profile: int) -> bool:
+	"""True when the loaded profile row may turn in place at any endpoint that contains it."""
+	var profiles: RefCounted = _o.profiles
+	return profiles._live.fields[Profiles.F_YAW_KIND * profiles._profile_capacity + profile] == Profiles.YAW_ALL
 
 
 func _fund(tick: int) -> StringName:

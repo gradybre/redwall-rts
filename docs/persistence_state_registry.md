@@ -2081,6 +2081,12 @@ as source-qualified motion. No composed save adapter is claimed here.
 |---|---|---:|---|---|:-:|---|---|
 | Stateless work-area publisher | -- | -- | -- | No members; Published packet is caller-owned | 3 | -- | ADR1197 G1. Publishes the accepted ADR1191 work area through SurfaceAnchor and one WorldRoutes publication; the resulting Locations and edges live in their canonical owners. |
 
+### `godot/scripts/core/underground_entry_contact_path.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless contact-path publisher | -- | -- | -- | No members; Ends packet is caller-owned | 3 | -- | ADR1202. Publishes the M <-> installed-contact walking path in both directions through one WorldRoutes publication; the edges live in Routes. |
+
 ### `godot/scripts/core/underground_entry_site.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

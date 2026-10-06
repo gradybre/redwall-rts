@@ -651,3 +651,70 @@ func test_entry_foreman_drives_cuts_retirement_paid_handling_and_install() -> vo
 	assert_equal(_probe._world._inventory.lot_quantity_milli(_probe._wood), 1500, "one whole L0 bill paid once")
 	assert_equal(_probe._placements._get32(_probe._placements._live, Prefix.Placements.INSTALLED, 0), 1, "L0 installed")
 	assert_equal(_probe._world._construction.live_project_count(), 0, "every Project retired")
+
+
+
+
+func test_entry_foreman_runs_t0_cuts_then_t0_admission_refuses_the_narrow_material_selector() -> void:
+	"""ADR1202: only Foreman.advance(tick) runs six cubes and the paid L0; the T0 order then refuses exactly."""
+	_probe = PaidProbe.new()
+	_probe.before_each()
+	var foreman: Foreman = _complete_prefix_foreman()
+	if foreman == null: return
+	var tick: int = _probe._tick
+	while not foreman.is_done() and foreman.error() == &"" and tick < _probe._tick + 80000:
+		foreman.advance(tick)
+		tick += 1
+	assert_equal(foreman.error(), &"ROUTE_NOT_CONNECTED", "T0 admission needs a source2 path from M to the L0 contact")
+	assert_false(foreman.is_done(), "the T0 group is not installed")
+	_assert_t0_cut_ledger(foreman)
+	_assert_contact_path()
+
+
+func _complete_prefix_foreman() -> Foreman:
+	"""Worker at the first station; cuts, L0 and T0 planned from the Frontier with the real SurfaceAnchor."""
+	if _probe._confirm_prefix() == NULL_REF: return null
+	var first: Vector3i = _probe._surface_point(3)
+	assert_true(_probe._world._transforms.place(_probe._world._worker, first.x, first.y, first.z, 49152),
+		"worker physically stands at the first authored station")
+	var foreman: Foreman = Foreman.new()
+	var placement: Vector2i = Vector2i(0, _probe._placements._get32(_probe._placements._live, Prefix.Placements.GENERATION, 0))
+	var owners: Foreman.Owners = WorkAreaTests.foreman_owners(_probe)
+	owners.anchor = _probe._anchor
+	assert_equal(foreman.configure(owners, WorkAreaTests.foreman_crew(_probe), placement), &"", "L0 cut plan")
+	var paid: Foreman.Installer.Paid = Foreman.Installer.Paid.new()
+	paid.router = _probe._router; paid.connector = _probe._paid; paid.contacts = _probe._contacts; paid.budget = _probe._world._budget
+	assert_equal(foreman.configure_installation(paid, 0), &"", "L0 installation from Frontier install row 0")
+	assert_equal(foreman.configure_installation(paid, 1), &"", "T0 cuts and installation from install row 1")
+	assert_equal(foreman.task_count(), 18, "six cubes x BRACE/CUT/FINISH")
+	return foreman if failures.is_empty() else null
+
+
+func _assert_t0_cut_ledger(foreman: Foreman) -> void:
+	"""All six cubes and the whole L0 are paid exactly once; the refused T0 order paid and created nothing."""
+	var world: RefCounted = _probe._world
+	assert_equal(_probe._placements._get32(_probe._placements._live, Prefix.Placements.INSTALLED, 0), 1, "only L0 installed")
+	assert_equal(world._inventory.lot_quantity_milli(_probe._wood), 1000, "only the T0 assembly wood remains")
+	assert_equal(world._inventory.lot_quantity_milli(_probe._stone), 0, "all 1500 adopted brace stone spent")
+	assert_equal(_probe._sites.virgin_sourced_milli(), 12000, "six 2000 spoil outputs")
+	assert_equal(foreman.accepted_mwu(), 54000, "six cubes x 9000 phase work")
+	assert_equal(foreman.install_mwu(), 32000, "L0 landing fastening")
+	assert_equal(_probe._sites.earth_conservation_refusal(), &"", "complete spoil conservation")
+	assert_equal(_probe._sites.support_conservation_refusal(), &"", "complete brace conservation")
+	assert_true(world._inventory.audit().ok and world._pool.audit(world._inventory).ok, "real conservation audits")
+	assert_equal(world._construction.live_project_count(), 0, "every Project retired; no T0 Project admitted")
+
+
+func _assert_contact_path() -> void:
+	"""The published crossing qualifies all-yaw source12 both ways; fixed-heading source2 cannot reach x = 0."""
+	var contact: Vector2i = _probe._installed_l0_contact()
+	var material: Vector2i = _probe._endpoints[1]
+	var remaining: PackedInt32Array = PackedInt32Array([0])
+	var checks: int = _probe._world._owner._domain._checks
+	var content: int = WorkArea.Bundle.CONTENT_REVISION
+	assert_equal(Foreman.WorldRoutes.profile_reachability_refusal(_probe._world._binding, material, contact, 12, 1,
+		content, checks, remaining), &"", "M to the L0 contact on all-yaw source12")
+	assert_equal(Foreman.WorldRoutes.profile_reachability_refusal(_probe._world._binding, contact, material, 12, 1,
+		content, checks, remaining), &"", "the L0 contact back to M on all-yaw source12")
+	assert_true(Foreman.WorldRoutes.profile_reachability_refusal(_probe._world._binding, material, contact, 2, 1,
+		content, checks, remaining) != &"", "the Frontier's M selector names source2, which only walks -Z")

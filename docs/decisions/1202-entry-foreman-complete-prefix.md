@@ -486,6 +486,9 @@ refused onto the narrow contact.
 
 1. **Brendan: where the Kitchen sits relative to the entry** and how T0 connects to it (a stair/descent of
    further Frontier rows, or the Kitchen's first face placed at T0's far end). Everything below depends on it.
+   **Answered 2026-10-06:** the Kitchen opens off T0's far end, at the same depth. ADR 1208 found that the
+   authored data cannot carry it as planned: nothing stands past T0, no work motion on T0 reaches a Kitchen
+   face, and the Corridor has no far opening. Steps 2–6 wait on ADR 1208's options.
 2. Author that connection (Frontier successor or descent episodes) and prove it on the hand fixture.
 3. Runtime Kitchen confirmation: build the `Approach.Request` from live Locations; `confirm_room`.
 4. Compose `bind_room_phase_contacts` in entry composition.

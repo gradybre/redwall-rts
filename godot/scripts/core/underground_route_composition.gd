@@ -9,15 +9,16 @@ const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
 const Movement := preload("res://scripts/core/movement.gd")
 const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
-const PROFILE_CONTENT_REVISION: int = 3
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-handling-v1/catalog_source.gd")
+const PROFILE_CONTENT_REVISION: int = Bundle.CONTENT_REVISION
 const CATALOG_REVISION: int = 1
-const CATALOG_PATH: String = "res://data/underground/mole-worker/qualified-step-v4/ground-pace.ugconn"
-const CATALOG_SHA: String = "454eaab1b2a722aab2700285d31a0bcc093312dad211208da7993baa32bc2f24"
+const CATALOG_PATH: String = "res://data/underground/mole-worker/qualified-handling-v5/ground-pace.ugconn"
+const CATALOG_SHA: String = Bundle.GROUND_SHA
 
-const CATALOG_DIGEST_0: int = -6187198552126894523
-const CATALOG_DIGEST_1: int = -3743869169456484174
-const CATALOG_DIGEST_2: int = -8277596517807541495
-const CATALOG_DIGEST_3: int = 2607509635061225895
+const CATALOG_DIGEST_0: int = Bundle.GROUND_DIGEST_0
+const CATALOG_DIGEST_1: int = Bundle.GROUND_DIGEST_1
+const CATALOG_DIGEST_2: int = Bundle.GROUND_DIGEST_2
+const CATALOG_DIGEST_3: int = Bundle.GROUND_DIGEST_3
 
 
 static func construct(session: RefCounted) -> StringName:

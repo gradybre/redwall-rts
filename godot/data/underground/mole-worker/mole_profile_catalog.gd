@@ -6,17 +6,18 @@ const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Content := preload("res://demo/cast/underground_actor_content.gd")
 const Actor := preload("res://demo/cast/underground_actor.gd")
 const Space := preload("res://scripts/core/room_space.gd")
-const Pins := preload("./qualified-step-v4/catalog_source.gd")
-const PROFILE_COUNT: int = 29
-const BOX_COUNT: int = 271
-const CONTENT_REVISION: int = 3
+const Pins := preload("./qualified-handling-v5/catalog_source.gd")
+const PROFILE_COUNT: int = 30
+const BOX_COUNT: int = 281
+const CONTENT_REVISION: int = 4
 const PROFILE_REVISION: int = 1
-const WIRE_BYTES: int = 10502
-const PAIRED_BANK_BYTES: int = 20988
+const WIRE_BYTES: int = 10912
+const PAIRED_BANK_BYTES: int = 21808
 const SOURCE_CHARS: int = 262144
 const HASH_CHARS: int = 1024
 const CONTROL_RESERVE: int = 32768 # Existing Profiles reserve, never an additional arena.
-const WIRE_PATH: String = "res://data/underground/mole-worker/qualified-step-v4/mole-worker.ugprof"
+const WIRE_PATH: String = "res://data/underground/mole-worker/qualified-handling-v5/mole-worker.ugprof"
+const SOURCE_COUNT: int = 2 # ADR1194: actor source plus the assembly-handling source of row 29.
 
 
 static func load_into(profiles: Profiles, content: Content, domain: Space.Domain) -> StringName:
@@ -151,13 +152,18 @@ static func catalog_refusal(profiles: Profiles) -> StringName:
 		return &"MOLE_CATALOG_OWNER"
 	var source: PackedByteArray = PackedByteArray()
 	source.resize(32)
+	var handling: PackedByteArray = PackedByteArray()
+	handling.resize(32)
 	if not profiles.source_hash_into(0, CONTENT_REVISION, source) or source.hex_encode() != Pins.ACTOR_SHA \
-			or profiles.source_hash_into(1, CONTENT_REVISION, source):
+			or not profiles.source_hash_into(1, CONTENT_REVISION, handling) \
+			or handling.hex_encode() != Pins.HANDLING_SOURCE_SHA \
+			or profiles.source_hash_into(SOURCE_COUNT, CONTENT_REVISION, handling):
 		return &"MOLE_CATALOG_CONTENT"
 	var hashing: HashingContext = HashingContext.new()
 	hashing.start(HashingContext.HASH_SHA256)
 	hashing.update(_wire_header())
 	hashing.update(source)
+	hashing.update(handling)
 	var code: StringName = _hash_rows(profiles, hashing)
 	if code == &"":
 		code = _hash_boxes(profiles, hashing)
@@ -175,7 +181,7 @@ static func _wire_header() -> PackedByteArray:
 	bytes.encode_s64(12, CONTENT_REVISION)
 	bytes.encode_u32(20, PROFILE_COUNT)
 	bytes.encode_u32(24, BOX_COUNT)
-	bytes.encode_u32(28, 1)
+	bytes.encode_u32(28, SOURCE_COUNT)
 	return bytes
 
 

@@ -9,7 +9,7 @@ const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
 const Movement := preload("res://scripts/core/movement.gd")
 const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-install-v3/catalog_source.gd")
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-landing-v4/catalog_source.gd")
 const PROFILE_CONTENT_REVISION: int = Bundle.CONTENT_REVISION
 # ADR1190/1195: the mounted graph selects the published first-entry structure, which carries the same
 # ground paces plus the L0/T0 regions; selecting it before the first WorldRoutes binding is final.

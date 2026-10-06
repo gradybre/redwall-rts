@@ -655,8 +655,9 @@ func test_entry_foreman_drives_cuts_retirement_paid_handling_and_install() -> vo
 
 
 
-func test_entry_foreman_admits_t0_handling_then_start_refuses_on_the_l0_contact_envelope() -> void:
-	"""ADR1202: only Foreman.advance(tick) runs six cubes, the paid L0, the T0 order and T0 handling admission."""
+func test_entry_foreman_splits_the_l0_landing_then_the_crossing_survey_exceeds_the_anchor_check_budget() -> void:
+	"""ADR1202 split landing: only Foreman.advance(tick) runs six cubes and the paid L0, which now creates a narrow
+	WORK contact and one arrival; publishing the T0 contact path then refuses on SurfaceAnchor's check budget."""
 	_probe = PaidProbe.new()
 	_probe.before_each()
 	var foreman: Foreman = _complete_prefix_foreman()
@@ -665,12 +666,11 @@ func test_entry_foreman_admits_t0_handling_then_start_refuses_on_the_l0_contact_
 	while not foreman.is_done() and foreman.error() == &"" and tick < _probe._tick + 80000:
 		foreman.advance(tick)
 		tick += 1
-	assert_equal(foreman.error(), &"LOCATION_ENVELOPE_BLOCKED",
-		"START: the pending T0 prism lies inside the L0 contact's ADR1193 air; the endpoint certificate covers only H")
-	assert_true(foreman._installer != null and foreman._installer.stage() == Foreman.Installer.STAGE_FUND,
-		"the handling foot on the deck was admitted (ADR1202 option 1); START refused")
-	_assert_t0_start_ledger(foreman)
-	_assert_contact_path()
+	assert_equal(foreman.error(), &"SURFACE_ANCHOR_CHECK_CAPACITY",
+		"the crossing survey refreshes one more live Location (the arrival) than the World check budget covers")
+	assert_true(foreman._installer == null, "the T0 order was never opened")
+	_assert_t0_cut_ledger(foreman)
+	_assert_split_landing()
 
 
 func _complete_prefix_foreman() -> Foreman:
@@ -692,8 +692,8 @@ func _complete_prefix_foreman() -> Foreman:
 	return foreman if failures.is_empty() else null
 
 
-func _assert_t0_start_ledger(foreman: Foreman) -> void:
-	"""All six cubes and the whole L0 are paid exactly once; the refused T0 START consumed nothing."""
+func _assert_t0_cut_ledger(foreman: Foreman) -> void:
+	"""All six cubes and the whole L0 are paid exactly once; nothing of the T0 group is admitted or spent."""
 	var world: RefCounted = _probe._world
 	assert_equal(_probe._placements._get32(_probe._placements._live, Prefix.Placements.INSTALLED, 0), 1, "only L0 installed")
 	assert_equal(world._inventory.lot_quantity_milli(_probe._wood), 1000, "only the T0 assembly wood remains")
@@ -704,23 +704,76 @@ func _assert_t0_start_ledger(foreman: Foreman) -> void:
 	assert_equal(_probe._sites.earth_conservation_refusal(), &"", "complete spoil conservation")
 	assert_equal(_probe._sites.support_conservation_refusal(), &"", "complete brace conservation")
 	assert_true(world._inventory.audit().ok and world._pool.audit(world._inventory).ok, "real conservation audits")
-	assert_equal(world._construction.live_project_count(), 1, "the admitted T0 Project stays open, unstarted")
+	assert_equal(world._construction.live_project_count(), 0, "every Project retired; no T0 Project admitted")
 
 
-func _assert_contact_path() -> void:
-	"""The published crossing qualifies all-yaw source12 both ways; fixed-heading source2 cannot reach x = 0."""
-	var contact: Vector2i = _probe._installed_l0_contact()
-	var material: Vector2i = _probe._endpoints[1]
-	var remaining: PackedInt32Array = PackedInt32Array([0])
-	var checks: int = _probe._world._owner._domain._checks
-	var content: int = WorkArea.Bundle.CONTENT_REVISION
-	assert_equal(Foreman.WorldRoutes.profile_reachability_refusal(_probe._world._binding, material, contact, 12, 1,
-		content, checks, remaining), &"", "M to the L0 contact on all-yaw source12")
-	assert_equal(Foreman.WorldRoutes.profile_reachability_refusal(_probe._world._binding, contact, material, 12, 1,
-		content, checks, remaining), &"", "the L0 contact back to M on all-yaw source12")
-	assert_true(Foreman.WorldRoutes.profile_reachability_refusal(_probe._world._binding, material, contact, 2, 1,
-		content, checks, remaining) != &"", "source2 (install row 0's M selector) only walks -Z, so T0 names selector 10")
+func _assert_split_landing() -> void:
+	"""The L0 contact has H's narrow shape; one arrival Location sized for source12 stands clear of the T0 bearer."""
+	var record: Prefix.Locations.Record = _record(_probe._installed_l0_contact())
+	assert_equal(_relative(record.envelope, record.point), PackedInt32Array([-445, 0, -732, 910, 1036, 346]),
+		"contact air: the source2/6/16 union, exactly the endpoint certificate's words")
+	assert_equal(_relative(record.support, record.point), PackedInt32Array([-274, -1, -274, 299, 0, 249]),
+		"contact footing: the source2/16 stance union")
+	var bearer: PackedInt32Array = PackedInt32Array()
+	bearer.resize(Foreman.Frontier.row_fields(Foreman.Frontier.BEARING))
+	assert_equal(_probe._source.bearing_into(1, bearer), &"", "T0 bearer footprint (install row 1's bearing)")
+	var contact: PackedInt32Array = PackedInt32Array()
+	contact.resize(Foreman.Frontier.row_fields(Foreman.Frontier.ENDPOINT))
+	assert_equal(_probe._source.endpoint_into(3, contact), &"", "contact selector")
+	var bearer_far_z: int = record.point.z + bearer[8] - contact[6]
+	var arrival: Vector2i = _installed_l0_arrival()
+	record = _record(arrival)
+	assert_equal(_relative(record.envelope, record.point), PackedInt32Array([-1256, 0, -1256, 1256, 1036, 1256]),
+		"arrival air: the whole source12 body and turn sweep")
+	assert_equal(_relative(record.support, record.point), PackedInt32Array([-406, -1, -406, 406, 0, 406]),
+		"arrival footing: the source12 stance on the deck")
+	assert_equal(record.envelope[2], bearer_far_z, "arrival air ends exactly at the T0 bearer's far face")
+	assert_true(_reach(_probe._endpoints[1], arrival, 12) != &"", "no ground path yet: the survey refused")
 	var row: PackedInt32Array = PackedInt32Array()
 	row.resize(Foreman.Frontier.row_fields(Foreman.Frontier.INSTALL))
 	assert_equal(_probe._source.installation_into(1, row), &"", "successor T0 install row")
-	assert_equal(row[7], 10, "ADR1202 successor: T0 material is M's all-yaw selector")
+	assert_equal(row[7], 10, "T0 material stays M's all-yaw selector")
+	assert_equal(row[8], 13, "T0 retreats to the arrival on backward source6")
+
+
+func _record(ref: Vector2i) -> Prefix.Locations.Record:
+	"""One complete live Location record."""
+	var record: Prefix.Locations.Record = Prefix.Locations.Record.new()
+	record.envelope.resize(6); record.support.resize(6)
+	assert_equal(_probe._world._locations.read_location_into(ref, record), &"", "live Location record")
+	return record
+
+
+func _relative(box: PackedInt32Array, point: Vector3i) -> PackedInt32Array:
+	"""A world box relative to its Location's root point."""
+	var out: PackedInt32Array = PackedInt32Array()
+	for axis: int in 6: out.append(box[axis] - point[axis % 3])
+	return out
+
+
+func _reach(first: Vector2i, last: Vector2i, profile: int) -> StringName:
+	"""Static WorldRoutes reachability on one source profile at revision 1."""
+	var remaining: PackedInt32Array = PackedInt32Array([0])
+	return Foreman.WorldRoutes.profile_reachability_refusal(_probe._world._binding, first, last, profile, 1,
+		WorkArea.Bundle.CONTENT_REVISION, _probe._world._owner._domain._checks, remaining)
+
+
+func _installed_l0_arrival() -> Vector2i:
+	"""The one TRANSIT Location the paid L0 created behind its contact for both arrival selectors (12 and 13)."""
+	var selector: PackedInt32Array = PackedInt32Array()
+	selector.resize(Foreman.Frontier.row_fields(Foreman.Frontier.ENDPOINT))
+	var held: PackedInt32Array = selector.duplicate()
+	assert_equal(_probe._source.endpoint_into(12, selector), &"", "arrival selector")
+	assert_equal(_probe._source.endpoint_into(3, held), &"", "contact selector")
+	var contact: Prefix.Locations.Record = _record(_probe._installed_l0_contact())
+	var point: Vector3i = contact.point + Vector3i(selector[4] - held[4], selector[5] - held[5], selector[6] - held[6])
+	var found: Vector2i = NULL_REF
+	for row: int in _probe._world._locations._capacity:
+		if _probe._world._locations._live.present[row] != 1: continue
+		var ref: Vector2i = Vector2i(row, _probe._world._locations._live.i32[row])
+		var record: Prefix.Locations.Record = _record(ref)
+		if record.point != point or record.role != Prefix.Locations.ROLE_TRANSIT: continue
+		assert_equal(found, NULL_REF, "one Location for both arrival selectors")
+		found = ref
+	assert_true(found != NULL_REF, "the installed arrival exists")
+	return found

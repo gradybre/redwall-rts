@@ -1,6 +1,10 @@
 # 1193 — An installed WORK contact covers its travel profile's footing and air
 
-Date: 2026-10-05 · Status: Accepted (Brendan chose "widen the landing")
+Date: 2026-10-05 · Status: Accepted (Brendan chose "widen the landing"). **Revisited 2026-10-06 by ADR 1202
+("split the landing"):** the mechanism below stays in force, but the `qualified-landing-v4` Frontier names source 2
+as the L0 contact's travel profile. The contact is therefore H-shaped, and the 812 × 812 profile-12 footing and
+turn air now belong to a separate arrival behind it, at source-local (0, 0, −664). The widening no longer applies
+to L0 itself.
 
 ## Problem
 

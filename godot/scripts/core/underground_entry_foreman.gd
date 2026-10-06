@@ -477,7 +477,20 @@ func _installation_plan(ordinal: int, install: PackedInt32Array) -> Installer.Pl
 	if _owners.frontier.endpoint_travel_into(station[0], approach, revision) != &"": return null
 	plan.approach_profile = approach.value
 	plan.approach_revision = revision.value
-	return _finish_plan(plan)
+	return _finish_plan(plan) if _plan_arrival(install, plan) else null
+
+
+func _plan_arrival(install: PackedInt32Array, plan: Installer.Plan) -> bool:
+	"""ADR1202 split landing: when M's own travel profile is not the station's narrow approach, the worker
+	changes profile at the authored retreat endpoint (the arrival), as Contacts' admission proves."""
+	var profile: IntMath.IntResult = IntMath.IntResult.new()
+	var revision: IntMath.IntResult = IntMath.IntResult.new()
+	if _owners.frontier.endpoint_travel_into(install[7], profile, revision) != &"": return false
+	if profile.value == plan.approach_profile and revision.value == plan.approach_revision: return true
+	plan.material_profile = profile.value
+	plan.material_revision = revision.value
+	plan.arrival = _resolve_endpoint(_placement.x, install[8])
+	return plan.arrival != NULL_REF and plan.arrival != plan.station
 
 
 func _finish_plan(plan: Installer.Plan) -> Installer.Plan:
@@ -494,7 +507,7 @@ func _finish_plan(plan: Installer.Plan) -> Installer.Plan:
 
 
 func _connect_contact(install: PackedInt32Array, plan: Installer.Plan) -> StringName:
-	"""A station on an installed contact has no route edge yet: publish M <-> contact through WorldRoutes."""
+	"""A station on an installed contact has no route edge yet: publish M <-> (arrival <->) contact via WorldRoutes."""
 	var station: PackedInt32Array = PackedInt32Array()
 	station.resize(Frontier.row_fields(Frontier.STATION))
 	var endpoint: PackedInt32Array = PackedInt32Array()
@@ -506,6 +519,7 @@ func _connect_contact(install: PackedInt32Array, plan: Installer.Plan) -> String
 	var ends: ContactPath.Ends = ContactPath.Ends.new()
 	ends.ground = plan.material
 	ends.contact = plan.station
+	ends.arrival = plan.arrival
 	ends.origin = _world_point(_placement.x, 0, 0, 0)
 	ends.content_revision = _content
 	return ContactPath.publish(_owners.anchor, _owners.binding, _owners.routes, _paid.budget,

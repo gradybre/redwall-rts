@@ -15,6 +15,10 @@ const REFUSE_RETAINED: StringName = &"ENTRY_CONTACT_RETIREMENT_RETAINED"
 const REFUSE_WORKER: StringName = &"ENTRY_CONTACT_RETIREMENT_WORKER"
 const REFUSE_CAPACITY: StringName = &"ENTRY_CONTACT_RETIREMENT_CAPACITY"
 const SURFACE_ANCHOR: int = 0 # Mirrors underground_entry_frontier.gd; no Frontier preload (see header).
+## ADR1202 split landing: the accepted Frontier carries 14 ENDPOINT selectors (two installed arrival selectors).
+const ENDPOINTS: int = 14
+const SOURCE32: int = 6 + 18 + 72 + 24 + 14 + 90 + 7 * ENDPOINTS + ENDPOINTS + 114 + 12
+const SOURCE64: int = 14 + 32 + ENDPOINTS + 9 + 2 + 1
 const PIECES_SCRIPT: String = "res://scripts/core/underground_connector_workpieces.gd"
 const ROUTES_SCRIPT: String = "res://scripts/core/underground_routes.gd"
 const FRONTIER_SCRIPT: String = "res://scripts/core/underground_entry_frontier.gd"
@@ -195,8 +199,8 @@ func _initial_source() -> StringName:
 
 func _capture() -> StringName:
 	"""Allocate fixed private cold packets only after the coordinator admits their simultaneous peak."""
-	_source32.resize(446)
-	_source64.resize(70)
+	_source32.resize(SOURCE32)
+	_source64.resize(SOURCE64)
 	_source_digest.resize(320)
 	_placement_row.resize(18)
 	_placement_longs.resize(2)
@@ -234,10 +238,10 @@ func _source_i32(index: int) -> int:
 	index -= 14
 	if index < 90: return _frontier._bearing[index]
 	index -= 90
-	if index < 84: return _frontier._endpoint[index]
-	index -= 84
-	if index < 12: return _frontier._travel_profile[index]
-	index -= 12
+	if index < 7 * ENDPOINTS: return _frontier._endpoint[index]
+	index -= 7 * ENDPOINTS
+	if index < ENDPOINTS: return _frontier._travel_profile[index]
+	index -= ENDPOINTS
 	if index < 114: return _frontier._episode[index]
 	return _pieces._parts[index - 114]
 
@@ -248,8 +252,8 @@ func _source_i64(index: int) -> int:
 	index -= 14
 	if index < 32: return _frontier._profile_revision[index]
 	index -= 32
-	if index < 12: return _frontier._travel_revision[index]
-	index -= 12
+	if index < ENDPOINTS: return _frontier._travel_revision[index]
+	index -= ENDPOINTS
 	if index < 9: return _pieces._header[index]
 	return _pieces._profile_revisions[index - 9] if index < 11 else _catalog_bank.header[0]
 
@@ -315,7 +319,7 @@ func contact_retirement_scope_refusal(context: RefCounted) -> StringName:
 
 func _snapshot_shapes() -> bool:
 	"""Even a retained private packet exposed through Context cannot hide a shortened proof image."""
-	return _source32.size() == 446 and _source64.size() == 70 and _source_digest.size() == 320 \
+	return _source32.size() == SOURCE32 and _source64.size() == SOURCE64 and _source_digest.size() == 320 \
 		and _placement_row.size() == 18 and _placement_longs.size() == 2 and _site_rows.size() == 4 \
 		and _site_keys.size() == 4 and _site_history.size() == 24 and _worker_fields.size() == 27 \
 		and _worker_longs.size() == 6 and _piece_bounds.size() == 6 and _air.size() == 6 \
@@ -407,12 +411,12 @@ func _source_shapes() -> bool:
 	return _frontier._capacities.size() == 6 and _frontier._header.size() == 14 \
 		and _frontier._capacities[0] == 2 and _frontier._capacities[1] == 8 \
 		and _frontier._capacities[2] == 2 and _frontier._capacities[3] == 10 \
-		and _frontier._capacities[4] == 12 and _frontier._capacities[5] == 6 \
+		and _frontier._capacities[4] == ENDPOINTS and _frontier._capacities[5] == 6 \
 		and _frontier._install.size() == 18 and _frontier._station.size() == 72 \
 		and _frontier._rotation_profile.size() == 24 and _frontier._cut.size() == 14 \
-		and _frontier._bearing.size() == 90 and _frontier._endpoint.size() == 84 \
-		and _frontier._travel_profile.size() == 12 and _frontier._episode.size() == 114 \
-		and _frontier._profile_revision.size() == 32 and _frontier._travel_revision.size() == 12 \
+		and _frontier._bearing.size() == 90 and _frontier._endpoint.size() == 7 * ENDPOINTS \
+		and _frontier._travel_profile.size() == ENDPOINTS and _frontier._episode.size() == 114 \
+		and _frontier._profile_revision.size() == 32 and _frontier._travel_revision.size() == ENDPOINTS \
 		and _frontier._digests.size() == 160 and _pieces._header.size() == 9 \
 		and _pieces._parts.size() == 12 and _pieces._profile_revisions.size() == 2 \
 		and _pieces._digests.size() == 160
@@ -425,8 +429,8 @@ func _selectors_refusal() -> StringName:
 	var count: int = 0
 	var first_found: bool = false
 	var second_found: bool = false
-	for selector: int in 12:
-		if _frontier._endpoint[3 * 12 + selector] != 2: continue
+	for selector: int in ENDPOINTS:
+		if _frontier._endpoint[3 * ENDPOINTS + selector] != 2: continue
 		code = _travel_air_into(selector)
 		if code != &"": return code
 		if not _air_overlaps_piece(selector) or _install_station(selector): continue
@@ -474,10 +478,10 @@ func _air_overlaps_piece(selector: int) -> bool:
 
 func _selector_axis(selector: int, axis: int) -> int:
 	"""Apply the original immutable Placement cardinal transform exactly once to the source endpoint."""
-	var x: int = _frontier._endpoint[4 * 12 + selector]
-	var z: int = _frontier._endpoint[6 * 12 + selector]
+	var x: int = _frontier._endpoint[4 * ENDPOINTS + selector]
+	var z: int = _frontier._endpoint[6 * ENDPOINTS + selector]
 	var rotation: int = _placement_row[_placements.ROTATION]
-	var value: int = _frontier._endpoint[5 * 12 + selector] if axis == 1 \
+	var value: int = _frontier._endpoint[5 * ENDPOINTS + selector] if axis == 1 \
 		else (x if rotation == 0 else -z if rotation == 1 else -x if rotation == 2 else z) if axis == 0 \
 		else (z if rotation == 0 else x if rotation == 1 else -z if rotation == 2 else -x)
 	return value + _placement_row[_placements.X + axis]
@@ -485,7 +489,7 @@ func _selector_axis(selector: int, axis: int) -> int:
 
 func _resolve_selector(selector: int) -> Vector2i:
 	"""Resolve one exact source geometry to a unique original live full handle; aliases are not first-match permission."""
-	if selector >= 0 and selector < 12 and _frontier._endpoint[selector] == SURFACE_ANCHOR:
+	if selector >= 0 and selector < ENDPOINTS and _frontier._endpoint[selector] == SURFACE_ANCHOR:
 		return _resolve_anchor(selector)
 	var result: Vector2i = NULL_REF
 	for row: int in _locations._capacity:
@@ -500,7 +504,7 @@ func _resolve_anchor(selector: int) -> Vector2i:
 	var capacity: int = _locations._capacity
 	var anchor: Vector2i = Vector2i(_placement_row[_placements.ANCHOR_SLOT], _placement_row[_placements.ANCHOR_SLOT + 1])
 	if anchor.x < 0 or anchor.x >= capacity or _live.present[anchor.x] != 1 or _live.i32[anchor.x] != anchor.y \
-			or _live.i32[9 * capacity + anchor.x] != _frontier._endpoint[3 * 12 + selector]: return NULL_REF
+			or _live.i32[9 * capacity + anchor.x] != _frontier._endpoint[3 * ENDPOINTS + selector]: return NULL_REF
 	for axis: int in 3:
 		if _live.i32[(axis + 1) * capacity + anchor.x] != _selector_axis(selector, axis): return NULL_REF
 	return anchor
@@ -513,7 +517,7 @@ func _selector_row_matches(selector: int, row: int) -> bool:
 		_placement_row[_placements.ANCHOR_SLOT + 1])
 	if anchor.x < 0 or anchor.x >= capacity or _live.present[anchor.x] != 1 \
 			or _live.i32[anchor.x] != anchor.y or _frontier._endpoint[selector] != 2 \
-			or _live.i32[9 * capacity + row] != _frontier._endpoint[3 * 12 + selector] \
+			or _live.i32[9 * capacity + row] != _frontier._endpoint[3 * ENDPOINTS + selector] \
 			or _live.i32[4 * capacity + row] != -1 or _live.i32[5 * capacity + row] != 0 \
 			or _live.i32[8 * capacity + row] != 0 or _live.i64[row] <= 0 \
 			or _live.i64[capacity + row] != _revision: return false
@@ -526,9 +530,9 @@ func _selector_row_matches(selector: int, row: int) -> bool:
 
 func _same_selector(first: int, second: int) -> bool:
 	"""Immutable selectors may differ in travel policy while retaining the same real endpoint."""
-	if first < 0 or first >= 12 or second < 0 or second >= 12: return false
+	if first < 0 or first >= ENDPOINTS or second < 0 or second >= ENDPOINTS: return false
 	for field: int in 7:
-		if _frontier._endpoint[field * 12 + first] != _frontier._endpoint[field * 12 + second]: return false
+		if _frontier._endpoint[field * ENDPOINTS + first] != _frontier._endpoint[field * ENDPOINTS + second]: return false
 	return true
 
 

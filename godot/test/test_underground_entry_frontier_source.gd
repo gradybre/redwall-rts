@@ -22,9 +22,9 @@ func _frontier_reader() -> void:
 	assert_equal(_catalog.load_file(CATALOG_PATH, CATALOG_SHA, 1), &"", "actual geometry")
 	_bind_bills()
 	_frontier = Frontier.new()
-	var capacities: PackedInt32Array = PackedInt32Array([2, 8, 2, 10, 12, 6])
-	assert_equal(Frontier.required_bytes(capacities), 4112, "complete source bank")
-	assert_equal(_frontier.configure(capacities, 4112), &"", "exact immutable source capacities")
+	var capacities: PackedInt32Array = PackedInt32Array([2, 8, 2, 10, Bundle.ENDPOINT_COUNT, 6])
+	assert_equal(Frontier.required_bytes(capacities), 4192, "complete source bank (ADR1202: two arrival selectors)")
+	assert_equal(_frontier.configure(capacities, 4192), &"", "exact immutable source capacities")
 	assert_equal(_frontier.bind_actual(_catalog, _assemblies, _recipes,
 		_session._retirement_owners.profiles), &"", "actual complete source chain")
 

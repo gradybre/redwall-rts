@@ -292,7 +292,7 @@ static func _box_word(field: int, low: Vector3i, high: Vector3i, role: int) -> i
 
 static func _record_refusal(a: RefCounted, c: RefCounted, p: RefCounted, record: RefCounted) -> StringName:
 	"""Only the original narrow complete source endpoint qualifies; automatic ground12 cannot fit this envelope."""
-	if record.role != a.ROLE_WORK or record.room != Vector2i(-1, 0) or record.level != 0 \
+	if record.role != a.ROLE_WORK or not _record_room_matches(p, c, record) \
 			or record.envelope.size() != 6 or record.support.size() != 6 \
 			or record.point.x != int(p._live.i32[p.X * p._capacity + c.placement.x]) + (-832 if c.assembly == 0 else 0) \
 			or record.point.y != p._live.i32[(p.X + 1) * p._capacity + c.placement.x] \
@@ -312,6 +312,16 @@ static func _record_refusal(a: RefCounted, c: RefCounted, p: RefCounted, record:
 			if a._stage.i32[field * a._capacity + row] != a._live.i32[field * a._capacity + row]: return REFUSE
 		found = row
 	return &"" if found >= 0 else REFUSE
+
+
+static func _record_room_matches(p: RefCounted, c: RefCounted, record: RefCounted) -> bool:
+	"""H (assembly 0) is the room-free surface station. ADR1202 split landing: T0's station is the installed L0
+	contact, which belongs to the Placement's own permanent Room on the Placement's level; no other Room qualifies."""
+	if c.assembly == 0: return record.room == Vector2i(-1, 0) and record.level == 0
+	var room: Vector2i = Vector2i(p._live.i32[p.ROOM_SLOT * p._capacity + c.placement.x],
+		p._live.i32[(p.ROOM_SLOT + 1) * p._capacity + c.placement.x])
+	return room.x >= 0 and record.room == room \
+		and record.level == p._live.i32[p.LEVEL * p._capacity + c.placement.x]
 
 
 static func _record_matches(a: RefCounted, row: int, record: RefCounted) -> bool:

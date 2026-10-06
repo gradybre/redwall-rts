@@ -1,7 +1,8 @@
 # 1202 — Entry foreman: the T0 cuts, the contact path, and two blockers before the T0 installation
 
-Date: 2026-10-06 · Status: Accepted (partial). ADR 1197 G9 is **not closed**: the T0 installation is
-blocked by the two findings below, so the Kitchen excavation was not scoped.
+Date: 2026-10-06 · Status: Accepted (partial). ADR 1197 G9 is **not closed**: blockers 1–3 are resolved, but
+blocker 4 (a check budget, at the end of this record) stops the T0 installation, so the Kitchen excavation was not
+scoped.
 
 ## What was built
 
@@ -259,3 +260,142 @@ excavation is not scoped. Evidence:
 — only `Foreman.advance` runs; INSTALLED 1, wood 1,000, stone 0, spoil 12,000, 54,000 + 32,000 mWU,
 conservation refusals empty, audits pass, one admitted unstarted T0 Project. The live demo's G9 alert now
 carries `LOCATION_ENVELOPE_BLOCKED`.
+
+## Decision (2026-10-06): Brendan chose option 2 for blocker 3, "split the landing"
+
+This revisits ADR 1193. The L0 WORK contact stays narrow, and profile 12 gets a separate arrival point behind it.
+
+### Frontier successor `qualified-landing-v4`
+
+`publish_qualified_landing.py` creates `first-entry-prefix-v1/qualified-landing-v4/` once from the pinned
+`qualified-install-v3` bytes. It follows the same convention: create-only, every input pinned, and any foreign
+delta refused. `test_publish_qualified_landing.py` checks that the output rebuilds byte for byte. Only Frontier
+words change:
+
+- The self revision goes from 3 to 4, and the ENDPOINT count from 12 to 14.
+- **Selector 3** (the L0 WORK contact) changes its travel profile from 12 to 2. The value is copied from the
+  travel profile of install row 0's station endpoint, which is H's approach. The ADR 1193 union therefore now
+  gives the contact exactly H's shape:
+  - air `[-445,0,-732,910,1036,346]`;
+  - footing `[-274,-1,-274,299,0,249]`.
+
+  These are the endpoint certificate's own words: the union of profiles 2, 6 and 16, plus profile 29's foot.
+- **Selector 12** is new: INSTALLED_CONTACT, assembly 0, LANDING datum 1, TRANSIT, travel 12. It sizes the
+  arrival.
+- **Selector 13** is new: the same point on travel 6, copied from install row 0's retreat selector (R).
+- **Install row 1, field 8:** T0's retreat changes from 3 to 13.
+
+**The arrival point is derived, not chosen.** It is `(0, 0, -664)` in source-local coordinates:
+
+- It sits on the contact's x line.
+- Its z is the T0 bearer's far face minus the lowest air z of profile 12. The bearer face is −1920, taken from
+  install row 1's bearing target. The lowest air z covers every BODY, TURN and APPROACH box (−1256). The
+  arrival's air therefore touches the T0 bearer but never overlaps it.
+- The publisher proves that the whole profile-12 stance (±406) lies on the LANDING datum and clear of the
+  contact's footing.
+
+Consumers now load the successor:
+
+- `underground_route_composition.gd`, `underground_entry_composition.gd` and `underground_entry_site.gd`;
+- the work-area, structure-source and frontier-source tests, whose arena grows from 4,112 to 4,192 bytes.
+
+### Runtime
+
+- **EntryBindings** `_timber_new_locations` skips any selector that names the same assembly, datum, role and point
+  as an earlier selector. Selectors 12 and 13 are one physical Location reached on two profiles, and the first
+  selector sizes it. The paid L0 commit therefore creates the narrow contact and one arrival.
+- **Contacts** `_approach_refusal`: when the material selector's travel profile differs from the station
+  endpoint's, admission proves two legs:
+  1. material to retreat (the arrival) on the material profile;
+  2. arrival to station on the station's profile.
+
+  Otherwise it proves material to station, as before. The station-to-retreat proof is unchanged. L0 and every
+  cut episode have equal profiles, so they keep the direct proof.
+- **Endpoint certificate** `_record_room_matches`:
+  - assembly 0 (H) still requires no Room and level 0;
+  - assembly 1 requires the Placement's own permanent Room and the Placement's level.
+
+  The envelope, support, point, bearer and snapshot words are unchanged.
+- **ContactPath** publishes M ↔ arrival on the existing bend polyline. It then publishes arrival ↔ contact as one
+  straight leg in the contact's section, Room and level. Routes requires the edge's Room to match its section's
+  owner.
+- **Foreman and installer.** `_plan_arrival` adds an arrival leg whenever M's profile is not the station's
+  approach profile. The installer's new stage `STAGE_LEG_ARRIVAL` (9) runs:
+  1. walk from M to the arrival on source 12;
+  2. take the certified turn to yaw 0;
+  3. walk from the arrival to the contact on source 2.
+- **Retirement scope.** The Frontier shape is now `ENDPOINTS = 14`, with derived sizes `SOURCE32 = 462` and
+  `SOURCE64 = 72`. The persistence registry rows are updated to match.
+
+### ADR 1193 for L0
+
+The ADR 1193 mechanism stays in code: a WORK contact's footing and air are the union of its station profile and
+its selector's travel profile. Its effect on L0 changes. L0's selector now names source 2, so the 812 × 812
+profile-12 widening no longer applies to the L0 contact. That footing and air now belong to the arrival.
+
+## Blocker 4 (2026-10-06): the crossing survey exceeds SurfaceAnchor's check budget (stopped)
+
+`test_entry_foreman_splits_the_l0_landing_then_the_crossing_survey_exceeds_the_anchor_check_budget` runs only
+`Foreman.advance`. Six cubes and the paid L0 complete. The L0 commit creates the narrow contact (H's exact words)
+and one arrival, whose air ends at the bearer's far face. When T0 begins, `ContactPath` refuses
+`SURFACE_ANCHOR_CHECK_CAPACITY` before the order opens. The ledgers at that point:
+
+| Ledger | Value |
+|---|---|
+| INSTALLED | 1 |
+| Wood | 1,000 |
+| Stone | 0 |
+| Spoil | 12,000 |
+| Work | 54,000 + 32,000 mWU |
+| Conservation refusals | empty |
+| Audits | pass |
+| Live Projects | 0 |
+
+**Cause, measured.** One `SurfaceAnchor.create` re-proves the World final facts twice for every live Location
+that Locations refreshes. Each proof costs 8,192 + 20,451 checks, so each live Location costs about 57,000 of
+the 1,048,576 budget. The work area's last create already left only 46,743 checks. The crossing survey now
+refreshes one more Location (the arrival), so it no longer fits. This is not a geometry refusal. It is the
+Location-refresh counterpart of the route budget in ADR 1198 and ADR 1203.
+
+### Diagnostic (not committed)
+
+The SurfaceAnchor budget was doubled locally to see what comes next:
+
+- The path publishes.
+- T0 opens, reaches the arrival and then the contact, is admitted to handling, STARTs (the certificate accepts
+  the Room-owned contact), handles, and fastens.
+- T0 COMMIT then refuses `WORLD_ROUTE_CHECK_CAPACITY`, because it requalifies every route edge. This is the route
+  budget that another worker is making incremental, under Brendan's ADR 1203 rule.
+
+The WorldRoutes proof budget was then also doubled. With both doubled, the complete-prefix test passes:
+
+| Ledger | Value |
+|---|---|
+| INSTALLED | 2 |
+| Wood | 0 |
+| Stone | 0 |
+| Spoil | 12,000 |
+| Work | 98,000 mWU |
+| Conservation refusals | empty |
+| Audits | pass |
+| Live Projects | 0 |
+
+Reachability in that run: source 12 reaches M ↔ arrival, source 2 reaches arrival → contact, source 6 reaches
+contact → arrival, and source 12 is refused onto the contact. Both doublings were reverted.
+
+### Options
+
+1. **Recommended: apply ADR 1203's "re-check only what changed" rule to Location refresh.** A World preparation
+   such as a SurfaceAnchor create would re-prove only the Locations whose envelope or support meets the newly
+   staged boxes. Untouched records would carry forward unchanged under the same revision chain. This is the
+   same safety argument Brendan accepted for routes, and the cost then scales with the change. It belongs with
+   the WorldRoutes incremental work, which is already in flight.
+2. Prove the World scope's final facts once per sealed candidate, instead of twice per refreshed Location. This
+   is cheaper to build, but it changes the re-proof pattern of a verification path.
+3. Retire finished endpoints: H after the L0 commit, the episode 2 and 3 stations after their cuts, and the T0
+   cut stations after T0's cuts. This gains three to five Locations of headroom. The Kitchen's own endpoints
+   will use that up.
+4. Raise the domain check budget. This was declined for routes in ADR 1203.
+
+The complete-prefix test waits on this choice and on the route budget, so the Kitchen excavation is still not
+scoped. The live demo's G9 alert now carries `SURFACE_ANCHOR_CHECK_CAPACITY`.

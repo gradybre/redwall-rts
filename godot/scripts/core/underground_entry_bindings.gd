@@ -1716,6 +1716,9 @@ func _timber_new_locations(token: int) -> StringName:
 		if not _entry_spend(32): return REFUSE_MASK_BUDGET
 		if _entry_frontier._field(Frontier.ENDPOINT, endpoint, 0) != Frontier.INSTALLED_CONTACT \
 				or _entry_frontier._field(Frontier.ENDPOINT, endpoint, 1) != _timber_assembly: continue
+		var prior: int = _timber_prior_contact(endpoint)
+		if prior < 0: return REFUSE_MASK_BUDGET
+		if prior > 0: continue
 		var code: StringName = _timber_landing_into(endpoint)
 		if code == &"": _entry_contact.section = _timber_datum_ref()
 		if code == &"" and _entry_contact.section == Vector2i(-3, 0): return REFUSE_MASK_BUDGET
@@ -1725,6 +1728,22 @@ func _timber_new_locations(token: int) -> StringName:
 		if code == &"": code = _timber_scope_leaf()
 		if code != &"": return code
 	return &""
+
+
+func _timber_prior_contact(endpoint: int) -> int:
+	"""ADR1202 split landing: 1 when an earlier selector of this group names the same datum, role and point.
+	Such selectors are one physical Location on several travel profiles; the first one sizes and creates it.
+	-1 when the check budget is spent, else 0."""
+	for prior: int in endpoint:
+		if not _entry_spend(8): return -1
+		if _entry_frontier._field(Frontier.ENDPOINT, prior, 0) != Frontier.INSTALLED_CONTACT \
+				or _entry_frontier._field(Frontier.ENDPOINT, prior, 1) != _timber_assembly: continue
+		var same: bool = true
+		for field: int in range(2, 7):
+			same = same and _entry_frontier._field(Frontier.ENDPOINT, prior, field) \
+				== _entry_frontier._field(Frontier.ENDPOINT, endpoint, field)
+		if same: return 1
+	return 0
 
 
 func _stage_timber_routes(placement: Vector2i, project: Vector2i, assembly: int, token: int, cold: int) -> StringName:

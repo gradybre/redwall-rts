@@ -1297,10 +1297,22 @@ func _resolve_all_endpoints() -> StringName:
 		return REFUSE_ENDPOINT
 	var code: StringName = _endpoint_payloads()
 	if code == &"":
-		code = _path_refusal(_material_location, _station_location, _install[7])
+		code = _approach_refusal()
 	if code == &"":
 		code = _path_refusal(_station_location, _retreat_location, _install[8])
 	return _phase_resolve_output() if code == &"" and _phase_mode else code
+
+
+func _approach_refusal() -> StringName:
+	"""ADR1202 split landing: a station whose own travel profile differs from the material selector's admits only
+	that narrow approach, so the worker changes profile at the authored retreat (arrival) endpoint: material to
+	arrival on the material profile, then arrival to station on the station's. Equal profiles go direct."""
+	var material: int = _install[7]
+	if _frontier._travel_profile[material] == _frontier._travel_profile[_station[0]] \
+			and _frontier._travel_revision[material] == _frontier._travel_revision[_station[0]]:
+		return _path_refusal(_material_location, _station_location, material)
+	var code: StringName = _path_refusal(_material_location, _retreat_location, material)
+	return code if code != &"" else _path_refusal(_retreat_location, _station_location, _station[0])
 
 
 func _endpoint_payloads() -> StringName:

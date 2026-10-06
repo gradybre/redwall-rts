@@ -24,6 +24,7 @@ const STAGE_INSTALL_ENTER: int = 5
 const STAGE_EARN: int = 6
 const STAGE_RECOVER: int = 7
 const STAGE_DONE: int = 8
+const STAGE_LEG_ARRIVAL: int = 9 # Split landing: M to the station's arrival on the material profile.
 const REFUSE_PLAN: StringName = &"ENTRY_INSTALLER_PLAN"
 const REFUSE_HEADING: StringName = &"ENTRY_INSTALLER_HEADING"
 
@@ -46,6 +47,11 @@ class Plan extends RefCounted:
 	var walk_revision: int = 0
 	var approach_profile: int = -1
 	var approach_revision: int = 0
+	## ADR1202 split landing: a station admitting only its narrow approach is reached through this arrival,
+	## M to arrival on the material selector's profile; null when M approaches the station directly.
+	var arrival: Vector2i = NULL_REF
+	var material_profile: int = -1
+	var material_revision: int = 0
 	var install_profile: int = -1
 	var install_revision: int = 0
 	var handling_revision: int = 0
@@ -105,6 +111,7 @@ func _run(tick: int) -> StringName:
 	match _stage:
 		STAGE_OPEN: return _open(tick)
 		STAGE_LEG_MATERIAL: return _leg_material(tick)
+		STAGE_LEG_ARRIVAL: return _leg_arrival(tick)
 		STAGE_LEG_STATION: return _leg_station(tick)
 		STAGE_FUND: return _fund(tick)
 		STAGE_HANDLE: return _handle(tick)
@@ -158,14 +165,28 @@ func _arrived(target: Vector2i, profile: int, revision: int, tick: int) -> int:
 
 
 func _leg_material(tick: int) -> StringName:
-	"""At M, take the certified all-yaw turn to the narrow approach heading, then approach H."""
+	"""At M, take the certified all-yaw turn, then approach H directly or walk to the station's arrival first."""
 	var arrived: int = _arrived(_plan.material, _plan.walk_profile, _plan.walk_revision, tick)
 	if arrived < 0: return &"ENTRY_INSTALLER_ROUTE_HELD"
 	if arrived == 0: return &""
-	var code: StringName = WorldRoutes.turn_actor(_o.binding, _crew.worker, _job_ref(),
-		_yaw(_plan.approach_profile), Space.MAX_CHECKS)
-	if code == &"": code = _travel(_plan.approach_profile, _plan.approach_revision, _plan.station, tick)
-	if code == &"": _stage = STAGE_LEG_STATION
+	if _plan.arrival == NULL_REF:
+		return _turn_and_travel(_plan.approach_profile, _plan.approach_revision, _plan.station, STAGE_LEG_STATION, tick)
+	return _turn_and_travel(_plan.material_profile, _plan.material_revision, _plan.arrival, STAGE_LEG_ARRIVAL, tick)
+
+
+func _leg_arrival(tick: int) -> StringName:
+	"""ADR1202 split landing: at the arrival, turn to the narrow approach heading and walk onto the station."""
+	var arrived: int = _arrived(_plan.arrival, _plan.material_profile, _plan.material_revision, tick)
+	if arrived < 0: return &"ENTRY_INSTALLER_ROUTE_HELD"
+	if arrived == 0: return &""
+	return _turn_and_travel(_plan.approach_profile, _plan.approach_revision, _plan.station, STAGE_LEG_STATION, tick)
+
+
+func _turn_and_travel(profile: int, revision: int, target: Vector2i, next: int, tick: int) -> StringName:
+	"""Certified in-place turn to the profile's own heading, then one route on that profile."""
+	var code: StringName = WorldRoutes.turn_actor(_o.binding, _crew.worker, _job_ref(), _yaw(profile), Space.MAX_CHECKS)
+	if code == &"": code = _travel(profile, revision, target, tick)
+	if code == &"": _stage = next
 	return code
 
 

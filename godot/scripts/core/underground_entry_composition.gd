@@ -12,7 +12,7 @@ const ConnectorWork := preload("res://scripts/core/underground_connector_work.gd
 const Workpieces := preload("res://scripts/core/underground_connector_workpieces.gd")
 const Delivery := preload("res://scripts/core/underground_connector_delivery.gd")
 const Provider := preload("res://scripts/core/underground_room_world_bindings.gd")
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-install-v3/catalog_source.gd")
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-landing-v4/catalog_source.gd")
 
 
 static func construct(session: RefCounted, original_host: Object) -> StringName:

@@ -1437,6 +1437,7 @@ static func retirement_refusal_in(actual: RefCounted, original: RefCounted,
 		stopped_constructor: bool = false) -> StringName:
 	"""The original configured Placement is complete even when a later private constructor step stopped."""
 	var code: StringName = _retirement_owned_refusal_in(actual, original)
+	if code == &"": code = _retirement_readers_refusal_in(actual, original)
 	if code != &"": return code
 	if original.room_bindings == null: return REFUSE_BINDING
 	if not _retirement_weak_in(actual._authority, original.room_bindings._entry_authority):
@@ -1452,6 +1453,12 @@ static func retirement_refusal_in(actual: RefCounted, original: RefCounted,
 		return REFUSE_BINDING
 	if actual._workpieces == null and stopped_constructor: return &""
 	return &"" if _retirement_weak_in(actual._workpieces, original.workpieces) else REFUSE_BINDING
+
+
+static func _retirement_readers_refusal_in(actual: RefCounted, original: RefCounted) -> StringName:
+	"""ADR1184: the two exported source readers are part of this owner's complete pre-clear and final preflight."""
+	var code: StringName = Assemblies.retirement_refusal_in(actual._assemblies, original)
+	return Recipes.retirement_refusal_in(actual._recipes, original) if code == &"" else code
 
 
 static func _retirement_owned_refusal_in(actual: RefCounted, original: RefCounted) -> StringName:
@@ -1500,6 +1507,12 @@ static func world_retirement_release_preflighted_in(actual: RefCounted, original
 	code = Buildings.whole_world_retirement_refusal_in(original.directory, original.world_ref, persistent_id, true)
 	if code != &"": return code
 	if original.world == null or original.world._published: return REFUSE_BINDING
+	code = _retirement_readers_refusal_in(actual, original)
+	if code != &"": return code
+	# Release the partition reader before the bill it reads; both still see this ready Placement's pins.
+	code = Assemblies.world_retirement_release_preflighted_in(actual._assemblies, original, persistent_id)
+	if code == &"": code = Recipes.world_retirement_release_preflighted_in(actual._recipes, original, persistent_id)
+	if code != &"": return code
 	actual._ready = false # Keep configured and the original non-null World as irreversible tombstones.
 	_release_retired_links_in(actual)
 	_release_retired_sources_in(actual)

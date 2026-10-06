@@ -3,6 +3,7 @@ extends RefCounted
 ## ADR1146: private initialization, no external authority binding, 1536B within existing PROFILE_BYTES.
 
 const RouteComposition := preload("res://scripts/core/underground_route_composition.gd")
+const EntryComposition := preload("res://scripts/core/underground_entry_composition.gd")
 const Composition := preload("res://scripts/core/underground_room_composition.gd")
 const Retirement := preload("res://scripts/core/underground_world_retirement.gd")
 const World := preload("res://scripts/core/world_init.gd")
@@ -474,7 +475,7 @@ func compose_surface_anchor() -> StringName:
 	"""Retain the actual natural publisher once; this constructs no endpoint or physical permission."""
 	var code: StringName = current_refusal()
 	if code != &"": return code
-	if _operations_state == 2 and _operations_prefix == 9: return Retirement.surface_refusal(_retirement_owners)
+	if _operations_state == 2 and (_operations_prefix == 9 or _operations_prefix == 17): return Retirement.surface_refusal(_retirement_owners)
 	if _operations_state != 2 or _operations_prefix != 8: return &"UNDERGROUND_SURFACE_SCOPE"
 	if not _budget.is_quiescent() or _space.has_prepared(): return &"UNDERGROUND_SESSION_NOT_QUIESCENT"
 	code = RouteComposition.unpublished_refusal(_retirement_owners)
@@ -518,9 +519,40 @@ func _finish_surface_composition(code: StringName) -> void:
 		_operations_state = 3
 
 
+func compose_entry_owners(original_host: Object) -> StringName:
+	"""ADR1184/1195: extend the surface-ready Session with the fixed first-entry owners (prefix 9 to 17)."""
+	var code: StringName = current_refusal()
+	if code != &"": return code
+	if _operations_state == 2 and _operations_prefix == 17:
+		return Retirement.entry_constructor_shape_refusal(_retirement_owners, 17)
+	if _operations_state != 2 or _operations_prefix != 9: return &"UNDERGROUND_ENTRY_COMPOSITION_SCOPE"
+	if not _budget.is_quiescent() or _space.has_prepared(): return &"UNDERGROUND_SESSION_NOT_QUIESCENT"
+	_busy = true
+	_poisoned = false
+	_operations_state = 1
+	code = EntryComposition.construct(self, original_host)
+	if code == &"": code = _content_refusal()
+	if code == &"": code = _original_refusal()
+	if code == &"": code = _foundation_refusal()
+	if code == &"": code = Retirement.entry_constructor_shape_refusal(_retirement_owners, 17)
+	_finish_entry_composition(code)
+	_busy = false
+	return code
+
+
+func _finish_entry_composition(code: StringName) -> void:
+	"""Only a refusal before the first retained entry owner may restore the surface-ready group."""
+	var restored: bool = code != &"" and _operations_prefix == 9 and _content_refusal() == &""
+	_operations_state = 2 if code == &"" or restored else 3
+	if not restored: return
+	if _owners_refusal() != &"" or _foundation_refusal() != &"" or _retirement_packet_refusal() != &"" \
+			or _directory._persistent_id[_world_ref.x] != _world_pid or _world._published_seed != _seed:
+		_operations_state = 3
+
+
 func surface_anchor() -> Retirement.SurfaceAnchor:
 	"""Borrow the original publisher only while this exact Session and its current source remain usable."""
-	return _retirement_owners.surface_anchor if current_refusal() == &"" and _operations_prefix == 9 else null
+	return _retirement_owners.surface_anchor if current_refusal() == &"" and (_operations_prefix == 9 or _operations_prefix == 17) else null
 
 
 func room_orders() -> Retirement.Orders:
@@ -583,6 +615,11 @@ func _retirement_packet_refusal() -> StringName:
 
 func _operational_retirement_refusal(o: Retirement.Owners) -> StringName:
 	"""Our source-owned constructor output is distinct from arbitrary external packet registration."""
+	if _operations_state == 2 and _operations_prefix == 17:
+		# ADR1195: complete route and surface owners plus the exact fixed entry-owner chain.
+		var code: StringName = RouteComposition.complete_refusal(o)
+		if code == &"": code = Retirement.surface_refusal(o)
+		return Retirement.entry_constructor_shape_refusal(o, 17) if code == &"" else code
 	if _operations_state == 2 and _operations_prefix >= 8 and _operations_prefix <= 9:
 		if (o.surface_anchor != null) != (_operations_prefix == 9): return &"UNDERGROUND_SURFACE_SCOPE"
 		var code: StringName = RouteComposition.complete_refusal(o)

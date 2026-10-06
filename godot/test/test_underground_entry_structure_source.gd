@@ -78,7 +78,7 @@ func test_real_catalog_and_bills_load_without_creating_paid_or_traversable_state
 	assert_equal(o.sites._count, 0, "no excavated cube")
 	assert_equal(o.routes._live.edge_count, 0, "no route")
 	assert_equal(o.locations._live.count, 0, "no endpoint")
-	assert_equal(o.world_routes._catalog._live.header[1], 0, "original mounted ground source untouched")
+	assert_equal(o.world_routes._catalog._live.header[1], 1, "mounted entry structure untouched (ADR1195: one variant)")
 
 
 func _bind_bills() -> void:

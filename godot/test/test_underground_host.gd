@@ -627,6 +627,28 @@ func test_actual_surface_owner_is_strong_original_idempotent_and_does_not_publis
 	assert_equal(_snapshot(), before, "all gameplay bytes unchanged")
 
 
+func test_actual_entry_owners_compose_from_the_fixed_bundle_without_gameplay_change() -> void:
+	"""ADR1195: the mounted Session reaches prefix 17 with every entry owner, and no endpoint, Job or payment."""
+	var session: Session = _generate_and_mount()
+	assert_true(_host.compose_underground_room_owners(), "actual Room owners")
+	assert_true(_host.compose_underground_route_owners(), "actual route owners: %s" % _host.last_refusal())
+	assert_true(_host.compose_underground_surface_anchor(), "actual anchor: %s" % _host.last_refusal())
+	var before: Array[PackedByteArray] = _snapshot()
+	assert_true(_host.compose_underground_entry_owners(), "actual entry owners: %s" % _host.last_refusal())
+	assert_equal(session._operations_prefix, 17, "complete fixed entry prefix")
+	assert_equal(session._operations_state, 2, "Session remains operational")
+	var o: Session.Retirement.Owners = session._retirement_owners
+	for owner: RefCounted in [o.placements, o.contacts, o.connector, o.workpieces, o.delivery]:
+		assert_true(owner != null, "retained entry owner")
+	assert_equal(o.locations._live.count, 0, "composition grants no endpoint")
+	assert_true(session.surface_anchor() != null, "surface publisher still borrowable after entry composition")
+	assert_true(session.location_owner() != null, "Location namespace still borrowable")
+	assert_true(session.world_route_provider() != null, "route provider still borrowable")
+	assert_equal(_snapshot(), before, "all gameplay bytes unchanged")
+	assert_true(_host.compose_underground_entry_owners(), "completed composition is idempotent: %s" % _host.last_refusal())
+	assert_equal(session._operations_prefix, 17, "no second construction")
+
+
 func test_actual_surface_publication_retires_and_remounts_without_old_scope_or_endpoint_alias() -> void:
 	"""The actual publisher creates natural facts; complete host clear releases its lifetime before the next World."""
 	var session: Session = _surface_session()

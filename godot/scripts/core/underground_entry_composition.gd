@@ -1,6 +1,6 @@
 extends RefCounted
 ## ADR1184: finite private Session entry-owner construction. No endpoint or paid work is created.
-## These source-independent stages do not load or select an unpublished startup artifact.
+## construct() is the fixed wrapper (ADR1195): it alone reads the ADR1190 bundle; no caller supplies a path.
 
 const Retirement := preload("res://scripts/core/underground_world_retirement.gd")
 const Recipes := preload("res://scripts/core/underground_connector_recipes.gd")
@@ -12,6 +12,41 @@ const ConnectorWork := preload("res://scripts/core/underground_connector_work.gd
 const Workpieces := preload("res://scripts/core/underground_connector_workpieces.gd")
 const Delivery := preload("res://scripts/core/underground_connector_delivery.gd")
 const Provider := preload("res://scripts/core/underground_room_world_bindings.gd")
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-handling-v1/catalog_source.gd")
+
+
+static func construct(session: RefCounted, original_host: Object) -> StringName:
+	"""Load the fixed bundle readers against the mounted structure Catalog, then run every retained stage."""
+	var code: StringName = _scope_refusal(session, 9)
+	if code == &"": code = _host_refusal(session, original_host)
+	if code != &"": return code
+	var frontier: Frontier = Frontier.new()
+	code = _load_bundle(session._retirement_owners, frontier)
+	if code == &"": code = _bind_loaded_source(session, frontier)
+	if code == &"": code = _bind_remaining(session, original_host,
+		Bundle.WORKPIECES_PATH, Bundle.WORKPIECES_SHA, Bundle.WORKPIECES_REVISION)
+	return code
+
+
+static func _load_bundle(o: Retirement.Owners, frontier: Frontier) -> StringName:
+	"""Bills, partition and Frontier bind the exact mounted Catalog and Profiles before any owner is retained."""
+	var catalog: RefCounted = o.world_routes._catalog
+	var recipes: Recipes = Recipes.new()
+	var code: StringName = recipes.configure(Recipes.MAX_PARTS, Recipes.required_bytes(Recipes.MAX_PARTS))
+	if code == &"": code = recipes.bind_actual(catalog, o.items, o.inventory)
+	if code == &"": code = recipes.load_file(Bundle.RECIPE_PATH, Bundle.RECIPE_SHA, Bundle.RECIPE_REVISION,
+		Bundle.GROUPING_SHA, Bundle.GROUPING_REVISION)
+	var groups: Assemblies = Assemblies.new()
+	if code == &"": code = groups.configure(Assemblies.MAX_GROUPS, Assemblies.required_bytes(Assemblies.MAX_GROUPS))
+	if code == &"": code = groups.bind_actual(catalog, recipes, o.items, o.inventory)
+	if code == &"": code = groups.load_file(Bundle.GROUPING_PATH, Bundle.GROUPING_SHA, Bundle.GROUPING_REVISION,
+		Bundle.RECIPE_SHA, Bundle.RECIPE_REVISION)
+	var capacities: PackedInt32Array = PackedInt32Array([Bundle.INSTALL_COUNT, Bundle.STATION_COUNT,
+		Bundle.CUT_COUNT, Bundle.BEARING_COUNT, Bundle.ENDPOINT_COUNT, Bundle.EPISODE_COUNT])
+	if code == &"": code = frontier.configure(capacities, Frontier.required_bytes(capacities))
+	if code == &"": code = frontier.bind_actual(catalog, groups, recipes, o.profiles)
+	if code == &"": code = frontier.load_file(Bundle.FRONTIER_PATH, Bundle.FRONTIER_SHA, Bundle.FRONTIER_REVISION)
+	return code
 
 
 static func _bind_loaded_source(session: RefCounted, frontier: Frontier) -> StringName:

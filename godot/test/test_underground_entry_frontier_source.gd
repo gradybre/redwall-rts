@@ -42,7 +42,7 @@ func test_actual_source_selects_eighteen_cube_phases_without_publishing_world_st
 	assert_equal(o.sites._count, 0, "no paid excavation")
 	assert_equal(o.locations._live.count, 0, "no granted endpoints")
 	assert_equal(o.routes._live.edge_count, 0, "no granted route")
-	assert_equal(o.world_routes._catalog._live.header[1], 0, "mounted ground Catalog remains original")
+	assert_equal(o.world_routes._catalog._live.header[1], 1, "mounted entry structure Catalog remains original")
 
 
 func _assert_phase_selectors() -> void:

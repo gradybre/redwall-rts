@@ -11,14 +11,16 @@ const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-handling-v1/catalog_source.gd")
 const PROFILE_CONTENT_REVISION: int = Bundle.CONTENT_REVISION
-const CATALOG_REVISION: int = 1
-const CATALOG_PATH: String = "res://data/underground/mole-worker/qualified-handling-v5/ground-pace.ugconn"
-const CATALOG_SHA: String = Bundle.GROUND_SHA
+# ADR1190/1195: the mounted graph selects the published first-entry structure, which carries the same
+# ground paces plus the L0/T0 regions; selecting it before the first WorldRoutes binding is final.
+const CATALOG_REVISION: int = Bundle.CATALOG_REVISION
+const CATALOG_PATH: String = Bundle.CATALOG_PATH
+const CATALOG_SHA: String = Bundle.CATALOG_SHA
 
-const CATALOG_DIGEST_0: int = Bundle.GROUND_DIGEST_0
-const CATALOG_DIGEST_1: int = Bundle.GROUND_DIGEST_1
-const CATALOG_DIGEST_2: int = Bundle.GROUND_DIGEST_2
-const CATALOG_DIGEST_3: int = Bundle.GROUND_DIGEST_3
+const CATALOG_DIGEST_0: int = Bundle.CATALOG_DIGEST_0
+const CATALOG_DIGEST_1: int = Bundle.CATALOG_DIGEST_1
+const CATALOG_DIGEST_2: int = Bundle.CATALOG_DIGEST_2
+const CATALOG_DIGEST_3: int = Bundle.CATALOG_DIGEST_3
 
 
 static func construct(session: RefCounted) -> StringName:
@@ -147,8 +149,8 @@ static func _source_refusal(o: Retirement.Owners) -> StringName:
 			or o.world_routes._profile_identity != o.profiles.get_instance_id() \
 			or o.world_routes._levels_identity != o.levels.get_instance_id():
 		return &"UNDERGROUND_ROUTE_COMPOSITION_SOURCE"
-	for index: int in range(1, 7):
-		if catalog._live.header[index] != 0: return &"UNDERGROUND_ROUTE_COMPOSITION_SOURCE"
+	# The exact four-word source digest below pins every header field, including the entry structure's
+	# single variant and regions; a ground-only zero-region check no longer applies (ADR1195).
 	if catalog._live.digests.decode_s64(0) != CATALOG_DIGEST_0 \
 			or catalog._live.digests.decode_s64(8) != CATALOG_DIGEST_1 \
 			or catalog._live.digests.decode_s64(16) != CATALOG_DIGEST_2 \

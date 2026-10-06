@@ -1941,6 +1941,22 @@ func _finish_surface_owner_composition(original: UndergroundSession, code: Strin
 	return true
 
 
+func compose_underground_entry_owners() -> bool:
+	"""ADR1184/1195: construct the fixed first-entry owners in the mounted surface-ready Session."""
+	if _underground_mutations_stopped(): return _refuse(&"UNDERGROUND_HOST_RESETTING")
+	var original: UndergroundSession = _underground_session
+	var starting: bool = original != null and original._operations_state == 2 and original._operations_prefix == 9
+	var code: StringName = _mounted_underground_refusal(original)
+	if code == &"": code = original.compose_entry_owners(self)
+	var final_code: StringName = _mounted_underground_refusal(original)
+	if code == &"": code = final_code
+	if starting and (final_code != &"" or (code != &"" and original._operations_prefix >= 10)):
+		original._operations_state = 3
+	if code != &"": return _refuse(code)
+	_last_refusal = REFUSE_NONE
+	return true
+
+
 func underground_session() -> UndergroundSession:
 	"""Borrow the one foundation; its own current checks reject retired or partially configured state."""
 	return _underground_session if _underground_reset_phase == 0 else null

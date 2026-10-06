@@ -189,7 +189,7 @@ Options:
 3. Prove the foot against the installed L0 part's SUPPORT row instead of all Regions. This loses the
    "nothing foreign overlaps the foot" check, which is weaker than option 1.
 
-An implementation of option 1 was attempted here and refused by the session's permission classifier as a
+An implementation of option 1 was first attempted here and refused by the session's permission classifier as a
 weakening of a security/verification check, so it was not made. The decision belongs to Brendan.
 
 ### Evidence
@@ -201,4 +201,61 @@ the contact path and the T0 `open_order`, then refuses exactly `ASSEMBLY_FOREIGN
 (unfunded) T0 Project. The complete-prefix ledger test (INSTALLED 2, wood 0, 98,000 mWU) still waits on
 blocker 2.
 
-The live demo's G9 alert now carries `ASSEMBLY_FOREIGN_SOLID` instead of `ROUTE_NOT_CONNECTED` until blocker 2 is decided.
+(That test was superseded by the blocker 3 test below.)
+
+## Decision (2026-10-06): Brendan chose option 1, "Feet-only exception (Recommended)"
+
+Implemented in both twins:
+
+- `qualified-assembly-v1/physical_certificate.gd`: `_volume` delegates to `_regions_refusal`, which first
+  requires the foot inside the station Location's proved SUPPORT (`ASSEMBLY_FOOTING` otherwise) and then lets a
+  foot, and only a foot, skip a Region for which `own_room_marker(owner, row, room)` holds: present, OBSTACLE,
+  `CLAIM_ROOM`, claim = owner = the station Location's Room. Admission reads the Room from the admitted
+  Location; the per-tick certificate reads it from the worker's current Location.
+- `underground_connector_contacts.gd::_assembly_start_volume` → `_assembly_start_regions`, the same predicate
+  with `_location.room`.
+
+Bodies and tools are unchanged. Another Room's marker, a Room claim owned by someone else, a Construction
+claim, an unclaimed OBSTACLE and an unroomed (surface) station still refuse; so does a foot outside SUPPORT.
+`test_underground_assembly_foot_marker.gd` covers each case on a bare Region bank.
+
+Pins: `renew_source_pins.py --write` renewed `underground_connector_contacts.gd` in `qualified-haul-v6`.
+`physical_certificate.gd` is not a runtime pin. Its entry (`72c3fa5e…`) in
+`haul-handling-v1/evidence/native-program-v8/source-sha256.json` is a historical record of the files present
+when that native capture ran, not a live pin: nothing verifies it against current sources, two other entries
+(`source_program.gd`, `underground_connector_catalog.gd`) are already stale, and the certificate is not an
+input to the captured output. Rewriting it would falsify that record and a re-run would only add a new record
+of the same output, so it is left unchanged.
+
+## Blocker 3 (2026-10-06): T0 START — the endpoint certificate only describes H (stopped)
+
+With option 1, T0 handling admission at the L0 contact passes. `start_work` then refuses
+`LOCATION_ENVELOPE_BLOCKED` (installer stage FUND). START publishes the pending T0 prism
+`[-256,0,-2048,256,128,-1920]` (source-local), which lies inside the L0 contact's declared air
+`[-1256,0,-2792,1256,1036,-280]`. Locations allows exactly one such overlap, through
+`qualified-assembly-v1/endpoint_certificate.gd::prepared_record_refusal`, and its `_record_refusal` refuses
+`ASSEMBLY_ENDPOINT_CERTIFICATE`: the record must have **no Room** and H's **narrow envelope/support words**
+(union of profiles 2/6/16/29). The L0 contact is Room-owned and carries the ADR 1193 envelope, which also holds
+all-yaw profile 12's body and turn sweep.
+
+This is a real physical conflict, not just a missing case: the T0 bearer sits 384–512 units in front of the
+contact, inside the air profile 12 needs to stand and turn there. Once the piece is down, profile 12 cannot
+occupy the contact, yet the Frontier names the L0 contact (travel 12) as T0's retreat endpoint.
+
+Options:
+
+1. Extend the endpoint certificate to assembly 1: accept the Room-owned L0 contact with its exact ADR 1193
+   envelope. Smallest change, but it certifies an endpoint whose declared profile-12 air the piece occupies,
+   so the profile-12 retreat would likely fail next (not verified).
+2. **Recommended:** split the landing (revisits ADR 1193). Keep the L0 WORK contact narrow (INSTALL 16 +
+   handling 29, the certificate's shape apart from the Room) and give profile 12 a separate TRANSIT arrival
+   behind it (+Z, clear of the bearer), with T0's retreat moved there. Needs a Frontier successor (one
+   endpoint, install row 1 field 8) and a certificate change that accepts the station Room.
+3. Re-author the T0 station or bearer so the piece is outside the profile-12 sweep (source geometry change).
+
+The complete-prefix ledger test (INSTALLED 2, wood 0, 98,000 mWU) waits on this decision, so the Kitchen
+excavation is not scoped. Evidence:
+`test_underground_paid_assembly_handling.gd::test_entry_foreman_admits_t0_handling_then_start_refuses_on_the_l0_contact_envelope`
+— only `Foreman.advance` runs; INSTALLED 1, wood 1,000, stone 0, spoil 12,000, 54,000 + 32,000 mWU,
+conservation refusals empty, audits pass, one admitted unstarted T0 Project. The live demo's G9 alert now
+carries `LOCATION_ENVELOPE_BLOCKED`.

@@ -47,7 +47,7 @@
   "consumers": {
     "godot/scripts/core/underground_profiles.gd": "64325eed6772207817a043220fe4db371fe5aa68a89fec60a287099ea589dfaf",
     "godot/scripts/core/underground_work_face.gd": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
-    "godot/scripts/core/underground_connector_contacts.gd": "4d0aa197154ce4d8ea30b6107ddd408950a32efc0a8cd69a64670567458d2fd1",
+    "godot/scripts/core/underground_connector_contacts.gd": "aa6de065502f9afb9bdd762c2e54f4b4094d7fd0b89aa2acd6ee2e1270d8a87f",
     "godot/scripts/core/underground_routes.gd": "8a4cd2a60b05f7c34e9baef32b8bdc6e38d458bb5594fb4999730dee3f74fef0",
     "godot/scripts/core/underground_world_routes.gd": "a61a708e0f68c8cf6cad9b316558a4f54bc2fcd98719ceb4c4ad6e0477cf78e5",
     "godot/demo/cast/underground_actor.gd": "b0ef7640d2b5626eb95c162d19318d9b3985a51479d19dfdf9a38e0176a06e91",
@@ -61,5 +61,12 @@
     "presentation of source-2 rows",
     "station seam floor support at S",
     "joint memory census"
+  ],
+  "renewals": [
+    {
+      "path": "godot/scripts/core/underground_connector_contacts.gd",
+      "from": "4d0aa197154ce4d8ea30b6107ddd408950a32efc0a8cd69a64670567458d2fd1",
+      "to": "aa6de065502f9afb9bdd762c2e54f4b4094d7fd0b89aa2acd6ee2e1270d8a87f"
+    }
   ]
 }

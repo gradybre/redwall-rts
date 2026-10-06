@@ -31,9 +31,10 @@ static func refusal(bindings: RefCounted, graph: RefCounted, pieces: RefCounted,
 	if code == &"": code = _piece(pieces, placement, project, selection)
 	if code != &"": return code
 	var target: int = pieces._live.fields[pieces.REGION_SLOT * pieces._capacity + placement.x]
+	var room: Vector2i = _resident_room(graph, selection.worker)
 	for part: int in 3:
 		code = _box_into(selection, part, bindings._bounds)
-		if code == &"": code = _volume(bindings, graph, contacts, target, part == 1)
+		if code == &"": code = _volume(bindings, graph, contacts, target, part == 1, room)
 		if code != &"": return code
 	return &""
 
@@ -52,7 +53,8 @@ static func admission_refusal(bindings: RefCounted, graph: RefCounted, pieces: R
 	if code != &"": return code
 	for part: int in 3:
 		code = _box_into(selection, part, bindings._bounds)
-		if code == &"": code = _volume(bindings, graph, pieces._contacts.get_ref(), -1, part == 1)
+		if code == &"": code = _volume(bindings, graph, pieces._contacts.get_ref(), -1, part == 1,
+			_location_room(graph, location))
 		if code != &"": return code
 	return &""
 
@@ -319,17 +321,36 @@ static func _box_into(selection: Profiles.Selection, part: int, out: PackedInt32
 	return &""
 
 
-static func _volume(b: RefCounted, g: RefCounted, contacts: RefCounted, target: int, foot: bool) -> StringName:
+static func _volume(b: RefCounted, g: RefCounted, contacts: RefCounted, target: int, foot: bool,
+		room: Vector2i) -> StringName:
 	"""Foreign physical primitives always block; only the exact paid source prism uses its full-triangle proof."""
 	var owner: Owner = g._owner
 	if not Space.contains_box(owner._domain._bounds, b._bounds) or not _spend(g, Terrain.LOCAL_QUERY_CHECKS): return BUDGET
 	var code: StringName = Terrain._final_local_tiles(b._terrain, b._bounds, Terrain.EXCLUSIONS)
 	if code != &"": return code
-	if foot and not Space.contains_box(b._support, b._bounds): return &"ASSEMBLY_FOOTING"
 	var fragments: RefCounted = contacts._fragments
 	fragments.count = 1
 	for axis: int in 6: fragments.first[axis] = b._bounds[axis]
 	if target >= 0 and not foot and not _subtract(fragments, contacts._target, g): return BUDGET
+	code = _regions_refusal(b, g, fragments, target, foot, room)
+	if code != &"" or foot: return code
+	for row: int in fragments.count:
+		if not _spend(g, Terrain.LOCAL_QUERY_CHECKS): return BUDGET
+		for axis: int in 6: b._scratch[axis] = fragments.first[row * 6 + axis]
+		code = Terrain._final_local_tiles(b._terrain, b._scratch, Terrain.EXTERIOR)
+		if code != &"": return code
+	return &""
+
+
+static func _regions_refusal(b: RefCounted, g: RefCounted, fragments: RefCounted, target: int, foot: bool,
+		room: Vector2i) -> StringName:
+	"""A foot must lie inside the station's proved SUPPORT; then every overlapping live Region is checked:
+	bodies subtract air, and any foreign solid or claim blocks.
+
+	ADR 1202 (Brendan, option 1): such a foot may share its SUPPORT only with the station Room's own
+	nonphysical reservation marker, as WorldRoutes and Locations read it. Bodies never may."""
+	if foot and not Space.contains_box(b._support, b._bounds): return &"ASSEMBLY_FOOTING"
+	var owner: Owner = g._owner
 	for row: int in owner._region_capacity:
 		if not _spend(g, 1): return BUDGET
 		if owner._r_present[row] == 0: continue
@@ -339,19 +360,38 @@ static func _volume(b: RefCounted, g: RefCounted, contacts: RefCounted, target: 
 		if row == target:
 			if foot: return &"ASSEMBLY_FOOTING"
 			continue
+		if foot and own_room_marker(owner, row, room): continue
 		if role == Space.SUPPORTED_VOID:
 			if not foot and not _subtract(fragments, b._scratch, g): return BUDGET
 		elif role == Space.DRY_SOLID or role == Space.SUPPORT:
 			if not foot: return &"ASSEMBLY_FOREIGN_SOLID"
 		elif role != Space.FLOOR_DATUM and role != Space.PROTECTED_ACCESS:
 			return &"ASSEMBLY_FOREIGN_SOLID"
-	if foot: return &""
-	for row: int in fragments.count:
-		if not _spend(g, Terrain.LOCAL_QUERY_CHECKS): return BUDGET
-		for axis: int in 6: b._scratch[axis] = fragments.first[row * 6 + axis]
-		code = Terrain._final_local_tiles(b._terrain, b._scratch, Terrain.EXTERIOR)
-		if code != &"": return code
 	return &""
+
+
+static func own_room_marker(owner: Owner, row: int, room: Vector2i) -> bool:
+	"""Only the station Room's own typed reservation: Room-claimed, Room-owned OBSTACLE, claim = owner = room."""
+	return room != NULL_REF and owner._r_present[row] == 1 and owner._r_role[row] == Space.OBSTACLE \
+		and owner._r_claim_kind[row] == Owner.CLAIM_ROOM \
+		and Vector2i(owner._r_claim_slot[row], owner._r_claim_generation[row]) == room \
+		and Vector2i(owner._r_owner_slot[row], owner._r_owner_generation[row]) == room
+
+
+static func _location_room(g: RefCounted, location: Vector2i) -> Vector2i:
+	"""The Room of one already validated live station Location; NULL_REF for an unroomed surface station."""
+	var locations: Locations = g._locations
+	if location.x < 0 or location.x >= locations._capacity: return NULL_REF
+	return Vector2i(locations._live.i32[Locations.ROOM_SLOT * locations._capacity + location.x],
+		locations._live.i32[Locations.ROOM_GENERATION * locations._capacity + location.x])
+
+
+static func _resident_room(g: RefCounted, worker: Vector2i) -> Vector2i:
+	"""The Room of the worker's current station Location, the one `_endpoint` validated."""
+	var row: int = Owner.CoreSources._final_row(g._ids, worker, Directory.KIND_RESIDENT)
+	if row < 0 or row >= g.RESIDENT_CAPACITY: return NULL_REF
+	return _location_room(g, Vector2i(g._motion.resident[g.R_LOCATION_SLOT * g.RESIDENT_CAPACITY + row],
+		g._motion.resident[(g.R_LOCATION_SLOT + 1) * g.RESIDENT_CAPACITY + row]))
 
 
 static func _region_into(owner: Owner, row: int, out: PackedInt32Array) -> void:

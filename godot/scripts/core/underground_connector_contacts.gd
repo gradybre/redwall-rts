@@ -1782,24 +1782,31 @@ func _assembly_start_volume(foot: bool) -> StringName:
 	if foot and (not Space.contains_box(_location.support, _bounds) or Space.overlaps(_bounds, _target)):
 		return REFUSE_GEOMETRY
 	_fragments.start(_bounds)
+	code = _assembly_start_regions(foot)
+	if code != &"" or foot: return code
+	for fragment: int in _fragments.count:
+		if not _fragments.spend(Terrain.LOCAL_QUERY_CHECKS): return REFUSE_CAPACITY
+		for axis: int in 6: _scratch[axis] = _fragments.first[fragment * 6 + axis]
+		code = Terrain._final_local_tiles(_terrain, _scratch, Terrain.EXTERIOR)
+		if code != &"": return code
+	return &""
+
+
+func _assembly_start_regions(foot: bool) -> StringName:
+	"""Every overlapping Region; a foot may share proved SUPPORT only with its station Room's own marker (ADR 1202)."""
 	var owner: Owner = _placements._space
 	for region: int in owner._region_capacity:
 		if not _fragments.spend(): return REFUSE_CAPACITY
 		if owner._r_present[region] == 0: continue
 		_copy_region_box(region, _scratch)
 		if not Space.overlaps(_bounds, _scratch): continue
+		if foot and AssemblyPhysical.own_room_marker(owner, region, _location.room): continue
 		var role: int = owner._r_role[region]
 		if role == Space.SUPPORTED_VOID:
 			if not foot and not _fragments.subtract(_scratch): return REFUSE_CAPACITY
 		elif role == Space.DRY_SOLID or role == Space.SUPPORT:
 			if not foot: return REFUSE_GEOMETRY
 		elif role != Space.FLOOR_DATUM and role != Space.PROTECTED_ACCESS: return REFUSE_GEOMETRY
-	if foot: return &""
-	for fragment: int in _fragments.count:
-		if not _fragments.spend(Terrain.LOCAL_QUERY_CHECKS): return REFUSE_CAPACITY
-		for axis: int in 6: _scratch[axis] = _fragments.first[fragment * 6 + axis]
-		code = Terrain._final_local_tiles(_terrain, _scratch, Terrain.EXTERIOR)
-		if code != &"": return code
 	return &""
 
 

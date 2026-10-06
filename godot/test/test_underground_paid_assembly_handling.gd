@@ -655,8 +655,8 @@ func test_entry_foreman_drives_cuts_retirement_paid_handling_and_install() -> vo
 
 
 
-func test_entry_foreman_opens_t0_then_handling_footing_refuses_on_the_l0_deck() -> void:
-	"""ADR1202: only Foreman.advance(tick) runs six cubes, the paid L0 and the T0 order; T0 handling then refuses."""
+func test_entry_foreman_admits_t0_handling_then_start_refuses_on_the_l0_contact_envelope() -> void:
+	"""ADR1202: only Foreman.advance(tick) runs six cubes, the paid L0, the T0 order and T0 handling admission."""
 	_probe = PaidProbe.new()
 	_probe.before_each()
 	var foreman: Foreman = _complete_prefix_foreman()
@@ -665,12 +665,11 @@ func test_entry_foreman_opens_t0_then_handling_footing_refuses_on_the_l0_deck() 
 	while not foreman.is_done() and foreman.error() == &"" and tick < _probe._tick + 80000:
 		foreman.advance(tick)
 		tick += 1
-	assert_equal(foreman.error(), &"ASSEMBLY_FOREIGN_SOLID",
-		"the handling foot on the installed L0 deck meets the excavation Room's reservation marker")
-	assert_false(foreman.is_done(), "the T0 group is not installed")
-	_assert_t0_cut_ledger(foreman)
-	assert_equal(_probe._world._construction.live_project_count(), 1,
-		"the successor Frontier's all-yaw M selector admits the T0 order; it stays open, unfunded")
+	assert_equal(foreman.error(), &"LOCATION_ENVELOPE_BLOCKED",
+		"START: the pending T0 prism lies inside the L0 contact's ADR1193 air; the endpoint certificate covers only H")
+	assert_true(foreman._installer != null and foreman._installer.stage() == Foreman.Installer.STAGE_FUND,
+		"the handling foot on the deck was admitted (ADR1202 option 1); START refused")
+	_assert_t0_start_ledger(foreman)
 	_assert_contact_path()
 
 
@@ -693,18 +692,19 @@ func _complete_prefix_foreman() -> Foreman:
 	return foreman if failures.is_empty() else null
 
 
-func _assert_t0_cut_ledger(foreman: Foreman) -> void:
-	"""All six cubes and the whole L0 are paid exactly once; the refused T0 handling delivered and paid nothing."""
+func _assert_t0_start_ledger(foreman: Foreman) -> void:
+	"""All six cubes and the whole L0 are paid exactly once; the refused T0 START consumed nothing."""
 	var world: RefCounted = _probe._world
 	assert_equal(_probe._placements._get32(_probe._placements._live, Prefix.Placements.INSTALLED, 0), 1, "only L0 installed")
 	assert_equal(world._inventory.lot_quantity_milli(_probe._wood), 1000, "only the T0 assembly wood remains")
 	assert_equal(world._inventory.lot_quantity_milli(_probe._stone), 0, "all 1500 adopted brace stone spent")
 	assert_equal(_probe._sites.virgin_sourced_milli(), 12000, "six 2000 spoil outputs")
 	assert_equal(foreman.accepted_mwu(), 54000, "six cubes x 9000 phase work")
-	assert_equal(foreman.install_mwu(), 32000, "L0 landing fastening")
+	assert_equal(foreman.install_mwu(), 32000, "L0 landing fastening only")
 	assert_equal(_probe._sites.earth_conservation_refusal(), &"", "complete spoil conservation")
 	assert_equal(_probe._sites.support_conservation_refusal(), &"", "complete brace conservation")
 	assert_true(world._inventory.audit().ok and world._pool.audit(world._inventory).ok, "real conservation audits")
+	assert_equal(world._construction.live_project_count(), 1, "the admitted T0 Project stays open, unstarted")
 
 
 func _assert_contact_path() -> void:

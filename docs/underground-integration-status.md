@@ -1,0 +1,85 @@
+# Underground integration status
+
+Last updated 2026-10-05 on branch `claude/ug-paid-start`. Read this before
+`underground-claude-handoff-2026-10-05.md`. This document supersedes that
+handoff's lane, worktree and overlay instructions (ADR 1192).
+
+## How work is done now
+
+- **One branch, committed files only.** The three sibling `codex/underground-*`
+  worktrees are frozen source material. Their WIP has been imported by content
+  (see the commit messages). Overlay runners no longer qualify anything.
+- **Focused runs:** `./tools/run_tests.sh --suite test_x.gd [--suite ...]`. This
+  uses the same zero-error and zero-leak guards as the full run.
+- **Source pins:** after editing any of the ten pinned consumer scripts, run
+  `python3 tools/renew_source_pins.py --write` in the same commit.
+  `run_tests.sh` refuses to run while pins are stale.
+- **Never edit files while a full run is in progress.** Suites load scripts as
+  they run, so a mid-run edit makes the result meaningless.
+
+## What works (real, not synthetic)
+
+`test_underground_paid_assembly_handling.gd` covers 10 tests on the real
+source and the ADR 1191 work area:
+
+1. One worker cuts four L0 cubes (36,000 mWU).
+2. The worker walks the all-yaw source12 profile to M, turns to the source2
+   heading and approaches H without turning at H.
+3. The completed first dig pair retires: WorldRoutes publishes, then
+   Locations publishes (`underground_entry_contact_retirement.gd`).
+4. The whole wood bill is paid, then START.
+5. 60 ticks of handling, then INSTALL fastening (32,000 mWU), then commit.
+6. Refusals: blocked refund, exact partial refund, productive terrain
+   observers, pre-funded pause and stale-context START.
+
+`test_underground_entry_world_bindings.gd` runs the complete synthetic L0+T0
+prefix again (ADR 1193).
+
+## Fixes made during integration
+
+| Commit | Fix |
+|---|---|
+| `2d9f2cf1` | 158 of 165 failures were stale source pins. Added the renewal tool and its check. |
+| `3af08939` | Wrote the missing retirement driver. Fixed three scope rules that had never run. |
+| `a8060ef3` | Handling entry re-attests terrain after START advances the Space revision. |
+| `b97e3899` | Moved the four productive-work scenarios onto the real fixture (ADR 1183). |
+| `78f7fa8c`, `db82d895` | Imported entry-owner composition. Placements now releases its source readers. |
+| `c7f63b49` | The installed WORK contact's footing covers its travel profile, which unblocks T0 (ADR 1193). |
+
+## Latest full results — `c7f63b49`
+
+```text
+11341 test(s), 1084389 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+0 GDScript warning(s) in 0 of 1279 file(s)
+```
+
+This is a local no-argument `./tools/run_tests.sh` run plus `tools/gdscript_warnings.py --max 0`.
+It replaces `4972a96d` (11,293 tests) as the latest green full-suite commit. It is not a strict-procedure
+qualification: there was no assets-aside clean import, no captures and no soak.
+
+## Next, in order
+
+1. **Fixed first-entry source bundle (ADR 1190).** The paid test still reads
+   its catalog, recipes, groups, frontier and workpieces from
+   `docs/validation/evidence/`. Publish them once under
+   `godot/data/underground/first-entry-prefix-v1/qualified-handling-v1/`
+   with a generated accessor, and point the tests at it.
+2. **Content-4 runtime profile publication.** Runtime still loads
+   `qualified-step-v4` (content 3), which has no handling row 29. In-game
+   paid handling needs a content-4 publication, and the motion catalog needs
+   native frames for row 29.
+3. **UG24 demo composition.** Mount the entry owners in the real
+   SettlementSystem session (`underground_entry_composition.gd`, ADR 1184) and
+   dispatch real workers on fixed ticks.
+4. **UG09 first empty Kitchen.** Paint and confirm the Kitchen in the demo,
+   then real workers dig the shell. Verify with native 1280×720 input and
+   screenshots.
+5. Then UG10 onward, per `docs/tasks/underground-build-queue.json`.
+
+## Not yet claimed
+
+The branch has not had a strict-procedure run: no assets-aside clean import,
+analyzer `--max 0`, 1280×720 captures or 256-resident soak. Nothing here is a
+playable claim. The queue file still shows the old per-agent leases; its lane
+statuses have not been re-derived from full-suite results.

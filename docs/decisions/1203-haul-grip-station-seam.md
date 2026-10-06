@@ -89,3 +89,11 @@ The seam is in `underground_connector_delivery.gd`.
 3. **Stone cannot be hauled.** Content 5 authors wood only (cargo 60). Brace stone inputs need their own authored
    rows; until then the G4 alert stays for stone.
 4. **No loaded turn and no stand↔stand return walk.** The return trip walks M→H→R.
+
+## Brendan's decisions (2026-10-06)
+
+| Question | Decision |
+|---|---|
+| Route check budget at entry confirmation (98.1% after the haul edges) | **Re-check only the paths whose volume touches the geometry that changed.** The safety is unchanged and the cost scales with the change. The budget is not raised, and haul edges are not published on demand. |
+| Stone inputs | **Author a stone carry** (carry, load and unload rows), with the same native capture, proofs and grip certificate as wood. The live demo keeps the G4 alert for stone until then. |
+| Staging place for surface inputs | **Share R's container for now.** Delivery selects lots by item. Revisit if the shared pile reads wrong in the demo. |

@@ -1,6 +1,6 @@
 # 1206 — Stone carry: the procedural stone lump as the hauled stone
 
-Date: 2026-10-06 · Status: In progress. Grip v1 approved; motion authored and proved, awaiting Brendan's motion review
+Date: 2026-10-06 · Status: In progress. Grip v1 and the stone motion approved by Brendan; native image v9 next
 
 ## Brendan's decisions (2026-10-06)
 
@@ -11,6 +11,7 @@ Date: 2026-10-06 · Status: In progress. Grip v1 approved; motion authored and p
 | Carried size | **Sized to the log grip**: scale the lump so the existing carry pose's two certified hand contacts fit it. Keep the 0.8 vertical squash and no rotation unless the derivation shows they cannot seat both hands. Brendan explicitly approved this new size constant. Catalog mass stays 5,000 g/unit, and Brendan accepts that the stone looks larger than a solid 5 kg rock. |
 | Carried size, after step 2 | **A smaller lump with a new grip.** Keep the squashed lump at the largest size clear of the body. Author a brand-new two-hand grip, lift, place, loaded gait and joins for it. Stop for Brendan's grip review before the lift. |
 | Grip review (step 4) | **Candidate v1 approved**: R−S 576 u, the same stands as wood. Brendan accepted the about 1.7 mm snout gap. |
+| Motion review (step 9) | **Approved**: the staged lift and place, the chest hold, the carry loop and the stand joins. |
 
 The pinned demo assets have no stone part. `all-cast-v5…v9`, `mole-grip-v1…v3` and `pilot-v1…v4` carry
 only the body, `log`, `mole_pick` and eleven vegetable props. The demo's hall and infirmary draw carried stone
@@ -227,7 +228,7 @@ The stand and walk clips are wood's own, reused byte for byte.
 the floor stone (`prove_empty_walk.support_proof` / `join_proof`). It adds exact star containment. Both joins pass
 (`joins-proof.json`). `test_stone_joins.py` holds 3 tests: a rebuild, the exact endpoints and the stored proof.
 
-## Step 9 — motion review packet (awaiting Brendan)
+## Step 9 — motion review packet (approved)
 
 Wood's program and gait each had a review before native capture, so the stone motion stops here.
 

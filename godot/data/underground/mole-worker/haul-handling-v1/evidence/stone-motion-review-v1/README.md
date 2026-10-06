@@ -58,3 +58,7 @@ stone, so the stone must ease out and rise before it is drawn in to the chest.
 ## Reproduce
 
 `invocation.json` lists every command and SHA-256 pin. The test logs are `tests.log` in each step folder.
+
+## Verdict
+
+Brendan approved the stone motion on 2026-10-06; see `review-acceptance.md`.

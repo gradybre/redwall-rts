@@ -8,12 +8,14 @@ const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Assemblies := preload("res://scripts/core/underground_connector_assemblies.gd")
 const Recipes := preload("res://scripts/core/underground_connector_recipes.gd")
 const Contract := preload("res://scripts/core/modular_project_contract.gd")
-const CATALOG_PATH: String = "res://data/underground/first-entry-prefix-v1/structural-v1/structure.ugconn"
-const CATALOG_SHA: String = "d945e9dd965da956868284772dfeb6316d86d288ab9fb34a20a49925197c6578"
-const GROUP_PATH: String = "res://data/underground/first-entry-prefix-v1/structural-v1/assemblies.ugasmb"
-const GROUP_SHA: String = "abd1bb9330f874d26447395a9a9e49707a6de84cefddabf2c60cf932555cd8e7"
-const RECIPE_PATH: String = "res://data/underground/first-entry-prefix-v1/structural-v1/recipes.ugrecp"
-const RECIPE_SHA: String = "14a6a75d41f3072b55ee7db9878e8c975fa79338491fafa612a7b8c1410390e2"
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-handling-v1/catalog_source.gd")
+# ADR1194: the content-3 structural-v1 bytes are superseded by the same structure rebound to content 4.
+const CATALOG_PATH: String = Bundle.CATALOG_PATH
+const CATALOG_SHA: String = Bundle.CATALOG_SHA
+const GROUP_PATH: String = Bundle.GROUPING_PATH
+const GROUP_SHA: String = Bundle.GROUPING_SHA
+const RECIPE_PATH: String = Bundle.RECIPE_PATH
+const RECIPE_SHA: String = Bundle.RECIPE_SHA
 
 var _host: Host = null
 var _content: Content = null

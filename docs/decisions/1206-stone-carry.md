@@ -1,6 +1,6 @@
 # 1206 — Stone carry: the procedural stone lump as the hauled stone
 
-Date: 2026-10-06 · Status: In progress. Grip v1 and the stone motion approved by Brendan; native image v9 next
+Date: 2026-10-06 · Status: In progress. Native image v9 done; rows and content 6 next
 
 ## Brendan's decisions (2026-10-06)
 
@@ -235,6 +235,26 @@ Wood's program and gait each had a review before native capture, so the stone mo
 **Packet:** `haul-handling-v1/evidence/stone-motion-review-v1/`. It contains `README.md` (what to judge),
 `motion-review.json` (the closest approach per clip), `invocation.json` and renders of the lift, the carry loop
 and the join. Native image v9 and everything after it wait for Brendan's approval.
+
+## Step 10 — native stone image v9 (done)
+
+`evidence/native-program-v9/` (see its README) holds a separate 10-clip image, runtime source 3:
+
+- `stone-handling.ugactor`, 791,844 B, `49ff3018…`;
+- parts: the body and the stone lump; the compiler is `compile_native_program_v9.py`.
+
+**Replay:** a real Metal replay (`run_native_program_v9.py`, with the real stone factory staged) records 7,794
+samples and 31,262 assertions with zero failures. `verify_native_program_v9.py` finds zero coefficient
+mismatches, 11,256 exact two-hand witnesses, 11 joins and 4 reversals per view. It also checks the cross-image
+join: v8's `stand`@8 equals v9's `enter_haul_stone`@0.
+
+**Finding:** stone-source-v1's JSON numbers lost 16 negative zeros, which the engine's mesh fingerprint hashes.
+`stone-source-v2` records the exact bits, and its engine fingerprint is `e9c10ccc…`.
+
+**Census:** the declared peak is 7,285,004 B (v8: 7,486,168). The declared presentation set with stone is
+28,541,580 B. That is a presentation reservation, not simulation-owned memory under the 100 MB gate.
+`tools/underground_memory_budget.py --check` still fails on the pre-existing qualified-step-v4 witness digest;
+this change does not touch it.
 
 ## Remaining steps
 

@@ -1,0 +1,9 @@
+{
+  "godot/data/underground/mole-worker/haul-handling-v1/compile_native_program_v9.py": "c587ebaca7a244b6601ff6330eb2e9f7f3b67dcb3ea051929104bef1ffdf9ac1",
+  "godot/data/underground/mole-worker/haul-handling-v1/evidence/stone-source-v2/native-stone-bits.json": "991948c275ff3e87965229725ef3f77b6997d3fdc87294694fb46d16e5e0c119",
+  "godot/data/underground/mole-worker/haul-handling-v1/native_capture_stone/capture_stone_bits.gd": "f89bd70dc42b7205dcc4605489f6479ba33f1565b9c8a493d493269a6f250ef7",
+  "godot/data/underground/mole-worker/haul-handling-v1/native_replay_v9/capture_native_program.gd": "3b889df805fb272a88538a9e8a9301f7812e539be1e52995040ed8eecd185761",
+  "godot/data/underground/mole-worker/haul-handling-v1/run_native_program_v9.py": "89ed9bbf3e95fbd32858bb280110198082aa23420880e670e0904491bd889dab",
+  "godot/data/underground/mole-worker/haul-handling-v1/test_native_program_v9.py": "4baeeefbc91d1c39bf5247b2ae9ba9c6c249620ef066861864722cf5a8d00f54",
+  "godot/data/underground/mole-worker/haul-handling-v1/verify_native_program_v9.py": "7874e5ef8fd06fe39a298a7bfc08c71d965ac82af8531e347daca82ed9bc75a8"
+}

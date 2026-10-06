@@ -40,7 +40,7 @@ clears the alert.
 | G5 | Surface arrival | Residents do not walk in the simulation (`settlement_system.gd:120-135`) | The demo's presentation walk brings the resident to the stair-top anchor. The simulation hand-off places the Transform exactly on the anchor point, then `admit_travel_actor` (WALK) and a real route underground. The hand-off is shown as a known gap until surface Movement/Navigation is composed. |
 | G6 | Crew selection | Tests pass the worker, tool and lots explicitly | Choose a real demo resident with an equipped tool, and real stock lots. Refuse with an alert when none qualifies. |
 | G7 | Fixed-tick hookup | Nothing calls `Foreman.advance` | `SettlementSystem.run_tick` advances the foreman. |
-| G8 | Row 29 presentation | The actor matches rows by actor source digest, so handling has no clip | Alert until a handling clip or reviewed fallback exists. |
+| G8 | Row 29 presentation | The actor matches rows by actor source digest, so handling has no clip | Alert until a handling clip or reviewed fallback exists. **Presentation built (ADR 1201):** per-source Content and Actor, with row 29 drawn from the handling clock. The live demo still composes no worker Actor. |
 | G9 | T0 and the room | The foreman stops after L0 | Extend it to T0 (ADR 1193 unblocked it) and to the Kitchen's own cuts. |
 | G10 | Saving the cursor | Registry rows are UNRESOLVED | Decide re-derive vs save; alert on save while dispatch is in flight. |
 

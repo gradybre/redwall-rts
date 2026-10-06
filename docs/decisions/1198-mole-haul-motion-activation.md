@@ -127,3 +127,7 @@ qualified.
     found zero coefficient mismatches, 13 exact joins and 4 reversals per view,
     and 17 passing tests. The declared offline peak is 7,486,168 bytes; this is
     not runtime admission.
+- **Step 7 (presentation), ADR 1201:** a per-source content set (actor, assembly and optional
+  haul, inside `PRESENTATION_SET_BYTES` = 21,256,576 B) and `mole_presentation.gd`. One Actor per
+  source is chosen by the row's source digest, and each clip's mask is applied on every selection.
+  Row 29 is drawn from the handling clock. Haul program modes wait for the content-5 rows.

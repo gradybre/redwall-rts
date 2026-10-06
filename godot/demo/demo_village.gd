@@ -300,7 +300,8 @@ const DayNightScript := preload("res://demo/world/day_night.gd")
 const NightLightsScript := preload("res://demo/world/night_lights.gd")
 const WorldLayout := preload("res://demo/world/world_layout.gd")
 const ModularSession := preload("res://scripts/core/underground_session.gd")
-const ModularContent := preload("res://demo/cast/underground_actor_content.gd")
+const ModularSources := preload("res://demo/cast/underground_content_set.gd")
+const MolePresentation := preload("res://data/underground/mole-worker/mole_presentation.gd")
 const ModularDemoMode := preload("res://demo/burrow/modular_demo_mode.gd")
 const DaylightCurves := preload("res://demo/world/daylight_curves.gd")
 const HearthFuelScript := preload("res://demo/winter/hearth_fuel.gd")
@@ -422,6 +423,8 @@ var _forage: ForageNodeScript = null
 ## THE ORCHARD (decisions 0671-0677; demo/orchard/): built after the spoil heaps, before the woods (its clicks first).
 var _orchard: OrchardScript = null
 var _modular_mode: ModularDemoMode = null
+## ADR1201: one pinned presentation image per mole profile source (actor + assembly handling).
+var _modular_sources: ModularSources = null
 
 
 func _ready() -> void:
@@ -516,10 +519,12 @@ func prewarm() -> PrewarmScript:
 
 func _mount_modular_foundation() -> void:
 	"""Give the actual settlement its single source-qualified underground foundation, without free construction."""
-	var content: ModularContent = ModularContent.new()
-	var code: StringName = content.load_file(ModularSession.ACTOR_PATH,
-		ModularSession.Catalog.Pins.ACTOR_SHA, ModularSession.PRESENTATION_BYTES)
-	if code == &"" and not SettlementSystem.mount_underground(content):
+	var sources: ModularSources = ModularSources.new()
+	# The haul image joins when content 5 publishes its rows (ADR1198 step 4); until then it stays unloaded.
+	var code: StringName = MolePresentation.load_sources(sources, false)
+	if code == &"":
+		_modular_sources = sources
+	if code == &"" and not SettlementSystem.mount_underground(sources.content(MolePresentation.SOURCE_ACTOR)):
 		code = SettlementSystem.last_refusal()
 	if code == &"" and not SettlementSystem.compose_underground_room_owners():
 		code = SettlementSystem.last_refusal()

@@ -40,6 +40,16 @@ const LEVEL_REVISION: int = 1
 const PROFILE_SOURCE_COUNT: int = Catalog.SOURCE_COUNT
 const ACTOR_PATH: String = "res://data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor"
 const PRESENTATION_BYTES: int = 7141920
+# ADR1201: one immutable Content per profile source image. Each byte count is that image's exact
+# Content.required_peak_bytes() (retained palette + larger decode/mesh pass + tables + 2 MiB controls).
+# They are summed, never shared, so the set reservation is an explicit upper bound, not a measurement.
+const HANDLING_ACTOR_PATH: String = "res://data/underground/mole-worker/qualified-assembly-v1/compiled-3/mole-worker.ugactor"
+const HANDLING_ACTOR_SHA: String = "b94d676e999c87dd399a4dc110674620a4fbc66f0ca07e494b8bedadac683b66"
+const HANDLING_PRESENTATION_BYTES: int = 6628488
+const HAUL_ACTOR_PATH: String = "res://data/underground/mole-worker/haul-handling-v1/evidence/native-program-v8/compiled/haul-handling.ugactor"
+const HAUL_ACTOR_SHA: String = "cc8542712705248f944d7430cbba0b7a365860f0073473c2fc0cb9106cf97a85"
+const HAUL_PRESENTATION_BYTES: int = 7486168
+const PRESENTATION_SET_BYTES: int = PRESENTATION_BYTES + HANDLING_PRESENTATION_BYTES + HAUL_PRESENTATION_BYTES
 const CONTROL_BYTES: int = 1024
 const HELPER_BYTES: int = 512
 const RESERVED_BYTES: int = CONTROL_BYTES + HELPER_BYTES

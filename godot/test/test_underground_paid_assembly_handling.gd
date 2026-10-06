@@ -106,20 +106,20 @@ class PaidProbe extends WorkArea.Probe:
 		assert_true(_world._work.claim_tool_for_work(worker, _tool).ok, "same equipped tool")
 		_move_to_handling_station(made.value, endpoint)
 		if not failures.is_empty(): return -1
-		assert_equal(_world._routes.refresh_work_actor(_world._worker, made.ref, 29, 1, 4, 0, -1, _tool), &"", "actual pre-funded handling READY")
+		assert_equal(_world._routes.refresh_work_actor(_world._worker, made.ref, 29, 1, WorkArea.Bundle.CONTENT_REVISION, 0, -1, _tool), &"", "actual pre-funded handling READY")
 		return made.value if failures.is_empty() else -1
 
 	func _move_to_handling_station(job: int, endpoint: Vector2i) -> void:
 		"""ADR1191: all-yaw source12 reaches material M; only the narrow same-heading source2 approaches H."""
 		var ref: Vector2i = _world._jobs.ref_of(job)
-		assert_equal(_world._routes.refresh_travel_actor(_world._worker, ref, 12, 1, 4, 0, -1, _tool), &"", "actual source WALK handoff")
+		assert_equal(_world._routes.refresh_travel_actor(_world._worker, ref, 12, 1, WorkArea.Bundle.CONTENT_REVISION, 0, -1, _tool), &"", "actual source WALK handoff")
 		_travel_to(ref, _endpoints[1], 12, "material endpoint")
 		if not failures.is_empty(): return
 		var profiles: Profiles = _world._profiles
 		assert_equal(profiles._field(profiles._live, 2, Profiles.F_YAW_KIND), Profiles.YAW_EXACT, "source2 is a fixed-heading approach")
 		var heading: int = profiles._field(profiles._live, 2, Profiles.F_YAW)
 		assert_equal(WorldRoutes.turn_actor(_world._binding, _world._worker, ref, heading, Space.MAX_CHECKS), &"", "all-yaw turn to the source2 heading at M")
-		assert_equal(_world._routes.refresh_travel_actor(_world._worker, ref, 2, 1, 4, 0, -1, _tool), &"", "narrow approach source at M")
+		assert_equal(_world._routes.refresh_travel_actor(_world._worker, ref, 2, 1, WorkArea.Bundle.CONTENT_REVISION, 0, -1, _tool), &"", "narrow approach source at M")
 		_travel_to(ref, endpoint, 2, "handling station")
 		if not failures.is_empty(): return
 		var actor: Routes.Actor = Routes.Actor.new()
@@ -138,7 +138,7 @@ class PaidProbe extends WorkArea.Probe:
 				assert_true(false, "actual %s travel held" % label)
 				return
 			if actor.location == endpoint and Routes.source_ready_leaf_refusal(_world._routes, _world._worker,
-					ref, profile, 1, 4) == &"": break
+					ref, profile, 1, WorkArea.Bundle.CONTENT_REVISION) == &"": break
 		assert_equal(actor.location, endpoint, "real %s reached" % label)
 
 	func prepare_l0() -> Vector2i:
@@ -171,10 +171,10 @@ class PaidProbe extends WorkArea.Probe:
 		var inventory_before: PackedByteArray = _world._inventory.state_bytes()
 		for step: int in 60:
 			assert_false(Routes.assembly_handled_ready_leaf_refusal(_world._routes, _world._worker,
-				_world._jobs.ref_of(job), 29, 1, 4) == &"", "no premature handling completion")
+				_world._jobs.ref_of(job), 29, 1, WorkArea.Bundle.CONTENT_REVISION) == &"", "no premature handling completion")
 			_world._routes.advance_tick(_tick); _tick += 1
 		assert_equal(Routes.assembly_handled_ready_leaf_refusal(_world._routes, _world._worker,
-			_world._jobs.ref_of(job), 29, 1, 4), &"", "exact thirty entry plus thirty recovery ticks")
+			_world._jobs.ref_of(job), 29, 1, WorkArea.Bundle.CONTENT_REVISION), &"", "exact thirty entry plus thirty recovery ticks")
 		assert_equal(_world._work.state_bytes(), work_before, "handling earns no WU or XP")
 		assert_equal(_world._jobs.state_bytes(), jobs_before, "no productive progress")
 		assert_equal(_world._inventory.state_bytes(), inventory_before, "no repeated material payment")
@@ -224,11 +224,11 @@ class PaidProbe extends WorkArea.Probe:
 	func begin_install(job: int) -> void:
 		"""Handled READY normalizes, then the unchanged INSTALL source reaches WORK without earning anything."""
 		assert_equal(_world._routes.request_source_ready(_world._worker, _world._jobs.ref_of(job)), &"", "handled state normalizes to READY")
-		assert_equal(_world._routes.refresh_work_actor(_world._worker, _world._jobs.ref_of(job), 16, 1, 4, 0, -1, _tool), &"", "actual unchanged INSTALL source")
+		assert_equal(_world._routes.refresh_work_actor(_world._worker, _world._jobs.ref_of(job), 16, 1, WorkArea.Bundle.CONTENT_REVISION, 0, -1, _tool), &"", "actual unchanged INSTALL source")
 		for step: int in 240:
-			if Routes.source_work_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, 4) == &"": break
+			if Routes.source_work_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, WorkArea.Bundle.CONTENT_REVISION) == &"": break
 			_world._routes.advance_tick(_tick); _tick += 1
-		assert_equal(Routes.source_work_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, 4), &"", "actual INSTALL WORK")
+		assert_equal(Routes.source_work_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, WorkArea.Bundle.CONTENT_REVISION), &"", "actual INSTALL WORK")
 
 	func finish_install(job: int) -> void:
 		"""Earn all fastening work, recover the INSTALL source and commit the one whole group."""
@@ -237,9 +237,9 @@ class PaidProbe extends WorkArea.Probe:
 		if not failures.is_empty(): return
 		assert_equal(_world._routes.request_source_ready(_world._worker, _world._jobs.ref_of(job)), &"", "actual INSTALL recovery")
 		for step: int in 240:
-			if Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, 4) == &"": break
+			if Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, WorkArea.Bundle.CONTENT_REVISION) == &"": break
 			_world._routes.advance_tick(_tick); _tick += 1
-		assert_equal(Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, 4), &"", "INSTALL full recovery before release")
+		assert_equal(Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, WorkArea.Bundle.CONTENT_REVISION), &"", "INSTALL full recovery before release")
 		if not failures.is_empty(): return
 		var completed: Construction.OpResult = _router.complete_order(project)
 		assert_true(completed.ok, "actual paid L0 commit: %s" % completed.error)
@@ -249,9 +249,9 @@ class PaidProbe extends WorkArea.Probe:
 		"""A paused worker finishes the real INSTALL recovery before any cancellation may settle."""
 		assert_equal(_world._routes.request_source_ready(_world._worker, _world._jobs.ref_of(job)), &"", "INSTALL recovery requested")
 		for step: int in 240:
-			if Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, 4) == &"": break
+			if Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, WorkArea.Bundle.CONTENT_REVISION) == &"": break
 			_world._routes.advance_tick(_tick); _tick += 1
-		assert_equal(Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, 4), &"", "INSTALL recovered")
+		assert_equal(Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, WorkArea.Bundle.CONTENT_REVISION), &"", "INSTALL recovered")
 
 	func _router_project(job: int) -> Vector2i:
 		"""The Job's requester is the exact paid Project."""

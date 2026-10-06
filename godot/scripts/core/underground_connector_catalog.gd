@@ -532,12 +532,14 @@ static func _compare_pace(bank: Bank, first: int, second: int) -> int:
 func _pace_row_refusal(bank: Bank, row: int) -> StringName:
 	"""A certified physical descriptor supplies identity; authored timing cannot add a missing movement species."""
 	var code: StringName = _profiles.descriptor_into(_p(bank, row, P_PROFILE), bank.header[8], _descriptor)
-	if code != &"" or _descriptor.profile_revision != bank.pace_revisions[row] \
-			or _descriptor.source_id != bank.header[10] or (_descriptor.mode != Profiles.MODE_WALK \
-			and _descriptor.mode != Profiles.MODE_CARRY and _descriptor.mode != Profiles.MODE_CLIMB):
-		return &"CONNECTOR_PACE_PROFILE"
 	var family: int = _p(bank, row, P_FAMILY)
 	var variant: int = _p(bank, row, P_VARIANT)
+	# ADR1200: a ground-cap row takes its rate from Movement, not from any source; it may name a row of
+	# another source in the same pinned profile content. Authored connector timing stays bound to header[10].
+	if code != &"" or _descriptor.profile_revision != bank.pace_revisions[row] \
+			or (_descriptor.source_id != bank.header[10] and family != -1) or (_descriptor.mode != Profiles.MODE_WALK \
+			and _descriptor.mode != Profiles.MODE_CARRY and _descriptor.mode != Profiles.MODE_CLIMB):
+		return &"CONNECTOR_PACE_PROFILE"
 	if family == -1:
 		if variant != 0 or _p(bank, row, P_KIND) != RATE_GROUND_CAP or _p(bank, row, P_RATE) != 0 \
 				or _descriptor.mode == Profiles.MODE_CLIMB:

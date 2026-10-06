@@ -2,7 +2,7 @@ extends "res://test/framework/test_case.gd"
 ## Actual source artifact + real Resident/Job/Work/Gear identity. No World, paid target, support or WIP is fabricated.
 
 const Catalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
-const Pins := preload("res://data/underground/mole-worker/qualified-handling-v5/catalog_source.gd")
+const Pins := preload("res://data/underground/mole-worker/qualified-haul-v6/catalog_source.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Fixture := preload("res://test/test_underground_profiles.gd")
 const Content := preload("res://demo/cast/underground_actor_content.gd")
@@ -215,7 +215,7 @@ func test_exact_wire_identity_cannot_be_replaced_by_same_actor_revision_with_lar
 func _changed_geometry() -> Profiles:
 	"""Only this negative fixture mutates source bytes; the real artifact and its digest remain untouched."""
 	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(Catalog.WIRE_PATH)
-	var first_box: int = 32 + 32 + 29 * 98
+	var first_box: int = 32 + 32 * Catalog.SOURCE_COUNT + Catalog.PROFILE_COUNT * 98
 	bytes.encode_s32(first_box + 12, bytes.decode_s32(first_box + 12) + 1)
 	var path: String = "user://mole-qualified-mutant-%d.bin" % get_instance_id()
 	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)

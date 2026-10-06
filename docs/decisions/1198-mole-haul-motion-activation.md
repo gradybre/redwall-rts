@@ -131,3 +131,9 @@ qualified.
   haul, inside `PRESENTATION_SET_BYTES` = 21,256,576 B) and `mole_presentation.gd`. One Actor per
   source is chosen by the row's source digest, and each clip's mask is applied on every selection.
   Row 29 is drawn from the handling clock. Haul program modes wait for the content-5 rows.
+- **Step 4b (content 5), ADR 1200:** `qualified-haul-v6` (wire `dc4969e4…`, 37 rows/334 boxes/3
+  sources) adds rows 30–36 in source 2's block: A STAND, A′ WALK, B CARRY, and C/D load/unload at
+  yaw 0 and 16384. The successor bundle `first-entry-prefix-v1/qualified-haul-v2` carries
+  ground-cap paces for 31 and 32. The connector catalog now admits ground-cap pace rows from any
+  source, and `Assembly.uses` accepts successor counts. The grip certificate module, presentation
+  and the station seam are still open.

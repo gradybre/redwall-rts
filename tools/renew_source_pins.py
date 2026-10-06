@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check or renew the runtime source pins of the active mole profile publication (ADR 1192).
 
-The active publication's (`qualified-handling-v5`, ADR 1194) generated `catalog_source.gd` pins the SHA-256 of every
+The active publication's (`qualified-haul-v6`, ADR 1200) generated `catalog_source.gd` pins the SHA-256 of every
 runtime consumer script. `mole_profile_catalog.gd` refuses with
 MOLE_CATALOG_SOURCE_DRIFT when a cached script no longer matches its pin. Any
 edit to a consumer therefore needs its pin renewed in the same commit.
@@ -23,7 +23,7 @@ import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-ACTIVE = ROOT / "godot/data/underground/mole-worker/qualified-handling-v5"
+ACTIVE = ROOT / "godot/data/underground/mole-worker/qualified-haul-v6"
 LIST = re.compile(r"const (PATHS|DIGESTS): PackedStringArray = \[\n(.*?)\n\]", re.S)
 
 

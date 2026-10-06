@@ -6,18 +6,18 @@ const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Content := preload("res://demo/cast/underground_actor_content.gd")
 const Actor := preload("res://demo/cast/underground_actor.gd")
 const Space := preload("res://scripts/core/room_space.gd")
-const Pins := preload("./qualified-handling-v5/catalog_source.gd")
-const PROFILE_COUNT: int = 30
-const BOX_COUNT: int = 281
-const CONTENT_REVISION: int = 4
+const Pins := preload("./qualified-haul-v6/catalog_source.gd")
+const PROFILE_COUNT: int = 37
+const BOX_COUNT: int = 334
+const CONTENT_REVISION: int = 5
 const PROFILE_REVISION: int = 1
-const WIRE_BYTES: int = 10912
-const PAIRED_BANK_BYTES: int = 21808
+const WIRE_BYTES: int = 13114
+const PAIRED_BANK_BYTES: int = 26212
 const SOURCE_CHARS: int = 262144
 const HASH_CHARS: int = 1024
 const CONTROL_RESERVE: int = 32768 # Existing Profiles reserve, never an additional arena.
-const WIRE_PATH: String = "res://data/underground/mole-worker/qualified-handling-v5/mole-worker.ugprof"
-const SOURCE_COUNT: int = 2 # ADR1194: actor source plus the assembly-handling source of row 29.
+const WIRE_PATH: String = "res://data/underground/mole-worker/qualified-haul-v6/mole-worker.ugprof"
+const SOURCE_COUNT: int = 3 # ADR1200: actor, assembly-handling (row 29) and haul (rows 30-36) sources.
 
 
 static func load_into(profiles: Profiles, content: Content, domain: Space.Domain) -> StringName:
@@ -154,16 +154,20 @@ static func catalog_refusal(profiles: Profiles) -> StringName:
 	source.resize(32)
 	var handling: PackedByteArray = PackedByteArray()
 	handling.resize(32)
+	var haul: PackedByteArray = PackedByteArray()
+	haul.resize(32)
 	if not profiles.source_hash_into(0, CONTENT_REVISION, source) or source.hex_encode() != Pins.ACTOR_SHA \
 			or not profiles.source_hash_into(1, CONTENT_REVISION, handling) \
 			or handling.hex_encode() != Pins.HANDLING_SOURCE_SHA \
-			or profiles.source_hash_into(SOURCE_COUNT, CONTENT_REVISION, handling):
+			or not profiles.source_hash_into(2, CONTENT_REVISION, haul) or haul.hex_encode() != Pins.HAUL_SOURCE_SHA \
+			or profiles.source_hash_into(SOURCE_COUNT, CONTENT_REVISION, haul):
 		return &"MOLE_CATALOG_CONTENT"
 	var hashing: HashingContext = HashingContext.new()
 	hashing.start(HashingContext.HASH_SHA256)
 	hashing.update(_wire_header())
 	hashing.update(source)
 	hashing.update(handling)
+	hashing.update(haul)
 	var code: StringName = _hash_rows(profiles, hashing)
 	if code == &"":
 		code = _hash_boxes(profiles, hashing)

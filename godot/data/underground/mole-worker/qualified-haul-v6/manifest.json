@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "decision": "1200",
+  "content_revision": 5,
+  "profile_count": 37,
+  "box_count": 334,
+  "source_count": 3,
+  "wire_sha256": "dc4969e4dc562e39b941a7fefa4be4b72851490f59492f0b04b3f26954bc5d8e",
+  "wire_bytes": 13114,
+  "paired_bank_bytes": 26212,
+  "haul_source_sha256": "cc8542712705248f944d7430cbba0b7a365860f0073473c2fc0cb9106cf97a85",
+  "superset_of": {
+    "wire_sha256": "17d9c229fdfe8ad1923f004db136653ab9834994ba946061be38ec7a2c862ff9",
+    "rows": "0-29",
+    "boxes": "0-280",
+    "sources": "0-1"
+  },
+  "haul_rows": {
+    "30": "A STAND",
+    "31": "A' WALK",
+    "32": "B CARRY wood 1000",
+    "33": "C HAUL load yaw 0",
+    "34": "C HAUL load yaw 16384",
+    "35": "D HAUL unload yaw 0",
+    "36": "D HAUL unload yaw 16384"
+  },
+  "rotation": "yaw 16384 boxes = (z0, y0, -x1, z1, y1, -x0) of yaw 0, checked against rows 13 -> 17",
+  "inputs": {
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/haul-rows-v1/rows.json": "9919b1cd181116e94eadb50739ad3b38d7b5b4de86582e64388a3226cbca92e7",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/empty-walk-v1/empty-walk.json": "aef74ac0015eb5ce2ae088428100e56d7964458da52b93edb771f5236c430170",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v8/compiled/haul-handling.ugactor": "cc8542712705248f944d7430cbba0b7a365860f0073473c2fc0cb9106cf97a85",
+    "godot/data/item_definitions.json": "a44243af22c22258ce2999f42504b22e33f7584d6d374b2063c01efefaa981ab"
+  },
+  "ground_sha256": "1ae7ffc421f2a93deac4ccde12a843652da1fd46c91f58c28c559979015422f0",
+  "ground_pace_profiles": [
+    31,
+    32
+  ],
+  "ground_pace_rule": "RATE_GROUND_CAP rows reusing the existing Movement profile; no new pace constant",
+  "motion_sha256": "b9eb5b950669c8356a3f7d97997b8cf209ff0588384833e98c4e0da84bc58f5b",
+  "motion_inputs": {
+    "godot/data/underground/mole-worker/qualified-handling-v5/motion.ugmotion": "16c3c6b030c21fa9185a706493815b87441cfbfe8ceed2fdaa5733c0c4693fcc",
+    "godot/data/underground/mole-worker/qualified-haul-v6/mole-worker.ugprof": "dc4969e4dc562e39b941a7fefa4be4b72851490f59492f0b04b3f26954bc5d8e",
+    "godot/data/underground/mole-worker/publish_haul_runtime.py": "ac41b43b2aa0e4d4d767eacf43885772e077c13a8153edc71bb1d87582588af6"
+  },
+  "motion_numerical_input_sha256": "cd73f5597664ca1c8ae3a94e90578bae2396663ab008bb7ee547a0b25957cdcb",
+  "consumers": {
+    "godot/scripts/core/underground_profiles.gd": "64325eed6772207817a043220fe4db371fe5aa68a89fec60a287099ea589dfaf",
+    "godot/scripts/core/underground_work_face.gd": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
+    "godot/scripts/core/underground_connector_contacts.gd": "4d0aa197154ce4d8ea30b6107ddd408950a32efc0a8cd69a64670567458d2fd1",
+    "godot/scripts/core/underground_routes.gd": "8a4cd2a60b05f7c34e9baef32b8bdc6e38d458bb5594fb4999730dee3f74fef0",
+    "godot/scripts/core/underground_world_routes.gd": "a61a708e0f68c8cf6cad9b316558a4f54bc2fcd98719ceb4c4ad6e0477cf78e5",
+    "godot/demo/cast/underground_actor.gd": "b0ef7640d2b5626eb95c162d19318d9b3985a51479d19dfdf9a38e0176a06e91",
+    "godot/demo/cast/underground_actor_content.gd": "388374964d20879b6b896021ebde7927e472634ea8a32b6834ec7b1b5042157f",
+    "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
+    "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
+    "godot/data/underground/mole-worker/work-step-v1/source_program.gd": "7134c58f0a48c8eb1184484f1caf41089696cc90083c5cd7038fafeb3fce7879"
+  },
+  "not_qualified": [
+    "curved grip certificate module",
+    "presentation of source-2 rows",
+    "station seam floor support at S",
+    "joint memory census"
+  ]
+}

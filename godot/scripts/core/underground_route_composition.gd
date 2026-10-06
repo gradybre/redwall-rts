@@ -9,13 +9,14 @@ const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
 const Movement := preload("res://scripts/core/movement.gd")
 const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-handling-v1/catalog_source.gd")
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-haul-v2/catalog_source.gd")
 const PROFILE_CONTENT_REVISION: int = Bundle.CONTENT_REVISION
 # ADR1190/1195: the mounted graph selects the published first-entry structure, which carries the same
 # ground paces plus the L0/T0 regions; selecting it before the first WorldRoutes binding is final.
 const CATALOG_REVISION: int = Bundle.CATALOG_REVISION
 const CATALOG_PATH: String = Bundle.CATALOG_PATH
 const CATALOG_SHA: String = Bundle.CATALOG_SHA
+const GROUND_PACE_COUNT: int = 14 # ADR1200: twelve ground rows plus tool-free WALK 31 and CARRY 32.
 
 const CATALOG_DIGEST_0: int = Bundle.CATALOG_DIGEST_0
 const CATALOG_DIGEST_1: int = Bundle.CATALOG_DIGEST_1
@@ -144,7 +145,7 @@ static func _source_refusal(o: Retirement.Owners) -> StringName:
 	var catalog: Catalog = o.world_routes._catalog
 	var movement: Movement = o.world_routes._movement
 	if o.profiles._live.header[0] != PROFILE_CONTENT_REVISION or catalog._live.header[0] != CATALOG_REVISION \
-			or catalog._live.header[7] != 12 or movement._world != null or movement._navigation != null \
+			or catalog._live.header[7] != GROUND_PACE_COUNT or movement._world != null or movement._navigation != null \
 			or o.world_routes._catalog_identity != catalog.get_instance_id() \
 			or o.world_routes._profile_identity != o.profiles.get_instance_id() \
 			or o.world_routes._levels_identity != o.levels.get_instance_id():

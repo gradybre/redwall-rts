@@ -5,7 +5,8 @@ const Previous := preload("res://test/test_underground_entry_source_phases.gd")
 const Prefix := preload("res://test/test_underground_first_prefix.gd")
 const Foreman := preload("res://scripts/core/underground_entry_foreman.gd")
 const WorkAreaSource := preload("res://scripts/core/underground_entry_work_area.gd")
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-handling-v1/catalog_source.gd")
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-haul-v2/catalog_source.gd")
+const MoleCatalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
 const WA_PROFILE_SHA: String = Bundle.PROFILE_SHA
 const WA_CATALOG_SHA: String = Bundle.CATALOG_SHA
 const WA_GROUP_SHA: String = Bundle.GROUPING_SHA
@@ -36,13 +37,13 @@ class SourceWorld extends Previous.SourceWorld:
 		_work = Work.new(_jobs)
 		assert_true(_work.bind_gear(_gear).ok, "actual Work")
 		_profiles = Profiles.new()
-		assert_equal(_profiles.configure(30, 281, 2, Profiles.ARENA_BYTES), &"", "full source arena")
+		assert_equal(_profiles.configure(MoleCatalog.PROFILE_COUNT, MoleCatalog.BOX_COUNT, MoleCatalog.SOURCE_COUNT, Profiles.ARENA_BYTES), &"", "full source arena")
 		assert_equal(_profiles.bind_actual(_residents, _transforms, _inventory, _gear, _carry, _work, _pool, _piles), &"", "actual readers")
 		_load_source()
 
 	func _load_source() -> void:
 		"""The diagnostic source adds handling; no existing full body or held-pick extent changes."""
-		assert_equal(_profiles.load_file(WorkAreaImages.source("mole-worker.ugprof"), WA_PROFILE_SHA, 4), &"", "complete diagnostic source")
+		assert_equal(_profiles.load_file(WorkAreaImages.source("mole-worker.ugprof"), WA_PROFILE_SHA, Bundle.CONTENT_REVISION), &"", "complete published source")
 
 	func _load_catalog(revision: int) -> StringName:
 		"""Select the same unchanged real structural parts before WorldRoutes is bound."""
@@ -57,8 +58,8 @@ class Probe extends Previous.Probe:
 		return SourceWorld.new()
 
 	func _content_revision() -> int:
-		"""All actual route, worker and clock readers name the same complete diagnostic bank."""
-		return 4
+		"""All actual route, worker and clock readers name the same complete published bank."""
+		return Bundle.CONTENT_REVISION
 
 	func _entry_plan() -> EntryPlan.Request:
 		"""The new selector revision is explicit in the original Room confirmation request."""

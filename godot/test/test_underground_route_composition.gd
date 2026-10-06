@@ -148,7 +148,7 @@ func test_actual_graph_uses_one_original_owner_tuple_and_real_pace_without_permi
 	assert_equal(o.world_routes._catalog.content_revision(), 1, "actual immutable ground catalog")
 	assert_equal(o.world_routes._catalog._movement, o.world_routes._movement, "sole actual Movement")
 	assert_equal(o.profiles.content_revision(), Composition.PROFILE_CONTENT_REVISION, "current complete source program")
-	assert_equal(o.world_routes._catalog._live.header[7], 12, "all twelve exact WALK pace rows")
+	assert_equal(o.world_routes._catalog._live.header[7], Composition.GROUND_PACE_COUNT, "twelve exact WALK plus tool-free WALK/CARRY pace rows")
 	var original: WorldRoutes = o.world_routes
 	assert_true(_host.compose_underground_route_owners(), "idempotent exact observation")
 	assert_equal(_session._retirement_owners, o, "same permanent packet")

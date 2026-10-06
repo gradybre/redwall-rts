@@ -29,11 +29,13 @@ static func uses(actual: Profiles) -> bool:
 
 
 static func profile_refusal(actual: Profiles, profile: int, revision: int, content: int) -> StringName:
-	"""All published handling words and both complete image digests must match before parsing the new clock."""
+	"""All published handling words and both complete image digests must match before parsing the new clock.
+	ADR1200: a successor content may append rows/boxes/sources after row 29 (per-source sorted blocks never
+	renumber it); row 29's words, boxes 271-280 and sources 0-1 are still compared exactly below."""
 	if actual == null or actual._live == null or actual._loading or actual._live.header.size() != 4 \
 			or profile != PROFILE or revision != 1 or content <= 0 or actual._live.header[0] != content \
-			or actual._live.header[1] != PROFILE_COUNT or actual._live.header[2] != BOX_COUNT \
-			or actual._live.header[3] != SOURCE_COUNT or actual._profile_capacity < PROFILE_COUNT \
+			or actual._live.header[1] < PROFILE_COUNT or actual._live.header[2] < BOX_COUNT \
+			or actual._live.header[3] < SOURCE_COUNT or actual._profile_capacity < PROFILE_COUNT \
 			or actual._box_capacity < BOX_COUNT or actual._source_capacity < SOURCE_COUNT:
 		return &"ASSEMBLY_SOURCE_PROFILE"
 	if Profiles.selection_policy_leaf(actual, profile, revision, content) != Profiles.POLICY_ASSEMBLY_HANDLING \

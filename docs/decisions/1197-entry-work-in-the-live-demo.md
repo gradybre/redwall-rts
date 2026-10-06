@@ -49,3 +49,15 @@ clears the alert.
 An alert carries the exact refusal code and the gap row (G#). It never offers a
 workaround that grants work or movement. A completed step's world state is
 never rolled back to hide a later gap.
+
+## Status (2026-10-06)
+
+| # | State |
+|---|---|
+| G1 | **Done.** `underground_entry_work_area.gd` (`7af6e990`) and the read-only site survey and suggestion in `underground_entry_site.gd` (`d9688b48`) publish all 9 endpoints and 28 paths on generated ground. |
+| G2 | **Done.** The EntryPlan comes from the bundle, and `confirm_entry` succeeds on a real settlement (`8f7c7b37`, which also fixed a per-slot budget scaling bug). |
+| G3 | **Done.** Delivery hauls cut inputs (`6936d505`). |
+| G4 | **Blocked on mole haul motion** (ADR 1198, in progress). The live chain stops with `ENTRY_INPUTS_NOT_DELIVERED`. |
+| G6 | **Partly done.** Crew selection is real (an adult mole with an equipped tool). |
+| G7 | The Host API `begin_underground_entry` runs the chain (`93977843`). Foreman ticking starts once G4 clears. |
+| **G11 (new)** | **No settlement resident ever gets a tool equipped.** Only tests call `gear.equip`. Equipping tools has to become gameplay, for example from a workshop or stores. The live chain stops with `ENTRY_CREW_NO_TOOLED_MOLE`. |

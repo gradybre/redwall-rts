@@ -2080,3 +2080,9 @@ as source-qualified motion. No composed save adapter is claimed here.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Stateless work-area publisher | -- | -- | -- | No members; Published packet is caller-owned | 3 | -- | ADR1197 G1. Publishes the accepted ADR1191 work area through SurfaceAnchor and one WorldRoutes publication; the resulting Locations and edges live in their canonical owners. |
+
+### `godot/scripts/core/underground_entry_site.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless entry-site survey | -- | -- | -- | No members | 3 | -- | ADR1197. Read-only Terrain local-facts survey and cube-grid suggestion; caller-owned output only. |

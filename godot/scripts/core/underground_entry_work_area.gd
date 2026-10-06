@@ -53,23 +53,25 @@ static func publish_locations(anchor: Anchor, origin: Vector3i, out: Published) 
 	out.endpoints.append(created.location)
 	for index: int in range(1, ENDPOINTS):
 		var role: int = Locations.ROLE_STORAGE if index < 3 else Locations.ROLE_WORK
-		var added: Anchor.Result = anchor.create_in_section(point(origin, index), _air(origin, index),
-			_foot(origin, index), out.section, role)
+		var added: Anchor.Result = anchor.create_in_section(point(origin, index), air(origin, index),
+			foot(origin, index), out.section, role)
 		if added.error != &"": return added.error
 		out.endpoints.append(added.location)
 	return &""
 
 
-static func _air(origin: Vector3i, index: int) -> PackedInt32Array:
+static func air(origin: Vector3i, index: int) -> PackedInt32Array:
 	"""Storage and the first pair survey their outer corridors; later cut stations their full stroke air."""
+	if index == 0: return _offset(H_AIR, point(origin, 0))
 	if index < 3: return _offset(STORAGE_AIR, origin)
 	if index == 3: return _offset(LEFT_PAIR_AIR, origin)
 	if index == 4: return _offset(RIGHT_PAIR_AIR, origin)
 	return _offset(CUT_AIR, point(origin, index))
 
 
-static func _foot(origin: Vector3i, index: int) -> PackedInt32Array:
+static func foot(origin: Vector3i, index: int) -> PackedInt32Array:
 	"""Ground footing strips lie outside all six canonical cut identities."""
+	if index == 0: return _offset(H_FOOT, point(origin, 0))
 	if index < 3: return _offset(STORAGE_FOOT, origin)
 	return _offset(LEFT_FOOT if index % 2 == 1 else RIGHT_FOOT, origin)
 

@@ -3,6 +3,8 @@ extends "res://test/framework/test_case.gd"
 
 const Settlement := preload("res://scripts/systems/settlement_system.gd")
 const Session := preload("res://scripts/core/underground_session.gd")
+const EntrySite := preload("res://scripts/core/underground_entry_site.gd")
+const EntryWorkArea := preload("res://scripts/core/underground_entry_work_area.gd")
 const Content := preload("res://demo/cast/underground_actor_content.gd")
 const Gear := preload("res://scripts/core/gear.gd")
 const Inventory := preload("res://scripts/core/inventory.gd")
@@ -647,6 +649,29 @@ func test_actual_entry_owners_compose_from_the_fixed_bundle_without_gameplay_cha
 	assert_equal(_snapshot(), before, "all gameplay bytes unchanged")
 	assert_true(_host.compose_underground_entry_owners(), "completed composition is idempotent: %s" % _host.last_refusal())
 	assert_equal(session._operations_prefix, 17, "no second construction")
+
+
+func test_suggested_entry_site_publishes_the_whole_work_area_on_generated_ground() -> void:
+	"""ADR1197 G1/G2: the read-only survey predicts real publication of all nine endpoints and 28 paths."""
+	var session: Session = _generate_and_mount()
+	assert_true(_host.compose_underground_room_owners(), "actual Room owners")
+	assert_true(_host.compose_underground_route_owners(), "actual route owners: %s" % _host.last_refusal())
+	assert_true(_host.compose_underground_surface_anchor(), "actual anchor: %s" % _host.last_refusal())
+	assert_true(_host.compose_underground_entry_owners(), "actual entry owners: %s" % _host.last_refusal())
+	var o: Session.Retirement.Owners = session._retirement_owners
+	var frontier: RefCounted = o.room_bindings._entry_frontier
+	var origin: PackedInt32Array = PackedInt32Array([0, 0, 0])
+	var before: Array[PackedByteArray] = _snapshot()
+	assert_equal(EntrySite.suggest(session._terrain, frontier, o.space.revision(),
+		Vector3i(60 * 2048 + 512, 512, 50 * 2048 + 512), 8, origin), &"", "a surveyed origin on generated ground")
+	assert_equal(_snapshot(), before, "survey and suggestion are read-only")
+	var at: Vector3i = Vector3i(origin[0], origin[1], origin[2])
+	var published: EntryWorkArea.Published = EntryWorkArea.Published.new()
+	assert_equal(EntryWorkArea.publish_locations(session.surface_anchor(), at, published), &"", "all nine endpoints publish")
+	assert_equal(EntryWorkArea.publish_paths(o.world_routes, o.routes, o.budget, o.space, at, published,
+		o.profiles.content_revision()), &"", "all 28 paths publish")
+	assert_equal(o.locations._live.count, 9, "exactly the work area's endpoints")
+	assert_equal(o.routes._live.edge_count, 28, "exactly the work area's paths")
 
 
 func test_actual_surface_publication_retires_and_remounts_without_old_scope_or_endpoint_alias() -> void:

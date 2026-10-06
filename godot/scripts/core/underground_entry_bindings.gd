@@ -1551,7 +1551,31 @@ func _timber_profile_envelope(endpoint: int) -> StringName:
 	if profile == -2: return REFUSE_MASK_BUDGET
 	if profile < 0 or profile >= profiles._live.header[1] \
 			or profiles._live.flags[profile] != Profiles.CERT_REQUIRED: return REFUSE_TIMBER_CONTACT
-	return _timber_profile_bounds(profiles, profile)
+	var code: StringName = _timber_profile_bounds(profiles, profile)
+	if code != &"" or _entry_contact.role != Locations.ROLE_WORK: return code
+	# ADR1193: a WORK contact is also the arrival/departure point of its explicit travel profile, so its
+	# declared footing and air cover that stance and body too. Real deck support and free air still decide.
+	var travel: int = _entry_frontier._travel_profile[endpoint]
+	if travel == profile: return &""
+	if travel < 0 or travel >= profiles._live.header[1] \
+			or profiles._live.flags[travel] != Profiles.CERT_REQUIRED: return REFUSE_TIMBER_CONTACT
+	return _timber_union_profile(profiles, travel)
+
+
+func _timber_union_profile(profiles: Profiles, profile: int) -> StringName:
+	"""Enlarge, never replace, the already derived footing and air with one further authored profile."""
+	var first: int = profiles._live.fields[Profiles.F_FIRST_BOX * profiles._profile_capacity + profile]
+	var end: int = first + profiles._live.fields[Profiles.F_BOX_COUNT * profiles._profile_capacity + profile]
+	var point: Vector3i = _entry_contact.point
+	for box: int in range(first, end):
+		if not _entry_spend(24): return REFUSE_MASK_BUDGET
+		var role: int = profiles._live.boxes[6 * profiles._box_capacity + box]
+		var code: StringName = &""
+		if role == Profiles.STANCE_SUPPORT: code = _timber_extend_support(profiles, box, point, false)
+		elif role in [Profiles.BODY_HELD_LOAD, Profiles.TURN_RECOVERY, Profiles.WORK_APPROACH]:
+			code = _timber_extend_envelope(profiles, box, point)
+		if code != &"": return code
+	return &""
 
 
 func _timber_profile_bounds(profiles: Profiles, profile: int) -> StringName:

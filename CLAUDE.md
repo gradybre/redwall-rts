@@ -106,7 +106,7 @@ Generate `docs/systems_architecture.md`:
 - ASCII data flow diagrams
 - Pathfinding: see `docs/systems_architecture.md` §7 (A* with macro-cell route
   cache). There is no flow-field tier in the adopted design
-- Memory budget table per component (target: <100.1 MB at 256 residents, REQ-SET-163 as amended by DEC-051)
+- Memory budget table per component (target: <150 MB at 256 residents, REQ-SET-163 as amended by DEC-053)
 - Godot patterns: autoload vs node, `PackedInt32Array`/`PackedInt64Array` vs
   `Array` (float is presentation-only), signal rules
 - Performance targets: 60 FPS / 200 units / <2ms economy tick / <1ms GC
@@ -235,7 +235,7 @@ From `docs/game_gdd.md` REQ-SET-163, at 256 residents on the qualification floor
 | Simulation tick at 1x | p99 < 2ms | `Time.get_ticks_usec()` delta |
 | Aggregate sim CPU at 4x | p95 < 6ms per render frame | Profiler |
 | UI work | p95 < 1.5ms | Profiler |
-| Simulation-owned memory | < 100.1 MB (100,100,000 B, DEC-051) | Godot memory monitor |
+| Simulation-owned memory | < 150 MB (150,000,000 B, DEC-053) | Godot memory monitor |
 | Full process | < 4 GB | OS |
 | Job route ready at 1x | p95 < 0.25 real seconds | Instrumented pathfinder |
 

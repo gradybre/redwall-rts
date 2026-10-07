@@ -1,5 +1,5 @@
 # 1621 — Brewing in the demo: mead in the brewery's vats, the cordial at its bench, drinks poured at the feast
-Date: 2026-10-07 · Status: Accepted (engineering); **PROPOSALS P1–P7 wait on Brendan**
+Date: 2026-10-07 · Status: Accepted (engineering); **PROPOSALS P1–P7 approved as built by Brendan on 2026-10-07**
 
 **Numbering.** BACKLOG.md's BREW packet assigns 1251–1260; that range collides with a parallel digging branch (0991–1217
 and growing), so the lead remapped the food packets to 1601–1629 and BREW takes **1621–1629** (1621 here). Checked free
@@ -71,6 +71,14 @@ No work-board source and no key is added; nothing is renumbered. Nothing under `
    *Recommendation: confirm.*
 7. **Not built**: ale and cider (icons exist; no GDD row): they wait on Q-D5 (b) and (c) -- how drink is depicted
    (DEC-007) and their recipes. *Recommendation: ask them together with the preserves' recipes.*
+
+## Brendan's rulings (2026-10-07)
+
+Relayed by the coordinator: **BREW P1–P7 approved as built.**
+- **The Hearth regatta feast pours mead and the cordial** (P2 (a), as built): confirmed explicitly.
+- **Q-D5 (b) and (c)**, on the drinks not built here (P7): "Approve and build Q-d5 and dec-007" -- new recipes for
+  the waiting icons (jam, pickles, a plant-milk cheese, ale, cider) and the drink-depiction point of DEC-007 are to be
+  built; that work is decision 1625 on `feat/demo-new-recipes`.
 
 ## Gates (the branch's three packets together, 2026-10-07)
 

@@ -1,5 +1,5 @@
 # 1601 — Hives, honey and wax in the demo: a real Hive row beside the old orchard, its winter feed first
-Date: 2026-10-07 · Status: Accepted (engineering); **PROPOSALS P1–P8 wait on Brendan**
+Date: 2026-10-07 · Status: Accepted (engineering); **PROPOSALS P1–P8 approved as built by Brendan on 2026-10-07**
 
 **Numbering.** BACKLOG.md's HIVES packet assigns 1231–1240, but a parallel digging branch already uses 0991–1217 and
 its range grows; the lead remapped this branch's three food packets to **1601–1629** (HIVES 1601–1609, PRESERVE
@@ -104,6 +104,10 @@ edited (the parallel digging lane's files).
   and move `apiary_model.gd wax_shelf_milli` there; `take_wax` is the hook.
 - **Candles** (`wax_candle`, REQ-SET-148's light): after FLAX lands flax as a material.
 - **A built apiary** (P1 (b)): after Q-D3.
+
+## Brendan's rulings (2026-10-07)
+
+Relayed by the coordinator: **HIVES P1–P8 approved as built.**
 
 ## Gates (the branch's three packets together, 2026-10-07)
 

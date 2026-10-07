@@ -8,13 +8,15 @@ extends RefCounted
 ## BURN RATES (docs/game_gdd.md §5.8, "Fuel-days"): "One wood U heats one hearth for 6 game hours", so a hearth burns
 ## HOURS_PER_DAY / HEARTH_HOURS_PER_U = 4 U a day in WINTER; in spring or autumn 2 U a day on a day whose mean is below
 ## SHOULDER_BELOW_TENTHS (10 °C); in summer nothing. A tier 2 residence or hall multiplies its fuel by
-## TIER2_FUEL_PERMILLE (§5.9); the demo's homes are all tier 1, so the rate takes a tier factor that is always 1000
-## here. The kitchen's 0.1 U a batch (meal_rules.gd WOOD_MILLI_PER_BATCH) is the kitchen's own draw.
+## TIER2_FUEL_PERMILLE (§5.9, REQ-SET-136: "heat fuel x0.75"): each hearth carries its building's tier
+## (hearth_fuel.gd `tier`) and burns `day_demand_milli(season, mean, tier_fuel_permille(tier))`. The demo's homes are
+## all tier 1; the hall is tier 2 once raised to the great hall (decision 1652). The kitchen's 0.1 U a batch
+## (meal_rules.gd WOOD_MILLI_PER_BATCH) is the kitchen's own draw.
 ##
 ## FUEL-DAYS (§5.8): available wood over the daily heating demand plus the last three days' mean cooking use; with no
 ## heating demand, "No current heat demand" -- NO_DEMAND, never a division by zero (§5.10's failure table).
 ##
-## ROOMS (REQ-SET-130/131): a heated room holds HEATED_TENTHS (18 °C, tier 1). A hearth out of fuel lets its room
+## ROOMS (REQ-SET-130/131): a heated room holds HEATED_TENTHS (18 °C) at tier 1, HEATED_TIER2_TENTHS (20 °C) at tier 2. A hearth out of fuel lets its room
 ## converge HALFWAY toward the outside air each game hour.
 ##
 ## EXPOSURE (REQ-SET-018/019, §5.2): outdoors, or in an unheated room, below 0 °C at clothing tier 1, a resident gains
@@ -47,8 +49,13 @@ const SHOULDER_BELOW_TENTHS: int = 100
 ## §5.9's tier 2 package: "heat fuel x0.75". Tier 1 burns at FULL_PERMILLE.
 const TIER2_FUEL_PERMILLE: int = 750
 const FULL_PERMILLE: int = 1000
-## REQ-SET-130: a heated room at tier 1 holds 18 °C.
+## REQ-SET-130: a heated room at tier 1 holds 18 °C ...
 const HEATED_TENTHS: int = 180
+## ... and at tier 2, 20 °C.
+const HEATED_TIER2_TENTHS: int = 200
+## A building's tier (GDD §5.9: tier 1, and the one tier-2 upgrade; tier 3 is absent).
+const TIER_1: int = 1
+const TIER_2: int = 2
 ## The freezing line exposure is measured against (REQ-SET-018: "below 0°C").
 const FREEZING_TENTHS: int = 0
 ## REQ-SET-147 and UI §7: the fuel warning under 2 fuel-days while the forecast is below 0 °C (hundredths of a day).
@@ -106,6 +113,16 @@ static func day_demand_milli(season: int, mean_tenths: int, tier_permille: int =
 	return div(base * tier_permille, FULL_PERMILLE)
 
 
+static func tier_fuel_permille(tier: int) -> int:
+	"""A hearth's fuel per mille of the ordinary for its building's tier (§5.9): x0.75 at tier 2, else x1.00."""
+	return TIER2_FUEL_PERMILLE if tier >= TIER_2 else FULL_PERMILLE
+
+
+static func heated_tenths(tier: int) -> int:
+	"""REQ-SET-130: the temperature a heated room holds at its building's tier (18 °C; 20 °C at tier 2)."""
+	return HEATED_TIER2_TENTHS if tier >= TIER_2 else HEATED_TENTHS
+
+
 static func converge_tenths(room_tenths: int, air_tenths: int) -> int:
 	"""REQ-SET-131: a room without heat moves halfway toward the outside air in a game hour, the odd tenth taken toward
 	the air, so it reaches it (review L3)."""
@@ -150,7 +167,13 @@ static func hours_of_fuel(wood_milli: int, heating_day_milli: int, cook_mean_mil
 
 static func projection_milli(hearths: int, cook_mean_milli: int) -> int:
 	"""REQ-SET-114 / ruling 6: twelve winter days of projected demand -- every hearth at 4 U, plus the cooking mean."""
-	return PROJECTION_DAYS * (maxi(hearths, 0) * WINTER_DAY_MILLI + maxi(cook_mean_milli, 0))
+	return projection_of_milli(maxi(hearths, 0) * WINTER_DAY_MILLI, cook_mean_milli)
+
+
+static func projection_of_milli(winter_day_milli: int, cook_mean_milli: int) -> int:
+	"""The same twelve winter days over a WINTER day's heating demand already summed hearth by hearth (each at its tier's
+	rate, decision 1652), plus the cooking mean."""
+	return PROJECTION_DAYS * (maxi(winter_day_milli, 0) + maxi(cook_mean_milli, 0))
 
 
 static func permille_of(have: int, want: int) -> int:

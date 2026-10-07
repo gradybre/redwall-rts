@@ -116,6 +116,9 @@ var _hall_door: Vector2 = Vector2.INF
 ## infirmary (see THE INFIRMARY).
 var _infirmary_built: Callable = Callable()
 var _infirmary_occupied: Callable = Callable()
+## `() -> int`: the hall's tier (demo_hall.gd `tier`), read each hour into its hearth's row (hearth_fuel.gd THE TIER;
+## decision 1652). Unbound: tier 1.
+var _hall_tier: Callable = Callable()
 var _hour_seen: int = -1
 var _last_tick: int = 0
 var _hard_freeze: bool = false
@@ -182,6 +185,19 @@ func bind_infirmary(built: Callable, occupied: Callable) -> void:
 	_infirmary_built = built
 	_infirmary_occupied = occupied
 	fuel.set_hearth(FuelScript.INFIRMARY, infirmary_built())
+
+
+func bind_hall_tier(hall_tier: Callable) -> void:
+	"""The hall's tier, `hall_tier() -> int` (see `_hall_tier`): its hearth burns x0.75 and its room holds 20 °C at tier 2
+	(GDD §5.9, REQ-SET-130/136). Applied at once and each hour after."""
+	_hall_tier = hall_tier
+	fuel.set_tier(FuelScript.HALL, hall_tier_now())
+	revision += 1
+
+
+func hall_tier_now() -> int:
+	"""The hall's tier (bound; 1 unbound)."""
+	return int(_hall_tier.call()) if _hall_tier.is_valid() else Rules.TIER_1
 
 
 func infirmary_built() -> bool:
@@ -273,12 +289,13 @@ func _day_tenths(season: int, event: int) -> int:
 
 func _refresh_hearths() -> void:
 	"""Which homes have a hearth installed: a dug burrow home's fit-out hearth (the hall's is always set); the
-	infirmary's while it is built (see THE INFIRMARY)."""
+	infirmary's while it is built (see THE INFIRMARY); and the hall's tier (`bind_hall_tier`)."""
 	var rooms: RoomsScript = _graph.rooms
 	for r: int in FuelScript.ROOMS:
 		var home: bool = rooms.is_done(_graph, r) and rooms.template[r] == RoomsScript.TEMPLATE_HOME
 		fuel.set_hearth(r, home and _graph.fit.has_hearth(_graph, r))
 	fuel.set_hearth(FuelScript.INFIRMARY, infirmary_built())
+	fuel.set_tier(FuelScript.HALL, hall_tier_now())
 
 
 func forecast_min_tenths(h: int) -> int:
@@ -801,10 +818,10 @@ func status_word(i: int) -> String:
 
 func fuel_winter_days_milli() -> int:
 	"""M4's "fuel >= 18 winter days" (GDD §5.11) in thousandths of a day: the stores' wood over a WINTER day's demand --
-	every hearth burning now at 4 U, plus the cooking mean -- whatever today's season (§5.8's fuel-days at winter
-	demand); 0 with no hearth to heat. Bound to the goals' M4 `fuel` part (decision 0902). Allocation-free."""
-	var hundredths: int = Rules.fuel_days_hundredths(fuel.wood_milli(), fuel.burning_count() * Rules.WINTER_DAY_MILLI,
-		fuel.cook_mean_milli())
+	every hearth burning now at 4 U, 3 U at tier 2 (decision 1652), plus the cooking mean -- whatever today's season
+	(§5.8's fuel-days at winter demand); 0 with no hearth to heat. Bound to the goals' M4 `fuel` part (decision 0902).
+	Allocation-free."""
+	var hundredths: int = Rules.fuel_days_hundredths(fuel.wood_milli(), fuel.winter_day_milli(), fuel.cook_mean_milli())
 	return maxi(hundredths, 0) * 10
 
 

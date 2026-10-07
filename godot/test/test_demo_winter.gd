@@ -42,6 +42,7 @@ const CareTasks := preload("res://demo/infirmary/care_tasks.gd")
 const InfProject := preload("res://demo/infirmary/infirmary_project.gd")
 const Injury := preload("res://scripts/core/injury.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
+const HallRules := preload("res://demo/hall/hall_rules.gd")
 
 const WOOD: int = 60
 const SPRING: int = WeatherScript.SEASON_SPRING
@@ -236,6 +237,104 @@ func test_the_twelve_day_projection() -> void:
 	assert_equal(fuel.projection_milli(), 12 * 9000, "the hall and home 1, 1 U cooking")
 	assert_true(Text.projection_line(fuel).contains("108.0 U") and Text.projection_line(fuel).contains("37%"),
 		Text.projection_line(fuel))
+
+
+# --- the hall's tier (decision 1652; batch 7 ruling 5, decision 0902) ---------------------------------------
+
+func test_the_tier_factor_is_the_gdds_and_the_halls() -> void:
+	"""§5.9 / REQ-SET-136: x1.00 at tier 1, x0.75 at tier 2, the same factor the hall's own rules give for each tier
+	(they cannot drift); REQ-SET-130: 18 °C heated at tier 1, 20 °C at tier 2; a tier out of range is clamped."""
+	assert_equal([Rules.tier_fuel_permille(Rules.TIER_1), Rules.tier_fuel_permille(Rules.TIER_2)], [1000, 750], "x0.75")
+	for t: int in [HallRules.TIER_REFUGE, HallRules.TIER_GREAT]:
+		assert_equal(Rules.tier_fuel_permille(t), HallRules.fuel_permille(t), "the hall's tier %d" % t)
+	assert_equal([Rules.heated_tenths(Rules.TIER_1), Rules.heated_tenths(Rules.TIER_2)], [180, 200], "18 / 20 °C")
+	var fuel: FuelScript = _fuel(0)
+	fuel.set_tier(HALL, 0)
+	assert_equal(fuel.tier[HALL], Rules.TIER_1, "below 1: tier 1")
+	fuel.set_tier(HALL, 3)
+	assert_equal(fuel.tier[HALL], Rules.TIER_2, "tier 3 is absent: tier 2")
+	assert_equal(fuel.tier[0], Rules.TIER_1, "a home stays tier 1")
+
+
+func test_a_tier_two_hall_burns_three_quarters_and_holds_twenty_degrees() -> void:
+	"""At each tier, a winter day and a cold spring day, exactly: tier 1 burns 4 U / 2 U a day and holds 18 °C; tier 2
+	3 U / 1.5 U and 20 °C -- the accumulator still exact, nothing owed at the day's end."""
+	for t: int in [Rules.TIER_1, Rules.TIER_2]:
+		var winter: FuelScript = _fuel(1000000)
+		winter.set_tier(HALL, t)
+		for h: int in 24:
+			winter.pass_hour(h, WINTER, -50, -50)
+		assert_equal(winter.burned_milli, 4000 if t == Rules.TIER_1 else 3000, "a winter day at tier %d" % t)
+		assert_equal(winter.burn_acc[HALL], 0, "nothing owed at tier %d" % t)
+		assert_equal(winter.temperature_of(HALL), 180 if t == Rules.TIER_1 else 200, "heated at tier %d" % t)
+		var spring: FuelScript = _fuel(1000000)
+		spring.set_tier(HALL, t)
+		for h: int in 24:
+			spring.pass_hour(h, SPRING, 90, 90)
+		assert_equal(spring.burned_milli, 2000 if t == Rules.TIER_1 else 1500, "a cold spring day at tier %d" % t)
+
+
+func test_the_figures_sum_each_hearth_at_its_own_rate() -> void:
+	"""The hall at tier 2 and home 1 at tier 1: today's demand 7 U (the HUD's fuel-days and the last heated hour on it),
+	the winter day 7 U even in summer (M4's fuel), the projection twelve such days plus cooking, and the words name
+	the hall at its own rate. Banked, a tier-2 hearth counts for nothing."""
+	var fuel: FuelScript = _fuel(70000)
+	fuel.set_hearth(1, true)
+	fuel.set_tier(HALL, Rules.TIER_2)
+	fuel.pass_hour(100, WINTER, -50, -50)
+	assert_equal([fuel.rate_of(HALL), fuel.rate_of(1), fuel.heating_day_milli()], [3000, 4000, 7000], "today")
+	assert_equal(fuel.fuel_days_hundredths(), Rules.fuel_days_hundredths(fuel.wood_milli(), 7000, 0), "fuel-days")
+	assert_equal(fuel.last_heated_hour(), 100 + Rules.hours_of_fuel(fuel.wood_milli(), 7000, 0), "the last heated hour")
+	assert_true(Text.demand_line(fuel).contains("1 hearth at 4.0 U, the hall at 3.0 U"), Text.demand_line(fuel))
+	fuel.note_cooking(0, 4)
+	fuel.note_cooking(1000, 5)
+	assert_equal(fuel.projection_milli(), 12 * (7000 + 1000), "twelve days at 7 U and 1 U of cooking")
+	assert_true(Text.projection_line(fuel).contains("1 hearth at 4.0 U, the hall at 3.0 U"), Text.projection_line(fuel))
+	fuel.pass_hour(101, SUMMER, 220, 220)
+	assert_equal([fuel.heating_day_milli(), fuel.winter_day_milli()], [0, 7000], "summer: none today, 7 U a winter day")
+	assert_equal(fuel.reduced_count(), 1, "one hearth at a reduced rate")
+	fuel.set_banked(HALL, true)
+	assert_equal([fuel.winter_day_milli(), fuel.reduced_count()], [4000, 0], "the hall let go out")
+	fuel.pass_hour(102, WINTER, -50, -50)
+	assert_equal(fuel.heating_day_milli(), 4000, "winter, the hall let go out: home 1's 4 U alone")
+
+
+func test_the_winter_reads_the_halls_tier_each_hour() -> void:
+	"""bind_hall_tier: applied at once (M4's fuel at 3 U a winter day: 72 U is 24 days), and an upgrade or a fall back
+	is read at the next hour -- the burn follows."""
+	var v: Village = _village(_winter_tick())
+	v.services.stores.wood_milli_u = 72000
+	var tier: Array[int] = [Rules.TIER_2]
+	v.winter.bind_hall_tier(func() -> int: return tier[0])
+	assert_equal(v.winter.fuel.tier[HALL], Rules.TIER_2, "at once")
+	assert_equal(v.winter.fuel_winter_days_milli(), 24000, "72 U over the great hall's 3 U a winter day")
+	v.winter.catch_up()
+	var burned: int = v.winter.fuel.burned_milli
+	v.services.calendar.tick += 24 * SimClock.TICKS_PER_HOUR
+	assert_equal(v.winter.catch_up(), 24, "a day's hours")
+	assert_equal(v.winter.fuel.burned_milli - burned, 3000, "a winter day at x0.75")
+	tier[0] = Rules.TIER_1
+	v.services.calendar.tick += SimClock.TICKS_PER_HOUR
+	v.winter.catch_up()
+	assert_equal(v.winter.fuel.tier[HALL], Rules.TIER_1, "read at the hour")
+	assert_equal(v.winter.fuel.heating_day_milli(), Rules.WINTER_DAY_MILLI, "full rate again")
+	var unbound: Village = _village(_winter_tick())
+	assert_equal(unbound.winter.hall_tier_now(), Rules.TIER_1, "unbound: tier 1")
+
+
+func test_the_tiered_hour_allocates_no_objects() -> void:
+	"""pass_hour and the summed figures at mixed tiers leave no object behind."""
+	var fuel: FuelScript = _fuel(10000000)
+	fuel.set_hearth(1, true)
+	fuel.set_tier(HALL, Rules.TIER_2)
+	fuel.pass_hour(0, WINTER, -50, -50)
+	var objects: int = int(Performance.get_monitor(Performance.OBJECT_COUNT))
+	var total: int = 0
+	for h: int in range(1, 200):
+		fuel.pass_hour(h, WINTER, -50, -50)
+		total += fuel.heating_day_milli() + fuel.winter_day_milli() + fuel.projection_milli() + fuel.fuel_days_hundredths()
+	assert_true(total > 0, "read")
+	assert_equal(int(Performance.get_monitor(Performance.OBJECT_COUNT)), objects, "no object retained")
 
 
 # --- exposure and Chilled -------------------------------------------------------------------------------

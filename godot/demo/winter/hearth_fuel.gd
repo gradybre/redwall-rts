@@ -24,6 +24,12 @@ extends RefCounted
 ## from the stores -- all of it, or (OUT) none, the hour's share then given back to the accumulator -- and keeps the
 ## rest. Over a day exactly the day's rate is taken, never a milli-U more or less however the hours fall.
 ##
+## THE TIER (decision 1652; Brendan's batch-7 ruling 5, decision 0902: "a per-source tier factor"). Each source carries
+## its building's tier (`tier`, `set_tier`; tier 1 unless told). A tier-2 source burns at x0.75 (§5.9, REQ-SET-136) --
+## `rate_of(s)` is today's demand at its tier, and every figure that sums the hearths (`heating_day_milli`,
+## `winter_day_milli`, so the fuel-days, the last heated hour and the projection) sums the per-source rates -- and its
+## room holds 20 °C when heated (REQ-SET-130). The demo's homes and the infirmary are tier 1; the hall is tier 2 once
+## raised (demo_winter.gd reads it each hour). `day_rate_milli` stays the tier-1 rate.
 ## THE GLOW (`hearth_lit`): HEATED -- fuelled AND demanded. The day/night look over that is the lighting's (it reads
 ## this query). COMFORT (room_fixtures.gd `hearth_cold`): a hearth counts while it is not OUT or BANKED. WARM BEDS
 ## (night_routine.gd): a home is WARM while it is HEATED or no heat is demanded at all.
@@ -38,6 +44,7 @@ extends RefCounted
 const Rules := preload("res://demo/winter/winter_rules.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
+const WeatherScript := preload("res://scripts/core/weather.gd")
 
 const STATE_NONE: int = 0
 const STATE_BANKED: int = 1
@@ -62,7 +69,9 @@ var state: PackedByteArray = PackedByteArray()
 var room_tenths: PackedInt32Array = PackedInt32Array()
 var burn_acc: PackedInt64Array = PackedInt64Array()
 var out_since: PackedInt32Array = PackedInt32Array()
-## Today's demand a hearth (milli-U a day), the day's mean and the hour's air (tenths), as the last pass read them.
+## Per source, its building's tier (winter_rules.gd TIER_1 / TIER_2; see THE TIER).
+var tier: PackedByteArray = PackedByteArray()
+## Today's demand a tier-1 hearth (milli-U a day), the day's mean and the hour's air (tenths), as the last pass read them.
 var day_rate_milli: int = 0
 var day_mean_tenths: int = 0
 var air_tenths: int = 0
@@ -94,6 +103,8 @@ func _init() -> void:
 	burn_acc.resize(SOURCES)
 	out_since.resize(SOURCES)
 	out_since.fill(-1)
+	tier.resize(SOURCES)
+	tier.fill(Rules.TIER_1)
 	_cook_days.resize(Rules.COOK_MEAN_DAYS)
 
 
@@ -116,6 +127,26 @@ func set_banked(source: int, on: bool) -> void:
 	if banked[source] != value:
 		banked[source] = value
 		revision += 1
+
+
+func set_tier(source: int, p_tier: int) -> void:
+	"""`source`'s building tier (see THE TIER): its rate and its heated room follow from the next hour, its share of
+	today's figures at once."""
+	var value: int = clampi(p_tier, Rules.TIER_1, Rules.TIER_2)
+	if tier[source] != value:
+		tier[source] = value
+		revision += 1
+
+
+func rate_of(source: int) -> int:
+	"""`source`'s fuel today (milli-U a day): today's demand at its tier (see THE TIER) -- `day_demand_milli`'s own
+	scaling of the tier-1 rate the last pass read (0 before the first)."""
+	return Rules.div(day_rate_milli * Rules.tier_fuel_permille(tier[source]), Rules.FULL_PERMILLE)
+
+
+func winter_rate_of(source: int) -> int:
+	"""`source`'s fuel on a WINTER day at its tier (milli-U): 4 U, 3 U at tier 2."""
+	return Rules.day_demand_milli(WeatherScript.SEASON_WINTER, 0, Rules.tier_fuel_permille(tier[source]))
 
 
 func pass_hour(p_hour_index: int, p_season: int, mean_tenths: int, air: int) -> void:
@@ -142,12 +173,13 @@ func _state_for(s: int) -> int:
 		return STATE_NONE
 	if banked[s] == 1:
 		return STATE_BANKED
-	if day_rate_milli <= 0:
+	var rate: int = rate_of(s)
+	if rate <= 0:
 		return STATE_IDLE
-	burn_acc[s] += day_rate_milli
+	burn_acc[s] += rate
 	var take: int = Rules.div(burn_acc[s], Rules.HOURS_PER_DAY)
 	if take > 0 and (_stores == null or not _stores.take_wood(take)):
-		burn_acc[s] -= day_rate_milli
+		burn_acc[s] -= rate
 		cold_hours += 1
 		return STATE_OUT
 	burn_acc[s] -= take * Rules.HOURS_PER_DAY
@@ -157,9 +189,10 @@ func _state_for(s: int) -> int:
 
 
 func _warm_room(s: int) -> void:
-	"""The room's temperature for the hour: 18 °C heated, else halfway toward the air (the first hour: the air)."""
+	"""The room's temperature for the hour: 18 °C heated (20 °C at tier 2), else halfway toward the air (the first hour:
+	the air)."""
 	if state[s] == STATE_HEATED:
-		room_tenths[s] = Rules.HEATED_TENTHS
+		room_tenths[s] = Rules.heated_tenths(tier[s])
 	elif room_tenths[s] == UNSET_TENTHS:
 		room_tenths[s] = air_tenths
 	else:
@@ -257,8 +290,27 @@ func out_count() -> int:
 
 
 func heating_day_milli() -> int:
-	"""Today's heating demand: every burning hearth at today's rate (milli-U a day)."""
-	return burning_count() * day_rate_milli
+	"""Today's heating demand: every burning hearth at today's rate for its tier (milli-U a day)."""
+	var total: int = 0
+	for s: int in SOURCES:
+		total += rate_of(s) if hearth[s] == 1 and banked[s] == 0 else 0
+	return total
+
+
+func winter_day_milli() -> int:
+	"""A WINTER day's heating demand: every burning hearth at 4 U, or 3 U at tier 2 (milli-U a day)."""
+	var total: int = 0
+	for s: int in SOURCES:
+		total += winter_rate_of(s) if hearth[s] == 1 and banked[s] == 0 else 0
+	return total
+
+
+func reduced_count() -> int:
+	"""Burning hearths at a reduced (tier-2) rate."""
+	var n: int = 0
+	for s: int in SOURCES:
+		n += 1 if hearth[s] == 1 and banked[s] == 0 and tier[s] >= Rules.TIER_2 else 0
+	return n
 
 
 func wood_milli() -> int:
@@ -279,8 +331,9 @@ func last_heated_hour() -> int:
 
 
 func projection_milli() -> int:
-	"""REQ-SET-114 / ruling 6: twelve winter days of demand at the hearths burning now, plus the cooking mean."""
-	return Rules.projection_milli(burning_count(), cook_mean_milli())
+	"""REQ-SET-114 / ruling 6: twelve winter days of demand at the hearths burning now (each at its tier's rate), plus
+	the cooking mean."""
+	return Rules.projection_of_milli(winter_day_milli(), cook_mean_milli())
 
 
 func _valid(source: int) -> bool:

@@ -343,6 +343,8 @@ func _raise_the_great_hall() -> void:
 	_projects().add_work(Rules.PROJECT_UPGRADE, _projects().work_left_usec(Rules.PROJECT_UPGRADE), 0)
 	await _frames(SETTLE_FRAMES)
 	_check("tier 2", _projects().tier == Rules.TIER_GREAT)
+	_check("the winter's hall hearth reads tier 2 (decision 1652)",
+		int(_village.get("_winter").call(&"hall_tier_now")) == Rules.TIER_GREAT)
 	_check("the great hall is drawn", _hall().view.great_shown() and not _hall().view.scaffold_shown())
 	_check("stage 2 is woven", _hall().tapestry.has_key(HallScript.KEY_STAGE_2))
 	_hall().open()

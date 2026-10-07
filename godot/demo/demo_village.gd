@@ -998,6 +998,7 @@ func _build_hall() -> void:
 	if _people_card != null:
 		_people_card.hide_while(_hall.is_open)
 	_hall.set_hearth(_hall_hearth_words, _winter.stamp)
+	_winter.bind_hall_tier(_hall.tier)
 	_weave_history()
 
 

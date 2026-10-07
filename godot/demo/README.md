@@ -1646,6 +1646,12 @@ Brendan's rulings of 2026-10-01; `winter/`. Presentation only: the settlement si
   the outside air each hour (REQ-SET-131) until wood comes in -- then it burns again the next hour. A hearth glows and
   smokes while it burns (fuelled and demanded: `night_routine.gd hearth_lit(r)`, which the glow reads), and counts for
   its home's comfort while it is fuelled.
+- **The great hall's hearth** (decision 1652; Brendan's batch-7 ruling 5, decision 0902): every hearth burns at its
+  building's tier (`hearth_fuel.gd` THE TIER). Once the hall is raised to tier 2 its hearth burns **×0.75** (3 U a
+  winter day, 1.5 U a cold spring or autumn day; GDD §5.9, REQ-SET-136) and its room holds **20 °C** (REQ-SET-130).
+  The winter reads the hall's tier each game hour (`demo_winter.gd bind_hall_tier`). Today's demand, the fuel-days on
+  the top bar, the last heated hour, the twelve-day projection, the Firewood order's target and M4's fuel goal all sum
+  each hearth at its own rate, and the breakdown names it ("1 hearth at 4.0 U, the hall at 3.0 U").
 - **The day's mean** is the mean of its 24 hours' air, so a demo frost night's spring or autumn day (9.5 °C, 7.8 °C)
   demands heat and the hearths burn through the frost.
 - **Fuel-days** = the wood over today's heating demand plus the last three days' mean cooking wood; with no heating

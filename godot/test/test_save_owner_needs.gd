@@ -288,6 +288,84 @@ func test_all_column_shapes_and_bucket_counts_refuse_before_projection() -> void
 			else: frame.i64_columns[index] = values
 			assert_equal(Bridge.framed_refusal(frame).code,&"SAVE_COMPONENT_SHAPE","framed extent before projection")
 
+# --- ADR 1222 step 2: bulk capture and apply ------------------------------------------------------
+
+func _live_owner() -> Needs:
+	"""A store with live, edited, freed and reused rows, built through the public lifecycle only."""
+	var owner: Needs = Needs.new()
+	for slot: int in [0, 3, 7, 511]:
+		assert_true(owner.spawn(slot, Needs.SIZE_SMALL).ok, "spawn %d" % slot)
+	assert_true(owner.apply_health_event(3, -10).ok, "edit health")
+	assert_true(owner.set_clothing_tier(7, 2).ok, "edit clothing tier")
+	assert_true(owner.set_injury_state(511, Needs.INJURY_ACTIVE).ok, "edit injury state")
+	assert_true(owner.despawn(0).ok, "free a row")
+	assert_true(owner.spawn(0, Needs.SIZE_LARGE).ok, "reuse the freed row")
+	assert_true(owner.despawn(7).ok, "leave a freed row behind")
+	return owner
+
+func _image(owner: Needs) -> Needs.Columns:
+	"""The owner's twenty columns through the bulk reader."""
+	var columns: Needs.Columns = Needs.Columns.new()
+	assert_true(owner.copy_columns_into(columns), "bulk copy succeeds")
+	return columns
+
+func test_capture_then_apply_into_a_fresh_store_is_exact_and_continues_identically() -> void:
+	"""The restored store holds the same columns, and answers the next edits the same way."""
+	var source: Needs = _live_owner()
+	var frame: Section.FramedOwner = Section.FramedOwner.new(9)
+	assert_true(Bridge.capture_into(source, frame).is_ok(), "capture succeeds")
+	var target: Needs = Needs.new()
+	assert_true(Bridge.apply(frame, target).is_ok(), "apply succeeds")
+	assert_true(_image(target).equals(_image(source)), "columns are byte-identical")
+	assert_equal(target.present_count(), source.present_count(), "present_count agrees")
+	assert_equal(target.living_count(), source.living_count(), "living_count agrees")
+	for store: Needs in [source, target]:
+		assert_true(store.spawn(7, Needs.SIZE_MEDIUM).ok, "the freed row is reusable")
+		assert_true(store.apply_health_event(511, -5).ok, "a later edit succeeds")
+	assert_true(_image(target).equals(_image(source)), "both stores stayed identical after edits")
+
+func test_capture_matches_the_public_reader_projection() -> void:
+	"""The captured record equals the projection built only from public per-slot readers."""
+	var source: Needs = _live_owner()
+	var frame: Section.FramedOwner = Section.FramedOwner.new(9)
+	assert_true(Bridge.capture_into(source, frame).is_ok(), "capture succeeds")
+	var witness: Needs.Columns = _image(source)
+	for field: int in FIELDS.size():
+		var values: Variant = witness.get(FIELDS[field])
+		var kind: int = Schema.field_type(9, field)
+		if kind == 0: assert_true(frame.u8_column(field) == values, "field %d matches" % field)
+		elif kind == 2: assert_true(frame.i32_column(field) == values, "field %d matches" % field)
+		else: assert_true(frame.i64_column(field) == values, "field %d matches" % field)
+
+func test_every_column_refusal_leaves_the_target_byte_identical() -> void:
+	"""Each column code refuses through apply with the exact code and writes nothing."""
+	var target: Needs = _live_owner()
+	var before: Needs.Columns = _image(target)
+	for field: int in FIELDS.size():
+		var columns: Needs.Columns = _base()
+		_set_first(columns, field, BAD[field])
+		var frame: Section.FramedOwner = _frame(columns)
+		assert_equal(Bridge.apply(frame, target).code, CODES[field], "exact code for field %d" % field)
+	assert_true(_image(target).equals(before), "no refusal wrote a column")
+
+func test_null_and_misshaped_inputs_refuse_without_writing() -> void:
+	"""Null stores, null records, a wrong owner and a short bulk buffer all refuse."""
+	var target: Needs = _live_owner()
+	var before: Needs.Columns = _image(target)
+	assert_equal(Bridge.apply(_frame(_base()), null).code, Bridge.REFUSE_NULL_STORE, "null store")
+	assert_equal(Bridge.capture_into(null, Section.FramedOwner.new(9)).code,
+		Bridge.REFUSE_NULL_STORE, "capture from no store")
+	assert_equal(Bridge.capture_into(target, null).code, &"SAVE_COMPONENT_SHAPE", "null record")
+	assert_equal(Bridge.capture_into(target, Section.FramedOwner.new(10)).code,
+		&"SAVE_COMPONENT_OWNER", "wrong owner")
+	var short: Needs.Columns = Needs.Columns.new()
+	short.present.resize(3)
+	assert_false(target.restore_columns(short), "a short column refuses")
+	assert_equal(target.last_column_refusal(), Needs.REFUSE_COLUMN_SHAPE, "shape code")
+	assert_false(target.copy_columns_into(short), "a short output buffer refuses")
+	assert_false(target.restore_columns(null), "null columns refuse")
+	assert_true(_image(target).equals(before), "nothing was written")
+
 func test_each_typed_bucket_requires_its_exact_column_count() -> void:
 	"""Missing and additional typed columns both refuse."""
 	for kind: int in [0,2,4]:

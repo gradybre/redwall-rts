@@ -201,7 +201,7 @@ func _its_readout_and_verbs() -> void:
 func _close_on_the_bees() -> void:
 	"""Close on the skep: the swarm about it."""
 	var at: Vector2 = HiveRules.centre_m(0)
-	_look_at(Vector3(at.x, 0.4, at.y), 4.5, 28.0, 200.0)
+	_look_at(Vector3(at.x, 0.4, at.y), 4.5, 30.0, 20.0)
 	_capture("bees")
 
 

@@ -638,6 +638,8 @@ func test_the_wildlife_roll_is_the_day_just_ended() -> void:
 		var hits: bool = Rng.hash_pair(day, HiveRules.WILDLIFE_SEED) % HiveRules.WILDLIFE_DENOMINATOR < HiveRules.WILDLIFE_CHANCE
 		assert_equal(apiary.wildlife_strikes(0, day), hits, "day %d rolls" % day)
 	assert_true(apiary.wildlife_strikes(0, 19), "the seeded summer hit")
+	assert_false(apiary.wildlife_strikes(0, 1980), "a spring's last day, its draw a hit, does not roll")
+	assert_true(apiary.wildlife_strikes(0, 2868), "an autumn's last day, its draw a hit, rolls")
 
 
 func test_missed_days_count_only_live_working_days() -> void:

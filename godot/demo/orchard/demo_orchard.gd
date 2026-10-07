@@ -186,13 +186,12 @@ func take_honey(milli: int) -> int:
 
 
 static func take_all_or_none(takes: TakesScript, pantry: PantryScript, category: int, milli: int, hour_index: int) -> int:
-	"""Reserve `milli` of `category`'s free food in a take of its own; all of it there, withdraw it, else give the
-	reservation back untouched. `milli` or 0."""
+	"""Reserve `milli` of `category`'s free food in a take of its own, then withdraw exactly that (ingredient_takes.gd
+	`consume_into` is all or nothing: short, it moves nothing) and give the reservation back. `milli` or 0."""
 	var take: int = takes.new_take()
 	takes.reserve_into(pantry, take, category, milli, hour_index, IntMath.IntResult.new())
-	var whole: bool = takes.live_milli(pantry, take, TakesScript.AT_STORE, category) >= milli
-	var taken: bool = whole and takes.consume_into(pantry, take, milli, TakesScript.AT_STORE, hour_index,
-		IntMath.IntResult.new(), category)
+	var taken: bool = takes.consume_into(pantry, take, milli, TakesScript.AT_STORE, hour_index, IntMath.IntResult.new(),
+		category)
 	takes.release(take)
 	return milli if taken else 0
 

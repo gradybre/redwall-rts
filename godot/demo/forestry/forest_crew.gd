@@ -738,10 +738,11 @@ func _begin_work(row: int, work: int) -> String:
 
 func step_usec(work: int, target: int, who: int) -> int:
 	"""How long work step `work` on `target` takes resident `who` now (-1: nobody known, at base skill), in demo
-	microseconds: its WU at `who`'s skill when the step trains one, this season's and today's weather's pace -- the
-	ONE timing the work and the action card's work share."""
+	microseconds: its WU at `who`'s skill when the step trains one and this season's pace -- the ONE timing the work and
+	the action card's work share. A storm day's §5.10 factor is not here: it is the village's work pace's "storm" factor,
+	credited through the brain like the Chilled and health ones (demo/weather/storm_pace.gd, decision 1632)."""
 	var season_pm: int = Rules.season_permille(_calendar.now().season, work == JobsScript.WORK_FELL)
-	var speed_pm: int = Rules.weather_permille(_weather.event())
+	var speed_pm: int = Rules.PERMILLE
 	var skill: int = Rules.SKILL_SAWING if work == JobsScript.WORK_SAW else Rules.SKILL_FELLING
 	var level: int = skills.level_of(who, skill) if _trains(work) and who >= 0 else 0
 	return Rules.work_usec(work_wu(work, target), level, season_pm, speed_pm)

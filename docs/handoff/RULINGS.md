@@ -107,6 +107,7 @@ Every row was checked against the record named.
 
 | Topic | Ruling | Recorded in |
 |---|---|---|
+| Wildlife (#11) and livelier weather (#34) proposals | All approved as built: W1–W3 (the animals' year and counts; robins flush from residents; reduced motion stills the wildlife) and P1–P4 (P1 settles **Q-D15 as (a)**: lightning strikes trees or open ground only, never a building, no fire spreads; a struck tree's brief smoulder; the events' looks; lightning frequency). Relayed by the coordinator | 1631, 1632 (`feat/demo-wildlife-weather`) |
 | HIVES | Proposals P1–P8 approved as built (the inherited apiary, its place, the winter feed first, honey to the old orchard's baskets, winter feeding, the wax shelf, recolonising in spring, the seeded wildlife roll) | 1601 (`feat/demo-hives-preserving`) |
 | PRESERVE | Proposals P1–P7 approved as built (dried fruit on the rack, the preserving table, player-ordered batches, rations as a reserve, units not mass, the first-input fetch, salt fish and jam/pickles/cheese not built) | 1611 |
 | BREW | Proposals P1–P7 approved as built; the Hearth regatta feast pours mead and the cordial | 1621 |

@@ -322,6 +322,10 @@ func test_row_29_handling_cycle_is_drawn_from_the_actual_clock() -> void:
 	var frame: Driver.Frame = Driver.Frame.new()
 	assert_equal(presenter.present_handling(routes, worker, ref, frame), &"", "READY handling frame")
 	assert_equal([frame.phase, frame.frames[0], frame.ready], [Clock.READY, 0, true], "seat entry first pose")
+	var row_frame: Driver.Frame = Driver.Frame.new()
+	assert_equal(presenter.present_row(routes, worker, 0, row_frame), &"", "ADR1211: present_row routes row 29")
+	assert_equal([row_frame.profile_id, row_frame.frames, presenter.visible_source()],
+		[Assembly.PROFILE, frame.frames, Presentation.SOURCE_HANDLING], "row 29 by the handling clock, not a program")
 	assert_equal(routes.begin_assembly_handling(worker, ref), &"", "actual handling entry")
 	_handling_ticks(probe, presenter, routes, worker, ref, frame)
 	assert_equal(presenter.present_handling(routes, worker, ref, frame), &"", "completed handling frame")

@@ -50,6 +50,15 @@ var _state: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
 var _clock: PackedInt32Array = PackedInt32Array([0, 0])
 var _pose: PackedInt32Array = PackedInt32Array([0, 0, 0])
 var _frames: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0, ONE])
+# ADR1211 row program: the observed (profile, revision, content, job slot, job generation, travelling) key, the source
+# and clip sequence it resolved to (cold, on key change only) and the fixed tick it was first observed on.
+var _key: PackedInt64Array = PackedInt64Array([-1, 0, 0, -1, 0, -1])
+var _descriptor: Routes.Profiles.Descriptor = Routes.Profiles.Descriptor.new()
+var _program: PackedInt32Array = PackedInt32Array([0, 0, 0, 0])
+var _program_count: int = 0
+var _program_source: int = -1
+var _program_start: int = 0
+var _located: PackedInt32Array = PackedInt32Array([0, 0])
 
 
 static func load_sources(sources: ContentSet, include_haul: bool, include_stone: bool = false) -> StringName:
@@ -232,6 +241,88 @@ func present_handling(routes: Routes, worker: Vector2i, job: Vector2i, out: Driv
 	return present(routes._profiles, out) if code == &"" else code
 
 
+func present_row(routes: Routes, worker: Vector2i, tick: int, out: Driver.Frame) -> StringName:
+	"""ADR1211: draw the actual selected row on one fixed tick: row 29 from the handling clock, rows 30-41 from their
+	program on the ticks since the row was first observed. Source-0 rows are the pinned driver's; output is preserved
+	on refusal and the shown Actor is unchanged."""
+	if _sources == null or routes == null or out == null or out.frames.size() != 7 or tick < 0:
+		return &"MOLE_PRESENTATION_UNBOUND"
+	var code: StringName = routes.read_actor_into(worker, _actor)
+	if code != &"":
+		return code
+	if _actor.profile_id == Assembly.PROFILE:
+		return present_handling(routes, worker, _actor.job, out)
+	code = _observe_program(routes._profiles, tick)
+	if code != &"":
+		return code
+	code = HaulProgram.locate_into(_sources.content(_program_source), _program, _program_count,
+		(tick - _program_start) * ONE, _clock, _located)
+	if code == &"":
+		code = present_clip(_program_source, _located[0], _located[1])
+	if code == &"":
+		_publish_row(worker, out)
+	return code
+
+
+func _observe_program(profiles: Routes.Profiles, tick: int) -> StringName:
+	"""Re-resolve the row's source and clip sequence only when the observed key changes; the program restarts then."""
+	# A queued or travelling route is "in travel"; an idle or held actor has arrived (CARRY's exit/hold program).
+	var travelling: int = 1 if _actor.phase == Routes.PHASE_TRAVELLING or _actor.phase == Routes.PHASE_QUEUED else 0
+	if _key_matches(travelling) and tick >= _program_start:
+		return &""
+	_key[0] = -1
+	var code: StringName = profiles.descriptor_into(_actor.profile_id, _actor.content_revision, _descriptor)
+	if code != &"" or _descriptor.profile_revision != _actor.profile_revision:
+		return &"MOLE_PRESENTATION_ROW_SOURCE" if code == &"" else code
+	var source: int = _sources.source_for_row(profiles, _actor.profile_id, _actor.profile_revision, _actor.content_revision)
+	if source < 0:
+		return &"MOLE_PRESENTATION_SOURCE_ABSENT" if not _sources.has_source(_descriptor.source_id) \
+			else &"MOLE_PRESENTATION_ROW_SOURCE"
+	if source == SOURCE_ACTOR:
+		return &"MOLE_PRESENTATION_ROW_DRIVER"
+	var count: int = HaulProgram.program_into(source, HaulProgram.kind_of(_descriptor, travelling == 1), _program)
+	if count == 0:
+		return &"MOLE_PRESENTATION_ROW_PROGRAM"
+	_program_count = count
+	_program_source = source
+	_program_start = tick
+	_remember_key(travelling)
+	return &""
+
+
+func _key_matches(travelling: int) -> bool:
+	"""The observed row, Job and travel state equal the key the current program was resolved for."""
+	return _key[0] == _actor.profile_id and _key[1] == _actor.profile_revision and _key[2] == _actor.content_revision \
+		and _key[3] == _actor.job.x and _key[4] == _actor.job.y and _key[5] == travelling
+
+
+func _remember_key(travelling: int) -> void:
+	"""Retain the key of the program just resolved."""
+	_key[0] = _actor.profile_id
+	_key[1] = _actor.profile_revision
+	_key[2] = _actor.content_revision
+	_key[3] = _actor.job.x
+	_key[4] = _actor.job.y
+	_key[5] = travelling
+
+
+func _publish_row(worker: Vector2i, out: Driver.Frame) -> void:
+	"""Single output write after the row's frame was shown."""
+	for index: int in 7:
+		out.frames[index] = _frames[index]
+	out.source_digest = _sources.content(_program_source).source_digest()
+	out.worker = worker
+	out.job = _actor.job
+	out.tool = _actor.tool
+	out.point = _actor.point
+	out.yaw = _actor.yaw
+	out.phase = _actor.phase
+	out.ready = false
+	out.profile_id = _actor.profile_id
+	out.profile_revision = _actor.profile_revision
+	out.content_revision = _actor.content_revision
+
+
 func visible_source() -> int:
 	"""The source whose Actor was last shown, or -1."""
 	return _visible
@@ -249,3 +340,6 @@ func release() -> void:
 	_actors.clear()
 	_sources = null
 	_visible = -1
+	_key[0] = -1
+	_program_source = -1
+	_program_count = 0

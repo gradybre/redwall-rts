@@ -17,6 +17,7 @@ const Installer := preload("res://scripts/core/underground_entry_installer.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Assembly := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
 const ContactPath := preload("res://scripts/core/underground_entry_contact_path.gd")
+const Hauler := preload("res://scripts/core/underground_entry_hauler.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const OPERATIONS: Array[int] = [Contract.OP_BRACE, Contract.OP_CUT, Contract.OP_FINISH]
 const STAGE_OPEN: int = 0
@@ -28,6 +29,7 @@ const STAGE_RECOVER: int = 5
 const STAGE_DONE: int = 6
 const STAGE_FAILED: int = 7
 const STAGE_INSTALL: int = 8
+const STAGE_HAUL: int = 9
 const STAGE_TICK_LIMIT: int = 1200
 const REFUSE_PLAN: StringName = &"ENTRY_FOREMAN_PLAN"
 const REFUSE_STALL: StringName = &"ENTRY_FOREMAN_STALLED"
@@ -51,6 +53,8 @@ class Owners extends RefCounted:
 	var locations: Locations = null
 	var anchor: RefCounted = null # SurfaceAnchor; needed only when an installation stands on an installed contact.
 	var items: RefCounted = null # Compiled item ids of the authored input keys (ADR1210).
+	var delivery: RefCounted = null # ADR1210: when bound, missing inputs are hauled from R's staging to M.
+	var gear: RefCounted = null # ADR1210: the worker's tool goes down at M for the tool-free trips.
 
 
 class Crew extends RefCounted:
@@ -100,6 +104,10 @@ var _retreat: Vector2i = NULL_REF
 var _retreat_profile: int = -1
 var _retreat_revision: int = 0
 var _pending_retreat: Vector2i = NULL_REF
+var _hauler: Hauler = null
+var _haul_mwu: int = 0
+var _haul_trips: int = 0
+var _haul_marker: int = -1
 
 
 func configure(owners: Owners, crew: Crew, placement: Vector2i) -> StringName:
@@ -214,11 +222,12 @@ func _run_stage(tick: int) -> StringName:
 		STAGE_EARN: return _earn(tick)
 		STAGE_RECOVER: return _recover(tick)
 		STAGE_INSTALL: return _install(tick)
+		STAGE_HAUL: return _haul(tick)
 	return REFUSE_STATE
 
 
 func _open(tick: int) -> StringName:
-	"""Admit the real phase Project, then a BUILD Job bound to it, the worker and the equipped tool."""
+	"""Admit the real phase Project and its BUILD Job, haul any missing inputs, then take the Job and the tool."""
 	var task: Task = _tasks[_index]
 	var opened: RefCounted = _owners.sites.open_phase(task.site, task.operation)
 	if not opened.ok: return opened.error
@@ -228,8 +237,63 @@ func _open(tick: int) -> StringName:
 	_job = made.value
 	var ref: Vector2i = _owners.jobs.ref_of(_job)
 	var code: StringName = _bind_phase_job(task, opened.ref, ref)
+	var queue: PackedInt32Array = PackedInt32Array()
+	if code == &"": code = _phase_units(task, queue)
+	if code == &"" and not queue.is_empty(): return _begin_haul(task, opened.ref, queue, tick)
 	if code == &"": code = _assign()
 	return _place_actor(task, ref, tick) if code == &"" else code
+
+
+func _phase_units(task: Task, out: PackedInt32Array) -> StringName:
+	"""ADR1210: whole units of each brace input beyond M's free stock; none without a bound Delivery."""
+	out.clear()
+	if _owners.delivery == null: return &""
+	var items: PackedInt32Array = PackedInt32Array()
+	var milli: PackedInt64Array = PackedInt64Array()
+	for line: int in Contract.input_count(task.operation):
+		items.append(_owners.items.compiled_id(Contract.input_key(task.operation, line)))
+		milli.append(Contract.input_milli(task.operation, line))
+	return Hauler.units_into(_owners, _crew.storage, items, milli, out)
+
+
+func _begin_haul(task: Task, project: Vector2i, queue: PackedInt32Array, tick: int) -> StringName:
+	"""Any pending retreat leg first, then the station's travel profile to M; the BUILD Job brings the worker home."""
+	var legs: Array[Hauler.Leg] = []
+	if _retreat != NULL_REF: legs.append(_haul_leg(_retreat, _retreat_profile, _retreat_revision))
+	_retreat = NULL_REF
+	legs.append(_haul_leg(_owners.inventory.spatial_location_of(_crew.storage), task.travel_profile, task.travel_revision))
+	_hauler = Hauler.new()
+	_haul_marker = -1
+	var code: StringName = _hauler.begin(_owners, _crew, project, _job, queue, legs, task.station, tick)
+	if code == &"": _set_stage(STAGE_HAUL)
+	return code
+
+
+static func _haul_leg(target: Vector2i, profile: int, revision: int) -> Hauler.Leg:
+	"""One tooled approach leg."""
+	var leg: Hauler.Leg = Hauler.Leg.new()
+	leg.target = target
+	leg.profile = profile
+	leg.revision = revision
+	return leg
+
+
+func _haul(tick: int) -> StringName:
+	"""Delegate to the hauler; once home on M with the tool, claim it and travel to the station."""
+	var code: StringName = _hauler.advance(tick)
+	if code != &"": return code
+	var marker: int = _hauler.trips() * 16 + _hauler.stage()
+	_stage_ticks = 0 if marker != _haul_marker else _stage_ticks
+	_haul_marker = marker
+	if _hauler.stage() != Hauler.STAGE_DONE: return &""
+	_haul_mwu += _hauler.haul_mwu()
+	_haul_trips += _hauler.trips()
+	_hauler = null
+	var result: RefCounted = _owners.work.claim_tool_for_work(_owners.residents.directory().get_typed_row(_crew.worker), _crew.tool)
+	if not result.ok: return result.error
+	var task: Task = _tasks[_index]
+	_set_stage(STAGE_TRAVEL)
+	return _leg(_owners.jobs.ref_of(_job), task.station, task.travel_profile, task.travel_revision, tick)
 
 
 func _place_actor(task: Task, job: Vector2i, tick: int) -> StringName:
@@ -547,14 +611,26 @@ func _install(tick: int) -> StringName:
 	if code != &"": return code
 	if _installer.stage() == Installer.STAGE_DONE:
 		_install_mwu += _installer.accepted_mwu()
+		_haul_mwu += _installer.haul_mwu()
+		_haul_trips += _installer.haul_trips()
 		_installer = null
 		_retreat = _pending_retreat
 		_pending_retreat = NULL_REF
 		_index += 1
 		return _next_step()
-	_stage_ticks = 0 if _installer.stage() != _last_install_stage else _stage_ticks
-	_last_install_stage = _installer.stage()
+	_stage_ticks = 0 if _installer.progress_marker() != _last_install_stage else _stage_ticks
+	_last_install_stage = _installer.progress_marker()
 	return &""
+
+
+func haul_mwu() -> int:
+	"""Lift and set-down Work of every completed haul, the foreman's and its installations' (ADR1210)."""
+	return _haul_mwu + (_installer.haul_mwu() if _installer != null else 0)
+
+
+func haul_trips() -> int:
+	"""Whole units hauled from R's staging to M across the prefix (ADR1210)."""
+	return _haul_trips + (_installer.haul_trips() if _installer != null else 0)
 
 
 func install_mwu() -> int:

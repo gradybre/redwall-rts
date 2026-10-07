@@ -15,6 +15,11 @@ const Retirement := preload("res://scripts/core/underground_entry_contact_retire
 const Foreman := preload("res://scripts/core/underground_entry_foreman.gd")
 const WorkAreaTests := preload("res://test/test_underground_entry_work_area.gd")
 const Assembly := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
+const Delivery := preload("res://scripts/core/underground_connector_delivery.gd")
+const HaulPlanner := preload("res://scripts/core/haul_planner.gd")
+const StorePolicy := preload("res://scripts/core/store_policy.gd")
+const SimClock := preload("res://scripts/core/sim_clock.gd")
+const Hauler := preload("res://scripts/core/underground_entry_hauler.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 
 
@@ -702,9 +707,76 @@ func _assert_crossing_reachability() -> void:
 	assert_true(_reach(arrival, contact, 12) != &"", "source12 is refused onto the narrow contact")
 
 
-func _complete_prefix_foreman() -> Foreman:
+func test_entry_foreman_hauls_every_input_of_the_complete_prefix() -> void:
+	"""ADR1210 (G4): all inputs start as surface stock staged at R. Only Foreman.advance(tick) runs; every unit
+	reaches M by a real tool-free Delivery haul between the tooled cuts, and the same prefix installs once."""
+	_probe = PaidProbe.new()
+	_probe.before_each()
+	var foreman: Foreman = _complete_prefix_foreman(true)
+	if foreman == null: return
+	var peaks: PackedInt64Array = PackedInt64Array([0, 0])
+	var tick: int = _probe._tick
+	while not foreman.is_done() and foreman.error() == &"" and tick < _probe._tick + 200000:
+		foreman.advance(tick)
+		peaks[0] = maxi(peaks[0], _probe._world._binding._proof_checks)
+		peaks[1] = maxi(peaks[1], _probe._anchor._last_checks)
+		tick += 1
+	assert_equal(foreman.error(), &"", "no refusal on the hauled prefix")
+	assert_true(foreman.is_done(), "every planned task finished")
+	print("HAULED-PREFIX ticks=%d trips=%d haul_mwu=%d route_peak=%d location_peak=%d" % [tick - _probe._tick,
+		foreman.haul_trips(), foreman.haul_mwu(), peaks[0], peaks[1]])
+	assert_true(peaks[0] < Prefix.Space.MAX_CHECKS and peaks[1] < Prefix.Space.MAX_CHECKS, "both check budgets hold")
+	_assert_hauled_ledger(foreman)
+
+
+func _assert_hauled_ledger(foreman: Foreman) -> void:
+	"""Exact bills spent from hauled stock; R's staging emptied; whole-unit trips leave 500 of each at M."""
+	var world: RefCounted = _probe._world
+	var wood: int = world._items.compiled_id(&"wood")
+	var stone: int = world._items.compiled_id(&"stone")
+	assert_equal(_probe._placements._get32(_probe._placements._live, Prefix.Placements.INSTALLED, 0), 2, "L0 and T0 once each")
+	assert_equal(foreman.haul_trips(), 9, "seven wood and two stone whole-unit trips")
+	assert_equal(foreman.haul_mwu(), 9 * 2 * HaulPlanner.HAUL_LOAD_MILLI_WU, "one lift and one set-down per trip")
+	for item: int in [wood, stone]:
+		assert_equal(Hauler.free_milli(world._inventory, _probe._output, item), 0, "R's staging fully hauled")
+		assert_equal(Hauler.free_milli(world._inventory, _probe._storage, item), 500, "whole-unit remainder at M")
+	assert_equal(_probe._sites.virgin_sourced_milli(), 12000, "six 2000 spoil outputs")
+	assert_equal(foreman.accepted_mwu() + foreman.install_mwu(), 98000, "cuts plus both installations' fastening")
+	assert_equal(_probe._sites.earth_conservation_refusal(), &"", "complete spoil conservation")
+	assert_equal(_probe._sites.support_conservation_refusal(), &"", "complete brace conservation")
+	assert_true(world._inventory.audit().ok and world._pool.audit(world._inventory).ok, "real conservation audits")
+	assert_equal(world._construction.live_project_count(), 0, "every Project retired")
+	assert_true(world._inventory.is_lot_equipped(_probe._tool), "the tool is back in the worker's hands")
+
+
+func _stage_surface_stock() -> void:
+	"""Move the finite wood and stone to R's staging and top each up to whole units (7000 wood, 2000 stone)."""
+	var world: RefCounted = _probe._world
+	for at: int in 2:
+		var lot: Vector2i = [_probe._wood, _probe._stone][at]
+		assert_true(world._inventory.move_lot(lot, _probe._output).ok, "surface stock staged at R")
+		var top: RefCounted = world._inventory.create_lot(_probe._output, world._inventory.lot_item_id(lot), 500, 1,
+			Prefix.Provenance.PROVENANCE_ORDINARY, -1, 0, 0)
+		assert_true(top.ok and world._inventory.merge_lots(lot, top.ref).ok, "one whole-unit staged lot")
+
+
+func _bind_delivery(owners: Foreman.Owners) -> void:
+	"""The real Planner and one Delivery over the probe's owners; the foreman also borrows Gear."""
+	var world: RefCounted = _probe._world
+	var planner: HaulPlanner = HaulPlanner.new()
+	assert_true(planner.bind(world._inventory, world._pool, world._residents, world._buildings, world._piles,
+		StorePolicy.new(world._buildings, world._inventory)), "actual Planner")
+	var delivery: Delivery = Delivery.new()
+	assert_equal(delivery.configure(_probe._placements, _probe._source, planner, world._binding, world._work,
+		SimClock.new(), Delivery.RESERVED_BYTES), &"", "one bounded Delivery")
+	owners.delivery = delivery
+	owners.gear = world._gear
+
+
+func _complete_prefix_foreman(hauled: bool = false) -> Foreman:
 	"""Worker at the first station; cuts, L0 and T0 planned from the Frontier with the real SurfaceAnchor."""
 	if _probe._confirm_prefix() == NULL_REF: return null
+	if hauled: _stage_surface_stock()
 	var first: Vector3i = _probe._surface_point(3)
 	assert_true(_probe._world._transforms.place(_probe._world._worker, first.x, first.y, first.z, 49152),
 		"worker physically stands at the first authored station")
@@ -712,6 +784,7 @@ func _complete_prefix_foreman() -> Foreman:
 	var placement: Vector2i = Vector2i(0, _probe._placements._get32(_probe._placements._live, Prefix.Placements.GENERATION, 0))
 	var owners: Foreman.Owners = WorkAreaTests.foreman_owners(_probe)
 	owners.anchor = _probe._anchor
+	if hauled: _bind_delivery(owners)
 	assert_equal(foreman.configure(owners, WorkAreaTests.foreman_crew(_probe), placement), &"", "L0 cut plan")
 	var paid: Foreman.Installer.Paid = Foreman.Installer.Paid.new()
 	paid.router = _probe._router; paid.connector = _probe._paid; paid.contacts = _probe._contacts; paid.budget = _probe._world._budget

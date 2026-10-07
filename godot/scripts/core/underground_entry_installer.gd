@@ -14,6 +14,7 @@ const Retirement := preload("res://scripts/core/underground_entry_contact_retire
 const Assembly := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const Space := preload("res://scripts/core/room_space.gd")
+const Hauler := preload("res://scripts/core/underground_entry_hauler.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const STAGE_OPEN: int = 0
 const STAGE_LEG_MATERIAL: int = 1
@@ -25,6 +26,7 @@ const STAGE_EARN: int = 6
 const STAGE_RECOVER: int = 7
 const STAGE_DONE: int = 8
 const STAGE_LEG_ARRIVAL: int = 9 # Split landing: M to the station's arrival on the material profile.
+const STAGE_HAUL: int = 10 # ADR1210: the quoted inputs missing at M are hauled before the Job is taken.
 const REFUSE_PLAN: StringName = &"ENTRY_INSTALLER_PLAN"
 const REFUSE_HEADING: StringName = &"ENTRY_INSTALLER_HEADING"
 ## ADR1197 G4 / ADR1210: the storage container holds less free stock of an input item than the bill.
@@ -74,6 +76,9 @@ var _accepted_mwu: int = 0
 var _math: IntMath.IntResult = IntMath.IntResult.new()
 var _actor: Routes.Actor = Routes.Actor.new()
 var _quote: Modular.Quote = Modular.Quote.new()
+var _hauler: Hauler = null
+var _haul_mwu: int = 0
+var _haul_trips: int = 0
 
 
 func configure(owners: RefCounted, crew: RefCounted, paid: Paid, plan: Plan) -> StringName:
@@ -100,6 +105,21 @@ func accepted_mwu() -> int:
 	return _accepted_mwu
 
 
+func haul_mwu() -> int:
+	"""Lift and set-down Work of this installation's hauls (ADR1210)."""
+	return _haul_mwu + (_hauler.haul_mwu() if _hauler != null else 0)
+
+
+func haul_trips() -> int:
+	"""Whole units this installation hauled to M (ADR1210)."""
+	return _haul_trips + (_hauler.trips() if _hauler != null else 0)
+
+
+func progress_marker() -> int:
+	"""Changes whenever the installation or its haul advances a stage; the foreman's stall budget reads it."""
+	return _stage * 1024 + (_hauler.trips() * 16 + _hauler.stage() if _hauler != null else 0)
+
+
 func advance(tick: int) -> StringName:
 	"""Run one stage for this fixed tick; instantaneous transitions chain inside it."""
 	for step: int in 8:
@@ -114,6 +134,7 @@ func _run(tick: int) -> StringName:
 	match _stage:
 		STAGE_OPEN: return _open(tick)
 		STAGE_LEG_MATERIAL: return _leg_material(tick)
+		STAGE_HAUL: return _haul(tick)
 		STAGE_LEG_ARRIVAL: return _leg_arrival(tick)
 		STAGE_LEG_STATION: return _leg_station(tick)
 		STAGE_FUND: return _fund(tick)
@@ -130,7 +151,7 @@ func _job_ref() -> Vector2i:
 
 
 func _open(tick: int) -> StringName:
-	"""Admit the real paid order and its sole BUILD Job, then start the first all-yaw leg to M."""
+	"""Admit the real paid order and its sole BUILD Job, bind M, haul what M lacks, then walk to M with the tool."""
 	var opened: RefCounted = _paid.router.open_order(_paid.connector, _plan.placement, _plan.ordinal)
 	if not opened.ok: return opened.error
 	_project = opened.ref
@@ -142,7 +163,12 @@ func _open(tick: int) -> StringName:
 	var result: RefCounted = _o.jobs.set_requester(_job, _project)
 	if result.ok: result = _o.jobs.set_tool_gate(_job, Jobs.GATE_SATISFIED)
 	if result.ok: result = _paid.router.bind_job(_project, _job_ref())
+	if result.ok: result = _paid.router.bind_material_container(_project, _crew.storage)
 	if not result.ok: return result.error
+	var queue: PackedInt32Array = PackedInt32Array()
+	code = _units(queue)
+	if code == &"" and not queue.is_empty(): return _begin_haul(queue, tick)
+	if code != &"": return code
 	var worker: int = _o.residents.directory().get_typed_row(_crew.worker)
 	result = _o.jobs.assign_worker(worker, _job)
 	if result.ok: result = _o.work.claim_tool_for_work(worker, _crew.tool)
@@ -150,6 +176,46 @@ func _open(tick: int) -> StringName:
 	code = _travel(_plan.walk_profile, _plan.walk_revision, _plan.material, tick)
 	if code == &"": _stage = STAGE_LEG_MATERIAL
 	return code
+
+
+func _units(out: PackedInt32Array) -> StringName:
+	"""ADR1210: whole units of each quoted input beyond M's free stock; none without a bound Delivery."""
+	out.clear()
+	if _o.delivery == null: return &""
+	var items: PackedInt32Array = PackedInt32Array()
+	var milli: PackedInt64Array = PackedInt64Array()
+	for line: int in _quote.input_count:
+		items.append(_o.items.compiled_id(_quote.input_keys[line]))
+		milli.append(_quote.input_milli[line])
+	return Hauler.units_into(_o, _crew.storage, items, milli, out)
+
+
+func _begin_haul(queue: PackedInt32Array, tick: int) -> StringName:
+	"""The tooled walk to M uses the last cut's travel profile, exactly as the unhauled walk does."""
+	var leg: Hauler.Leg = Hauler.Leg.new()
+	leg.target = _plan.material
+	leg.profile = _plan.walk_profile
+	leg.revision = _plan.walk_revision
+	var legs: Array[Hauler.Leg] = [leg]
+	_hauler = Hauler.new()
+	var code: StringName = _hauler.begin(_o, _crew, _project, _job, queue, legs, _plan.material, tick)
+	if code == &"": _stage = STAGE_HAUL
+	return code
+
+
+func _haul(tick: int) -> StringName:
+	"""Delegate to the hauler; home on M with the tool, the worker claims it, switches back to the source walk
+	profile at rest (ADR1210) and continues exactly as an arrival at M."""
+	var code: StringName = _hauler.advance(tick)
+	if code != &"" or _hauler.stage() != Hauler.STAGE_DONE: return code
+	_haul_mwu += _hauler.haul_mwu()
+	_haul_trips += _hauler.trips()
+	_hauler = null
+	var result: RefCounted = _o.work.claim_tool_for_work(_o.residents.directory().get_typed_row(_crew.worker), _crew.tool)
+	if not result.ok: return result.error
+	code = _o.routes.refresh_travel_actor(_crew.worker, _job_ref(), _plan.walk_profile, _plan.walk_revision,
+		_content, 0, -1, _crew.tool)
+	return _from_material(tick) if code == &"" else code
 
 
 func _travel(profile: int, revision: int, target: Vector2i, tick: int) -> StringName:
@@ -168,10 +234,14 @@ func _arrived(target: Vector2i, profile: int, revision: int, tick: int) -> int:
 
 
 func _leg_material(tick: int) -> StringName:
-	"""At M, take the certified all-yaw turn, then approach H directly or walk to the station's arrival first."""
+	"""Source-ready arrival at M continues from M."""
 	var arrived: int = _arrived(_plan.material, _plan.walk_profile, _plan.walk_revision, tick)
 	if arrived < 0: return &"ENTRY_INSTALLER_ROUTE_HELD"
-	if arrived == 0: return &""
+	return _from_material(tick) if arrived == 1 else &""
+
+
+func _from_material(tick: int) -> StringName:
+	"""At M, take the certified all-yaw turn, then approach H directly or walk to the station's arrival first."""
 	if _plan.arrival == NULL_REF:
 		return _turn_and_travel(_plan.approach_profile, _plan.approach_revision, _plan.station, STAGE_LEG_STATION, tick)
 	return _turn_and_travel(_plan.material_profile, _plan.material_revision, _plan.arrival, STAGE_LEG_ARRIVAL, tick)
@@ -233,14 +303,12 @@ func _fund(tick: int) -> StringName:
 
 
 func _deliver() -> StringName:
-	"""Claim the quoted inputs from the storage container's free stock and make the Project READY."""
-	var result: RefCounted = _paid.router.bind_material_container(_project, _crew.storage)
-	if not result.ok: return result.error
+	"""Claim the quoted inputs from M's free stock (bound at open) and make the Project READY."""
 	for line: int in _quote.input_count:
 		var code: StringName = claim_stock(_o, _crew.storage, _job_ref(), _o.items.compiled_id(_quote.input_keys[line]),
 			_quote.input_milli[line], Reservations.PURPOSE_MODULAR_INPUT)
 		if code != &"": return code
-	result = _paid.router.record_deliveries(_project)
+	var result: RefCounted = _paid.router.record_deliveries(_project)
 	return &"" if result.ok else result.error
 
 

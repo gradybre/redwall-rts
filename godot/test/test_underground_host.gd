@@ -704,9 +704,10 @@ func test_live_entry_chain_publishes_confirms_then_alerts_each_missing_capabilit
 	assert_equal(o.locations._live.count, EntryWorkArea.ENDPOINTS, "no second work area")
 
 
-func test_fixed_ticks_drive_the_live_foreman_until_the_haul_gap() -> void:
-	"""ADR1210 G7: run_tick alone advances the planned foreman on the real settlement until its first refusal,
-	the G4 haul gap: inputs staged at R never reach M, because no real haul can carry them there yet."""
+func test_fixed_ticks_drive_the_live_foreman_until_the_first_gap() -> void:
+	"""ADR1210 G7/G4: run_tick alone advances the planned foreman on the real settlement. The mole walks tooled to M,
+	puts the tool down and switches at rest to the tool-free rows; Delivery's admission then refuses, because the
+	surface residents are not route actors and no occupancy proof can cover them (a G5 gap)."""
 	var session: Session = _generate_and_mount()
 	assert_true(_host.compose_underground_room_owners() and _host.compose_underground_route_owners()
 		and _host.compose_underground_surface_anchor() and _host.compose_underground_entry_owners(), "every owner composed")
@@ -715,25 +716,24 @@ func test_fixed_ticks_drive_the_live_foreman_until_the_haul_gap() -> void:
 	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
 	var o: Session.Retirement.Owners = session._retirement_owners
 	var worker: Vector2i = _equip_first_mole(o, entry._output)
-	var staged: Array[Vector2i] = [_stage(o, entry._output, &"wood", 7000), _stage(o, entry._output, &"stone", 2000)]
+	var wood: Vector2i = _stage(o, entry._output, &"wood", 7000)
+	_stage(o, entry._output, &"stone", 2000)
 	assert_false(_host.begin_underground_entry(near), "G5 next")
 	_stand_on_first_station(o, entry, worker)
 	assert_true(_host.begin_underground_entry(near), "foreman planned: %s" % _host.last_refusal())
-	assert_true(entry.is_running(), "the chain now waits for fixed ticks")
 	var tick: int = 1
-	while entry.is_running() and tick < 3000:
+	while entry.is_running() and tick < 6000:
 		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
 		tick += 1
 	assert_false(entry.is_running(), "stopped at the first remaining gap")
-	assert_equal(entry.error(), Settlement.UndergroundEntryRuntime.Foreman.Installer.REFUSE_INPUT_STOCK, "exact refusal")
-	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G4"), "haul gap row")
-	assert_equal(entry._foreman.accepted_mwu(), 0, "no Work is earned before the inputs exist")
-	for lot: Vector2i in staged:
-		assert_equal(o.inventory.lot_reserved_milli(lot), 0, "staged stock is never claimed in place")
-		assert_equal(o.inventory.lot_container(lot), entry._output, "staged stock stays at R")
+	assert_equal(entry.error(), &"ROUTE_TURN_ACTOR_UNBOUND", "exact refusal")
+	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G5"), "named gap row")
+	assert_equal(o.inventory.lot_container(entry.crew().tool), entry._storage, "the tool was put down at M")
 	var actor: Session.Retirement.Routes.Actor = Session.Retirement.Routes.Actor.new()
-	assert_equal(o.routes.read_actor_into(worker, actor), &"", "the mole was admitted as a real route actor")
-	assert_equal(actor.location, entry._foreman.first_station(), "it entered WORK on the first station, then stopped")
+	assert_equal(o.routes.read_actor_into(worker, actor), &"", "a real route actor")
+	assert_equal(actor.location, o.inventory.spatial_location_of(entry._storage), "it walked tooled to M")
+	assert_equal(actor.profile_id, 31, "and switched at rest to the tool-free walk row")
+	assert_equal(o.inventory.lot_reserved_milli(wood), 0, "Delivery's occupancy proof refused before any claim")
 
 
 func _stage(o: Session.Retirement.Owners, container: Vector2i, key: StringName, milli: int) -> Vector2i:

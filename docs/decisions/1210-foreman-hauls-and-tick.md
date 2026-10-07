@@ -1,7 +1,7 @@
 # 1210 — Foreman hauling and the fixed-tick hookup (ADR 1197 G4 and G7)
 
-Date: 2026-10-06 · Status: G7 implemented. G4 (foreman hauling) is **blocked on a Routes rule** and waits for
-Brendan's choice (see "G4 blocker" below).
+Date: 2026-10-06 · Status: G7 implemented. G4 implemented on 2026-10-07 after Brendan chose option 1 (see
+"Brendan's decision" and "G4 built" below). The live chain now stops at a G5 gap instead.
 
 ## Built
 
@@ -91,10 +91,107 @@ whole units only, moves 7,000 wood and 2,000 stone and leaves 500 of each at M a
 staged lots at R (fully hauled), not for M. This is a consequence of Brendan's whole-unit decision (ADR 1144),
 not a new choice.
 
-## Not measured
+## Brendan's decision (2026-10-07)
 
-Route and Location check peaks for a hauled prefix were not measured: the hauled prefix cannot run until G4
-is unblocked. The G7 host test publishes nothing beyond the existing work area.
+| Question | Decision |
+|---|---|
+| One worker cannot both cut and haul | **Option 1: allow a switch at rest.** A mole standing still on an endpoint may switch between source-clocked (tooled) rows and automatic tool-free rows, in either direction, after rerunning the full first-admission checks. This amends ADR 1168. |
+| 500-milli leftovers at M | **Leave them in M** and assert them exactly. |
+
+## The switch at rest (`underground_routes.gd`, amends ADR 1168)
+
+`Routes._source_refresh_refusal` is the single gate every `refresh_*` passes, before and after qualification.
+
+- **Within a family the rule is unchanged.** A source actor changes source profile only at READY.
+- **Source to automatic** needs exactly the canonical idle READY word, not just READY. That excludes the
+  assembly-handling clock and any other source phase.
+- **Automatic to source** needs a plain `PHASE_IDLE` word.
+- **Both directions also need `_at_rest`:** a live location, no edge, no route head and no dispatch tail.
+  `_refresh_actor` already refuses a moving or queued actor (`ROUTE_ACTOR_BUSY`).
+- **Full re-proof.** The switch then runs `_qualify_actor_at` at the actor's endpoint, the same proof a fresh
+  admission runs: Resident, Transform, tool and cargo, Job, endpoint, support, body and occupancy. Only after
+  that are columns written. `_reset_source_clock` starts a source family at READY (or ENTRY for WORK rows) and
+  an automatic family at `PHASE_IDLE` with request tick 0.
+- **There is still no unregister or readmit.** `admit_*` on a registered actor still refuses.
+
+Tests:
+
+- `test_underground_haul_grip.gd` on the real content-6 work area:
+  - refused while moving (`ROUTE_ACTOR_BUSY`);
+  - refused while still recovering on a station (`ROUTE_SOURCE_HANDOFF_REQUIRED`);
+  - refused by the re-proof while the tool is held (tool-free rows), and while it is not held (tooled rows);
+  - a successful switch to row 31 and back to row 12 at READY.
+- Three older tests asserted the old refusal and now assert the amended rule:
+  - `test_underground_routes.gd`: canonical-to-automatic at rest succeeds, and the legacy actor reaches
+    canonical ground only through the switch;
+  - `test_underground_room_station_planner.gd`: the v3 seam is now refused by the re-proof
+    (`PROFILE_VARIANT_UNAUTHORED`) instead of by the gate.
+
+## G4 built (`underground_entry_hauler.gd`)
+
+When `Owners.delivery` and `Owners.gear` are bound, each cut phase and each installation hauls its own bill
+before the BUILD Job takes the worker:
+
+1. **Units.** `Hauler.units_into` gives whole 1,000-milli units per item beyond M's free stock.
+2. **First HAUL Job.** It is requested and sourced by the step's Project. The worker walks to M on its tooled
+   source profile: any pending retreat leg first, then the station's travel profile, or for an installation
+   the last cut's walk profile. A worker not yet registered is admitted where it stands.
+3. **At M.** `gear.unequip` puts the tool into M's container. Then the switch at rest selects tool-free WALK.
+4. **Each trip, through Delivery:**
+   - `admit` one unit from R's staging;
+   - WALK to stand R and an empty turn to 16384;
+   - the named lift row, 34 for wood or 39 for stone, then `begin_load`, lift Work and `load_payload`;
+   - CARRY to stand M, arriving at 16384;
+   - the named set-down row, 36 or 41, then set-down Work and `unload_payload`;
+   - the completed HAUL Job is released and destroyed, as the JobPlanner retires a completed service.
+5. **Home.** The BUILD Job takes the worker. It walks from stand M onto M tool-free and `gear.equip` returns
+   the tool.
+6. **Back to work.** The foreman claims the tool for work and travels to the station; the switch back to the
+   tooled source profile happens at rest on M. The installer does the same and then continues exactly as an
+   arrival at M.
+
+The installer binds M at `open` (it used to do this at `fund`), because Delivery reads the Project's material
+container at admission. Stall budgets reset on every haul stage and trip.
+
+**Evidence.**
+`test_underground_paid_assembly_handling.gd::test_entry_foreman_hauls_every_input_of_the_complete_prefix`.
+The fixture's 6,500 wood and 1,500 stone are moved to R's staging and topped up to whole units (7,000 and
+2,000). Only `Foreman.advance` runs, for 4,751 ticks, and the result is:
+
+| Ledger | Value |
+|---|---|
+| INSTALLED | 2 (each group once) |
+| Haul trips | 9 (7 wood, 2 stone) |
+| Haul work | 36,000 mWU (9 × lift 2,000 + set-down 2,000), recorded separately |
+| Excavation plus fastening work | 54,000 + 44,000 = 98,000 mWU |
+| Spoil | 12,000 |
+| R's staging | 0 wood, 0 stone |
+| M | exactly 500 wood and 500 stone (Brendan: leave them) |
+| Conservation refusals | empty |
+| Audits | pass |
+| Live Projects | 0 |
+| Tool | equipped again |
+
+**Measured (peaks over the hauled run, of 1,048,576):** WorldRoutes proof checks 519,060 (49.5%). SurfaceAnchor
+checks 775,313 (73.9%, the last work-area create, unchanged from ADR 1207).
+
+### Live chain (`run_tick`)
+
+The runtime binds the Session's Delivery and Gear into the foreman. In
+`test_underground_host.gd::test_fixed_ticks_drive_the_live_foreman_until_the_first_gap`, with the G11 tool
+stand-in, staged stock and the G5 placement stand-in, ticks alone do the following:
+
+- the mole walks tooled to M;
+- it puts the tool into M's container;
+- it switches at rest to row 31;
+- Delivery's admission then refuses `ROUTE_TURN_ACTOR_UNBOUND`. Its occupancy proof needs every living
+  resident's body, and the surface residents are not route actors.
+
+That code now maps to G5: surface Movement is not composed. Also new:
+
+- `ENTRY_HAUL_NO_STAGED_STOCK` maps to G4. Moving settlement stores to the anchor is still not built; the tests
+  stage stock at R as a stand-in.
+- `ENTRY_FOREMAN_INPUT_LOT` remains the G4 code when no Delivery is composed.
 
 ## Rejected
 

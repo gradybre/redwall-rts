@@ -2094,6 +2094,13 @@ as source-qualified motion. No composed save adapter is claimed here.
 |---|---|---:|---|---|:-:|---|---|
 | Installation dispatch cursor | -- | -- | -- | No packed columns; Plan derived from the Frontier install row | UNRESOLVED | §6 AUXILIARY_STATE | ADR1196 increment 2. Stage, Project ref and Job slot are future-affecting while an installation is in flight. QUESTION: are they re-derived on load from Router/Workpieces/Routes state, or saved with the foreman? |
 
+### `godot/scripts/core/underground_entry_hauler.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Haul trip queue | `_queue` | 4 | never allocated | Borrowed caller array; empty when no haul is planned | UNRESOLVED | §6 AUXILIARY_STATE | ADR1210. One compiled item id per remaining 1000-milli trip, built by units_into and held by reference (no resize()); at most 4 in the first-entry prefix (the L0 wood bill). QUESTION: re-derive on load from the bills and M's free stock, or save with the dispatcher? |
+| Haul dispatch cursor | -- | -- | -- | No packed columns | UNRESOLVED | §6 AUXILIARY_STATE | ADR1210. Stage, leg, trip index, current HAUL Job slot and the worker's unequipped tool are future-affecting while a haul is in flight; the goods themselves live in Inventory and Planner claims. QUESTION: re-derive on load, or save with the foreman cursor? |
+
 ### `godot/scripts/core/underground_entry_work_area.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

@@ -25,10 +25,12 @@ const STEP_DONE: int = 7
 const GAPS: Dictionary = {
 	&"ENTRY_SITE_NONE_FOUND": "G1/G2 no surveyed entry site near the settlement",
 	&"ENTRY_CREW_NO_TOOLED_MOLE": "G11 no adult mole with an equipped basic tool (tool equipping is not gameplay yet)",
+	&"ROUTE_TURN_ACTOR_UNBOUND": "G5 surface residents are not route actors, so no turn or Delivery occupancy proof can cover them (surface Movement is not composed)",
 	&"ENTRY_SURFACE_ARRIVAL_MISSING": "G5 the crew mole must stand on the first cut station (surface walking into the work area is not simulated yet)",
 	&"JOB_AGENT_BUSY": "G6 the crew mole already holds another Job (reserving the crew from the JobSelector is not built)",
 	&"STEP2_ACTIVITY_FORBIDS_WORK": "G6 the crew mole's schedule forbids work this hour (the foreman does not wait for a work hour yet)",
-	&"ENTRY_FOREMAN_INPUT_LOT": "G4 inputs must be hauled from R's staging to M; a tooled source-clocked mole cannot select the tool-free haul rows (ADR 1168, ADR 1210)",
+	&"ENTRY_FOREMAN_INPUT_LOT": "G4 inputs missing at M and no Delivery is composed to haul them from R's staging (ADR 1210)",
+	&"ENTRY_HAUL_NO_STAGED_STOCK": "G4 surface stock must be staged at R's container; moving settlement stores to the entry anchor is not built (ADR 1210)",
 }
 
 var _step: int = STEP_NONE
@@ -193,7 +195,7 @@ func _foreman_owners(o: RefCounted) -> Foreman.Owners:
 	f.sites = o.sites; f.jobs = o.jobs; f.work = o.work; f.routes = o.routes; f.binding = o.world_routes
 	f.residents = o.residents; f.pool = o.reservations; f.construction = o.construction; f.inventory = o.inventory
 	f.profiles = o.profiles; f.frontier = o.room_bindings._entry_frontier; f.placements = o.placements
-	f.locations = o.locations; f.anchor = o.surface_anchor; f.items = o.items
+	f.locations = o.locations; f.anchor = o.surface_anchor; f.items = o.items; f.delivery = o.delivery; f.gear = o.gear
 	return f
 
 

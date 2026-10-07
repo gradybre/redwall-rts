@@ -867,3 +867,11 @@ func _clear_stage() -> void:
 	_stage_assembly = -1
 	_stage_action = -1
 	_stage_contacts = null
+
+
+func save_quiescence_refusal() -> StringName:
+	"""ADR1221: ConnectorWork keeps only synchronous stage controls and a lease it releases before returning, so it
+	writes nothing. A save or load requires no operation, staged intent or retained lease."""
+	return &"" if _ready and not _busy and _stage_action == -1 and _stage_contacts == null and _cold_token == 0 \
+		else REFUSE_STAGE
+

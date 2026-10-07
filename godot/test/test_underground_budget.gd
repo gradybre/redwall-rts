@@ -74,3 +74,23 @@ func test_exhausted_token_space_refuses_without_wrapping() -> void:
 	arena.set("_next_token", Budget.I64_MAX)
 	assert_equal(arena.acquire(1), 0, "generation exhaustion refuses")
 	assert_true(arena.is_quiescent(), "no live operation after exhaustion")
+
+
+func test_a_quiescent_arena_has_no_saved_state_a_fresh_one_lacks() -> void:
+	"""ADR1221: the arena saves nothing. Once quiescent, a long-used arena and a fresh one admit, cover, extend,
+	refuse and release every later operation identically; only token numbers differ, and tokens are compared
+	only for equality with the live lease. A live lease is what a save or load must refuse."""
+	var used: Budget = Budget.new()
+	for size: int in [64, Budget.COLD_BYTES, 4096]:
+		var lease: int = used.acquire(size)
+		assert_false(used.is_quiescent(), "a save or load is refused across a live lease")
+		used.release(lease)
+	var fresh: Budget = Budget.new()
+	for arena: Budget in [used, fresh]:
+		assert_true(arena.is_quiescent(), "quiescent")
+		var lease: int = arena.acquire(1024)
+		assert_true(lease > 0 and arena.covers(lease, 1024) and not arena.covers(lease, 1025), "same cover")
+		assert_equal(arena.extend(lease, Budget.COLD_BYTES), Budget.REFUSE_BYTES, "same extension bound")
+		assert_equal(arena.acquire(1), 0, "same exclusivity")
+		assert_equal(arena.release(lease), &"", "same release")
+

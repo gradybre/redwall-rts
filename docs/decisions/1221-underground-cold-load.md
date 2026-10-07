@@ -1,6 +1,7 @@
 # 1221 — Underground cold load: the owner codecs
 
-Date: 2026-10-07 · Status: Accepted for the owner codecs below (Brendan's decision: build cold load now). The
+Date: 2026-10-07 · Status: Accepted for the owner codecs, steps 1 to 3 (Brendan's decision: build cold load now). Step 4, the
+section-6 body and a fresh-settlement load, is stopped for Brendan's choice; see the last section.
 section-6 body and the settlement wiring are not built; see "Not done".
 
 ## Brendan's decision
@@ -140,6 +141,21 @@ The persistence registry rows become category 1, and the canonical registry adva
 packed fields. The generated declaration table, the capacity audit (5 new equalities) and the validators' pins move
 with it.
 
+## 5. The cold Budget and ConnectorWork save nothing; quiescence is required
+
+**Budget.** The arena is saved only when quiescent: no lease and nothing used (`is_quiescent()`). Its two other
+members are not state:
+
+- `_next_token`: a token is only ever compared for equality with the live lease;
+- `_peak`: a measurement.
+
+A long-used arena and a fresh one admit, cover, extend, refuse and release every later operation identically
+(`test_underground_budget.gd`). So the arena writes nothing.
+
+**ConnectorWork.** It was listed in ADR 1218. It keeps only synchronous stage controls and a lease that it releases
+before returning. `save_quiescence_refusal()` requires no operation, staged intent or retained lease. Both goal
+chains assert this at every cold restore, and it held at every one.
+
 ## Memory
 
 The Routes (320,608 bytes) and WorldRoutes (84,184 bytes) images are charged to the caller's existing cold Budget
@@ -193,7 +209,42 @@ are byte-identical. Unit tests cover the rest:
 - `test_underground_connector_delivery.gd`: quiescence is required.
 - `test_canonical_state_hash.gd`: the new owner's declaration.
 
-## Not done
+## Not done: step 4 (the section-6 body and a fresh-settlement load) needs Brendan's choice
 
-- The Budget (a later step of this record).
-- The section-6 body, its canonical declarations for the other underground owners, and the settlement wiring.
+Steps 1 to 3 are done. Every owner the lead named now has an exact codec or a proven-empty saved form: Routes,
+WorldRoutes (with both journals), Contacts, Delivery (via the Planner), the Budget, and ConnectorWork.
+
+**A load into a fresh Session cannot be built on its own**, because a fresh Session needs a fresh settlement:
+
+- `UndergroundSession.configure` binds one-way authorities into the host's Buildings, Construction and Inventory
+  (`_initial_authority_refusal`). A new Session cannot mount over the old surface owners, and world retirement
+  clears those owners.
+- **The settlement itself has no save or load.** `SettlementSystem` has no save path at all ("CheckpointHash: no
+  save stream", task 09.2: "Full-file orchestration remains incomplete").
+- Several sections have codecs, but some owners the entry chain writes have no apply adapter: Construction has no
+  restore, and its paid ledger and open projects are UNRESOLVED contract questions (ConstructionPaidLedger,
+  CONSTRUCTION-SAVED-BINDINGS).
+- The live chain also ticks the whole surface (needs, schedule, Jobs) between saves.
+
+So a "fresh Session or settlement" goal test needs task 09's whole-file save and load first. Those are surface
+decisions, not underground ones.
+
+Options:
+
+- **A. Build the settlement save and load (task 09) first.** That means the section bodies, the apply adapters,
+  SettlementSystem save and load, and ARCH-SAVE-004's transactional load. The underground section-6 body then rides
+  on it. It is the only path to the literal goal. It is large, and several of its rows are contract questions
+  only Brendan or the save contract can settle.
+- **B. Build the underground section-6 body and orchestrator now**, wired into `SettlementSystem` as an
+  underground capture and restore over the mounted Session. It would:
+  - declare the remaining underground owners canonically;
+  - restore in dependency order (Space, Locations, Routes, WorldRoutes, Placements, Workpieces, Sites, Router,
+    Contacts, Planner, then ADR 1218's entry record last), with full validation and rollback;
+  - prove "blank every underground owner, reload, continue" byte-identically in both chains;
+  - audit the remaining underground owners (Room orders and bindings, the surface anchor, the Frontier, the entry
+    bindings) for cross-tick state, as was done for Contacts here.
+
+  The literal fresh-settlement load would then wait for A.
+- **C. Stop at the owner codecs.**
+
+**Recommendation: B, then A as its own milestone.** B is bounded, and A will call it unchanged.

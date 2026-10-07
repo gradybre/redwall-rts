@@ -109,6 +109,13 @@ Contract C195 records the rules. The registry advances to version 12, with ident
 
 ## What this does not do (a later choice)
 
+> **Update (ADR 1221).** The owner codecs listed below now exist. Routes and WorldRoutes are saved, with both geometry
+> journals. The Contacts scope is saved, and Delivery's admitted haul is saved as section 6 owner `haul_planner`.
+> ConnectorWork and the Budget save nothing and require quiescence. Both goal chains cold-restore all of them every 41
+> or 23 ticks and end byte-identical. What remains is the section-6 body and the orchestrator. A fresh-Session load
+> also remains, and it needs the settlement's own save and load (task 09). ADR 1221 sets out those options for
+> Brendan.
+
 **A load into a fresh Session is not possible yet.** The record restores exactly against restored owners, but several
 underground owners have no save codec at all:
 

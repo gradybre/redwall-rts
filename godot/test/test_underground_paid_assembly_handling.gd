@@ -944,6 +944,9 @@ func _cold_route_round_trip(tick: int) -> bool:
 	var code: StringName = RouteFixture.cold_restore_route_owners(world._routes, world._binding, world._owner,
 		world._budget)
 	assert_equal(code, &"", "route owners cold-restore before tick %d" % tick)
+	if code == &"":
+		code = _probe._paid.save_quiescence_refusal()
+		assert_equal(code, &"", "ConnectorWork quiescent before tick %d" % tick)
 	if code == &"" and _cold_delivery != null:
 		code = RouteFixture.cold_restore_entry_owners(_probe._contacts, _cold_delivery, world._budget)
 		assert_equal(code, &"", "Contacts, Delivery, arena and Planner cold-restore before tick %d" % tick)

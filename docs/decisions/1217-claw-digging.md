@@ -526,3 +526,18 @@ clips and content name. Nothing is re-authored: every clip is step 3b's, pinned 
 Evidence is in `claw-work-v1/evidence/native-claw-split-v1/{claw,paw}/`. The palettes were staged from the frozen
 `redwall-rts-codex-ug-space` worktree (ADR 1192 §6), checked against their pins (`5b368eb3…`, `08de5453…`,
 `de8c3b04…`), and removed after the run.
+
+### 4c.2 Source-4 STAND/WALK rows (done)
+
+`claw-work-v1/derive_claw_stand_rows.py` derives them as rows 30/31 were derived (ADR 1199,
+`compile_state_program.carry_bounds` over every stand and walk key, then `prove_empty_walk.ground_roles`). The
+only change is the body. These rows use the claw image's own body, the open paw, while rows 30/31 use the closed
+paw. The clips are checked against the claw image's compilation record. The output is
+`evidence/claw-split-rows-v1/stand-walk.json`.
+
+**Result:** the boxes are the same as corrected rows 30/31: body `[-712,0,-712,712,930,712]`, floor
+`[-402,-1,-402,402,0,402]` and stance `[-406,-1,-406,406,0,406]`. The open paw changes no outward-rounded bound.
+`test_derive_claw_stand_rows.py` holds 3 tests, including a rebuild from the staged inputs.
+
+The dig, tap and handling boxes are content 7's `claw-rows-v1/rows.json`. Those rows were derived from the same
+pinned clips on the same body, so splitting the image into two changes none of them.

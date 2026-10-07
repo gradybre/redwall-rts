@@ -1,8 +1,8 @@
 # 1221 — Underground cold load: the owner codecs
 
 Date: 2026-10-07 · Status: Accepted for the owner codecs, steps 1 to 3 (Brendan's decision: build cold load now). Step 4, the
-section-6 body and a fresh-settlement load, is stopped for Brendan's choice; see the last section.
-section-6 body and the settlement wiring are not built; see "Not done".
+section-6 body and a fresh-settlement load, was stopped for Brendan's choice; see the last section. **He chose A on
+2026-10-07: the settlement save/load first, with the section-6 body plugging into it ([ADR 1222](1222-settlement-save-load.md)).**
 
 ## Brendan's decision
 

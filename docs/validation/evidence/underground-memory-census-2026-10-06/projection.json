@@ -52,9 +52,17 @@
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/underground_motion_clock.gd-a76b16440bbf.txt",
       "sha256": "a76b16440bbffe3751bfdc361e3e4195f80a3cd895e17af65d8d7773be6e4141"
     },
+    "godot/scripts/core/underground_phase_structure.gd": {
+      "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/underground_phase_structure.gd-4c53a400e420.txt",
+      "sha256": "4c53a400e420306be6c8bee9082858e5a86cdd54279058223cc314e0582fe0f8"
+    },
     "godot/scripts/core/underground_profiles.gd": {
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/underground_profiles.gd-2dd505f98fe5.txt",
       "sha256": "2dd505f98fe55b640fd96d254d155093a3f88baf42315ffe95baebcc6f0234ec"
+    },
+    "godot/scripts/core/underground_room_bindings.gd": {
+      "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/underground_room_bindings.gd-ab1f5a2d6438.txt",
+      "sha256": "ab1f5a2d6438d39b2b7e2e8b5c69e59864b34a6a68527084e56d0c8d57832615"
     },
     "godot/scripts/core/underground_room_composition.gd": {
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/underground_room_composition.gd-d30a41cb7f68.txt",

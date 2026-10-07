@@ -559,7 +559,7 @@ func test_sparse_actual_capacity_search_yields_and_remains_view_only() -> void:
 	_fixture._plan.room_type = Buildings.ROOM_TYPE_KITCHEN
 	_fixture._plan.level = 1
 	_fixture._plan.origin_u = Vector3i(Fixture.X + 8192, Fixture.FLOOR, Fixture.Z)
-	_fixture._plan.height_u = 4096
+	_fixture._plan.height_u = Approach.reachable_height_u(_fixture._actual._profiles, 1) # DEC-054
 	_fixture._plan.cell_size_u = 1024
 	_fixture._plan.cells = PackedInt32Array([0, 0])
 	_access = Access.new()
@@ -653,7 +653,7 @@ func test_full_populated_graph_and_maximum_paint_candidate_latency() -> void:
 	_fixture._plan.room_type = Buildings.ROOM_TYPE_KITCHEN
 	_fixture._plan.level = 1
 	_fixture._plan.origin_u = Vector3i(Fixture.X + 2048, Fixture.FLOOR, Fixture.Z)
-	_fixture._plan.height_u = 4096
+	_fixture._plan.height_u = Approach.reachable_height_u(_fixture._actual._profiles, 1) # DEC-054
 	_fixture._plan.cell_size_u = 1024
 	for z: int in 128:
 		for x: int in 128: _fixture._plan.cells.append_array(PackedInt32Array([x, z]))

@@ -300,14 +300,8 @@ func _admission_preflight(provider: WorldBindings, levels: Levels) -> StringName
 	return code if code != &"" else _observe_room(provider, domain, bounds)
 
 
-static func _authored_height(height: int, clear: int) -> bool:
-	"""DEC-054: the level's clear height, or a whole number of excavation cubes below it."""
-	return height == clear or (height > 0 and height < clear and height % Space.QUANTUM_U == 0)
-
-
 func _level_refusal(levels: Levels, domain: Space.Domain, directory: Directory) -> StringName:
-	"""Only the actual immutable catalog supplies the floor, roof, protected band and required footing. DEC-054: a
-	Room may stop whole cubes below its level's clear height (natural earth stays below the level roof)."""
+	"""Only the actual immutable catalog supplies the floor, roof, protected band and required footing."""
 	if not levels.binding_matches(domain, directory, Space.VERSION):
 		return REFUSE_LEVEL
 	for index: int in levels.section_offset_count():
@@ -315,7 +309,7 @@ func _level_refusal(levels: Levels, domain: Space.Domain, directory: Directory) 
 		if code != &"":
 			return code
 		if _level.floor_y_u == _room_pin.origin_u.y:
-			return &"" if _level.has_roof and _authored_height(_room_pin.height_u, _level.clear_height_u) \
+			return &"" if _level.has_roof and _level.clear_height_u == _room_pin.height_u \
 				and _level.world_ref == _room_pin.world else REFUSE_LEVEL
 	return REFUSE_LEVEL
 
@@ -393,8 +387,7 @@ func _room_run_refusal(snapshot: Space.Snapshot, datum: Vector3i) -> StringName:
 	if code == &"":
 		code = _room_band_refusal(snapshot, _level.required_footing_low_u, _level.required_footing_high_u, REFUSE_FOOTING)
 	if code == &"":
-		code = _room_band_refusal(snapshot, int(_room_pin.origin_u.y) + _room_pin.height_u, _level.protected_above_high_u,
-			REFUSE_ABOVE) # DEC-054: the earth above a lower Room is protected from its own top.
+		code = _room_band_refusal(snapshot, _level.protected_above_low_u, _level.protected_above_high_u, REFUSE_ABOVE)
 	return code
 
 

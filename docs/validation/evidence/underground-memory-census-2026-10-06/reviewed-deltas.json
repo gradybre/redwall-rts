@@ -588,6 +588,16 @@
    ],
    "delta": {}
   },
+  "godot/scripts/core/underground_phase_structure.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "DEC-054 (ADR 1220): Room height below the level roof; comparisons only, no retained-storage change"
+    }
+   ],
+   "delta": {}
+  },
   "godot/scripts/core/underground_profiles.gd": {
    "charges": [
     {
@@ -619,6 +629,16 @@
      "same_key.resize(_stage.header[3])"
     ]
    }
+  },
+  "godot/scripts/core/underground_room_bindings.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "DEC-054 (ADR 1220): Room height below the level roof; comparisons only, no retained-storage change"
+    }
+   ],
+   "delta": {}
   },
   "godot/scripts/core/underground_room_composition.gd": {
    "charges": [

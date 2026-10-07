@@ -419,7 +419,7 @@ func _setup(connected: bool = true, obstruction: int = 0, admission: bool = fals
 	_request.room_type = Buildings.ROOM_TYPE_KITCHEN
 	_request.level = 1
 	_request.origin_u = Vector3i(X + 2048, FLOOR, Z)
-	_request.height_u = 4096
+	_request.height_u = Approach.reachable_height_u(_actual._profiles, 1) # DEC-054: the synthetic 512u anchor digs 1 m.
 	_request.cell_size_u = 1024
 	_request.cells = PackedInt32Array([0, 0, 1, 0, 0, 1, 1, 1])
 	_request.access = _actual._first
@@ -778,7 +778,8 @@ func test_actual_confirm_preserves_a_fine_hole_and_claims_whole_cubes_once() -> 
 	var result: Buildings.OpResult = fixture.orders.confirm_room(_request)
 	assert_true(result.ok, "actual concave fine-grid confirmation: %s" % result.error)
 	if not result.ok: return
-	assert_equal(fixture.sites._count - prior, 16, "four unique metre cubes on each of four levels")
+	@warning_ignore("integer_division") var levels: int = _request.height_u / 1024
+	assert_equal(fixture.sites._count - prior, 4 * levels, "four unique metre cubes on each reachable level (DEC-054)")
 	assert_true(_claimed_point(fixture, result.ref, _request.origin_u + Vector3i(256, 1, 768)), "drawn fine cell is claimed")
 	assert_false(_claimed_point(fixture, result.ref, _request.origin_u + Vector3i(768, 1, 768)), "fine centre hole stays outside Room")
 	assert_equal(_request.cells, original, "exact caller fine cells preserved")

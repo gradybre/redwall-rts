@@ -1,5 +1,6 @@
 extends "res://test/framework/test_case.gd"
-## ADR1213 Room-station planner over the ADR1161 Room geometry (2x2 level-1 Kitchen, 16 cubes, old Corridor).
+## ADR1213 Room-station planner over the ADR1161 Room geometry (2x2 level-1 Kitchen, old Corridor). DEC-054 clamps the
+## painted 4 m to the 2 m the published WORK rows dig from the floor, so the Kitchen has 8 cubes.
 ## The literal v3 fixture keeps its historical content; the loop fixture swaps in the mounted content-6 rows only.
 ## Every plan is proved by the actual publish_into, contact_into and paid phase owners; nothing is injected.
 
@@ -10,6 +11,7 @@ const Itinerary := preload("res://scripts/core/underground_room_itinerary.gd")
 const Publication := preload("res://scripts/core/underground_room_frontier_publication.gd")
 const Frontier := preload("res://scripts/core/underground_room_frontier.gd")
 const Face := preload("res://scripts/core/underground_work_face.gd")
+const Approach := preload("res://scripts/core/underground_room_approach.gd")
 const MoleCatalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
 const StonePins := preload("res://data/underground/mole-worker/qualified-stone-v7/catalog_source.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
@@ -21,7 +23,7 @@ const Budget := preload("res://scripts/core/underground_budget.gd")
 const Sites := preload("res://scripts/core/excavation_sites.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const CONTENT: int = MoleCatalog.CONTENT_REVISION
-const KITCHEN_SITES: int = 16
+const KITCHEN_SITES: int = 8 # DEC-054: 2 x 2 x the two reachable levels.
 const YAW_PLUS_X: int = 49152
 
 
@@ -406,10 +408,9 @@ func test_adr1161_v3_fixture_lateral_publishes_but_its_ground_leg_cannot_hand_of
 	candidate = _candidate(room, cold, 2048, 0, 1024)
 	assert_equal(Frontier.contact_into(_h.provider, candidate, _h._first, 5, 1, cold, Space.MAX_CHECKS, contact), &"", "actual contact")
 	assert_equal(contact.location, result.work, "the planned WORK row")
-	for cube: Vector3i in [Vector3i(2048, 1024, 0), Vector3i(3072, 0, 0), Vector3i(2048, 2048, 0)]:
+	for cube: Vector3i in [Vector3i(2048, 1024, 0), Vector3i(3072, 0, 0)]:
 		var out: Publication.Request = _sentinel()
-		var expected: StringName = Planner.REFUSE_CLOSED if cube.y < 2048 else Planner.REFUSE_REACH
-		assert_equal(_plan(room, cold, cube.x, cube.y, cube.z, out), expected, "v3 %s" % cube)
+		assert_equal(_plan(room, cold, cube.x, cube.y, cube.z, out), Planner.REFUSE_CLOSED, "v3 %s" % cube)
 		_assert_sentinel(out, "v3 refusal")
 	candidate = null
 	assert_equal(_h._budget.release(cold), &"", "no retained lease")
@@ -437,7 +438,7 @@ func _assert_v3_ground_handoff_refused(result: Publication.Result) -> void:
 
 
 func test_room_loop_digs_both_lower_levels_with_exact_ledgers() -> void:
-	"""Content 6 with per-motion air: all eight level-0/1 cubes are paid; levels 2-3 name the missing reach."""
+	"""Content 6 with per-motion air and the DEC-054 height: all eight cubes are paid, with no refusal left."""
 	var fixture: StepFixture = StepFixture.new()
 	_h = fixture
 	var room: Vector2i = fixture.confirmed_room()
@@ -452,8 +453,7 @@ func test_room_loop_digs_both_lower_levels_with_exact_ledgers() -> void:
 			Vector3i(3072, 0, 0), Vector3i(3072, 0, 1024), Vector3i(3072, 1024, 0), Vector3i(3072, 1024, 1024)]:
 		expected.append(_key(sites, cube.x, cube.y, cube.z))
 	assert_equal(fixture.completed, expected, "paid cubes in loop order")
-	assert_equal(fixture.refusals.size(), KITCHEN_SITES - 8, "one refusal per unpaid Site")
-	for key: int in fixture.refusals: assert_equal(fixture.refusals[key], Planner.REFUSE_REACH, "levels 2-3: no anchor that high")
+	assert_equal(fixture.refusals.size(), 0, "the whole clamped Kitchen digs")
 	_assert_ledgers(fixture, 8)
 	var stations: int = 0
 	for count: int in fixture.published: stations += count
@@ -576,3 +576,26 @@ func _assert_step_rows_decide_the_upper_reason(fixture: StepFixture, room: Vecto
 	flags[at + 10] = original[0]; flags[at + 11] = original[1]
 	assert_equal(_plan(room, cold, 2048, 1024, 0, out), &"", "restored rows plan the step chain")
 	assert_equal(fixture._budget.release(cold), &"", "lease released")
+
+
+func test_confirmation_refuses_a_height_no_floor_station_digs() -> void:
+	"""DEC-054: content 6 digs 2,048u from the floor; the painted 4 m refuses unclaimed, the clamp claims 8 Sites only."""
+	var fixture: StepFixture = StepFixture.new()
+	_h = fixture
+	fixture.location_capacity = 64; fixture.edge_capacity = 128
+	fixture._actual_fixture(); fixture.connect_source_paths(); fixture.finite_stock_and_worker()
+	if not fixture.failures.is_empty(): return
+	assert_equal(Approach.reachable_height_u(fixture._profiles, 27), 2048, "FRONT 707u and HIGH 1039u: levels 0-1")
+	assert_equal(Approach.reachable_height_u(fixture._profiles, 33), 0, "the haul identity publishes no dig row")
+	assert_equal(Approach.reachable_height_u(fixture._profiles, 99), 0, "an absent row reaches nothing")
+	var painted: Phase.Approach.Request = fixture.room_request()
+	assert_equal(painted.height_u, 2048, "the fixture clamps its painted 4 m")
+	var sites: int = fixture.sites._count
+	painted.height_u = 4096
+	var refused: Phase.Buildings.OpResult = fixture.orders.confirm_room(painted)
+	assert_false(refused.ok, "the painted 4 m is not confirmed")
+	assert_equal(refused.error, Approach.REFUSE_HEIGHT, "named: the upper band is unreachable")
+	assert_equal(fixture.sites._count, sites, "nothing above the band is claimed")
+	assert_true(fixture.orders.confirm_room(fixture.room_request()).ok, "the clamped Kitchen confirms")
+	assert_equal(fixture.sites._count, sites + KITCHEN_SITES, "8 Kitchen Sites, none above 2,048u")
+	assert_equal(fixture.sites.site_at(Vector3i(Phase.X + 2048, Phase.FLOOR + 2048, Phase.Z)), NULL_REF, "no level-2 Site")

@@ -386,11 +386,13 @@ class SourceFixture extends Fixture:
 		request.world = _world_ref; request.space_revision = _owner.revision()
 		request.room_type = Buildings.ROOM_TYPE_KITCHEN; request.level = 1
 		request.origin_u = Vector3i(X + 2048, FLOOR, Z)
-		request.height_u = 4096; request.cell_size_u = 1024
+		request.cell_size_u = 1024
 		request.cells = PackedInt32Array([0, 0, 1, 0, 0, 1, 1, 1])
 		request.access = _first; request.work_location = _last
 		request.travel_profile = 5; request.travel_revision = 1
 		request.work_profile = 24; request.work_revision = 1; request.content_revision = 2
+		# DEC-054: the painted 4 m is clamped to the band the published WORK rows dig from the floor (2 m today).
+		request.height_u = mini(4096, Approach.reachable_height_u(_profiles, request.work_profile))
 		request.target_origin = request.origin_u; request.face = 0; request.yaw = 49152
 		return request
 

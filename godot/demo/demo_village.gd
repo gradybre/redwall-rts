@@ -303,6 +303,7 @@ const DaylightCurves := preload("res://demo/world/daylight_curves.gd")
 const HearthFuelScript := preload("res://demo/winter/hearth_fuel.gd")
 const HallScript := preload("res://demo/hall/demo_hall.gd")
 const WildlifeScript := preload("res://demo/wildlife/wildlife_view.gd")
+const WeatherFxScript := preload("res://demo/weather/weather_fx.gd")
 const TapestryScript := preload("res://demo/hall/tapestry.gd")
 const CareScript := preload("res://demo/infirmary/demo_care.gd")
 const OrchardScript := preload("res://demo/orchard/demo_orchard.gd")
@@ -416,6 +417,8 @@ var _night_lights: NightLightsScript = null
 var _hall: HallScript = null
 ## The ambient wildlife (demo/wildlife/, decision 1631): presentation only, no simulation rows.
 var _wildlife: WildlifeScript = null
+## The livelier weather (demo/weather/weather_fx.gd, decision 1632): lightning, the storm's work factor, event notices.
+var _weather_fx: WeatherFxScript = null
 var _care: CareScript = null
 ## Feature #22 (decision 0681): the foraging trips.
 var _forage: ForageNodeScript = null
@@ -471,6 +474,7 @@ func _ready() -> void:
 	_build_chronicle()
 	_build_hall()
 	_build_wildlife()
+	_build_weather_fx()
 	_skin_hud.call_deferred()
 	add_child(WindowKeysScript.new())
 	_hold_restart_open()
@@ -486,6 +490,14 @@ func _build_wildlife() -> void:
 	_wildlife = WildlifeScript.new()
 	add_child(_wildlife)
 	_wildlife.wire(_services, _cast as DemoCastScript, _prewarm)
+
+
+func _build_weather_fx() -> void:
+	"""The livelier weather (demo/weather/weather_fx.gd, decision 1632): the storm's lightning over the world's trees and
+	open ground, its factor on the village's work pace, and the §5.10 events' notices."""
+	_weather_fx = WeatherFxScript.new()
+	add_child(_weather_fx)
+	_weather_fx.wire(_services, _cast as DemoCastScript, _world as DemoWorldScript, _forestry.stand.state_of)
 
 
 func _warm_and_open() -> void:

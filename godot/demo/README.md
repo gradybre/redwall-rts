@@ -2534,6 +2534,34 @@ contract's "no active fauna"). Nobody can select, feed or hunt them (REQ-ADM-001
 - **Not staged** (CI), each is a rounded stand-in of its size and colour, so the suites test the same logic.
 - The live harness: `godot --path godot --script res://test/live/demo_wildlife_live.gd -- --size 1920x1080 --capture <dir>`.
 
+## Livelier weather (decision 1632; feature #34)
+
+Each of GDD §5.10's seven events is shown and felt by its numbers (`weather/weather_fx.gd`, `event_look.gd`,
+`weather_events.gd`, `storm_pace.gd`). The forecast says the event, its first day, its length and what it does
+(REQ-SET-142); the village is told when it begins and when it is over.
+
+| Event | Applied | Shown |
+|---|---|---|
+| Storm (heavy rain) | rain +2000, 3 °C colder; boats stay at the jetty; **outdoor work at 80%** | driven rain, a dark sky, **lightning** over the trees and open ground |
+| Drought | 30 °C, no rain, beds dry faster; orchards want water | the grass parched straw-brown, a heat haze |
+| Blight | crops lose 400 health a day | the farm's blighted beds |
+| Early frost | -3 °C, frost on the beds | a rime lying all its days |
+| Hard freeze | -12 °C; outdoor cold twice as fast; no boat leaves | a heavy hoar frost, a freezing mist, a low cold sun |
+| Calm days | nothing (an announced safe interval) | the notice |
+| Ideal spell | 18 °C, crops grow 20% faster, gentle rain | a little brighter |
+
+- **The storm's 80%** is one factor, "storm", on the village's work pace: residents outdoors on a storm day, not those
+  inside a building or below ground. The woods' and the bridge builders' own storm slowdowns are gone (they counted it
+  for themselves only).
+- **Lightning** strikes a standing tree or open ground near where the camera looks -- never a building (the village's,
+  the mill, the boathouse, the shelter, the weir, anything the player has built), the water or within 6 m of a resident
+  -- every 5-12 demo seconds while a storm day rains. A struck tree's foot smoulders briefly and the rain puts
+  it out; nothing burns down (GDD §5.9: no structure fire in release 1).
+- **Photosensitivity**: the flash runs in real time at any game speed, strikes are at least 3 real seconds apart, and
+  with **reduced motion** each strike is one soft swell.
+- **Paused**, a strike holds still and nothing new strikes.
+- The live harness: `godot --path godot --script res://test/live/demo_weather_live.gd -- --size 1920x1080 --capture <dir>`.
+
 ## Layout
 
 | Folder | Owns |

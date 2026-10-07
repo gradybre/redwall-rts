@@ -503,5 +503,8 @@ refused onto the narrow contact.
    refusals: upper near (envelope), deep (1036u travel body under solid upper), levels 2–3 (no anchor above
    1039u). All 16 wait on ADR 1213's items 1–3. Phase route requalification costs about 10.3k checks per edge,
    so a full Kitchen needs station-chain retirement first.
+   **ADR 1215/1220:** 8 of 16 paid; levels 2–3 refuse `ROOM_STATION_BENCH_ASCENT_MISSING`. Brendan's earth-bench
+   choice cannot be carried by published rows (no climb; HIGH rows enter the cube under their target, so no bench
+   can exist), so a 4 m Kitchen waits on his choice among ADR 1220's options.
 7. Delivery pinning for Room Projects and underground spoil/input logistics.
 8. Live demo: one G9 alert code per missing row until each lands.

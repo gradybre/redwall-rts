@@ -1,6 +1,6 @@
 # 1213 — Room-station planner: two of sixteen Kitchen cubes are reachable, and why the other fourteen are not
 
-Date: 2026-10-06 · Status: Accepted (ADR 1202 Kitchen scope, step 5 groundwork and a test-level step 6). **Updated 2026-10-07: with ADR 1215 the loop digs 8 of 16 cubes (see the last section).**
+Date: 2026-10-06 · Status: Accepted (ADR 1202 Kitchen scope, step 5 groundwork and a test-level step 6). **Updated 2026-10-07: with ADR 1215 the loop digs 8 of 16 cubes (see the last section). ADR 1220: levels 2–3 now refuse `ROOM_STATION_BENCH_ASCENT_MISSING`; no whole-cube earth bench is possible with the published rows.**
 Independent of the stair data (ADR 1209). Coordinates below are relative to the ADR 1161 fixture datum
 (x from `X`, y from the Corridor floor, z from `Z`; heading +X is yaw 49152).
 
@@ -207,3 +207,15 @@ reaches above 1039u, and no standing datum exists at those heights.
 
 Route checks still cost roughly 10k per edge. A full 16-cube Kitchen, once levels 2–3 have content, still needs
 station retirement or a cheaper carry before about 94 edges.
+
+## Update 2026-10-07 (ADR 1220): earth benches
+
+The eight cubes at levels 2–3 now refuse `ROOM_STATION_BENCH_ASCENT_MISSING` instead of `REACH_MISSING`.
+`bench_into` names each cube's bench rise and WORK row: 1,024 u for level 2 and 2,048 u for level 3, both on
+HIGH 26. Content 6 has no climbing row.
+
+ADR 1220 also shows two things:
+- with a free 1,024 u climb, still no bench can exist, because HIGH rows enter the cube under their target;
+- benches would need new content, the M2 constraint and bench footing.
+
+Budgets and edges are unchanged at 40 edges, so no station retirement was needed.

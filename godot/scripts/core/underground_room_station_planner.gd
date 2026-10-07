@@ -46,6 +46,12 @@ const REFUSE_GROUND: StringName = &"ROOM_STATION_GROUND_SOURCE_MISSING"
 const REFUSE_STEP: StringName = &"ROOM_STATION_SHORT_STEP_MISSING"
 const REFUSE_ENVELOPE: StringName = &"ROOM_STATION_LOCATION_ENVELOPE"
 const REFUSE_CHAIN: StringName = &"ROOM_STATION_CHAIN_CAPACITY"
+## ADR1220 earth benches: a WORK row reaches the cube only from a bench top a whole number of cubes above the Room
+## floor, and no published travel row of the retreat row's identity climbs (no certified MODE_CLIMB row).
+const REFUSE_BENCH_ASCENT: StringName = &"ROOM_STATION_BENCH_ASCENT_MISSING"
+## ADR1220: a climbing row exists, but a bench top has no published footing (an unpaid Kitchen cube is a Room
+## reservation marker, not SUPPORT) and no FLOOR_DATUM section at the bench rise to plan stations on.
+const REFUSE_BENCH_FOOTING: StringName = &"ROOM_STATION_BENCH_FOOTING_MISSING"
 ## Refusal precedence: the most advanced failure over every work row and root candidate is reported.
 const RANKED: Array[StringName] = [REFUSE_REACH, REFUSE_CLOSED, REFUSE_SECTION, REFUSE_GROUND, REFUSE_STEP,
 	REFUSE_ENVELOPE, REFUSE_CHAIN]
@@ -99,6 +105,8 @@ class Query extends RefCounted:
 	var remaining: int = 0
 	var rank: int = -1
 	var exhausted: bool = false
+	var bench: int = -1 # ADR1220: smallest whole-cube bench rise from which some eligible WORK row reaches the cube.
+	var bench_work: int = -1
 
 
 const VOID: int = 0
@@ -110,21 +118,46 @@ const SECTION: int = 3
 static func plan_into(actual: Provider, candidate: Frontier.Candidate, face: int, yaw: int,
 		cold: int, max_checks: int, out: Publication.Request) -> StringName:
 	"""Derive one bounded station chain for the candidate Site; every refusal leaves the caller Request unchanged."""
+	var q: Query = Query.new()
+	var code: StringName = _open(q, actual, candidate, face, yaw, cold, max_checks,
+		out != null and out.get_script() == Publication.Request)
+	if code == &"": code = _plan(q)
+	if code == &"": _output(q, out)
+	return code
+
+
+static func bench_into(actual: Provider, candidate: Frontier.Candidate, face: int, yaw: int,
+		cold: int, max_checks: int, out: PackedInt32Array) -> StringName:
+	"""ADR1220: the smallest whole-cube bench rise, its WORK row and the climbing row ([rise, work, climb], -1 when
+	absent) for a cube no floor station reaches. A floor-reachable cube writes rise 0; refusals write nothing."""
+	var q: Query = Query.new()
+	var code: StringName = _open(q, actual, candidate, face, yaw, cold, max_checks, out.size() == 3)
+	if code != &"": return code
+	for row: int in q.profiles._live.header[1]:
+		if not _spend(q, 8): return REFUSE_CAPACITY
+		if not _work_row(q, row): continue
+		if _reaches(q):
+			q.bench = 0; q.bench_work = row; break
+		_bench_note(q, row)
+	out[0] = q.bench; out[1] = q.bench_work; out[2] = _climb_row(q) if q.bench > 0 else -1
+	return &""
+
+
+static func _open(q: Query, actual: Provider, candidate: Frontier.Candidate, face: int, yaw: int,
+		cold: int, max_checks: int, out_ok: bool) -> StringName:
+	"""Shared scope, lease and candidate validation, then the bound sources, gateway and hull regions."""
 	var code: StringName = Frontier._guard(actual, cold, CONTROL_BYTES, max_checks)
 	if code != &"": return code
-	if candidate == null or candidate.get_script() != Frontier.Candidate or out == null \
-			or out.get_script() != Publication.Request or face < 0 or face > 5 or yaw < 0 or yaw > 65535: return REFUSE_SCOPE
+	if candidate == null or candidate.get_script() != Frontier.Candidate or not out_ok or face < 0 or face > 5 \
+			or yaw < 0 or yaw > 65535: return REFUSE_SCOPE
 	code = Frontier._candidate_leaf(actual, candidate, cold)
 	if code != &"": return code
 	if candidate.project != NULL_REF or candidate.operation != Contract.OP_BRACE: return REFUSE_SCOPE
 	if face == 2 or face == 3: return REFUSE_VERTICAL # Roots are planned on the Room floor against side faces only.
-	var q: Query = Query.new()
 	_hold(q, actual, candidate, face, yaw, max_checks)
 	code = _sources(q, actual)
 	if code == &"": code = _gateway(q, actual)
 	if code == &"": code = _regions(q)
-	if code == &"": code = _plan(q)
-	if code == &"": _output(q, out)
 	return code
 
 
@@ -301,11 +334,32 @@ static func _plan(q: Query) -> StringName:
 		if not _spend(q, 8): return REFUSE_CAPACITY
 		if not _work_row(q, row): continue
 		q.work = row
-		if not _reaches(q): continue
+		if not _reaches(q):
+			_bench_note(q, row); continue
 		_note(q, 1)
 		if _try_row(q): return &""
 		if q.exhausted: return REFUSE_CAPACITY
+	if q.rank <= 0 and q.bench > 0: return REFUSE_BENCH_ASCENT if _climb_row(q) < 0 else REFUSE_BENCH_FOOTING
 	return RANKED[maxi(q.rank, 0)]
+
+
+static func _bench_note(q: Query, row: int) -> void:
+	"""ADR1220: the smallest positive whole-cube stance rise putting this row's anchor strictly inside the cube band."""
+	var need: int = int(q.origin.y) - q.start.y - q.anchor.y # Stance offset at which the anchor meets the cube floor.
+	if need < 0: return
+	@warning_ignore("integer_division") var rise: int = (need / Contract.QUANTUM_SIDE_U + 1) * Contract.QUANTUM_SIDE_U
+	if rise - need >= Contract.QUANTUM_SIDE_U or (q.bench > 0 and rise >= q.bench): return
+	q.bench = rise; q.bench_work = row
+
+
+static func _climb_row(q: Query) -> int:
+	"""The first certified MODE_CLIMB row with the retreat row's actor/tool/cargo identity, or -1."""
+	for row: int in q.profiles._live.header[1]:
+		if q.profiles._live.flags[row] != Profiles.CERT_REQUIRED or _field(q, row, Profiles.F_MODE) != Profiles.MODE_CLIMB: continue
+		var same: bool = true
+		for field: int in IDENTITY_FIELDS: same = same and _field(q, row, field) == _field(q, q.backward, field)
+		if same: return row
+	return -1
 
 
 static func _note(q: Query, rank: int) -> void:

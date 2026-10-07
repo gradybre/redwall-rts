@@ -451,7 +451,7 @@ func _the_occasion_goals_read_the_real_counts(page: Control) -> void:
 	_check("First crossing reads the scene's ferry", village.get("ferry") == _village.call(&"ferry").get("ferry")
 		and crossing.contains("Ferry crossings rowed home:"), crossing.replace("\n", " | "))
 	_check("Regatta day reads the scene's regatta", village.get("regatta") == _village.call(&"regatta").get("regatta")
-		and regatta.contains("Regattas held:"), regatta.replace("\n", " | "))
+		and regatta.contains("Regatta feasts eaten:"), regatta.replace("\n", " | "))
 
 
 func _occasion_title() -> Label:

@@ -208,7 +208,26 @@ list from the recipe rows so it cannot drift**.
 
 Tests: `test_demo_new_recipes.gd` pins every pantry item's rows (all 42) and sweeps every pantry item -- each row that
 takes it must be named as "<good> at <station>" and linked in its guide entry, and on its crop card when it is a crop;
-no guide entry links an id twice. The live harness checks the
+no guide entry links an id twice.
+
+Gates for the follow-up (2026-10-07):
+- **CI-style full suite** on a clean checkout of `07eaa6fb`, with no assets and `.godot` re-imported:
+  `9296 test(s), 649618 assertion(s), 0 failure(s)` ·
+  `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 371 tolerated; leaked at exit: 0 object(s), 0 resource(s)` ·
+  `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).`
+- **Analyzer and contracts:** `0 GDScript warning(s) in 0 of 1053 file(s)`; decision_numbers PASS (337).
+- **Live harness:** `LIVE-SUMMARY 38 0` at 1280x720 and 1920x1080. The `crop_picker_*` frames show the radish's Uses
+  ending "the preserving table (pickles), eaten raw in a pinch".
+  - With the art staged, a run sometimes ends with "3–5 resources still in use at exit". The pre-follow-up harness
+    shows the same with the art staged, and no run without the art shows it (6 of 6 clean), so it is not this work's.
+- **Mutation:**
+  - 13 mutants on `rows_taking`, the card, the guide and the orchard text: 12 killed. One survivor was killed by an
+    added test (a good no dish cooks); the other (`rows_taking`'s `break`) is equivalent on today's rows.
+  - 6 mutants on the review fixes: 5 killed. The survivor (the row-mates wording) was killed by an added test.
+- **Independent review** (`code-reviewer`, twice, waited for): no CRITICAL or HIGH.
+  - First review: the MEDIUMs were fixed in `1c8932bb` (the sweep now asserts "<good> at <station>", row-mates
+    wording, the raw clause as its own sentence, links deduplicated and guarded).
+  - Re-review: no MEDIUM. Its LOWs were fixed in `07eaa6fb`; the mill's absence from the grain guide is noted above. The live harness checks the
 picker's radish and barley lines and captures `crop_picker_*`.
 
 ## Source

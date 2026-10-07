@@ -91,3 +91,5 @@ Brendan chose to fix it at the source, for every use. The successor `stand-walk-
 by the smallest whole-degree constant that separates every pair. It re-authors the wood and stone joins by their
 accepted recipe from the corrected ready key. Rows 30/31 and the v8/v9 images are unchanged until a content
 successor carries it.
+
+**Brendan approved the successor on 2026-10-07** (11° left, 13° right, as authored).

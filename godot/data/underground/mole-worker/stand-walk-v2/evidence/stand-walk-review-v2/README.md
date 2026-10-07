@@ -88,3 +88,7 @@ These are painter renders on the closed paw (rows 30/31's body), not native capt
 
 Each was hash-checked by the tools and removed afterwards. `tests.log` holds `../../test_stand_walk_v2.py`:
 5 tests, including a byte-identical rebuild.
+
+## Brendan's review (2026-10-07): **approved as is**
+
+The 11° / 13° swing is approved. The content successor that carries the claw rows also carries these clips.

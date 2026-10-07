@@ -241,3 +241,9 @@ accepted recipe from the corrected ready key.
 
 **Row consequence.** The all-yaw STAND/WALK body sweep grows from 651 to 712 u, still within ground row 12's 738.
 It is carried only by the content successor.
+
+### Brendan's review of step 1c (2026-10-07): **approved as is**
+
+Brendan reviewed `overview.png`, `walk.png` and `paws.png` and approved the 11° (left) and 13° (right) swing. The
+corrected stand, walk and joins are carried by the content successor with the claw rows. Next: paw handling and seating
+of the L0/T0 bearers (step 2).

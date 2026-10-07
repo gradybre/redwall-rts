@@ -1,0 +1,315 @@
+{
+  "approved": {
+    "lean_degrees": 40,
+    "drop_u": 64,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+  },
+  "trail": [
+    {
+      "recipe": {
+        "lean_degrees": 40,
+        "drop_u": 64,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 30,
+        "drop_u": 64,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": true,
+      "folder": "attempt-01",
+      "clear": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 40,
+        "drop_u": 32,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": true,
+      "folder": "attempt-02",
+      "clear": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 40,
+        "drop_u": 96,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 50,
+        "drop_u": 64,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 20,
+        "drop_u": 64,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": true,
+      "folder": "attempt-05",
+      "clear": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 30,
+        "drop_u": 32,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": true,
+      "folder": "attempt-06",
+      "clear": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 30,
+        "drop_u": 96,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 40,
+        "drop_u": 0,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": true,
+      "folder": "attempt-08",
+      "clear": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 50,
+        "drop_u": 32,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 50,
+        "drop_u": 96,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 60,
+        "drop_u": 64,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 10,
+        "drop_u": 64,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": true,
+      "folder": "attempt-12",
+      "clear": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 20,
+        "drop_u": 32,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 20,
+        "drop_u": 96,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": true,
+      "folder": "attempt-14",
+      "clear": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 30,
+        "drop_u": 0,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 50,
+        "drop_u": 0,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 60,
+        "drop_u": 32,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 60,
+        "drop_u": 96,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 0,
+        "drop_u": 64,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 10,
+        "drop_u": 32,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 10,
+        "drop_u": 96,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": true,
+      "folder": "attempt-21",
+      "clear": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 20,
+        "drop_u": 0,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 60,
+        "drop_u": 0,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 0,
+        "drop_u": 32,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 0,
+        "drop_u": 96,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": true,
+      "folder": "attempt-25",
+      "clear": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 10,
+        "drop_u": 0,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": false
+    },
+    {
+      "recipe": {
+        "lean_degrees": 0,
+        "drop_u": 0,
+        "head_lift_degrees": 60,
+        "right_roll_degrees": 90,
+        "left_roll_degrees": 90
+      },
+      "reachable": false
+    }
+  ],
+  "producer_sources": {
+    "godot/data/underground/mole-worker/claw-work-v1/prove_tread_seat.py": "1810e63e1974c301703dcb91c23fc89fc1d6cffc2e726ddd2ae027fc4ba14e08",
+    "godot/data/underground/mole-worker/claw-work-v1/author_paw_seat.py": "2d8146588f9ea5dc15ee698b4442ea8acda8075c8ad672a6624d845247c6b778",
+    "godot/data/underground/mole-worker/claw-work-v1/prove_paw_seat.py": "8298cbcd25ca18caeea4f55b0b07baaa9f77938c542282a70dbd737f7a110bc6",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_tread_install.py": "5b00fcc8b0af1c3e369dc7778ba4b6b8fa89285f3d4700dcb25c570d8adb971f"
+  }
+}

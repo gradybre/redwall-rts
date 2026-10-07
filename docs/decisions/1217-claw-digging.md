@@ -283,3 +283,38 @@ Brendan approved paw seating candidate a (overview, motion and hands) and chose 
 separate motions**, as authored: the handling seat replaces row 29 and the seating tap replaces the INSTALL tap.
 Next: per-tread paw seating (re-proved per tread), then native capture, then the claw rows with the Frontier
 successor at 1,430 u, then the content successor carrying the corrected stand and walk, then the runtime switch.
+
+## Step 2b — paw seating of the treads: stopped, the tread station needs Brendan's choice
+
+`claw-work-v1/prove_tread_seat.py` re-authors the approved paw motion at ADR 1209's tread site and proves it with
+step 2's provers, unchanged. The site is the station-local fixture with the station 310 u behind T_{k−1}'s far
+edge. The workpiece is T_k's bearer across T_{k−1}'s forward edge, z ∈ [−310, −182]; its top is at y = 128, or 64
+for the T6 sill. `author_paw_seat` gained a `site` parameter with the L0/T0 bearer as the default, and the L0/T0
+candidate still rebuilds byte for byte.
+
+**Finding: from this station the paws cannot seat a tread without pressing into the mole's own legs.**
+
+- The bearer lies 182–310 u ahead of the station, at the knees. (ADR 1209's station range of 296–323 u comes from
+  the ready body's front and the riser behind, so the station cannot move back.)
+- **The approved recipe does not reach** (`STEP_LEG_REACH`): the work point is too close for the arm.
+- **The nearest-first search** over lean and hip drop (head lift and palm rolls kept) found 9 reachable recipes.
+  All 9 fail exact self-clearance at both the tread and the sill: paws and forearms against the thighs and shins
+  (`evidence/tread-seat-probe-v1/`).
+- **A wider float scan** (lean 0–50°, drop 0–96 u, paws at ±128…±224, rolls 0/90/270) gives a largest gap between
+  pure-arm vertices and thigh/shin vertices of 11.4 u, across 219 reachable poses. No pose keeps the arms clear of
+  the legs.
+- The pick reached the bearer on a long handle; paws cannot.
+
+**Options for Brendan:**
+
+1. **Recommended: seat the tread side-on.** The mole stands on T_{k−1} turned a quarter, beside the bearer, so the
+   bearer lies at the paws' natural reach (about 450 u), as the L0/T0 bearers do. This needs a derived station on
+   the 512 u-deep tread with its own proofs: stance on the deck, riser clearance, the turn, and the half-turn and
+   reposition ADR 1209 step 5 already plans to prove.
+2. **Seat from T_k's own position.** Lay T_k's bearers first and fit them standing on the trench floor or a
+   staging step. This is not supported: the floor is up to 896 u below and nothing stands there yet.
+3. **Different staging of the bearer,** for example delivered further out on a temporary support. This needs new
+   structure data, which nothing published provides.
+
+L0/T0 are unaffected. The rest of ADR 1217's order (native capture, claw rows with the Frontier successor at
+1,430 u, the content successor, the runtime switch) does not depend on the treads.

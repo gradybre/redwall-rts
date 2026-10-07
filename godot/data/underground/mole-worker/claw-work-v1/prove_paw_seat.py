@@ -38,7 +38,6 @@ V4_SPEC = importlib.util.spec_from_file_location(
     "paw_install_fixtures", SRC.I.PROOF / "install-source-proof-v4/prove_candidate.py")
 V4 = importlib.util.module_from_spec(V4_SPEC)
 V4_SPEC.loader.exec_module(V4)
-SKIN_TOP_U = SEAT.PLANE_U - SEAT.TAP_DEPTH_U - 1
 PARTS = ("work", "entry", "recovery")
 
 
@@ -69,13 +68,14 @@ def pair_refusal(tri_low, tri_high, box, skin, paw, counter) -> bool:
     return not T.separated_box(tri_low, tri_high, box, counter)
 
 
-def world(src: dict, case: dict, fixture: dict, sets: dict) -> dict:
+def world(src: dict, case: dict, fixture: dict, sets: dict, plane: int = SEAT.PLANE_U) -> dict:
     """Every triangle against every solid on every interval; sole support on solid 0."""
     keys, padding, _ = ONE.hulls(src, case)
     boxes = [np.asarray(b, dtype=np.int64) * Q for b in fixture["solids_u"]]
     target = fixture["workpiece_solid"]
     skin = boxes[target].copy()
-    skin[4] = SKIN_TOP_U * Q
+    skin_top = plane - SEAT.TAP_DEPTH_U - 1
+    skin[4] = skin_top * Q
     triangles, counter, cache = src["triangles"], [0], {}
     exact = lambda frame, vertex: cache.setdefault((frame, vertex), T.exact_source_y(src["body"], case, frame, vertex))
     unresolved, pairs, soles, contacts = [], 0, 0, 0
@@ -101,19 +101,19 @@ def world(src: dict, case: dict, fixture: dict, sets: dict) -> dict:
                 if len(unresolved) >= T.MAX_UNRESOLVED:
                     return {"clear": False, "unresolved": unresolved, "stopped_at_limit": True}
     return {"clear": not unresolved, "unresolved": unresolved, "pairs": pairs, "numerical_sole_pairs": soles,
-            "paw_resting_on_bearer_pairs": contacts, "checks": counter[0], "skin_top_u": SKIN_TOP_U}
+            "paw_resting_on_bearer_pairs": contacts, "checks": counter[0], "skin_top_u": skin_top}
 
 
-def contact(src: dict, case: dict, record: dict) -> dict:
+def contact(src: dict, case: dict, record: dict, plane: int = SEAT.PLANE_U) -> dict:
     """Each palm vertex's one downward crossing of the top plane, with anchor and patch (plane shifted to 0)."""
-    shifted = dict(case, grounding=(case["grounding"] - np.float32(SEAT.PLANE_U / 1024)).astype(np.float32))
+    shifted = dict(case, grounding=(case["grounding"] - np.float32(plane / 1024)).astype(np.float32))
     keys, padding, _ = ONE.hulls(src, shifted)
     result = {}
     for side, vertex in record["palm_vertices"].items():
         row = ONE.claw_contact(src, shifted, vertex, keys, padding)
-        row["anchor_u"][1] += SEAT.PLANE_U
-        row["patch_u"][1] += SEAT.PLANE_U
-        row["patch_u"][4] += SEAT.PLANE_U
+        row["anchor_u"][1] += plane
+        row["patch_u"][1] += plane
+        row["patch_u"][4] += plane
         result[side] = row
     return result
 

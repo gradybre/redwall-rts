@@ -45,6 +45,7 @@ STAND_V2 = SRC.MOLE / "stand-walk-v2/evidence/stand-walk-v2"
 PLANE_U = 128  # The fastening contact plane: the bearer's top (row 16, ADR 1116).
 CONTACT = {"right": np.array([128., PLANE_U, -448.]), "left": np.array([-128., PLANE_U, -448.])}
 SECTION = np.array([-192, 0, -512, 256, PLANE_U, -384])  # Both bearers' common station-local section.
+BEARER = {"name": "bearer", "plane": PLANE_U, "contact": CONTACT, "section": SECTION}
 TAP_RAISE_U, TAP_DEPTH_U, TAP_KEYS = 80, 2, 17  # The accepted tap: 208 → 126 about plane 128, 17 keys.
 PALM_DOWN_TILT = 90
 ENTRY_LIFT_U = 128  # The accepted handling entry raises the paw 128 u over its contact (`clear_entry`)
@@ -149,16 +150,16 @@ def stroke_frames(src: dict, recipe: dict) -> tuple:
     return base, rotations, vertices
 
 
-def tap_heights() -> list:
+def tap_heights(site: dict = BEARER) -> list:
     """33 contact heights: the accepted tap's 17 lowering keys, mirrored."""
     down = []
     for key in range(TAP_KEYS):
         share = key / (TAP_KEYS - 1)
-        down.append(PLANE_U + TAP_RAISE_U - (TAP_RAISE_U + TAP_DEPTH_U) * share * share * (3 - 2 * share))
+        down.append(site["plane"] + TAP_RAISE_U - (TAP_RAISE_U + TAP_DEPTH_U) * share * share * (3 - 2 * share))
     return down + down[-2::-1]
 
 
-def seat_offsets(src: dict, recipe: dict) -> tuple:
+def seat_offsets(src: dict, recipe: dict, site: dict = BEARER) -> tuple:
     """Per paw, the height offset that rests its lowest skinned vertex over the bearer 1/512 u above the top (the accepted
     handling seat's own gap and 1/2048 u tolerance, `author_assembly.top_contact`), and that vertex."""
     base, rotations, vertices = stroke_frames(src, recipe)
@@ -166,32 +167,33 @@ def seat_offsets(src: dict, recipe: dict) -> tuple:
     geometry = src["body"]["geometry"][0]
     offsets, lowest = {side: 0. for side in PAIR.ARMS}, {}
     for _ in range(24):
-        targets = {s: np.array([CONTACT[s][0], PLANE_U + offsets[s], CONTACT[s][2]]) for s in PAIR.ARMS}
+        contact, plane, section = site["contact"], site["plane"], site["section"]
+        targets = {s: np.array([contact[s][0], plane + offsets[s], contact[s][2]]) for s in PAIR.ARMS}
         pose = solved(src, base, rotations, targets, palms)
         case = W.case_of([A.encoded(pose, src["inverse"])] * 2, src["grounding"], "seat")
         points = SRC.I.points_at(case, src["body"], 0)
         residual = {}
         for side in PAIR.ARMS:
             weighted = np.any((geometry["ids"] == PAIR.ARMS[side][2]) & (geometry["weights"] > 0), axis=1)
-            over = np.all((points[:, [0, 2]] > SECTION[[0, 2]]) & (points[:, [0, 2]] < SECTION[[3, 5]]), axis=1)
+            over = np.all((points[:, [0, 2]] > section[[0, 2]]) & (points[:, [0, 2]] < section[[3, 5]]), axis=1)
             paw = np.flatnonzero(weighted & over)
             require(len(paw) > 0, "PAW_SEAT_OFF_BEARER")
             lowest[side] = int(paw[np.argmin(points[paw, 1])])
-            residual[side] = PLANE_U + 1 / 512 - float(points[lowest[side], 1])
+            residual[side] = plane + 1 / 512 - float(points[lowest[side], 1])
         if max(abs(v) for v in residual.values()) <= 1 / 2048:
             return offsets, lowest
         offsets = {s: offsets[s] + residual[s] for s in PAIR.ARMS}
     raise ValueError("PAW_SEAT_CONTACT_CONVERGENCE")
 
 
-def program_keys(src: dict, recipe: dict, heights: list) -> tuple:
-    """Palettes for one stationary program whose lowest paw points sit at the given heights above CONTACT's x/z."""
+def program_keys(src: dict, recipe: dict, heights: list, site: dict = BEARER) -> tuple:
+    """Palettes for one stationary program whose lowest paw points sit at the given heights at the site's x/z."""
     base, rotations, vertices = stroke_frames(src, recipe)
     palms = {side: vertices[side][1] for side in PAIR.ARMS}
-    offsets, _ = seat_offsets(src, recipe)
+    offsets, _ = seat_offsets(src, recipe, site)
     palettes, first = [], None
     for height in heights:
-        targets = {side: np.array([CONTACT[side][0], height + offsets[side], CONTACT[side][2]])
+        targets = {side: np.array([site["contact"][side][0], height + offsets[side], site["contact"][side][2]])
                    for side in PAIR.ARMS}
         pose = solved(src, base, rotations, targets, palms)
         first = pose if first is None else first
@@ -238,23 +240,24 @@ def approach(start: np.ndarray, finish: np.ndarray, lead: float, raise_u: float)
     return above * (1 - share) + finish * share
 
 
-def program(src: dict, recipe: dict, name: str, heights: list) -> list:
+def program(src: dict, recipe: dict, name: str, heights: list, site: dict = BEARER) -> list:
     """[entry, work, recovery] for one program."""
-    palettes, first = program_keys(src, recipe, heights)
+    palettes, first = program_keys(src, recipe, heights, site)
     work = W.case_of(palettes, src["grounding"], f"mole_worker.paw_{name}.work_v1")
-    raise_u = max(0., ENTRY_LIFT_U - (heights[0] - PLANE_U))  # The tap starts 80 u up already: rise to 128 only.
+    raise_u = max(0., ENTRY_LIFT_U - (heights[0] - site["plane"]))  # The tap starts 80 u up already: rise to 128 only.
     into = entry(src, recipe, first, f"mole_worker.paw_{name}.entry_v1", raise_u)
     out = dict(into, id=f"mole_worker.paw_{name}.recovery_v1", matrices=into["matrices"][::-1].copy(),
                grounding=into["grounding"][::-1].copy())
     return [work, into, out]
 
 
-def author(src: dict, recipe: dict) -> dict:
+def author(src: dict, recipe: dict, site: dict = BEARER) -> dict:
     """Both programs: handling (`seat`) and seating (`tap`)."""
     for name, (low, high) in DOMAINS.items():
         require(type(recipe.get(name)) is int and low <= recipe[name] <= high, "PAW_SEAT_RECIPE_" + name.upper())
-    return {"seat": program(src, recipe, "seat", [float(PLANE_U), float(PLANE_U)]),
-            "tap": program(src, recipe, "tap", tap_heights())}
+    plane = float(site["plane"])
+    return {"seat": program(src, recipe, "seat", [plane, plane], site),
+            "tap": program(src, recipe, "tap", tap_heights(site), site)}
 
 
 def main() -> int:

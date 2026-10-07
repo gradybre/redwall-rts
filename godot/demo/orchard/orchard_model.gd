@@ -7,8 +7,9 @@ extends RefCounted
 ##
 ## THE DAY. `close_day(day, temperature_tenths)` runs at each midnight for the day just ended: every tree's §5.6 day
 ## (`apply_orchard_day`: age, -100 untended or +50 tended health in spring and summer, the winter chill count, the
-## harvested flag cleared on a year's first day), the hedge's §5.5 regrowth, and a nursery plan whose 12-day wait is
-## over gets its sapling.
+## harvested flag cleared on a year's first day), then the apiary's hives' (demo/hives/apiary_model.gd, decision 1601:
+## in this same store, so a healthy hive within 12 m pollinates a tree, REQ-SET-082), the hedge's §5.5 regrowth, and a
+## nursery plan whose 12-day wait is over gets its sapling.
 ##
 ## THE HARVEST, per tree and year: a MATURE tree (§5.6 age) gives its §5.6 yield once, in its window (the store's
 ## `harvest_orchard`, REQ-SET-079/080); a YOUNG tree at least a year old gives decision 0672's early yield (20% of the
@@ -24,6 +25,7 @@ const Hive := preload("res://scripts/core/orchard_hive.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
+const ApiaryScript := preload("res://demo/hives/apiary_model.gd")
 
 const NONE: int = -1
 const PLAN_FREE: int = 0
@@ -41,6 +43,8 @@ const REFUSE_NOT_ELIGIBLE: String = "NOT_ELIGIBLE"
 const LOOKAHEAD_YEARS: int = 5
 
 var store: Hive = null
+## The apiary's hives, in this same store so their pollination links reach the trees (decision 1601).
+var apiary: ApiaryScript = null
 ## The day `next_harvest_day` counts ahead from (the model's own today: moved on by `close_day`, and set by the demo node
 ## from the calendar).
 var today_hint: int = Hive.MIN_CALENDAR_DAY
@@ -97,6 +101,7 @@ func _init() -> void:
 	group_dest.fill(Rules.DEST_KEEPING)
 	group_keep[0] = Rules.KEEP_STEPS[1]
 	_plant_old_trees()
+	apiary = ApiaryScript.new(store, Hive.MIN_CALENDAR_DAY)
 
 
 func _plant_old_trees() -> void:
@@ -363,6 +368,7 @@ func close_day(day: int, temperature_tenths: int) -> void:
 	for site: int in Rules.SITE_COUNT:
 		if has_tree(site):
 			store.apply_orchard_day(site_ref[site], day, temperature_tenths)
+	apiary.close_day(day)
 	hedge_milli += Rules.berry_growth_milli(hedge_milli, Hive.season_of_day(day + 1))
 	for plan: int in Rules.MAX_PLANS:
 		if plan_state[plan] == PLAN_GROWING and plan_ready_day[plan] <= day + 1:

@@ -39,6 +39,7 @@ const RegattaRules := preload("res://demo/regatta/regatta_rules.gd")
 const WinterRules := preload("res://demo/winter/winter_rules.gd")
 const ForageRules := preload("res://demo/forage/forage_rules.gd")
 const OrchardText := preload("res://demo/orchard/orchard_text.gd")
+const HiveText := preload("res://demo/hives/hive_text.gd")
 
 const KIND_CROP: int = 0
 const KIND_DISH: int = 1
@@ -270,6 +271,8 @@ func _goods(item: int) -> Entry:
 	no source yet (decision 0603: potato, honey), the woods' forage (decision 0681) or the orchard's fruit (0671)."""
 	if Catalog.category_of(item) == Catalog.CAT_FRUIT:
 		return _orchard_goods(item)
+	if item == Catalog.ITEM_HONEY:
+		return _hive_goods(item)
 	if item >= Catalog.FIRST_FORAGE:
 		return _forage_goods(item)
 	var links: Array[StringName] = [&"station_store", &"station_fishing"]
@@ -363,6 +366,16 @@ func _forage_goods(item: int) -> Entry:
 		"Gathered at %s%s; keeps %d game hours in store." % [ForageRules.SPOT_NAMES[k],
 			" and picked at the east orchard's berry hedge" if item == Catalog.ITEM_BERRIES else "",
 			Catalog.shelf_hours_of(item)]]), links)
+	made.item = item
+	return made
+
+
+func _hive_goods(item: int) -> Entry:
+	"""The apiary's honey (decision 1601): the dishes that take it, and the apiary's own words for the rest."""
+	var links: Array[StringName] = [&"station_store", &"station_kitchen"]
+	var fields: PackedStringArray = HiveText.guide_fields(_dishes_taking(item, links), Rules.raw_np_per_u(item),
+		Catalog.shelf_hours_of(item))
+	var made: Entry = make(item_id(item), KIND_GOODS, Catalog.ITEM_LABELS[item], HiveText.GUIDE_SUMMARY, fields, links)
 	made.item = item
 	return made
 

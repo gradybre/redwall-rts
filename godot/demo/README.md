@@ -2009,6 +2009,39 @@ seasons (`orchard/`). Presentation only; every number not the GDD's is named in 
 | Right click one (residents selected) | The nearest does its most pressing work: a tree's harvest (else its tending), an empty site's planting, a bush's picking, the baskets' haul, the grove's observation |
 | Orchard panel | Tend, Harvest, Pick berries, Send baskets on, Plant apple/pear, Plan an apple/pear, Drop the plan, Observe now -- with nobody selected, queued for the Field crew; Timing, To, Keep (the group's policy); Protected (the grove) |
 
+## Hives, honey and wax (decision 1601)
+
+Review group Y's ECO-011 and ECO-012 (`hives/`, inside the orchard's panel and board). Presentation only; every number
+not the GDD's is named in `hives/hive_rules.gd`.
+
+- **The hive is a real Hive row** of `scripts/core/orchard_hive.gd` (GDD §5.6), in the orchard's own store, so its
+  pollination links reach the trees: strength starts 8000 (healthy from 5000); spring to autumn a hive tended that day
+  makes honey 2 U and wax 0.25 U × strength/10000, for 20 WU of service a day; a missed day costs 200 and makes
+  nothing; a tended spring day restores 300; winter makes nothing and eats 0.5 U of honey a day from the hive's feed,
+  a day without it costing 500; at 0 the hive is abandoned.
+- **The apiary** stands from the start west of the old orchard (one skep, tiles 55..57 × 73..75). Its keeper's work is
+  on the work board under **Orchard**: **Tend the bees** (the day's service, then the collection), **Feed the bees**
+  (winter, when the hive's feed falls short: the pantry's free honey), **Recolonise** (an abandoned hive in spring:
+  honey 4 U and wood 2 U, 60 WU, a 3-day wait).
+- **The winter feed first** (ECO-012): a collection tops the hive's feed up to a whole winter's 6 U before any honey
+  leaves it; the rest goes to the **old orchard's baskets**, and the Haulers send it on with the fruit. Honey is food
+  (the pantry's `honey`, 1440 h, raw-edible 1200 NP); the raspberry cordial no longer waits for it.
+- **Wax** is a material: until the village stores keep it, it waits on the apiary's own shelf (40 U), shown in its
+  readout.
+- **Pollination** (REQ-SET-082, ECO-011): a healthy hive within 12 m gives beans and orchard fruit ×1.10 (×1.15 with
+  two). The apiary reaches the old apple and pear and the four northern field beds (beds 3–6): beans sown there yield
+  ×1.10 (`farm/farm_sim.gd` `pollinate`); the cabbage beds and the east orchard are out of reach. The readout lists
+  what benefits.
+- **Wildlife** (§5.8): at midnight in summer and autumn a 2% roll takes min(2 U, the honey in the hive) -- news, never
+  an injury.
+- **The bees** are the free `fx/bee_swarm.gd` effect over the food art's `bee_skep` (or its placeholder box): out spring
+  to autumn, resting in winter and gone while the hive is abandoned; reduced motion slows and gathers them.
+
+| Input | Does |
+|---|---|
+| Left click the skep | Select the apiary: the **Orchard (demo)** panel -- its strength and season, REQ-SET-083's service and feed deficits, its honey, wax and winter feed, the crops it pollinates, and its verbs |
+| Right click it (residents selected) | The nearest does its most pressing work: the service, else a feeding, else a recolonisation |
+
 ## Water
 
 A stream runs down the village's east edge -- narrowing to a neck at the north-east corner, past

@@ -11,6 +11,8 @@ const CardScript := preload("res://demo/ui/action_card.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const Hive := preload("res://scripts/core/orchard_hive.gd")
 const DemoCommandScript := preload("res://demo/control/demo_command.gd")
+const HiveRules := preload("res://demo/hives/hive_rules.gd")
+const HiveText := preload("res://demo/hives/hive_text.gd")
 
 ## demo_orchard.gd's selection kinds (SEL_*), mirrored so this file needs no cycle back to the node.
 const SEL_SITE: int = 1
@@ -18,9 +20,12 @@ const SEL_BUSH: int = 2
 const SEL_STAND: int = 3
 const SEL_NURSERY: int = 4
 const SEL_GROVE: int = 5
+## The apiary's skep (decision 1601).
+const SEL_APIARY: int = 6
 const JOB_OF_ACTION: Dictionary = {
 	&"tend": Rules.K_TEND, &"harvest": Rules.K_HARVEST, &"pick": Rules.K_PICK, &"haul": Rules.K_HAUL,
 	&"plant_apple": Rules.K_PLANT, &"plant_pear": Rules.K_PLANT, &"observe": Rules.K_OBSERVE,
+	&"service": Rules.K_SERVICE, &"feed": Rules.K_FEED, &"recolonize": Rules.K_RECOLONIZE,
 }
 const RECORD_SHOWN: int = 4
 
@@ -74,6 +79,8 @@ func title(kind: int, id: int) -> String:
 			return "The nursery"
 		SEL_GROVE:
 			return Text.cap(Rules.GROVE_NAME)
+		SEL_APIARY:
+			return Text.cap(HiveRules.APIARY_NAMES[id])
 	return ""
 
 
@@ -90,7 +97,34 @@ func text(kind: int, id: int) -> String:
 			return "Saplings for the orchard: §5.6 propagation is fruit 4 U, compost 2 U, water 2 U and 120 WU, then 12 days."
 		SEL_GROVE:
 			return "A rest and observation spot: its trees are never felled while it is protected, and someone looks in once a season."
+		SEL_APIARY:
+			return apiary_text(id)
 	return ""
+
+
+func apiary_text(apiary: int) -> String:
+	"""The apiary's readout (decision 1601): its state, REQ-SET-083's deficits, its stock and winter feed (ECO-012), and
+	the crops it pollinates (ECO-011)."""
+	var hives := _model.apiary
+	var day: int = _model.today_hint
+	return "\n".join(PackedStringArray([HiveText.state_line(hives, apiary, day), HiveText.deficit_line(hives, apiary, day),
+		HiveText.stock_line(hives, apiary), _pollination_text(apiary),
+		"Service: 20 WU a day spring to autumn; its honey goes to the old orchard's baskets once the winter feed is put by."]))
+
+
+func _pollination_text(apiary: int) -> String:
+	"""ECO-011's "which crops benefit": the orchard trees and the field beds whose tiles lie within its 12 m."""
+	var trees := PackedStringArray()
+	for site: int in Rules.SITE_COUNT:
+		var origin: Vector2i = Rules.SITE_ORIGIN[site]
+		if _model.has_tree(site) and _model.apiary.reaches(apiary, origin, origin + Vector2i.ONE * (Hive.BLOCK_SIZE - 1)):
+			trees.append(Text.tree_name(_model, site))
+	var beds := PackedStringArray()
+	for bed: int in Catalog.BED_COUNT:
+		var tile: Vector2i = HiveRules.tile_of_m(Catalog.bed_centre_m(bed))
+		if _model.apiary.reaches(apiary, tile, tile):
+			beds.append("bed %d" % (bed + 1))
+	return HiveText.pollination_line(trees, beds, _model.apiary.is_healthy(apiary))
 
 
 func tree_text(site: int) -> String:
@@ -151,7 +185,7 @@ func stand_text(group: int) -> String:
 	var at: int = _jobs.stand_location(group)
 	if at < 0:
 		return "No baskets here."
-	for item: int in Catalog.ORCHARD_ITEMS:
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
 		var milli: int = _jobs.pantry.milli_at(item, at)
 		if milli > 0:
 			parts.append("%s %s" % [Catalog.ITEM_LABELS[item], Text.units(milli)])
@@ -174,6 +208,8 @@ func shown_actions(kind: int, id: int) -> Array[StringName]:
 			return [&"haul"]
 		SEL_GROVE:
 			return [&"observe"]
+		SEL_APIARY:
+			return [&"service", &"feed", &"recolonize"]
 	return []
 
 
@@ -273,6 +309,12 @@ func _result_of(action: StringName, kind: int, id: int) -> String:
 			return "The nursery promises a sapling to this block and propagates it when it has the fruit"
 		&"observe":
 			return "This season's line in the grove's record"
+		&"service":
+			return "Today's service (no strength lost); the honey made goes to the winter feed first, the rest to the baskets"
+		&"feed":
+			return "The hive's winter feed made up from the stores' free honey"
+		&"recolonize":
+			return "A swarm settles %d days after the work: the hive back at 80%% strength" % HiveRules.RECOLONIZE_WAIT_DAYS
 	return "" if kind >= 0 else ""
 
 
@@ -285,6 +327,9 @@ func _costs_of(action: StringName) -> void:
 			_card.add_cost("%s saplings" % Text.cap(Rules.SPECIES_NAMES[species]), _model.saplings[species] * 1000,
 				Hive.PLANT_SAPLING_MILLI)
 			_card.add_cost("Compost", compost, Hive.PLANT_COMPOST_MILLI)
+		&"recolonize":
+			_card.add_cost("Honey (free)", _jobs.hive_honey_free(), HiveRules.RECOLONIZE_HONEY_MILLI)
+			_card.add_cost("Wood", _jobs.stores.wood_milli_u if _jobs.stores != null else 0, HiveRules.RECOLONIZE_WOOD_MILLI)
 
 
 func _work_of(job_kind: int, id: int) -> int:
@@ -300,6 +345,12 @@ func _work_of(job_kind: int, id: int) -> int:
 			return Rules.HAUL_LOAD_MWU + Rules.HAUL_UNLOAD_MWU
 		Rules.K_PLANT:
 			return Rules.PLANT_MWU
+		Rules.K_SERVICE:
+			return HiveRules.SERVICE_MWU
+		Rules.K_FEED:
+			return HiveRules.FEED_MWU
+		Rules.K_RECOLONIZE:
+			return HiveRules.RECOLONIZE_MWU
 	return Rules.OBSERVE_MWU
 
 

@@ -13,6 +13,10 @@ extends RefCounted
 ##   PLANT      plant a sapling on its site (BAL-CAT-010: 40 WU), with compost 4 U (§5.6).
 ##   PROPAGATE  the nursery's 120 WU for a plan (§5.6: fruit 4 + compost 2 + water 2), then its 12-day wait.
 ##   OBSERVE    the grove's seasonal observation (ECO-015).
+##   SERVICE    the apiary's §5.6 service, 20 WU a day spring to autumn, and its collection (decision 1601): the winter
+##              feed put by in the hive first (ECO-012), the rest of the honey carried to the old orchard's baskets.
+##   FEED       a winter feeding: the hive's feed short of the rest of the winter is made up from the pantry's free honey.
+##   RECOLONIZE §5.6's recolonisation of an abandoned hive in spring: honey 4 U and wood 2 U, 60 WU, then a 3-day wait.
 ##
 ## CONSERVATION (decision 0222's rules, as the farm's and the fishery's): ROOM FIRST -- a harvest or a picking reserves
 ## room at its stand before anything is cut, and a haul reserves room at its destination before it loads; with none it
@@ -46,6 +50,8 @@ const WeatherCore := preload("res://scripts/core/weather.gd")
 const FisheryRules := preload("res://demo/fishery/fishery_rules.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const HiveRules := preload("res://demo/hives/hive_rules.gd")
+const HiveText := preload("res://demo/hives/hive_text.gd")
 
 const MAX_JOBS: int = 16
 const NONE: int = -1
@@ -56,13 +62,18 @@ const K_HAUL: int = Rules.K_HAUL
 const K_PLANT: int = Rules.K_PLANT
 const K_PROPAGATE: int = Rules.K_PROPAGATE
 const K_OBSERVE: int = Rules.K_OBSERVE
+const K_SERVICE: int = Rules.K_SERVICE
+const K_FEED: int = Rules.K_FEED
+const K_RECOLONIZE: int = Rules.K_RECOLONIZE
+## The apiary's kinds, in the order the routine raises them.
+const HIVE_KINDS: PackedInt32Array = [K_SERVICE, K_FEED, K_RECOLONIZE]
 const KIND_COUNT: int = Rules.KIND_COUNT
 const S_GO: int = 0
 const S_WORK: int = 1
 const S_CARRY: int = 2
 const S_UNLOAD: int = 3
 ## Each kind's program, PROGRAM_STRIDE steps a kind (NONE: past its end): tend, harvest, pick, haul, plant, propagate,
-## observe.
+## observe, and the apiary's service (its honey carried to the baskets), feeding and recolonising.
 const PROGRAM_STRIDE: int = 4
 const PROGRAMS: PackedInt32Array = [
 	S_GO, S_WORK, NONE, NONE,
@@ -70,6 +81,9 @@ const PROGRAMS: PackedInt32Array = [
 	S_GO, S_WORK, S_CARRY, NONE,
 	S_GO, S_WORK, S_CARRY, S_UNLOAD,
 	S_GO, S_WORK, NONE, NONE,
+	S_GO, S_WORK, NONE, NONE,
+	S_GO, S_WORK, NONE, NONE,
+	S_GO, S_WORK, S_CARRY, NONE,
 	S_GO, S_WORK, NONE, NONE,
 	S_GO, S_WORK, NONE, NONE,
 ]
@@ -133,6 +147,8 @@ var words: PackedStringArray = PackedStringArray()
 var _cast: DemoCastScript = null
 var _compost_left: Callable = Callable()
 var _take_compost: Callable = Callable()
+var _honey_left: Callable = Callable()
+var _take_honey: Callable = Callable()
 var _tasks: Array = []
 var _next_serial: int = 1
 var _driving: int = NONE
@@ -176,6 +192,13 @@ func set_compost(left: Callable, take: Callable) -> void:
 	"""The farm's compost store: `left() -> int` milli-U, `take(milli) -> bool` all or none (demo_village.gd)."""
 	_compost_left = left
 	_take_compost = take
+
+
+func set_honey(left: Callable, take: Callable) -> void:
+	"""The pantry's free honey (decision 1601: a winter feeding, a recolonisation): `left() -> int` milli-U nobody has set
+	aside, `take(milli) -> int` withdraws up to that much and says how much (demo_orchard.gd `bind_farm`)."""
+	_honey_left = left
+	_take_honey = take
 
 
 # --- the rows ---------------------------------------------------------------------------------------------------------
@@ -384,6 +407,8 @@ func place_of(j: int, step: int) -> Vector2:
 			return stand_at(target[j])
 		K_PROPAGATE:
 			return Rules.NURSERY_AT + Vector2(0.0, 1.0)
+		K_SERVICE, K_FEED, K_RECOLONIZE:
+			return HiveRules.keeper_spot(target[j])
 	return Rules.GROVE_AT
 
 
@@ -401,6 +426,8 @@ func drop_of(j: int) -> Vector2:
 			return stand_at(Rules.SITE_GROUP[target[j]])
 		K_PICK:
 			return stand_at(Rules.BUSH_GROUP)
+		K_SERVICE:
+			return stand_at(HiveRules.APIARY_STAND_GROUP[target[j]])
 		K_HAUL:
 			var at: int = destination(j)
 			return pantry.storage.position_of(at) if at >= 0 else stand_at(target[j])
@@ -609,6 +636,12 @@ func _need_of(j: int, step: int) -> int:
 			return Rules.PLANT_MWU
 		K_PROPAGATE:
 			return Rules.PROPAGATE_MWU
+		K_SERVICE:
+			return HiveRules.SERVICE_MWU
+		K_FEED:
+			return HiveRules.FEED_MWU
+		K_RECOLONIZE:
+			return HiveRules.RECOLONIZE_MWU
 	return Rules.OBSERVE_MWU
 
 
@@ -677,6 +710,8 @@ func _face_of(j: int) -> Vector2:
 			return stand_at(target[j]) + Vector2(0.0, -1.0)
 		K_PROPAGATE:
 			return Rules.NURSERY_AT
+		K_SERVICE, K_FEED, K_RECOLONIZE:
+			return HiveRules.centre_m(target[j])
 	return Rules.GROVE_AT
 
 
@@ -768,7 +803,25 @@ func start_refusal(j: int) -> String:
 			return _plant_inputs_refusal(j)
 		K_PROPAGATE:
 			return _propagate_inputs_refusal(t)
+		K_SERVICE, K_FEED, K_RECOLONIZE:
+			return hive_refusal(kind[j], t)
 	return ""
+
+
+func hive_refusal(job_kind: int, apiary: int) -> String:
+	"""Why the apiary's job of `job_kind` cannot be done now, in words ("" when it can): hive_text.gd's checks, with the
+	pantry's free honey and the stores' wood."""
+	match job_kind:
+		K_SERVICE:
+			return HiveText.service_refusal(model.apiary, apiary, today())
+		K_FEED:
+			return HiveText.feed_refusal(model.apiary, apiary, today(), hive_honey_free())
+	return HiveText.recolonize_refusal(model.apiary, apiary, today(), hive_honey_free(), stores.wood_milli_u if stores != null else 0)
+
+
+func hive_honey_free() -> int:
+	"""The pantry's free honey, milli-U (0 without a pantry): what a winter feeding or a recolonisation may take."""
+	return int(_honey_left.call()) if _honey_left.is_valid() else 0
 
 
 func _harvest_refusal(site: int, day: int) -> String:
@@ -838,7 +891,18 @@ func _reserve(j: int) -> String:
 			return _hold_at_stand(j, Rules.BERRY_ITEM, berries, Rules.BUSH_GROUP)
 		K_HAUL:
 			return _hold_destination(j)
+		K_SERVICE:
+			_hold_honey(j)
 	return ""
+
+
+func _hold_honey(j: int) -> void:
+	"""Room at the apiary's baskets for the honey the service will release (decision 1601). Never a refusal: the bees are
+	tended whether or not there is room, and honey with nowhere to go stays in the hive."""
+	var milli: int = model.apiary.releasable_milli(target[j], today())
+	var at: int = stand_location(HiveRules.APIARY_STAND_GROUP[target[j]])
+	if milli > 0 and at != NONE and pantry.reserve_at_into(Catalog.ITEM_HONEY, milli, at, _read):
+		hold[j] = _read.value
 
 
 func _hold_at_stand(j: int, item: int, milli: int, group: int) -> String:
@@ -944,7 +1008,36 @@ func _complete(j: int) -> String:
 			return _propagated(t)
 		K_OBSERVE:
 			return _observed()
+		K_SERVICE:
+			model.apiary.service(t, today())
+			_take_load(j, Catalog.ITEM_HONEY, model.apiary.collect(t, today(), hold_size(j)))
+		K_FEED:
+			return _fed(t)
+		K_RECOLONIZE:
+			return _recolonize_paid(t)
 	return ""
+
+
+func _fed(apiary: int) -> String:
+	"""A winter feeding done: the hive's shortfall taken from the pantry's free honey (what there is) and put by."""
+	var short: int = model.apiary.feed_shortfall_milli(apiary, today())
+	var got: int = int(_take_honey.call(short)) if _take_honey.is_valid() and short > 0 else 0
+	if got <= 0 or not model.apiary.add_feed(apiary, got):
+		return ""
+	return "%s of honey put by in %s for the winter" % [Text.units(got), HiveRules.APIARY_NAMES[apiary]]
+
+
+func _recolonize_paid(apiary: int) -> String:
+	"""A recolonisation's 60 WU done: its honey 4 U and wood 2 U taken now (all or none), the swarm due in 3 days."""
+	var why: String = hive_refusal(K_RECOLONIZE, apiary)
+	if not why.is_empty():
+		return "Can't recolonise %s: %s" % [HiveRules.APIARY_NAMES[apiary], why]
+	if int(_take_honey.call(HiveRules.RECOLONIZE_HONEY_MILLI)) != HiveRules.RECOLONIZE_HONEY_MILLI:
+		return "Can't recolonise %s: the honey ran short" % HiveRules.APIARY_NAMES[apiary]
+	stores.take_wood(HiveRules.RECOLONIZE_WOOD_MILLI)
+	model.apiary.start_recolonize(apiary, today())
+	return "A swarm is coaxed toward %s: it settles in %d days" % [HiveRules.APIARY_NAMES[apiary],
+		HiveRules.RECOLONIZE_WAIT_DAYS]
 
 
 func _load_basket(j: int) -> void:
@@ -1044,7 +1137,7 @@ func _deliver(j: int, brain: BrainScript) -> void:
 	if kind[j] == K_HAUL:
 		_advance(j, brain)
 		return
-	var group: int = Rules.SITE_GROUP[target[j]] if kind[j] == K_HARVEST else Rules.BUSH_GROUP
+	var group: int = _drop_group(j)
 	var at: int = _hold_place(hold[j]) if pantry.is_hold(hold[j]) else stand_location(group)
 	var stored: int = 0
 	if at != NONE and pantry.store_upto_into(load_item[j], load_milli[j], at, hold[j], _read):
@@ -1056,6 +1149,16 @@ func _deliver(j: int, brain: BrainScript) -> void:
 	words[j] = Text.no_room(load_milli[j], load_item[j], Text.THE_STAND)
 	issued[j] = 0
 	wait_usec[j] = Rules.RETRY_USEC
+
+
+func _drop_group(j: int) -> int:
+	"""The group whose baskets job `j`'s load goes to: a tree's, the hedge's, or the apiary's (decision 1601)."""
+	match kind[j]:
+		K_HARVEST:
+			return Rules.SITE_GROUP[target[j]]
+		K_SERVICE:
+			return HiveRules.APIARY_STAND_GROUP[target[j]]
+	return Rules.BUSH_GROUP
 
 
 func _move_basket(j: int) -> void:
@@ -1092,6 +1195,16 @@ func plan_work() -> void:
 	_plan_nursery_work()
 	if model.grove_seen_season != ModelScript.season_index_of_day(day):
 		_raise(K_OBSERVE, 0)
+	_plan_hive_work()
+
+
+func _plan_hive_work() -> void:
+	"""The apiary's routine (decision 1601): its service when owed, a winter feeding when its feed falls short, and a
+	recolonisation when its hive is empty in spring and the honey and wood are there."""
+	for apiary: int in HiveRules.APIARY_COUNT:
+		for job_kind: int in HIVE_KINDS:
+			if hive_refusal(job_kind, apiary).is_empty():
+				_raise(job_kind, apiary)
 
 
 func _plan_nursery_work() -> void:
@@ -1184,6 +1297,8 @@ func order_refusal(job_kind: int, job_target: int, job_species: int) -> String:
 			return "" if _haul_lot(job_target) != NONE else Text.NOTHING_TO_HAUL
 		K_PROPAGATE:
 			return _propagate_inputs_refusal(job_target)
+		K_SERVICE, K_FEED, K_RECOLONIZE:
+			return hive_refusal(job_kind, job_target)
 	return ""
 
 

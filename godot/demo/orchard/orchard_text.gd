@@ -8,8 +8,10 @@ const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const FarmText := preload("res://demo/farm/farm_text.gd")
 const ModelScript := preload("res://demo/orchard/orchard_model.gd")
+const HiveRules := preload("res://demo/hives/hive_rules.gd")
 
-const KIND_NAMES: Array[String] = ["Tend", "Harvest", "Pick berries", "Haul baskets", "Plant", "Propagate", "Observe"]
+const KIND_NAMES: Array[String] = ["Tend", "Harvest", "Pick berries", "Haul baskets", "Plant", "Propagate", "Observe",
+	"Tend the bees", "Feed the bees", "Recolonise the hive"]
 const OTHER_JOB: String = "has another orchard job"
 const CANT_REACH: String = "can't reach it — %s"
 const NO_ROOM_HEAD: String = "no room"
@@ -148,6 +150,8 @@ static func target_words(jobs: RefCounted, j: int) -> String:
 			return "%s's baskets" % Rules.GROUP_NAMES[t].to_lower()
 		Rules.K_PROPAGATE:
 			return "%s sapling for %s" % [a_species(model.plan_species[t]), Rules.SITE_NAMES[model.plan_site[t]]]
+		Rules.K_SERVICE, Rules.K_FEED, Rules.K_RECOLONIZE:
+			return HiveRules.APIARY_NAMES[t]
 	return Rules.GROVE_NAME
 
 

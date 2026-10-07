@@ -653,13 +653,13 @@ func test_the_drafted_rows_are_decision_0603_s_table() -> void:
 
 
 func test_what_the_demo_cannot_make_waits_and_says_why() -> void:
-	"""The root pie waits for potato, the cordial for honey; the foragers' nuts, mushrooms and berries are in the pantry
-	(the library's hazelnut, mushroom and raspberry: decision 0902), so the pasty, the scones and the woodland pie can be
-	had; everything else can be had."""
+	"""The root pie waits for potato; the foragers' nuts, mushrooms and berries are in the pantry (the library's hazelnut,
+	mushroom and raspberry: decision 0902), so the pasty, the scones and the woodland pie can be had; the apiary's honey
+	(decision 1601) makes the cordial cookable; everything else can be had."""
 	assert_equal(Rules.DISH_WAITS[Rules.DISH_ROOT_PIE], "needs potato: grown in the fields, not yet planted in the demo",
 		"root pie")
-	assert_equal(Rules.DISH_WAITS[Rules.DISH_CORDIAL], "needs honey: made in beehives, not yet in the demo", "cordial")
-	for dish: int in [Rules.DISH_SOUP, Rules.DISH_OATCAKE, Rules.DISH_FARL, Rules.DISH_HARDTACK, Rules.DISH_SALAD,
+	assert_false(Book.PENDING_SOURCES.has(&"honey"), "honey has its source: the apiary")
+	for dish: int in [Rules.DISH_CORDIAL, Rules.DISH_SOUP, Rules.DISH_OATCAKE, Rules.DISH_FARL, Rules.DISH_HARDTACK, Rules.DISH_SALAD,
 			Rules.DISH_BAKED_FISH, Rules.DISH_BISCUIT_SOUP, Rules.DISH_PASTY, Rules.DISH_SCONES, Rules.DISH_WOODLAND_PIE,
 			Rules.DISH_NUT_LOAF]:
 		assert_false(Rules.waits(dish), "%s can be had" % Rules.DISH_NAMES[dish])
@@ -679,9 +679,9 @@ func test_the_kitchen_tab_and_the_recipes_list_the_waiting_dishes() -> void:
 	var kitchen := _kitchen(_many("mouse", 2), tick_at(0, 10), _pantry(), StoresScript.new())
 	var text: String = kitchen.waiting_text()
 	assert_true(text.begins_with("Waiting for ingredients:\n"), text)
-	for dish: int in [Rules.DISH_ROOT_PIE, Rules.DISH_CORDIAL]:
-		assert_true(text.contains(Words.waiting_line(dish)), Rules.DISH_NAMES[dish])
-	assert_equal(text.count("\n"), 2, "two waiting dishes (the foragers' items in, decision 0902)")
+	assert_true(text.contains(Words.waiting_line(Rules.DISH_ROOT_PIE)), Rules.DISH_NAMES[Rules.DISH_ROOT_PIE])
+	assert_false(text.contains(Rules.DISH_NAMES[Rules.DISH_CORDIAL]), "the cordial has its honey (decision 1601)")
+	assert_equal(text.count("\n"), 1, "one waiting dish (the foragers' items in, decision 0902; honey, 1601)")
 	var potato: String = kitchen.cookable_text(Catalog.ITEM_POTATO)
 	assert_true(potato.contains("Waiting (needs potato: grown in the fields, not yet planted in the demo): Turnip, potato and beetroot pie"),
 		potato)

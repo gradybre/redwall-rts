@@ -634,6 +634,7 @@ func _build_orchard() -> void:
 	_orchard.configure(_world as DemoWorldScript, _cast as DemoCastScript, _command as DemoCommandScript,
 		_camera.camera(), _services, _farm.pantry)
 	_orchard.set_compost(compost_left, take_compost)
+	_orchard.bind_farm(_farm.sim, _kitchen.kitchen.takes)
 	_orchard.panel.watch_hud(_game.get_node_or_null(GAME_HUD_ROOT) as Control)
 
 

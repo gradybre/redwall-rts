@@ -1,0 +1,266 @@
+{
+  "schema": 1,
+  "decisions": [
+    "1217",
+    "1199"
+  ],
+  "production_qualified": false,
+  "tool": null,
+  "swing_degrees": {
+    "left": 11,
+    "right": 13
+  },
+  "axes_parent_local": {
+    "left": [
+      -0.8483923564315001,
+      -0.4449217206450175,
+      -0.28683631577414226
+    ],
+    "right": [
+      -0.7490037839277868,
+      -0.40537609507145617,
+      0.524083536477225
+    ]
+  },
+  "search": [
+    {
+      "side": "left",
+      "degrees": 0,
+      "unresolved": {
+        "stand": {
+          "closed/left": 32,
+          "open/left": 32
+        },
+        "walk": {
+          "closed/left": 23,
+          "open/left": 23
+        }
+      }
+    },
+    {
+      "side": "left",
+      "degrees": 30,
+      "unresolved": {
+        "stand": {
+          "closed/left": 0,
+          "open/left": 0
+        },
+        "walk": {
+          "closed/left": 0,
+          "open/left": 0
+        }
+      }
+    },
+    {
+      "side": "left",
+      "degrees": 15,
+      "unresolved": {
+        "stand": {
+          "closed/left": 0,
+          "open/left": 0
+        },
+        "walk": {
+          "closed/left": 0,
+          "open/left": 0
+        }
+      }
+    },
+    {
+      "side": "left",
+      "degrees": 7,
+      "unresolved": {
+        "stand": {
+          "closed/left": 32,
+          "open/left": 32
+        },
+        "walk": {
+          "closed/left": 0,
+          "open/left": 0
+        }
+      }
+    },
+    {
+      "side": "left",
+      "degrees": 11,
+      "unresolved": {
+        "stand": {
+          "closed/left": 0,
+          "open/left": 0
+        },
+        "walk": {
+          "closed/left": 0,
+          "open/left": 0
+        }
+      }
+    },
+    {
+      "side": "left",
+      "degrees": 9,
+      "unresolved": {
+        "stand": {
+          "closed/left": 19,
+          "open/left": 19
+        },
+        "walk": {
+          "closed/left": 0,
+          "open/left": 0
+        }
+      }
+    },
+    {
+      "side": "left",
+      "degrees": 10,
+      "unresolved": {
+        "stand": {
+          "closed/left": 2,
+          "open/left": 2
+        },
+        "walk": {
+          "closed/left": 0,
+          "open/left": 0
+        }
+      }
+    },
+    {
+      "side": "right",
+      "degrees": 0,
+      "unresolved": {
+        "stand": {
+          "closed/right": 32,
+          "open/right": 32
+        },
+        "walk": {
+          "closed/right": 0,
+          "open/right": 0
+        }
+      }
+    },
+    {
+      "side": "right",
+      "degrees": 30,
+      "unresolved": {
+        "stand": {
+          "closed/right": 0,
+          "open/right": 0
+        },
+        "walk": {
+          "closed/right": 0,
+          "open/right": 0
+        }
+      }
+    },
+    {
+      "side": "right",
+      "degrees": 15,
+      "unresolved": {
+        "stand": {
+          "closed/right": 0,
+          "open/right": 0
+        },
+        "walk": {
+          "closed/right": 0,
+          "open/right": 0
+        }
+      }
+    },
+    {
+      "side": "right",
+      "degrees": 7,
+      "unresolved": {
+        "stand": {
+          "closed/right": 0,
+          "open/right": 32
+        },
+        "walk": {
+          "closed/right": 0,
+          "open/right": 0
+        }
+      }
+    },
+    {
+      "side": "right",
+      "degrees": 11,
+      "unresolved": {
+        "stand": {
+          "closed/right": 0,
+          "open/right": 32
+        },
+        "walk": {
+          "closed/right": 0,
+          "open/right": 0
+        }
+      }
+    },
+    {
+      "side": "right",
+      "degrees": 13,
+      "unresolved": {
+        "stand": {
+          "closed/right": 0,
+          "open/right": 0
+        },
+        "walk": {
+          "closed/right": 0,
+          "open/right": 0
+        }
+      }
+    },
+    {
+      "side": "right",
+      "degrees": 12,
+      "unresolved": {
+        "stand": {
+          "closed/right": 0,
+          "open/right": 10
+        },
+        "walk": {
+          "closed/right": 0,
+          "open/right": 0
+        }
+      }
+    }
+  ],
+  "published_inputs": {
+    "stand": "7086ef2a3aab64537d7822393c04ece86d67879e59e1c7e54d333a5c7f974c7d",
+    "walk": "046ef4a7f4855b7f5243e66066bc8d27373689471e055f628e94c357cfa1b06e"
+  },
+  "clips": {
+    "stand": {
+      "frames": 122,
+      "loop_mode": 1,
+      "sha256": "05564adf19b2b29142d99c469839b3aa18c20cdce995d055669528ce88e51b89"
+    },
+    "walk": {
+      "frames": 45,
+      "loop_mode": 1,
+      "sha256": "1f8fcfb51ae4f76fb0918c4552a9cd28d4781fbdae5274668c391a200b4cf179"
+    },
+    "enter_haul": {
+      "frames": 31,
+      "loop_mode": 0,
+      "sha256": "94a1c6ac7001993bf44a37b5bc9a0a2f722d0f977a957f8485b9cd5bfa1b42bc"
+    },
+    "leave_haul": {
+      "frames": 31,
+      "loop_mode": 0,
+      "sha256": "e775fe21ef18591dcdfde117646d1098c76aa1993db30029316a0e17752d0216"
+    },
+    "enter_haul_stone": {
+      "frames": 31,
+      "loop_mode": 0,
+      "sha256": "28d92c243aaeb381afc62a4bbf185ac10fc0b211d9b03ec0416f7ffc153737db"
+    },
+    "leave_haul_stone": {
+      "frames": 31,
+      "loop_mode": 0,
+      "sha256": "8f4d01fb762f00b151592f4c44baff5f06e126f012250cab746196d59bafb3fb"
+    }
+  },
+  "producer_sources": {
+    "godot/data/underground/mole-worker/stand-walk-v2/author_stand_walk_v2.py": "54ca3f9421f0a85696b7803386cb8e7f69dc56d622c31bc839b38f5de3333bfb",
+    "godot/data/underground/mole-worker/haul-handling-v1/author_empty_walk.py": "45e0d026be10eb51b9776f3892207ef040dbd26ce3d39e64bb869324467696ef",
+    "godot/data/underground/mole-worker/haul-handling-v1/author_handling.py": "bf96731c5cba21f300f46b7db307c78e465f1c9f2dbfc8c7e41c97a2786eca26",
+    "godot/data/underground/mole-worker/haul-handling-v1/author_loaded_gait.py": "8f4c96d84f3b66c7f965d95ccbe8ad03617165a4faf31e71e31a5847e469ee35",
+    "godot/data/underground/mole-worker/claw-work-v1/prove_claw_pair.py": "eb14cce8902b6b257988751306b6a139edb7d8cabfe7d7293ad05f7b9f84221b"
+  }
+}

@@ -200,3 +200,44 @@ slightly into the left thigh. Held still, 9 triangle pairs do not separate. The 
 first 6 (pa) or 7 (pb) of 30 intervals. The prover reports those left-paw × left-thigh pairs apart, and requires
 them to form an unbroken run from the ready key. Brendan is asked whether to accept that or to have a lift-off
 path authored. **Recommended: pa.**
+
+### Brendan's review of step 1b (2026-10-07)
+
+1. **pa is approved:** paws at ±224, anchor −544, lean 70°, drop 96 u, claw tilt 60°, palm rolls 90°/90°, head
+   lift 60°.
+2. **The left paw in the thigh: "fix for dig and non-dig".** The fix goes into the source. The tool-free stand and
+   walk (rows 30/31 and their haul joins, ADR 1199) must not hold a paw inside a thigh, whether the mole is
+   digging, walking or hauling. The step-1b entry exception (`released_stand_contact`) is then removed, and the dig
+   entry is re-proved from the corrected ready key with no exception.
+
+The corrected stand, walk and joins are successors. The published v8/v9 images and content 5/6 stay unchanged until
+the content successor that carries the claw rows also carries the corrected stand and walk.
+
+**Order after the stand review:** paw handling and seating of the L0/T0 bearers, then native capture, then the
+claw rows and the Frontier successor at 1,430 u, then the content successor, then the runtime switch.
+
+## Step 1c — the stand and walk corrected at the source (authored; stopped for Brendan's review)
+
+`godot/data/underground/mole-worker/stand-walk-v2/` holds four tools, `author_stand_walk_v2.py`,
+`prove_stand_walk_v2.py`, `render_stand_walk_v2.py` and `test_stand_walk_v2.py` (5 tests), with the review packet in
+`evidence/stand-walk-review-v2/`.
+
+**What was wrong.** The published stand rests both paws into the thighs. The left is unseparated on 75 of 121
+intervals. The right is unseparated on 41 with the open paw and 21 with the closed paw. In the walk the left paw
+touches on 3 of 44 intervals.
+
+**The correction.** Each upper arm gets one constant outward swing about its own joint around the body's forward
+axis, on every key; every other local transform is supplied. Bisection gave the smallest whole-degree swings:
+**11° left, 13° right**. One degree less leaves pairs unseparated. The wood and stone joins are re-authored by their
+accepted recipe from the corrected ready key.
+
+**Proofs (all clear, no exception):**
+
+- support and floor for the stand, the walk (both bodies) and the four joins;
+- per-arm separation everywhere;
+- stock separation for the wood and stone joins;
+- the approved pa re-proved from the corrected ready key with the stand-contact release switched off (0 released
+  pairs), so step 1b's exception is no longer needed.
+
+**Row consequence.** The all-yaw STAND/WALK body sweep grows from 651 to 712 u, still within ground row 12's 738.
+It is carried only by the content successor.

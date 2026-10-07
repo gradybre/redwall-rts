@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "adr": ["1217", "1199"],
+  "production_qualified": false,
+  "paths": ".../ = godot/data/underground/mole-worker/stand-walk-v2/",
+  "python": "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+  "staged_inputs": "godot/demo/assets/underground-matrices/{all-cast-v9.ugpal 5b368eb3..., mole-grip-v3.ugpal 08de5453..., world-yaw-v1.ugyaw de8c3b04...} copied from /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/; hash-checked by the tools; removed afterwards",
+  "commands": [
+    "$PY -B .../author_stand_walk_v2.py .../evidence/stand-walk-v2",
+    "$PY -B .../prove_stand_walk_v2.py .../evidence/stand-walk-v2 --world-basis godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw",
+    "$PY -B .../render_stand_walk_v2.py .../evidence/stand-walk-v2 .../evidence/stand-walk-review-v2",
+    "$PY -B .../test_stand_walk_v2.py -v"
+  ]
+}

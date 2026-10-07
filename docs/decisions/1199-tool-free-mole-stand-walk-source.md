@@ -79,3 +79,15 @@ Rejected alternatives:
 Reproduce:
 `reproduce_empty_walk.py --palette <all-cast-v9.ugpal> --grip-palette <mole-grip-v3.ugpal> --world-basis <world-yaw-v1.ugyaw> --out <new dir>`.
 The reproduction runs 17 tests, including byte-identical rebuilds of every output.
+
+## Successor: paws out of the thighs (ADR 1217, 2026-10-07)
+
+ADR 1217's exact per-arm self-separation found that this stand rests its paws inside its thighs. The left paw is
+unseparated from the left thigh on 75 of 121 stand intervals. The right paw is unseparated from the right thigh
+and shin on 41 intervals with the open paw, or 21 with the closed paw. In the walk, the left paw touches on 3 of 44
+intervals. This was the open "body self-clearance" item above.
+
+Brendan chose to fix it at the source, for every use. The successor `stand-walk-v2/` swings each upper arm outward
+by the smallest whole-degree constant that separates every pair. It re-authors the wood and stone joins by their
+accepted recipe from the corrected ready key. Rows 30/31 and the v8/v9 images are unchanged until a content
+successor carries it.

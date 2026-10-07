@@ -2103,7 +2103,7 @@ as source-qualified motion. No composed save adapter is claimed here.
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Stateless entry-owner constructor stages | -- | -- | -- | No members or packed bank | 3 | -- | ADR1184. Static stages construct the entry owners into the existing private Retirement.Owners prefix; failed prefixes stay retained for owner-validated whole-World reset. Constructor scratch is covered by the existing Session/retirement slice; complete source census remains open. |
+| Stateless entry-owner constructor stages | -- | -- | -- | No members or packed bank | 3 | -- | ADR1184. Static stages construct the entry owners into the existing private Retirement.Owners prefix; failed prefixes stay retained for owner-validated whole-World reset. Constructor scratch is covered by the existing Session/retirement slice; complete source census remains open. ADR1224 (ADR1197 G12): stage 13 also configures the structure Scope and entry structure, retains both in `Owners.structure_scope`/`entry_structure` and binds `WorldBindings.bind_phase_structure`. Composition only, nothing saved: a re-mount that reruns these composers reproduces it. |
 
 ### `godot/scripts/core/underground_entry_foreman.gd`
 

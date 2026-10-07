@@ -42,6 +42,8 @@ const Workpieces := preload("res://scripts/core/underground_connector_workpieces
 const Delivery := preload("res://scripts/core/underground_connector_delivery.gd")
 const Furniture := preload("res://scripts/core/underground_furniture_work.gd")
 const Tips := preload("res://scripts/core/spoil_work.gd")
+const StructureScope := preload("res://scripts/core/underground_world_structure_scope.gd")
+const EntryStructure := preload("res://scripts/core/underground_entry_structure.gd")
 
 ## Additional retirement-only logical/provisional slice inside unchanged PROFILE_BYTES; native costs are unmeasured.
 const RETIREMENT_RESERVED_BYTES: int = 8192
@@ -88,6 +90,10 @@ class Owners extends RefCounted:
 	var placements: Placements = null
 	var workpieces: Workpieces = null
 	var delivery: Delivery = null
+	## ADR1224 (G12): the entry structural provider and its phase Scope, retained here because WorldBindings and the
+	## structure hold each other only weakly. Bound at entry prefix 13, before ConnectorWork.
+	var structure_scope: StructureScope = null
+	var entry_structure: EntryStructure = null
 	var furniture: Furniture = null
 	var tips: Tips = null
 
@@ -206,6 +212,17 @@ static func entry_constructor_shape_refusal(o: Owners, prefix: int) -> StringNam
 	if o.connector != null and o.connector.get_script() != ConnectorWork: return &"WORLD_RETIREMENT_CONSTRUCTOR"
 	if o.workpieces != null and o.workpieces.get_script() != Workpieces: return &"WORLD_RETIREMENT_CONSTRUCTOR"
 	if o.delivery != null and o.delivery.get_script() != Delivery: return &"WORLD_RETIREMENT_CONSTRUCTOR"
+	return _structure_shape_refusal(o, prefix)
+
+
+static func _structure_shape_refusal(o: Owners, prefix: int) -> StringName:
+	"""ADR1224: the structure pair is retained only from prefix 13 and is bound into the provider from prefix 14."""
+	if (o.structure_scope != null) != (o.entry_structure != null) or (o.entry_structure != null and prefix < 13):
+		return &"WORLD_RETIREMENT_CONSTRUCTOR"
+	if o.entry_structure != null and (o.structure_scope.get_script() != StructureScope
+			or o.entry_structure.get_script() != EntryStructure): return &"WORLD_RETIREMENT_CONSTRUCTOR"
+	if prefix >= 14 and (o.entry_structure == null or not _weak_matches(o.world_bindings._structure, o.entry_structure)):
+		return &"WORLD_RETIREMENT_CONSTRUCTOR"
 	return &""
 
 
@@ -836,6 +853,8 @@ static func _copy_owners_2(source: Owners, target: Owners) -> void:
 	target.placements = source.placements
 	target.workpieces = source.workpieces
 	target.delivery = source.delivery
+	target.structure_scope = source.structure_scope
+	target.entry_structure = source.entry_structure
 
 
 static func _copy_owners_3(source: Owners, target: Owners) -> void:
@@ -899,7 +918,9 @@ static func _same_owners_2(first: Owners, second: Owners) -> bool:
 		and first.contacts == second.contacts \
 		and first.placements == second.placements \
 		and first.workpieces == second.workpieces \
-		and first.delivery == second.delivery
+		and first.delivery == second.delivery \
+		and first.structure_scope == second.structure_scope \
+		and first.entry_structure == second.entry_structure
 
 
 static func _same_owners_3(first: Owners, second: Owners) -> bool:

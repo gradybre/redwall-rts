@@ -47,6 +47,8 @@ const GAPS: Dictionary = {
 	&"STEP1_RESIDENT_DEAD": "G6 the crew died; choosing a replacement crew is not built (ADR 1223)",
 	&"STEP1_RESIDENT_INCAPACITATED": "G6 the crew was incapacitated mid-dispatch; interrupting and resuming a dispatch is not built (ADR 1223)",
 	&"STEP1_REST_COLLAPSED": "G6 the crew collapsed from exhaustion mid-dispatch; interrupting and resuming a dispatch is not built (ADR 1223)",
+	&"ROUTE_ASSEMBLY_ACTOR_UNBOUND": "G5 the paid installation's handling occupancy proof still requires every living resident to be a route actor (ADR 1219's reach-cube rule is not applied there yet; ADR 1224)",
+	&"WORLD_COMPOSITION_BINDING": "G12 the phase provider has no bound structure provider, or a bound owner was rewired (ADR 1224 composes it at entry prefix 13)",
 	&"ENTRY_FOREMAN_INPUT_LOT": "G4 inputs missing at M and no Delivery is composed to haul them from R's staging (ADR 1210)",
 	&"ENTRY_HAUL_NO_STAGED_STOCK": "G4 surface stock must be staged at R's container; moving settlement stores to the entry anchor is not built (ADR 1210)",
 }

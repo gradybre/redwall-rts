@@ -23,11 +23,11 @@ const Jobs := preload("res://scripts/core/jobs.gd")
 const Needs := preload("res://scripts/core/needs.gd")
 const Schedule := preload("res://scripts/core/schedule.gd")
 const Contract := preload("res://scripts/core/excavation_contract.gd")
-## ADR1223: past G6 the live chain stops here -- the paid BRACE START, because the live Session binds no
-## phase-structure provider into its WorldBindings (`bind_phase_structure`); unclassified, recorded as ADR1197 G12.
-const NEXT_GAP: StringName = &"WORLD_COMPOSITION_BINDING"
-## The tick the uninterrupted live chain stops on (ADR1223), asserted by both the plain and the restored chain.
-const NEXT_GAP_TICK: int = 619
+## ADR1224: with the entry structure composed (G12) the live chain settles all twelve L0 phases and stops in the paid
+## L0 installation: the assembly-handling occupancy proof still requires every living resident to be a route actor.
+const NEXT_GAP: StringName = &"ROUTE_ASSEMBLY_ACTOR_UNBOUND"
+## The tick the uninterrupted live chain stops on (ADR1224), asserted by both the plain and the restored chain.
+const NEXT_GAP_TICK: int = 2575
 ## ADR1221: the live chain's route owners are cold-restored this often (ticks; prime).
 const ROUTE_RESTORE_EVERY: int = 23
 ## ADR1218 runtime wire: header, step, code, origin, section, endpoint count and eleven endpoints, then M's container.
@@ -660,8 +660,11 @@ func test_actual_entry_owners_compose_from_the_fixed_bundle_without_gameplay_cha
 	assert_equal(session._operations_prefix, 17, "complete fixed entry prefix")
 	assert_equal(session._operations_state, 2, "Session remains operational")
 	var o: Session.Retirement.Owners = session._retirement_owners
-	for owner: RefCounted in [o.placements, o.contacts, o.connector, o.workpieces, o.delivery]:
+	for owner: RefCounted in [o.placements, o.contacts, o.connector, o.workpieces, o.delivery, o.structure_scope,
+			o.entry_structure]:
 		assert_true(owner != null, "retained entry owner")
+	assert_true(o.world_bindings._structure.get_ref() == o.entry_structure, "ADR1224: the provider dispatches structure")
+	assert_true(Settlement.UndergroundEntryRuntime.gap_of(&"WORLD_COMPOSITION_BINDING").begins_with("G12"), "G12 row")
 	assert_equal(o.locations._live.count, 0, "composition grants no endpoint")
 	assert_true(session.surface_anchor() != null, "surface publisher still borrowable after entry composition")
 	assert_true(session.location_owner() != null, "Location namespace still borrowable")
@@ -732,7 +735,8 @@ func test_fixed_ticks_drive_the_live_foreman_until_the_first_gap() -> void:
 	cubes. It retreats to R, walks tooled to M, puts the tool down and hauls both units. ADR1223: the JobSelector
 	never selects the reserved crew (it holds no Job through the walk) nor offers its Jobs to anyone, so at every tick
 	from arrival the crew holds one of the entry's own Jobs and no other resident holds one; it walks home under its
-	BUILD Job, re-equips, travels to the station, enters WORK, and the BRACE START stops at the next gap."""
+	BUILD Job, re-equips and works every paid L0 phase (ADR1224: the entry structure is composed, G12), then the L0
+	installation's handling proof stops at the next gap."""
 	var session: Session = _generate_and_mount()
 	assert_true(_host.compose_underground_room_owners() and _host.compose_underground_route_owners()
 		and _host.compose_underground_surface_anchor() and _host.compose_underground_entry_owners(), "every owner composed")
@@ -809,16 +813,18 @@ func _assert_dispatch_held(o: Session.Retirement.Owners, entry: Settlement.Under
 
 
 func _assert_next_gap_stop(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime, worker: Vector2i) -> void:
-	"""ADR1223: past G6. Both units hauled, the crew walked home under its own BUILD Job, re-equipped, travelled to
-	the first station and entered WORK; the paid BRACE START refuses at the next gap (NEXT_GAP)."""
+	"""ADR1223/1224: past G6 and G12. The crew hauled, settled all twelve paid L0 phases (BRACE, CUT, FINISH of four
+	episodes) and opened the paid L0 installation under its own installation Job; the handling proof refuses at the
+	next gap (NEXT_GAP)."""
 	assert_false(entry.is_running(), "stopped at the next remaining gap")
 	assert_equal(entry.error(), NEXT_GAP, "exact refusal")
+	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G5"), "named gap row")
 	var foreman: RefCounted = entry._foreman
-	assert_equal([foreman._index, foreman._tasks[0].operation, foreman.haul_trips()], [0, Contract.OP_BRACE, 2],
-		"the first BRACE, after both whole units of its inputs were hauled through Delivery")
+	assert_equal([foreman._index, foreman._tasks[12].install_ordinal, foreman.accepted_mwu(), foreman.haul_trips()],
+		[12, 0, 36000, 6], "every L0 phase settled with its exact Work, six whole units hauled, the L0 installation open")
 	assert_true(o.gear.is_equipped_record(entry.crew().tool) and o.gear.owner_of(entry.crew().tool) == worker,
-		"the crew took its tool back at M")
-	assert_equal(o.jobs.worker_of(foreman._job), worker, "the crew holds the step's own BUILD Job")
+		"the crew holds its tool")
+	assert_equal(o.jobs.worker_of(foreman._installer._job), worker, "the crew holds the installation's own Job")
 	var actors: int = 0
 	for row: int in Session.Retirement.Routes.RESIDENT_CAPACITY:
 		if o.routes._resident_ref(row) != Session.Retirement.Routes.NULL_REF: actors += 1

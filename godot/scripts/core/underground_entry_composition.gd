@@ -13,6 +13,8 @@ const Workpieces := preload("res://scripts/core/underground_connector_workpieces
 const Delivery := preload("res://scripts/core/underground_connector_delivery.gd")
 const Provider := preload("res://scripts/core/underground_room_world_bindings.gd")
 const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stone-v5/catalog_source.gd")
+const StructureScope := preload("res://scripts/core/underground_world_structure_scope.gd")
+const EntryStructure := preload("res://scripts/core/underground_entry_structure.gd")
 
 
 static func construct(session: RefCounted, original_host: Object) -> StringName:
@@ -63,6 +65,7 @@ static func _bind_remaining(session: RefCounted, original_host: Object,
 	"""Only the future fixed wrapper supplies source constants; every exposed failure stays in the original prefix."""
 	var code: StringName = _prepare_contacts(session)
 	if code == &"": code = _bind_phase(session)
+	if code == &"": code = _bind_structure(session)
 	if code == &"": code = _bind_work(session)
 	if code == &"": code = _prepare_workpieces(session, workpiece_path, workpiece_sha, workpiece_revision)
 	if code == &"": code = _bind_workpieces(session)
@@ -153,6 +156,27 @@ static func _bind_phase(session: RefCounted) -> StringName:
 		session._operations_prefix = 13
 	if code != &"": return code
 	return _scope_refusal(session, 13)
+
+
+static func _bind_structure(session: RefCounted) -> StringName:
+	"""ADR1224 (ADR1197 G12): the provider's structural reads go to one entry structure (natural entry bearings plus
+	the base paid-Room protection) under its own phase Scope, exactly as ADR1122's fixture composes it. The pair is
+	retained before the one-way bind, so a refused bind still leaves it for whole-World retirement."""
+	var code: StringName = _scope_refusal(session, 13)
+	if code != &"": return code
+	var o: Retirement.Owners = session._retirement_owners
+	var scope: StructureScope = StructureScope.new()
+	var structure: EntryStructure = EntryStructure.new()
+	code = scope.configure(o.world_bindings, o.levels, o.budget)
+	if code == &"": code = structure.configure(scope, o.space, o.terrain, o.levels, o.sites, o.budget)
+	if code == &"": code = structure.bind_entry_sources(o.placements, o.room_bindings._entry_frontier,
+		EntryStructure.ENTRY_CONTROL_BYTES)
+	if code == &"": code = _scope_refusal(session, 13)
+	if code != &"": return code
+	o.structure_scope = scope
+	o.entry_structure = structure
+	code = o.world_bindings.bind_phase_structure(structure, o.levels)
+	return code if code != &"" else _scope_refusal(session, 13)
 
 
 static func _bind_work(session: RefCounted) -> StringName:

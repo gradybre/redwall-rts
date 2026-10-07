@@ -101,3 +101,7 @@ removed afterwards.
 - step 1's `test_claw_stroke.py`;
 - step 1b's `test_claw_pair.py`;
 - step 1c's `test_stand_walk_v2.py`.
+
+## Brendan's review (2026-10-07): **approved**
+
+Candidate a is approved. Handling and seating stay two separate motions.

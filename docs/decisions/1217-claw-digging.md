@@ -276,3 +276,10 @@ Its recipe is lean 40°, drop 64 u, head lift 60°, palms rolled 90°.
 The stairs below T0 keep the six timber treads and the T6 sill (ADR 1209 D1–D3). They are fitted by paw, using
 step 2's paw seating motion, adapted per tread as the proofs require. ADR 1209's derived station, 310 u behind
 T_{k−1}'s far edge, stays; T6's sill plane is y = 64. The pick tread tap stays parked. This follows the L0/T0 review.
+
+### Brendan's review of step 2 (2026-10-07): **approved**
+
+Brendan approved paw seating candidate a (overview, motion and hands) and chose to **keep handling and seating as two
+separate motions**, as authored: the handling seat replaces row 29 and the seating tap replaces the INSTALL tap.
+Next: per-tread paw seating (re-proved per tread), then native capture, then the claw rows with the Frontier
+successor at 1,430 u, then the content successor carrying the corrected stand and walk, then the runtime switch.

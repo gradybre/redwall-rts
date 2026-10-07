@@ -103,6 +103,12 @@ Every row was checked against the record named.
 | The kitchen | "Fix kitchen now": the cook serves on call | Tracker only; 1005 not yet written (PF, uncommitted) |
 | Wrap-up | Near the weekly limit: start the follow-up fixes and these handoff documents; merge everything in flight through CI; then stop | Tracker only |
 
+## 2026-10-07
+
+| Topic | Ruling | Recorded in |
+|---|---|---|
+| Wildlife (#11) and livelier weather (#34) proposals | All approved as built: W1–W3 (the animals' year and counts; robins flush from residents; reduced motion stills the wildlife) and P1–P4 (P1 settles **Q-D15 as (a)**: lightning strikes trees or open ground only, never a building, no fire spreads; a struck tree's brief smoulder; the events' looks; lightning frequency). Relayed by the coordinator | 1631, 1632 (`feat/demo-wildlife-weather`) |
+
 ## Standing rules (not dated rulings)
 
 - **Windows builds only when Brendan asks** (his standing instruction; README §3.10).

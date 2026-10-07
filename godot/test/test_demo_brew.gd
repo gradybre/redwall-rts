@@ -69,6 +69,11 @@ func after_each() -> void:
 	_nodes.clear()
 
 
+func tolerates_outside_tree() -> bool:
+	"""The fishery's view is driven outside the scene tree (its particles' transforms)."""
+	return true
+
+
 func _keep(node: Object) -> Object:
 	"""Free `node` after the test."""
 	_nodes.append(node)
@@ -294,3 +299,108 @@ func test_the_guide_has_the_drinks() -> void:
 	assert_true(fields[0].contains("No one is made drunk"), fields[0])
 	assert_true(fields[1].contains("honey 3.0 U, water 3.0 U make 4.0 U, 20 WU and 72 hours at the brewery"), fields[1])
 	assert_equal(fields[2], PreserveText.DRINK_ALTERNATIVE, "the infusion")
+
+
+func test_a_mead_batch_cancelled_after_it_started_spoils_half_its_honey() -> void:
+	"""REQ-SET-094 by the row's own food: half of mead's 3 U of honey (not of another row's 4 U) becomes spoiled food."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	rig.pantry.add_into(Catalog.ITEM_HONEY, 3000, 0, _read)
+	f.order_batch(Recipes.R_MEAD, PackedInt32Array([1]))
+	var j: int = f.tables.j_live.find(1)
+	assert_true(_run(rig, func() -> bool: return f.tables.j_started[j] == 1), "started")
+	assert_equal(f.cancel_job(j), "", "cancelled while working")
+	assert_equal(rig.pantry.spoiled_milli, 1500, "half the 3 U")
+	assert_equal(f.tables.s_state[FIRST_VAT], Tables.SLOT_EMPTY, "the vat free")
+
+
+func test_the_vat_steams_and_the_rack_smokes_each_for_its_own() -> void:
+	"""Mead brewing: steam over the vat, no smoke at the rack; a fish batch curing: smoke at the rack, no steam."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	var view: FisheryViewScript = _keep(FisheryViewScript.new()) as FisheryViewScript
+	view.configure(f, PropsScript.new())
+	rig.pantry.add_into(Catalog.ITEM_HONEY, 3000, 0, _read)
+	assert_equal(f.order_batch(Recipes.R_MEAD, PackedInt32Array([1])), "", "mead ordered")
+	assert_equal(f.brewing(), 1, "a vat taken from the order")
+	assert_true(_run(rig, func() -> bool: return f.tables.s_state[FIRST_VAT] == Tables.SLOT_CURING), "brewing")
+	view.refresh()
+	assert_true((view.get("_steam") as CPUParticles3D).emitting, "steam over the vat")
+	assert_false((view.get("_smoke") as CPUParticles3D).emitting, "no smoke at the rack")
+	rig.pantry.add_into(Catalog.FIRST_CATCH, 4000, 0, _read)
+	f.order_batch(Recipes.R_DRY_FISH, PackedInt32Array([2]))
+	assert_true(_run(rig, func() -> bool: return f.tables.s_state[0] == Tables.SLOT_CURING), "fish hung")
+	view.refresh()
+	assert_true((view.get("_smoke") as CPUParticles3D).emitting, "smoke at the rack")
+
+
+func test_each_batch_takes_its_own_vat_and_the_brewers_go_to_the_brewery() -> void:
+	"""Two mead batches take the first two vats; the brewer of each walks to the brewery, the cordial's maker too."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	rig.pantry.add_into(Catalog.ITEM_HONEY, 7000, 0, _read)
+	rig.pantry.add_into(Catalog.ITEM_BERRIES, 2000, 0, _read)
+	f.order_batch(Recipes.R_MEAD, PackedInt32Array())
+	f.order_batch(Recipes.R_MEAD, PackedInt32Array())
+	f.order_batch(Recipes.R_CORDIAL, PackedInt32Array())
+	assert_equal([f.tables.s_recipe[FIRST_VAT], f.tables.s_recipe[FIRST_VAT + 1]], [Recipes.R_MEAD, Recipes.R_MEAD], "two vats")
+	assert_equal(f.tables.s_state[FIRST_VAT + 1], Tables.SLOT_LOADING, "the second loading")
+	for j: int in 3:
+		f.tables.j_pos[j] = 1
+		assert_true(f.goal_point(j).distance_to(Recipes.BREWERY_AT) < 2.0, "job %d at the brewery" % j)
+	assert_false(f.packing(), "nobody packs rations")
+
+
+func test_the_stations_stand_clear_of_the_village() -> void:
+	"""The preserving table's and the brewery's props overlap no building, rock or tree of the world."""
+	var world: DemoWorldScript = _keep(DemoWorldScript.new()) as DemoWorldScript
+	for mine: Vector3 in Recipes.land_obstacles():
+		for theirs: Vector3 in world.obstacles():
+			var gap: float = Vector2(mine.x, mine.z).distance_to(Vector2(theirs.x, theirs.z))
+			assert_true(gap >= mine.y + theirs.y, "(%.1f, %.1f) clear of (%.1f, %.1f)" % [mine.x, mine.z, theirs.x, theirs.z])
+
+
+func test_each_drink_category_holds_one_item() -> void:
+	"""The feast reserves a drink by its category: each category is that one drink (§5.7: concrete lots, one item)."""
+	for item: int in [Catalog.ITEM_MEAD, Catalog.ITEM_CORDIAL]:
+		var n: int = 0
+		for other: int in Catalog.PANTRY_ITEM_COUNT:
+			n += 1 if Catalog.category_of(other) == Catalog.category_of(item) else 0
+		assert_equal(n, 1, Catalog.ITEM_KEYS[item])
+
+
+func test_both_drinks_pour_for_those_who_came_and_holding_again_resets() -> void:
+	"""Mead and cordial both reserved and poured two-thirds for 6 of 9; held again with no drink in store, nothing is
+	planned or poured; drinks poured or not, Shared Warmth is decided by the courses alone."""
+	var pantry := PantryScript.new(StorageScript.new(Vector2.ZERO))
+	pantry.add_into(Catalog.ITEM_MEAD, 3000, 0, _read)
+	pantry.add_into(Catalog.ITEM_CORDIAL, 3000, 0, _read)
+	var menu := _menu_over(pantry)
+	menu.reserve(menu.kitchen.takes.new_take(), 9, 0)
+	menu.second_planned = true
+	menu.infusion_planned = true
+	var warmth: String = menu.settle(9, 6, 6, 1000, 0)
+	assert_equal(Array(menu.drinks_poured_milli), [2000, 2000], "both, for 6 of 9")
+	var dry := _menu_over(PantryScript.new(StorageScript.new(Vector2.ZERO)))
+	dry.second_planned = true
+	dry.infusion_planned = true
+	assert_equal(warmth, dry.settle(9, 6, 6, 1000, 0), "the same answer with no drink at all")
+	menu.reserve(menu.kitchen.takes.new_take(), 9, 0)
+	assert_equal(Array(menu.drinks_planned), [0, 0], "too little left: nothing planned")
+	menu.settle(9, 9, 9, 2000, 0)
+	assert_equal(Array(menu.drinks_poured_milli), [2000, 2000], "nothing more poured")
+
+
+func test_a_drink_partly_spoiled_since_the_hold_pours_what_is_left() -> void:
+	"""The cordial keeps 72 h: one lot spoiled between the hold and the feast, the rest is still poured."""
+	var pantry := PantryScript.new(StorageScript.new(Vector2.ZERO))
+	pantry.add_into(Catalog.ITEM_CORDIAL, 1000, 0, _read)
+	var old: int = _read.value
+	pantry.add_into(Catalog.ITEM_CORDIAL, 2000, 0, _read)
+	var menu := _menu_over(pantry)
+	menu.reserve(menu.kitchen.takes.new_take(), 9, 0)
+	assert_equal(menu.drinks_planned[1], 3000, "3 U set aside")
+	assert_true(pantry.withdraw_into(old, pantry.lot_serial(old), 1000, _read), "one lot gone")
+	menu.settle(9, 9, 9, 1000, 0)
+	assert_equal(menu.drinks_poured_milli[1], 2000, "what was left poured")
+	assert_equal(pantry.milli_of(Catalog.ITEM_CORDIAL), 0, "none left")

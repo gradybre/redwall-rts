@@ -1,5 +1,5 @@
 # 1601 — Hives, honey and wax in the demo: a real Hive row beside the old orchard, its winter feed first
-Date: 2026-10-07 · Status: Accepted (engineering); **PROPOSALS P1–P7 wait on Brendan**
+Date: 2026-10-07 · Status: Accepted (engineering); **PROPOSALS P1–P8 wait on Brendan**
 
 **Numbering.** BACKLOG.md's HIVES packet assigns 1231–1240, but a parallel digging branch already uses 0991–1217 and
 its range grows; the lead remapped this branch's three food packets to **1601–1629** (HIVES 1601–1609, PRESERVE
@@ -72,11 +72,11 @@ edited (the parallel digging lane's files).
 ## PROPOSALS (for Brendan; each built so a different ruling is a small change)
 
 1. **The apiary stands from the start** (open question Q-D4, recommendation (a), as the Cellar building was, 0612 P1):
-   one skep on tiles 55..57 × 73..75, west of the old orchard, an inherited hive at 8000. So the GDD's Apiary cost (wood
+   one skep on tiles 57..59 × 73..75, between the field's north fence and the old orchard (clear of the stump and the herb bank), an inherited hive at 8000. So the GDD's Apiary cost (wood
    12 + rope 2, 180 WU, unlock M2) is not charged, and Q-D3's rope does not bite here. *Options:* (a) as built; (b) also
    let the player build a second apiary once Q-D3 settles rope; (c) the player builds the only one. *Recommendation:
    (a), with (b) after Q-D3.*
-2. **Where it stands**: within 12 m of both old trees (9.1 m and 11.4 m) and of the four northern field beds, so beans
+2. **Where it stands**: within 12 m of both old trees (10.3 m and 9.5 m) and of the four northern field beds, so beans
    sown there are pollinated; the cabbage beds (12.2 m) and the east orchard are out of reach -- the readout shows the
    difference. *Options:* (a) as built; (b) nearer the east orchard. *Recommendation: (a).*
 3. **The winter feed first** (ECO-012): a collection fills the hive's feed to a whole winter's 6 U (12 days × 0.5 U)
@@ -84,14 +84,19 @@ edited (the parallel digging lane's files).
    the pantry's honey as the back-up. *Recommendation: (a).*
 4. **Honey goes to the old orchard's baskets** and is hauled on with the fruit (decision 0674's gathering point).
    *Recommendation: confirm.*
-5. **A winter feeding**: when the hive's feed will not last the winter, a keeper carries the shortfall from the
-   pantry's free honey -- a handling's 1 WU, since §5.6 says winter "needs feed but no tending labor". *Options:* (a) as
-   built; (b) no feeding (the bees live or die on their own store). *Recommendation: (a).*
+5. **A winter feeding**: when the hive's feed will not last the winter, a keeper walks to the skep and the shortfall is
+   drawn from the pantry's free honey when the feeding is done (no carry is drawn) -- a handling's 1 WU, since §5.6 says
+   winter "needs feed but no tending labor". *Options:* (a) as built; (b) no feeding (the bees live or die on their own
+   store). *Recommendation: (a).*
 6. **Wax waits on the apiary's shelf** (40 U) because the village stores (`demo/tunnel/tunnel_stores.gd`) belong to the
    active digging lane; candles (`wax_candle`: wax 1 + flax 0.25 → 4) wait on FLAX. *Recommendation: the follow-ups
    below.*
-7. **Recolonisation** starts only when its 3-day wait ends in spring, and takes its honey and wood when the 60 WU are
-   done (0671 P6). *Recommendation: confirm.*
+7. **Recolonisation** starts only when its 3-day wait ends in spring, and takes its honey (all or none) and wood when
+   the 60 WU are done (0671 P6). *Recommendation: confirm.*
+8. **The wildlife roll's draw**: the demo has no ECOLOGY RNG stream (`scripts/core/ecology.gd` takes no draw), so the
+   roll is a seeded hash, `rng.gd hash_pair(day, 1601 + apiary) mod 10000 < 200`, made for the day just ended when that
+   day was in summer or autumn; a hit on an empty hive still says so. *Options:* (a) as built; (b) wait for the
+   settlement's ECOLOGY stream. *Recommendation: (a) for the demo.*
 
 ## Follow-ups (not built here, and why)
 

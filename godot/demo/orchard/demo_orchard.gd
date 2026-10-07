@@ -37,6 +37,7 @@ const ApiaryViewScript := preload("res://demo/hives/apiary_view.gd")
 const FarmSimScript := preload("res://demo/farm/farm_sim.gd")
 const TakesScript := preload("res://demo/kitchen/ingredient_takes.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
 
 const SEL_NONE: int = 0
 const SEL_SITE: int = 1
@@ -177,10 +178,23 @@ func free_honey() -> int:
 
 
 func take_honey(milli: int) -> int:
-	"""Withdraw up to `milli` of free honey, the lot that spoils first first; how much was taken."""
-	if _takes == null or _pantry == null:
+	"""Withdraw exactly `milli` of free honey, the lot that spoils first first, ALL OR NONE (reserved before anything is
+	withdrawn, so a short take moves nothing); how much was taken (`milli` or 0)."""
+	if _takes == null or _pantry == null or milli <= 0:
 		return 0
-	return _takes.withdraw_free(_pantry, Catalog.CAT_HONEY, milli, _services.calendar.hour_index())
+	return take_all_or_none(_takes, _pantry, Catalog.CAT_HONEY, milli, _services.calendar.hour_index())
+
+
+static func take_all_or_none(takes: TakesScript, pantry: PantryScript, category: int, milli: int, hour_index: int) -> int:
+	"""Reserve `milli` of `category`'s free food in a take of its own; all of it there, withdraw it, else give the
+	reservation back untouched. `milli` or 0."""
+	var take: int = takes.new_take()
+	takes.reserve_into(pantry, take, category, milli, hour_index, IntMath.IntResult.new())
+	var whole: bool = takes.live_milli(pantry, take, TakesScript.AT_STORE, category) >= milli
+	var taken: bool = whole and takes.consume_into(pantry, take, milli, TakesScript.AT_STORE, hour_index,
+		IntMath.IntResult.new(), category)
+	takes.release(take)
+	return milli if taken else 0
 
 
 func set_woods(stand: StandScript) -> void:

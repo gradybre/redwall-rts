@@ -148,6 +148,9 @@ func _the_apiary_is_wired() -> void:
 	_check("the bees are out in spring", view != null and ((view.get("swarms") as Array)[0] as Node3D).visible)
 	var staged: bool = ResourceLoader.exists("res://demo/assets/world/bee_skep.glb") \
 		or ResourceLoader.exists("res://demo/assets/props/bee_skep.glb")
+	_check("the field's beans are joined to the apiary", (_village.get("_farm").get("sim").get("pollinate") as Callable).is_valid())
+	_check("the keeper reads the pantry's honey", _orchard().call(&"free_honey") == _village.call(&"kitchen").get("kitchen").get(
+		"takes").call(&"free_milli_of_crop", _village.get("_farm").get("pantry"), 8))
 	_check("the old trees are pollinated", _old_apple_factor() == 1100, "factor %d (skep staged: %s)" % [_old_apple_factor(),
 		staged])
 
@@ -198,7 +201,7 @@ func _its_readout_and_verbs() -> void:
 func _close_on_the_bees() -> void:
 	"""Close on the skep: the swarm about it."""
 	var at: Vector2 = HiveRules.centre_m(0)
-	_look_at(Vector3(at.x, 0.4, at.y), 4.5, 24.0, 160.0)
+	_look_at(Vector3(at.x, 0.4, at.y), 4.5, 28.0, 200.0)
 	_capture("bees")
 
 

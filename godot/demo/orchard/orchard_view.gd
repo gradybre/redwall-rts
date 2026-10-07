@@ -547,11 +547,14 @@ func _show_full_baskets(full: int) -> void:
 
 
 func _stand_item(at: int) -> int:
-	"""What stand location `at` holds most of (the apple on a tie or when empty)."""
+	"""What stand location `at` holds most of (the apple on a tie or when empty): the orchard's fruit and berries, or the
+	apiary's honey (decision 1601)."""
 	var best: int = Catalog.ITEM_APPLE
 	for item: int in Catalog.ORCHARD_ITEMS:
 		if _pantry.milli_at(item, at) > _pantry.milli_at(best, at):
 			best = item
+	if _pantry.milli_at(Catalog.ITEM_HONEY, at) > _pantry.milli_at(best, at):
+		best = Catalog.ITEM_HONEY
 	return best
 
 

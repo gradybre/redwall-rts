@@ -335,3 +335,54 @@ func test_the_preserving_table_is_drawn_and_walked_round() -> void:
 		"both drawn")
 	assert_equal(Recipes.land_obstacles().size(), 4, "the table's two circles and the brewery's two")
 	assert_true(rig.fishery.spot(&"table").distance_to(Recipes.TABLE_AT) < 2.0, "the table's spot is reachable nearby")
+
+
+func _shrink_lot(rig: Rig, item: int, to_milli: int) -> void:
+	"""Take `item`'s lot down to `to_milli` behind the takes' back (as only a direct withdrawal can)."""
+	for lot: int in PantryScript.MAX_LOTS:
+		if rig.pantry.lot_item(lot) == item:
+			var excess: int = rig.pantry.lot_milli(lot) - to_milli
+			assert_true(rig.pantry.withdraw_into(lot, rig.pantry.lot_serial(lot), excess, _read), "shrunk")
+			return
+
+
+func test_a_batch_short_of_one_input_is_given_up_whole() -> void:
+	"""All or nothing (REQ-SET-118): a ration batch whose nuts lot shrank below its 1 U after the order is given up when
+	its work would start -- no flour or dried fish withdrawn, nothing made, its take and room let go."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	_stock_rations(rig)
+	assert_equal(f.order_batch(Recipes.R_RATION, PackedInt32Array([1])), "", "ordered")
+	_shrink_lot(rig, Catalog.ITEM_NUTS, 500)
+	assert_true(_run(rig, func() -> bool: return f.tables.job_count() == 0), "given up")
+	assert_equal([rig.pantry.milli_of(Catalog.ITEM_FLOUR), rig.pantry.milli_of(Catalog.ITEM_DRIED_FISH),
+		rig.pantry.milli_of(Catalog.ITEM_NUTS), rig.pantry.milli_of(Catalog.ITEM_RATION)], [3000, 3000, 500, 0], "nothing moved")
+	assert_equal(f.batch_in_milli[Recipes.R_RATION], 0, "nothing booked")
+	assert_equal(rig.takes.free_milli_of_crop(rig.pantry, Catalog.CAT_FLOUR), 3000, "its take released")
+	assert_equal(rig.pantry.reserved_milli_of(0), 0, "its room released")
+
+
+func test_a_ration_batch_with_the_butt_drawn_down_is_given_up() -> void:
+	"""The butt emptied between the order and the start: the batch is given up, nothing withdrawn."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	_stock_rations(rig)
+	f.order_batch(Recipes.R_RATION, PackedInt32Array([1]))
+	_services.stores.water_milli_u = 0
+	assert_true(_run(rig, func() -> bool: return f.tables.job_count() == 0), "given up")
+	assert_equal([rig.pantry.milli_of(Catalog.ITEM_FLOUR), rig.pantry.milli_of(Catalog.ITEM_RATION)], [3000, 0], "nothing moved")
+
+
+func test_rations_are_worked_at_the_table_and_fruit_at_the_rack() -> void:
+	"""Each recipe's worker stands at its own station: the ration packer at the preserving table, a fruit take-down's
+	place the rack."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	_stock_rations(rig)
+	f.order_batch(Recipes.R_RATION, PackedInt32Array([1]))
+	var j: int = f.tables.j_live.find(1)
+	assert_true(_run(rig, func() -> bool: return f.step_of(j) == FisheryScript.S_STATION and f.tables.j_at[j] == 1), "at work")
+	assert_true(f.brain_of(1).surface_point().distance_to(f.spot(&"table")) < 1.5, "at the table")
+	f.tables.j_recipe[j] = Recipes.R_DRY_FRUIT
+	f.tables.j_kind[j] = Tables.KIND_TAKE_DOWN
+	assert_equal(f.place_words(j), "the rack", "a fruit batch's place")

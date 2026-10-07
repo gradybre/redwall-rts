@@ -13,7 +13,7 @@ extends RefCounted
 ## (halved to 100 by a closed fence) takes min(2 U, the apiary's honey). §5.9's Apiary: 3x3 tiles, one hive.
 ##
 ## DEMO VALUES (PROPOSALS in decision 1601):
-##   * THE APIARY: one, inherited with the village (as the old orchard is: decision 0672), on tiles 55..57 x 73..75 west of
+##   * THE APIARY: one, inherited with the village (as the old orchard is: decision 0672), on tiles 57..59 x 73..75 north of
 ##     the old orchard -- within 12 m of both old trees and of the four northern field beds, so beans sown there are
 ##     pollinated and the cabbage beds' row is not.
 ##   * THE WINTER FEED (ECO-012's "winter feed protected first"): the honey a collection brings is first put by in the
@@ -37,8 +37,8 @@ const TILE_M: float = 2.0
 # --- the apiaries -----------------------------------------------------------------------------------------------------
 ## Each apiary's footprint (inclusive tiles, min then max), its name and the basket stand (orchard_rules.gd group) its
 ## honey is carried to.
-const APIARY_MIN: Array[Vector2i] = [Vector2i(55, 73)]
-const APIARY_MAX: Array[Vector2i] = [Vector2i(57, 75)]
+const APIARY_MIN: Array[Vector2i] = [Vector2i(57, 73)]
+const APIARY_MAX: Array[Vector2i] = [Vector2i(59, 75)]
 const APIARY_NAMES: Array[String] = ["the apiary"]
 const APIARY_STAND_GROUP: PackedInt32Array = [0]
 const APIARY_COUNT: int = 1

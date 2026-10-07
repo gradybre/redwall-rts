@@ -207,11 +207,11 @@ func test_the_numbers_are_the_documents() -> void:
 
 
 func test_where_the_apiary_stands() -> void:
-	"""Tiles 55..57 x 73..75: the skep at (-15, 21), its keeper 1.1 m south of it; a ground point's tile is farm_sim.gd's."""
+	"""Tiles 57..59 x 73..75: the skep at (-11, 21), its keeper 1.1 m south of it; a ground point's tile is farm_sim.gd's."""
 	assert_true(HiveRules.is_apiary(0) and not HiveRules.is_apiary(HiveRules.APIARY_COUNT) and not HiveRules.is_apiary(-1),
 		"one apiary")
-	assert_equal(HiveRules.centre_m(0), Vector2(-15.0, 21.0), "its centre")
-	assert_equal(HiveRules.keeper_spot(0), Vector2(-15.0, 19.9), "its keeper's spot")
+	assert_equal(HiveRules.centre_m(0), Vector2(-11.0, 21.0), "its centre")
+	assert_equal(HiveRules.keeper_spot(0), Vector2(-11.0, 19.9), "its keeper's spot")
 	assert_equal(HiveRules.tile_of_m(Vector2(-12.6, 16.4)), Vector2i(57, 72), "64 + floor(x / 2)")
 	assert_equal(HiveRules.tile_of_m(Vector2(0.0, -0.1)), Vector2i(64, 63), "the floor below zero")
 	assert_equal(HiveRules.units(6000), "6.0 U", "its units")
@@ -336,6 +336,7 @@ func test_abandonment_and_recolonising() -> void:
 	assert_true(apiary.is_abandoned(0), "still waiting")
 	model.close_day(7, 120)
 	assert_equal(apiary.strength(0), 8000, "a swarm settled on day 8")
+	assert_equal(apiary.recolonize_day[0], 0, "the wait is over")
 	assert_equal(apiary.news[apiary.news.size() - 1], "A swarm has settled in the apiary: the hive is alive again", "said")
 	assert_equal(apiary.recolonize_refusal(0, 9), ApiaryScript.REFUSE_NOT_ABANDONED, "alive again")
 	assert_false(apiary.start_recolonize(0, 9), "nothing to start")
@@ -366,6 +367,11 @@ func test_wildlife_takes_honey_in_summer_and_autumn() -> void:
 	_set_hive(model.apiary, 8000, 6000, 500, 0)
 	model.close_day(_first_hit_day(hit + 1, 100), 120)
 	assert_equal(model.apiary.lost_milli, 2500, "min(2 U, 0.5 U)")
+	var empty := ModelScript.new()
+	_set_hive(empty.apiary, 8000, 6000, 0, 0)
+	empty.close_day(hit, 120)
+	assert_equal(empty.apiary.news[empty.apiary.news.size() - 1], "Something got into the apiary in the night, but found no honey",
+		"advised even with nothing to take")
 	var spring := ModelScript.new()
 	_set_hive(spring.apiary, 8000, 6000, 3500, 0)
 	for day: int in range(1, SUMMER_DAY):
@@ -400,7 +406,7 @@ func test_a_year_of_tending_keeps_the_books() -> void:
 # --- pollination (REQ-SET-082, ECO-011) ------------------------------------------------------------------------------------
 
 func test_the_apiary_pollinates_the_old_trees_and_not_the_east_sites() -> void:
-	"""The old apple (9 m) and pear (11.4 m) are within 12 m: x1100; a tree on an east site is not; a weak hive gives
+	"""The old apple (10.3 m) and pear (9.5 m) are within 12 m: x1100; a tree on an east site is not; a weak hive gives
 	nothing; a second hive in reach gives x1150 (REQ-SET-082's bound)."""
 	var model := ModelScript.new()
 	for site: int in [0, 1]:
@@ -528,7 +534,7 @@ func test_the_bees_fly_in_season_and_rest_in_winter() -> void:
 	view.configure(model.apiary, Callable(), calendar, clock)
 	assert_equal(view.swarms.size(), 1, "a swarm")
 	assert_true(view.swarms[0].visible, "out in spring")
-	assert_equal(view.swarms[0].position, Vector3(-15.0, 0.0, 21.0), "over the skep")
+	assert_equal(view.swarms[0].position, Vector3(-11.0, 0.0, 21.0), "over the skep")
 	calendar.tick = (WINTER_DAY - 1) * SimClock.TICKS_PER_DAY
 	view.follow()
 	assert_false(view.swarms[0].visible, "resting in winter")
@@ -537,8 +543,10 @@ func test_the_bees_fly_in_season_and_rest_in_winter() -> void:
 	view.follow()
 	assert_false(view.swarms[0].visible, "an empty skep")
 	DemoMotion.reduced = true
+	clock.speed = 4
 	view.follow()
-	assert_true(view.is_out(0) == false, "still empty")
+	assert_true(bool(view.swarms[0].get("_reduced")), "reduced motion forwarded")
+	assert_equal(float(view.swarms[0].get("_speed")), 4.0, "the clock's speed forwarded")
 
 
 # --- the keeper's jobs on real brains --------------------------------------------------------------------------------------------
@@ -574,8 +582,9 @@ func test_honey_past_the_feed_is_carried_to_the_baskets() -> void:
 		assert_equal(rig.pantry.reserved_milli_of(at), 0, "no room left held at store %d" % at)
 
 
-func test_a_winter_feeding_carries_the_pantrys_honey() -> void:
-	"""REQ-SET-083 made actionable: in winter, a hive short of feed is fed the shortfall from the pantry's free honey."""
+func test_a_winter_feeding_draws_the_pantrys_honey() -> void:
+	"""REQ-SET-083 made actionable: in winter, a hive short of feed is fed the shortfall drawn from the pantry's free
+	honey (the keeper walks to the skep; the honey leaves its store when the feeding is done)."""
 	var rig := _rig(WINTER_DAY + 3)
 	_set_hive(rig.model.apiary, 8000, 0, 0, 0)
 	assert_true(rig.pantry.add_into(Catalog.ITEM_HONEY, 10000, _location(rig, KitchenNode.PANTRY_ID), _read), "honey")
@@ -617,3 +626,69 @@ func test_the_player_orders_the_keepers_work() -> void:
 	assert_equal(rig.jobs.worker[j], 0, "to the selected resident")
 	assert_equal(rig.jobs.place_of(j, JobsScript.S_GO), HiveRules.keeper_spot(0), "at the skep")
 	assert_true(rig.jobs.doing_text(j, rig.jobs.serial[j]).contains("Tend the bees — the apiary"), "its words")
+
+
+func test_the_wildlife_roll_is_the_day_just_ended() -> void:
+	"""§5.8's roll is made for the day just ended, only when it was a summer or autumn day: spring's last day and winter's
+	first never roll; summer's first and autumn's last roll on the seeded draw."""
+	var apiary: ApiaryScript = ModelScript.new().apiary
+	assert_false(apiary.wildlife_strikes(0, SUMMER_DAY - 1), "spring's last day")
+	assert_false(apiary.wildlife_strikes(0, WINTER_DAY), "winter's first day")
+	for day: int in [SUMMER_DAY, WINTER_DAY - 1, 19]:
+		var hits: bool = Rng.hash_pair(day, HiveRules.WILDLIFE_SEED) % HiveRules.WILDLIFE_DENOMINATOR < HiveRules.WILDLIFE_CHANCE
+		assert_equal(apiary.wildlife_strikes(0, day), hits, "day %d rolls" % day)
+	assert_true(apiary.wildlife_strikes(0, 19), "the seeded summer hit")
+
+
+func test_missed_days_count_only_live_working_days() -> void:
+	"""A winter day needs no tending and an abandoned hive is past it: neither counts as a missed service."""
+	var model := ModelScript.new()
+	_set_hive(model.apiary, 8000, 6000, 0, 0)
+	model.close_day(WINTER_DAY, 0)
+	assert_equal(model.apiary.missed_days, 0, "no tending in winter")
+	_set_hive(model.apiary, 0, 0, 0, 0)
+	model.close_day(SUMMER_DAY, 120)
+	assert_equal(model.apiary.missed_days, 0, "an empty hive owes no service")
+
+
+func test_honey_is_taken_all_or_none() -> void:
+	"""demo_orchard.gd `take_all_or_none`: short of the whole amount, nothing leaves the pantry (a recolonisation's 4 U
+	never half-paid); with enough, exactly that much."""
+	var pantry := PantryScript.new(StorageScript.new(Vector2.ZERO))
+	var takes := TakesScript.new()
+	assert_true(pantry.add_into(Catalog.ITEM_HONEY, 1500, 0, _read) and pantry.add_into(Catalog.ITEM_HONEY, 2000, 0, _read), "two lots")
+	assert_equal(OrchardNode.take_all_or_none(takes, pantry, Catalog.CAT_HONEY, 4000, 0), 0, "3.5 U is short of 4")
+	assert_equal(pantry.milli_of(Catalog.ITEM_HONEY), 3500, "nothing taken")
+	assert_equal(takes.free_milli_of_crop(pantry, Catalog.CAT_HONEY), 3500, "nothing left reserved")
+	assert_equal(OrchardNode.take_all_or_none(takes, pantry, Catalog.CAT_HONEY, 3000, 0), 3000, "3 U taken")
+	assert_equal(pantry.milli_of(Catalog.ITEM_HONEY), 500, "from both lots")
+
+
+func test_bind_farm_wires_the_beans_and_the_honey() -> void:
+	"""demo_orchard.gd `bind_farm`, as demo_village.gd calls it: the field's pollination join, and the keeper's honey
+	through the kitchen's takes (food the kitchen has set aside is not free)."""
+	var node: OrchardNode = _keep(OrchardNode.new()) as OrchardNode
+	var pantry := PantryScript.new(StorageScript.new(Vector2.ZERO))
+	var takes := TakesScript.new()
+	node.set("_pantry", pantry)
+	node.set("_services", _services)
+	var sim := SimScript.new()
+	node.bind_farm(sim, takes)
+	assert_true(sim.pollinate.is_valid(), "the beans' join")
+	pantry.add_into(Catalog.ITEM_HONEY, 5000, 0, _read)
+	takes.reserve_into(pantry, takes.new_take(), Catalog.CAT_HONEY, 2000, 0, _read)
+	assert_equal(node.free_honey(), 3000, "the kitchen's 2 U are not free")
+	assert_equal(node.jobs.hive_honey_free(), 3000, "the keeper reads the same")
+	assert_equal(node.take_honey(4000), 0, "all or none")
+	assert_equal(node.take_honey(3000), 3000, "taken")
+	assert_equal(pantry.milli_of(Catalog.ITEM_HONEY), 2000, "the kitchen's left")
+
+
+func test_the_skep_stands_clear_of_the_village() -> void:
+	"""The skep's circle overlaps no building, fence, stump or bush of the world, nor the herb bank."""
+	var world: DemoWorldScript = _keep(DemoWorldScript.new()) as DemoWorldScript
+	for apiary: int in HiveRules.APIARY_COUNT:
+		var at: Vector2 = HiveRules.centre_m(apiary)
+		for theirs: Vector3 in world.obstacles():
+			var gap: float = at.distance_to(Vector2(theirs.x, theirs.z))
+			assert_true(gap >= HiveRules.SKEP_RADIUS_M + theirs.y, "clear of (%.1f, %.1f)" % [theirs.x, theirs.z])

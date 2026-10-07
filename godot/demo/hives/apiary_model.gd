@@ -145,9 +145,10 @@ func collect(apiary: int, day: int, cap_milli: int) -> int:
 	hive, the wax shelved (what the shelf cannot hold left in the hive). Returns the honey released, milli-U."""
 	var honey: int = store.collect_honey(hive_ref[apiary]).value
 	var to_feed: int = mini(honey, maxi(0, Rules.feed_need_milli(day) - feed(apiary)))
-	if to_feed > 0:
-		store.add_hive_feed(hive_ref[apiary], to_feed)
-		fed_from_hive_milli += to_feed
+	if to_feed > 0 and not store.add_hive_feed(hive_ref[apiary], to_feed).ok:
+		push_error("apiary: the hive refused %d milli-U of feed" % to_feed)
+		to_feed = 0
+	fed_from_hive_milli += to_feed
 	var released: int = clampi(honey - to_feed, 0, maxi(0, cap_milli))
 	released_milli += released
 	_shelve_wax(apiary)
@@ -211,8 +212,8 @@ func close_day(day: int) -> void:
 	news_warning.clear()
 	for apiary: int in Rules.APIARY_COUNT:
 		_hive_day(apiary, day)
-		if Rules.is_wildlife_season(Hive.season_of_day(day)):
-			_wildlife(apiary, day)
+		if wildlife_strikes(apiary, day):
+			_wildlife(apiary)
 		if recolonize_day[apiary] != 0 and recolonize_day[apiary] <= day + 1:
 			_recolonized(apiary, day + 1)
 	revision += 1
@@ -233,18 +234,24 @@ func _hive_day(apiary: int, day: int) -> void:
 		_say("The bees have left %s: the hive is abandoned (recolonise it in spring)" % Rules.APIARY_NAMES[apiary], true)
 
 
-func _wildlife(apiary: int, day: int) -> void:
-	"""§5.8's midnight roll: on a hit, min(2 U, the apiary's honey) is taken (the advisory; nobody is hurt)."""
-	var roll: int = Rng.hash_pair(day, Rules.WILDLIFE_SEED + apiary) % Rules.WILDLIFE_DENOMINATOR
-	if roll >= Rules.wildlife_chance(apiary):
-		return
+func wildlife_strikes(apiary: int, day: int) -> bool:
+	"""§5.8's midnight roll for the day just ended, `day`: only when that day was in summer or autumn, a hit when the
+	seeded draw (rng.gd `hash_pair(day, WILDLIFE_SEED + apiary)`, 0..9999) falls under the apiary's chance."""
+	if not Rules.is_wildlife_season(Hive.season_of_day(day)):
+		return false
+	return Rng.hash_pair(day, Rules.WILDLIFE_SEED + apiary) % Rules.WILDLIFE_DENOMINATOR < Rules.wildlife_chance(apiary)
+
+
+func _wildlife(apiary: int) -> void:
+	"""A hit: min(2 U, the apiary's honey) is taken, and the advisory said either way (§5.8; nobody is hurt)."""
 	var taken: int = mini(Rules.WILDLIFE_TAKE_MILLI, honey_in_hive(apiary))
 	wildlife_visits += 1
-	if taken <= 0:
-		return
 	_set_hive_honey(apiary, honey_in_hive(apiary) - taken)
 	lost_milli += taken
-	_say("Something got into %s in the night: %s of honey gone" % [Rules.APIARY_NAMES[apiary], Rules.units(taken)], true)
+	if taken > 0:
+		_say("Something got into %s in the night: %s of honey gone" % [Rules.APIARY_NAMES[apiary], Rules.units(taken)], true)
+	else:
+		_say("Something got into %s in the night, but found no honey" % Rules.APIARY_NAMES[apiary], true)
 
 
 func _recolonized(apiary: int, day: int) -> void:
@@ -252,6 +259,8 @@ func _recolonized(apiary: int, day: int) -> void:
 	recolonize_day[apiary] = 0
 	if store.recolonize_hive(hive_ref[apiary], day).ok:
 		_say("A swarm has settled in %s: the hive is alive again" % Rules.APIARY_NAMES[apiary], false)
+	else:
+		push_error("apiary: a paid recolonisation was refused on day %d" % day)
 
 
 func _say(line: String, warning: bool) -> void:
@@ -269,8 +278,9 @@ func _set_hive_honey(apiary: int, milli: int) -> void:
 func _write_state(apiary: int, honey: int, wax: int) -> void:
 	"""Rewrite the hive's honey and wax through the store's validated state writer, every other field as it is."""
 	var slot: int = slot_of(apiary)
-	store.restore_hive_state(hive_ref[apiary], strength(apiary), feed(apiary), maxi(0, honey), maxi(0, wax),
-		store.hive_serviced_day_of(slot).value)
+	if not store.restore_hive_state(hive_ref[apiary], strength(apiary), feed(apiary), honey, wax,
+			store.hive_serviced_day_of(slot).value).ok:
+		push_error("apiary: the hive refused honey %d and wax %d (the books are wrong)" % [honey, wax])
 
 
 # --- pollination (REQ-SET-082; ECO-011) ------------------------------------------------------------------------------------

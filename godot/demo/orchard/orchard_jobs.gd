@@ -196,7 +196,7 @@ func set_compost(left: Callable, take: Callable) -> void:
 
 func set_honey(left: Callable, take: Callable) -> void:
 	"""The pantry's free honey (decision 1601: a winter feeding, a recolonisation): `left() -> int` milli-U nobody has set
-	aside, `take(milli) -> int` withdraws up to that much and says how much (demo_orchard.gd `bind_farm`)."""
+	aside, `take(milli) -> int` withdraws exactly that much or nothing and says which (demo_orchard.gd `bind_farm`)."""
 	_honey_left = left
 	_take_honey = take
 
@@ -1019,9 +1019,9 @@ func _complete(j: int) -> String:
 
 
 func _fed(apiary: int) -> String:
-	"""A winter feeding done: the hive's shortfall taken from the pantry's free honey (what there is) and put by."""
-	var short: int = model.apiary.feed_shortfall_milli(apiary, today())
-	var got: int = int(_take_honey.call(short)) if _take_honey.is_valid() and short > 0 else 0
+	"""A winter feeding done: the hive's shortfall drawn from the pantry's free honey (what there is of it) and put by."""
+	var want: int = mini(model.apiary.feed_shortfall_milli(apiary, today()), hive_honey_free())
+	var got: int = int(_take_honey.call(want)) if _take_honey.is_valid() and want > 0 else 0
 	if got <= 0 or not model.apiary.add_feed(apiary, got):
 		return ""
 	return "%s of honey put by in %s for the winter" % [Text.units(got), HiveRules.APIARY_NAMES[apiary]]

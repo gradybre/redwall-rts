@@ -261,12 +261,18 @@ func _pour(eligible: int, attended: int, hour_index: int) -> bool:
 
 
 func _pour_drinks(eligible: int, attended: int, hour_index: int) -> void:
-	"""The drinks reserved, poured proportionally to attended/E (floor), each from the drinks' take; the rest is given back
-	when the take is released."""
+	"""The drinks reserved, poured proportionally to attended/E (floor), each from the drinks' take -- no more than is
+	still there (a cordial kept 72 h may have partly spoiled since the feast was held); the rest is given back when the
+	take is released."""
 	var guests: int = clampi(attended, 0, eligible)
+	if kitchen == null or drink_take == 0:
+		return
+	kitchen.takes.trim_to_lots(kitchen.pantry, drink_take, TakesScript.AT_STORE)
 	for k: int in DRINK_ITEMS.size():
 		@warning_ignore("integer_division") var pour: int = drinks_planned[k] * guests / maxi(eligible, 1)
-		if pour <= 0 or kitchen == null:
+		pour = mini(pour, kitchen.takes.live_milli(kitchen.pantry, drink_take, TakesScript.AT_STORE,
+			Catalog.category_of(DRINK_ITEMS[k])))
+		if pour <= 0:
 			continue
 		if kitchen.takes.consume_into(kitchen.pantry, drink_take, pour, TakesScript.AT_STORE, hour_index, _read,
 				Catalog.category_of(DRINK_ITEMS[k])):

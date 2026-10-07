@@ -165,7 +165,7 @@ func _build_props() -> void:
 ## the worker; the cask's spigot head too).
 const STATION_PROPS: Array[StringName] = [Recipes.SHELF_KEY, Recipes.CROCK_KEY, Recipes.VAT_KEY, Recipes.CASK_KEY]
 const STATION_PROP_AT: Array[Vector2] = [Recipes.SHELF_AT, Recipes.CROCK_AT, Recipes.VAT_AT, Recipes.CASK_AT]
-const STATION_PROP_YAW: PackedFloat32Array = [0.0, 0.6, 0.4, -0.5]
+const STATION_PROP_YAW: PackedFloat32Array = [0.0, 0.6, -0.27, 0.57]
 
 
 func _build_preserves() -> void:

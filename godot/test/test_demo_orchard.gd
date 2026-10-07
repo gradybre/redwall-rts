@@ -201,10 +201,12 @@ func _in_hand(rig: Rig, item: int) -> int:
 
 func _no_holds(rig: Rig, label: String) -> void:
 	"""No room is held anywhere and no reservation row is left live (a spent hold still takes a row) -- but by a job
-	still on the board (the apiary's service holds room for its honey while it works: decision 1601)."""
+	still on the board that is not a harvest or a haul -- the routine's other work (the apiary's service, decision 1601,
+	or a berry picking) may hold its own room while the run ends; a harvest's or a haul's never outlives it."""
 	var live_holds := PackedInt32Array()
 	for j: int in JobsScript.MAX_JOBS:
-		if rig.jobs.is_live(j) and rig.pantry.is_hold(rig.jobs.hold[j]):
+		var other: bool = rig.jobs.kind[j] != JobsScript.K_HARVEST and rig.jobs.kind[j] != JobsScript.K_HAUL
+		if rig.jobs.is_live(j) and other and rig.pantry.is_hold(rig.jobs.hold[j]):
 			live_holds.append(rig.jobs.hold[j])
 	for at: int in rig.pantry.storage.count():
 		var own: int = 0
@@ -353,7 +355,7 @@ func test_the_old_trees_bear_once_in_their_window() -> void:
 	assert_equal(model.harvest_refusal(1, PEAR_DAY), "", "the pear's Autumn 3")
 	@warning_ignore("integer_division") var expected: int = 80000 * Rules.OLD_HEALTH / 10000 \
 		* Hive.POLLINATION_FACTOR_ONE_HIVE / Hive.POLLINATION_FACTOR_DENOMINATOR
-	assert_equal(model.expected_yield_milli(0), expected, "80 U at 35% health, x1.10 by the apiary 9 m off (decision 1601)")
+	assert_equal(model.expected_yield_milli(0), expected, "80 U at 35% health, x1.10 by the apiary 10.3 m off (decision 1601)")
 	assert_equal(model.pick_tree(0, APPLE_DAY), expected, "picked")
 	assert_equal(model.fruit_picked_milli[Rules.APPLE], expected, "tallied")
 	assert_equal(model.harvest_refusal(0, APPLE_DAY + 1), String(Hive.REFUSE_ALREADY_HARVESTED_THIS_YEAR), "once")

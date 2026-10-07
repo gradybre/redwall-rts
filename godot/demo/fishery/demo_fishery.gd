@@ -61,6 +61,10 @@ const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 const PANEL_REFRESH_S: float = 0.25
 const OVERDUE_KEY: String = "water:overdue:%d"
 const THIN_ICE_KEY: String = "water:thin_ice"
+## The station recipes' buttons (preserve_rules.gd rows: decisions 0434, 1611, 1621).
+const ACTION_RECIPES: Dictionary = {PanelScript.ACTION_DRY: Recipes.R_DRY_FISH, PanelScript.ACTION_DRY_FRUIT: Recipes.R_DRY_FRUIT,
+	PanelScript.ACTION_RATIONS: Recipes.R_RATION, PanelScript.ACTION_MEAD: Recipes.R_MEAD,
+	PanelScript.ACTION_CORDIAL: Recipes.R_CORDIAL}
 ## The Make buttons' locker kinds.
 const MAKE_ACTIONS: Array[StringName] = [PanelScript.ACTION_MAKE_NET, PanelScript.ACTION_MAKE_TRAP,
 	PanelScript.ACTION_MAKE_ICE_KIT]
@@ -258,20 +262,13 @@ func on_action(action_name: StringName) -> void:
 			_answer(_ordered(fishery.order_make(kind, members), "Make a %s: on the work board" % LockerScript.KIND_NAMES[kind]))
 		PanelScript.ACTION_MEND:
 			_answer(_ordered(fishery.order_mend(fishery.worst_to_mend(), members), "Mend: on the work board"))
-		PanelScript.ACTION_DRY:
-			_answer(_ordered(fishery.order_dry(members), "Dry fish: on the work board"))
 		PanelScript.ACTION_MILL:
 			_answer(_ordered(fishery.order_mill(members), "Mill grain: on the work board"))
-		PanelScript.ACTION_DRY_FRUIT:
-			_answer(_ordered(fishery.order_batch(Recipes.R_DRY_FRUIT, members), "Dry fruit: on the work board"))
-		PanelScript.ACTION_RATIONS:
-			_answer(_ordered(fishery.order_batch(Recipes.R_RATION, members), "Pack rations: on the work board"))
-		PanelScript.ACTION_MEAD:
-			_answer(_ordered(fishery.order_batch(Recipes.R_MEAD, members), "Brew mead: on the work board"))
-		PanelScript.ACTION_CORDIAL:
-			_answer(_ordered(fishery.order_batch(Recipes.R_CORDIAL, members), "Make cordial: on the work board"))
 		_:
-			return
+			if not ACTION_RECIPES.has(action_name):
+				return
+			var recipe: int = ACTION_RECIPES[action_name]
+			_answer(_ordered(fishery.order_batch(recipe, members), "%s: on the work board" % Recipes.VERB[recipe]))
 	_refresh_in = 0.0
 
 

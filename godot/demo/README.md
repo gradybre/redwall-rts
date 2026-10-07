@@ -2019,7 +2019,7 @@ not the GDD's is named in `hives/hive_rules.gd`.
   makes honey 2 U and wax 0.25 U × strength/10000, for 20 WU of service a day; a missed day costs 200 and makes
   nothing; a tended spring day restores 300; winter makes nothing and eats 0.5 U of honey a day from the hive's feed,
   a day without it costing 500; at 0 the hive is abandoned.
-- **The apiary** stands from the start west of the old orchard (one skep, tiles 55..57 × 73..75). Its keeper's work is
+- **The apiary** stands from the start north of the field, before the old orchard (one skep, tiles 57..59 × 73..75). Its keeper's work is
   on the work board under **Orchard**: **Tend the bees** (the day's service, then the collection), **Feed the bees**
   (winter, when the hive's feed falls short: the pantry's free honey), **Recolonise** (an abandoned hive in spring:
   honey 4 U and wood 2 U, 60 WU, a 3-day wait).

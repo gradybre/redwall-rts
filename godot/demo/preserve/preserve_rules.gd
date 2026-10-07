@@ -15,7 +15,7 @@ extends RefCounted
 ## BREWING (decision 1621, BREW #19) adds two rows at THE BREWERY east of the kitchen (art pass 3's `brew_vat` and
 ## `ale_cask`), whose four passive slots are §5.9's Brewery's ("Cook 1 | 4 passive batch slots"):
 ##   mead       honey 3, water 3                        -> mead 4, 20 WU + 72 h passive, Brewery/COOK, 1440 h
-##   cordial    berries 2, honey 0.5, water 2           -> cordial 4, 10 WU, 72 h -- Brendan's DEC-045 drink
+##   cordial    berries 2, honey 0.5, water 2           -> cordial 4, 10 WU, keeps 72 h -- Brendan's DEC-045 drink
 ##              (dish_book.gd's `cordial` row, decision 0603: the raspberry cordial), made at the brewery's bench and
 ##              kept as a drink, never a meal's dish
 ## Mead is "feast ingredient only; no intoxication subsystem" (§5.7): nothing here, or anywhere, models drink's effect.
@@ -74,25 +74,25 @@ const IN_FIX: Array[String] = ["Fishing ▸ Authorise a trip", "Orchard ▸ Harv
 	"Orchard ▸ the apiary (and send the baskets on)", "Orchard ▸ Pick berries, or Woods ▸ Foraging",
 	"Orchard ▸ the apiary (and send the baskets on)"]
 
-## THE PRESERVING TABLE (DEMO): its place west of the kitchen, the spot a worker faces, and its props' places.
-const TABLE_AT: Vector2 = Vector2(10.4, -8.6)
-const TABLE_FACE: Vector2 = Vector2(10.4, -9.6)
+## THE PRESERVING TABLE (DEMO): its place west of the kitchen, by the cauldron, the spot a worker faces, and its props' places.
+const TABLE_AT: Vector2 = Vector2(7.8, -6.6)
+const TABLE_FACE: Vector2 = Vector2(7.8, -7.6)
 const SHELF_KEY: StringName = &"jar_shelf"
 const CROCK_KEY: StringName = &"crock_stoneware"
-const SHELF_AT: Vector2 = Vector2(10.4, -9.5)
-const CROCK_AT: Vector2 = Vector2(11.5, -9.3)
+const SHELF_AT: Vector2 = Vector2(7.8, -7.6)
+const CROCK_AT: Vector2 = Vector2(8.9, -7.4)
 ## The props the cast walks round (x, radius, z): the shelf (1.35 m wide) and the crock.
 const SHELF_RADIUS_M: float = 0.7
 const CROCK_RADIUS_M: float = 0.3
 
 ## THE BREWERY (DEMO; decision 1621): its place east of the kitchen, the spot a brewer faces, the mash vat and the
-## conditioning cask (its spigot, on its +Z head, toward the brewer).
-const BREWERY_AT: Vector2 = Vector2(17.0, -8.6)
-const BREWERY_FACE: Vector2 = Vector2(17.0, -9.6)
+## conditioning cask west of it (its spigot, on its +Z head, toward the brewer), both clear of the kitchen and the rocks.
+const BREWERY_AT: Vector2 = Vector2(18.5, -5.9)
+const BREWERY_FACE: Vector2 = Vector2(18.8, -7.0)
 const VAT_KEY: StringName = &"brew_vat"
 const CASK_KEY: StringName = &"ale_cask"
-const VAT_AT: Vector2 = Vector2(17.0, -9.8)
-const CASK_AT: Vector2 = Vector2(18.3, -9.3)
+const VAT_AT: Vector2 = Vector2(18.8, -7.0)
+const CASK_AT: Vector2 = Vector2(17.6, -7.3)
 const VAT_RADIUS_M: float = 0.65
 const CASK_RADIUS_M: float = 0.45
 ## The vat's rim, where its steam rises while a batch brews (art_pass3_mapping.md: 0.80 m).
@@ -107,8 +107,11 @@ static func land_obstacles() -> Array[Vector3]:
 
 
 static func station_of_slot(slot: int) -> int:
-	"""The station passive slot `slot` belongs to (the rack's first, then the brewery's vats)."""
-	return STATION_RACK if slot < FisheryRules.RACK_SLOTS else STATION_BREWERY
+	"""The station passive slot `slot` belongs to (the rack's first, then the brewery's vats; -1 for none)."""
+	for station: int in STATION_SLOTS.size():
+		if slot >= STATION_FIRST_SLOT[station] and slot < STATION_FIRST_SLOT[station] + STATION_SLOTS[station]:
+			return station
+	return -1
 
 
 static func is_recipe(recipe: int) -> bool:

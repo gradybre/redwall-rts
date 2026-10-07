@@ -1,5 +1,5 @@
 # 1611 — Preserving in the demo: dried fruit on the rack, rations at a preserving table
-Date: 2026-10-07 · Status: Accepted (engineering); **PROPOSALS P1–P6 wait on Brendan**
+Date: 2026-10-07 · Status: Accepted (engineering); **PROPOSALS P1–P7 wait on Brendan**
 
 **Numbering.** BACKLOG.md's PRESERVE packet assigns 1241–1250; that range collides with a parallel digging branch
 (0991–1217 and growing), so the lead remapped the food packets to 1601–1629 and PRESERVE takes **1611–1619** (1611
@@ -68,7 +68,11 @@ No work-board source and no key is added; nothing is renumbered. Nothing under `
    with no portion eats rations (or dried fruit) under REQ-SET-013. *Recommendation: confirm.*
 5. **A ration weighs 500 g in the GDD** but the demo's stores count units, not mass (as every pantry item; Q-D6 asks the
    same of the Cellar building). *Recommendation: leave it with Q-D6.*
-6. **Not built**: `salt_fish` (no coast, so no salt); jam, pickles and a plant-milk cheese have no GDD row -- they wait on
+6. **Simplifications, named**: a batch's fetch walks to the store of its first input only (rations: the flour's); the
+   other inputs are withdrawn from wherever their lots are, as the books never move with a carry. Water is checked when a
+   batch is ordered but not reserved (as the kitchen's): two orders against the last unit of water both go through and
+   the second is given up when its work would start. *Recommendation: confirm.*
+7. **Not built**: `salt_fish` (no coast, so no salt); jam, pickles and a plant-milk cheese have no GDD row -- they wait on
    Q-D5, with honey jam possible now that the apiary makes honey (decision 1601). *Recommendation: Q-D5 (a) now, (b) and
    (c) asked together.*
 

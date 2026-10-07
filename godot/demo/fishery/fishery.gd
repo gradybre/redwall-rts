@@ -93,8 +93,6 @@ const PROG_TAKE_DOWN: int = 6
 const PROG_MILL: int = 7
 const PROG_MAKE: int = 8
 const PROG_MEND: int = 9
-## A station batch with no passive wait (decision 1611: the preserving table's rations): fetch, work, carry it in.
-const PROG_BATCH: int = 10
 const PROGRAMS: Array[Array] = [
 	[S_TO_LOCKER, S_TO_BANK, S_WORK, S_GEAR_BACK, S_TO_STORE],
 	[S_TO_LOCKER, S_TO_BANK, S_WORK],
@@ -106,7 +104,6 @@ const PROGRAMS: Array[Array] = [
 	[S_TO_PICKUP, S_TO_STATION, S_STATION, S_TO_STORE],
 	[S_TO_WORKBENCH, S_STATION, S_TO_LOCKER],
 	[S_TO_STATION, S_STATION],
-	[S_TO_PICKUP, S_TO_STATION, S_STATION, S_TO_STORE],
 ]
 ## Each method's seat program.
 const METHOD_PROG: Array[int] = [PROG_NET, PROG_TRAP_SET, PROG_BOAT, PROG_ICE]
@@ -960,7 +957,7 @@ func _station_spot(j: int) -> Vector2:
 	"""A station job's place: the rack, the mill, the workbench, the locker, or the jetty (a boat's mending)."""
 	match tables.j_kind[j]:
 		Tables.KIND_DRY, Tables.KIND_TAKE_DOWN, Tables.KIND_BATCH:
-			return spot(STATION_SPOTS[Recipes.STATION[tables.j_recipe[j]]])
+			return spot(STATION_SPOTS[_station_of_job(j)])
 		Tables.KIND_MILL:
 			return spot(&"mill")
 		Tables.KIND_MAKE:
@@ -968,6 +965,16 @@ func _station_spot(j: int) -> Vector2:
 		Tables.KIND_MEND:
 			return spot(&"jetty") if tables.j_slot[j] >= BOAT_SLOT else spot(&"locker")
 	return spot(&"locker")
+
+
+func _station_of_job(j: int) -> int:
+	"""The recipe station job `j` works at: its recipe's, or -- a station job with no recipe, a programming error said
+	once -- the rack (a negative index would wrap to another station)."""
+	var recipe: int = tables.j_recipe[j]
+	if Recipes.is_recipe(recipe):
+		return Recipes.STATION[recipe]
+	push_error("fishery: station job %d has no recipe" % j)
+	return Recipes.STATION_RACK
 
 
 func _store_goal(j: int) -> Vector2:
@@ -1254,7 +1261,7 @@ func _face_of(j: int) -> Vector2:
 		return _bank_water.get(tables.t_site[t], spot(&"locker")) if not _on_ice(j) else ICE_HOLE + Vector2(1.0, 0.0)
 	match tables.j_kind[j]:
 		Tables.KIND_DRY, Tables.KIND_TAKE_DOWN, Tables.KIND_BATCH:
-			return STATION_FACES[Recipes.STATION[tables.j_recipe[j]]]
+			return STATION_FACES[_station_of_job(j)]
 		Tables.KIND_MILL:
 			return MILL_FACE
 		Tables.KIND_MAKE:
@@ -1678,6 +1685,8 @@ func batch_refusal(recipe: int) -> String:
 	row, each input's food nobody has reserved, the butt's water, room for what it makes (REQ-SET-112), a free job row."""
 	refused_code = ""
 	refused_fix = ""
+	if not Recipes.is_recipe(recipe):
+		return _refuse("NO_RECIPE", "there is no such recipe", "")
 	if Recipes.is_passive(recipe) and free_slot(Recipes.STATION[recipe]) < 0:
 		return _slots_full(Recipes.STATION[recipe])
 	var short: String = _inputs_refusal(recipe)
@@ -1741,7 +1750,7 @@ func order_batch(recipe: int, members: PackedInt32Array) -> String:
 	if not why.is_empty():
 		return why
 	var passive: bool = Recipes.is_passive(recipe)
-	var j: int = tables.open_job(Tables.KIND_DRY if passive else Tables.KIND_BATCH, PROG_DRY if passive else PROG_BATCH,
+	var j: int = tables.open_job(Tables.KIND_DRY if passive else Tables.KIND_BATCH, PROG_DRY if passive else PROG_MILL,
 		NONE)
 	tables.j_recipe[j] = recipe
 	tables.j_goal[j] = _pickup_point(Recipes.IN_CATEGORY[Recipes.IN_FIRST[recipe]])
@@ -1945,15 +1954,16 @@ func _start_recipe(j: int, brain: BrainScript) -> void:
 	and its water from the butt. Short (a lot spoiled while set aside, the butt drawn down), it is given up and says so."""
 	var recipe: int = tables.j_recipe[j]
 	var water: int = Recipes.WATER_MILLI[recipe]
-	if not _take_holds_inputs(j, recipe) or (water > 0 and stores.water_milli_u < water):
+	if not _take_holds_inputs(j, recipe) or (water > 0 and (stores == null or stores.water_milli_u < water)):
 		_note("The food or water set aside for %s ran short before the work began: the batch is given up" %
 			Recipes.JOB_WORDS[recipe].to_lower(), true)
 		cancel_station_job(j)
 		return
 	for k: int in Recipes.IN_COUNT[recipe]:
 		var input: int = Recipes.IN_FIRST[recipe] + k
-		takes.consume_into(pantry, tables.j_take[j], Recipes.IN_MILLI[input], TakesScript.AT_STORE, _hour_seen, _read,
-			Recipes.IN_CATEGORY[input])
+		if not takes.consume_into(pantry, tables.j_take[j], Recipes.IN_MILLI[input], TakesScript.AT_STORE, _hour_seen,
+				_read, Recipes.IN_CATEGORY[input]):
+			push_error("fishery: %s's %s was checked and then refused" % [Recipes.GDD_ROW[recipe], input])
 	if water > 0:
 		stores.take_water(water)
 	takes.release(tables.j_take[j])
@@ -1966,7 +1976,10 @@ func _start_recipe(j: int, brain: BrainScript) -> void:
 
 
 func _take_holds_inputs(j: int, recipe: int) -> bool:
-	"""Whether job `j`'s take still holds every input of `recipe` (lots that spoiled meanwhile count for nothing)."""
+	"""Whether job `j`'s take still holds every input of `recipe`: its entries first trimmed to what their lots still hold
+	(a lot that spoiled, or was drawn down by anything outside the takes, counts only what is left), so the withdrawal
+	that follows can take every input, all or nothing (kitchen.gd's own check before a batch)."""
+	takes.trim_to_lots(pantry, tables.j_take[j], TakesScript.AT_STORE)
 	for k: int in Recipes.IN_COUNT[recipe]:
 		var input: int = Recipes.IN_FIRST[recipe] + k
 		if takes.live_milli(pantry, tables.j_take[j], TakesScript.AT_STORE, Recipes.IN_CATEGORY[input]) < Recipes.IN_MILLI[input]:
@@ -2277,8 +2290,9 @@ func held_key_of_job(j: int) -> StringName:
 	if tables.j_started[j] == 1 and tables.j_kind[j] <= Tables.KIND_COLLECT and step != S_WORK:
 		var t: int = tables.j_trip[j]
 		return GEAR_PROPS[GEAR_OF_METHOD[tables.t_method[t]]] if t >= 0 and tables.t_gear[t] >= 0 else &""
-	if step == S_TO_STATION and (tables.j_kind[j] == Tables.KIND_DRY or tables.j_kind[j] == Tables.KIND_MILL):
-		return &"basket" if tables.j_kind[j] == Tables.KIND_DRY else &"sack_pile"
+	if step == S_TO_STATION and (tables.j_kind[j] == Tables.KIND_DRY or tables.j_kind[j] == Tables.KIND_MILL
+			or tables.j_kind[j] == Tables.KIND_BATCH):
+		return &"sack_pile" if tables.j_kind[j] == Tables.KIND_MILL else &"basket"
 	return &""
 
 
@@ -2331,7 +2345,8 @@ func brewing() -> int:
 func packing() -> bool:
 	"""Whether a batch is being worked at the preserving table now (its worker at the table)."""
 	for j: int in Tables.MAX_JOBS:
-		if tables.j_live[j] == 1 and tables.j_kind[j] == Tables.KIND_BATCH and tables.j_at[j] == 1:
+		if tables.j_live[j] == 1 and tables.j_kind[j] == Tables.KIND_BATCH and tables.j_at[j] == 1 \
+				and _station_of_job(j) == Recipes.STATION_TABLE:
 			return true
 	return false
 

@@ -6828,7 +6828,7 @@
       "godot/scripts/core/underground_world_retirement.gd": "7f509aed2c5710e6b148806baa90d178ba0857502d257cfc4dd42f26791134de",
       "godot/scripts/core/buildings.gd": "e893b278f8b1f35e6e8f6e3971e8ade136662a0d3f1f5b619042d18e17506fcd",
       "godot/scripts/core/construction.gd": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a",
-      "godot/scripts/core/work.gd": "a79363ab3e6a116e89b32fc89ded50aa32a0849a81e34b6737043a3362255338",
+      "godot/scripts/core/work.gd": "eece19c35edfaefdf9232880da6bbda3c9401634619e0151ff4d7e905aaadb84",
       "godot/scripts/core/inventory.gd": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
       "godot/scripts/core/underground_session.gd": "3fcd2db0da172e162df5c3d0bd6cffd1c1b63684a5bc4fbdbedabecfc2d1f3a6",
       "godot/scripts/systems/settlement_system.gd": "00e555efc9aba41976f805f0c95435e099292fa0e5f8e6e0d129b7a88a56f013"
@@ -41229,6 +41229,7 @@
       "godot/data/underground/mole-worker/work-step-v1/source_program.gd",
       "godot/scripts/core/jobs.gd",
       "godot/scripts/core/modular_projects.gd",
+      "godot/scripts/core/transforms.gd",
       "godot/scripts/core/underground_budget.gd",
       "godot/scripts/core/underground_connector_catalog.gd",
       "godot/scripts/core/underground_connector_contacts.gd",
@@ -41252,6 +41253,8 @@
       "godot/scripts/core/underground_surface_anchor.gd",
       "godot/scripts/core/underground_world_retirement.gd",
       "godot/scripts/core/underground_world_routes.gd",
+      "godot/scripts/core/work.gd",
+      "godot/scripts/core/world_init.gd",
       "godot/scripts/systems/settlement_system.gd"
     ],
     "historical_motion": {
@@ -41678,6 +41681,31 @@
         ],
         "delta": {}
       },
+      "godot/scripts/core/jobs.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1223: the bound dispatcher's two method Callables (object id plus method name, native Variant overhead, unmeasured as in every row) and one bool of per-pass scratch; no packed column, no saved state"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_dispatch_owns",
+              "Callable"
+            ],
+            [
+              "_dispatch_reserves",
+              "Callable"
+            ],
+            [
+              "_scratch_reserved",
+              "bool"
+            ]
+          ]
+        }
+      },
       "godot/scripts/core/modular_projects.gd": {
         "charges": [
           {
@@ -41687,6 +41715,81 @@
           }
         ],
         "delta": {}
+      },
+      "godot/scripts/core/transforms.gd": {
+        "charges": [
+          {
+            "bytes": 6303744,
+            "carried_by": "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "section-4 capture/apply: one Columns image plus one FramedOwner of 3,151,872 value bytes each"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_last_column_refusal",
+              "StringName"
+            ]
+          ],
+          "resizes_added": [
+            "bound_persistent_id.resize(TRANSFORM_CAPACITY)",
+            "prev_x.resize(TRANSFORM_CAPACITY)",
+            "prev_y.resize(TRANSFORM_CAPACITY)",
+            "prev_yaw.resize(TRANSFORM_CAPACITY)",
+            "prev_z.resize(TRANSFORM_CAPACITY)",
+            "x.resize(TRANSFORM_CAPACITY)",
+            "y.resize(TRANSFORM_CAPACITY)",
+            "yaw.resize(TRANSFORM_CAPACITY)",
+            "z.resize(TRANSFORM_CAPACITY)"
+          ],
+          "classes": {
+            "Columns": [
+              null,
+              [
+                [
+                  "bound_persistent_id",
+                  "PackedInt32Array"
+                ],
+                [
+                  "prev_x",
+                  "PackedInt32Array"
+                ],
+                [
+                  "prev_y",
+                  "PackedInt32Array"
+                ],
+                [
+                  "prev_yaw",
+                  "PackedInt32Array"
+                ],
+                [
+                  "prev_z",
+                  "PackedInt32Array"
+                ],
+                [
+                  "x",
+                  "PackedInt32Array"
+                ],
+                [
+                  "y",
+                  "PackedInt32Array"
+                ],
+                [
+                  "yaw",
+                  "PackedInt32Array"
+                ],
+                [
+                  "z",
+                  "PackedInt32Array"
+                ]
+              ]
+            ]
+          },
+          "allocation_sites": {
+            ".duplicate(": 9,
+            "PackedInt32Array(": 9
+          }
+        }
       },
       "godot/scripts/core/underground_budget.gd": {
         "charges": [
@@ -42817,6 +42920,158 @@
           }
         }
       },
+      "godot/scripts/core/work.gd": {
+        "charges": [
+          {
+            "bytes": 78848,
+            "carried_by": "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "section-4 capture/apply: one Columns image plus one FramedOwner of 39,424 value bytes each"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_last_column_refusal",
+              "StringName"
+            ]
+          ],
+          "resizes_added": [
+            "memory_total.resize(RESIDENT_CAPACITY)",
+            "potential_remainder.resize(RESIDENT_CAPACITY)",
+            "tool_broken.resize(RESIDENT_CAPACITY)",
+            "tool_job_generation.resize(RESIDENT_CAPACITY)",
+            "tool_job_slot.resize(RESIDENT_CAPACITY)",
+            "tool_lot_generation.resize(RESIDENT_CAPACITY)",
+            "tool_lot_slot.resize(RESIDENT_CAPACITY)",
+            "wear_remainder.resize(RESIDENT_CAPACITY)",
+            "xp_remainder.resize(RESIDENT_CAPACITY * SKILL_COUNT)"
+          ],
+          "classes": {
+            "Columns": [
+              null,
+              [
+                [
+                  "memory_total",
+                  "PackedInt32Array"
+                ],
+                [
+                  "potential_remainder",
+                  "PackedInt32Array"
+                ],
+                [
+                  "tool_broken",
+                  "PackedByteArray"
+                ],
+                [
+                  "tool_job_generation",
+                  "PackedInt32Array"
+                ],
+                [
+                  "tool_job_slot",
+                  "PackedInt32Array"
+                ],
+                [
+                  "tool_lot_generation",
+                  "PackedInt32Array"
+                ],
+                [
+                  "tool_lot_slot",
+                  "PackedInt32Array"
+                ],
+                [
+                  "wear_remainder",
+                  "PackedInt32Array"
+                ],
+                [
+                  "xp_remainder",
+                  "PackedInt32Array"
+                ]
+              ]
+            ]
+          },
+          "allocation_sites": {
+            ".duplicate(": 9,
+            "PackedByteArray(": 1,
+            "PackedInt32Array(": 8
+          }
+        }
+      },
+      "godot/scripts/core/world_init.gd": {
+        "charges": [
+          {
+            "bytes": 30720,
+            "carried_by": "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "section-4 capture/apply: one FaunaColumns image plus one FramedOwner of 15,360 value bytes each"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_last_fauna_column_refusal",
+              "StringName"
+            ]
+          ],
+          "resizes_added": [
+            "birth_remainder.resize(FAUNA_STOCK_ROWS)",
+            "capacity.resize(FAUNA_STOCK_ROWS)",
+            "harvest_today.resize(FAUNA_STOCK_ROWS)",
+            "migration_link.resize(FAUNA_STOCK_ROWS)",
+            "population.resize(FAUNA_STOCK_ROWS)",
+            "species_id.resize(FAUNA_STOCK_ROWS)",
+            "tracks.resize(FAUNA_STOCK_ROWS)",
+            "zone_generation.resize(FAUNA_STOCK_ROWS)",
+            "zone_slot.resize(FAUNA_STOCK_ROWS)"
+          ],
+          "classes": {
+            "FaunaColumns": [
+              null,
+              [
+                [
+                  "birth_remainder",
+                  "PackedInt64Array"
+                ],
+                [
+                  "capacity",
+                  "PackedInt32Array"
+                ],
+                [
+                  "harvest_today",
+                  "PackedInt32Array"
+                ],
+                [
+                  "migration_link",
+                  "PackedInt32Array"
+                ],
+                [
+                  "population",
+                  "PackedInt32Array"
+                ],
+                [
+                  "species_id",
+                  "PackedInt32Array"
+                ],
+                [
+                  "tracks",
+                  "PackedInt32Array"
+                ],
+                [
+                  "zone_generation",
+                  "PackedInt32Array"
+                ],
+                [
+                  "zone_slot",
+                  "PackedInt32Array"
+                ]
+              ]
+            ]
+          },
+          "allocation_sites": {
+            ".duplicate(": 9,
+            "PackedInt32Array(": 8,
+            "PackedInt64Array(": 1
+          }
+        }
+      },
       "godot/scripts/systems/settlement_system.gd": {
         "charges": [
           {
@@ -42849,37 +43104,13 @@
             ]
           ]
         }
-      },
-      "godot/scripts/core/jobs.gd": {
-        "charges": [
-          {
-            "bytes": 0,
-            "carried_by": "none",
-            "store": "ADR 1223: the bound dispatcher's two method Callables (object id plus method name, native Variant overhead, unmeasured as in every row) and one bool of per-pass scratch; no packed column, no saved state"
-          }
-        ],
-        "delta": {
-          "members_added": [
-            [
-              "_dispatch_owns",
-              "Callable"
-            ],
-            [
-              "_dispatch_reserves",
-              "Callable"
-            ],
-            [
-              "_scratch_reserved",
-              "bool"
-            ]
-          ]
-        }
       }
     },
     "charged_by_carrier": {
       "PROFILE_BYTES joint (motion census, 257,308 of 262,144)": 8676,
       "Profiles CONTROL_RESERVE (load-time, released)": 432,
       "none": 0,
+      "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)": 6413312,
       "joint pack (the reserve is a pack contribution)": 256,
       "BINDINGS_AND_GROWTH_BYTES (fully assigned, 524,544)": 256,
       "none (new)": 74,
@@ -43073,7 +43304,7 @@
     "godot/scripts/core/underground_work_face.gd": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
     "godot/scripts/core/underground_world_retirement.gd": "7f509aed2c5710e6b148806baa90d178ba0857502d257cfc4dd42f26791134de",
     "godot/scripts/core/underground_world_routes.gd": "ef4b85c7a04bad32b947876c86cc224968d452d8b1fe6e1475eeeb3cddbf9ec9",
-    "godot/scripts/core/work.gd": "a79363ab3e6a116e89b32fc89ded50aa32a0849a81e34b6737043a3362255338"
+    "godot/scripts/core/work.gd": "eece19c35edfaefdf9232880da6bbda3c9401634619e0151ff4d7e905aaadb84"
   },
   "registry_sha256": "26db5688f4faa35dca5d935e7ce7f3b54e64828ac394abd3d4fb348aa456fa70",
   "limitations": [

@@ -24,6 +24,10 @@
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/modular_projects.gd-c6bd313698be.txt",
       "sha256": "c6bd313698bee47685f7404c347a94852cee18efd2557109c8c673dc3467ada8"
     },
+    "godot/scripts/core/transforms.gd": {
+      "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/transforms.gd-7534a10b6043.txt",
+      "sha256": "7534a10b6043aecb5183a8f791b7a6bf443a1462e44be174bb8c83e9ff2d4aaa"
+    },
     "godot/scripts/core/underground_budget.gd": {
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/underground_budget.gd-8faa76b0d86c.txt",
       "sha256": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779"
@@ -115,6 +119,14 @@
     "godot/scripts/core/underground_world_routes.gd": {
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/underground_world_routes.gd-45fd127a49ca.txt",
       "sha256": "45fd127a49ca04133fc9fb4ddeed275fa5700fc9f41fdf7914c22206b81b2b66"
+    },
+    "godot/scripts/core/work.gd": {
+      "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/work.gd-a79363ab3e6a.txt",
+      "sha256": "a79363ab3e6a116e89b32fc89ded50aa32a0849a81e34b6737043a3362255338"
+    },
+    "godot/scripts/core/world_init.gd": {
+      "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/world_init.gd-5ca0b68618c0.txt",
+      "sha256": "5ca0b68618c0c9cf6735a72b3b86649ef05d7534c10117fea9b3bd48b9c0519f"
     },
     "godot/scripts/systems/settlement_system.gd": {
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/settlement_system.gd-66e8eda0c6de.txt",

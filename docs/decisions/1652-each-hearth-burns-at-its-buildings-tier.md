@@ -85,3 +85,17 @@ every hour of a 48-hour run, and that every consumer of the old single rate now 
   arrays or ints); its docstring now says so.
 - **LOW, fixed:** the hall harness now also passes a game hour after the real upgrade and checks the hearth's row is
   tier 2 (`LIVE-SUMMARY 43 0` at both sizes).
+
+## Branch gates (`feat/demo-small-leftovers`, all three packets and their review fixes; 2026-10-07)
+
+- **Full suite, CI-style** (assets moved aside, `godot/.godot` deleted, fresh import, `./tools/run_tests.sh`):
+  `9149 test(s), 612086 assertion(s), 0 failure(s)`;
+  `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)`;
+  `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).`
+- **Analyzer**: `0 GDScript warning(s) in 0 of 1028 file(s)` (one run during the contracts reported a spurious
+  "Cannot find member" while the cache was busy; the rerun and the run after the CI-style suite both read 0).
+- **Contracts**: every check in `.github/workflows/tests.yml`'s contract and preflight groups (43 commands, among them
+  `decision_numbers.py`, `ready07_arithmetic.py`, `merge_gate.py`, `setting_contract.py`, `dispatch_plan.py --validate`,
+  `astra_inbox.py --check`, `generate_canonical_state_table.py --check`, `lane_notes.py --check`, the movement checks
+  and `state_registry_coverage.py`) exit 0. No settlement bytes were added, so the memory ledger and capacity audit are
+  unchanged.

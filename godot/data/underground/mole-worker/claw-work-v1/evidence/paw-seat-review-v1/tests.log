@@ -1,0 +1,32 @@
+test_contacts_mirror_row_16_on_both_bearers (__main__.PawSeatDerivation.test_contacts_mirror_row_16_on_both_bearers)
+The right contact is row 16's point; both lie on both bearers' common section. ... ok
+test_entry_path_ends_on_the_work_point (__main__.PawSeatDerivation.test_entry_path_ends_on_the_work_point)
+`approach` starts at the hanging point, peaks above the work point, and ends on it. ... ok
+test_tap_heights_follow_the_accepted_tap (__main__.PawSeatDerivation.test_tap_heights_follow_the_accepted_tap)
+33 keys, from 80 u above the top to 2 u below it at key 16, mirrored. ... ok
+test_everything_clears_on_both_installations (__main__.PawSeatEvidence.test_everything_clears_on_both_installations)
+Seat and tap, work and entry, both installations, with no exception. ... ok
+test_tap_contacts_are_the_anchors (__main__.PawSeatEvidence.test_tap_contacts_are_the_anchors)
+Each palm vertex crosses the top at its anchor, with a patch on both bearers. ... ok
+test_rebuild_matches_every_stored_clip (__main__.PawSeatRebuild.test_rebuild_matches_every_stored_clip)
+All six clips rebuild byte for byte from the recipe. ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.819s
+
+OK
+.......
+----------------------------------------------------------------------
+Ran 7 tests in 1.200s
+
+OK
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 2.853s
+
+OK
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.324s
+
+OK

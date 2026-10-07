@@ -247,3 +247,32 @@ It is carried only by the content successor.
 Brendan reviewed `overview.png`, `walk.png` and `paws.png` and approved the 11° (left) and 13° (right) swing. The
 corrected stand, walk and joins are carried by the content successor with the claw rows. Next: paw handling and seating
 of the L0/T0 bearers (step 2).
+
+## Step 2 — paw handling and paw seating of the L0/T0 bearers (authored; stopped for Brendan's review)
+
+The tools are in `claw-work-v1/`: `author_paw_seat.py`, `probe_paw_seat.py`, `prove_paw_seat.py`,
+`render_paw_seat.py` and `test_paw_seat.py` (6 tests). The review packet is `evidence/paw-seat-review-v1/`.
+
+**Two motions replace rows 29 and 16.** Both start from the approved corrected stand with step 1b's posture recipe.
+
+- **Handling (seat).** Both paws come to rest on the delivered bearer's top, 1/512 u above it, the accepted seat
+  gap.
+- **Seating (tap).** Both paws press together by the accepted tap's height law, 80 u above the top down to 2 u
+  below it. The right paw works at row 16's contact point (128, 128, −448), the left at its mirror. Both points lie
+  on the L0 and T0 bearers' common section, so one program serves both installations.
+- **Entry.** The body settles first, then the arms reach on the accepted handling entry's raised path (128 u, 30/46)
+  with the elbows turned outward.
+
+**Proofs.** Candidate a clears every exact proof, with no exception, on both the L0 and T0 install fixtures:
+
+- world prisms with sole support, where a paw may press into the bearer's top by at most the tap's own 2 u;
+- each paw's contact crossing at exactly (±128, 128, −448);
+- self-clearance per arm and arm against arm.
+
+Its recipe is lean 40°, drop 64 u, head lift 60°, palms rolled 90°.
+
+## Brendan's decision (2026-10-07): the stairs are fitted by paw
+
+The stairs below T0 keep the six timber treads and the T6 sill (ADR 1209 D1–D3). They are fitted by paw, using
+step 2's paw seating motion, adapted per tread as the proofs require. ADR 1209's derived station, 310 u behind
+T_{k−1}'s far edge, stays; T6's sill plane is y = 64. The pick tread tap stays parked. This follows the L0/T0 review.

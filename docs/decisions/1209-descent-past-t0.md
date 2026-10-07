@@ -384,3 +384,9 @@ the closed paw beside the candidate on the curled paw, front, side and top at on
 Brendan scrapped tools for now. The pick tread tap (revisions 1–4) is kept as dormant evidence and is not
 activated. T_k is seated by paw from T_{k−1}, and the T6 sill by paw at y = 64 (ADR 1217, M4b/c). The derivation,
 D1–D3, the cut rows and the bills stand; the stair gaits need tool-free re-proof (ADR 1217, M7).
+
+### Brendan's decision (2026-10-07): treads fitted by paw
+
+The six timber treads and the T6 sill stay as decided (D1–D3). They are fitted by paw with ADR 1217's paw seating
+motion (step 2), adapted per tread as the proofs require: the station-local tread fixture above, the station 310 u
+behind T_{k−1}'s far edge, and for T6 the sill plane at y = 64. The pick tread tap (revisions 1–4) stays parked.

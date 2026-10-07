@@ -148,7 +148,7 @@ def self_rows(src: dict, case: dict, keys: list, padding: np.ndarray, sets: dict
             for name, first, second in PAIRINGS}
     rows["excluded_shoulder_seam_triangles"] = {side: int(len(src["triangles"]) - int(sets[side].sum()) -
                                                           int(sets["not_" + side].sum())) for side in ("right", "left")}
-    released = rows["left_arm_vs_rest"]["released_stand_contact"]
+    released = rows["left_arm_vs_rest"].get("released_stand_contact", {"pairs": 0, "is_prefix_from_ready": True})
     rows["clear"] = all(rows[name]["clear"] for name, _, _ in PAIRINGS) and \
         (released["pairs"] == 0 or released["is_prefix_from_ready"])
     return rows

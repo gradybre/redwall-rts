@@ -173,6 +173,13 @@ Neither needs new state.
 |---|---|---:|---|---|:-:|---|---|
 | Canonical catalog artifact and digest | -- | -- | -- | -- | 1 | §2 CATALOG_IDS | Also stateless: `encode_section_payload()` and the SHA-256 it digests are recomputed from the compiled domains and `godot/data/catalog_ids.json` every call (decision 0034 compares the artifact as bytes). Future-affecting because ARCH-SAVE-004 rejects a file whose catalog hash does not match, so the id a save wrote still means the same key. |
 
+### `godot/scripts/core/chronicle.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Chronicle rolling digest | `_rolling_digest` | 1 | `DIGEST_BYTES` = 32 | Thirty-two zero bytes is the chain's START and is valid only with `_count == 0`; `state_refusal()` refuses it otherwise and refuses any other value at count 0 | 1 | §13 CHRONICLE | ADR 1222 step 5. REG-R01 `chronicle` ordinal 1 (u8 x 32), hashed under ARCH-HASH-001. SAVE-R09 §13 rule SHA-256 over `previous_digest` followed by the exact 24 record bytes from 32 zero bytes, implemented by `digest_step_into()` with HashingContext SHA-256. The owner holds NO history: records live in the §13 body and, once events exist, ARCH-MEM-004's disk stream and two 64-record pages, which are not this module's; `append()` returns the encoded 24 bytes to its caller. DEC-055 Q8: the compiled event domain is empty, so every `append()` refuses `CHRONICLE_EVENT_DOMAIN` and the only reachable state is the empty one. |
+| Chronicle record count | -- | -- | -- | 0 is the empty Chronicle | 1 | §13 CHRONICLE | `_count`, REG-R01 ordinal 0 (u64), a plain GDScript int and so no packed-column row. Also written at header offset 208 and as §13's descriptor `row_count`; both must equal it. `docs/systems_architecture.md` still budgets `chronicle_count` (8 B) in the WorldRuntime I64 row: this is that scalar's owner, so the ledger should MOVE it here rather than add 8 B. |
+
 ### `godot/scripts/core/command_dispatch.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
@@ -743,6 +750,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Section11 byte adapter | -- | -- | -- | -- | 3 | -- | Decision0161 / SAVE-S11-R01v2. Stateless8+32N codec over existing EventSchedule; exact allocator and row order. Descriptor count0..64, schema1; no inline count/owner wrapper. Does not activate event semantics. |
+
+### `godot/scripts/core/save_section_chronicle.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Section 13 CHRONICLE codec | -- | -- | -- | -- | 3 | -- | ADR 1222 step 5. Holds no module-level `var`; all static over a caller-owned `Record` (count + 32-byte digest, never records), `EncodeResult` and per-call `DigestVerifier`. Body `record_count:u64, rolling_digest:32, records:24*N`, exactly `40 + 24*N` bytes, schema 1; the descriptor `row_count` and header offset 208 must equal N. Decode streams records in whole-record chunks of at most 65536 bytes (2730 records, 65520 bytes) through the owner's digest rule, reports digest mismatch before any record refusal, and refuses every nonempty stream while the event domain is empty (DEC-055 Q8). Carries the `chronicle` canonical adapter. The classified rows for what it carries are `chronicle.gd`'s two above. |
 
 ### `godot/scripts/core/save_section_inventories.gd`
 

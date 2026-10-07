@@ -176,7 +176,7 @@ static func _row_mates(item: int) -> String:
 	for other: int in Catalog.ITEM_COUNT:
 		if other != item and Catalog.ITEM_CROP[other] == Catalog.ITEM_CROP[item]:
 			mates.append(Catalog.ITEM_LABELS[other].to_lower())
-	return "The same row, grown and kept alike (each one's dishes and rows are under its Uses): %s." % ", ".join(mates) \
+	return "The same row, grown and kept alike (what each is used for is under its own Uses): %s." % ", ".join(mates) \
 		if not mates.is_empty() else "None."
 
 

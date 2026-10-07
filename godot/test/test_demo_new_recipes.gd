@@ -486,7 +486,7 @@ func test_the_guide_says_what_the_apple_and_honey_make() -> void:
 
 func test_a_good_no_dish_cooks_still_says_what_it_makes() -> void:
 	"""Vinegar: no dish takes it, but the pickles do -- "Made into: pickles at the preserving table.", linked; and no
-	row is listed twice for one item."""
+	row is listed twice for one item (a guard for a future row with two inputs taking one item: none does today)."""
 	var links: Array[StringName] = []
 	assert_equal(FieldGuideScript._dishes_taking(Catalog.ITEM_VINEGAR, links), "Made into: pickles at the preserving table.", "vinegar")
 	assert_equal(links, [FieldGuideScript.item_id(Catalog.ITEM_PICKLES)], "linked")
@@ -512,3 +512,12 @@ func test_forage_eaten_raw_is_its_own_sentence() -> void:
 	assert_true(nuts.contains("nut cheese at the preserving table. Eaten raw by a hungry resident"), nuts)
 	var vinegar: String = guide.entry(guide.index_of(FieldGuideScript.item_id(Catalog.ITEM_VINEGAR))).uses
 	assert_true(vinegar.ends_with("Made into: pickles at the preserving table."), vinegar)
+
+
+func test_row_mates_grow_alike_but_are_not_said_to_be_used_alike() -> void:
+	"""Barley's row-mates (wheat, oats) grow and keep alike; the guide no longer says "used alike", since barley alone
+	makes ale."""
+	var guide := FieldGuideScript.new()
+	var mates: String = guide.entry(guide.index_of(FieldGuideScript.crop_id(Catalog.ITEM_BARLEY))).alternatives
+	assert_true(mates.begins_with("The same row, grown and kept alike"), mates)
+	assert_false(mates.contains("used alike"), "not used alike")

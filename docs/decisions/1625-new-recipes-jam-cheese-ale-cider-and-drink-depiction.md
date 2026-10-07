@@ -192,16 +192,18 @@ list from the recipe rows so it cannot drift**.
 - **Apples have no crop card** (they are the orchard's, not a bed's), so "apples should list cider and vinegar" is
   met in the field guide's apple entry; the crop card covers the bed crops (roots, barley).
 - **The potato** is a root by the catalog (§5.6's roots row), so the pickles row's roots selector takes it too: its
-  guide entry says "made into pickles". The pickle's inputs are "onions or roots" as built; narrowing it to an item
+  guide entry says "Made into: pickles at the preserving table." The pickle's inputs are "onions or roots" as built; narrowing it to an item
   mask would be a recipe change for Brendan.
 - **The cordial is listed twice for honey and berries** -- "Cooked in: Raspberry cordial" (the recipe book's dish) and
   "Made into: cordial at the brewery" (the station row) -- each linked. Kept: they are two entries of the guide,
   and the dish's own entry says where it is made.
 - **Station goods** (vinegar) add the same "Made into: ..." to their own use; foraged goods keep "Eaten raw ..." as
   its own sentence, not a product; the orchard's fruit reads the dishes too (`_dishes_taking`), so a future fruit dish
-  shows; a guide entry links each good once; the crop's "same row" line says "grown and kept alike", since barley's
+  shows (the orchard text's unreachable berry branch and empty fallback are removed); a guide entry links each good
+  once (a defensive dedupe: no path links twice today; `test_no_guide_entry_links_twice` guards a future one); the crop's "same row" line says "grown and kept alike", since barley's
   ale differs from its row-mates.
-- Not changed (outside this follow-up): `farm_harvest_plan.gd`'s spoiling risk counts only the kitchen's eating, so a
+- Not changed (outside this follow-up): the grain crops' guide Uses do not name the mill, which their crop cards do
+  ("the mill (flour)"); and `farm_harvest_plan.gd`'s spoiling risk counts only the kitchen's eating, so a
   root harvest meant for pickling still reads as at risk.
 
 Tests: `test_demo_new_recipes.gd` pins every pantry item's rows (all 42) and sweeps every pantry item -- each row that

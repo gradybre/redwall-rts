@@ -149,3 +149,10 @@ Tests:
 - The attendance test now also asserts that a day where someone ate the hotpot counts.
 
 Mutation: 3 mutants (count any closed supper, count every day, the check inverted), **3 killed**.
+
+Gates after merging `origin/master` (#231, wildlife and weather):
+- **Merge:** `demo_village.gd`, the field guide and the README merged additively; both sides' hooks are kept.
+  `RULINGS.md`'s 2026-10-07 rows are combined.
+- **Full suite, CI-style:** `9205 test(s), 647495 assertion(s), 0 failure(s)`; 0 unexpected errors and warnings, 0
+  objects and 0 resources leaked, on both the `diagnostics:` and `log:` lines.
+- **Analyzer:** `0 GDScript warning(s) in 0 of 1041 file(s)`.

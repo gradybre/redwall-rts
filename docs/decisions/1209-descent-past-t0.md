@@ -1,0 +1,161 @@
+# 1209 — Descent past T0: a flight of T0-family treads to the trench floor
+
+Date: 2026-10-06 · Status: Proposed. Step 1 (this plan) is done; step 2 (the flight proof) is next, and steps 3 onward wait on
+the three decisions below.
+
+## Brendan's decision being implemented
+
+ADR 1208 option 2: **build the descent first.** Add stair treads after T0 down to the trench floor (y = −1024,
+source-local), then later a real 4 m-tall Kitchen dug from inside. All coordinates here are source-local
+(surface y = 0, descent along −Z), as in ADR 1208.
+
+## Derivation (no new constants)
+
+Every number below comes from published data: the prefix artifact
+(`docs/design/underground-planning/first-entry-prefix-v1.json`, `edd56205…`), the content-6 profiles in
+`qualified-stone-v5` and the accepted stair gaits (ADRs 1139, 1142).
+
+### Pitch: 128 u down, 512 u forward
+
+- L0's top is y = 0 and ends at z = −2048. T0's top is y = −128 and spans z ∈ [−2560, −2048].
+- The accepted descent gait (`stair-descent-v7` case 0) moves its root exactly (0, −128, −512). Its first and
+  last poses both equal compact ready frame 8. The accepted ascent (`stair-motion-v15` case 0) is the reverse
+  pitch. So a tread that repeats T0 at that pitch is walked by repeating the same gait, translated.
+- The 256 u descent was attempted in that series and refuses (`DESCENT_LEG_REACH_FRAME_28`), so 128 u is the
+  only authored rise.
+- The 232 u short step (ADR 1164) is a horizontal +X advance on level ground. It is not a stair motion and plays
+  no part here.
+
+### Tread count: six, and only five are T0-family
+
+The drop from T0 to the floor is 1024 − 128 = 896 u = 7 × 128. That makes seven descents, onto T1…T6 and then the
+floor. T_k is T0 translated by (0, −128k, −512k). T0's posts stand on the cut floor and bear on retained natural
+ground below it (`natural_bearings`, y ∈ [−1152, −1024], `requires_never_cut`). So a translated tread keeps its
+deck and bearers, and only its posts shorten.
+
+| Tread | Top y | Deck z | Post height (u) | Descent ends at root z |
+|---|---:|---|---:|---:|
+| T0 (existing) | −128 | [−2560, −2048] | 704 | −2391 |
+| T1 | −256 | [−3072, −2560] | 576 | −2903 |
+| T2 | −384 | [−3584, −3072] | 448 | −3415 |
+| T3 | −512 | [−4096, −3584] | 320 | −3927 |
+| T4 | −640 | [−4608, −4096] | 192 | −4439 |
+| T5 | −768 | [−5120, −4608] | 64 | −4951 |
+| T6 | −896 | [−5632, −5120] | **−64: refused** | −5463 |
+| floor | −1024 | from −5632 | — | −5975 |
+
+T6's bearers would reach y = −1088, below the floor, so T6 cannot be a T0-family tread (decision D1).
+
+### Cuts: three more cube rows, and a fourth that the last step needs
+
+The existing cut groups end at z = −3072, so T1 fits in the half metre ADR 1208 called nontraversable. T2…T6 need
+cube rows z ∈ [−4096, −3072], [−5120, −4096] and [−6144, −5120], two cubes each (x ∈ [−1024, 0] and [0, 1024]).
+The descent onto the floor ends at root z −5975, whose foot reaches exactly −6144. The walking body, though, reaches
+well ahead of its feet: the walk profile's boxes extend 474 u (body) and 732 u (held pick) ahead of the root. A
+seventh row, z ∈ [−7168, −6144], may therefore be needed ahead of the foot (decision D2; step 2 checks it).
+
+Each new cube is cut from the surface exactly as the existing six are: Frontier stations at (∓1536, 0, row + 512),
+profiles 25 (yaw 49152) and 17 (yaw 16384), the existing stations 4–7 translated in z. Their below-surface foot
+boxes lie at |x| ≥ 1231, outside every cube, for every row (`compile_entry_frontier.static_geometry`'s rule is
+translation-invariant in z). No new work motion is needed for the cuts.
+
+### Installation: the existing motion cannot install T1…T6
+
+T0 is installed from L0 with INSTALL profile 16 and handling row 29, from station (0, 0, −1536), against L0's
+forward top edge `[-256,-64,-2048, 256,0,-1920]`. Profile 16's contact anchor is 448 u ahead of the root and
+128 u above the stance plane. Its foot is z ∈ [−169, 174] about the root, and its body extends 234 u behind.
+
+For T_k the target is T_{k−1}'s forward top edge, z ∈ [far, far + 128), where far is T_{k−1}'s far edge. With
+the anchor 448 u ahead, the root must be at z ∈ [far + 448, far + 576), so the foot reaches far + 622 or more.
+T_{k−1}'s deck ends at far + 512, so the foot overhangs the step behind it by at least 110 u. L0 is 2048 u deep,
+which is why profile 16 works there. A tread is 512 u deep, so it does not work on any tread.
+
+**A new install motion is required:** the same vertical relation (anchor 128 u above the stance, on the target's
+top face), but reaching only 41–169 u ahead. Stationed at the descent's end root (far + 169), it reaches the
+target with no reposition. Its body already fits: 234 u behind is less than the 343 u to the riser. The pending
+piece of T_k is lower than the stance, so its prism and start volume must be re-derived for the new profile.
+
+### Motion that already exists
+
+| Need | Existing content | State |
+|---|---|---|
+| Repeated descent / ascent, 128 u | `stair-descent-v7`, `stair-motion-v15`; tables `stair-program-v1` (ADR 1139) | Source-accepted; repeated over the real flight in step 2 |
+| L0 approach, half-turn/reposition on the lower tread, retreat to L0 | `stair-handoffs-v1` candidate 6 (ADR 1142) | Source-proved only for L0/T0 (its 22-prism fixture) |
+| Runtime tables | `underground_motion_catalog.gd` (ADR 1143) holds all five programs | `activation_refusal` is `MOTION_SOURCE_ONLY` |
+| Pace | DEC-050 / ADR 1145: 30 ticks per tread, 45 per half-turn | Adopted, with no pace row published |
+| Cut work from the surface | profiles 25 and 17, stations 4–7 | Live (content 6) |
+| Install a tread from the tread above | none | **Must be authored** (step 4) |
+| Half-turn on T1…T6 and the step-off at the floor | none proved | Re-prove the ADR 1142 turn on T_k; the floor exit waits on D1 and D2 |
+| Stair travel in WorldRoutes | none | Routes refuses fixed connector edges: `WORLD_ROUTE_FIXED_CONNECTOR_SOURCE_REQUIRED` |
+
+All of these hold the pick (source 0), which matches the workers that cut and install.
+
+### Bills
+
+L0 carries 4,000 milli wood and 32,000 mWU; T0 carries 1,000 milli and 12,000 mWU. These are not proportional to
+timber volume. L0's volume is exactly 3.0 × T0's, while its bill is 4 × T0's wood and 2.67 × its work. So no
+per-volume rule exists to derive a shorter tread's bill from (decision D3).
+
+### What the bundle successor must contain
+
+`INSTALL` count must equal the Grouping's assembly count (`entry_source_constants._frontier`), and every new part
+changes `structure.ugconn`, whose digest every other file links. So this is a **full bundle successor**, not a
+Frontier-only one like `qualified-landing-v4`:
+
+- **Catalog:** six new assemblies (T1…T6) with their parts, natural bearings and one LANDING datum per tread. The
+  envelope grows to the new cuts. The variant's start and end points stay as the L0 → T0 segment.
+- **Grouping, recipes and workpieces:** one row each per new assembly, with bills from D3.
+- **Frontier:** CUT rows for the new cube rows. STATION and ENDPOINT rows for 8 (or 6) surface cut stations.
+  EPISODE rows (BRACE/CUT/FINISH) for each new cube. INSTALL rows 2…7, each with its station on T_{k−1}'s
+  installed contact (the new profile), its bearing on T_{k−1}'s edge, M as material and a retreat.
+
+The structure catalog's single OPENING region (the stair top) is unchanged. A far opening belongs to the Kitchen
+(ADR 1208).
+
+### A constraint on the Kitchen
+
+Every new post and T6's support bear on natural ground below y = −1024 under the flight, z ∈ [−5632, −2048].
+That ground is `requires_never_cut`. A Kitchen dug from inside cannot be dug beneath the stair.
+
+## Decisions needed (stopped)
+
+**D1 — T6's form.**
+- (a) **Recommended: a sill tread.** T0's deck and bearers six pitches down, with the bearers cut to 64 u so they
+  rest on the floor, and no posts. Its walking surface is identical to the family's.
+- (b) A 128 u thick deck block resting on the floor. This is not proved: the swing foot passes its front face,
+  which (a) leaves open between the bearers.
+- (c) No T6, with a 256 u last drop. This is impossible: the 256 u descent refuses.
+
+**D2 — the stair foot.**
+- (a) **Recommended: cut a seventh row, z ∈ [−7168, −6144], as part of the descent.** The walking body reaches past the foot (step 2 checks it).
+  It also gives the all-yaw turning stance (±406) room at the foot (root −5975, stance to −6381).
+- (b) Make that row the Kitchen's first cubes, cut before the last step is walked.
+
+**D3 — the bill of T1…T6.**
+- (a) **Recommended: T0's bill per tread**: 1,000 milli wood and 12,000 mWU each, 6,000 and 72,000 in total.
+  It is the only approved per-tread bill.
+- (b) Brendan sets per-tread bills, for example lighter ones for the short-post treads.
+
+## Order of work
+
+1. This plan. **Done.**
+2. Prove both accepted gaits over the derived T0-family flight.
+3. Brendan: D1, D2, D3.
+4. **New motion, install from the tread above.** Follow the install-source path: static pose candidates and exact
+   provers, then a review packet. **Stop for Brendan's review.** After approval: the program, native capture,
+   integer rows, and content 7 with one yaw-0 INSTALL row and one handling row. The rows are root-relative, so one
+   pair serves every tread.
+5. Re-prove the ADR 1142 half-turn/reposition on T_k (riser behind, next tread ahead and below). After D1/D2, also
+   prove the step-off at the foot.
+6. The bundle successor: `publish_qualified_descent.py`, create-only and fully pinned, proven on the hand fixture.
+7. Runtime stair travel:
+   - stair profile rows and the DEC-050 pace;
+   - a connector variant per tread segment;
+   - WorldRoutes fixed-connector edges;
+   - Locations on tread datums;
+   - motion catalog activation.
+
+   Budgets are measured as each lands (ADRs 1205, 1207).
+8. The foreman cuts rows 4–7, then for each k descends, installs T_k and ascends. First on the hand fixture, then
+   live, with exact ledgers.
+9. The Kitchen, under its own ADR.

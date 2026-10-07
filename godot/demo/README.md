@@ -2087,6 +2087,28 @@ fishery's station jobs). Nothing models what drink does: mead is "a feast ingred
 | Water panel ▸ Brewing ▸ **Brew mead** | A batch of mead into a free vat (selected residents first, else the board) |
 | Water panel ▸ Brewing ▸ **Make cordial** | A batch of the raspberry cordial at the brewery's bench |
 
+## New recipes: jam, nut cheese, ale and cider (decision 1625)
+
+Brendan's "Approve and build Q-d5 and dec-007" (2026-10-07): four content-library dishes drafted as station rows in
+`preserve/preserve_rules.gd`, **every number provisional** (decision 1625 names each one's source).
+
+- **Make jam** at the preserving table: berries 2 + honey 1 + water 1 → **berry jam** 3 (850 NP a unit, eaten as it
+  is), 16 WU, keeps 720 h -- the library's honey-sweetened fruit jams.
+- **Make cheese** at the preserving table: nuts 2 + water 1 → **nut cheese** 2 (1600 NP a unit), 16 WU, then 24 h
+  setting in one of the table's **two crocks**, keeps 480 h -- the library's one salt-free plant cheese.
+- **Brew ale** at the brewery: barley 3 (barley only) + water 3 → **ale** 4, 20 WU + 72 h in a vat, keeps 1440 h.
+- **Make cider** at the brewery: apples 4 (apples only) + water 1 → **cider** 4, 16 WU + 72 h in a vat, keeps 1440 h.
+- **How drink is depicted** (Brendan's ruling on DEC-007's open point): ale and cider follow the mead rule -- a feast
+  or table drink only, never eaten, no intoxication, no effect on Shared Warmth. The regatta's supper pours them with
+  the mead and the cordial, a unit for every four guests.
+- **Pickles are not built**: every pickle in the content library takes salt, and the village has no coast (decision
+  1625 asks Brendan how to proceed).
+
+| Input | Does |
+|---|---|
+| Water panel ▸ Preserves ▸ **Make jam** / **Make cheese** | A batch at the preserving table (the cheese then sets in a crock) |
+| Water panel ▸ Brewing ▸ **Brew ale** / **Make cider** | A batch into a free vat |
+
 ## Water
 
 A stream runs down the village's east edge -- narrowing to a neck at the north-east corner, past

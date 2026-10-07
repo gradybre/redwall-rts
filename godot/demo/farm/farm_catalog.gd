@@ -71,6 +71,7 @@ const ITEM_KEYS: Array[StringName] = [
 	&"apple", &"pear",
 	&"dried_fruit", &"ration",
 	&"mead", &"cordial",
+	&"jam", &"cheese", &"ale", &"cider",
 ]
 const ITEM_LABELS: Array[String] = [
 	"Radish", "Turnip", "Carrot", "Beetroot", "Parsnip", "Onion",
@@ -84,6 +85,7 @@ const ITEM_LABELS: Array[String] = [
 	"Apple", "Pear",
 	"Dried fruit", "Rations",
 	"Mead", "Cordial",
+	"Berry jam", "Nut cheese", "Ale", "Cider",
 ]
 const ITEM_LEAVES: Array[String] = [
 	"LEAF_radish", "LEAF_turnip", "LEAF_carrot", "LEAF_beetroot", "LEAF_parsnip", "LEAF_onion",
@@ -145,7 +147,14 @@ const ITEM_COUNT: int = 16
 ##              Feast ingredient only; no intoxication subsystem" -- CAT_MEAD;
 ##   * cordial  Brendan's DEC-045 raspberry cordial (dish_book.gd `cordial`: berries 2 + honey 0.5 + water 2 -> 4, 72 h),
 ##              made at the brewery's bench and kept as a drink -- CAT_CORDIAL.
-const PANTRY_ITEM_COUNT: int = 36
+## THE NEW RECIPES (decision 1625; Brendan's "Approve and build Q-d5 and dec-007", 2026-10-07), after the drinks -- each
+## a content-library dish drafted as a recipe row with PROVISIONAL numbers (preserve_rules.gd):
+##   * jam     berries cooked with honey and water (the library's honey-sweetened fruit jams) -- CAT_JAM, eaten as it is;
+##   * cheese  the library's salt-free nut cheese (taggerung TAG_recipe_nut_cheese) -- CAT_CHEESE, eaten as it is;
+##   * ale     barley and water brewed (the library's October ale) -- CAT_ALE, a drink only, like mead;
+##   * cider   apples and water (the library's pale cider) -- CAT_CIDER, a drink only, like mead.
+## Pickles are not built: every library pickle takes salt, and the demo has none (decision 1625).
+const PANTRY_ITEM_COUNT: int = 40
 const FIRST_CATCH: int = 16
 const CATCH_COUNT: int = 6
 const ITEM_DRIED_FISH: int = 22
@@ -164,6 +173,12 @@ const ITEM_DRIED_FRUIT: int = 32
 const ITEM_RATION: int = 33
 const ITEM_MEAD: int = 34
 const ITEM_CORDIAL: int = 35
+const ITEM_JAM: int = 36
+const ITEM_CHEESE: int = 37
+const ITEM_ALE: int = 38
+const ITEM_CIDER: int = 39
+## The crops and fruit the new recipes name by item (decision 1625).
+const ITEM_BARLEY: int = 14
 const FIRST_FRUIT: int = 30
 const FRUIT_COUNT: int = 2
 ## Every item the orchard and the hedge yield (a list, not a range: the hedge's `berries` is the forage item, numbered
@@ -182,12 +197,16 @@ const CAT_DRIED_FRUIT: int = 14
 const CAT_RATION: int = 15
 const CAT_MEAD: int = 16
 const CAT_CORDIAL: int = 17
+const CAT_JAM: int = 18
+const CAT_CHEESE: int = 19
+const CAT_ALE: int = 20
+const CAT_CIDER: int = 21
 ## The goods' categories and §5.7 shelf hours, from FIRST_CATCH on.
 const GOODS_CATEGORY: Array[int] = [CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_DRIED_FISH, CAT_FLOUR,
 	FarmingScript.CROP_ROOTS, CAT_HONEY, CAT_NUTS, CAT_MUSHROOMS, CAT_HERB, CAT_BERRIES, CAT_FRUIT, CAT_FRUIT,
-	CAT_DRIED_FRUIT, CAT_RATION, CAT_MEAD, CAT_CORDIAL]
+	CAT_DRIED_FRUIT, CAT_RATION, CAT_MEAD, CAT_CORDIAL, CAT_JAM, CAT_CHEESE, CAT_ALE, CAT_CIDER]
 const GOODS_SHELF_HOURS: Array[int] = [48, 48, 48, 48, 48, 48, 720, 240, 240, 1440, 720, 72, 480, 48, 144, 144, 720,
-	1440, 1440, 72]
+	1440, 1440, 72, 720, 480, 1440, 1440]
 ## scripts/core/forage.gd PATCH_KEYS row (berries, nuts, mushrooms, herb, roots) -> pantry item (NO_ITEM: not gathered).
 const PATCH_ITEM: Array[int] = [ITEM_BERRIES, ITEM_NUTS, ITEM_MUSHROOMS, ITEM_HERB, NO_ITEM]
 ## scripts/core/orchard_hive.gd SPECIES_KEYS row (apple, pear) -> pantry item.
@@ -280,6 +299,7 @@ const ITEM_PROP: Array[StringName] = [
 	&"", &"",
 	&"", &"",
 	&"", &"",
+	&"", &"", &"", &"",
 ]
 ## The fallback icon's colour: the item's own, from its produce (parsnip cream, spinach dark leaf).
 const ITEM_SWATCH: Array[Color] = [
@@ -297,6 +317,7 @@ const ITEM_SWATCH: Array[Color] = [
 	Color(0.74, 0.22, 0.18), Color(0.74, 0.74, 0.34),
 	Color(0.6, 0.34, 0.16), Color(0.7, 0.6, 0.42),
 	Color(0.86, 0.66, 0.26), Color(0.7, 0.12, 0.24),
+	Color(0.58, 0.1, 0.26), Color(0.9, 0.82, 0.58), Color(0.66, 0.42, 0.16), Color(0.86, 0.72, 0.32),
 ]
 
 ## The beds: the six first FIELD beds are world crop ids (BED_IDS); then the SOUTH FIELD's six (see THE SOUTH FIELD); then

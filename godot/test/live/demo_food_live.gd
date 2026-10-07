@@ -2,7 +2,7 @@ extends SceneTree
 ## The food lanes on the REAL scene with REAL Viewport input (decision 1601 onward): the apiary's skep and bees beside the
 ## old orchard, a left click on the skep bringing the Orchard panel with the apiary's readout and verbs; the preserving
 ## table by the kitchen and the Water panel's Preserves (decision 1611); the brewery and its Brewing section (decision
-## 1621). Not discovered by
+## 1621); the new recipes' buttons (decision 1625). Not discovered by
 ## the runner: test/test_demo_food_live.gd runs it in its own process.
 ##
 ##     godot --headless --path godot --script res://test/live/demo_food_live.gd [-- --size 1920x1080]
@@ -45,7 +45,8 @@ func _initialize() -> void:
 	root.add_child(_village)
 	current_scene = _village
 	_steps = [_pause, _the_apiary_is_wired, _look_at_the_apiary, _click_the_skep, _its_readout_and_verbs,
-		_close_on_the_bees, _look_at_the_preserving_table, _open_the_preserves, _look_at_the_brewery, _open_the_brewing]
+		_close_on_the_bees, _look_at_the_preserving_table, _open_the_preserves, _look_at_the_brewery, _open_the_brewing,
+		_the_new_recipes]
 
 
 func _process(_delta: float) -> bool:
@@ -254,3 +255,17 @@ func _open_the_brewing() -> void:
 		_check("%s is shown with its card" % key, button != null and button.visible and button.tooltip_text.to_lower().contains("honey"),
 			button.tooltip_text.replace("\n", " / ") if button != null else "")
 	_capture("brewing_panel")
+
+
+func _the_new_recipes() -> void:
+	"""Decision 1625: Make jam and Make cheese under the Preserves, Brew ale and Make cider under the Brewing, each with
+	its card (the village opens with none of their inputs: each says what it needs)."""
+	var panel: CanvasLayer = _village.get("_waterplay").get("panel")
+	_village.get("_fishery").call(&"refresh_panel")
+	panel.call(&"scroll_to_line", &"preserves")
+	for key: StringName in [&"make_jam", &"make_cheese", &"brew_ale", &"make_cider"]:
+		var button: Button = panel.call(&"button", key)
+		_check("%s is shown with its card" % key, button != null and button.visible and button.tooltip_text.contains("Can't now"),
+			button.tooltip_text.replace("\n", " / ") if button != null else "")
+	_check("the preserves line counts jam and cheese", String(panel.call(&"line", &"preserves")).contains("cheese"))
+	_capture("new_recipes_panel")

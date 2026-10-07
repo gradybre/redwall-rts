@@ -27,7 +27,9 @@ extends RefCounted
 ## intoxication subsystem") and the raspberry cordial ceil(E/4) U (ECO-031's one seasonal fruit drink) -- each reserved
 ## at confirmation in a take of its own when the pantry holds all of it free, and poured at the supper's end
 ## proportionally to attended/E (§5.7's rounding at the last attendee), the rest given back. A drink is never required:
-## it neither earns nor blocks Shared Warmth (the Hearth row's courses do), and nothing models what drink does.
+## it neither earns nor blocks Shared Warmth (the Hearth row's courses do), and nothing models what drink does. Ale and
+## cider (decision 1625) are poured the same way: Brendan's ruling on DEC-007's drink depiction (2026-10-07) is that they
+## follow the mead rule -- a feast or table drink only, no intoxication, no effect on Shared Warmth.
 
 const Rules := preload("res://demo/regatta/regatta_rules.gd")
 const MealRules := preload("res://demo/kitchen/meal_rules.gd")
@@ -41,8 +43,8 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 
 const NUT_LOAF: int = MealRules.DISH_NUT_LOAF
 ## The drinks poured (see THE FEAST'S DRINKS), and their names.
-const DRINK_ITEMS: PackedInt32Array = [Catalog.ITEM_MEAD, Catalog.ITEM_CORDIAL]
-const DRINK_NAMES: Array[String] = ["mead", "cordial"]
+const DRINK_ITEMS: PackedInt32Array = [Catalog.ITEM_MEAD, Catalog.ITEM_CORDIAL, Catalog.ITEM_ALE, Catalog.ITEM_CIDER]
+const DRINK_NAMES: Array[String] = ["mead", "cordial", "ale", "cider"]
 
 var kitchen: KitchenScript = null
 var stores: StoresScript = null
@@ -59,8 +61,8 @@ var warmth_until: int = -1
 var warmth_granted: int = 0
 ## The drinks' take, what is reserved of each (milli-U; 0: not poured this feast), and all ever poured.
 var drink_take: int = 0
-var drinks_planned: PackedInt64Array = PackedInt64Array([0, 0])
-var drinks_poured_milli: PackedInt64Array = PackedInt64Array([0, 0])
+var drinks_planned: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
+var drinks_poured_milli: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
 
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 

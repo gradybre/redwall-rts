@@ -4547,6 +4547,204 @@
    "direct_count": 0,
    "component_count": 0,
    "dishes": []
+  },
+  {
+   "item_key": "jam",
+   "leaf_id": "",
+   "targets": [
+    "COMPONENT_shared_blackberry_jam",
+    "COMPONENT_shared_strawberry_jam",
+    "COMPONENT_shared_elderberry_jam"
+   ],
+   "direct_count": 1,
+   "component_count": 0,
+   "dishes": [
+    {
+     "label": "Blackberry jam roly-poly pudding",
+     "id": "marlfox::MF_RECIPE_blackberry_jam_roly_poly_pudding",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "item_key": "cheese",
+   "leaf_id": "",
+   "targets": [
+    "COMPONENT_shared_cultured_hazelnut_cheese"
+   ],
+   "direct_count": 18,
+   "component_count": 3,
+   "dishes": [
+    {
+     "label": "Carrot-mushroom bake with cultured hazelnut cheese",
+     "id": "triss::TRI_recipe_carrot_mushroom_bake_with_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Cultured hazelnut cheese-celery pasty",
+     "id": "triss::TRI_recipe_cheese_celery_pasty",
+     "use": "direct"
+    },
+    {
+     "label": "Cultured hazelnut cheese-crusted hazelnut-mushroom loaf",
+     "id": "rakkety_tam::RAK_recipe_cheese_crusted_hazelnut_mushroom_loaf",
+     "use": "direct"
+    },
+    {
+     "label": "Cultured hazelnut cheese-onion farl",
+     "id": "rakkety_tam::RAK_recipe_cheese_onion_farl",
+     "use": "direct"
+    },
+    {
+     "label": "Feast cultured hazelnut cheese",
+     "id": "triss::TRI_recipe_feast_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Filboonimgun cultured hazelnut wheel",
+     "id": "taggerung::TAG_recipe_filboonimgun_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Grilled chestnuts in cultured hazelnut cheese dip",
+     "id": "rakkety_tam::RAK_recipe_grilled_chestnuts_in_cheese_dip",
+     "use": "direct"
+    },
+    {
+     "label": "Guosim cultured hazelnut cheese",
+     "id": "rakkety_tam::RAK_recipe_guosim_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Leek-carrot bake with yellow cultured hazelnut cheese",
+     "id": "rakkety_tam::RAK_recipe_leek_carrot_bake_with_yellow_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Maple wafer with white cheese — plant/approved-fish game adaptation",
+     "id": "taggerung::TAG_recipe_maple_wafer_with_white_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Mature cultured hazelnut cheese",
+     "id": "rakkety_tam::RAK_recipe_mature_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Mellow cheese — plant/approved-fish game adaptation",
+     "id": "taggerung::TAG_recipe_mellow_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Savory stuffed wheaten bread — plant or approved-aquatic adaptation",
+     "id": "rakkety_tam::RAK_recipe_savory_stuffed_wheaten_bread",
+     "use": "direct"
+    },
+    {
+     "label": "Toasted apples and cultured hazelnut cheese",
+     "id": "rakkety_tam::RAK_recipe_toasted_apples_and_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "White cheese with celery and hazelnuts — plant/approved-fish game adaptation",
+     "id": "taggerung::TAG_recipe_white_cheese_with_celery_and_hazelnuts",
+     "use": "direct"
+    },
+    {
+     "label": "White cheese with hazelnuts — plant/approved-fish game adaptation",
+     "id": "taggerung::TAG_recipe_white_cheese_with_hazelnuts",
+     "use": "direct"
+    },
+    {
+     "label": "Yellow cultured hazelnut cheese",
+     "id": "triss::TRI_recipe_yellow_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Yellow cultured hazelnut cheese ration",
+     "id": "rakkety_tam::RAK_recipe_yellow_cheese_ration",
+     "use": "direct"
+    },
+    {
+     "label": "Woodland assembly with bread, cultured hazelnut spread, celery",
+     "id": "mossflower::MF_recipe_hot_oven_bread_with_cheese_and_celery",
+     "use": "component"
+    },
+    {
+     "label": "Woodland assembly with celery, parsley, thyme",
+     "id": "mossflower::MF_recipe_celery_and_herb_cheese_on_acorn_bread_with_radishes",
+     "use": "component"
+    },
+    {
+     "label": "Woodland salad with cultured hazelnut spread, apple, apple vinegar",
+     "id": "mossflower::MF_recipe_cheese_and_apple_salad",
+     "use": "component"
+    }
+   ]
+  },
+  {
+   "item_key": "ale",
+   "leaf_id": "",
+   "targets": [
+    "COMPONENT_shared_ale",
+    "COMPONENT_shared_october_ale"
+   ],
+   "direct_count": 5,
+   "component_count": 0,
+   "dishes": [
+    {
+     "label": "Durral-style celebration cake with candied mint leaves",
+     "id": "pearls_lutra::PL_RECIPE_durral_s_seven_season_celebration_cake",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Dark fruit cake with October ale",
+     "id": "pearls_lutra::PL_RECIPE_dark_fruit_cake_with_october_ale",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Gerul and Arven's huge fruitcake",
+     "id": "pearls_lutra::PL_RECIPE_gerul_and_arven_s_huge_fruitcake",
+     "use": "direct"
+    },
+    {
+     "label": "Mulled October Ale",
+     "id": "rakkety_tam::RAK_recipe_mulled_october_ale",
+     "use": "direct"
+    },
+    {
+     "label": "Mulled spiced ale",
+     "id": "taggerung::TAG_recipe_mulled_spiced_ale",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "item_key": "cider",
+   "leaf_id": "",
+   "targets": [
+    "COMPONENT_shared_pale_cider",
+    "COMPONENT_shared_old_cider"
+   ],
+   "direct_count": 3,
+   "component_count": 0,
+   "dishes": [
+    {
+     "label": "Filboonimgun cultured hazelnut wheel",
+     "id": "taggerung::TAG_recipe_filboonimgun_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Fleetrunn's plum and almond cake",
+     "id": "outcast::OUT_recipe_fleetrunn_s_plum_and_almond_cake",
+     "use": "direct"
+    },
+    {
+     "label": "Honey-sweetened pale cider",
+     "id": "taggerung::TAG_recipe_honey_sweetened_pale_cider",
+     "use": "direct"
+    }
+   ]
   }
  ]
 }

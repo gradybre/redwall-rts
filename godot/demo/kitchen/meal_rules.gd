@@ -157,7 +157,8 @@ static var SIDE_MILLI: PackedInt32Array = PackedInt32Array()
 ## fish, flour, honey, and the woods' forage: nuts, mushrooms, herbs, berries). §5.7's `cabbage` input is the cabbage
 ## row -- cabbage, lettuce, spinach, leek and celery -- so it is "greens" to the player.
 const CATEGORY_WORDS: Array[String] = ["beans", "greens", "flax", "grain", "roots", "fresh fish", "dried fish", "flour",
-	"honey", "nuts", "mushrooms", "herbs", "berries", "fruit", "dried fruit", "rations", "mead", "cordial"]
+	"honey", "nuts", "mushrooms", "herbs", "berries", "fruit", "dried fruit", "rations", "mead", "cordial",
+	"jam", "cheese", "ale", "cider"]
 ## BAL-SUPPLY-004: "wood 100 milli-U/batch".
 const WOOD_MILLI_PER_BATCH: int = 100
 ## A portion's mass and spoiled food's (§5.7: 500 g and 250 g a unit): a spoiled portion is twice its milli-U.
@@ -216,10 +217,12 @@ const RAW_NP_CAP: int = 3000
 ## | Yes" and "Berries | 700 | Yes" (decision 0681): raw edible, so a hungry resident may eat them when nobody has set
 ## them aside. The orchard's fruit is §5.7's "Fruit | 900 | Yes" (decision 0671). The preserves (decision 1611) are §5.7's
 ## directly edible outputs at their own NP: dried fruit 1400 a unit and rations 2400 -- the reserve a missed meal falls
-## back on (ECO-028: fresh food is cooked; preserved food keeps), after anything spoiling sooner.
+## back on (ECO-028: fresh food is cooked; preserved food keeps), after anything spoiling sooner. The berry jam (850) and
+## the nut cheese (1600) of decision 1625 are eaten as they are too; their NP are PROVISIONAL there.
 const RAW_NP_PER_U: Dictionary = {FarmingScript.CROP_ROOTS: 800, FarmingScript.CROP_CABBAGE: 600,
 	Catalog.CAT_DRIED_FISH: 1800, Catalog.CAT_HONEY: 1200, Catalog.CAT_NUTS: 1600, Catalog.CAT_BERRIES: 700,
-	Catalog.CAT_FRUIT: 900, Catalog.CAT_DRIED_FRUIT: 1400, Catalog.CAT_RATION: 2400}
+	Catalog.CAT_FRUIT: 900, Catalog.CAT_DRIED_FRUIT: 1400, Catalog.CAT_RATION: 2400,
+	Catalog.CAT_JAM: 850, Catalog.CAT_CHEESE: 1600}
 
 
 static func _static_init() -> void:

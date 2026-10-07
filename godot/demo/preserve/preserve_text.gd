@@ -1,6 +1,6 @@
 extends RefCounted
 ## What the stations' goods say in the field guide (decision 1611: dried fruit and rations; decision 1621: mead and the
-## cordial) -- what each is for (ECO-028: each preservation its own purpose, fresh food keeping its role; ECO-031: a
+## cordial; decision 1625: jam, cheese, ale and cider) -- what each is for (ECO-028: each preservation its own purpose, fresh food keeping its role; ECO-031: a
 ## modest drink culture, no intoxication), how it is made, and how long it keeps. Presentation only.
 
 const Recipes := preload("res://demo/preserve/preserve_rules.gd")
@@ -9,7 +9,8 @@ const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 
 ## Per recipe row (preserve_rules.gd R_*): the guide's one line (the fish row's is the guide's own, decision 0434).
 const SUMMARY: Array[String] = ["", "Fruit dried on the rack", "Packed at the preserving table", "Brewed at the brewery",
-	"Made at the brewery's bench"]
+	"Made at the brewery's bench", "Cooked at the preserving table", "Set in a crock at the preserving table",
+	"Brewed at the brewery", "Pressed and brewed at the brewery"]
 const DRINK_USE: String = "A drink for the feast: poured at the regatta's supper, a unit for every four guests, when the brewery has made enough. No one is made drunk."
 const DRINK_ALTERNATIVE: String = "The Hearth feast's warm infusion of herbs and water is poured whatever the brewery has made."
 
@@ -61,6 +62,10 @@ static func made_words(recipe: int) -> String:
 
 static func _alternative(item: int) -> String:
 	"""What else does a preserve's work."""
+	if item == Catalog.ITEM_JAM:
+		return "Fresh berries while they keep (%d game hours); honey sweetens as it is." % Catalog.shelf_hours_of(Catalog.ITEM_BERRIES)
+	if item == Catalog.ITEM_CHEESE:
+		return "Nuts eaten as they are; the cheese keeps them as a richer reserve."
 	if item == Catalog.ITEM_DRIED_FRUIT:
 		return "Fresh fruit for the table while it keeps (%d game hours); the kitchen cooks fresh food first." % \
 			Catalog.shelf_hours_of(Catalog.ITEM_APPLE)

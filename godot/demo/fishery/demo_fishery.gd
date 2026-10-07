@@ -61,10 +61,11 @@ const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 const PANEL_REFRESH_S: float = 0.25
 const OVERDUE_KEY: String = "water:overdue:%d"
 const THIN_ICE_KEY: String = "water:thin_ice"
-## The station recipes' buttons (preserve_rules.gd rows: decisions 0434, 1611, 1621).
+## The station recipes' buttons (preserve_rules.gd rows: decisions 0434, 1611, 1621, 1625).
 const ACTION_RECIPES: Dictionary = {PanelScript.ACTION_DRY: Recipes.R_DRY_FISH, PanelScript.ACTION_DRY_FRUIT: Recipes.R_DRY_FRUIT,
 	PanelScript.ACTION_RATIONS: Recipes.R_RATION, PanelScript.ACTION_MEAD: Recipes.R_MEAD,
-	PanelScript.ACTION_CORDIAL: Recipes.R_CORDIAL}
+	PanelScript.ACTION_CORDIAL: Recipes.R_CORDIAL, PanelScript.ACTION_JAM: Recipes.R_JAM,
+	PanelScript.ACTION_CHEESE: Recipes.R_CHEESE, PanelScript.ACTION_ALE: Recipes.R_ALE, PanelScript.ACTION_CIDER: Recipes.R_CIDER}
 ## The Make buttons' locker kinds.
 const MAKE_ACTIONS: Array[StringName] = [PanelScript.ACTION_MAKE_NET, PanelScript.ACTION_MAKE_TRAP,
 	PanelScript.ACTION_MAKE_ICE_KIT]
@@ -357,18 +358,11 @@ func refresh_panel() -> void:
 		panel.set_card(MAKE_ACTIONS[kind], card.text(), card.is_ok())
 	card = mend_card(members)
 	panel.set_card(PanelScript.ACTION_MEND, card.text(), card.is_ok())
-	card = dry_card(members)
-	panel.set_card(PanelScript.ACTION_DRY, card.text(), card.is_ok())
 	card = mill_card(members)
 	panel.set_card(PanelScript.ACTION_MILL, card.text(), card.is_ok())
-	card = batch_card(Recipes.R_DRY_FRUIT, members)
-	panel.set_card(PanelScript.ACTION_DRY_FRUIT, card.text(), card.is_ok())
-	card = batch_card(Recipes.R_RATION, members)
-	panel.set_card(PanelScript.ACTION_RATIONS, card.text(), card.is_ok())
-	card = batch_card(Recipes.R_MEAD, members)
-	panel.set_card(PanelScript.ACTION_MEAD, card.text(), card.is_ok())
-	card = batch_card(Recipes.R_CORDIAL, members)
-	panel.set_card(PanelScript.ACTION_CORDIAL, card.text(), card.is_ok())
+	for action: StringName in ACTION_RECIPES:
+		card = dry_card(members) if action == PanelScript.ACTION_DRY else batch_card(ACTION_RECIPES[action], members)
+		panel.set_card(action, card.text(), card.is_ok())
 
 
 func panel_lines() -> Dictionary:
@@ -494,22 +488,26 @@ func stations_text() -> String:
 
 
 func preserves_text() -> String:
-	"""The preserves (decision 1611): what the rack's slots dry, and the pantry's fruit, dried fruit and rations."""
+	"""The preserves (decisions 1611, 1625): what the rack's slots dry, the preserving table and its crocks, and the
+	pantry's fruit, dried fruit, rations, jam and cheese."""
 	var fruit: int = 0
 	for slot: int in Rules.RACK_SLOTS:
 		var drying: bool = fishery.tables.s_state[slot] != Tables.SLOT_EMPTY
 		fruit += 1 if drying and fishery.tables.s_recipe[slot] == Recipes.R_DRY_FRUIT else 0
-	return "Fruit drying on the rack: %d slot%s · rations: %s\nIn the pantry: fruit %s · dried fruit %s · rations %s" % [
-		fruit, "" if fruit == 1 else "s", "being packed" if fishery.packing() else "none being packed",
+	return "Fruit drying on the rack: %d slot%s · the preserving table: %s · cheeses setting: %d\nIn the pantry: fruit %s · dried fruit %s · rations %s · jam %s · cheese %s" % [
+		fruit, "" if fruit == 1 else "s", "in use" if fishery.packing() else "free",
+		fishery.slots_in_use(Recipes.STATION_TABLE),
 		Text.units(fishery.pantry.milli_of(Catalog.ITEM_APPLE) + fishery.pantry.milli_of(Catalog.ITEM_PEAR)),
-		Text.units(fishery.pantry.milli_of(Catalog.ITEM_DRIED_FRUIT)), Text.units(fishery.pantry.milli_of(Catalog.ITEM_RATION))]
+		Text.units(fishery.pantry.milli_of(Catalog.ITEM_DRIED_FRUIT)), Text.units(fishery.pantry.milli_of(Catalog.ITEM_RATION)),
+		Text.units(fishery.pantry.milli_of(Catalog.ITEM_JAM)), Text.units(fishery.pantry.milli_of(Catalog.ITEM_CHEESE))]
 
 
 func brewing_text() -> String:
-	"""The brewery (decision 1621): its vats, and the pantry's honey, mead and cordial."""
-	return "Brewery: %d of %d vats brewing\nIn the pantry: honey %s · mead %s · cordial %s" % [fishery.brewing(),
-		Recipes.VAT_SLOTS, Text.units(fishery.pantry.milli_of(Catalog.ITEM_HONEY)),
-		Text.units(fishery.pantry.milli_of(Catalog.ITEM_MEAD)), Text.units(fishery.pantry.milli_of(Catalog.ITEM_CORDIAL))]
+	"""The brewery (decisions 1621, 1625): its vats, and the pantry's honey and its drinks."""
+	return "Brewery: %d of %d vats brewing\nIn the pantry: honey %s · mead %s · cordial %s · ale %s · cider %s" % [
+		fishery.brewing(), Recipes.VAT_SLOTS, Text.units(fishery.pantry.milli_of(Catalog.ITEM_HONEY)),
+		Text.units(fishery.pantry.milli_of(Catalog.ITEM_MEAD)), Text.units(fishery.pantry.milli_of(Catalog.ITEM_CORDIAL)),
+		Text.units(fishery.pantry.milli_of(Catalog.ITEM_ALE)), Text.units(fishery.pantry.milli_of(Catalog.ITEM_CIDER))]
 
 
 func _fresh_fish() -> int:

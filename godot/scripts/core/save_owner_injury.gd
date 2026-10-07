@@ -1,12 +1,24 @@
 extends RefCounted
 ## Owner 6 (`injury`) framed-column validation bridge (INJURY-S4-VALIDATE-R01 v1, ADR 0177).
 ##
-## ONE PUBLIC ENTRY POINT. `framed_refusal()` judges one already framed section 4 owner block
-## against the Injury store's own column rules and returns a `SaveHeader.Refusal`. It constructs
-## no Injury, Needs, Directory or catalog store, consults no live owner, reads no clock, captures
-## nothing, applies nothing, normalises nothing and writes no diagnostic.
+## THREE PUBLIC ENTRY POINTS (ADR 1222 build step 2).
+##   * `framed_refusal()` judges one already framed section 4 owner block against the Injury
+##     store's own column rules and returns a `SaveHeader.Refusal`. It constructs no Injury,
+##     Needs, Directory or catalog store, consults no live owner, reads no clock, captures
+##     nothing and applies nothing.
+##   * `capture_into(store, record)` copies the live store's eleven columns through
+##     `Injury.copy_columns_into()` and projects them into the record's typed buckets in ordinal
+##     order -- the exact inverse of the projection below -- then judges the written record with
+##     `framed_refusal()`, so a capture can never emit an image apply would refuse. A refused
+##     capture leaves the record's contents unspecified; the caller discards it.
+##   * `apply(record, store)` runs `framed_refusal()` FIRST, then projects the record and calls
+##     `Injury.restore_columns()`, which re-runs the same predicate, writes nothing on refusal
+##     and rebuilds `present_count`/`injured_count`. A false maps to a Refusal carrying the
+##     store's exact `last_column_refusal()` code.
+## None of the three touches a clock, barrier, signal, callback, filesystem, JSON text,
+## reflection API or per-row object; the caller owns barrier and restore-order discipline.
 ##
-## GATE ORDER:
+## GATE ORDER (of `framed_refusal()`):
 ##   1. a null record                   -> SAVE_COMPONENT_SHAPE
 ##   2. an owner index that is not 6    -> SAVE_COMPONENT_OWNER
 ##   3. `Schema.schema_refusal()`       -> forwarded UNCHANGED, both code and detail
@@ -19,11 +31,11 @@ extends RefCounted
 ##      COLUMN_FLAGS, in a detail naming owner 6 and carrying no row identity.
 ## Success carries an empty code and an empty detail.
 ##
-## BRIDGES VALIDATE, THEY DO NOT RESTORE. An accepted result certifies owner 6 scalar-domain
-## validation only. Saved Needs and resident presence, health and injury-state agreement,
-## Directory patient and rescuer kind and identity -- without rejecting lawful stale generations
-## -- self-rescue, the movement care context, same-file provenance, bulk capture/restore and
-## derived counts all remain downstream INJURY-SAVED-BINDINGS obligations.
+## WHAT AN ACCEPTED RESULT DOES NOT CERTIFY. Saved Needs and resident presence, health and
+## injury-state agreement, Directory patient and rescuer kind and identity -- without rejecting
+## lawful stale generations -- self-rescue, the movement care context and same-file provenance
+## all remain downstream INJURY-SAVED-BINDINGS obligations. Bulk capture/apply and the
+## present_count/injured_count rebuild are the two entry points above.
 ##
 ## THE METADATA GUARD compares the compiled schema to pinned contract literals and the Injury
 ## source constants to their pinned values, read as constant chains that instantiate no owner.
@@ -97,6 +109,8 @@ const SOURCE_SEVERITY_SERIOUS: int = 2
 const SOURCE_DIRECTORY_CAPACITY: int = 352418
 const SOURCE_NULL_SLOT: int = -1
 const SOURCE_NULL_GENERATION: int = 0
+## A capture or apply called without a live store. Bridge-local: no column code applies.
+const REFUSE_NULL_STORE: StringName = &"SAVE_COMPONENT_NULL_STORE"
 
 
 static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
@@ -132,6 +146,84 @@ static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
 		return _refuse(code, "%s refuses this image with column code %s"
 			% [COLUMN_DETAIL_PREFIX, String(code)])
 	return _accept()
+
+
+static func capture_into(store: Injury, record: Section.FramedOwner) -> SaveHeader.Refusal:
+	"""Capture the live store's eleven columns into one owner 6 record, then judge the result.
+
+	Gates: a null record, a wrong owner, a null store, the schema and metadata guards, then the
+	store's own `copy_columns_into()` (its column code is forwarded), then a typed setter refusal
+	(SAVE_COMPONENT_SHAPE), and last `framed_refusal()` over what was written.
+	"""
+	var target: SaveHeader.Refusal = _target_refusal(record, store)
+	if not target.is_ok():
+		return target
+	var columns: Injury.Columns = Injury.Columns.new()
+	if not store.copy_columns_into(columns):
+		return _refuse(store.last_column_refusal(), "Injury owner %d capture refused with %s"
+			% [OWNER_INDEX, String(store.last_column_refusal())])
+	if not (record.set_u8(FIELD_PRESENT, columns.present)
+			and record.set_u8(FIELD_KIND, columns.kind)
+			and record.set_u8(FIELD_AIRLESS_EPISODE, columns.airless_episode)
+			and record.set_u8(FIELD_EXHAUSTION_LATCH, columns.exhaustion_latch)
+			and record.set_u8(FIELD_CARE_CONTEXT_BLOCKED, columns.care_context_blocked)
+			and record.set_i32(FIELD_SEVERITY, columns.severity)
+			and record.set_i32(FIELD_RESCUER_SLOT, columns.rescuer_slot)
+			and record.set_i32(FIELD_RESCUER_GENERATION, columns.rescuer_generation)
+			and record.set_i64(FIELD_UNTREATED_TICKS, columns.untreated_ticks)
+			and record.set_i64(FIELD_CARE_PROGRESS_MWU, columns.care_progress_mwu)
+			and record.set_i64(FIELD_LAST_INCIDENT_ORDINAL, columns.last_incident_ordinal)):
+		return _refuse(Section.REFUSE_SHAPE,
+			"Injury owner %d capture could not write a column" % OWNER_INDEX)
+	return framed_refusal(record)
+
+
+static func apply(record: Section.FramedOwner, store: Injury) -> SaveHeader.Refusal:
+	"""Validate one owner 6 record, then install it into `store`. Refusal writes nothing.
+
+	`framed_refusal()` runs first and its refusal is returned unchanged. The projection shares the
+	record's buffers by assignment; `restore_columns()` takes its own private copies.
+	"""
+	var framed: SaveHeader.Refusal = framed_refusal(record)
+	if not framed.is_ok():
+		return framed
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no Injury store was supplied for owner %d"
+			% OWNER_INDEX)
+	var columns: Injury.Columns = Injury.Columns.new()
+	columns.present = record.u8_column(FIELD_PRESENT)
+	columns.kind = record.u8_column(FIELD_KIND)
+	columns.airless_episode = record.u8_column(FIELD_AIRLESS_EPISODE)
+	columns.exhaustion_latch = record.u8_column(FIELD_EXHAUSTION_LATCH)
+	columns.care_context_blocked = record.u8_column(FIELD_CARE_CONTEXT_BLOCKED)
+	columns.severity = record.i32_column(FIELD_SEVERITY)
+	columns.rescuer_slot = record.i32_column(FIELD_RESCUER_SLOT)
+	columns.rescuer_generation = record.i32_column(FIELD_RESCUER_GENERATION)
+	columns.untreated_ticks = record.i64_column(FIELD_UNTREATED_TICKS)
+	columns.care_progress_mwu = record.i64_column(FIELD_CARE_PROGRESS_MWU)
+	columns.last_incident_ordinal = record.i64_column(FIELD_LAST_INCIDENT_ORDINAL)
+	if not store.restore_columns(columns):
+		return _refuse(store.last_column_refusal(), "Injury owner %d restore refused with %s"
+			% [OWNER_INDEX, String(store.last_column_refusal())])
+	return _accept()
+
+
+static func _target_refusal(record: Section.FramedOwner, store: Injury) -> SaveHeader.Refusal:
+	"""Capture's preflight: record, owner index, store, then the schema and metadata guards."""
+	if record == null:
+		return _refuse(Section.REFUSE_SHAPE,
+			"no framed owner was supplied for owner %d ('%s')" % [OWNER_INDEX, OWNER_KEY])
+	if record.owner != OWNER_INDEX:
+		return _refuse(Section.REFUSE_OWNER,
+			"owner %d was supplied where owner %d ('%s') is required"
+				% [record.owner, OWNER_INDEX, OWNER_KEY])
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no Injury store was supplied for owner %d"
+			% OWNER_INDEX)
+	var schema: SaveHeader.Refusal = Schema.schema_refusal()
+	if not schema.is_ok():
+		return schema
+	return _metadata_refusal()
 
 
 static func _metadata_refusal() -> SaveHeader.Refusal:

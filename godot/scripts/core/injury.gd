@@ -263,6 +263,9 @@ var _present_count: int = 0
 var _injured_count: int = 0
 ## Row named by the refusal that stopped the last `tick_all()`, or -1.
 var _last_refused_slot: int = -1
+## The code of the most recent refused bulk column call, or REFUSE_NONE. Category 3: a
+## diagnostic channel separate from every mutator's OpResult, never saved or hashed.
+var _last_column_refusal: StringName = REFUSE_NONE
 ## Value carried by the next OpResult, set by a `_*_checked()` helper just before it returns.
 var _out_value: int = 0
 ## Reused by the checked arithmetic on the care-work path. One instance for the whole store.
@@ -1269,3 +1272,170 @@ static func _column_rescuer_duplicate_refusal(present: PackedByteArray,
 					and rescuer_generation[other] == rescuer_generation[row]:
 				return REFUSE_COLUMN_RESCUER_DUPLICATE
 	return REFUSE_NONE
+
+
+# --- ARCH-SAVE-002 section 4 bulk column API (ADR 1222 build step 2) ----------------------------
+#
+# Owner 6's capture and apply steps, mirroring `priorities.gd`'s pair. `copy_columns_into()` is an
+# exact snapshot of the eleven category-1 columns over ALL 512 physical rows, free rows included;
+# `restore_columns()` judges a candidate with the SAME `columns_refusal()` the offline bridge
+# uses, writes nothing on refusal, then installs the eleven columns and REBUILDS `_present_count`
+# and `_injured_count` (category 2) from the installed columns. No member belongs to another
+# section: this store holds no Needs, Directory or catalog state. `_last_column_refusal` is
+# category 3 and `_last_refused_slot` (the `tick_all()` diagnostic) is untouched by either call.
+
+class Columns:
+	"""Caller-owned image of the eleven category-1 columns, in registry ordinal order.
+
+	One object per save or load, never per resident (ARCH-MEM-001). `copy_columns_into()` refills
+	the buffers in place and refuses a wrongly sized one rather than resizing it.
+	"""
+	var present: PackedByteArray = PackedByteArray()
+	var kind: PackedByteArray = PackedByteArray()
+	var airless_episode: PackedByteArray = PackedByteArray()
+	var exhaustion_latch: PackedByteArray = PackedByteArray()
+	var care_context_blocked: PackedByteArray = PackedByteArray()
+	var severity: PackedInt32Array = PackedInt32Array()
+	var rescuer_slot: PackedInt32Array = PackedInt32Array()
+	var rescuer_generation: PackedInt32Array = PackedInt32Array()
+	var untreated_ticks: PackedInt64Array = PackedInt64Array()
+	var care_progress_mwu: PackedInt64Array = PackedInt64Array()
+	var last_incident_ordinal: PackedInt64Array = PackedInt64Array()
+
+	func _init() -> void:
+		"""Size all eleven columns to their declared extents, then fill the empty-store image."""
+		present.resize(RESIDENT_CAPACITY)
+		kind.resize(RESIDENT_CAPACITY)
+		airless_episode.resize(RESIDENT_CAPACITY)
+		exhaustion_latch.resize(RESIDENT_CAPACITY)
+		care_context_blocked.resize(RESIDENT_CAPACITY)
+		severity.resize(RESIDENT_CAPACITY)
+		rescuer_slot.resize(RESIDENT_CAPACITY)
+		rescuer_generation.resize(RESIDENT_CAPACITY)
+		untreated_ticks.resize(RESIDENT_CAPACITY)
+		care_progress_mwu.resize(RESIDENT_CAPACITY)
+		last_incident_ordinal.resize(RESIDENT_CAPACITY)
+		clear()
+
+	func clear() -> void:
+		"""Refill every column with what the store's own `clear()` leaves: the empty row state."""
+		present.fill(0)
+		kind.fill(KIND_NONE)
+		airless_episode.fill(0)
+		exhaustion_latch.fill(0)
+		care_context_blocked.fill(0)
+		severity.fill(SEVERITY_NONE)
+		rescuer_slot.fill(NULL_SLOT)
+		rescuer_generation.fill(NULL_GENERATION)
+		untreated_ticks.fill(0)
+		care_progress_mwu.fill(0)
+		last_incident_ordinal.fill(0)
+
+	func equals(other: Columns) -> bool:
+		"""True when all eleven columns are byte-identical. Proves a refusal changed nothing."""
+		return other != null and present == other.present and kind == other.kind \
+			and airless_episode == other.airless_episode \
+			and exhaustion_latch == other.exhaustion_latch \
+			and care_context_blocked == other.care_context_blocked \
+			and severity == other.severity and rescuer_slot == other.rescuer_slot \
+			and rescuer_generation == other.rescuer_generation \
+			and untreated_ticks == other.untreated_ticks \
+			and care_progress_mwu == other.care_progress_mwu \
+			and last_incident_ordinal == other.last_incident_ordinal
+
+
+func last_column_refusal() -> StringName:
+	"""The code of the most recent refused bulk column call, or REFUSE_NONE after a success.
+
+	A SEPARATE channel from the OpResult every mutator returns, so a load can never overwrite the
+	reason an earlier mutator was refused before its caller read it. Every code is `COLUMN_`.
+	"""
+	return _last_column_refusal
+
+
+func copy_columns_into(out: Columns) -> bool:
+	"""Copy the eleven category-1 columns into caller-owned buffers. False refuses; `out` unchanged.
+
+	The ONLY reader of a free row's bytes. The copies are snapshots: mutating `out` afterwards
+	cannot reach a column, and a later write here cannot reach `out`.
+	"""
+	if not _columns_are_capacity_sized(out.present, out.kind, out.airless_episode,
+			out.exhaustion_latch, out.care_context_blocked, out.severity, out.rescuer_slot,
+			out.rescuer_generation, out.untreated_ticks, out.care_progress_mwu,
+			out.last_incident_ordinal):
+		_last_column_refusal = REFUSE_COLUMN_SHAPE
+		return false
+	_refill_u8(out.present, _present)
+	_refill_u8(out.kind, _kind)
+	_refill_u8(out.airless_episode, _airless_episode)
+	_refill_u8(out.exhaustion_latch, _exhaustion_latch)
+	_refill_u8(out.care_context_blocked, _care_context_blocked)
+	_refill_i32(out.severity, _severity)
+	_refill_i32(out.rescuer_slot, _rescuer_slot)
+	_refill_i32(out.rescuer_generation, _rescuer_generation)
+	_refill_i64(out.untreated_ticks, _untreated_ticks)
+	_refill_i64(out.care_progress_mwu, _care_progress_mwu)
+	_refill_i64(out.last_incident_ordinal, _last_incident_ordinal)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func restore_columns(columns: Columns) -> bool:
+	"""Replace all eleven columns and rebuild `_present_count`/`_injured_count`. Refusal writes
+	nothing.
+
+	Allocate before consume (decision 0059): the null guard and the whole `columns_refusal()` run
+	before the first write, so a refusal leaves every column and both counts byte-identical. Both
+	counts are rebuilt from the INSTALLED columns, never a caller value. No cross-owner presence
+	or health agreement is checked here; the orchestrator's whole-world check owns that.
+	"""
+	var refusal: StringName = REFUSE_COLUMN_SHAPE
+	if columns != null and _columns_are_capacity_sized(columns.present, columns.kind,
+			columns.airless_episode, columns.exhaustion_latch, columns.care_context_blocked,
+			columns.severity, columns.rescuer_slot, columns.rescuer_generation,
+			columns.untreated_ticks, columns.care_progress_mwu, columns.last_incident_ordinal):
+		refusal = columns_refusal(columns.present, columns.kind, columns.airless_episode,
+			columns.exhaustion_latch, columns.care_context_blocked, columns.severity,
+			columns.rescuer_slot, columns.rescuer_generation, columns.untreated_ticks,
+			columns.care_progress_mwu, columns.last_incident_ordinal)
+	if refusal != REFUSE_NONE:
+		_last_column_refusal = refusal
+		return false
+	_install_columns(columns)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func _install_columns(columns: Columns) -> void:
+	"""Take private copies of all eleven columns, then rebuild `_present_count`/`_injured_count`."""
+	_present = columns.present.duplicate()
+	_kind = columns.kind.duplicate()
+	_airless_episode = columns.airless_episode.duplicate()
+	_exhaustion_latch = columns.exhaustion_latch.duplicate()
+	_care_context_blocked = columns.care_context_blocked.duplicate()
+	_severity = columns.severity.duplicate()
+	_rescuer_slot = columns.rescuer_slot.duplicate()
+	_rescuer_generation = columns.rescuer_generation.duplicate()
+	_untreated_ticks = columns.untreated_ticks.duplicate()
+	_care_progress_mwu = columns.care_progress_mwu.duplicate()
+	_last_incident_ordinal = columns.last_incident_ordinal.duplicate()
+	_present_count = _present.count(1)
+	_injured_count = RESIDENT_CAPACITY - _kind.count(KIND_NONE)
+
+
+static func _refill_u8(out: PackedByteArray, source: PackedByteArray) -> void:
+	"""Refill a caller's u8 buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
+
+
+static func _refill_i32(out: PackedInt32Array, source: PackedInt32Array) -> void:
+	"""Refill a caller's i32 buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
+
+
+static func _refill_i64(out: PackedInt64Array, source: PackedInt64Array) -> void:
+	"""Refill a caller's i64 buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)

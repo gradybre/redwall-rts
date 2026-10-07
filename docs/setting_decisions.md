@@ -1388,3 +1388,26 @@ On 2026-10-07, Brendan raised REQ-SET-163's simulation-owned memory budget to **
 unbounded growth. The headroom (49,992,369 B at the 100,007,631 B joint pack) is not an allowance. Every
 new store is still declared, counted and admitted, and the geometry journals stay at 64 entries.
 Engineering record: [decision1212](decisions/1212-memory-census-and-budget-tool.md) §7.
+
+
+### DEC-054 — A Room is excavated only as high as the dig strokes reach
+
+On 2026-10-07, Brendan decided against earth benches for the Kitchen's upper cubes: **"Skip benches, build to needed
+height and if claw strokes don't match that height that is Ok."**
+
+- A Room is dug to the height it needs. When the published dig strokes cannot reach that height from the Room
+  floor, the Room is built to the height they can reach, and that is acceptable.
+- The reachable height is derived from the published dig rows, never authored as a constant. It is the top of the
+  highest whole-metre band that a WORK row's contact anchor reaches from a floor station. It follows the claw rows
+  of DEC-052 when they replace the pick rows. Today (content 6) it is 2 m: anchors at 707 u and 1,039 u.
+- Volume above that band is **not claimed**. It stays natural earth under the level roof and is protected as the
+  Room's own roof.
+- No earth benches, steps or climbing are built for excavation.
+
+**What this amends.** No `REQ-SET-*` requirement in the GDD sets a Room's clear height. The GDD's "Connected-movement
+policy confirmation — DEC-040" section keeps "Four underground levels at 4m spacing" as a candidate, and
+SET-MOVE-ECON-001's 2 m × 2 m × 3 m example says its "Geometry clear height is an example only". This ruling
+amends neither. Level spacing and the level catalog's roof
+are unchanged; only the excavated part below the roof is capped.
+
+Engineering record: [decision1220](decisions/1220-kitchen-earth-benches.md).

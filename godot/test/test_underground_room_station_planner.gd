@@ -408,7 +408,7 @@ func test_adr1161_v3_fixture_lateral_publishes_but_its_ground_leg_cannot_hand_of
 	assert_equal(contact.location, result.work, "the planned WORK row")
 	for cube: Vector3i in [Vector3i(2048, 1024, 0), Vector3i(3072, 0, 0), Vector3i(2048, 2048, 0)]:
 		var out: Publication.Request = _sentinel()
-		var expected: StringName = Planner.REFUSE_CLOSED if cube.y < 2048 else Planner.REFUSE_BENCH_ASCENT
+		var expected: StringName = Planner.REFUSE_CLOSED if cube.y < 2048 else Planner.REFUSE_REACH
 		assert_equal(_plan(room, cold, cube.x, cube.y, cube.z, out), expected, "v3 %s" % cube)
 		_assert_sentinel(out, "v3 refusal")
 	candidate = null
@@ -437,7 +437,7 @@ func _assert_v3_ground_handoff_refused(result: Publication.Result) -> void:
 
 
 func test_room_loop_digs_both_lower_levels_with_exact_ledgers() -> void:
-	"""Content 6 with per-motion air: all eight level-0/1 cubes are paid; levels 2-3 name the missing bench ascent."""
+	"""Content 6 with per-motion air: all eight level-0/1 cubes are paid; levels 2-3 name the missing reach."""
 	var fixture: StepFixture = StepFixture.new()
 	_h = fixture
 	var room: Vector2i = fixture.confirmed_room()
@@ -453,10 +453,8 @@ func test_room_loop_digs_both_lower_levels_with_exact_ledgers() -> void:
 		expected.append(_key(sites, cube.x, cube.y, cube.z))
 	assert_equal(fixture.completed, expected, "paid cubes in loop order")
 	assert_equal(fixture.refusals.size(), KITCHEN_SITES - 8, "one refusal per unpaid Site")
-	for key: int in fixture.refusals:
-		assert_equal(fixture.refusals[key], Planner.REFUSE_BENCH_ASCENT, "levels 2-3: a bench reaches, nothing climbs")
+	for key: int in fixture.refusals: assert_equal(fixture.refusals[key], Planner.REFUSE_REACH, "levels 2-3: no anchor that high")
 	_assert_ledgers(fixture, 8)
-	_assert_bench_requirements(fixture, room)
 	var stations: int = 0
 	for count: int in fixture.published: stations += count
 	print("ROOM-LOOP-PUBLISHED ", fixture.published)
@@ -465,19 +463,6 @@ func test_room_loop_digs_both_lower_levels_with_exact_ledgers() -> void:
 	assert_true(_multi_air_rows(fixture) > 0, "upper WORK stations claim per-motion air")
 	print("ROOM-LOOP-PEAKS publication route=%d location=%d phase route=%d location=%d" % Array(fixture.peaks))
 	for peak: int in fixture.peaks: assert_true(peak > 0 and peak < Space.MAX_CHECKS, "measured below the cold check budget")
-
-
-func _assert_bench_requirements(fixture: StepFixture, room: Vector2i) -> void:
-	"""ADR1220: each unpaid cube names its exact bench rise and WORK row; no published row climbs it."""
-	var cold: int = fixture._budget.acquire(Budget.COLD_BYTES)
-	var out: PackedInt32Array = PackedInt32Array([0, 0, 0])
-	for x: int in [2048, 3072]:
-		for y: int in [2048, 3072]:
-			for z: int in [0, 1024]:
-				var candidate: Frontier.Candidate = _candidate(room, cold, x, y, z)
-				assert_equal(Planner.bench_into(fixture.provider, candidate, 0, YAW_PLUS_X, cold, Space.MAX_CHECKS, out), &"", "bench")
-				assert_equal(out, PackedInt32Array([y - 1024, 26, -1]), "(%d,%d,%d): HIGH26 from a bench %du up, no climb" % [x, y, z, y - 1024])
-	assert_equal(fixture._budget.release(cold), &"", "lease released")
 
 
 func _multi_air_rows(fixture: StepFixture) -> int:
@@ -590,31 +575,4 @@ func _assert_step_rows_decide_the_upper_reason(fixture: StepFixture, room: Vecto
 	_assert_sentinel(out, "missing step")
 	flags[at + 10] = original[0]; flags[at + 11] = original[1]
 	assert_equal(_plan(room, cold, 2048, 1024, 0, out), &"", "restored rows plan the step chain")
-	assert_equal(fixture._budget.release(cold), &"", "lease released")
-
-
-func test_bench_cubes_name_ascent_then_footing() -> void:
-	"""ADR1220: a level-2 cube is reached by HIGH26 from a 1024u bench; with a climbing row the bench footing is named."""
-	var fixture: StepFixture = StepFixture.new()
-	_h = fixture
-	var room: Vector2i = fixture.confirmed_room()
-	if room == NULL_REF: return
-	var cold: int = fixture._budget.acquire(Budget.COLD_BYTES)
-	var on_floor: PackedInt32Array = PackedInt32Array([9, 9, 9])
-	assert_equal(Planner.bench_into(fixture.provider, _candidate(room, cold, 2048, 0, 0), 0, YAW_PLUS_X, cold, Space.MAX_CHECKS, on_floor), &"", "floor cube")
-	assert_equal(on_floor, PackedInt32Array([0, 27, -1]), "a floor station reaches a level-0 cube: no bench")
-	var short: PackedInt32Array = PackedInt32Array([9])
-	assert_equal(Planner.bench_into(fixture.provider, _candidate(room, cold, 2048, 0, 0), 0, YAW_PLUS_X, cold, Space.MAX_CHECKS, short),
-		Planner.REFUSE_SCOPE, "three-word caller packet")
-	assert_equal(short, PackedInt32Array([9]), "refusal writes nothing")
-	var out: Publication.Request = _sentinel()
-	assert_equal(_plan(room, cold, 2048, 2048, 0, out), Planner.REFUSE_BENCH_ASCENT, "no certified climbing row")
-	var mode: int = Profiles.F_MODE * fixture._profiles._profile_capacity
-	fixture._profiles._live.fields[mode] = Profiles.MODE_CLIMB # Negative-only: the STAND row poses as a climbing row.
-	assert_equal(_plan(room, cold, 2048, 2048, 0, out), Planner.REFUSE_BENCH_FOOTING, "a climb row still has no bench footing")
-	var bench: PackedInt32Array = PackedInt32Array([0, 0, 0])
-	assert_equal(Planner.bench_into(fixture.provider, _candidate(room, cold, 2048, 2048, 0), 0, YAW_PLUS_X, cold, Space.MAX_CHECKS, bench), &"", "bench")
-	assert_equal(bench, PackedInt32Array([1024, 26, 0]), "the climbing row is named")
-	fixture._profiles._live.fields[mode] = Profiles.MODE_STAND
-	_assert_sentinel(out, "bench refusals")
 	assert_equal(fixture._budget.release(cold), &"", "lease released")

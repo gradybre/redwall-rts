@@ -1,8 +1,9 @@
-# 1220 — Kitchen earth benches: the published rows support no bench (stopped for a decision)
+# 1220 — Kitchen earth benches rejected: a Room is dug only as high as the strokes reach
 
-Date: 2026-10-07 · Status: Proposed. The planner names the missing capability; the bench design waits on Brendan.
+Date: 2026-10-07 · Status: Accepted (DEC-054). Benches were found impossible with the published rows; Brendan then
+rejected benches. The sections up to "Options" are the finding; "Decision" and below is what was built.
 
-## Brendan's decision being implemented
+## Brendan's first decision (superseded the same day)
 
 Chat, 2026-10-07: **earth benches** for the 4 m Kitchen's upper cubes. Dig top-down by leaving temporary earth
 steps or benches to stand on, then cut the benches away last, using existing strokes and walking.
@@ -58,7 +59,7 @@ still reaches only 8, because of the HIGH intrusion above. Cubes A3 and B3 have 
   cannot prove footing on a bench top.
 - The planner plans only on `FLOOR_DATUM` sections at the gateway level.
 
-## What was built
+## What was built first (retired by the decision below)
 
 `underground_room_station_planner.gd`:
 
@@ -93,7 +94,7 @@ still reaches only 8, because of the HIGH intrusion above. Cubes A3 and B3 have 
 - `Query` gains two int scalars inside its declared 1,024 B scalar allowance. `CONTROL_BYTES` stays 45,752.
 - `tools/underground_memory_budget.py --check` passes (headroom 92,369 B before DEC-053 raised the gate).
 
-## Options for Brendan
+## Options put to Brendan — 2, 3 and 4 are rejected
 
 1. **Recommended now: accept a 2 m Kitchen (levels 0–1, 8 cubes) as the first Kitchen**, which digs completely
    today. Keep the 4 m Kitchen for when bench content exists. In addition, give claw M2 (the high-wall stroke,
@@ -111,7 +112,79 @@ still reaches only 8, because of the HIGH intrusion above. Cubes A3 and B3 have 
 4. **A timber scaffold in the Corridor** (an assembly like L0). It still needs a climb row, but it does not depend
    on the M2 constraint.
 
+## Decision (DEC-054, 2026-10-07)
+
+Brendan: **"Skip benches, build to needed height and if claw strokes don't match that height that is Ok."** This
+is option 1, generalised. All bench options (2–4) are rejected, and no bench retention or climbing is built.
+
+### The reachable height
+
+`underground_room_approach.gd` `reachable_height_u(profiles, identity_row)` derives it from published boxes only:
+
+- It takes every certified BUILD anchor-and-patch WORK row with the actor/tool/cargo identity of the request's work
+  row, at any yaw.
+- For each such row, it finds the single CONTACT_POINT's height above the stance and the 1,024 u band holding it
+  strictly inside.
+- The height is the top of the highest band found. It is 0 when there is no dig row.
+- Today: anchors 128, 707 and 1,039 give 2,048 u. When claw rows are published, the height follows them.
+
+### Unclaimed, not released
+
+The clamp happens before confirmation, so nothing above it is ever claimed.
+
+- `Approach.input_refusal` refuses `ROOM_APPROACH_HEIGHT_UNREACHABLE` for a plan taller than the reachable height
+  of its work row's identity. It does so before any cold allocation, claim or Site exists.
+- **Planning clamps.**
+  - The modular room runtime (`demo/burrow/modular_runtime.gd` `_make_plan`) plans
+    `min(level clear height, reachable_height_u(profiles, -1))`. Identity -1 means any published dig row, because a
+    drawing exists before its worker is chosen.
+  - The Room fixtures clamp the same way. The ADR 1161 fixture gets 2,048 u. The synthetic room-approach and
+    modular-access fixtures get 1,024 u, because their only anchor is 512 u. Their counts are now per reachable
+    level.
+- **Why not claim and release later.** Releasing would retire Room reservation markers and Sites of a live Room
+  through the phase/save path, which has no such operation. The released earth would also need to be proved
+  re-protected. Leaving Sites behind instead would keep refusals that never resolve, and would hold Site and
+  marker capacity and save bytes. Not claiming has none of these costs.
+- **Content that later reaches higher** does not grow an existing Room. A taller Room is a new confirmation.
+
+### Lower Rooms inside an authored level
+
+- `underground_room_bindings.gd` `_level_refusal` accepts either the level's clear height or a whole number of
+  1,024 u cubes below it. An arbitrary shorter ceiling still refuses `ROOM_AUTHORED_LEVEL_REQUIRED`, and the
+  phase-structure test of a one-unit-short ceiling still refuses.
+- The protected band above a Room now starts at the Room's own top and runs to the level's `protected_above_high_u`,
+  in both Room admission (`_room_run_refusal`) and phase structure (`_own_claim_refusal`, `_neighbor_refusal`).
+  The earth between the Room's top and the level roof is therefore its protected roof.
+- `underground_phase_structure.gd` `_claim_level_refusal` accepts a claim top at the level roof or a whole number
+  of cubes above the floor and below it.
+- A full-height Room is unchanged: its top is the roof.
+
+### Planner
+
+The bench refusals (`ROOM_STATION_BENCH_*`) and `bench_into` are removed. The planner returns to its ADR 1213/1215
+form; with no unreachable Sites, `REACH_MISSING` does not occur on the fixture.
+
+### Census
+
+`underground_room_bindings.gd` and `underground_phase_structure.gd` are reviewed census inputs (ADR 1212). Their
+pre-change bytes are archived as projection rows with zero-byte reviewed deltas, and the pinned digests are
+renewed. The pack is regenerated; its byte totals are unchanged (5,014,990 B, headroom 49,992,245 B).
+
+### Result on the ADR 1161 fixture (content 6)
+
+- The painted 4 m is clamped to 2,048 u, and the Kitchen has 8 Sites.
+- The loop digs all 8 with no refusal and exact ledgers:
+  - 8 × 250 wood and 8 × 250 stone;
+  - 8 × 2,000 earth;
+  - 8 × (BRACE + CUT + FINISH) mWU;
+  - support and earth conserved;
+  - the worker ends parked.
+- Confirming the painted 4,096 u refuses `ROOM_APPROACH_HEIGHT_UNREACHABLE` and claims nothing.
+- Budgets are unchanged: publication 71,640 route / 173 Location checks, phase peak 459,742 route checks (43.8 %,
+  40 edges) / 979 Location checks. No station retirement is needed.
+
 ## Not done
 
-No content, no Routes change and no bench retention. The loop still digs the lower levels first. Bench retention
-only matters once option 2 exists, so it waits on the choice.
+- The production Room request builder (ADR 1202 step 3) must apply the clamp; the Approach refusal enforces it
+  meanwhile.
+- No native measurement.

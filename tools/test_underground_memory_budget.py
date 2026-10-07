@@ -426,9 +426,12 @@ class JointPackTests(unittest.TestCase):
         # now source-pinned, so an added method cannot qualify as current code.
         anchor = budget.surface_anchor_reservation(index)
         self.assertEqual(anchor["packet_bytes"], 204)
-        self.assertEqual(anchor["numeric_control_bytes"], 93)
-        with self.assertRaisesRegex(AssertionError, "current reviewed source changed: underground_surface_anchor"):
-            budget.build(index)
+        self.assertEqual(anchor["numeric_control_bytes"], 101) # ADR1212: +8, ADR1207 _last_checks.
+        # ADR1212: SurfaceAnchor is projected. A method with only a local is not a storage change, so the
+        # current census admits it; a new retained member is refused (test_underground_current_census.py).
+        import underground_current_census as census
+        projected = sorted(json.loads((budget.ROOT / budget.room_memory.PROJECTION).read_bytes())["inputs"])
+        census.projected_deltas(dict(index), projected, census.reviewed_table())
 
     def test_negative_binding_reserve_cannot_omit_existing_consumers(self) -> None:
         self.refuses("underground_budget", "BINDINGS_AND_GROWTH_BYTES: int = 524288",

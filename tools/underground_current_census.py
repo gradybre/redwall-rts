@@ -61,8 +61,9 @@ def facts(text: str) -> dict:
         "classes": classes,
         "resizes": sorted(re.sub(r"\s+", " ", m) for m in re.findall(r"([\w.\[\]]+\.resize\([^\n]*?\))", code)),
         "int_constants": sorted(re.findall(r"^const (\w+)\s*:\s*int\s*=\s*([^\n]+?)\s*$", code, re.M)),
-        "allocation_sites": dict(sorted(Counter(re.findall(
-            r"\.new\(|\bPacked\w+Array\(|\.duplicate\(|\.slice\(|\bArray\(|\bDictionary\(", code)).items())),
+        "allocation_sites": dict(sorted(Counter(re.sub(r"\s+", "", site) for site in re.findall(
+            r"\.new\(|\bPacked\w+Array\(|\.duplicate\(|\.slice\(|\bArray\(|\bDictionary\(|\brange\(|"
+            r"(?:[=(,]|\breturn|\bin)\s*[\[{]", code)).items())),
     }
 
 
@@ -91,7 +92,7 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "b6375959cb2218fd2aad1afd099823ebbe61df2d8bbaf4aa3138a8d3d6594af6"
+REVIEWED_SHA = "8eaf97053c70af98c7d7d4ec7af94f1682f8753f15f9bb1115dc4b2cd78c6f3b"
 FRONTIER = Path("godot/data/underground/first-entry-prefix-v1/qualified-stone-v5/frontier.ugfront")
 FRONTIER_SHA = "2d5c36163ed5e5f8e96a3f1b0611d85937c075abcb8b02c7d7f01f7cf0738660"
 CORE = "godot/scripts/core/"

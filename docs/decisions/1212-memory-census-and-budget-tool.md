@@ -149,6 +149,23 @@ Method calls bind tighter than unary minus, so this is `-(floor(-n/d).min())`, w
 byte-identical, because its SHA-256 is pinned in about 270 evidence files and asserted by two live
 haul-handling tests. ADR 1198's note is corrected by this record.
 
+## Tests
+
+| Suite | Result |
+|---|---|
+| `test_underground_current_census.py` (new) | 8 pass |
+| `test_underground_room_memory.py` | 37 pass |
+| Motion and clock suites | 5 + 5 pass |
+| `test_underground_memory_budget.py` | 277 of 285 pass |
+
+The room memory tests now expect a mutated *projected* input to be refused by the current census, not by
+the replay. The motion and clock tests were stale on content 3 and now use content 6.
+
+The 8 budget-suite tests that fail all build the whole pack and stop at
+`joint pack exceeds unchanged memory limit` (100,019,383). They pass once §4 is decided.
+
+`decision_numbers.py` already failed before this change, because two records claim 1205.
+
 ## Not covered
 
 - **Helper frames.** The numeric helper frames of changed call chains are not re-proved here. About 5,900

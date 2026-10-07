@@ -11,6 +11,7 @@ from unittest import mock
 
 import audit_registry_capacities as audit
 import underground_room_memory as room
+import underground_current_census as census
 
 
 class RoomMemoryWitnessTests(unittest.TestCase):
@@ -18,6 +19,24 @@ class RoomMemoryWitnessTests(unittest.TestCase):
     def setUpClass(cls):
         cls.index = audit.load_source_index()
         cls.manifest = json.loads((room.ROOT / room.MANIFEST).read_bytes())
+        cls.projected = set(json.loads((room.ROOT / room.PROJECTION).read_bytes())["inputs"])
+
+    def refuses_current_change(self, name, changed, message):
+        """ADR1212: an unprojected input still refuses here; a projected one is recounted by the current census."""
+        path = self.manifest["sources"][name]["path"]
+        if path not in self.projected:
+            with mock.patch.object(room, "producer") as execute:
+                with self.assertRaisesRegex(ValueError, message):
+                    room.build(dict(self.index, **{name: changed}))
+                execute.assert_not_called()
+            return
+        archived = set()
+        _, _, current = room.verified_inputs(dict(self.index, **{name: changed}), archived)
+        self.assertIn(path, archived)
+        self.assertEqual(hashlib.sha256(current[name].text.encode()).hexdigest(), self.manifest["sources"][name]["sha256"])
+        index = dict(self.index, **{name: changed._replace(name=changed.name)})
+        with self.assertRaisesRegex(ValueError, "unreviewed storage delta|module identity"):
+            census.projected_deltas(index, sorted(self.projected), census.reviewed_table())
 
     def refuses_before_replay(self, changes):
         read = Path.read_bytes
@@ -67,10 +86,8 @@ class RoomMemoryWitnessTests(unittest.TestCase):
             old = self.index.get(name) or audit.parse_module(
                 name, row["path"], (room.ROOT / row["path"]).read_text())
             changed = old._replace(text=old.text + "\nvar uncounted: PackedByteArray = PackedByteArray()\n")
-            with self.subTest(owner=name), mock.patch.object(room, "producer") as execute:
-                with self.assertRaisesRegex(ValueError, "current reviewed source changed"):
-                    room.build(dict(self.index, **{name: changed}))
-                execute.assert_not_called()
+            with self.subTest(owner=name):
+                self.refuses_current_change(name, changed, "current reviewed source changed")
 
     def test_current_transitive_body_changes_are_not_hidden_by_frame_counts(self):
         name = "underground_work_face"
@@ -139,8 +156,10 @@ class RoomMemoryWitnessTests(unittest.TestCase):
         self.assertEqual(route["constructor_exclusive_reuse"]["simultaneous_total"], 8185)
         self.assertEqual(route["accounting"]["controls"], 6131)
         self.assertEqual(route["accounting"]["helpers"], 1919)
+        # ADR1212: Session is projected; the route census replays its reviewed manifest-3 bytes.
         self.assertEqual(route["source_sha256"][self.index["underground_session"].relative_path],
-                         hashlib.sha256(self.index["underground_session"].text.encode()).hexdigest())
+                         self.manifest["sources"]["underground_session"]["sha256"])
+        self.assertIn(self.index["underground_session"].relative_path, result["projected_reviewed_inputs"])
         self.assertEqual(result["composition"]["source_sha256"][self.index["underground_session"].relative_path],
                          self.manifest["route_predecessors"]["underground_session"]["sha256"])
         self.assertEqual(result["ground_catalog"]["fixed_peak_accounted"], 1468)
@@ -156,10 +175,8 @@ class RoomMemoryWitnessTests(unittest.TestCase):
                     room.build(dict(self.index, **{name: source}))
                 execute.assert_not_called()
             source = audit.parse_module(name, row["path"], (room.ROOT / foreign["path"]).read_text())
-            with self.subTest(text=name), mock.patch.object(room, "producer") as execute:
-                with self.assertRaisesRegex(ValueError, "current reviewed source changed: " + name):
-                    room.build(dict(self.index, **{name: source}))
-                execute.assert_not_called()
+            with self.subTest(text=name):
+                self.refuses_current_change(name, source, "current reviewed source changed: " + name)
 
     def test_new_current_text_changes_cannot_hide_behind_cached_hashes(self):
         for name in ("short_program", "mole_profile_driver", "mole_profile_catalog",
@@ -169,22 +186,20 @@ class RoomMemoryWitnessTests(unittest.TestCase):
             row = self.manifest["sources"][name]
             source = audit.parse_module(name, row["path"], (room.ROOT / row["path"]).read_text())
             changed = source._replace(text=source.text + "\nstatic var retained: Array = [1, 2, 3]\n")
-            with self.subTest(owner=name), mock.patch.object(room, "producer") as execute:
-                with self.assertRaisesRegex(ValueError, "current reviewed source changed: " + name):
-                    room.build(dict(self.index, **{name: changed}))
-                execute.assert_not_called()
+            with self.subTest(owner=name):
+                self.refuses_current_change(name, changed, "current reviewed source changed: " + name)
 
     def test_metadata_projection_cannot_hide_current_constructor_or_body_edits(self):
         source = self.index["underground_route_composition"]
-        for before, after in (("PROFILE_CONTENT_REVISION: int = 3", "PROFILE_CONTENT_REVISION: int = 2"),
-                              ("catalog._live.header[7] != 12", "catalog._live.header[7] != 13"),
+        # ADR1212: route composition is projected, so its constants and allocation sites are recounted by the
+        # current census. A pure comparison edit (header[7] != N) is not storage and is not refused there.
+        for before, after in (("GROUND_PACE_COUNT: int = 15", "GROUND_PACE_COUNT: int = 16"),
                               ("var o: Retirement.Owners", "var scratch: Array = [1, 2]\n\tvar o: Retirement.Owners")):
             self.assertIn(before, source.text)
             changed = source._replace(text=source.text.replace(before, after, 1))
-            with self.subTest(change=before), mock.patch.object(room, "producer") as execute:
-                with self.assertRaisesRegex(ValueError, "current reviewed source changed: underground_route_composition"):
-                    room.build(dict(self.index, underground_route_composition=changed))
-                execute.assert_not_called()
+            with self.subTest(change=before):
+                self.refuses_current_change("underground_route_composition", changed,
+                                            "current reviewed source changed: underground_route_composition")
 
     def test_transitive_short_step_contract_and_original_constructor_sources_are_immutable(self):
         paths = (room.S / "supporting/call-contract.json", room.S / "supporting/predecessors.json",

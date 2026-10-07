@@ -28,7 +28,7 @@ class CurrentClockTests(unittest.TestCase):
         old = (motion.ROOT / 'docs/validation/evidence/underground-short-step-publication-2026-10-05/baseline/underground_motion_clock.gd.txt').read_text()
         source = self.index['underground_motion_clock'].text
         before = '2f44037e5e4eed0b4e2966cd1ac1881bdf4481dd083a26b11d8eea0c5ca0f986'
-        after = '69fd9011da9b9c1d85e206401ef287943381a24d19322946287234b2dc66850c'
+        after = '3024e922f8959f0c386ba9c5d136cdc2a96c35c9de5c860dec03030a9b4d292c' # ADR1212: content 6
         self.assertEqual(old.count(before), 1)
         self.assertEqual(source, old.replace(before, after))
         self.assertEqual((result['combined_logical_counted'], result['shared_logical_helper_reservation']), (1298, 4096))
@@ -37,8 +37,9 @@ class CurrentClockTests(unittest.TestCase):
         self.assertFalse(result['native_measured'])
 
     def test_old_wire_cannot_be_reported_as_current(self):
-        self.refused('69fd9011da9b9c1d85e206401ef287943381a24d19322946287234b2dc66850c',
-                     '2f44037e5e4eed0b4e2966cd1ac1881bdf4481dd083a26b11d8eea0c5ca0f986')
+        for old in ('69fd9011da9b9c1d85e206401ef287943381a24d19322946287234b2dc66850c',
+                    '2f44037e5e4eed0b4e2966cd1ac1881bdf4481dd083a26b11d8eea0c5ca0f986'):
+            self.refused('3024e922f8959f0c386ba9c5d136cdc2a96c35c9de5c860dec03030a9b4d292c', old)
 
     def test_same_frame_algorithm_change_requires_review(self):
         self.refused('TREAD_TICKS: int = 30', 'TREAD_TICKS: int = 31')

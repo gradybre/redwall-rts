@@ -151,6 +151,11 @@
     }
    ],
    "delta": {
+    "allocation_sites": {
+     "=[": 1,
+     "in[": -1,
+     "range(": 2
+    },
     "classes": {
      "ContactRetirementContext": [
       null,
@@ -364,6 +369,9 @@
     }
    ],
    "delta": {
+    "allocation_sites": {
+     "range(": -1
+    },
     "int_constants_added": [
      [
       "CATALOG_DIGEST_0",

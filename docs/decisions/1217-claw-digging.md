@@ -1,0 +1,111 @@
+# 1217 — Claw digging and paw fitting: no tools for now
+
+Date: 2026-10-07 · Status: Accepted direction (DEC-052). Step 1, the first claw stroke, is stopped for Brendan's
+review.
+
+## Decision
+
+Brendan's decisions (DEC-052, 2026-10-07):
+
+1. **Scrap the pickaxe for now.** All digging uses the mole's claws.
+2. **Paws for fitting too.** No tools at all. Moles dig with claws and seat and fasten timber (the paid L0, T0 and
+   tread installations) by hand.
+3. **Keep the pick work, inactive.** Rows 2–29, the curled pick paw (ADR 1216) and the tread-tap candidates
+   (ADR 1209 step 4) stay as dormant published content. The runtime switches to claw and paw rows once they are
+   authored.
+
+Nothing published is edited. Claw and paw content arrives as successors: new motion sources, new integer rows in a
+content successor, and renewed pins.
+
+## Why
+
+Brendan's call. In engineering terms it also removes the hardest open seam of the first entry: G11 (no settlement
+mole ever has a tool) and the tooled/tool-free juggling in the hauler (ADR 1210). The cost is new motion content,
+because every work row published today holds the pick.
+
+## Balance: what depends on the tool
+
+- **Unchanged:** every work amount and bill (brace 2,000, cut 4,000, finish 3,000 milli-WU; wood 250 + stone 250
+  per quantum; L0 4,000 wood / 32,000 mWU; T0 and each tread 1,000 / 12,000), DEC-050's pace, and the haul rows.
+- **Depends on the tool, and changes:** tool wear. SET-MOVE-ECON-001 bills 1 durability per 10 completed WU on
+  "BUILD, tool" rows (GDD §5.7). Claw work has no tool, so it wears nothing. The "tool" owner condition of the
+  brace, cut and finish rows is amended (a note now sits under that table).
+- **Open for Brendan:** backfill, spoil-tip preparation, compaction, reclaim and tip closure are also marked
+  "tool" in SET-MOVE-ECON-001. DEC-052 names digging and fitting, so these keep their written condition until he
+  rules. Recommended: claws as well, since "all digging uses the claws".
+- No GDD requirement or balance table scales a dig or BUILD rate by the tool, so no rate changes.
+
+## Impact map: every runtime path that assumes a tool
+
+"Now" means it can be done before any claw motion exists. "Waits" means it needs authored claw/paw rows first.
+Paths are under `godot/`.
+
+| Path | Today | What changes | When |
+|---|---|---|---|
+| **Profiles rows 0–1, 2–12** (source 0) | Tooled STAND/WALK (0/1, automatic) and source-clocked pick travel: approach READY_FORWARD 2–5, retreat READY_BACKWARD 6–9, short step 10/11, canonical ground 12. All carry tool 54 / BASIC. | Dormant. Plain ground travel uses the tool-free rows 30/31. The work-approach family (forward/backward, short step, canonical ground) needs tool-free successors, because the Room planner (ADR 1213) and Frontier itineraries select by identity, tool included (`underground_room_station_planner.gd` `IDENTITY_FIELDS`). | Waits (motion M6) |
+| **WORK rows 13–28** (4 yaws × down/high/front/INSTALL) | Pick strokes. BRACE, CUT and FINISH all select the same downward program (ADR 1188). | Claw successors: one downward claw stroke serves all three phases (M1), then high (M2) and front (M3) strokes for the Room, and paw seating for INSTALL (M4). Each is authored at yaw 0 and rotated exactly into the four yaws, as 13→17 is today. | Waits (M1–M4) |
+| **Row 29, handling** (source 1, `ASSEMBLY_PALM`, `qualified-assembly-v1/source_program.gd` `F_TOOL` 54) | Holds the pick while the palms handle the bearer. | A tool-free handling source (M5). | Waits |
+| **Crew selection** `scripts/core/underground_entry_runtime.gd` `_select_crew` (:156–172) | Takes the first present mole with an occupied, equipped Gear row; `_crew.tool` is that lot. Otherwise `ENTRY_CREW_NO_TOOLED_MOLE` → G11. | Select a present adult mole with no tool requirement; `Crew.tool` becomes `NULL_REF` for claw work. | Waits: switching before the claw rows exist only moves the refusal to Profiles (`PROFILE_TOOL_REQUIRED`). Change it in the same step as the content successor. |
+| **Foreman** `underground_entry_foreman.gd` (:292 `claim_tool_for_work`, :304 `admit_work_actor(..., tool)`, :318 `set_tool_gate(SATISFIED)`, :345/:370 travel and work refresh with the tool) | Every phase claims and gates the tool. | Claw phases bind their Jobs with `GATE_NOT_REQUIRED`, claim nothing, and pass `NULL_REF`. | Waits (rows), but the gate change is small |
+| **Excavation sites** `excavation_sites.gd` :1143, :1299 | `REFUSE_TOOL_NOT_CLAIMED` unless the Job's tool gate is satisfied. | Accept `GATE_NOT_REQUIRED` for claw phases (DEC-052 amends ECON-002's tool condition for brace/cut/finish). | Waits; with the foreman change |
+| **Work / Gear** `work.gd` :772–834, :1231–1246; wear settlement :1411–1464 | Tool claim, gate and wear. | No change to the owners. Claw work simply never claims a tool, so no wear settles. | — |
+| **Hauler** `underground_entry_hauler.gd` (:188–191 `gear.unequip` at M, :194–205 switch at rest to row 31, :300–307 `gear.equip` on return; the foreman :292 and installer :214–217 switch back to the tooled source profile) | Puts the tool in M's container, hauls tool-free, re-equips. | **Unequip and re-equip go away.** The worker never holds a tool. | Waits; with the crew change |
+| **Switch at rest** (ADR 1210, `Routes._source_refresh_refusal`) | Needed to move between the source-clocked tooled family and the automatic tool-free family. | **Still needed, for a different reason.** Claw WORK rows are source-clocked (`POLICY_SOURCE_WORK`, READY/ENTRY clocks), while haul and plain travel rows (30–41) are automatic. The switch stays a policy-family change with the full re-proof; it is no longer a tool change. If M6 authors a tool-free source travel family, travel-to-work never needs it; haul-to-work still does. The rule itself is unchanged. | — |
+| **Connector contacts** `underground_connector_contacts.gd` :972–987, :2035–2064 | The installation source must name the BUILD tool (`F_TOOL == tool item`). | Accept a tool-free installation source (paw seating). | Waits (M4/M5) |
+| **Room world bindings** `underground_room_world_bindings.gd` :725, :754, :766–802 | Room Jobs need a satisfied tool gate; the retreat row's `F_TOOL` must match. | As the foreman: no tool gate for claw phases; identity matching then selects tool-free rows. | Waits (M2, M3, M6) |
+| **Routes / WorldRoutes** `_physical_tool_leaf` (:3773), `_turn_tool_leaf` (:3941) | Already accept a null tool when the row's tool is −1 (rows 30–41 use this). | None. | — |
+| **Delivery** `underground_connector_delivery.gd` | Already tool-free (HAUL, `GATE_NOT_REQUIRED`, no equipped tool). | None. | — |
+| **Presentation** `demo/cast/entry_worker_meshes.gd` (:59 shared body fitted to the pick, :64 `held`), `mole_presentation.gd` (sources 0–3), `mole_profile_driver.gd` (:85–109 refuses `tool == NULL_REF`, :139 rows must hold a BASIC tool) | Sources 0/1 draw the pick on the closed paw; the source-0 driver is pick-only. | A new claw source (content successor) drawn on the **open paw** with no held part. Per-source presentation (ADR 1201/1211) already selects the Actor by the row's source digest. The pick-only driver stays for the dormant rows; the claw source is drawn by the per-source Actor from the simulation's selected row, as rows 29–41 are. One body mesh per source: see "Open paw versus closed paw". | Waits (M1 onwards) |
+| **G11 alert** (`ENTRY_CREW_NO_TOOLED_MOLE`, `settlement_system.gd` :1954, :2237–2243) | Raised by the live demo; ADR 1197 planned tools from stores. | Tool equipping no longer blocks the first entry. The alert stays until claw rows land; then crew selection stops requiring a tool and the code is retired. | Waits |
+| **Descent plan** (ADR 1209) | Stair gaits (`stair-descent-v7`, `stair-motion-v15`, handoffs) hold the pick; step 4 is the pick tread tap. | Step 4 (the tap) is **parked**. Tread T_k is seated by paw from T_{k−1} (M4b), and the T6 sill by paw at y = 64 (M4c). The stair gaits need tool-free re-proof (M7). The flight geometry, D1–D3, the cut rows and the bills are unchanged; the cut stations reuse the claw stroke. | Waits |
+| **Pick paw** (ADR 1216) | Curled paw, `mole-grip-v4`, `curl-v1`, its proofs and captures. | Dormant, kept. No per-source curled paw is wired. | — |
+| **Tests** that equip a tool as the G11 stand-in (`test_underground_host.gd` `_equip_first_mole`, `test_underground_first_prefix.gd` `_finite_stock_and_worker`, `test_underground_paid_assembly_handling.gd`, and about 15 more fixtures) | Equip a BASIC tool. | Keep them: they exercise the dormant tooled rows. New claw tests start tool-free. | — |
+
+## Open paw versus closed paw
+
+The tool-free haul sources (2 and 3) are drawn on the closed paw, because their wood and stone grips were
+certified on it (ADRs 1198, 1206). Brendan's instruction is that claw and paw work uses the **open paw**: the
+original cast mesh (`a938d479…`), whose claws are spread. Its skin weights and influences are identical to the
+closed paw's; only 845 right-hand positions differ. A claw source therefore needs no derived mesh.
+
+Consequence: at the switch between a haul row (closed paw) and a claw row (open paw) the right paw changes shape
+at READY. Rows 30/31 (source 2) are on the closed paw too. M6 can add open-paw stand/walk at little cost: the
+supplied idle and walk clips were captured on the open paw, so only the ADR 1199 proofs need re-running on it.
+This is a presentation question for Brendan's review of step 1.
+
+## Motion authoring plan
+
+Every motion follows the established path:
+
+1. **Pose recipe**, authored from published sources only (the open-paw body from `all-cast-v9.ugpal`, the rig and
+   triangles of `topology-v5`, the tool-free stand key 8 of ADR 1199).
+2. **Exact provers.** Contact crossing and patch, the below-surface envelope inside the target, world prisms with
+   sole support, and limb self-clearance, all on the existing rational/interval machinery.
+3. **Review packet** (`overview.png`, `hands.png`, `motion.png`, `README.md`). **Stop for Brendan.**
+4. **Native capture** of the approved source.
+5. **Integer rows**: role boxes derived as the published rows were (`compile_state_program` / profile-source gates),
+   yaw 0, then exact quarter turns.
+6. **Content successor**: a new tool-free source block (tool −1) after row 41, create-only, fully pinned.
+7. **Pins and consumers** renewed; then the runtime changes in the impact map.
+
+| # | Motion | Replaces | Reuses | Needed for |
+|---|---|---|---|---|
+| M1 | **Claw downward stroke** at the top face: BRACE, CUT and FINISH (one program, ADR 1188) | rows 13/17/21/25 | open paw, stand key 8, ADR 1144's lean/drop recipe | the six L0/T0 cubes, the descent's cut rows, the Room's level-0 tops |
+| M5 | **Paw handling** of the bearer | row 29 | the haul two-paw grip recipe (ADR 1144) | L0, T0 and treads |
+| M4a | **Paw seating** of the T0 bearer from L0 (contact 128 u up) | row 16 family | M5's hold; the INSTALL target faces of `install-source-v4` | L0 → T0 |
+| M6 | Tool-free source travel (approach/retreat, short step, canonical ground), open paw | rows 2–12 | empty walk (ADR 1199), rows 30/31 | Frontier and Room itineraries |
+| M4b/c | Paw seating from the tread above; the T6 sill at 64 u | ADR 1209 step 4 (parked) | M4a | the descent |
+| M7 | Tool-free stair gaits and handoffs | `stair-descent-v7`, `stair-motion-v15`, handoffs v1 | the accepted leg motion (feet unchanged), the tool-free upper body | the descent |
+| M2, M3 | Claw high-wall and front strokes | rows 14/15 families | M1's solver | Room levels 0–1 |
+
+**Order.** M1 → M5 + M4a → M6 (or a decision to travel on rows 30/31 with a switch at rest at each station) →
+content 7 and the runtime changes above, which retire G11 → M7 + M4b/c (descent) → M2/M3 (Room).
+
+**Known risk for M2.** The open paw's reach is the arm (182 + 128 u) plus 202 u from the wrist to the claw tip.
+Standing upright, the right shoulder is 549 u up, so the claw tip reaches at most about 1,060 u above the stance.
+The Room's level-1 cubes need an anchor above 1,024 u (ADR 1213), which leaves a thin band. If it does not fit,
+Brendan will be asked to choose between a standing datum (a step or bench) and another station layout.
+
+## Step 1 — the first claw stroke
+
+See "Step 1 results" below.

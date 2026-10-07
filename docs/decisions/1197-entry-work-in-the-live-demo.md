@@ -63,7 +63,7 @@ never rolled back to hide a later gap.
 | G7 | **Done (ADR 1210).** The runtime plans the whole prefix after crew selection, and `SettlementSystem.run_tick` advances the foreman after ProductiveWork. Refusals raise `UIManager.push_refusal` plus the `gap_of` row once. G5 is checked explicitly (`ENTRY_SURFACE_ARRIVAL_MISSING`). |
 | G8 | **Done (ADRs 1201, 1211).** The live demo composes the entry worker's four source Actors and draws rows 29–41 from the simulation's selected row, applying each clip's mask on every draw. Source-0 rows still need the pinned driver hooked up live (ADR 1211, Remaining). |
 | G9 | **Prefix done; Kitchen scoped (ADRs 1202, 1205, 1207).** The foreman runs the whole first-entry prefix from the confirmed entry: six cubes, the paid L0 (split landing, `qualified-landing-v4`), the crossing survey and the paid T0, each group INSTALLED exactly once, with exact ledgers. The crossing survey's `SURFACE_ANCHOR_CHECK_CAPACITY` (ADR 1202 blocker 4) was cleared by re-proving only the Locations a change touches (ADR 1207: 551,353 of 1,048,576 checks), and the T0 commit's route budget by ADR 1205. **Open: the Kitchen's own cuts**, scoped in ADR 1202 ("Kitchen excavation: scope"). Brendan placed the Kitchen off T0's far end at the same depth; ADR 1208 records why the authored data cannot carry that as planned (nothing stands past T0, no motion on T0 reaches a Kitchen face, no far opening) and recommends cutting the Kitchen from surface stations like the Corridor's own cubes. Waiting on that choice. |
-| **G11 (new)** | **No settlement resident ever gets a tool equipped.** Only tests call `gear.equip`. Equipping tools has to become gameplay, for example from a workshop or stores. The live chain stops with `ENTRY_CREW_NO_TOOLED_MOLE`. |
+| **G11 (new)** | **No settlement resident ever gets a tool equipped.** Only tests call `gear.equip`. Equipping tools has to become gameplay, for example from a workshop or stores. The live chain stops with `ENTRY_CREW_NO_TOOLED_MOLE`. **Amended by DEC-052 (ADR 1217): moles dig with claws and fit by paw, so tool equipping no longer blocks the first entry. The alert stays until the claw and paw rows land; crew selection then stops requiring a tool and this code is retired.** |
 
 ### G11 decision (Brendan, 2026-10-06)
 
@@ -71,3 +71,9 @@ Moles will take their tools **from stores**. That gameplay is built **later**,
 after the overall entry functionality has been tested end to end. Until then,
 tests equip a real basic tool lot to an adult mole explicitly, as a labelled
 stand-in for stores. The live demo keeps raising the G11 alert.
+
+### G11 amended (DEC-052, 2026-10-07)
+
+Brendan scrapped tools for now: all digging uses the claws and timber is fitted by paw (ADR 1217). The stores
+plan above is parked. G11 no longer blocks the first entry; the live demo keeps raising the alert only until claw
+and paw rows are published and `_select_crew` stops requiring an equipped tool.

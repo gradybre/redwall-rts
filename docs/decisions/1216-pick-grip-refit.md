@@ -1,7 +1,7 @@
 # 1216 — Re-fitting the mole's pick grip: a fit can move, a wrapped paw needs new art
 
-Date: 2026-10-07 · Status: Proposed. A fit-only successor is authored. A true wrap is stopped for Brendan's
-choice.
+Date: 2026-10-07 · Status: Done through step 5; **parked (DEC-052, ADR 1217)**. The curled pick paw and its
+closure stay as dormant published content; no source uses it.
 
 ## Brendan's decision being implemented
 
@@ -174,3 +174,9 @@ tread install tap.
    warnings in 4 files.
 
 The tread install tap is re-run on this closure in ADR 1209 step 4, revision 4.
+
+## Parked (DEC-052, 2026-10-07)
+
+Brendan scrapped the pickaxe for now: moles dig with their claws and fit timber by paw (ADR 1217). Everything
+above stays in the repository unchanged and unused. The tread install tap on the curled paw (ADR 1209 rev 4) is
+parked with it.

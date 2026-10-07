@@ -1337,3 +1337,29 @@ shrunk to 64 sides each) that leaves real room for the Kitchen and descent work 
 headroom. Every other REQ-SET-163 budget is unchanged, including the 4 GB process budget, and the gate
 remains a source-derived logical figure until native measurement on the qualification floor.
 Engineering record: [decision1212](decisions/1212-memory-census-and-budget-tool.md).
+
+### DEC-052 — Moles dig with their claws and fit timber by paw; no tools for now
+
+On 2026-10-07, Brendan decided three things for underground work:
+
+1. **Scrap the pickaxe for now.** All digging uses the mole's claws.
+2. **Paws for fitting too.** No tools at all for now. Moles dig with their claws and seat and fasten timber
+   (the paid L0, T0 and tread installations) by hand.
+3. **Keep the pick work, inactive.** The accepted pick-based content (profile rows 2–29, the curled pick paw of
+   [decision1216](decisions/1216-pick-grip-refit.md), the tread-tap candidates of
+   [decision1209](decisions/1209-descent-past-t0.md)) stays in the repository as dormant published content. The
+   runtime switches to claw and paw rows once they are authored.
+
+What does not change: every work amount and every bill. Brace, cut and finish keep 2,000, 4,000 and 3,000 milli-WU
+and wood 250 + stone 250 per quantum; L0, T0 and each tread keep their bills (DEC-050's pace and ADR 1209's D3
+included).
+
+**What this supersedes, and what it leaves open.** [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md)
+lists brace, cut and finish as "BUILD, tool", with inherited tool wear of 1 durability per 10 completed WU. For
+claw digging and paw fitting, no tool is required and no tool wear accrues. This decision names digging and fitting.
+The other tool-marked rows of that table (backfill, spoil-tip preparation, compaction, reclaim and tip closure) are
+not decided here; until Brendan rules on them they keep their written tool condition. The 2026-10-06 G11 ruling
+(moles take tools from stores, [decision1197](decisions/1197-entry-work-in-the-live-demo.md)) is parked: with no
+tools, the first entry no longer waits on tool equipping.
+
+Engineering record, impact map and the motion plan: [decision1217](decisions/1217-claw-digging.md).

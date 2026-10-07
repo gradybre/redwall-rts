@@ -77,6 +77,11 @@ their actual input lot metadata rather than relabeling it as fresh excavation.
 | Reclaim embedded tip earth | Lock embedded q; debit at commit | ceil(q/2) | q excavated_earth in reserved inventory | BUILD, tool; q>0 |
 | Close an empty tip | none | 4000 | Remove tip obstruction/designation | BUILD, tool; embedded q=0 and no claims |
 
+**DEC-052 (2026-10-07) amends the "tool" condition of the brace, cut and finish rows:** moles dig with their claws
+and fit timber by paw, so those rows and the paid timber installations require no tool and accrue no tool wear. Their
+inputs and work are unchanged. The other tool-marked rows are not decided by DEC-052 and keep their condition.
+Engineering record: [decision1217](decisions/1217-claw-digging.md).
+
 For the variable-q rows, q is an integer **milli-U**, and the result of each
 formula is integer **milli-WU**. Thus2000 milli-U costs500 milli-WU to compact
 or1000 milli-WU to reclaim. Splitting orders can increase rounding work, never

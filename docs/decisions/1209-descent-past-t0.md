@@ -1,7 +1,8 @@
 # 1209 — Descent past T0: a flight of T0-family treads to the trench floor
 
-Date: 2026-10-06 · Status: Accepted. Steps 1–3 are done (Brendan decided D1–D3 on 2026-10-06); step 4, the
-short-reach install motion, is in progress.
+Date: 2026-10-06 · Status: Accepted. Steps 1–3 are done (Brendan decided D1–D3 on 2026-10-06). **Step 4, the pick
+tread tap, is parked (DEC-052, ADR 1217):** treads are seated by paw instead; the tap candidates stay as dormant
+evidence.
 
 ## Brendan's decision being implemented
 
@@ -377,3 +378,9 @@ handle lean of 25–50° and pass every proof.
 **Review packet:** `tread-install-review-v4/`. For each candidate it holds `grip.png` (the accepted v4 contact on
 the closed paw beside the candidate on the curled paw, front, side and top at one zoom), `overview.png`,
 `hands.png` and `motion.png`. `test_curl_grip_chain.py` holds 5 tests.
+
+### Parked (DEC-052, 2026-10-07)
+
+Brendan scrapped tools for now. The pick tread tap (revisions 1–4) is kept as dormant evidence and is not
+activated. T_k is seated by paw from T_{k−1}, and the T6 sill by paw at y = 64 (ADR 1217, M4b/c). The derivation,
+D1–D3, the cut rows and the bills stand; the stair gaits need tool-free re-proof (ADR 1217, M7).

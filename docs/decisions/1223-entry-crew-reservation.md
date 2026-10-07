@@ -169,6 +169,11 @@ refusal", which is the honest reading until the cause is fixed.
 
 ## Open (Brendan's choices, not made here)
 
+**Both answered on 2026-10-07 (DEC-056).** A lost crew is replaced
+([ADR 1225](1225-entry-crew-replacement.md)), and every resident, the crew included, rests at a safe point when its
+schedule says so ([ADR 1226](1226-schedule-rest-at-safe-points.md)). The original questions:
+
+
 - **After crew loss:** choose a replacement crew to resume the dispatch, or cancel the open phase through its GDD
   refund path. Either needs a recall or unregister rule for the dead actor still registered in Routes (ADR 1219 §4).
 - **REQ-SET-034 for the busy crew** (stop at a 30-WU safe segment for sleep, then resume) is settlement-wide

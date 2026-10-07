@@ -33,6 +33,9 @@ const STAGE_INSTALL: int = 8
 const STAGE_HAUL: int = 9
 ## ADR1225: the crew was lost; the step resumes from the replacement's arrival at H (or waits for one).
 const STAGE_RESUME: int = 10
+## ADR1226 (REQ-SET-034): the crew's hour forbids work; its source recovers to READY at the station and waits there.
+const STAGE_REST: int = 11
+const REFUSE_SCHEDULE_REST: StringName = &"WORK_SCHEDULE_REST"
 const STAGE_TICK_LIMIT: int = 1200
 const REFUSE_PLAN: StringName = &"ENTRY_FOREMAN_PLAN"
 const REFUSE_STALL: StringName = &"ENTRY_FOREMAN_STALLED"
@@ -237,6 +240,7 @@ func _run_stage(tick: int) -> StringName:
 		STAGE_INSTALL: return _install(tick)
 		STAGE_HAUL: return _haul(tick)
 		STAGE_RESUME: return _resume(tick)
+		STAGE_REST: return _rest(tick)
 	return REFUSE_STATE
 
 
@@ -511,11 +515,35 @@ func _earn(tick: int) -> StringName:
 	if not _owners.jobs.remaining_mwu_into(_job, _math): return REFUSE_STATE
 	if _math.value > 0:
 		var worked: RefCounted = _owners.work.tick_solo(_job)
-		if not worked.ok: return worked.error
+		if not worked.ok: return _rest_or(worked.error)
 		_accepted_mwu += worked.accepted_mwu
 		return &""
 	var code: StringName = _owners.routes.request_source_ready(_crew.worker, _owners.jobs.ref_of(_job))
 	if code == &"": _set_stage(STAGE_RECOVER)
+	return code
+
+
+func _rest_or(code: StringName) -> StringName:
+	"""ADR1226: Work stopped at a 30-WU safe point because the crew's hour forbids work; the source recovers to
+	READY at the station, the resting point, instead of failing."""
+	if code != REFUSE_SCHEDULE_REST: return code
+	code = _owners.routes.request_source_ready(_crew.worker, _owners.jobs.ref_of(_job))
+	if code == &"": _set_stage(STAGE_REST)
+	return code
+
+
+func _rest(tick: int) -> StringName:
+	"""ADR1226: recover to READY, wait while the hour forbids work, then re-enter WORK; START resumes the funded
+	phase (ADR1225's path) without paying again."""
+	var task: Task = _tasks[_index]
+	var job: Vector2i = _owners.jobs.ref_of(_job)
+	if Routes.source_ready_leaf_refusal(_owners.routes, _crew.worker, job, task.work_profile, task.work_revision,
+			_content) != &"":
+		_owners.routes.advance_tick(tick)
+		return &""
+	if _owners.jobs.schedule().rests_now(_owners.residents.directory().get_typed_row(_crew.worker)): return &""
+	var code: StringName = _refresh_work(task, job)
+	if code == &"": _set_stage(STAGE_ENTER)
 	return code
 
 
@@ -607,7 +635,7 @@ func _release_phase_job(row: int) -> StringName:
 	"""Sites releases a bound phase worker itself; before START only the Job and any tool claim are released."""
 	if row < 0: return &""
 	var task: Task = _tasks[_index]
-	if _stage in [STAGE_START, STAGE_EARN, STAGE_RECOVER]:
+	if _stage in [STAGE_START, STAGE_EARN, STAGE_RECOVER, STAGE_REST]:
 		var departed: RefCounted = _owners.sites.release_worker(task.site)
 		return &"" if departed.ok else departed.error
 	if _owners.work.tool_job_of(row) == _owners.jobs.ref_of(_job):
@@ -885,7 +913,7 @@ func _job_in_use() -> bool:
 	"""Stages that still read the current phase's BUILD Job."""
 	if _stage == STAGE_RESUME: return _index < _tasks.size() and _job >= 0 \
 		and _owners.sites.job_of(_tasks[_index].site) == _owners.jobs.ref_of(_job)
-	return _stage in [STAGE_TRAVEL, STAGE_ENTER, STAGE_START, STAGE_EARN, STAGE_RECOVER, STAGE_HAUL]
+	return _stage in [STAGE_TRAVEL, STAGE_ENTER, STAGE_START, STAGE_EARN, STAGE_RECOVER, STAGE_HAUL, STAGE_REST]
 
 
 func write_state(w: Progress.Writer) -> void:
@@ -976,7 +1004,7 @@ func read_state(r: Progress.Reader, owners: Owners, paid: Installer.Paid) -> Str
 	for index: int in r.ranged(1, Progress.MAX_TASKS):
 		_tasks.append(_read_task(r))
 	_index = r.ranged(0, _tasks.size())
-	_stage = r.ranged(STAGE_OPEN, STAGE_RESUME)
+	_stage = r.ranged(STAGE_OPEN, STAGE_REST)
 	_stage_ticks = r.ranged(0, STAGE_TICK_LIMIT + 1)
 	_job = r.i32()
 	var job: Vector2i = r.ref()
@@ -1063,7 +1091,7 @@ func _restored_refusal(job: Vector2i) -> StringName:
 	if code == &"" and _arriving(): # ADR1219: still to be registered on H, then to leave by its retreat.
 		code = Progress.location_refusal(_owners.locations, _crew.arrival, false)
 		if code == &"": code = Progress.location_refusal(_owners.locations, _arrival_retreat, true)
-	if code == &"" and _stage in [STAGE_TRAVEL, STAGE_ENTER, STAGE_START, STAGE_EARN, STAGE_RECOVER]:
+	if code == &"" and _stage in [STAGE_TRAVEL, STAGE_ENTER, STAGE_START, STAGE_EARN, STAGE_RECOVER, STAGE_REST]:
 		code = Progress.actor_refusal(_owners, _crew.worker, job)
 	return code
 

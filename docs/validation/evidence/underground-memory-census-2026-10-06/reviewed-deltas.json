@@ -1684,6 +1684,11 @@
      "bytes": 78848,
      "carried_by": "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
      "store": "section-4 capture/apply: one Columns image plus one FramedOwner of 39,424 value bytes each"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "ADR 1226: REQ-SET-034's SAFE_SEGMENT_MWU constant and one cap function; no member, packet or resize"
     }
    ],
    "delta": {
@@ -1703,6 +1708,12 @@
      "tool_lot_slot.resize(RESIDENT_CAPACITY)",
      "wear_remainder.resize(RESIDENT_CAPACITY)",
      "xp_remainder.resize(RESIDENT_CAPACITY * SKILL_COUNT)"
+    ],
+    "int_constants_added": [
+     [
+      "SAFE_SEGMENT_MWU",
+      "30000"
+     ]
     ],
     "classes": {
      "Columns": [

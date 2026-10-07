@@ -578,6 +578,15 @@ func current_activity_of(slot: int) -> IntMath.IntResult:
 	return _read(REFUSE_NONE, _current_activity[slot])
 
 
+func rests_now(slot: int) -> bool:
+	"""REQ-SET-034 (ADR1226): this present row's last resolved activity forbids work (SLEEP or SOCIAL).
+
+	Allocation-free for Work's per-tick read. A row never resolved does not rest: nothing has told it to.
+	"""
+	return slot >= 0 and slot < _present.size() and _present[slot] == 1 and _resolved[slot] == 1 \
+		and _current_activity[slot] != ACTIVITY_WORK and _current_activity[slot] != ACTIVITY_ANYTHING
+
+
 func inactive_row_is_clear(slot: int) -> bool:
 	"""True when an absent row holds no residue of the resident who last occupied it.
 

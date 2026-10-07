@@ -1960,6 +1960,13 @@ func should_evaluate(resident_slot: int, tick: int) -> bool:
 	return _check_evaluable(resident_slot, tick) == REFUSE_NONE
 
 
+func is_due(resident_slot: int, tick: int) -> bool:
+	"""ADR1226: this present agent's staggered 30-tick reevaluation falls on `tick`, busy or idle. The settlement
+	resolves every due resident's activity here, so a busy one learns its schedule changed (REQ-SET-034)."""
+	return _check_agent_slot(resident_slot) == REFUSE_NONE and tick >= 0 \
+		and tick % REEVALUATION_INTERVAL_TICKS == _agent_persistent_id[resident_slot] % STAGGER_MODULUS
+
+
 func _check_evaluable(resident_slot: int, tick: int) -> StringName:
 	"""REFUSE_NONE when a present, idle agent is due for a selection pass on `tick`."""
 	var code: StringName = _check_agent_slot(resident_slot)

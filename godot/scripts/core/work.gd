@@ -294,6 +294,10 @@ const REFUSE_JOB_NOT_WORKING: StringName = &"JOB_NOT_IN_WORK_STATE"
 const REFUSE_JOB_HAS_NO_WORKER: StringName = &"JOB_HAS_NO_WORKER"
 const REFUSE_NO_WORK_REMAINING: StringName = &"NO_WORK_REMAINING"
 const REFUSE_NO_CONTRIBUTORS: StringName = &"NO_CONTRIBUTING_WORKER"
+## REQ-SET-034 (ADR1226): the worker's hour forbids work and its Job stands at a safe point; it rests there.
+const REFUSE_SCHEDULE_REST: StringName = &"WORK_SCHEDULE_REST"
+## REQ-SET-034's "current 30-WU safe work segment": safe points are where remaining work is a whole multiple.
+const SAFE_SEGMENT_MWU: int = 30000
 const REFUSE_PARTY_TOO_LARGE: StringName = &"PARTY_EXCEEDS_CAPACITY"
 const REFUSE_MEMBER_MISLINKED: StringName = &"MEMBER_LINKS_TO_ANOTHER_COORDINATOR"
 const REFUSE_NEEDS_UNAVAILABLE: StringName = &"NEEDS_ROW_UNAVAILABLE"
@@ -1240,7 +1244,7 @@ func tick_solo_into(job_slot: int, out: TickResult) -> bool:
 	if code != REFUSE_NONE:
 		return _refuse_into(out, code)
 	_begin_contributors()
-	code = _offer_contributor(job_slot)
+	code = _offer_contributor(job_slot, job_slot)
 	if code != REFUSE_NONE:
 		return _refuse_into(out, code)
 	if _party_count == 0:
@@ -1320,7 +1324,7 @@ func _collect_contributors(coordinator_slot: int) -> StringName:
 	var member: int = _math.value
 	var walking: bool = true
 	while walking:
-		var code: StringName = _offer_contributor(member)
+		var code: StringName = _offer_contributor(member, coordinator_slot)
 		if code != REFUSE_NONE and not _member_may_be_skipped(code):
 			return code
 		walking = _jobs.next_member_into(member, _math)
@@ -1343,7 +1347,7 @@ func _member_may_be_skipped(code: StringName) -> bool:
 	"""
 	return code == REFUSE_JOB_NOT_WORKING or code == REFUSE_JOB_HAS_NO_WORKER \
 		or code == REFUSE_TOOL_BROKEN or code == REFUSE_TOOL_CLAIM_STALE \
-		or code == REFUSE_TOOL_NOT_CLAIMED or code == REFUSE_TOOL_GATE_BLOCKED
+		or code == REFUSE_TOOL_NOT_CLAIMED or code == REFUSE_TOOL_GATE_BLOCKED or code == REFUSE_SCHEDULE_REST
 
 
 func _begin_contributors() -> void:
@@ -1358,7 +1362,7 @@ func _begin_contributors() -> void:
 	_pending_leftover = 0
 
 
-func _offer_contributor(job_slot: int) -> StringName:
+func _offer_contributor(job_slot: int, progress_slot: int) -> StringName:
 	"""Compute one Job's potential for this tick and append it to the party scratch.
 
 	Refuses one of `_member_may_be_skipped()`'s codes for a row that simply is not producing;
@@ -1381,6 +1385,8 @@ func _offer_contributor(job_slot: int) -> StringName:
 		return REFUSE_JOB_HAS_NO_WORKER
 	if not _jobs.resident_may_work_into(resident_slot, _math):
 		return REFUSE_JOB_NOT_WORKING
+	if _jobs.schedule().rests_now(resident_slot) and _jobs._remaining_mwu[progress_slot] % SAFE_SEGMENT_MWU == 0:
+		return REFUSE_SCHEDULE_REST
 	var tool_code: StringName = _tool_gate(job_slot, resident_slot)
 	if tool_code != REFUSE_NONE:
 		return tool_code
@@ -1456,7 +1462,7 @@ func _commit_into(progress_slot: int, out: TickResult) -> bool:
 	var potential_total: int = 0
 	for index: int in _party_count:
 		potential_total += _party_potential[index]
-	var accepted: int = potential_total if potential_total < remaining else remaining
+	var accepted: int = _segment_capped(remaining, potential_total if potential_total < remaining else remaining)
 	var code: StringName = _allocate_shares(accepted, potential_total)
 	if code != REFUSE_NONE:
 		return _refuse_into(out, code)
@@ -1474,6 +1480,16 @@ func _commit_into(progress_slot: int, out: TickResult) -> bool:
 	if code != REFUSE_NONE:
 		return _refuse_into(out, code)
 	return _finish_into(progress_slot, accepted, left, out)
+
+
+func _segment_capped(remaining: int, accepted: int) -> int:
+	"""REQ-SET-034 (ADR1226): while any contributor's hour forbids work, the tick stops at the next safe point, so
+	at most the current 30-WU segment is finished before the worker rests."""
+	for index: int in _party_count:
+		if _jobs.schedule().rests_now(_party_resident[index]):
+			@warning_ignore("integer_division") var safe: int = ((remaining - 1) / SAFE_SEGMENT_MWU) * SAFE_SEGMENT_MWU
+			return mini(accepted, remaining - safe)
+	return accepted
 
 
 func _allocate_shares(accepted: int, potential_total: int) -> StringName:

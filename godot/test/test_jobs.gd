@@ -1868,3 +1868,15 @@ func test_an_unbound_cleared_or_freed_dispatcher_leaves_every_job_and_resident_o
 	assert_true(_jobs.bind_dispatcher(dispatcher.owns, dispatcher.reserves).ok, "bound again")
 	dispatcher = null
 	assert_true(_jobs.is_eligible(_spawn_worker(), dispatched).ok, "a freed dispatcher reads as unbound")
+
+
+func test_a_busy_agent_is_due_on_its_stagger_tick_but_never_offered_work() -> void:
+	"""ADR1226 (REQ-SET-034): `is_due` keeps the same persistent-ID stagger for busy agents, so the settlement
+	re-resolves a working resident's hour every 30 ticks; `should_evaluate` still offers work only to the idle."""
+	var worker: int = _spawn_worker()
+	assert_true(_jobs.assign_worker(worker, _make_job(JobsScript.JOB_KIND_HAUL)).ok, "the worker is busy")
+	var due: int = _due_tick(worker)
+	assert_true(_jobs.is_due(worker, due), "due on its stagger tick")
+	assert_false(_jobs.is_due(worker, due + 1), "and on no other")
+	assert_false(_jobs.should_evaluate(worker, due), "never offered a second job")
+	assert_false(_jobs.is_due(-1, due) or _jobs.is_due(worker, -1), "no row or negative tick is due")

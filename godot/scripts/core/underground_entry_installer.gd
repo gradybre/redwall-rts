@@ -28,6 +28,7 @@ const STAGE_RECOVER: int = 7
 const STAGE_DONE: int = 8
 const STAGE_LEG_ARRIVAL: int = 9 # Split landing: M to the station's arrival on the material profile.
 const STAGE_HAUL: int = 10 # ADR1210: the quoted inputs missing at M are hauled before the Job is taken.
+const STAGE_REST: int = 11 # ADR1226 (REQ-SET-034): INSTALL recovers to READY and waits while the hour forbids work.
 const REFUSE_PLAN: StringName = &"ENTRY_INSTALLER_PLAN"
 const REFUSE_HEADING: StringName = &"ENTRY_INSTALLER_HEADING"
 ## ADR1197 G4 / ADR1210: the storage container holds less free stock of an input item than the bill.
@@ -143,6 +144,7 @@ func _run(tick: int) -> StringName:
 		STAGE_INSTALL_ENTER: return _install_enter(tick)
 		STAGE_EARN: return _earn(tick)
 		STAGE_RECOVER: return _recover(tick)
+		STAGE_REST: return _rest(tick)
 	return &""
 
 
@@ -381,11 +383,32 @@ func _earn(tick: int) -> StringName:
 	if not _o.jobs.remaining_mwu_into(_job, _math): return &"ENTRY_INSTALLER_STATE"
 	if _math.value > 0:
 		var worked: RefCounted = _o.work.tick_solo(_job)
-		if not worked.ok: return worked.error
+		if not worked.ok: return _rest_or(worked.error)
 		_accepted_mwu += worked.accepted_mwu
 		return &""
 	var code: StringName = _o.routes.request_source_ready(_crew.worker, _job_ref())
 	if code == &"": _stage = STAGE_RECOVER
+	return code
+
+
+func _rest_or(code: StringName) -> StringName:
+	"""ADR1226: Work stopped at a safe point for the crew's rest hour; INSTALL recovers to READY on the station."""
+	if code != &"WORK_SCHEDULE_REST": return code
+	code = _o.routes.request_source_ready(_crew.worker, _job_ref())
+	if code == &"": _stage = STAGE_REST
+	return code
+
+
+func _rest(tick: int) -> StringName:
+	"""ADR1226: READY on the station is the resting point; when the hour permits work INSTALL re-enters WORK."""
+	if Routes.source_ready_leaf_refusal(_o.routes, _crew.worker, _job_ref(), _plan.install_profile,
+			_plan.install_revision, _content) != &"":
+		_o.routes.advance_tick(tick)
+		return &""
+	if _o.jobs.schedule().rests_now(_o.residents.directory().get_typed_row(_crew.worker)): return &""
+	var code: StringName = _o.routes.refresh_work_actor(_crew.worker, _job_ref(), _plan.install_profile,
+		_plan.install_revision, _content, 0, -1, _crew.tool)
+	if code == &"": _stage = STAGE_INSTALL_ENTER
 	return code
 
 
@@ -447,7 +470,7 @@ func read_state(r: Progress.Reader, owners: RefCounted, crew: RefCounted, paid: 
 	_paid = paid
 	_plan = _read_plan(r)
 	_content = r.i64()
-	_stage = r.ranged(STAGE_OPEN, STAGE_HAUL)
+	_stage = r.ranged(STAGE_OPEN, STAGE_REST)
 	_project = r.ref()
 	_job = r.i32()
 	var job: Vector2i = r.ref()

@@ -186,12 +186,23 @@ func _crew_ready() -> bool:
 	stagger) and that hour and its health permit work (GDD 5.3 steps 1-2); otherwise the dispatch waits, reserved,
 	through the rest or night. A crew already holding a dispatched Job carries on (busy residents are not
 	re-resolved anywhere in the settlement: REQ-SET-034's safe segment is a recorded gap)."""
-	if _jobs.job_of(_worker_row) != NULL_REF: return true
+	if _jobs.job_of(_worker_row) != NULL_REF:
+		return not (_jobs.schedule().rests_now(_worker_row) and _crew_at_rest())
 	var activity: IntMath.IntResult = _jobs.schedule().current_activity_of(_worker_row)
 	if not activity.ok or (activity.value != Foreman.Jobs.ACTIVITY_WORK
 			and activity.value != Foreman.Jobs.ACTIVITY_ANYTHING):
 		return false
 	return _jobs.resident_may_work_into(_worker_row, _scratch)
+
+
+func _crew_at_rest() -> bool:
+	"""ADR1226: a resting point is ADR1210's switch-at-rest state: on an endpoint with no edge or queue, and either
+	the canonical idle READY source word or an idle automatic row. Only there does a busy crew stop for its rest."""
+	var routes: Foreman.Routes = _foreman._owners.routes
+	if routes._resident_ref(_worker_row) != _crew.worker or not routes._at_rest(_worker_row): return false
+	var word: int = routes._motion.resident[Foreman.Routes.R_PHASE * Foreman.Routes.RESIDENT_CAPACITY + _worker_row]
+	return word == Foreman.Routes.PHASE_IDLE \
+		or word == Foreman.Routes._source_word_for(routes._profiles, Foreman.Routes.PHASE_IDLE, Foreman.Routes.SourceProgram.READY)
 
 
 func owns_job(job_slot: int) -> bool:

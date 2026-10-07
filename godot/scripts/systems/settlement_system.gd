@@ -2577,17 +2577,20 @@ func _select_jobs(tick_index: int) -> void:
 
 
 func _resolve_and_select(tick_index: int) -> void:
-	"""The fused resolve/select pass: one resident is resolved immediately before it is offered."""
+	"""The fused resolve/select pass: one resident is resolved immediately before it is offered.
+
+	ADR1226 (REQ-SET-034): a busy resident is resolved on its staggered tick too, so its Work rests at the next safe
+	point when its hour forbids work, and resumes when it permits; only an idle resident is offered a job.
+	"""
 	var hour: int = _hour_of(tick_index)
 	for index: int in _live_count:
 		var slot: int = _live_slots[index]
-		if not _jobs.should_evaluate(slot, tick_index):
-			continue
-		if not _residents.is_alive(slot):
+		if not _jobs.is_due(slot, tick_index) or not _residents.is_alive(slot):
 			continue
 		if not _schedule.resolve_into(slot, hour, PREPARED_MEAL_REACHABLE, _read):
 			continue
-		_offer_a_job(slot, tick_index)
+		if _jobs.should_evaluate(slot, tick_index):
+			_offer_a_job(slot, tick_index)
 
 
 func _offer_a_job(resident_slot: int, tick_index: int) -> void:

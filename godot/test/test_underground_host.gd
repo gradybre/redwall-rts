@@ -1458,3 +1458,39 @@ func _replace_entry_with_its_record(session: Session, tick: int) -> bool:
 		return false
 	_host._underground_entry = fresh
 	return true
+
+
+func _sleep_at_eight(o: Session.Retirement.Owners, worker: Vector2i) -> void:
+	"""The crew's 08:00 hour (ticks 1500-2249 of day 1) becomes SLEEP."""
+	var row: int = o.residents.directory().get_typed_row(worker)
+	assert_true(o.jobs.schedule().set_hour_activity(row, 8, Schedule.ACTIVITY_SLEEP).ok, "08:00 is SLEEP")
+
+
+func _run_to(entry: Settlement.UndergroundEntryRuntime, from: int, to: int) -> int:
+	"""run_tick for every tick in [from, to) while the entry runs; returns the next tick to run."""
+	var tick: int = from
+	while entry.is_running() and tick < to:
+		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
+		tick += 1
+	return tick
+
+
+func test_the_busy_crew_rests_at_a_resting_point_through_its_sleep_hour_and_resumes() -> void:
+	"""ADR1226 (DEC-055, REQ-SET-034): the crew holds its entry Jobs all day. When its 08:00 hour turns to SLEEP it
+	finishes its current safe segment, stops at a resting point (ADR1210's switch-at-rest state) and earns nothing
+	while it rests. At 09:00 it resumes and reaches the same next gap with the same ledgers, later."""
+	var live: Array = _begin_live_entry(_sleep_at_eight)
+	var o: Session.Retirement.Owners = live[0]
+	var entry: Settlement.UndergroundEntryRuntime = live[1]
+	var tick: int = _run_to(entry, 1, 2100)
+	var resting: int = entry._foreman.accepted_mwu()
+	tick = _run_to(entry, tick, 2200)
+	assert_true(entry.is_running() and entry._crew_at_rest(), "at 2200 the crew stands at a resting point")
+	assert_true(o.jobs.job_of(o.residents.directory().get_typed_row(live[2])) != Jobs.NULL_REF, "still holding its Job")
+	tick = _run_to(entry, tick, 2250)
+	assert_equal(entry._foreman.accepted_mwu(), resting, "no Work while it rests")
+	tick = _run_until(entry, tick, func() -> bool: return false)
+	assert_equal(entry.error(), NEXT_GAP, "it resumes and reaches the same next gap")
+	assert_equal([entry._foreman._index, entry._foreman.accepted_mwu(), entry._foreman.haul_trips()], [12, 36000, 6],
+		"with the same ledgers")
+	assert_true(tick - 1 > NEXT_GAP_TICK, "later, by the rest")

@@ -473,6 +473,7 @@ refused onto the narrow contact.
    stations, profiles). This is the Room counterpart of the Frontier STATION/ENDPOINT rows and the core missing
    piece. Interior cubes need underground standing Locations on cut floor; upper cubes need the 232u step source,
    and a multi-heading retreat needs more than the single backward-9 retreat (ADR 1161's three open seams).
+   **Built (ADR 1213); upper and interior cubes remain blocked by the seams listed there.**
 5. **A foreman Room loop**: after the last installation, repeat `next_site_into` → plan → `publish_into` →
    `contact_into` → the existing phase loop, until the scan ends and every Kitchen Site is SUPPORTED_VOID.
 6. **Logistics.** Delivery pins cut Projects to the entry Placement (`underground_connector_delivery.gd`
@@ -493,7 +494,14 @@ refused onto the narrow contact.
 3. Runtime Kitchen confirmation: build the `Approach.Request` from live Locations; `confirm_room`.
 4. Compose `bind_room_phase_contacts` in entry composition.
 5. Room-station planner; prove it on the ADR 1161 fixture's lower and upper cubes (closing the 232u step and
-   retreat seams).
-6. Foreman Room loop to all 16 Sites SUPPORTED_VOID, with exact ledgers.
+   retreat seams). **Groundwork done (ADR 1213):** `underground_room_station_planner.gd` plans from published
+   boxes and refuses with named codes. The 232u step and the turn-through-ground retreat close with content 6.
+   The upper cubes stop on the one-AABB Location record (`ROOM_STATION_LOCATION_ENVELOPE`), which is a
+   data-model change, not content.
+6. Foreman Room loop to all 16 Sites SUPPORTED_VOID, with exact ledgers. **Test-level loop done (ADR 1213):**
+   `next_contact_into` plus the phase loop pays 2 of 16 Sites with exact ledgers. The other 14 end on derived
+   refusals: upper near (envelope), deep (1036u travel body under solid upper), levels 2–3 (no anchor above
+   1039u). All 16 wait on ADR 1213's items 1–3. Phase route requalification costs about 10.3k checks per edge,
+   so a full Kitchen needs station-chain retirement first.
 7. Delivery pinning for Room Projects and underground spoil/input logistics.
 8. Live demo: one G9 alert code per missing row until each lands.

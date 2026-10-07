@@ -359,3 +359,56 @@ capture script is the accepted v8 one without the pick-paw derivative or a secon
 - The minimum floor gap is 0.0014 u for every vertex except the paws while digging.
 
 Evidence is in `claw-work-v1/evidence/native-claw-v1/`.
+
+## Step 4 — claw rows, content 7 and the Frontier successor: integration plan (not started)
+
+The published runtime is bound to the pick rows by row ID and source digest, not only by data:
+
+- `work-approach-v1/source_program.gd`: the source-work protocol accepts profiles 2–25 only, checks source 0's
+  actor digest, and holds a fixed clip clock.
+- `work-step-v1/source_program.gd`: the short-step protocol.
+- `qualified-assembly-v1/source_program.gd` and `handling_clock.gd`: `PROFILE = 29`, `SOURCE = 1`, the handling
+  actor digest, and the tool box.
+- `underground_session.gd`: the source count and the per-source actor digests.
+- `underground_connector_contacts.gd`: the installation source must name the tool.
+- `mole_profile_catalog.gd`, `mole_presentation.gd`, `mole_profile_driver.gd`: the source-to-row map.
+- Routes, WorldRoutes, the room itinerary and planner, the foreman and the installer, which take row IDs from the
+  Frontier and `Assembly.PROFILE`.
+
+So claw rows cannot be published as data alone. The plan, in order:
+
+1. **Content 7** = content 6 plus:
+   - source 4, the claw/paw image `6be24202…`;
+   - sources 2 and 3 swapped to wood v10 and stone v10 (the corrected stand and walk);
+   - rows 30/31 re-derived from the corrected clips (body sweep 651 → 712 u);
+   - claw rows appended after row 41: dig WORK rows at the 4 yaws, a seating WORK row, and a paw handling row.
+
+   Rows 0–29 stay published and dormant, so no published ID moves. Every box is derived by the accepted
+   `compile_state_program` / profile-source-gate derivations; nothing is chosen by hand.
+2. **Source programs** for the claw source, as successors of `work-approach-v1` and `qualified-assembly-v1`:
+   - the dig and seating protocol (entry 31, work 33, recovery 31 keys);
+   - the paw handling clock (entry 31, seat 2, recovery 31).
+
+   Routes dispatches to these by row source instead of by the hard-coded ranges.
+3. **Travel to a claw station** uses tool-free rows 30/31 (automatic), then the switch at rest (ADR 1210) into the
+   claw WORK row. No tool-free source travel family is needed for the first entry.
+4. **Frontier successor at 1,430 u**: create-only, like `qualified-landing-v4`.
+   - Stations 4–9 move to x = ±1,430 and name the claw dig rows.
+   - The INSTALL stations name the claw seating row, and handling names the paw handling row.
+   - Endpoint travel names row 31.
+   - The bundle links content 7's wire digest.
+5. **Runtime switch**:
+   - crew selection without a tool;
+   - BUILD Jobs with `GATE_NOT_REQUIRED`;
+   - the hauler without unequip and re-equip;
+   - connector contacts accepting a tool-free installation source;
+   - per-source presentation for source 4;
+   - G11 retired.
+
+   Then the hauled complete-prefix test is re-run on the claw rows with exact ledgers, and pins and the memory
+   census are renewed.
+
+**Coordination.** Items 2–5 edit `underground_routes.gd` (admission and source dispatch), the entry
+foreman/installer/hauler and the room itinerary and planner. Other workers are changing these right now: G5 Routes
+admission and occupancy, G10 entry persistence, and the room planner. This work starts after those land, from a
+fresh rebase.

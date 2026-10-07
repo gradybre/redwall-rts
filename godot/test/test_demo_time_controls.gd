@@ -55,6 +55,13 @@ static func _key(code: Key, shift: bool = false) -> InputEventKey:
 	return key
 
 
+static func _ctrl_key(code: Key) -> InputEventKey:
+	"""A key press with Ctrl held."""
+	var key: InputEventKey = _key(code)
+	key.ctrl_pressed = true
+	return key
+
+
 func _skip() -> int:
 	"""The host's skip, counted."""
 	_skips.append(1)
@@ -81,6 +88,24 @@ func test_the_speed_keys_are_the_input_tables() -> void:
 	for code: Key in [KEY_F4, KEY_F7, KEY_F8, KEY_SPACE, KEY_G, KEY_1]:
 		assert_equal(TimeControlScript.speed_of(_key(code)), 0, "key %d requests no speed" % code)
 	assert_false(TimeControlScript.SPEED_VALUES.has(3), "no 3x")
+	assert_equal([TimeControlScript.speed_of(_key(KEY_F3, true)), TimeControlScript.speed_of(_ctrl_key(KEY_F1))], [0, 0],
+		"exactly the key: Shift+F3 and Ctrl+F1 request nothing")
+
+
+func test_the_speed_keys_do_nothing_while_typing() -> void:
+	"""A pop-up's text field takes every key but Enter, so an F-key reaches the time controls: in a text field it does
+	nothing (review M1); on a button or with no focus it works."""
+	var field := LineEdit.new()
+	var editor := TextEdit.new()
+	var button := Button.new()
+	_nodes.append_array([field, editor, button])
+	assert_true(TimeControlScript.is_typing(field) and TimeControlScript.is_typing(editor), "text fields")
+	assert_false(TimeControlScript.is_typing(button) or TimeControlScript.is_typing(null), "a button, or no focus")
+	var control: TimeControlScript = _control()
+	assert_false(control.take_key(_key(KEY_F3), field), "F3 in a text field: not taken")
+	assert_equal(_game.get_speed(), 1, "the speed unchanged")
+	assert_true(control.take_key(_key(KEY_F3), button), "F3 on a button: taken")
+	assert_equal(_game.get_speed(), 4, "4x")
 
 
 func test_f3_and_f1_set_the_requested_speed_through_the_game() -> void:
@@ -140,17 +165,37 @@ func test_the_skip_asks_first_and_cancel_does_nothing() -> void:
 	var menu: RunMenuScript = _menu(CalendarScript.new(), RunScript.new())
 	menu.open()
 	assert_true(menu.skip_button().visible and not menu.skip_button().disabled, "offered")
-	assert_equal(menu.skip_button().text, "Skip to next season: Y1 Summer 1, 06:00…", "where it lands")
-	assert_true(menu.skip_button().tooltip_text.contains("not lived"), menu.skip_button().tooltip_text)
+	assert_equal(menu.skip_button().text, RunMenuScript.SKIP_TEXT, "its words")
+	var tip: String = menu.skip_button().tooltip_text
+	assert_true(tip.begins_with("Lands on Y1 Summer 1, 06:00") and tip.contains("not lived"), tip)
 	assert_false(menu.skip_asked(), "not asked yet")
 	menu.skip_button().pressed.emit()
 	assert_true(menu.skip_asked(), "asked")
 	assert_true(menu.skip_question().begins_with("Skip to Y1 Summer 1, 06:00?"), menu.skip_question())
+	assert_false(menu.target_button(RunScript.TARGET_DAWN).visible, "the question takes the targets' place")
 	assert_true(menu.skip_button().disabled, "the line waits on the answer")
 	menu.skip_no_button().pressed.emit()
 	assert_equal(_skips.size(), 0, "no skip")
 	assert_false(menu.skip_asked(), "the question gone")
+	assert_true(menu.target_button(RunScript.TARGET_DAWN).visible, "the targets back")
 	assert_true(menu.is_open(), "the menu still open")
+
+
+func test_a_landing_that_moved_on_asks_again() -> void:
+	"""Asked on the last hour of spring, answered after the season turned (review M2): nothing is skipped and the
+	question names the new landing; answered again, it skips."""
+	var calendar := CalendarScript.new()
+	calendar.tick = SkipScript.tick_of_hour(SimClock.DAYS_PER_SEASON * SimClock.HOURS_PER_DAY - 1)
+	var menu: RunMenuScript = _menu(calendar, RunScript.new())
+	menu.open()
+	menu.arm_skip()
+	assert_true(menu.skip_question().begins_with("Skip to Y1 Summer 1"), menu.skip_question())
+	calendar.tick += SimClock.TICKS_PER_HOUR
+	menu.confirm_skip()
+	assert_equal(_skips.size(), 0, "nothing skipped")
+	assert_true(menu.skip_asked() and menu.skip_question().begins_with("Skip to Y1 Autumn 1"), menu.skip_question())
+	menu.confirm_skip()
+	assert_equal(_skips.size(), 1, "skipped once the question was current")
 
 
 func test_skip_confirmed_calls_the_hosts_skip_once_and_closes() -> void:
@@ -181,6 +226,12 @@ func test_the_skip_waits_while_a_run_is_under_way_and_needs_a_host() -> void:
 	menu.open()
 	assert_true(menu.skip_button().disabled, "disabled")
 	assert_equal(menu.skip_button().tooltip_text, RunMenuScript.SKIP_RUNNING, "saying why")
+	run.cancel(RunScript.END_STOPPED, "stopped")
+	menu.refresh()
+	menu.arm_skip()
+	assert_true(run.start(RunScript.TARGET_DUSK) and menu.skip_asked(), "a run started under a standing question")
+	menu.confirm_skip()
+	assert_equal(_skips.size(), 0, "Skip refused while the run is under way")
 	menu.arm_skip()
 	assert_false(menu.skip_asked(), "not asked while running")
 	var bare: RunMenuScript = _menu(null, RunScript.new())

@@ -84,7 +84,8 @@ func _initialize() -> void:
 		_space_resumes_after_dawn, _f6_opens_the_object_list, _enter_selects_and_centres, _open_the_settings,
 		_click_reduced_motion, _click_large_readable, _click_keyboard_planner, _see_the_keyboard_planner,
 		_reopen_the_settings, _reveal_restore, _restore_asks, _restore_confirmed, _f3_and_f1_set_the_speed,
-		_g_and_the_skip_asks_first, _cancel_leaves_the_calendar, _skip_lands_on_the_next_season]
+		_g_and_the_skip_asks_first, _cancel_leaves_the_calendar, _largest_scale_and_ask_by_keyboard,
+		_the_question_fits_and_enter_cancels, _the_scale_back, _ask_again, _skip_lands_on_the_next_season]
 
 
 func _process(_delta: float) -> bool:
@@ -622,9 +623,11 @@ func _g_and_the_skip_asks_first() -> void:
 	var next_season: int = (_calendar().tick + SimClock.CALENDAR_OFFSET_TICKS) / season_days + 1
 	_skip_landing = next_season * season_days + SimClock.TICKS_PER_HOUR * 6 - SimClock.CALENDAR_OFFSET_TICKS
 	_check("the skip is in the run menu", skip.visible and not skip.disabled, skip.text)
-	_check("naming where it lands", skip.text.contains("Summer 1, 06:00"), skip.text)
+	_check("its tooltip names where it lands", skip.tooltip_text.contains("Summer 1, 06:00"), skip.tooltip_text)
 	_click(_centre(skip))
 	_check("it asks first", bool(_skip_menu().call(&"skip_asked")), String(_skip_menu().call(&"skip_question")))
+	_check("naming where it lands", String(_skip_menu().call(&"skip_question")).contains("Summer 1, 06:00"))
+	_check_menu_on_screen("asked")
 	_capture("skip_asks")
 
 
@@ -636,10 +639,56 @@ func _cancel_leaves_the_calendar() -> void:
 	_check("and skips nothing", _calendar().tick - before < SimClock.TICKS_PER_HOUR, "%d ticks" % (_calendar().tick - before))
 
 
-func _skip_lands_on_the_next_season() -> void:
-	"""The skip asked again and Skip clicked: the calendar on day 1 of the next season at 06:00 to the tick, as the Lab's
-	trigger lands (the same function), the menu closed and the news saying what ran and what did not."""
+func _check_menu_on_screen(when: String) -> void:
+	"""The run menu's frame inside the window (review H1: the question once ran off the bottom at 125 %)."""
+	var frame: Rect2 = (_skip_menu().call(&"frame") as Control).get_global_rect()
+	_check("the menu on screen, %s, at %d %%" % [when, DemoUiScale.percent],
+		Rect2(Vector2.ZERO, Vector2(_size)).encloses(frame), str(frame))
+
+
+func _largest_scale_and_ask_by_keyboard() -> void:
+	"""The menu still open after Cancel; the largest interface scale this window offers (125 % at 1280x720, as Large
+	readable picks); the skip by its keyboard focus and Enter."""
+	_check("Cancel left the menu open", bool(_skip_menu().call(&"is_open")))
+	var percent: int = 150 if bool(_village.call(&"ui_scale_fits", 150)) else 125
+	_village.call(&"set_ui_scale", percent)
+	_check_menu_on_screen("unasked")
+	(_skip_menu().call(&"skip_button") as Button).grab_focus()
+	_key(KEY_ENTER)
+	_check("Enter on the skip asks", bool(_skip_menu().call(&"skip_asked")))
+	_capture("skip_asks_large")
+
+
+func _the_question_fits_and_enter_cancels() -> void:
+	"""The question on screen at that scale, the keyboard's focus on Cancel (the default answer): Enter cancels, the
+	calendar where it was."""
+	_check_menu_on_screen("asked")
+	var no: Button = _skip_menu().call(&"skip_no_button")
+	_check("the focus on Cancel", no.has_focus())
+	var before: int = _calendar().tick
+	_key(KEY_ENTER)
+	_check("Enter cancels", not bool(_skip_menu().call(&"skip_asked")) and bool(_skip_menu().call(&"is_open")))
+	_check("nothing skipped", _calendar().tick - before < SimClock.TICKS_PER_HOUR)
+
+
+func _the_scale_back() -> void:
+	"""The menu closed by G, and the interface back at 100 %."""
+	_key(KEY_G)
+	_check("G closed the menu", not bool(_skip_menu().call(&"is_open")))
+	_village.call(&"set_ui_scale", 100)
+
+
+func _ask_again() -> void:
+	"""G, and the skip asked again (laid out by the next step)."""
+	_key(KEY_G)
+	_check("G opened the menu again", bool(_skip_menu().call(&"is_open")))
 	_click(_centre(_skip_menu().call(&"skip_button")))
+	_check("asked again", bool(_skip_menu().call(&"skip_asked")))
+
+
+func _skip_lands_on_the_next_season() -> void:
+	"""Skip clicked: the calendar on day 1 of the next season at 06:00 to the tick, as the Lab's
+	trigger lands (the same function), the menu closed and the news saying what ran and what did not."""
 	_click(_centre(_skip_menu().call(&"skip_yes_button")))
 	_forgive()
 	_check("landed on the next season, 06:00", _calendar().tick == _skip_landing,

@@ -234,18 +234,31 @@ func _on_shell_action(element_id: int) -> void:
 
 
 static func speed_of(event: InputEvent) -> int:
-	"""The speed a key event requests through UI §5's speed actions (0: none)."""
+	"""The speed a key event requests through UI §5's speed actions (0: none); exactly F1/F2/F3, no modifier."""
 	for k: int in SPEED_ACTIONS.size():
-		if event.is_action_pressed(SPEED_ACTIONS[k]):
+		if event.is_action_pressed(SPEED_ACTIONS[k], false, true):
 			return SPEED_VALUES[k]
 	return 0
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	"""The time keys (`handle_key`), marked handled when taken."""
+	"""The time keys (`handle_key`), marked handled when taken; a speed key not while typing (`is_typing`)."""
 	var key := event as InputEventKey
-	if key != null and handle_key(key):
+	if key != null and take_key(key, get_viewport().gui_get_focus_owner()):
 		get_viewport().set_input_as_handled()
+
+
+func take_key(key: InputEventKey, focus: Control) -> bool:
+	"""`handle_key`, except a speed key while `focus` is a text field (`is_typing`). Whether it was taken."""
+	if speed_of(key) > 0 and is_typing(focus):
+		return false
+	return handle_key(key)
+
+
+static func is_typing(focus: Control) -> bool:
+	"""Whether the keyboard's focus is in a text field (a pop-up's search): the speed keys then do nothing (the input
+	gate passes a typing field every key but Enter, and an F-key types nothing)."""
+	return focus is LineEdit or focus is TextEdit
 
 
 func handle_key(key: InputEventKey) -> bool:

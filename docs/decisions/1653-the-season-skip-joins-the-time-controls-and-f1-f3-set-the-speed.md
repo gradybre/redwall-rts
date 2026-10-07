@@ -78,3 +78,31 @@ outside this lane (a parallel workflow owns it); a later settlement lane should 
   press anyway) and was killed by a held-G case.
 - The full suite (CI-style), the analyzer, the contracts and the independent review are run once the branch's three
   packets are in; their lines are added below under "Branch gates" and "Review".
+
+## Review (independent `code-reviewer`, on 4a5055b6)
+
+Nothing CRITICAL. Confirmed: the skip's effects are the Lab's (the same function, forgiving the real time it takes);
+F1–F3 never clear a pause; no F-key collides; F1–F3 were unread before.
+
+- **HIGH, fixed: the menu ran off the screen at 1280×720 with Large readable (125 %).** Measured 460 logical px tall
+  unasked and 568 asked, against 576 at that scale. Now the skip sits beside Close on the last row ("Skip to next
+  season…", the landing in its tooltip and the question), and the question **takes the targets' place** while it
+  stands, the frame fitted again. The session harness now checks the frame is on screen at 100 % and at the largest
+  scale the window offers (125 % at 1280×720, 150 % at 1920×1080), unasked and asked: 527.5 px from y 102.5 at
+  1280×720 / 125 %.
+- **MEDIUM, fixed: F1–F3 reached the time controls through a pop-up's text field** (the input gate passes a typing
+  field every key but Enter). `take_key(key, focus)` ignores a speed key while the focus is a LineEdit or TextEdit
+  (`is_typing`); tested.
+- **MEDIUM, fixed: the question could name a stale date.** The landing is kept when asked; Skip answered after the
+  season turned asks again with the new date and skips nothing; tested.
+- **MEDIUM, fixed: Cancel as the default answer was untested.** The session harness now asks by the keyboard (focus on
+  the skip, Enter), checks Cancel has the focus, and Enter cancels with the menu still open.
+- **LOW, fixed:** F1–F3 match exactly (Shift/Ctrl+F-key requests nothing); Cancel returns the focus to the skip; Skip
+  re-checks that no run is under way (tested by a run started under a standing question).
+- **LOW, answered:** a refused `set_speed` (only while loading) still takes the key, as the HUD's toggles do.
+
+Mutation after the review: 9 more mutants (exact matching, both `is_typing` cases, the guard at the call site, the
+moved landing, the targets hidden, the focus on Cancel (killed by the harness), Skip while running), **9 killed**.
+The lane's total: 25 mutants, 25 killed. Frames re-taken in `scratchpad/time_check2/`: `skip_asks_*`,
+`skip_asks_large_*` (1280×720 at 125 % and 1920×1080 at 150 %), `skip_landed_*`; looked at. `LIVE-SUMMARY 89 0` at both
+sizes.

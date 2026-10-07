@@ -188,12 +188,14 @@ Review UX-022 (`session/`). **Every pause says why, and there is one Resume.**
   capped, `demo_clock.gd limit_usec`): from 05:40 at 4x, Run until dawn stops at 06:00:00. Any pause or critical event
   first cancels the run, and the card says so ("Run until dawn cancelled: paused (you paused)"); the button reads
   "■ Dawn" while it runs, and the menu has **Stop the run**.
-- **Skip to next season** (decision 1653; Brendan's winter ruling 4, decision 0571, placed in the speed area): the
-  Run until… menu's last line, "Skip to next season: Y1 Summer 1, 06:00…". A click **asks first** (Skip / Cancel); Skip
+- **Skip to next season** (decision 1653; Brendan's winter ruling 4, decision 0571, placed in the speed area): "Skip
+  to next season…" beside Close on the Run until… menu's last row (its tooltip names the landing). A click **asks
+  first**: the question, naming the landing, takes the targets' place, with Skip / Cancel (the keyboard on Cancel); Skip
   calls the same `demo_village.gd skip_to_next_season` as the Demo Lab's trigger (F8, kept), so its effects are the
   Lab's: the crops, the stores, the weather and the hearths run hour by hour to 06:00 on the next season's first day;
   the residents' walking and work, the kitchen's meals and the cold they would have felt are not lived (its tooltip and
-  question say so, and the news after it). Not offered while a run is under way.
+  question say so, and the news after it). Not offered while a run is under way; a question answered after the season
+  turned asks again with the new date. F1–F3 do nothing while a pop-up's text field has the keyboard.
 - **F1 / F2 / F3** request 1x / 2x / 4x (UI §5's `time_speed_1/2/4`; decision 1653), as the HUD's speed toggles do:
   the speed only, never clearing a pause.
 

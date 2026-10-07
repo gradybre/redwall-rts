@@ -159,10 +159,9 @@ func append(resident_id: int, event: int, tick: int, other_id: int, detail_key: 
 		out_record: PackedByteArray) -> StringName:
 	"""Append one history record: validate, encode, advance the digest, then commit both fields.
 
-	On success `out_record` holds the exact 24 bytes the digest consumed; persisting them to the
-	history stream is the CALLER's obligation (ARCH-MEM-004), because this owner keeps no history.
-	In this release the event domain is empty (DEC-055 Q8), so every call refuses with
-	CHRONICLE_EVENT_DOMAIN and changes nothing -- `out_record` included.
+	On success `out_record` holds the exact 24 bytes the digest consumed; persisting them is the
+	CALLER's obligation (ARCH-MEM-004). With DEC-055 Q8's empty event domain every call refuses
+	with CHRONICLE_EVENT_DOMAIN and changes nothing, `out_record` included.
 	"""
 	var invalid: StringName = record_refusal(resident_id, event, tick, other_id, detail_key)
 	if invalid != REFUSE_NONE:
@@ -180,9 +179,8 @@ func append(resident_id: int, event: int, tick: int, other_id: int, detail_key: 
 		return stepped
 	_rolling_digest = next_digest
 	_count += 1
-	out_record.resize(RECORD_BYTES)
-	for index: int in RECORD_BYTES:
-		out_record[index] = encoded[index]
+	out_record.clear()
+	out_record.append_array(encoded)
 	return REFUSE_NONE
 
 

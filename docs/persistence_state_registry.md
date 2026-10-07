@@ -757,6 +757,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 |---|---|---:|---|---|:-:|---|---|
 | Section 13 CHRONICLE codec | -- | -- | -- | -- | 3 | -- | ADR 1222 step 5. Holds no module-level `var`; all static over a caller-owned `Record` (count + 32-byte digest, never records), `EncodeResult` and per-call `DigestVerifier`. Body `record_count:u64, rolling_digest:32, records:24*N`, exactly `40 + 24*N` bytes, schema 1; the descriptor `row_count` and header offset 208 must equal N. Decode streams records in whole-record chunks of at most 65536 bytes (2730 records, 65520 bytes) through the owner's digest rule, reports digest mismatch before any record refusal, and refuses every nonempty stream while the event domain is empty (DEC-055 Q8). Carries the `chronicle` canonical adapter. The classified rows for what it carries are `chronicle.gd`'s two above. |
 
+### `godot/scripts/core/save_identity_hashes.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Header identity producers | -- | -- | -- | -- | 3 | -- | ADR 1222 step 6, SAVE-R09-003. Stateless: no module-level `var`; every digest is recomputed per call. Map (offset 104) and engine (168) are produced exactly as ruled. The release rules (40) and lookup (136) artifacts do not exist until owners register, so they refuse; the DEVELOPMENT save (DEC-055 Q9) uses `development_identity_hash()`, SHA-256 over a `-DEV-` domain and the canonical registry declaration id. `compatibility_refusal()` compares all five before any world is allocated (DEC-055 Q1). |
+
 ### `godot/scripts/core/save_section_inventories.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

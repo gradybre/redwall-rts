@@ -273,3 +273,28 @@ The revision must:
 
 The lean, stance, grip position or strike point may adjust as the proofs need. Every accepted proof stays. The
 candidates v1–v3 stay as the record of what was reviewed.
+
+### Revision 2 (2026-10-07): candidates ready, stopped for Brendan's review
+
+**Cause.** v3 stood the shaft at 87° with the hand 21 u inboard of the adze head, in front of the chest. Its handle
+had to be that steep because the accepted solver keeps the elbow on its original bend side. Near the feet, that
+folds the forearm across the shaft.
+
+**Change.** `author_tread_install_v2.py` changes only the elbow. For each key it chooses the point on the
+exact-length elbow circle whose forearm, seen from the hand, is closest to the accepted ready grip's. Revision 1's
+tool lines, limb-closing rotations, planted legs, station, fixture, tap, entry, recovery and proofs are reused,
+and the lean is capped at the accepted 50°.
+
+**Candidates** (`tread-install-v2/`, all clear every proof). The two-key search over 900 recipes found 263 clear.
+
+| Candidate | Torso | Lean, azimuth | Strike (x, z) | Shaft angle | Hand vs head | Wrist turned from ready |
+|---|---:|---|---|---:|---:|---:|
+| v3 (reviewed) | −25° | 60°, 30° | 128, −246 | 87.2° | −21 | 78.9° |
+| **a** | −15° | 35°, 15° | 208, −300 | 65.7° (v4's) | +26 | 0.7° |
+| b | 0° | 40°, 15° | 208, −300 | 70.7° | +17 | 4.2° |
+| c | −30° | 40°, 30° | 160, −270 | 70.7° | +53 | 5.5° |
+
+**Recommended: a.** Review packet: `tread-install-review-v2/` (overview, hands and motion PNGs, plus
+`comparison.json`). `test_tread_install_v2.py` holds 7 tests.
+
+**Not attempted: a two-hand hold.** It needs a second grip exclusion in the accepted self-clearance proof.

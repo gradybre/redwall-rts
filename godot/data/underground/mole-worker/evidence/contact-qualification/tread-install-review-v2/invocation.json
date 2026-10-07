@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "adr": "1209",
+  "revision": 2,
+  "production_qualified": false,
+  "cwd": "repository root",
+  "python": "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+  "staged_inputs": "76 gitignored godot/demo/assets files listed by the accepted source closure, cloned from /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets, each verified against its pinned SHA-256, removed after the run",
+  "commands": [
+    "$PY godot/data/underground/mole-worker/evidence/contact-qualification/author_tread_install_v2.py godot/data/underground/mole-worker/evidence/contact-qualification/tread-install-v2/candidate-a --x-u 208 --z-u -300 --lean-degrees 35 --azimuth-degrees 15 --torso-degrees -15",
+    "$PY godot/data/underground/mole-worker/evidence/contact-qualification/author_tread_install_v2.py godot/data/underground/mole-worker/evidence/contact-qualification/tread-install-v2/candidate-b --x-u 208 --z-u -300 --lean-degrees 40 --azimuth-degrees 15 --torso-degrees 0",
+    "$PY godot/data/underground/mole-worker/evidence/contact-qualification/author_tread_install_v2.py godot/data/underground/mole-worker/evidence/contact-qualification/tread-install-v2/candidate-c --x-u 160 --z-u -270 --lean-degrees 40 --azimuth-degrees 30 --torso-degrees -30",
+    "$PY godot/data/underground/mole-worker/evidence/contact-qualification/render_tread_install_v2.py godot/data/underground/mole-worker/evidence/contact-qualification/tread-install-v2/candidate-X godot/data/underground/mole-worker/evidence/contact-qualification/tread-install-review-v2/candidate-X",
+    "$PY godot/data/underground/mole-worker/evidence/contact-qualification/compare_tread_install.py godot/data/underground/mole-worker/evidence/contact-qualification/tread-install-review-v2/comparison.json v3=.../tread-install-v1/candidate-v3 a=.../tread-install-v2/candidate-a b=.../tread-install-v2/candidate-b c=.../tread-install-v2/candidate-c",
+    "$PY godot/data/underground/mole-worker/evidence/contact-qualification/test_tread_install_v2.py -v"
+  ],
+  "search": "candidates chosen from a two-key search (self-clearance and the workpiece rule) over torso 0/-15/-30, strike x 160/208/240, z -300/-270/-246, lean 30-50, azimuth 15-75 with the swivel elbow: 263 recipes clear; ranked by shaft angle <= 71 degrees and wrist deviation"
+}

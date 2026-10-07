@@ -1,0 +1,25 @@
+test_comparison_shows_the_revision (__main__.TreadInstallV2Tests.test_comparison_shows_the_revision) ... ok
+test_input_domain_keeps_the_accepted_lean_ceiling (__main__.TreadInstallV2Tests.test_input_domain_keeps_the_accepted_lean_ceiling) ... ok
+test_reconstruction_matches_candidate_a (__main__.TreadInstallV2Tests.test_reconstruction_matches_candidate_a) ... ok
+test_review_images_match_their_record (__main__.TreadInstallV2Tests.test_review_images_match_their_record) ... ok
+test_stored_candidates_are_clear_and_pinned (__main__.TreadInstallV2Tests.test_stored_candidates_are_clear_and_pinned) ... ok
+test_swivel_keeps_both_links_and_prefers_the_wanted_forearm (__main__.TreadInstallV2Tests.test_swivel_keeps_both_links_and_prefers_the_wanted_forearm) ... ok
+test_swivel_refuses_an_unreachable_hand (__main__.TreadInstallV2Tests.test_swivel_refuses_an_unreachable_hand) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 7.209s
+
+OK
+--- rerun without the staged demo assets ---
+test_comparison_shows_the_revision (__main__.TreadInstallV2Tests.test_comparison_shows_the_revision) ... ok
+test_input_domain_keeps_the_accepted_lean_ceiling (__main__.TreadInstallV2Tests.test_input_domain_keeps_the_accepted_lean_ceiling) ... ok
+test_reconstruction_matches_candidate_a (__main__.TreadInstallV2Tests.test_reconstruction_matches_candidate_a) ... skipped 'gitignored demo assets are not staged (ADR 1192 §2)'
+test_review_images_match_their_record (__main__.TreadInstallV2Tests.test_review_images_match_their_record) ... ok
+test_stored_candidates_are_clear_and_pinned (__main__.TreadInstallV2Tests.test_stored_candidates_are_clear_and_pinned) ... ok
+test_swivel_keeps_both_links_and_prefers_the_wanted_forearm (__main__.TreadInstallV2Tests.test_swivel_keeps_both_links_and_prefers_the_wanted_forearm) ... ok
+test_swivel_refuses_an_unreachable_hand (__main__.TreadInstallV2Tests.test_swivel_refuses_an_unreachable_hand) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.007s
+
+OK (skipped=1)

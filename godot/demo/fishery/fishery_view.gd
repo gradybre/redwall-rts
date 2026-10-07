@@ -11,6 +11,7 @@ const Tables := preload("res://demo/fishery/fishery_tables.gd")
 const Rules := preload("res://demo/fishery/fishery_rules.gd")
 const IceScript := preload("res://demo/fishery/pond_ice.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
+const Recipes := preload("res://demo/preserve/preserve_rules.gd")
 const WaterLayout := preload("res://demo/water/water_layout.gd")
 const WaterRules := preload("res://demo/water/water_rules.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
@@ -153,6 +154,19 @@ func _build_props() -> void:
 		basket.visible = false
 		add_child(basket)
 		_loads.append(basket)
+	_build_preserves()
+
+
+func _build_preserves() -> void:
+	"""The preserving table's shelf of jars and its crock (art pass 3's `jar_shelf` and `crock_stoneware`, decision
+	1611; placeholder boxes unstaged), their fronts (+Z) toward the worker."""
+	for k: int in 2:
+		var key: StringName = Recipes.SHELF_KEY if k == 0 else Recipes.CROCK_KEY
+		var at: Vector2 = Recipes.SHELF_AT if k == 0 else Recipes.CROCK_AT
+		var prop: MeshInstance3D = _props.instance(key)
+		prop.transform = Transform3D(Basis(Vector3.UP, 0.0 if k == 0 else 0.6), Vector3(at.x, 0.0, at.y)) * _props.fit_of(key)
+		prop.name = "Preserves_%s" % key
+		add_child(prop)
 
 
 func _particles(at: Vector3, colour: Color, size: float) -> CPUParticles3D:

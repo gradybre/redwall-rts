@@ -69,6 +69,7 @@ const ITEM_KEYS: Array[StringName] = [
 	&"potato", &"honey",
 	&"nuts", &"mushrooms", &"herb", &"berries",
 	&"apple", &"pear",
+	&"dried_fruit", &"ration",
 ]
 const ITEM_LABELS: Array[String] = [
 	"Radish", "Turnip", "Carrot", "Beetroot", "Parsnip", "Onion",
@@ -80,6 +81,7 @@ const ITEM_LABELS: Array[String] = [
 	"Potato", "Honey",
 	"Nuts", "Mushrooms", "Herbs", "Berries",
 	"Apple", "Pear",
+	"Dried fruit", "Rations",
 ]
 const ITEM_LEAVES: Array[String] = [
 	"LEAF_radish", "LEAF_turnip", "LEAF_carrot", "LEAF_beetroot", "LEAF_parsnip", "LEAF_onion",
@@ -130,7 +132,13 @@ const ITEM_COUNT: int = 16
 ## hedge's raspberries, blackberries and strawberries are the ONE generic `berries` item above, the foraging lane's
 ## (Brendan's ruling of 2026-10-01, decision 0676; batch 8 integration, decision 0903). A recipe that names `fruit` or
 ## `berries` takes them by category, as `fish` takes the species.
-const PANTRY_ITEM_COUNT: int = 32
+## THE PRESERVES (decision 1611, PRESERVE #18): §5.7's two preserving rows the demo can make, after the fruit --
+##   * dried_fruit  §5.7 `dry_fruit`'s output, fruit 4 -> 3 x 1400 NP at the Dryer (the smoking rack: decision 0434),
+##                  720 h, directly edible ("dried fruit is directly edible") -- CAT_DRIED_FRUIT;
+##   * ration       §5.7 `ration`'s output, flour 2 + dried fish 1 + nuts 1 + water 1 -> 3 x 2400 NP at the kitchen's
+##                  preserving table, 1440 h, directly edible ("rations are directly edible") -- CAT_RATION.
+## Salt fish waits for a coast (salt is coastal brine only); jam, pickles and cheese have no GDD row (Q-D5).
+const PANTRY_ITEM_COUNT: int = 34
 const FIRST_CATCH: int = 16
 const CATCH_COUNT: int = 6
 const ITEM_DRIED_FISH: int = 22
@@ -145,6 +153,8 @@ const FIRST_FORAGE: int = 26
 const FORAGE_COUNT: int = 4
 const ITEM_APPLE: int = 30
 const ITEM_PEAR: int = 31
+const ITEM_DRIED_FRUIT: int = 32
+const ITEM_RATION: int = 33
 const FIRST_FRUIT: int = 30
 const FRUIT_COUNT: int = 2
 ## Every item the orchard and the hedge yield (a list, not a range: the hedge's `berries` is the forage item, numbered
@@ -159,10 +169,14 @@ const CAT_MUSHROOMS: int = 10
 const CAT_HERB: int = 11
 const CAT_BERRIES: int = 12
 const CAT_FRUIT: int = 13
+const CAT_DRIED_FRUIT: int = 14
+const CAT_RATION: int = 15
 ## The goods' categories and §5.7 shelf hours, from FIRST_CATCH on.
 const GOODS_CATEGORY: Array[int] = [CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_DRIED_FISH, CAT_FLOUR,
-	FarmingScript.CROP_ROOTS, CAT_HONEY, CAT_NUTS, CAT_MUSHROOMS, CAT_HERB, CAT_BERRIES, CAT_FRUIT, CAT_FRUIT]
-const GOODS_SHELF_HOURS: Array[int] = [48, 48, 48, 48, 48, 48, 720, 240, 240, 1440, 720, 72, 480, 48, 144, 144]
+	FarmingScript.CROP_ROOTS, CAT_HONEY, CAT_NUTS, CAT_MUSHROOMS, CAT_HERB, CAT_BERRIES, CAT_FRUIT, CAT_FRUIT,
+	CAT_DRIED_FRUIT, CAT_RATION]
+const GOODS_SHELF_HOURS: Array[int] = [48, 48, 48, 48, 48, 48, 720, 240, 240, 1440, 720, 72, 480, 48, 144, 144, 720,
+	1440]
 ## scripts/core/forage.gd PATCH_KEYS row (berries, nuts, mushrooms, herb, roots) -> pantry item (NO_ITEM: not gathered).
 const PATCH_ITEM: Array[int] = [ITEM_BERRIES, ITEM_NUTS, ITEM_MUSHROOMS, ITEM_HERB, NO_ITEM]
 ## scripts/core/orchard_hive.gd SPECIES_KEYS row (apple, pear) -> pantry item.
@@ -253,6 +267,7 @@ const ITEM_PROP: Array[StringName] = [
 	&"", &"",
 	&"", &"", &"", &"item_strawberry",
 	&"", &"",
+	&"", &"",
 ]
 ## The fallback icon's colour: the item's own, from its produce (parsnip cream, spinach dark leaf).
 const ITEM_SWATCH: Array[Color] = [
@@ -268,6 +283,7 @@ const ITEM_SWATCH: Array[Color] = [
 	Color(0.72, 0.6, 0.4), Color(0.9, 0.66, 0.22),
 	Color(0.62, 0.42, 0.22), Color(0.8, 0.7, 0.56), Color(0.44, 0.6, 0.34), Color(0.72, 0.16, 0.3),
 	Color(0.74, 0.22, 0.18), Color(0.74, 0.74, 0.34),
+	Color(0.6, 0.34, 0.16), Color(0.7, 0.6, 0.42),
 ]
 
 ## The beds: the six first FIELD beds are world crop ids (BED_IDS); then the SOUTH FIELD's six (see THE SOUTH FIELD); then

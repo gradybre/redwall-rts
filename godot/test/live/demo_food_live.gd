@@ -1,6 +1,7 @@
 extends SceneTree
 ## The food lanes on the REAL scene with REAL Viewport input (decision 1601 onward): the apiary's skep and bees beside the
-## old orchard, a left click on the skep bringing the Orchard panel with the apiary's readout and verbs. Not discovered by
+## old orchard, a left click on the skep bringing the Orchard panel with the apiary's readout and verbs; the preserving
+## table by the kitchen and the Water panel's Preserves (decision 1611). Not discovered by
 ## the runner: test/test_demo_food_live.gd runs it in its own process.
 ##
 ##     godot --headless --path godot --script res://test/live/demo_food_live.gd [-- --size 1920x1080]
@@ -10,6 +11,7 @@ extends SceneTree
 
 const DetailZone := preload("res://demo/ui/demo_detail_zone.gd")
 const HiveRules := preload("res://demo/hives/hive_rules.gd")
+const Recipes := preload("res://demo/preserve/preserve_rules.gd")
 ## demo_orchard.gd SEL_APIARY (named here: its script needs the autoloads a --script run has not registered yet).
 const SEL_APIARY: int = 6
 
@@ -42,7 +44,7 @@ func _initialize() -> void:
 	root.add_child(_village)
 	current_scene = _village
 	_steps = [_pause, _the_apiary_is_wired, _look_at_the_apiary, _click_the_skep, _its_readout_and_verbs,
-		_close_on_the_bees]
+		_close_on_the_bees, _look_at_the_preserving_table, _open_the_preserves]
 
 
 func _process(_delta: float) -> bool:
@@ -197,3 +199,29 @@ func _close_on_the_bees() -> void:
 	var at: Vector2 = HiveRules.centre_m(0)
 	_look_at(Vector3(at.x, 0.4, at.y), 4.5, 24.0, 160.0)
 	_capture("bees")
+
+
+func _look_at_the_preserving_table() -> void:
+	"""The preserving table west of the kitchen: its shelf of jars and its crock (decision 1611)."""
+	_look_at(Vector3(Recipes.TABLE_AT.x, 0.4, Recipes.TABLE_AT.y), 7.0, 32.0, 200.0)
+	var view: Node = _village.get("_fishery").get("view")
+	_check("the shelf of jars is drawn", view != null and view.has_node(NodePath("Preserves_jar_shelf")))
+	_check("the crock is drawn", view != null and view.has_node(NodePath("Preserves_crock_stoneware")))
+	_capture("preserving_table")
+
+
+func _open_the_preserves() -> void:
+	"""The Water tab: the Preserves section, Dry fruit and Pack rations each with its card (the village opens with no fruit
+	or flour in store: both say what they need)."""
+	_click(_zone().tab(DetailZone.PANEL_WATER).get_global_transform_with_canvas() * (_zone().tab(DetailZone.PANEL_WATER).size / 2.0))
+	_check("the Water tab takes the zone", _zone().shown == DetailZone.PANEL_WATER)
+	var panel: CanvasLayer = _village.get("_waterplay").get("panel")
+	_village.get("_fishery").call(&"refresh_panel")
+	panel.call(&"scroll_to_line", &"preserves")
+	_check("the Preserves line is filled", String(panel.call(&"line", &"preserves")).contains("dried fruit"),
+		panel.call(&"line", &"preserves"))
+	for key: StringName in [&"dry_fruit", &"pack_rations"]:
+		var button: Button = panel.call(&"button", key)
+		_check("%s is shown with its card" % key, button != null and button.visible and button.tooltip_text.contains("Can't now"),
+			button.tooltip_text.replace("\n", " / ") if button != null else "")
+	_capture("preserves_panel")

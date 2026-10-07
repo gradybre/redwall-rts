@@ -101,6 +101,9 @@ const SIZES: Dictionary = {
 	# decision 0971: two posts and a lintel, 1.1 m across); the rock face where a bore meets hard ground.
 	&"apple_basket": [RULE_HEIGHT, 0.4], &"hall_banner": [RULE_HEIGHT, 1.6], &"tunnel_set": [RULE_HEIGHT, 0.72],
 	&"rock_face": [RULE_HEIGHT, 0.765],
+	# Art pass 3's preserving props (decision 0971's DEC-048 heights; wired by decision 1611): the preserving table's
+	# shelf of cloth-capped jars and its salt-glazed crock.
+	&"jar_shelf": [RULE_HEIGHT, 0.95], &"crock_stoneware": [RULE_HEIGHT, 0.5],
 }
 ## Library BUILDINGS this pass draws as props: drawn at their authoritative envelope height
 ## (world_sizes.gd, lookdev_dimensions.gd BUILDING_MAX_Y_MM) -- the root cellar's door-in-a-mound

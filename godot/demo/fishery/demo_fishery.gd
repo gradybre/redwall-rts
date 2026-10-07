@@ -13,6 +13,8 @@ extends Node3D
 ##   Mend gear                      the most worn free gear (or boat): 200 points, wood 1 + rope 0.25
 ##   Dry fish                       4 U of the fresh fish that spoils first onto the rack: 3 U dried in 12 h
 ##   Mill grain                     3 U of grain to the mill: 3 U of flour
+##   Dry fruit                      4 U of the fruit that spoils first onto the rack: 3 U dried in 12 h (decision 1611)
+##   Pack rations                   flour 2, dried fish 1, nuts 1, water 1 at the preserving table: 3 U of rations
 ##
 ## TIME. The fishery runs on this frame's demo time (paused, nothing moves or cures; at 4x everything four times as
 ## fast); the panel and the incidents follow on real time (they work paused), the panel only while shown.
@@ -51,6 +53,7 @@ const DemoWaterScript := preload("res://demo/water/demo_water.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
+const Recipes := preload("res://demo/preserve/preserve_rules.gd")
 
 const PANEL_REFRESH_S: float = 0.25
 const OVERDUE_KEY: String = "water:overdue:%d"
@@ -256,6 +259,10 @@ func on_action(action_name: StringName) -> void:
 			_answer(_ordered(fishery.order_dry(members), "Dry fish: on the work board"))
 		PanelScript.ACTION_MILL:
 			_answer(_ordered(fishery.order_mill(members), "Mill grain: on the work board"))
+		PanelScript.ACTION_DRY_FRUIT:
+			_answer(_ordered(fishery.order_batch(Recipes.R_DRY_FRUIT, members), "Dry fruit: on the work board"))
+		PanelScript.ACTION_RATIONS:
+			_answer(_ordered(fishery.order_batch(Recipes.R_RATION, members), "Pack rations: on the work board"))
 		_:
 			return
 	_refresh_in = 0.0
@@ -350,12 +357,16 @@ func refresh_panel() -> void:
 	panel.set_card(PanelScript.ACTION_DRY, card.text(), card.is_ok())
 	card = mill_card(members)
 	panel.set_card(PanelScript.ACTION_MILL, card.text(), card.is_ok())
+	card = batch_card(Recipes.R_DRY_FRUIT, members)
+	panel.set_card(PanelScript.ACTION_DRY_FRUIT, card.text(), card.is_ok())
+	card = batch_card(Recipes.R_RATION, members)
+	panel.set_card(PanelScript.ACTION_RATIONS, card.text(), card.is_ok())
 
 
 func panel_lines() -> Dictionary:
 	"""The sections' text (water_panel.gd FISHERY_LINES)."""
 	return {&"fish_choice": choice_line(), &"fish_preview": preview_text(), &"fish_trips": trips_text(),
-		&"fish_gear": gear_text(), &"boats": boats_text(), &"stations": stations_text()}
+		&"fish_gear": gear_text(), &"boats": boats_text(), &"stations": stations_text(), &"preserves": preserves_text()}
 
 
 func choice_line() -> String:
@@ -471,6 +482,18 @@ func stations_text() -> String:
 	var mill: String = "Mill: %s" % ("grinding" if fishery.grinding() else "idle")
 	return "%s\n%s\nIn the pantry: fresh fish %s · dried fish %s · flour %s" % [rack, mill, Text.units(_fresh_fish()),
 		Text.units(fishery.pantry.milli_of(Catalog.ITEM_DRIED_FISH)), Text.units(fishery.pantry.milli_of(Catalog.ITEM_FLOUR))]
+
+
+func preserves_text() -> String:
+	"""The preserves (decision 1611): what the rack's slots dry, and the pantry's fruit, dried fruit and rations."""
+	var fruit: int = 0
+	for slot: int in Rules.RACK_SLOTS:
+		var drying: bool = fishery.tables.s_state[slot] != Tables.SLOT_EMPTY
+		fruit += 1 if drying and fishery.tables.s_recipe[slot] == Recipes.R_DRY_FRUIT else 0
+	return "Fruit drying on the rack: %d slot%s · rations: %s\nIn the pantry: fruit %s · dried fruit %s · rations %s" % [
+		fruit, "" if fruit == 1 else "s", "being packed" if fishery.packing() else "none being packed",
+		Text.units(fishery.pantry.milli_of(Catalog.ITEM_APPLE) + fishery.pantry.milli_of(Catalog.ITEM_PEAR)),
+		Text.units(fishery.pantry.milli_of(Catalog.ITEM_DRIED_FRUIT)), Text.units(fishery.pantry.milli_of(Catalog.ITEM_RATION))]
 
 
 func _fresh_fish() -> int:
@@ -600,6 +623,29 @@ func dry_card(members: PackedInt32Array) -> CardScript:
 		return _card
 	_card.work_usec = Rules.work_usec(Rules.DRY_WORK_MWU, 0)
 	_card.work_note = " to hang it, then 12 h curing, plus the walks"
+	_who_for(members, func(who: int) -> bool: return fishery.tables.job_of_worker(who) < 0, "anyone")
+	return _card
+
+
+func batch_card(recipe: int, members: PackedInt32Array) -> CardScript:
+	"""A preserve's card (decision 1611): `fishery.batch_refusal`, its §5.7 row's inputs, output, work and wait."""
+	var item: int = Recipes.OUT_ITEM[recipe]
+	_card.reset("%s at %s" % [Recipes.VERB[recipe], Recipes.STATION_NAMES[Recipes.STATION[recipe]]])
+	var why: String = fishery.batch_refusal(recipe)
+	for k: int in Recipes.IN_COUNT[recipe]:
+		var input: int = Recipes.IN_FIRST[recipe] + k
+		_card.add_cost(Recipes.cap(Recipes.category_words(Recipes.IN_CATEGORY[input])), fishery.takes.free_milli_of_crop(
+			fishery.pantry, Recipes.IN_CATEGORY[input]), Recipes.IN_MILLI[input])
+	if Recipes.WATER_MILLI[recipe] > 0:
+		_card.add_cost("Water", fishery.stores.water_milli_u if fishery.stores != null else 0, Recipes.WATER_MILLI[recipe])
+	_card.result = "%s of %s (keeps %d h; eaten as it is)%s" % [Text.units(Recipes.OUT_MILLI[recipe]),
+		Catalog.ITEM_LABELS[item].to_lower(), Catalog.shelf_hours_of(item), " after %d game hours on the rack" %
+		Recipes.PASSIVE_HOURS[recipe] if Recipes.is_passive(recipe) else ""]
+	if not why.is_empty():
+		_card.refuse(fishery.refused_code, why, fishery.refused_fix)
+		return _card
+	_card.work_usec = Rules.work_usec(Recipes.WORK_MWU[recipe], 0)
+	_card.work_note = ", plus the walks"
 	_who_for(members, func(who: int) -> bool: return fishery.tables.job_of_worker(who) < 0, "anyone")
 	return _card
 

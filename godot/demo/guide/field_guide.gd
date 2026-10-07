@@ -40,6 +40,7 @@ const WinterRules := preload("res://demo/winter/winter_rules.gd")
 const ForageRules := preload("res://demo/forage/forage_rules.gd")
 const OrchardText := preload("res://demo/orchard/orchard_text.gd")
 const HiveText := preload("res://demo/hives/hive_text.gd")
+const PreserveText := preload("res://demo/preserve/preserve_text.gd")
 
 const KIND_CROP: int = 0
 const KIND_DISH: int = 1
@@ -273,6 +274,8 @@ func _goods(item: int) -> Entry:
 		return _orchard_goods(item)
 	if item == Catalog.ITEM_HONEY:
 		return _hive_goods(item)
+	if PreserveText.is_preserve(item):
+		return _preserve_goods(item)
 	if item >= Catalog.FIRST_FORAGE:
 		return _forage_goods(item)
 	var links: Array[StringName] = [&"station_store", &"station_fishing"]
@@ -376,6 +379,15 @@ func _hive_goods(item: int) -> Entry:
 	var fields: PackedStringArray = HiveText.guide_fields(_dishes_taking(item, links), Rules.raw_np_per_u(item),
 		Catalog.shelf_hours_of(item))
 	var made: Entry = make(item_id(item), KIND_GOODS, Catalog.ITEM_LABELS[item], HiveText.GUIDE_SUMMARY, fields, links)
+	made.item = item
+	return made
+
+
+func _preserve_goods(item: int) -> Entry:
+	"""Dried fruit or rations (decision 1611): the preserves' own words."""
+	var links: Array[StringName] = [&"station_rack_mill", &"station_store"]
+	var made: Entry = make(item_id(item), KIND_GOODS, Catalog.ITEM_LABELS[item], PreserveText.summary(item),
+		PreserveText.guide_fields(item, Rules.raw_np_per_u(item)), links)
 	made.item = item
 	return made
 

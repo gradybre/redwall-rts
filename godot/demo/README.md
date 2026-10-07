@@ -2042,6 +2042,29 @@ not the GDD's is named in `hives/hive_rules.gd`.
 | Left click the skep | Select the apiary: the **Orchard (demo)** panel -- its strength and season, REQ-SET-083's service and feed deficits, its honey, wax and winter feed, the crops it pollinates, and its verbs |
 | Right click it (residents selected) | The nearest does its most pressing work: the service, else a feeding, else a recolonisation |
 
+## Preserving: dried fruit and rations (decision 1611)
+
+Feature #18 and the review's ECO-028 (`preserve/`, through the fishery's station jobs). §5.7's preserving rows the demo
+can make; every number not the GDD's is named in `preserve/preserve_rules.gd`.
+
+- **Dry fruit** on the smoking rack, which is §5.9's Dryer (decision 0434): fruit 4 → **dried fruit** 3 (1400 NP a
+  unit), 20 WU to hang, then 12 game hours in its slot with the worker free, then taken down. Fish and fruit share the
+  rack's four slots.
+- **Pack rations** at **the preserving table** west of the kitchen (art pass 3's shelf of jars and salt-glazed crock):
+  flour 2 + dried fish 1 + nuts 1 + water 1 → **rations** 3 (2400 NP a unit), 24 WU, carried to the stores.
+- Both are **pantry items** (dried fruit 720 h, rations 1440 h), aged by where they are kept (a cellar keeps them about
+  three times as long as the covered store) and **eaten as they are** by a hungry resident when a meal is missed --
+  the village's reserve; the kitchen still cooks fresh food first (ECO-028).
+- The inputs that spoil first are set aside when a batch is ordered and taken only when its work starts; cancelled
+  after that, half its food is spoiled (REQ-SET-094). Each button's card says what is short and where to get it.
+- **Not built**: salt fish (salt is coastal brine only, and the village has no coast); jam, pickles and a plant-milk
+  cheese have no GDD row and wait on Brendan's recipe approval (open question Q-D5).
+
+| Input | Does |
+|---|---|
+| Water panel ▸ Preserves ▸ **Dry fruit** | 4 U of the fruit that spoils first onto the rack (selected residents first, else the board) |
+| Water panel ▸ Preserves ▸ **Pack rations** | A batch of rations at the preserving table |
+
 ## Water
 
 A stream runs down the village's east edge -- narrowing to a neck at the north-east corner, past

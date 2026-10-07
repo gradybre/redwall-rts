@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "renderer": "render_tread_grip.py",
+  "renderer_sha256": "e03eeef2a03bc497e28e8d19218182417995f65d1ed83bf065c92a73e3ee680b",
+  "images_sha256": {
+    "candidate-d/grip.png": "06c8aa68c6124a5cb910764fe9c04df4769c2d1da9211b0cee11bd66352ab77f",
+    "candidate-e/grip.png": "cd4b43da3df79082e049ab0c97192a30df0bdac307d3cca63267b99c963e4b91",
+    "candidate-f/grip.png": "55dc4c370781b289926127113c0c0726b506d12d7f5d50c70a881014ef25a221",
+    "grip-comparison.png": "1e7da70eec13728288c975f75e10fdffc43546306d41479110817de35464ad2d"
+  }
+}

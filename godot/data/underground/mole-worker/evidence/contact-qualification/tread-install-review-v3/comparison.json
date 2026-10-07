@@ -1,0 +1,142 @@
+{
+  "schema": 1,
+  "decision": "1209",
+  "contact_key": 16,
+  "rows": {
+    "accepted v4 (L0 -> T0)": {
+      "shaft_elevation_degrees": 65.7,
+      "shaft_lateral_u": 70,
+      "grip_u": [
+        198,
+        516,
+        -286
+      ],
+      "poll_u": [
+        128,
+        126,
+        -448
+      ],
+      "wrist_deviation_degrees": 76.7
+    },
+    "a": {
+      "shaft_elevation_degrees": 65.7,
+      "shaft_lateral_u": 26,
+      "grip_u": [
+        234,
+        516,
+        -126
+      ],
+      "poll_u": [
+        208,
+        126,
+        -300
+      ],
+      "wrist_deviation_degrees": 0.7,
+      "recipe": {
+        "x_u": 208,
+        "z_u": -300,
+        "lean_degrees": 35,
+        "azimuth_degrees": 15,
+        "torso_degrees": -15,
+        "elbow_rule": "wrist_preserving_swivel",
+        "contact_plane_y_u": 128,
+        "poll_y_u": [
+          208,
+          126,
+          208
+        ]
+      }
+    },
+    "d": {
+      "shaft_elevation_degrees": 65.7,
+      "shaft_lateral_u": 70,
+      "grip_u": [
+        230,
+        516,
+        -108
+      ],
+      "poll_u": [
+        160,
+        126,
+        -270
+      ],
+      "wrist_deviation_degrees": 75.0,
+      "recipe": {
+        "x_u": 160,
+        "z_u": -270,
+        "lean_degrees": 35,
+        "azimuth_degrees": 30,
+        "torso_degrees": 0,
+        "roll_degrees": 0,
+        "elbow_rule": "swivel_matching_accepted_contact_wrist",
+        "contact_plane_y_u": 128,
+        "poll_y_u": [
+          208,
+          126,
+          208
+        ]
+      }
+    },
+    "e": {
+      "shaft_elevation_degrees": 61.0,
+      "shaft_lateral_u": 173,
+      "grip_u": [
+        333,
+        500,
+        -131
+      ],
+      "poll_u": [
+        160,
+        126,
+        -246
+      ],
+      "wrist_deviation_degrees": 75.3,
+      "recipe": {
+        "x_u": 160,
+        "z_u": -246,
+        "lean_degrees": 35,
+        "azimuth_degrees": 30,
+        "torso_degrees": 0,
+        "roll_degrees": -30,
+        "elbow_rule": "swivel_matching_accepted_contact_wrist",
+        "contact_plane_y_u": 128,
+        "poll_y_u": [
+          208,
+          126,
+          208
+        ]
+      }
+    },
+    "f": {
+      "shaft_elevation_degrees": 54.7,
+      "shaft_lateral_u": 224,
+      "grip_u": [
+        384,
+        475,
+        -140
+      ],
+      "poll_u": [
+        160,
+        126,
+        -246
+      ],
+      "wrist_deviation_degrees": 77.8,
+      "recipe": {
+        "x_u": 160,
+        "z_u": -246,
+        "lean_degrees": 35,
+        "azimuth_degrees": 30,
+        "torso_degrees": 0,
+        "roll_degrees": -45,
+        "elbow_rule": "swivel_matching_accepted_contact_wrist",
+        "contact_plane_y_u": 128,
+        "poll_y_u": [
+          208,
+          126,
+          208
+        ]
+      }
+    }
+  },
+  "scope": "float diagnostics for review; not a proof"
+}

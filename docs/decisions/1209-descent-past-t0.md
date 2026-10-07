@@ -307,3 +307,34 @@ hold the end from above.
 
 He asked for no two-handed hold, no choke-up and no different tool. The revision is compared with the accepted
 install motion's grip and the ready grip. The review packet adds a close-up grip view.
+
+### Revision 3 (2026-10-07): candidates ready, stopped for Brendan's review
+
+**Finding.** The paw-to-pick fit is the pick source's own rigid fit, the same in the ready carry, the accepted
+fitting motion (v4) and every revision. It holds the handle by its end. What made revision 2 read wrong was the
+wrist: its forearm was aimed as in the ready carry, so it came down onto the paw from above.
+
+**Change.** `author_tread_install_v3.py` makes two changes:
+- **The elbow** is aimed at the accepted v4 contact key's own wrist (the forearm seen from the hand, read from the
+  pinned v4 image), with v4's handle lean and azimuth (35°, 30°).
+- **An optional roll** turns the pick and the paw together about the handle, through the adze contact point.
+
+Everything else is unchanged: the station, fixture, tap, entry, recovery and every proof.
+
+| Candidate | Roll | Shaft angle | Hand vs head | Wrist vs v4 at contact |
+|---|---:|---:|---:|---:|
+| d | 0° | 65.7° | +70 (v4's own) | 2.8° |
+| e | −30° | 61.0° | +173 | 3.1° |
+| f | −45° | 54.7° | +224 | 2.6° |
+
+All three are upright and clear every proof. **Recommended: d**, the accepted motion's own grip, wrist and handle
+angle, moved to the tread station.
+
+**Review packet:** `tread-install-review-v3/`. It adds grip close-ups:
+- `grip-comparison.png` shows the ready carry, v4, rev2 a, and d, e and f at one zoom;
+- each `candidate-*/grip.png` shows v4 above the candidate.
+
+`test_tread_install_v3.py` holds 7 tests.
+
+**Not changed: the end grip.** Wrapping lower on the shaft would need a regrip, and so new source authoring with
+its own grip proof.

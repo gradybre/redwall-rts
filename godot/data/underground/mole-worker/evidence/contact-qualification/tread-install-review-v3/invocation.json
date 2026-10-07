@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "adr": "1209",
+  "revision": 3,
+  "production_qualified": false,
+  "cwd": "repository root",
+  "paths": ".../ = godot/data/underground/mole-worker/evidence/contact-qualification/",
+  "python": "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+  "staged_inputs": "76 gitignored godot/demo/assets files listed by the accepted source closure, cloned from /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets, each verified against its pinned SHA-256, removed after the run",
+  "commands": [
+    "$PY .../author_tread_install_v3.py .../tread-install-v3/candidate-d --x-u 160 --z-u -270 --lean-degrees 35 --azimuth-degrees 30 --torso-degrees 0 --roll-degrees 0",
+    "$PY .../author_tread_install_v3.py .../tread-install-v3/candidate-e --x-u 160 --z-u -246 --lean-degrees 35 --azimuth-degrees 30 --torso-degrees 0 --roll-degrees -30",
+    "$PY .../author_tread_install_v3.py .../tread-install-v3/candidate-f --x-u 160 --z-u -246 --lean-degrees 35 --azimuth-degrees 30 --torso-degrees 0 --roll-degrees -45",
+    "$PY .../render_tread_install_v3.py .../tread-install-v3/candidate-X .../tread-install-review-v3/candidate-X",
+    "$PY .../render_tread_grip.py .../tread-install-review-v3/candidate-X/grip.png 'accepted v4 contact=.../install-source-v4:0:16' 'candidate X contact=.../tread-install-v3/candidate-X:0:16'",
+    "$PY .../render_tread_grip.py .../tread-install-review-v3/grip-comparison.png 'ready carry=ready' 'accepted v4 contact=.../install-source-v4:0:16' 'rev2 a contact=.../tread-install-v2/candidate-a:0:16' 'rev3 d contact=.../tread-install-v3/candidate-d:0:16' 'rev3 e contact=...:0:16' 'rev3 f contact=...:0:16'",
+    "$PY .../compare_tread_install.py .../tread-install-review-v3/comparison.json a=.../tread-install-v2/candidate-a d=... e=... f=...",
+    "$PY .../test_tread_install_v3.py -v"
+  ],
+  "search": "two-key search with the v4-matched wrist over torso 0/-15/-30, strike x 160/208/240, z -300/-270/-246, lean 30-50, azimuth 15-45 (308 of 405 clear); then lean 35, azimuth 30, roll -45/-30/-15 (57 clear). The rolled candidates moved to the bearer's centre line (z -246) because at z -270 the tool left the bearer between keys"
+}

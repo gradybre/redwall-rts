@@ -1,0 +1,248 @@
+{
+  "schema": 1,
+  "decision": "1209",
+  "revision": 4,
+  "fit_hand_to_pick": [
+    [
+      -0.28919971622107926,
+      0.0,
+      0.0,
+      0.1210033342600654
+    ],
+    [
+      0.0,
+      0.0,
+      0.28919971622107926,
+      0.078125
+    ],
+    [
+      0.0,
+      0.28919971622107926,
+      0.0,
+      -0.05146245960011087
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "accepted_fit_hand_to_pick": [
+    [
+      -1.84223500065972e-08,
+      -3.130845359355927e-08,
+      0.2891997226581987,
+      -0.03906247626812148
+    ],
+    [
+      -0.28919971622107693,
+      8.445603272289048e-09,
+      -2.8527171597181322e-09,
+      0.2761211721016477
+    ],
+    [
+      -3.179793268970332e-08,
+      -0.2891997185408717,
+      -1.4765100794789099e-08,
+      0.06122806039518245
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "derivation": {
+    "scale": 0.28919971622107926,
+    "side": "medial",
+    "protrusion_shaft_diameters": 1,
+    "paw_edge_hand_x_m": -0.09761937720593439,
+    "butt_hand_x_m": -0.15399130301672098,
+    "grip_tool_x": 0.5534785315546533,
+    "socket_hand_m": [
+      -0.0390625,
+      0.078125,
+      0.0048828125
+    ],
+    "shaft": {
+      "centre_y": 0.194831699132919,
+      "centre_z": 0.0,
+      "diameter": 0.19492386281490326,
+      "end_x": 0.9508814215660095
+    },
+    "rotation_tool_to_hand": [
+      [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0
+      ]
+    ]
+  },
+  "grip_witness": {
+    "shaft_radius_m": 0.028185962905393304,
+    "patch_vertices_inside_shaft": 263,
+    "patch_vertices_in_contact_shell": 325,
+    "wrap_sectors_covered": 17,
+    "wrap_sectors": 24,
+    "wrap_degrees": 255.0,
+    "paw_width_along_shaft_m": 0.19113906481944076
+  },
+  "ready_self_clearance": {
+    "clear": false,
+    "checks": 414,
+    "pairs": 158,
+    "unresolved": [
+      {
+        "interval": 0,
+        "next_frame": 1,
+        "body_triangle": 3556,
+        "tool_triangle": 101
+      },
+      {
+        "interval": 0,
+        "next_frame": 1,
+        "body_triangle": 3671,
+        "tool_triangle": 101
+      },
+      {
+        "interval": 0,
+        "next_frame": 1,
+        "body_triangle": 4206,
+        "tool_triangle": 101
+      },
+      {
+        "interval": 0,
+        "next_frame": 1,
+        "body_triangle": 3556,
+        "tool_triangle": 102
+      },
+      {
+        "interval": 0,
+        "next_frame": 1,
+        "body_triangle": 3671,
+        "tool_triangle": 102
+      },
+      {
+        "interval": 0,
+        "next_frame": 1,
+        "body_triangle": 4206,
+        "tool_triangle": 102
+      },
+      {
+        "interval": 0,
+        "next_frame": 1,
+        "body_triangle": 3556,
+        "tool_triangle": 103
+      },
+      {
+        "interval": 0,
+        "next_frame": 1,
+        "body_triangle": 3671,
+        "tool_triangle": 103
+      }
+    ]
+  },
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_pick_refit.py": "5ccb78d12f6ddfc0111d4ece412b1fd72de4ba1df6b12b34342944c0c54ae9f7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_tread_install_v2.py": "1b4b9669372d00f0313a15e3dd677aad94d5125d9e80c33ab9145e554a86d0e8",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_tread_install.py": "5b00fcc8b0af1c3e369dc7778ba4b6b8fa89285f3d4700dcb25c570d8adb971f",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_source.py": "633beb0647e612b159f0257912e3321b126dbde5e49678e0c725c90bc4a7793a"
+  },
+  "verified_source_files": 537,
+  "historical_source_snapshot": {
+    "res://demo/cast/underground_actor.gd": {
+      "commit": "eddf9027811a25749da0b632e813ae38e078ad6d",
+      "sha256": "64ce149244114c7404e6e7374b6c268fa2ebbe2e70dfa940d3d3e791c763c4b6"
+    },
+    "res://demo/tunnel/tunnel_panel.gd": {
+      "commit": "ca8506677eba7d5f6dd41dfa89f989666f7f6d31",
+      "sha256": "83edb7c2eeb6d2878f25c9b3a19ea4a1f5ccd35d8e4f7ee4f802d3f7f9a11d7c"
+    },
+    "res://scripts/core/buildings.gd": {
+      "commit": "e3027d5fa467622494620eb123ba0e6d7a618af4",
+      "sha256": "ee2049178e1abee2d38fd26933f6620d445ec2ef48ca52ad8e0badde29452977"
+    },
+    "res://scripts/core/construction.gd": {
+      "commit": "9e590f0beff258339dae33e764decdaeb7726e6d",
+      "sha256": "1ce4a49cebff074ac673d574af2b0e4d9b674ff7056d2524b63eabb5138f73c1"
+    },
+    "res://scripts/core/entity_directory.gd": {
+      "commit": "8d6176042d25b6d4f9395b6c67fa0dface604d29",
+      "sha256": "0a143ce501ee8d634536d45f1e105f19ff0de16ddba9c614b864fe0e9d3468a2"
+    },
+    "res://scripts/core/excavation_contract.gd": {
+      "commit": "0172e80800a52d5da2f912e88a2e90d37f26417d",
+      "sha256": "fc97c2bc63099e5fdd3f5ccf081b94544f92ce38d85f1e2297766b7bb8471e4f"
+    },
+    "res://scripts/core/inventory.gd": {
+      "commit": "88c5fbac8143e128c5c63e91d20cc4318312ef15",
+      "sha256": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf"
+    },
+    "res://scripts/core/modular_project_contract.gd": {
+      "commit": "8e8e2bac1e038165330fcb7ccacd08793ce63d50",
+      "sha256": "3dbdac6d134bba1d22bb907382544b16b2d6666acabc7df62e6937b22b0dcb58"
+    },
+    "res://scripts/core/reservations.gd": {
+      "commit": "848218558ebda685a6d12ebf2d9b883e202cbc18",
+      "sha256": "0b29425425c07743cebc343a56958e8f2db054c255f44a25a9cc2813d693a2d2"
+    },
+    "res://scripts/core/resource_nodes.gd": {
+      "commit": "787bca73fe17ac453af7d0354aa657753c6e5241",
+      "sha256": "064779f8a601f36e1909f5a00052dae3d6ca0d8f367b594807c000ac16b54465"
+    },
+    "res://scripts/core/transforms.gd": {
+      "commit": "2d36d76a01a128335e6071c28cdb6270610bd850",
+      "sha256": "e0ddf877bcfee5f7372b88bf4c98fdbb2210f8c3397dae5d046fd8eed58c45c7"
+    },
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "a65b4b1879f3de2eec72772b8b615ab635bf2fc7",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    },
+    "res://scripts/core/work.gd": {
+      "commit": "8e8e2bac1e038165330fcb7ccacd08793ce63d50",
+      "sha256": "381837821f30bac26b498e44903ad5c9bdd12728d53b1555cfc6219703ddf73d"
+    },
+    "res://scripts/core/world_init.gd": {
+      "commit": "787bca73fe17ac453af7d0354aa657753c6e5241",
+      "sha256": "ce9545914469352b139786afef71def170cc94e61f5e7a0fe7aaa351106335c4"
+    },
+    "res://scripts/systems/settlement_system.gd": {
+      "commit": "1443127111f9e3eac452a2f4ba3d8d96bde1398c",
+      "sha256": "8d0a07bffad85090d3d505e052b780636fefc106fc52a6f722f492a17bcdbb3a"
+    },
+    "res://scripts/systems/ui_manager.gd": {
+      "commit": "8d6176042d25b6d4f9395b6c67fa0dface604d29",
+      "sha256": "661d4978f352382fea9593525f8eb1cf5e969e1c7255a9875dedbb4dc3863c5d"
+    },
+    "res://scripts/ui/ui_notices.gd": {
+      "commit": "5467083b6570ed4e845edf9c9426e280e407f347",
+      "sha256": "cc315ea1e8dee188cc4a17a9dc5c1b52e967f6768f171f780e2edeb5cec2f055"
+    },
+    "res://scripts/ui/ui_resident_card.gd": {
+      "commit": "787bca73fe17ac453af7d0354aa657753c6e5241",
+      "sha256": "96d07f75a9db6459162a8c8e2b59ba6965fe182cbd6d86a981a010d4650c8cc6"
+    },
+    "res://scripts/ui/ui_resident_snapshot.gd": {
+      "commit": "f6f5fe2bcc0597ecd36866137ea03c661648b103",
+      "sha256": "7c43dcd07c0183b45d480aec9a817a3a83f5d4db51c14468befb81d80eb56023"
+    },
+    "res://scripts/ui/ui_world_session.gd": {
+      "commit": "74d0f66b7c9e40df11bb403b32e79fb32279bb95",
+      "sha256": "5fecba431926ac68fef7d076183f1c3cd1298934c940c1f103f00d223b3947b5"
+    }
+  },
+  "supersedes": "nothing: a successor fit for the tread install tap only; the accepted fit stays in every other motion",
+  "production_qualified": false
+}

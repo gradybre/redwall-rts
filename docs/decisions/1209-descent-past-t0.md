@@ -347,3 +347,15 @@ shaft lower down, fingers and thumb around it, instead of the handle's end butti
 The new fit is authored as a successor, and the existing fit and its evidence stay untouched. The accepted cut and
 install motions (profile rows 2–29) keep the old fit until they are separately re-authored, which Brendan called
 "later".
+
+### Step 4 after the re-fit verdict: the grip re-fit is ADR 1216 (stopped)
+
+The pick grip is shared presentation and proof content, not part of the tread tap, so the re-fit is recorded in
+**ADR 1216**.
+
+- **Fit-only successor (`pick-fit-v1/lateral-1`).** It moves the pick to cross the paw lower down. The paw's
+  fingers cannot curl, because the rig has no finger bones and the closed paw is a fixed mesh derivative shaped
+  for a shaft along the fingers.
+- **A real wrap** needs new paw art, a palette re-bake, a successor grip exclusion and native capture.
+
+The tread tap waits on Brendan's choice in ADR 1216.

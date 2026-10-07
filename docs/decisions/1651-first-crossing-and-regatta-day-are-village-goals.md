@@ -156,3 +156,18 @@ Gates after merging `origin/master` (#231, wildlife and weather):
 - **Full suite, CI-style:** `9205 test(s), 647495 assertion(s), 0 failure(s)`; 0 unexpected errors and warnings, 0
   objects and 0 resources leaked, on both the `diagnostics:` and `log:` lines.
 - **Analyzer:** `0 GDScript warning(s) in 0 of 1041 file(s)`.
+
+Review of aa1c8cd4 (independent; nothing CRITICAL or HIGH). Its four findings are fixed in 26b3ccba and the commit
+after it:
+- **MEDIUM:** the "at least one" boundary is now pinned by `test_one_resident_eating_the_main_course_is_a_regatta_day`.
+  Its two diners are one who ate the hotpot and one who ate soup. It asserts `attendees == [1]`, `feasts_served == 1`,
+  and that no company is shared. The `> 1` mutant is **killed**.
+- **LOW:** the part's label is now "Regatta feasts eaten" (`village_goals.gd`). The guide harness check reading the old
+  label is updated with it.
+- **LOW:** the README entry and the goals test's docstring now use the ruling's wording.
+
+Gates:
+- **Full suite, CI-style:** `9206 test(s), 647498 assertion(s), 0 failure(s)`; 0 unexpected errors and warnings, 0
+  objects and 0 resources leaked, on both the `diagnostics:` and `log:` lines.
+- **Analyzer:** `0 GDScript warning(s) in 0 of 1041 file(s)`.
+- **Guide harness:** `LIVE-SUMMARY 63 0` at both sizes.

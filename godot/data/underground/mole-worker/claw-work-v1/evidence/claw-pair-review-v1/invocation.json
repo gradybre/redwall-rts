@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "adr": ["1217"],
+  "dec": "DEC-052",
+  "production_qualified": false,
+  "paths": ".../ = godot/data/underground/mole-worker/claw-work-v1/",
+  "python": "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+  "staged_inputs": "godot/demo/assets/underground-matrices/all-cast-v9.ugpal copied from /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/ (sha256 5b368eb3ad594b4a6f82b5981a891150e6f7053944daf888d4ab5aa293c822fe, checked by claw_source.read_claw_source); removed afterwards",
+  "commands": [
+    "$PY -B .../probe_claw_pair.py .../evidence/claw-pair-probe-v1.json",
+    "$PY -B .../author_claw_pair.py .../evidence/claw-pair-v1/candidate-pa --right-x-u 224 --left-x-u -224 --anchor-z-u -544 --rake-u 32 --lean-degrees 70 --drop-u 96 --tilt-degrees 60 --right-roll-degrees 90 --left-roll-degrees 90 --head-lift-degrees 60",
+    "$PY -B .../author_claw_pair.py .../evidence/claw-pair-v1/candidate-pb --right-x-u 192 --left-x-u -192 --anchor-z-u -544 --rake-u 32 --lean-degrees 70 --drop-u 96 --tilt-degrees 60 --right-roll-degrees 90 --left-roll-degrees 90 --head-lift-degrees 60",
+    "$PY -B .../prove_claw_pair.py .../evidence/claw-pair-v1/candidate-X   (X = pa, pb)",
+    "$PY -B .../render_claw_pair.py .../evidence/claw-pair-v1/candidate-X .../evidence/claw-pair-review-v1/candidate-X",
+    "$PY -B .../test_claw_pair.py -v; $PY -B .../test_claw_stroke.py"
+  ],
+  "search": "probe grid (mirrored paws): x 128/160/192/224, anchor -544/-512, lean 60/70, drop 96/128, tilt 60, right roll 90, left roll 0/45/90, head lift 0/30/60; 288 recipes, 213 solvable, 27 sampled clear (all lean 70, drop 96, anchor -544). Exact proofs of sampled-clear recipes: at x 128/160 the forearms meet the head (head lift 0-60); at x 192/224 with head lift 60 every proof clears (pb, pa)."
+}

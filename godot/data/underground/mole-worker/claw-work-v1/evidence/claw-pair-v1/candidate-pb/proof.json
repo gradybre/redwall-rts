@@ -1,0 +1,380 @@
+{
+ "clear": true,
+ "stand_ready_contact": {
+  "clear_apart_from_contact": true,
+  "pairs": 9,
+  "intervals": [
+   0
+  ],
+  "is_prefix_from_ready": true,
+  "paw_triangles": 4,
+  "thigh_triangles": 5
+ },
+ "stroke": {
+  "residual_m": [
+   {
+    "numerator": 328797145819959301782420473869302725870282668199421216534293430242006817497313684410615,
+    "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+   },
+   {
+    "numerator": 26835538236533094090698133020487949601274752287597994197792871550952994463839718056287,
+    "denominator": 301780193610895493697740080163901365351750268679522735420230465980236529747719852954484736
+   },
+   {
+    "numerator": 328797145819959301782420473869302725870282668199421216534293430242006817497313684410615,
+    "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+   }
+  ],
+  "below_face": {
+   "bounds_u": [
+    -194,
+    -61,
+    -561,
+    255,
+    0,
+    -417
+   ],
+   "triangles": 164,
+   "only_paw": true
+  },
+  "world": {
+   "clear": true,
+   "unresolved": [],
+   "paw_in_target_admitted": true,
+   "checks": 0,
+   "pairs": 1885,
+   "numerical_sole_pairs": 384,
+   "intentional_paw_target_pairs": 1501,
+   "supported_intervals": 32,
+   "fixture": {
+    "solids_u": [
+     [
+      -2048,
+      -1024,
+      -406,
+      2048,
+      0,
+      1024
+     ],
+     [
+      -2048,
+      -1024,
+      -1430,
+      -512,
+      0,
+      -406
+     ],
+     [
+      512,
+      -1024,
+      -1430,
+      2048,
+      0,
+      -406
+     ],
+     [
+      -2048,
+      -1024,
+      -2560,
+      2048,
+      0,
+      -1430
+     ],
+     [
+      -512,
+      -1024,
+      -1430,
+      512,
+      0,
+      -406
+     ]
+    ],
+    "source_labels": [
+     "retained exterior earth (support)",
+     "earth left of the cube",
+     "earth right of the cube",
+     "earth beyond the cube",
+     "target cube (paid Site, uncut)"
+    ],
+    "support_solid": 0,
+    "target_solid": 4
+   }
+  },
+  "self": {
+   "right_arm_vs_rest": {
+    "clear": true,
+    "unresolved": [],
+    "pairs": 0,
+    "checks": 0,
+    "released_stand_contact": {
+     "pairs": 0,
+     "intervals": [],
+     "is_prefix_from_ready": true,
+     "paw_triangles": 0,
+     "thigh_triangles": 0
+    },
+    "first_triangles": 1000,
+    "second_triangles": 7776
+   },
+   "left_arm_vs_rest": {
+    "clear": true,
+    "unresolved": [],
+    "pairs": 506,
+    "checks": 506,
+    "released_stand_contact": {
+     "pairs": 0,
+     "intervals": [],
+     "is_prefix_from_ready": true,
+     "paw_triangles": 0,
+     "thigh_triangles": 0
+    },
+    "first_triangles": 1056,
+    "second_triangles": 6901
+   },
+   "right_arm_vs_left_arm": {
+    "clear": true,
+    "unresolved": [],
+    "pairs": 0,
+    "checks": 0,
+    "released_stand_contact": {
+     "pairs": 0,
+     "intervals": [],
+     "is_prefix_from_ready": true,
+     "paw_triangles": 0,
+     "thigh_triangles": 0
+    },
+    "first_triangles": 1000,
+    "second_triangles": 1056
+   },
+   "excluded_shoulder_seam_triangles": {
+    "right": 1433,
+    "left": 2252
+   },
+   "clear": true
+  },
+  "contact": {
+   "right": {
+    "vertex": 2,
+    "rendered_edge": [
+     0,
+     1
+    ],
+    "anchor_u": [
+     192,
+     0,
+     -544
+    ],
+    "patch_u": [
+     191,
+     0,
+     -545,
+     193,
+     0,
+     -543
+    ],
+    "share_range": [
+     {
+      "numerator": 5447462841727,
+      "denominator": 7507653165056
+     },
+     {
+      "numerator": 504332397789,
+      "denominator": 682513924096
+     }
+    ]
+   },
+   "left": {
+    "vertex": 14014,
+    "rendered_edge": [
+     16,
+     17
+    ],
+    "anchor_u": [
+     -192,
+     0,
+     -544
+    ],
+    "patch_u": [
+     -193,
+     0,
+     -545,
+     -191,
+     0,
+     -543
+    ],
+    "share_range": [
+     {
+      "numerator": 5447460475735,
+      "denominator": 7507644776448
+     },
+     {
+      "numerator": 1849218003229,
+      "denominator": 2502548258816
+     }
+    ]
+   }
+  },
+  "patches_inside_cube_face": true
+ },
+ "entry": {
+  "residual_m": [
+   {
+    "numerator": 328864034343138493862503630525137180896051981755107080755603430433691391910025721467127,
+    "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+   },
+   {
+    "numerator": 27041044607060001982975963896844913738261912112151338841178569346718447685519540068703,
+    "denominator": 301780193610895493697740080163901365351750268679522735420230465980236529747719852954484736
+   },
+   {
+    "numerator": 328864034343138493862503630525137180896051981755107080755603430433691391910025721467127,
+    "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+   }
+  ],
+  "below_face": {
+   "bounds_u": null,
+   "triangles": 0,
+   "only_paw": true
+  },
+  "world": {
+   "clear": true,
+   "unresolved": [],
+   "paw_in_target_admitted": false,
+   "checks": 0,
+   "pairs": 484,
+   "numerical_sole_pairs": 484,
+   "intentional_paw_target_pairs": 0,
+   "supported_intervals": 30,
+   "fixture": {
+    "solids_u": [
+     [
+      -2048,
+      -1024,
+      -406,
+      2048,
+      0,
+      1024
+     ],
+     [
+      -2048,
+      -1024,
+      -1430,
+      -512,
+      0,
+      -406
+     ],
+     [
+      512,
+      -1024,
+      -1430,
+      2048,
+      0,
+      -406
+     ],
+     [
+      -2048,
+      -1024,
+      -2560,
+      2048,
+      0,
+      -1430
+     ],
+     [
+      -512,
+      -1024,
+      -1430,
+      512,
+      0,
+      -406
+     ]
+    ],
+    "source_labels": [
+     "retained exterior earth (support)",
+     "earth left of the cube",
+     "earth right of the cube",
+     "earth beyond the cube",
+     "target cube (paid Site, uncut)"
+    ],
+    "support_solid": 0,
+    "target_solid": 4
+   }
+  },
+  "self": {
+   "right_arm_vs_rest": {
+    "clear": true,
+    "unresolved": [],
+    "pairs": 38,
+    "checks": 38,
+    "released_stand_contact": {
+     "pairs": 0,
+     "intervals": [],
+     "is_prefix_from_ready": true,
+     "paw_triangles": 0,
+     "thigh_triangles": 0
+    },
+    "first_triangles": 1000,
+    "second_triangles": 7776
+   },
+   "left_arm_vs_rest": {
+    "clear": true,
+    "unresolved": [],
+    "pairs": 6803,
+    "checks": 11923,
+    "released_stand_contact": {
+     "pairs": 411,
+     "intervals": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+     ],
+     "is_prefix_from_ready": true,
+     "paw_triangles": 23,
+     "thigh_triangles": 46
+    },
+    "first_triangles": 1056,
+    "second_triangles": 6901
+   },
+   "right_arm_vs_left_arm": {
+    "clear": true,
+    "unresolved": [],
+    "pairs": 0,
+    "checks": 0,
+    "released_stand_contact": {
+     "pairs": 0,
+     "intervals": [],
+     "is_prefix_from_ready": true,
+     "paw_triangles": 0,
+     "thigh_triangles": 0
+    },
+    "first_triangles": 1000,
+    "second_triangles": 1056
+   },
+   "excluded_shoulder_seam_triangles": {
+    "right": 1433,
+    "left": 2252
+   },
+   "clear": true
+  },
+  "nothing_below_face": true
+ },
+ "recovery": {
+  "reused_exact_reverse_of": "entry"
+ },
+ "schema": 1,
+ "decision": "1217",
+ "exact_yaw": 0,
+ "production_qualified": false,
+ "producer_sources": {
+  "godot/data/underground/mole-worker/claw-work-v1/prove_claw_pair.py": "eb14cce8902b6b257988751306b6a139edb7d8cabfe7d7293ad05f7b9f84221b",
+  "godot/data/underground/mole-worker/claw-work-v1/author_claw_pair.py": "6a1c3f508e89631dd990b603896c4546d0b0051a9e5f1a1ad40eb5508f34f075",
+  "godot/data/underground/mole-worker/claw-work-v1/prove_claw_stroke.py": "e74d660078198b552c5854c07a1f1f59c71fdf0822183b963f761eaae7fa9af2",
+  "godot/data/underground/mole-worker/claw-work-v1/author_claw_stroke.py": "3edc742c993acd7a1731160633396b62a4fdf5e0014453432decab5e5974dda6",
+  "godot/data/underground/mole-worker/claw-work-v1/claw_source.py": "e0311359eaa5d485b34c1e14f41a1cf982fabd48b9d0fe396e2f57d119a22718",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_terrain.py": "a29f0e5a163307ec9ac9d0908e4da6c9a62f399885b198e8955f2fd5e7402390",
+  "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000"
+ }
+}

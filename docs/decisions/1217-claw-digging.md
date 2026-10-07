@@ -173,3 +173,30 @@ WORK profile and its header links the profile wire's content revision and source
 successor is published. Moving the stations while they still name pick row 25 would publish a Frontier no worker
 can use. It follows the content successor: stations 4–9 at x = ±1,430, the same endpoints translated, and paths
 re-proved through WorldRoutes and Locations.
+
+## Step 1b — the two-paw alternating stroke at 1,430 u (authored; stopped for Brendan's review)
+
+`claw-work-v1/author_claw_pair.py`, `probe_claw_pair.py`, `prove_claw_pair.py`, `render_claw_pair.py` and
+`test_claw_pair.py` (7 tests). The review packet is `evidence/claw-pair-review-v1/`.
+
+**The stroke.** It is step 1's recipe with both paws. Each paw follows the rake loop toward its own claw tip, the
+left half a cycle behind the right. The clip starts where both claws are 10 u above the face. Each claw crosses the
+face downward once per cycle. Two authored turns were needed, both rigid like ADR 1144's lean and both measured or
+searched:
+
+- **Squared shoulders.** The supplied idle stands with its shoulder line turned 26°. Without squaring, the left
+  arm cannot reach the face.
+- **Head lift.** At a 70° lean the forearms meet the cheeks. The head now turns up 60° about the neck joint.
+
+**Result.** Candidates pa (paws at ±224) and pb (±192) clear every exact proof for both paws:
+
+- each claw's contact and patch on the moved-in cube's top face;
+- the below-face hull inside the cube, reached by paw triangles only;
+- world prisms with sole support;
+- self-clearance per arm (step 1's rule, per side) and arm against arm.
+
+**Finding: the published stand's left paw rests in its thigh.** The accepted stand of rows 30/31 holds the left paw
+slightly into the left thigh. Held still, 9 triangle pairs do not separate. The entry pulls the paw out over its
+first 6 (pa) or 7 (pb) of 30 intervals. The prover reports those left-paw × left-thigh pairs apart, and requires
+them to form an unbroken run from the ready key. Brendan is asked whether to accept that or to have a lift-off
+path authored. **Recommended: pa.**

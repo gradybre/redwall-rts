@@ -31,7 +31,14 @@ extends RefCounted
 ##   cider      apple 4, water 1                        -> cider 4, 16 WU + 72 h in a vat, the brewery, keeps 1440 h
 ##              (taggerung TAG_recipe_pale_cider, mossflower MF_recipe_cider: apple, water, a culture)
 ## Ale and cider follow the mead rule (Brendan's ruling on DEC-007's drink depiction, 2026-10-07): a feast or table drink
-## only, no intoxication, no effect on Shared Warmth. Pickles are not built: every library pickle takes salt.
+## only, no intoxication, no effect on Shared Warmth.
+## THE VINEGAR PICKLE (decision 1625, Brendan's "both vinegar and salt", 2026-10-07), PROVISIONAL, and BEYOND THE LIBRARY'S
+## FORMULAS by his approval (every library pickle takes salt; the demo has none):
+##   vinegar    apples 4, water 1                       -> apple vinegar 4, 16 WU + 96 h in a vat, the brewery, keeps
+##              1440 h (COMPONENT_shared_apple_vinegar: apple, fermentation and vinegar cultures)
+##   pickles    roots 3 (onions or any roots), vinegar 1 -> pickles 3, 12 WU + 24 h in a crock, the table, keeps 720 h
+##              (taggerung TAG_recipe_pickled_onions without its salt)
+## The salted pickle is approved as well and waits on salt: the demo has no salt source (no coast, trader or stores salt).
 ## An input is a §5.7 CATEGORY or, where a recipe names one item (ale's barley, cider's apple), an ITEM selector
 ## (ingredient_takes.gd SELECT_ITEMS).
 ## A row's inputs are §5.7 CATEGORIES (or, for the new recipes' ale and cider, item selectors: above) (farm_catalog.gd category_of), reserved from real lots when it is ordered and
@@ -40,6 +47,7 @@ extends RefCounted
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const FisheryRules := preload("res://demo/fishery/fishery_rules.gd")
 const MealRules := preload("res://demo/kitchen/meal_rules.gd")
+const FarmingScript := preload("res://scripts/core/farming.gd")
 const TakesScript := preload("res://demo/kitchen/ingredient_takes.gd")
 
 const R_DRY_FISH: int = 0
@@ -51,7 +59,9 @@ const R_JAM: int = 5
 const R_CHEESE: int = 6
 const R_ALE: int = 7
 const R_CIDER: int = 8
-const RECIPE_COUNT: int = 9
+const R_VINEGAR: int = 9
+const R_PICKLES: int = 10
+const RECIPE_COUNT: int = 11
 ## The item selectors the new recipes name (decision 1625): barley alone of the grain, apples alone of the fruit.
 const SEL_BARLEY: int = TakesScript.SELECT_ITEMS | (1 << Catalog.ITEM_BARLEY)
 const SEL_APPLE: int = TakesScript.SELECT_ITEMS | (1 << Catalog.ITEM_APPLE)
@@ -71,45 +81,52 @@ const STATION_SLOTS: PackedInt32Array = [FisheryRules.RACK_SLOTS, CROCK_SLOTS, V
 
 ## Per row: §5.7's id, the button's verb, the work board's words, the station, the output and its milli-U, the work and
 ## the passive wait (0: none -- the batch is carried to the stores as its work ends).
-const GDD_ROW: Array[String] = ["dry_fish", "dry_fruit", "ration", "mead", "cordial", "jam", "cheese", "ale", "cider"]
+const GDD_ROW: Array[String] = ["dry_fish", "dry_fruit", "ration", "mead", "cordial", "jam", "cheese", "ale", "cider",
+	"vinegar", "pickles"]
 const VERB: Array[String] = ["Dry fish", "Dry fruit", "Pack rations", "Brew mead", "Make cordial", "Make jam",
-	"Make cheese", "Brew ale", "Make cider"]
+	"Make cheese", "Brew ale", "Make cider", "Make vinegar", "Make pickles"]
 const JOB_WORDS: Array[String] = ["Dry fish", "Dry fruit", "Pack rations", "Brew mead", "Make cordial", "Make jam",
-	"Make cheese", "Brew ale", "Make cider"]
+	"Make cheese", "Brew ale", "Make cider", "Make vinegar", "Make pickles"]
 const TAKE_DOWN_WORDS: Array[String] = ["Take down dried fish", "Take down dried fruit", "", "Draw off the mead", "", "",
-	"Turn out the cheese", "Draw off the ale", "Draw off the cider"]
+	"Turn out the cheese", "Draw off the ale", "Draw off the cider", "Draw off the vinegar", "Lift out the pickles"]
 const DOING_WORDS: Array[String] = ["Drying fish", "Drying fruit", "Packing rations", "Brewing mead", "Making cordial",
-	"Making jam", "Setting a cheese", "Brewing ale", "Pressing cider"]
+	"Making jam", "Setting a cheese", "Brewing ale", "Pressing cider", "Souring vinegar", "Packing pickles"]
 const TAKE_DOWN_DOING: Array[String] = ["Taking down dried fish", "Taking down dried fruit", "", "Drawing off the mead",
-	"", "", "Turning out the cheese", "Drawing off the ale", "Drawing off the cider"]
+	"", "", "Turning out the cheese", "Drawing off the ale", "Drawing off the cider", "Drawing off the vinegar",
+	"Lifting out the pickles"]
 const STATION: PackedInt32Array = [STATION_RACK, STATION_RACK, STATION_TABLE, STATION_BREWERY, STATION_BREWERY,
-	STATION_TABLE, STATION_TABLE, STATION_BREWERY, STATION_BREWERY]
+	STATION_TABLE, STATION_TABLE, STATION_BREWERY, STATION_BREWERY, STATION_BREWERY, STATION_TABLE]
 const OUT_ITEM: PackedInt32Array = [Catalog.ITEM_DRIED_FISH, Catalog.ITEM_DRIED_FRUIT, Catalog.ITEM_RATION,
-	Catalog.ITEM_MEAD, Catalog.ITEM_CORDIAL, Catalog.ITEM_JAM, Catalog.ITEM_CHEESE, Catalog.ITEM_ALE, Catalog.ITEM_CIDER]
-const OUT_MILLI: PackedInt32Array = [FisheryRules.DRY_OUT_MILLI, 3000, 3000, 4000, 4000, 3000, 2000, 4000, 4000]
-const WORK_MWU: PackedInt32Array = [FisheryRules.DRY_WORK_MWU, 20000, 24000, 20000, 10000, 16000, 16000, 20000, 16000]
-const PASSIVE_HOURS: PackedInt32Array = [FisheryRules.DRY_PASSIVE_HOURS, 12, 0, 72, 0, 0, 24, 72, 72]
-const WATER_MILLI: PackedInt32Array = [0, 0, 1000, 3000, 2000, 1000, 1000, 3000, 1000]
+	Catalog.ITEM_MEAD, Catalog.ITEM_CORDIAL, Catalog.ITEM_JAM, Catalog.ITEM_CHEESE, Catalog.ITEM_ALE, Catalog.ITEM_CIDER,
+	Catalog.ITEM_VINEGAR, Catalog.ITEM_PICKLES]
+const OUT_MILLI: PackedInt32Array = [FisheryRules.DRY_OUT_MILLI, 3000, 3000, 4000, 4000, 3000, 2000, 4000, 4000, 4000,
+	3000]
+const WORK_MWU: PackedInt32Array = [FisheryRules.DRY_WORK_MWU, 20000, 24000, 20000, 10000, 16000, 16000, 20000, 16000, 16000,
+	12000]
+const PASSIVE_HOURS: PackedInt32Array = [FisheryRules.DRY_PASSIVE_HOURS, 12, 0, 72, 0, 0, 24, 72, 72, 96, 24]
+const WATER_MILLI: PackedInt32Array = [0, 0, 1000, 3000, 2000, 1000, 1000, 3000, 1000, 1000, 0]
 ## Per row, its inputs as runs [IN_FIRST, +IN_COUNT) of the input columns: a selector (a category, or an item mask) and
 ## its milli-U.
-const IN_FIRST: PackedInt32Array = [0, 1, 2, 5, 6, 8, 10, 11, 12]
-const IN_COUNT: PackedInt32Array = [1, 1, 3, 1, 2, 2, 1, 1, 1]
+const IN_FIRST: PackedInt32Array = [0, 1, 2, 5, 6, 8, 10, 11, 12, 13, 14]
+const IN_COUNT: PackedInt32Array = [1, 1, 3, 1, 2, 2, 1, 1, 1, 1, 2]
 ## Int64: an item selector carries SELECT_ITEMS (bit 62).
 const IN_CATEGORY: PackedInt64Array = [Catalog.CAT_FISH, Catalog.CAT_FRUIT, Catalog.CAT_FLOUR, Catalog.CAT_DRIED_FISH,
 	Catalog.CAT_NUTS, Catalog.CAT_HONEY, Catalog.CAT_BERRIES, Catalog.CAT_HONEY, Catalog.CAT_BERRIES, Catalog.CAT_HONEY,
-	Catalog.CAT_NUTS, SEL_BARLEY, SEL_APPLE]
+	Catalog.CAT_NUTS, SEL_BARLEY, SEL_APPLE, SEL_APPLE, FarmingScript.CROP_ROOTS, Catalog.CAT_VINEGAR]
 const IN_MILLI: PackedInt32Array = [FisheryRules.DRY_IN_MILLI, 4000, 2000, 1000, 1000, 3000, 2000, 500, 2000, 1000, 2000,
-	3000, 4000]
+	3000, 4000, 4000, 3000, 1000]
 ## A missing input's refusal code (the fish row's is decision 0434's NO_FISH).
 const IN_CODE: Array[String] = ["NO_FISH", "NO_FRUIT", "NO_FLOUR", "NO_DRIED_FISH", "NO_NUTS", "NO_HONEY", "NO_BERRIES",
-	"NO_HONEY", "NO_BERRIES", "NO_HONEY", "NO_NUTS", "NO_BARLEY", "NO_APPLES"]
+	"NO_HONEY", "NO_BERRIES", "NO_HONEY", "NO_NUTS", "NO_BARLEY", "NO_APPLES", "NO_APPLES",
+	"NO_ROOTS", "NO_VINEGAR"]
 ## Where a missing input is got, for a refusal's fix.
 const IN_FIX: Array[String] = ["Fishing ▸ Authorise a trip", "Orchard ▸ Harvest (and send the baskets on)",
 	"Mill grain (Water ▸ Drying rack and mill)", "Dry fish (Water ▸ Drying rack and mill)", "Woods ▸ Foraging",
 	"Orchard ▸ the apiary (and send the baskets on)", "Orchard ▸ Pick berries, or Woods ▸ Foraging",
 	"Orchard ▸ the apiary (and send the baskets on)", "Orchard ▸ Pick berries, or Woods ▸ Foraging",
 	"Orchard ▸ the apiary (and send the baskets on)", "Woods ▸ Foraging", "Farm ▸ sow and harvest barley",
-	"Orchard ▸ Harvest the apple (and send the baskets on)"]
+	"Orchard ▸ Harvest the apple (and send the baskets on)", "Orchard ▸ Harvest the apple (and send the baskets on)",
+	"Farm ▸ sow and harvest onions or roots", "Make vinegar (Water ▸ Preserves)"]
 
 ## THE PRESERVING TABLE (DEMO): its place west of the kitchen, by the cauldron, the spot a worker faces, and its props' places.
 const TABLE_AT: Vector2 = Vector2(7.8, -6.6)

@@ -68,6 +68,7 @@ ITEM_KEYS = [
     "dried_fruit", "ration",
     "mead", "cordial",
     "jam", "cheese", "ale", "cider",
+    "vinegar", "pickles",
 ]
 ## The woods' forage (farm_catalog.gd THE WOODS' FORAGE): each item's pantry leaves, the demo's own selection of the
 ## woodland's nuts, fungi, pot herbs and wild berries (decision 0902).
@@ -84,12 +85,14 @@ GRAIN_LEAVES = {"LEAF_wheat", "LEAF_barley", "LEAF_oats"}
 FRUIT_LEAVES = {"LEAF_apple", "LEAF_pear"}
 ## The new recipes (decision 1625): each the library components it is drafted from -- the honey berry jams, the
 ## ale and the ciders. The salt-free nut cheese has no library component of its own (the cultured hazelnut cheese takes
-## salt), so it lists no dishes.
+## salt), so it lists no dishes; nor do the salt-free pickles (every library pickle takes salt).
 NEW_RECIPE_TARGETS = {
     "jam": ["COMPONENT_shared_blackberry_jam", "COMPONENT_shared_strawberry_jam"],
     "cheese": [],
     "ale": ["COMPONENT_shared_ale", "COMPONENT_shared_october_ale"],
     "cider": ["COMPONENT_shared_pale_cider", "COMPONENT_shared_old_cider"],
+    "vinegar": ["COMPONENT_shared_apple_vinegar"],
+    "pickles": [],
 }
 ## At most this many dish names per ingredient are listed (direct uses first); the counts are whole.
 MAX_LISTED = 40

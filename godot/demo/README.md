@@ -2087,7 +2087,7 @@ fishery's station jobs). Nothing models what drink does: mead is "a feast ingred
 | Water panel ▸ Brewing ▸ **Brew mead** | A batch of mead into a free vat (selected residents first, else the board) |
 | Water panel ▸ Brewing ▸ **Make cordial** | A batch of the raspberry cordial at the brewery's bench |
 
-## New recipes: jam, nut cheese, ale and cider (decision 1625)
+## New recipes: jam, nut cheese, ale, cider, vinegar and pickles (decision 1625)
 
 Brendan's "Approve and build Q-d5 and dec-007" (2026-10-07): four content-library dishes drafted as station rows in
 `preserve/preserve_rules.gd`, **every number provisional** (decision 1625 names each one's source).
@@ -2101,12 +2101,18 @@ Brendan's "Approve and build Q-d5 and dec-007" (2026-10-07): four content-librar
 - **How drink is depicted** (Brendan's ruling on DEC-007's open point): ale and cider follow the mead rule -- a feast
   or table drink only, never eaten, no intoxication, no effect on Shared Warmth. The regatta's supper pours them with
   the mead and the cordial, a unit for every four guests.
-- **Pickles are not built**: every pickle in the content library takes salt, and the village has no coast (decision
-  1625 asks Brendan how to proceed).
+- **Make vinegar** at the brewery: apples 4 + water 1 → **apple vinegar** 4, 16 WU + 96 h in a vat, keeps 1440 h --
+  the library's apple vinegar. An ingredient only: never eaten, never poured.
+- **Make pickles** at the preserving table: roots 3 + vinegar 1 → **pickles** 3 (800 NP a unit, eaten as they are),
+  12 WU, then 24 h in a crock, keeps 720 h -- **no salt**: a pickle beyond the library's formulas, by Brendan's
+  approval ("both vinegar and salt", 2026-10-07).
+- **The salted pickle waits on salt**: approved, but the village has no salt path (no coast, no trader), so it is not
+  built; it becomes one more row when salt exists.
 
 | Input | Does |
 |---|---|
 | Water panel ▸ Preserves ▸ **Make jam** / **Make cheese** | A batch at the preserving table (the cheese then sets in a crock) |
+| Water panel ▸ Preserves ▸ **Make vinegar** / **Make pickles** | Vinegar into a free vat at the brewery; pickles packed into a crock at the preserving table |
 | Water panel ▸ Brewing ▸ **Brew ale** / **Make cider** | A batch into a free vat |
 
 ## Water

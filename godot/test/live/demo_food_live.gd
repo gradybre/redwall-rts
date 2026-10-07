@@ -258,14 +258,17 @@ func _open_the_brewing() -> void:
 
 
 func _the_new_recipes() -> void:
-	"""Decision 1625: Make jam and Make cheese under the Preserves, Brew ale and Make cider under the Brewing, each with
-	its card (the village opens with none of their inputs: each says what it needs)."""
+	"""Decision 1625: Make jam, Make cheese, Make vinegar and Make pickles under the Preserves, Brew ale and Make cider
+	under the Brewing, each with its card (the village opens with none of their inputs: each says what it needs)."""
 	var panel: CanvasLayer = _village.get("_waterplay").get("panel")
 	_village.get("_fishery").call(&"refresh_panel")
 	panel.call(&"scroll_to_line", &"preserves")
-	for key: StringName in [&"make_jam", &"make_cheese", &"brew_ale", &"make_cider"]:
+	for key: StringName in [&"make_jam", &"make_cheese", &"brew_ale", &"make_cider", &"make_vinegar", &"make_pickles"]:
 		var button: Button = panel.call(&"button", key)
 		_check("%s is shown with its card" % key, button != null and button.visible and button.tooltip_text.contains("Can't now"),
 			button.tooltip_text.replace("\n", " / ") if button != null else "")
 	_check("the preserves line counts jam and cheese", String(panel.call(&"line", &"preserves")).contains("cheese"))
+	var vinegar_card: String = (panel.call(&"button", &"make_vinegar") as Button).tooltip_text
+	_check("the vinegar card keeps it for pickling", vinegar_card.contains("pickling") and not vinegar_card.contains("feasts"), vinegar_card.replace("\n", " / "))
+	_check("the preserves line counts vinegar and pickles", String(panel.call(&"line", &"preserves")).contains("pickles"))
 	_capture("new_recipes_panel")

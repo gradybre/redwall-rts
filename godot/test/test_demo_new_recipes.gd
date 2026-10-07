@@ -33,6 +33,7 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 const FieldGuideScript := preload("res://demo/guide/field_guide.gd")
 const DemoFisheryScript := preload("res://demo/fishery/demo_fishery.gd")
+const FarmingScript := preload("res://scripts/core/farming.gd")
 
 const DT: float = 0.1
 const MAX_FRAMES: int = 6000
@@ -161,7 +162,7 @@ func test_the_items_are_appended_with_their_provisional_rows() -> void:
 	"""Jam 36, cheese 37, ale 38, cider 39 appended; jam and cheese eaten as they are (850, 1600 NP), ale and cider never
 	(the mead rule); keeping 720, 1440, 1440, 1440 h; the index carries them."""
 	assert_equal(Catalog.ITEM_KEYS.slice(36, 40), [&"jam", &"cheese", &"ale", &"cider"], "appended")
-	assert_equal(Catalog.PANTRY_ITEM_COUNT, 40, "40 items")
+	assert_equal(Catalog.ITEM_KEYS.size(), Catalog.PANTRY_ITEM_COUNT, "every item keyed")
 	assert_equal([MealRules.raw_np_per_u(36), MealRules.raw_np_per_u(37), MealRules.raw_np_per_u(38),
 		MealRules.raw_np_per_u(39)], [850, 1600, 0, 0], "raw NP")
 	assert_equal([Catalog.shelf_hours_of(36), Catalog.shelf_hours_of(37), Catalog.shelf_hours_of(38), Catalog.shelf_hours_of(39)],
@@ -225,7 +226,7 @@ func test_the_crocks_are_two() -> void:
 	rig.pantry.add_into(Catalog.ITEM_NUTS, 8000, 0, _read)
 	for k: int in Recipes.CROCK_SLOTS:
 		assert_equal(f.order_batch(Recipes.R_CHEESE, PackedInt32Array()), "", "crock %d" % k)
-	assert_equal(f.batch_refusal(Recipes.R_CHEESE), "all 2 crocks hold a cheese", "full")
+	assert_equal(f.batch_refusal(Recipes.R_CHEESE), "all 2 crocks are in use", "full")
 	assert_equal(f.refused_code, "CROCKS_FULL", "its code")
 	assert_equal([f.free_slot(Recipes.STATION_RACK), f.free_slot(Recipes.STATION_BREWERY)], [0, FIRST_VAT], "the others free")
 
@@ -346,3 +347,67 @@ func test_every_recipe_button_has_its_row() -> void:
 	assert_equal(rows, range(Recipes.RECIPE_COUNT), "every row has its button")
 	assert_equal(DemoFisheryScript.ACTION_RECIPES[&"make_jam"], Recipes.R_JAM, "Make jam")
 	assert_equal(PreserveText.guide_fields(Catalog.ITEM_CHEESE, 1600)[2], "Nuts eaten as they are keep 720 game hours; set as a cheese they keep twice as long.", "the cheese's alternative")
+
+
+# --- the vinegar pickle (Brendan's "both vinegar and salt", 2026-10-07) -------------------------------------------------
+
+func test_vinegar_and_pickles_are_the_approved_rows() -> void:
+	"""PROVISIONAL, beyond the library by approval: apple vinegar apples 4 + water 1 -> 4, 16 WU + 96 h in a vat; pickles
+	roots 3 + vinegar 1 -> 3, 12 WU + 24 h in a crock, NO SALT; vinegar never eaten, pickles at 800 NP, keeping 720 h."""
+	var v: int = Recipes.R_VINEGAR
+	var p: int = Recipes.R_PICKLES
+	assert_equal([Recipes.IN_CATEGORY[Recipes.IN_FIRST[v]], Recipes.IN_MILLI[Recipes.IN_FIRST[v]], Recipes.WATER_MILLI[v],
+		Recipes.OUT_MILLI[v], Recipes.WORK_MWU[v], Recipes.PASSIVE_HOURS[v], Recipes.STATION[v]],
+		[Recipes.SEL_APPLE, 4000, 1000, 4000, 16000, 96, Recipes.STATION_BREWERY], "vinegar")
+	assert_equal([Recipes.IN_CATEGORY[Recipes.IN_FIRST[p]], Recipes.IN_MILLI[Recipes.IN_FIRST[p]],
+		Recipes.IN_CATEGORY[Recipes.IN_FIRST[p] + 1], Recipes.IN_MILLI[Recipes.IN_FIRST[p] + 1], Recipes.IN_COUNT[p],
+		Recipes.WATER_MILLI[p], Recipes.OUT_MILLI[p], Recipes.WORK_MWU[p], Recipes.PASSIVE_HOURS[p], Recipes.STATION[p]],
+		[FarmingScript.CROP_ROOTS, 3000, Catalog.CAT_VINEGAR, 1000, 2, 0, 3000, 12000, 24, Recipes.STATION_TABLE], "pickles")
+	assert_equal(Catalog.ITEM_KEYS.slice(40, 42), [&"vinegar", &"pickles"], "appended")
+	assert_equal([MealRules.raw_np_per_u(40), MealRules.raw_np_per_u(41)], [0, 800], "vinegar never eaten")
+	assert_equal([Catalog.shelf_hours_of(40), Catalog.shelf_hours_of(41)], [1440, 720], "shelf")
+	assert_false(MenuScript.DRINK_ITEMS.has(Catalog.ITEM_VINEGAR), "never poured at a feast")
+
+
+func test_apples_sour_into_vinegar_and_roots_pickle_in_it() -> void:
+	"""Apples 4 into a vat for 96 h: 4 U of vinegar; then onions 3 and that vinegar 1 into a crock for 24 h: 3 U of
+	pickles -- no salt anywhere."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	rig.pantry.add_into(Catalog.ITEM_APPLE, 4000, 0, _read)
+	assert_equal(f.batch_refusal(Recipes.R_PICKLES).begins_with("the stores hold 0 U of roots"), true, "no roots yet")
+	assert_equal(f.order_batch(Recipes.R_VINEGAR, PackedInt32Array([1])), "", "vinegar ordered")
+	assert_true(_run(rig, func() -> bool: return f.tables.s_state[FIRST_VAT] == Tables.SLOT_CURING), "souring")
+	rig.calendar.tick += 96 * SimClock.TICKS_PER_HOUR
+	assert_true(_run(rig, func() -> bool: return rig.pantry.milli_of(Catalog.ITEM_VINEGAR) == 4000), "4 U of vinegar")
+	rig.pantry.add_into(5, 3000, 0, _read)
+	assert_equal(f.order_batch(Recipes.R_PICKLES, PackedInt32Array([2])), "", "pickles ordered")
+	assert_equal(f.tables.s_recipe[FIRST_CROCK], Recipes.R_PICKLES, "into a crock")
+	assert_true(_run(rig, func() -> bool: return f.tables.s_state[FIRST_CROCK] == Tables.SLOT_CURING), "pickling")
+	assert_equal([rig.pantry.milli_of(5), rig.pantry.milli_of(Catalog.ITEM_VINEGAR)], [0, 3000], "onions 3, vinegar 1")
+	rig.calendar.tick += 24 * SimClock.TICKS_PER_HOUR
+	assert_true(_run(rig, func() -> bool: return rig.pantry.milli_of(Catalog.ITEM_PICKLES) == 3000), "3 U of pickles")
+	assert_equal(f.preserves_stored_milli, 3000, "booked as a preserve")
+
+
+func test_pickles_without_vinegar_say_so() -> void:
+	"""Roots but no vinegar: refused with the way to make it."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	rig.pantry.add_into(5, 3000, 0, _read)
+	assert_true(f.batch_refusal(Recipes.R_PICKLES).contains("of vinegar nobody has set aside"), f.batch_refusal(Recipes.R_PICKLES))
+	assert_equal([f.refused_code, f.refused_fix], ["NO_VINEGAR", Recipes.IN_FIX[15]], "its code and fix")
+
+
+func test_the_guide_calls_vinegar_an_ingredient() -> void:
+	"""Vinegar is an ingredient, never a drink; pickles are a reserve with their own alternative."""
+	assert_equal(PreserveText.guide_fields(Catalog.ITEM_VINEGAR, 0)[0], PreserveText.VINEGAR_USE, "vinegar")
+	assert_true(PreserveText.guide_fields(Catalog.ITEM_PICKLES, 800)[0].contains("800 NP"), "pickles")
+	assert_true(PreserveText.guide_fields(Catalog.ITEM_PICKLES, 800)[2].contains("three times"), "their alternative")
+
+
+func test_the_recipe_card_says_what_each_good_is_for() -> void:
+	"""Vinegar's card says it is kept for pickling, not for feasts; pickles are eaten; the drinks are kept for feasts (the
+	live harness checks the card itself)."""
+	assert_equal([PreserveText.card_use(Catalog.ITEM_VINEGAR, 0), PreserveText.card_use(Catalog.ITEM_PICKLES, 800),
+		PreserveText.card_use(Catalog.ITEM_ALE, 0)], ["kept for pickling", "eaten as it is", "kept for feasts"], "uses")

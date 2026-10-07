@@ -1208,7 +1208,7 @@ func _book_stored(item: int, milli: int) -> void:
 			dried_stored_milli += milli
 		Catalog.CAT_FLOUR:
 			milled_stored_milli += milli
-		Catalog.CAT_DRIED_FRUIT, Catalog.CAT_RATION, Catalog.CAT_JAM, Catalog.CAT_CHEESE:
+		Catalog.CAT_DRIED_FRUIT, Catalog.CAT_RATION, Catalog.CAT_JAM, Catalog.CAT_CHEESE, Catalog.CAT_PICKLES:
 			preserves_stored_milli += milli
 	revision += 1
 
@@ -1717,7 +1717,7 @@ func _slots_full(station: int) -> String:
 	if station == Recipes.STATION_BREWERY:
 		return _refuse("VATS_FULL", "all %d vats are brewing" % Recipes.VAT_SLOTS, "wait for a batch to be drawn off")
 	if station == Recipes.STATION_TABLE:
-		return _refuse("CROCKS_FULL", "all %d crocks hold a cheese" % Recipes.CROCK_SLOTS, "wait for one to be turned out")
+		return _refuse("CROCKS_FULL", "all %d crocks are in use" % Recipes.CROCK_SLOTS, "wait for one to be emptied")
 	return _refuse("RACK_FULL", "all %d rack slots are taken" % Rules.RACK_SLOTS, "wait for a batch to cure")
 
 

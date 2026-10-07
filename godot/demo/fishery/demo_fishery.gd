@@ -19,6 +19,7 @@ extends Node3D
 ##   Make cordial                   berries 2, honey 0.5, water 2 at the brewery's bench: 4 U of the raspberry cordial
 ##   Make jam / Make cheese         the preserving table's berry jam and nut cheese (decision 1625, provisional)
 ##   Brew ale / Make cider          the brewery's ale and cider (decision 1625, provisional)
+##   Make vinegar / Make pickles    apple vinegar in a vat, then salt-free pickles in a crock (decision 1625, provisional)
 ##
 ## TIME. The fishery runs on this frame's demo time (paused, nothing moves or cures; at 4x everything four times as
 ## fast); the panel and the incidents follow on real time (they work paused), the panel only while shown.
@@ -47,6 +48,7 @@ const DemoCommandScript := preload("res://demo/control/demo_command.gd")
 const WaterplayScript := preload("res://demo/waterplay/demo_waterplay.gd")
 const PanelScript := preload("res://demo/waterplay/water_panel.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
+const PreserveText := preload("res://demo/preserve/preserve_text.gd")
 const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const TakesScript := preload("res://demo/kitchen/ingredient_takes.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
@@ -67,7 +69,8 @@ const THIN_ICE_KEY: String = "water:thin_ice"
 const ACTION_RECIPES: Dictionary = {PanelScript.ACTION_DRY: Recipes.R_DRY_FISH, PanelScript.ACTION_DRY_FRUIT: Recipes.R_DRY_FRUIT,
 	PanelScript.ACTION_RATIONS: Recipes.R_RATION, PanelScript.ACTION_MEAD: Recipes.R_MEAD,
 	PanelScript.ACTION_CORDIAL: Recipes.R_CORDIAL, PanelScript.ACTION_JAM: Recipes.R_JAM,
-	PanelScript.ACTION_CHEESE: Recipes.R_CHEESE, PanelScript.ACTION_ALE: Recipes.R_ALE, PanelScript.ACTION_CIDER: Recipes.R_CIDER}
+	PanelScript.ACTION_CHEESE: Recipes.R_CHEESE, PanelScript.ACTION_ALE: Recipes.R_ALE, PanelScript.ACTION_CIDER: Recipes.R_CIDER,
+	PanelScript.ACTION_VINEGAR: Recipes.R_VINEGAR, PanelScript.ACTION_PICKLES: Recipes.R_PICKLES}
 ## The Make buttons' locker kinds.
 const MAKE_ACTIONS: Array[StringName] = [PanelScript.ACTION_MAKE_NET, PanelScript.ACTION_MAKE_TRAP,
 	PanelScript.ACTION_MAKE_ICE_KIT]
@@ -496,12 +499,13 @@ func preserves_text() -> String:
 	for slot: int in Rules.RACK_SLOTS:
 		var drying: bool = fishery.tables.s_state[slot] != Tables.SLOT_EMPTY
 		fruit += 1 if drying and fishery.tables.s_recipe[slot] == Recipes.R_DRY_FRUIT else 0
-	return "Fruit drying on the rack: %d slot%s · the preserving table: %s · cheeses setting: %d\nIn the pantry: fruit %s · dried fruit %s · rations %s · jam %s · cheese %s" % [
+	return "Fruit drying on the rack: %d slot%s · the preserving table: %s · crocks in use: %d\nIn the pantry: fruit %s · dried fruit %s · rations %s · jam %s · cheese %s · vinegar %s · pickles %s" % [
 		fruit, "" if fruit == 1 else "s", "in use" if fishery.packing() else "free",
 		fishery.slots_in_use(Recipes.STATION_TABLE),
 		Text.units(fishery.pantry.milli_of(Catalog.ITEM_APPLE) + fishery.pantry.milli_of(Catalog.ITEM_PEAR)),
 		Text.units(fishery.pantry.milli_of(Catalog.ITEM_DRIED_FRUIT)), Text.units(fishery.pantry.milli_of(Catalog.ITEM_RATION)),
-		Text.units(fishery.pantry.milli_of(Catalog.ITEM_JAM)), Text.units(fishery.pantry.milli_of(Catalog.ITEM_CHEESE))]
+		Text.units(fishery.pantry.milli_of(Catalog.ITEM_JAM)), Text.units(fishery.pantry.milli_of(Catalog.ITEM_CHEESE)),
+		Text.units(fishery.pantry.milli_of(Catalog.ITEM_VINEGAR)), Text.units(fishery.pantry.milli_of(Catalog.ITEM_PICKLES))]
 
 
 func brewing_text() -> String:
@@ -655,8 +659,8 @@ func batch_card(recipe: int, members: PackedInt32Array) -> CardScript:
 	if Recipes.WATER_MILLI[recipe] > 0:
 		_card.add_cost("Water", fishery.stores.water_milli_u if fishery.stores != null else 0, Recipes.WATER_MILLI[recipe])
 	_card.result = "%s of %s (keeps %d h; %s)%s" % [Text.units(Recipes.OUT_MILLI[recipe]),
-		Catalog.ITEM_LABELS[item].to_lower(), Catalog.shelf_hours_of(item), "eaten as it is" if MealRules.raw_np_per_u(item) > 0
-		else "kept for feasts", " after %d game hours at %s" % [Recipes.PASSIVE_HOURS[recipe],
+		Catalog.ITEM_LABELS[item].to_lower(), Catalog.shelf_hours_of(item),
+		PreserveText.card_use(item, MealRules.raw_np_per_u(item)), " after %d game hours at %s" % [Recipes.PASSIVE_HOURS[recipe],
 		Recipes.STATION_NAMES[Recipes.STATION[recipe]]] if Recipes.is_passive(recipe) else ""]
 	if not why.is_empty():
 		_card.refuse(fishery.refused_code, why, fishery.refused_fix)

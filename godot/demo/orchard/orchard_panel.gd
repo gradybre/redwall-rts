@@ -28,12 +28,13 @@ const BUTTON_TEXT: Dictionary = {
 	&"plant_pear": "Plant pear", &"plan_apple": "Plan an apple", &"plan_pear": "Plan a pear",
 	&"drop_plan": "Drop the plan", &"haul": "Send baskets on", &"timing": "Timing", &"dest": "Send to",
 	&"keep": "Keep for nursery", &"protect": "Protected", &"observe": "Observe now",
+	&"service": "Tend the bees", &"feed": "Feed the bees", &"recolonize": "Recolonise",
 }
 const SELECTION_ACTIONS: Array[StringName] = [&"tend", &"harvest", &"pick", &"plant_apple", &"plant_pear",
-	&"plan_apple", &"plan_pear", &"drop_plan", &"haul", &"observe"]
+	&"plan_apple", &"plan_pear", &"drop_plan", &"haul", &"observe", &"service", &"feed", &"recolonize"]
 const GROUP_ACTIONS: Array[StringName] = [&"timing", &"dest", &"keep"]
 const GROVE_ACTIONS: Array[StringName] = [&"protect"]
-const NOTHING: String = "Click an orchard tree, a site's pegs, a hedge bush, the baskets, the nursery or the grove."
+const NOTHING: String = "Click an orchard tree, a site's pegs, a hedge bush, the baskets, the nursery, the grove or the skep."
 const DETAIL_NAME: String = "UI-SET-036"
 const FRAME_EXPAND: float = 10.0
 const TITLE_PX: int = 19

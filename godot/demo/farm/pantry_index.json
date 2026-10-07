@@ -4477,6 +4477,76 @@
      "use": "direct"
     }
    ]
+  },
+  {
+   "item_key": "dried_fruit",
+   "leaf_id": "",
+   "targets": [
+    "COMPONENT_shared_dried_apple"
+   ],
+   "direct_count": 6,
+   "component_count": 1,
+   "dishes": [
+    {
+     "label": "Durral-style celebration cake with candied mint leaves",
+     "id": "pearls_lutra::PL_RECIPE_durral_s_seven_season_celebration_cake",
+     "use": "direct"
+    },
+    {
+     "label": "Hare-song rock cakes",
+     "id": "lord_brocktree::LB-RECIPE-hare-song-rock-cakes",
+     "use": "direct"
+    },
+    {
+     "label": "Honey-soaked fruit trekking farl",
+     "id": "lord_brocktree::LB-RECIPE-honey-soaked-fruit-trekking-farl",
+     "use": "direct"
+    },
+    {
+     "label": "Preserved apple and plum pudding with chestnut sauce",
+     "id": "lord_brocktree::LB-RECIPE-preserved-apple-and-plum-pudding-with-chestnut-sauce",
+     "use": "direct"
+    },
+    {
+     "label": "Sunflash's improved oatcake",
+     "id": "outcast::OUT_recipe_sunflash_s_improved_oatcake",
+     "use": "direct"
+    },
+    {
+     "label": "Vole oat-and-dried-fruit travel cakes",
+     "id": "taggerung::TAG_recipe_vole_oat_and_dried_fruit_travel_cakes",
+     "use": "direct"
+    },
+    {
+     "label": "Fruitcake with candied chestnut maple glaze",
+     "id": "outcast::OUT_recipe_fruitcake_with_candied_chestnut_maple_glaze",
+     "use": "component"
+    }
+   ]
+  },
+  {
+   "item_key": "ration",
+   "leaf_id": "",
+   "targets": [],
+   "direct_count": 0,
+   "component_count": 0,
+   "dishes": []
+  },
+  {
+   "item_key": "mead",
+   "leaf_id": "",
+   "targets": [],
+   "direct_count": 0,
+   "component_count": 0,
+   "dishes": []
+  },
+  {
+   "item_key": "cordial",
+   "leaf_id": "",
+   "targets": [],
+   "direct_count": 0,
+   "component_count": 0,
+   "dishes": []
   }
  ]
 }

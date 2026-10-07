@@ -2009,6 +2009,84 @@ seasons (`orchard/`). Presentation only; every number not the GDD's is named in 
 | Right click one (residents selected) | The nearest does its most pressing work: a tree's harvest (else its tending), an empty site's planting, a bush's picking, the baskets' haul, the grove's observation |
 | Orchard panel | Tend, Harvest, Pick berries, Send baskets on, Plant apple/pear, Plan an apple/pear, Drop the plan, Observe now -- with nobody selected, queued for the Field crew; Timing, To, Keep (the group's policy); Protected (the grove) |
 
+## Hives, honey and wax (decision 1601)
+
+Review group Y's ECO-011 and ECO-012 (`hives/`, inside the orchard's panel and board). Presentation only; every number
+not the GDD's is named in `hives/hive_rules.gd`.
+
+- **The hive is a real Hive row** of `scripts/core/orchard_hive.gd` (GDD §5.6), in the orchard's own store, so its
+  pollination links reach the trees: strength starts 8000 (healthy from 5000); spring to autumn a hive tended that day
+  makes honey 2 U and wax 0.25 U × strength/10000, for 20 WU of service a day; a missed day costs 200 and makes
+  nothing; a tended spring day restores 300; winter makes nothing and eats 0.5 U of honey a day from the hive's feed,
+  a day without it costing 500; at 0 the hive is abandoned.
+- **The apiary** stands from the start north of the field, before the old orchard (one skep, tiles 57..59 × 73..75). Its keeper's work is
+  on the work board under **Orchard**: **Tend the bees** (the day's service, then the collection), **Feed the bees**
+  (winter, when the hive's feed falls short: the pantry's free honey), **Recolonise** (an abandoned hive in spring:
+  honey 4 U and wood 2 U, 60 WU, a 3-day wait).
+- **The winter feed first** (ECO-012): a collection tops the hive's feed up to a whole winter's 6 U before any honey
+  leaves it; the rest goes to the **old orchard's baskets**, and the Haulers send it on with the fruit. Honey is food
+  (the pantry's `honey`, 1440 h, raw-edible 1200 NP); the raspberry cordial no longer waits for it.
+- **Wax** is a material: until the village stores keep it, it waits on the apiary's own shelf (40 U), shown in its
+  readout.
+- **Pollination** (REQ-SET-082, ECO-011): a healthy hive within 12 m gives beans and orchard fruit ×1.10 (×1.15 with
+  two). The apiary reaches the old apple and pear and the four northern field beds (beds 3–6): beans sown there yield
+  ×1.10 (`farm/farm_sim.gd` `pollinate`); the cabbage beds and the east orchard are out of reach. The readout lists
+  what benefits.
+- **Wildlife** (§5.8): at midnight in summer and autumn a 2% roll takes min(2 U, the honey in the hive) -- news, never
+  an injury.
+- **The bees** are the free `fx/bee_swarm.gd` effect over the food art's `bee_skep` (or its placeholder box): out spring
+  to autumn, resting in winter and gone while the hive is abandoned; reduced motion slows and gathers them.
+
+| Input | Does |
+|---|---|
+| Left click the skep | Select the apiary: the **Orchard (demo)** panel -- its strength and season, REQ-SET-083's service and feed deficits, its honey, wax and winter feed, the crops it pollinates, and its verbs |
+| Right click it (residents selected) | The nearest does its most pressing work: the service, else a feeding, else a recolonisation |
+
+## Preserving: dried fruit and rations (decision 1611)
+
+Feature #18 and the review's ECO-028 (`preserve/`, through the fishery's station jobs). §5.7's preserving rows the demo
+can make; every number not the GDD's is named in `preserve/preserve_rules.gd`.
+
+- **Dry fruit** on the smoking rack, which is §5.9's Dryer (decision 0434): fruit 4 → **dried fruit** 3 (1400 NP a
+  unit), 20 WU to hang, then 12 game hours in its slot with the worker free, then taken down. Fish and fruit share the
+  rack's four slots.
+- **Pack rations** at **the preserving table** west of the kitchen (art pass 3's shelf of jars and salt-glazed crock):
+  flour 2 + dried fish 1 + nuts 1 + water 1 → **rations** 3 (2400 NP a unit), 24 WU, carried to the stores.
+- Both are **pantry items** (dried fruit 720 h, rations 1440 h), aged by where they are kept (a cellar keeps them about
+  three times as long as the covered store) and **eaten as they are** by a hungry resident when a meal is missed --
+  the village's reserve; the kitchen still cooks fresh food first (ECO-028).
+- The inputs that spoil first are set aside when a batch is ordered and taken only when its work starts; cancelled
+  after that, half its food is spoiled (REQ-SET-094). Each button's card says what is short and where to get it.
+- **Not built**: salt fish (salt is coastal brine only, and the village has no coast); jam, pickles and a plant-milk
+  cheese have no GDD row and wait on Brendan's recipe approval (open question Q-D5).
+
+| Input | Does |
+|---|---|
+| Water panel ▸ Preserves ▸ **Dry fruit** | 4 U of the fruit that spoils first onto the rack (selected residents first, else the board) |
+| Water panel ▸ Preserves ▸ **Pack rations** | A batch of rations at the preserving table |
+
+## Brewing: mead and the cordial (decision 1621)
+
+Feature #19 and the review's ECO-031, a modest drink culture (`preserve/preserve_rules.gd`'s brewing rows, through the
+fishery's station jobs). Nothing models what drink does: mead is "a feast ingredient only; no intoxication subsystem".
+
+- **The brewery** stands east of the kitchen: art pass 3's mash vat (steam rises over its rim while a batch brews) and
+  conditioning cask. Its **four vats** are §5.9's Brewery's passive slots.
+- **Brew mead** (§5.7 `mead`): honey 3 + water 3 → **mead** 4, 20 WU, then 72 game hours in a vat with the brewer
+  free, then drawn off to the stores (1440 h).
+- **Make cordial**: the raspberry cordial of the recipe book (Brendan's DEC-045, decision 0603: berries 2 + honey 0.5
+  + water 2 → 4, 10 WU, 72 h) at the brewery's bench, kept as a drink. Its honey is the apiary's (decision 1601).
+- **At the feast**: the regatta's supper pours what the brewery has made -- mead and the cordial, a unit each for
+  every four guests, for those who came -- beside the Hearth feast's warm infusion. A drink never decides Shared
+  Warmth, and the preview says which will be poured.
+- **Not built**: ale and cider (icons exist; no GDD row) wait on Brendan's ruling on how drink is depicted (DEC-007)
+  and new drink recipes (open question Q-D5).
+
+| Input | Does |
+|---|---|
+| Water panel ▸ Brewing ▸ **Brew mead** | A batch of mead into a free vat (selected residents first, else the board) |
+| Water panel ▸ Brewing ▸ **Make cordial** | A batch of the raspberry cordial at the brewery's bench |
+
 ## Water
 
 A stream runs down the village's east edge -- narrowing to a neck at the north-east corner, past

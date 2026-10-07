@@ -23,6 +23,9 @@ WHAT IS RESOLVED, exactly as the handoff's section 3 specifies:
   * the woods' forage (decision 0681: nuts, mushrooms, herb, berries) by the woodland leaves each stands for
     (FORAGE_LEAVES: the batch 7 integration's demo selection, decision 0902 -- never nutmeg, a spice);
   * the orchard's apple and pear (decision 0671) by their LEAF (batch 8 integration, decision 0903);
+  * the preserves (decision 1611): dried fruit as the library's dried forms of apple and pear (as dried fish is of the
+    fish); rations by a LEAF the library does not have, so with no targets and no dishes; likewise the drinks (decision
+    1621: mead and the cordial), which the library has as no leaf;
   * Salmon and carp have no pantry leaf (the library's fish leaves are dace, herring, mackerel,
     mussel, perch, trout and whitefish): they are listed with no targets and no dishes.
 
@@ -61,6 +64,8 @@ ITEM_KEYS = [
     "potato", "honey",
     "nuts", "mushrooms", "herb", "berries",
     "apple", "pear",
+    "dried_fruit", "ration",
+    "mead", "cordial",
 ]
 ## The woods' forage (farm_catalog.gd THE WOODS' FORAGE): each item's pantry leaves, the demo's own selection of the
 ## woodland's nuts, fungi, pot herbs and wild berries (decision 0902).
@@ -73,6 +78,8 @@ FORAGE_LEAVES = {
 }
 CATCH = ["trout", "dace", "salmon", "perch", "carp", "whitefish"]
 GRAIN_LEAVES = {"LEAF_wheat", "LEAF_barley", "LEAF_oats"}
+## The orchard's fruit (decision 0671): dried fruit (decision 1611) is the library's dried forms of them.
+FRUIT_LEAVES = {"LEAF_apple", "LEAF_pear"}
 ## At most this many dish names per ingredient are listed (direct uses first); the counts are whole.
 MAX_LISTED = 40
 
@@ -116,6 +123,8 @@ def targets_of(key: str, known: set, components: dict, memo: dict) -> list:
         return goods_targets(components, "dried", {f"LEAF_{k}" for k in CATCH}, memo)
     if key == "flour":
         return goods_targets(components, "flour", GRAIN_LEAVES, memo)
+    if key == "dried_fruit":
+        return goods_targets(components, "dried", FRUIT_LEAVES, memo)
     if key in FORAGE_LEAVES:
         return [leaf for leaf in FORAGE_LEAVES[key] if leaf in known]
     return [f"LEAF_{key}"] if f"LEAF_{key}" in known else []

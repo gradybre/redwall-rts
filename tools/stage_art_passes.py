@@ -52,10 +52,12 @@ PASS2_WORLD = {
 	"residence_windows": ("building", "world/residence_windows.glb", "world/residence_window_mask.png"),
 	"hall_banner": ("prop", "props/hall_banner.glb", ""),
 }
-## Pass 3's models the demo draws (their rows come from art_pass3_models.json, prescaled).
+## Pass 3's models the demo draws (their rows come from art_pass3_models.json, prescaled): the digging set and rock face
+## (decision 0903), the preserving table's jar shelf and crock (decision 1611), the brewery's vat and cask (decision 1621).
 ## Flax's soil line, measured by art pass 2 (make_art_pass2.py FLAX_SOIL_Y).
 FLAX_SOIL_Y = -0.797
-PASS3_WORLD = ["tunnel_set", "tunnel_post", "tunnel_lintel", "rock_face"]
+PASS3_WORLD = ["tunnel_set", "tunnel_post", "tunnel_lintel", "rock_face", "jar_shelf", "crock_stoneware", "brew_vat",
+	"ale_cask"]
 ## Each pass's records: if one is missing, its tool is run (arguments after the script).
 PASS2_RECORDS = ["art_pass2_models.json", "art_pass2_post.json", "ui/art_pass2_ui.json"]
 PASS3_RECORDS = {"art_pass3_models.json": [], "art_pass3_icons.json": ["--icons"]}

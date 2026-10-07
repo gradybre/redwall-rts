@@ -57,6 +57,7 @@ const DEMO_HEIGHT_M: Dictionary = {
 	&"hazel_bush": 3.0,         # a coppiced hazel, three mice tall
 	&"mushroom_forage": 0.45,   # ceps and chanterelles at a mouse's hip, as the woods' fungi
 	&"herb_patch": 0.5,         # a herb bed about 1.9 m across
+	&"bee_skep": 0.75,          # the apiary's straw skep (decision 0941's DEC-048 size; wired by decision 1601)
 	&"pine_scots": 16.0,        # Brendan, 2026-10-02 (DEC-047): taller and narrower than the 13 m oak
 	&"yew_ancient": 10.0,       # Brendan, 2026-10-02 (DEC-047): low and broad, a 16.5 m spread
 	# table_stools: not here -- its top is the 0.625 m work-surface candidate, read below.
@@ -150,6 +151,7 @@ const NATIVE_AABB: Dictionary = {
 	&"hazel_bush": [Vector3(-1.4783, 0.0, -0.7809), Vector3(1.4783, 3.0, 0.7809)],
 	&"mushroom_forage": [Vector3(-0.5212, 0.0, -0.511), Vector3(0.5212, 0.45, 0.511)],
 	&"herb_patch": [Vector3(-0.9807, 0.0, -0.9912), Vector3(0.9807, 0.5, 0.9912)],
+	&"bee_skep": [Vector3(-0.2819, 0.0, -0.2764), Vector3(0.2819, 0.75, 0.2764)],
 	&"pine_scots": [Vector3(-0.5311, 0.0, -0.5122), Vector3(0.5311, 1.8998, 0.5122)],
 	&"yew_ancient": [Vector3(-0.8286, 0.0, -0.9403), Vector3(0.8286, 1.5047, 0.9403)],
 }

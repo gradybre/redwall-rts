@@ -71,6 +71,12 @@ const ACTION_MAKE_ICE_KIT: StringName = &"make_ice_kit"
 const ACTION_MEND: StringName = &"mend"
 const ACTION_DRY: StringName = &"dry_fish"
 const ACTION_MILL: StringName = &"mill_grain"
+## The preserves (decision 1611): fruit onto the rack, rations packed at the preserving table.
+const ACTION_DRY_FRUIT: StringName = &"dry_fruit"
+const ACTION_RATIONS: StringName = &"pack_rations"
+## Brewing (decision 1621): mead into a vat, the cordial at the brewery's bench.
+const ACTION_MEAD: StringName = &"brew_mead"
+const ACTION_CORDIAL: StringName = &"make_cordial"
 ## The Ferry section (decision 0437) and the Regatta section (decision 0438).
 const ACTION_FERRY_GATHER: StringName = &"ferry_gather"
 const ACTION_FERRY_SEND: StringName = &"ferry_send"
@@ -88,7 +94,8 @@ const BUTTON_TEXT: Dictionary = {
 	&"fish_site": "Site ▸", &"fish_method": "Method ▸", &"fish_species": "Fish ▸",
 	&"fish_authorise": "Authorise trip", &"fish_next_trip": "Next trip ▸", &"fish_cancel": "Cancel trip",
 	&"make_net": "Make net", &"make_trap": "Make trap", &"make_ice_kit": "Make ice kit", &"mend": "Mend gear",
-	&"dry_fish": "Dry fish", &"mill_grain": "Mill grain",
+	&"dry_fish": "Dry fish", &"mill_grain": "Mill grain", &"dry_fruit": "Dry fruit", &"pack_rations": "Pack rations",
+	&"brew_mead": "Brew mead", &"make_cordial": "Make cordial",
 	&"ferry_gather": "Gather the far copse", &"ferry_send": "Send the ferry", &"ferry_cancel": "Cancel crossing",
 	&"regatta_prev_day": "◀ Day", &"regatta_next_day": "Day ▶", &"regatta_host": "Host ▸",
 	&"regatta_hold": "Hold the regatta", &"regatta_override": "Override reserves", &"regatta_skip": "Skip this season",
@@ -110,6 +117,8 @@ const CHOICE_ACTIONS: Array[StringName] = [&"fish_site", &"fish_method", &"fish_
 const TRIP_ACTIONS: Array[StringName] = [&"fish_authorise", &"fish_next_trip", &"fish_cancel"]
 const GEAR_ACTIONS: Array[StringName] = [&"make_net", &"make_trap", &"make_ice_kit", &"mend"]
 const STATION_ACTIONS: Array[StringName] = [&"dry_fish", &"mill_grain"]
+const PRESERVE_ACTIONS: Array[StringName] = [&"dry_fruit", &"pack_rations"]
+const BREW_ACTIONS: Array[StringName] = [&"brew_mead", &"make_cordial"]
 const FERRY_ACTIONS: Array[StringName] = [&"ferry_gather", &"ferry_send", &"ferry_cancel"]
 const REGATTA_CHOICE_ACTIONS: Array[StringName] = [&"regatta_prev_day", &"regatta_next_day", &"regatta_host"]
 const REGATTA_ACTIONS: Array[StringName] = [&"regatta_hold", &"regatta_override", &"regatta_skip"]
@@ -118,7 +127,7 @@ const FERRY_LINES: Array[StringName] = [&"ferry_status", &"ferry_cargo", &"ferry
 const REGATTA_LINES: Array[StringName] = [&"regatta_status", &"regatta_choice", &"regatta_preview"]
 ## Their lines, in order: what fishery.gd's panel text fills.
 const FISHERY_LINES: Array[StringName] = [&"fish_choice", &"fish_preview", &"fish_trips", &"fish_gear", &"boats",
-	&"stations"]
+	&"stations", &"preserves", &"brewing"]
 const SITE_ACTIONS: Array[StringName] = [&"prev_site", &"next_site", &"span_tool", &"build_plank", &"build_log"]
 ## The two Build buttons, side by side under their kinds' costs.
 const BUILD_ACTIONS: Array[StringName] = [&"build_plank", &"build_log"]
@@ -300,6 +309,14 @@ func _build_fishery() -> void:
 	_set_line(&"stations_title", "Drying rack and mill")
 	_add_line(_column, &"stations", SMALL_PX, Palette.INK, null)
 	_column.add_child(_row(STATION_ACTIONS))
+	_add_line(_column, &"preserves_title", HEADING_PX, Palette.INK, Styles.heading_font())
+	_set_line(&"preserves_title", "Preserves")
+	_add_line(_column, &"preserves", SMALL_PX, Palette.INK, null)
+	_column.add_child(_row(PRESERVE_ACTIONS))
+	_add_line(_column, &"brewing_title", HEADING_PX, Palette.INK, Styles.heading_font())
+	_set_line(&"brewing_title", "Brewing")
+	_add_line(_column, &"brewing", SMALL_PX, Palette.INK, null)
+	_column.add_child(_row(BREW_ACTIONS))
 
 
 func _build_ferry() -> void:

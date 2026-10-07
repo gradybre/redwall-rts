@@ -51,13 +51,14 @@ extends RefCounted
 ##                  beetroot pie                                                  root, potato, nuts      potato
 ##   woodland_pie   Woodland pie               (the GDD's)    woodland_pie         flour, mushrooms, roots cookable
 ##   scones         Hazelnut scones            martin_warrior scones (new)         flour + nuts            cookable
-##   cordial        Raspberry cordial          lord_brocktree cordial (new)        berries + honey         waits: honey
+##   cordial        Raspberry cordial          lord_brocktree cordial (new)        berries + honey         cookable
 ## A dish whose ingredient the demo cannot yet produce WAITS: it is listed, never hidden, with its reason
 ## (PENDING_SOURCES). An input of category NEEDS names items by their pantry key -- items another lane owns -- and takes
 ## its category from them. The library's hazelnut, mushroom and raspberry are the foraging lane's `nuts`, `mushrooms` and
 ## `berries` (farm_catalog.gd THE WOODS' FORAGE, decision 0681): the batch 7 integration mapped them so and struck them
-## from PENDING_SOURCES (decision 0902). Potato and honey still wait.
-## The cordial is a DRINK: never chosen for a meal (the feasts lane serves drinks); it is listed with its recipe.
+## from PENDING_SOURCES (decision 0902). Honey is the apiary's since decision 1601 (demo/hives/); potato still waits.
+## The cordial is a DRINK: never chosen for a meal; it is listed with its recipe, made at the brewery's bench from this
+## row's numbers and poured at the regatta's feast (decision 1621).
 ##
 ## THE FEAST'S SECOND COURSE (decision 0682): nut_loaf, the library's Nutbread cooked as §5.7's own `nut_loaf` row
 ## (flour 2 + nuts 2, the GDD's numbers), is an OCCASION dish -- never a meal's choice, cooked only as the Hearth feast's
@@ -177,5 +178,4 @@ const ADOPTED_ROWS: Array[String] = ["porridge", "root_stew", "fish_stew", "bean
 ## item exists).
 const PENDING_SOURCES: Dictionary = {
 	&"potato": "grown in the fields, not yet planted in the demo",
-	&"honey": "made in beehives, not yet in the demo",
 }

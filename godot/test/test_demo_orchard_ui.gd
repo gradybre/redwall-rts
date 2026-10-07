@@ -14,6 +14,7 @@ const CardsScript := preload("res://demo/orchard/orchard_cards.gd")
 const PanelScript := preload("res://demo/orchard/orchard_panel.gd")
 const ViewScript := preload("res://demo/orchard/orchard_view.gd")
 const OrchardNode := preload("res://demo/orchard/demo_orchard.gd")
+const HiveRules := preload("res://demo/hives/hive_rules.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 const PantryScript := preload("res://demo/farm/farm_pantry.gd")
@@ -561,14 +562,15 @@ func _node() -> OrchardNode:
 
 func test_the_stands_and_obstacles_it_hands_the_village() -> void:
 	"""`stand_provider`: two gathering stores at the covered store's factor; `land_obstacles`: four trunks, two bushes,
-	two stands, the nursery and the grove's stone."""
+	two stands, the nursery, the grove's stone and the apiary's skep (decision 1601)."""
 	var rows: Array = OrchardNode.stand_provider().call()
 	assert_equal(rows.size(), Rules.GROUP_COUNT, "a stand a group")
 	for row: Dictionary in rows:
 		assert_true(row[StorageScript.KEY_STAGING], "a gathering place")
 		assert_equal(row[StorageScript.KEY_PERMILLE], 1000, "§5.8 covered store")
 		assert_equal(row[StorageScript.KEY_CAPACITY_U], Rules.STAND_CAPACITY_U, "its capacity")
-	assert_equal(OrchardNode.land_obstacles().size(), Rules.SITE_COUNT + 2 + Rules.GROUP_COUNT + 2, "ten circles")
+	assert_equal(OrchardNode.land_obstacles().size(), Rules.SITE_COUNT + 2 + Rules.GROUP_COUNT + 2 + HiveRules.APIARY_COUNT,
+		"eleven circles")
 
 
 func test_a_click_picks_the_nearest_orchard_thing() -> void:

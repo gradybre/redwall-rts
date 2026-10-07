@@ -307,6 +307,7 @@ const WeatherFxScript := preload("res://demo/weather/weather_fx.gd")
 const TapestryScript := preload("res://demo/hall/tapestry.gd")
 const CareScript := preload("res://demo/infirmary/demo_care.gd")
 const OrchardScript := preload("res://demo/orchard/demo_orchard.gd")
+const PreserveRules := preload("res://demo/preserve/preserve_rules.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -557,6 +558,7 @@ func _build_cast(manifest: Dictionary) -> void:
 	obstacles.append_array(WaterplayScript.land_obstacles())
 	obstacles.append_array(WeirViewScript.land_obstacles())
 	obstacles.append_array(OrchardScript.land_obstacles())
+	obstacles.append_array(PreserveRules.land_obstacles())
 	obstacles.append_array(EvergreensScript.land_obstacles((_world as DemoWorldScript).trees()))
 	_links = WaterplayScript.make_links(_water.map(), obstacles)
 	obstacles.append_array(_links.band)
@@ -658,6 +660,7 @@ func _build_orchard() -> void:
 	_orchard.configure(_world as DemoWorldScript, _cast as DemoCastScript, _command as DemoCommandScript,
 		_camera.camera(), _services, _farm.pantry)
 	_orchard.set_compost(compost_left, take_compost)
+	_orchard.bind_farm(_farm.sim, _kitchen.kitchen.takes)
 	_orchard.panel.watch_hud(_game.get_node_or_null(GAME_HUD_ROOT) as Control)
 
 

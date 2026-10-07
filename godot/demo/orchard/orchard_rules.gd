@@ -148,7 +148,12 @@ const K_HAUL: int = 3
 const K_PLANT: int = 4
 const K_PROPAGATE: int = 5
 const K_OBSERVE: int = 6
-const KIND_COUNT: int = 7
+## The apiary's (decision 1601, demo/hives/): the keeper's daily service and collection, a winter feeding from the
+## pantry's honey, and a recolonisation.
+const K_SERVICE: int = 7
+const K_FEED: int = 8
+const K_RECOLONIZE: int = 9
+const KIND_COUNT: int = 10
 
 # --- work (milli-WU) -------------------------------------------------------------------------------------------------------
 

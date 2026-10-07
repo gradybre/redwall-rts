@@ -39,6 +39,8 @@ const RegattaRules := preload("res://demo/regatta/regatta_rules.gd")
 const WinterRules := preload("res://demo/winter/winter_rules.gd")
 const ForageRules := preload("res://demo/forage/forage_rules.gd")
 const OrchardText := preload("res://demo/orchard/orchard_text.gd")
+const HiveText := preload("res://demo/hives/hive_text.gd")
+const PreserveText := preload("res://demo/preserve/preserve_text.gd")
 
 const KIND_CROP: int = 0
 const KIND_DISH: int = 1
@@ -268,10 +270,9 @@ static func _choice_text(dish: int) -> String:
 func _goods(item: int) -> Entry:
 	"""One of the pantry's other goods (decision 0431): a fish of the catch, dried fish or flour -- or an ingredient with
 	no source yet (decision 0603: potato, honey), the woods' forage (decision 0681) or the orchard's fruit (0671)."""
-	if Catalog.category_of(item) == Catalog.CAT_FRUIT:
-		return _orchard_goods(item)
-	if item >= Catalog.FIRST_FORAGE:
-		return _forage_goods(item)
+	var special: Entry = _goods_of_other_lanes(item)
+	if special != null:
+		return special
 	var links: Array[StringName] = [&"station_store", &"station_fishing"]
 	var fields: PackedStringArray
 	var summary: String
@@ -363,6 +364,40 @@ func _forage_goods(item: int) -> Entry:
 		"Gathered at %s%s; keeps %d game hours in store." % [ForageRules.SPOT_NAMES[k],
 			" and picked at the east orchard's berry hedge" if item == Catalog.ITEM_BERRIES else "",
 			Catalog.shelf_hours_of(item)]]), links)
+	made.item = item
+	return made
+
+
+func _goods_of_other_lanes(item: int) -> Entry:
+	"""A good another lane describes (null: none): the orchard's fruit, the apiary's honey (decision 1601), the stations'
+	preserves and drinks (decisions 1611, 1621), the woods' forage."""
+	if Catalog.category_of(item) == Catalog.CAT_FRUIT:
+		return _orchard_goods(item)
+	if item == Catalog.ITEM_HONEY:
+		return _hive_goods(item)
+	if PreserveText.is_station_good(item):
+		return _preserve_goods(item)
+	if item >= Catalog.FIRST_FORAGE:
+		return _forage_goods(item)
+	return null
+
+
+func _hive_goods(item: int) -> Entry:
+	"""The apiary's honey (decision 1601): the dishes that take it, and the apiary's own words for the rest."""
+	var links: Array[StringName] = [&"station_store", &"station_kitchen"]
+	var fields: PackedStringArray = HiveText.guide_fields(_dishes_taking(item, links), Rules.raw_np_per_u(item),
+		Catalog.shelf_hours_of(item))
+	var made: Entry = make(item_id(item), KIND_GOODS, Catalog.ITEM_LABELS[item], HiveText.GUIDE_SUMMARY, fields, links)
+	made.item = item
+	return made
+
+
+func _preserve_goods(item: int) -> Entry:
+	"""Dried fruit, rations (decision 1611), mead or the cordial (decision 1621): the stations' own words."""
+	var at_rack: bool = item == Catalog.ITEM_DRIED_FRUIT
+	var links: Array[StringName] = [&"station_rack_mill" if at_rack else &"station_kitchen", &"station_store"]
+	var made: Entry = make(item_id(item), KIND_GOODS, Catalog.ITEM_LABELS[item], PreserveText.summary(item),
+		PreserveText.guide_fields(item, Rules.raw_np_per_u(item)), links)
 	made.item = item
 	return made
 
@@ -604,11 +639,12 @@ static func _station_fishing() -> Entry:
 static func _station_rack_mill() -> Entry:
 	"""The drying rack and the mill, from fishery_rules.gd."""
 	return make(&"station_rack_mill", KIND_STATION, "Drying rack and mill", "Fish kept, grain ground", PackedStringArray([
-		"Drying fish into the village's reserve (%d slots); grinding grain into flour (%d at a time)." % [
+		"Drying fish or fruit into the village's reserve (%d slots, shared); grinding grain into flour (%d at a time)." % [
 			FisheryRules.RACK_SLOTS, FisheryRules.MILL_SLOTS],
-		"Fresh fish for the rack (%s a batch); grain for the mill (%s a batch); a resident to work each batch." % [
+		"Fresh fish or fruit for the rack (%s a batch); grain for the mill (%s a batch); a resident to work each batch." % [
 			FarmText.units_text(FisheryRules.DRY_IN_MILLI), FarmText.units_text(FisheryRules.MILL_IN_MILLI)],
-		"Cook fresh fish in the stew instead of drying it.", "The Water panel's Drying rack and mill: Dry fish, Mill grain."]),
+		"Cook fresh fish in the stew instead of drying it.",
+		"The Water panel's Drying rack and mill: Dry fish, Mill grain; its Preserves: Dry fruit (decision 1611)."]),
 		[&"goods_dried_fish", &"goods_flour", &"station_store"])
 
 

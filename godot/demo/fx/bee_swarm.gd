@@ -1,6 +1,6 @@
 extends Node3D
-## Bees about a hive: a small swarm drawn as ONE MultiMesh. Art pass 3, decision 0971. Presentation only, and NOT WIRED
-## IN: the hives work (ECO-008..015, group Y) places one per skep (`place`) and drives it on the demo clock.
+## Bees about a hive: a small swarm drawn as ONE MultiMesh. Art pass 3, decision 0971. Presentation only: the apiary
+## (demo/hives/apiary_view.gd, decision 1601) places one per skep (`place`) and drives it on the demo clock.
 ##
 ## NO PARTICLES. The warren's budget (warren_particles.gd, decision 0211) is spent, and a bee is not a puff: it flies a
 ## path, faces where it flies and beats its wings. So each bee is a MultiMesh instance moved on its own seeded loop

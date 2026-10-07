@@ -162,6 +162,18 @@ lines.
   `python3 docs/validation/decision_numbers.py` (it refuses duplicates and heading mismatches). The record states the
   rules used (with their REQ, section or decision), every PROPOSAL, the gates' summary lines, the review outcome and
   the mutation counts. Format: `docs/decisions/README.md`.
+
+> **Decision numbers: the BACKLOG ranges collide (noted 2026-10-07).** The ranges BACKLOG.md allocates (1101–1560,
+> ten per packet) overlap a parallel digging and underground branch, which already uses **0991–1217** (on its
+> `codex/underground-*` branches and some `claude/*` ones, not on master). So a packet's printed range may already be taken.
+>
+> - **Before using any number, check it everywhere**: `git log --all --oneline -- 'docs/decisions/NNNN-*'`, and
+>   `git ls-tree` over every ref from `git for-each-ref refs/heads refs/remotes` (every open branch, not only master).
+>   Then run `python3 docs/validation/decision_numbers.py`.
+> - **Remaining packets start at 1701 and up**, ten per packet in the order you take them, instead of BACKLOG.md's
+>   printed range. Say in the decision record which BACKLOG range it replaces.
+> - **1601–1669 are in use** by the three lanes of 2026-10-07 (this branch, `feat/demo-small-leftovers`, has
+>   1651–1669: GOALS-2 1651, HALL-FUEL 1652, TIME 1653).
 - **Brendan's own decisions** go in `docs/setting_decisions.md` as the next `DEC-nnn` (the latest is DEC-048 on batch
   8 and DEC-049 on `feat/demo-measures`; see STATUS.md). A DEC records a creative or policy ruling; an engineering
   record cites it.

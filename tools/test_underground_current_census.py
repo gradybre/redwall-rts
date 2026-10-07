@@ -37,7 +37,7 @@ class CurrentCensusTests(unittest.TestCase):
     def test_current_counts(self):
         result = census.build(self.index, self.projected, self.motion)
         self.assertEqual(result["new_retained_bytes"], {"geometry_journals": 16994,
-                         "locations_carry_and_retirement_controls": 129, "first_entry_runtime_chain": 2454})
+                         "locations_carry_and_retirement_controls": 129, "first_entry_runtime_chain": 2430})
         self.assertEqual(result["world_routes_cold"]["world_routes_cold_bytes"], 385024)
 
     def test_new_member_in_projected_source_refuses(self):
@@ -74,7 +74,7 @@ class CurrentCensusTests(unittest.TestCase):
             census.build(self.changed("underground_geometry_journal", text), self.projected, self.motion)
 
     def test_joint_pack_reports_the_overrun(self):
-        with self.assertRaisesRegex(AssertionError, "100019383"):
+        with self.assertRaisesRegex(AssertionError, "100019359"):
             memory.build()
 
 

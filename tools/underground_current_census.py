@@ -92,7 +92,7 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "8eaf97053c70af98c7d7d4ec7af94f1682f8753f15f9bb1115dc4b2cd78c6f3b"
+REVIEWED_SHA = "7a723b3d05dea4f647ac389ae549464d4a8d4ee34084ba23946c652f42e4078c"
 FRONTIER = Path("godot/data/underground/first-entry-prefix-v1/qualified-stone-v5/frontier.ugfront")
 FRONTIER_SHA = "2d5c36163ed5e5f8e96a3f1b0611d85937c075abcb8b02c7d7f01f7cf0738660"
 CORE = "godot/scripts/core/"
@@ -202,7 +202,8 @@ def exact_members(memory, index: dict, relative: str, expected: dict) -> str:
 
 
 ENTRY_RUNTIME = {"_step": "int", "_error": "StringName", "_origin": "Vector3i", "_published": "WorkArea.Published",
-                 "_storage": "Vector2i", "_output": "Vector2i", "_crew": "Foreman.Crew"}
+                 "_storage": "Vector2i", "_output": "Vector2i", "_crew": "Foreman.Crew", "_foreman": "Foreman",
+                 "_jobs": "RefCounted", "_worker_row": "int"}
 ENTRY_FOREMAN = {"_owners": "Owners", "_crew": "Crew", "_tasks": "Array", "_index": "int", "_stage": "int",
                  "_stage_ticks": "int", "_job": "int", "_error": "StringName", "_content": "int",
                  "_accepted_mwu": "int", "_math": "IntMath.IntResult", "_actor": "Routes.Actor",
@@ -226,7 +227,6 @@ def entry_chain(memory, index: dict) -> dict:
     installer = exact_members(memory, index, CORE + "underground_entry_installer.gd", ENTRY_INSTALLER)
     counts = frontier_counts()
     endpoints = memory.resolve(index, "underground_entry_work_area", "ENDPOINTS")
-    inputs = memory.resolve(index, "modular_project_contract", "INPUT_CAPACITY")
     tasks = 3 * counts["EPISODE"] + counts["INSTALL"]
     actor = packet(memory, index, CORE + "underground_routes.gd", "Actor")
     result = packet(memory, index, CORE + "int_math.gd", "IntResult", "")
@@ -234,7 +234,7 @@ def entry_chain(memory, index: dict) -> dict:
     rows = {
         "runtime_numeric": memory.numeric_fields(runtime, ""),
         "work_area_published": packet(memory, index, CORE + "underground_entry_work_area.gd", "Published") + 8 * endpoints,
-        "crew": packet(memory, index, CORE + "underground_entry_foreman.gd", "Crew") + 8 * inputs,
+        "crew": packet(memory, index, CORE + "underground_entry_foreman.gd", "Crew"),
         "foreman_numeric": memory.numeric_fields(foreman, "") + result + actor,
         "foreman_tasks": tasks * packet(memory, index, CORE + "underground_entry_foreman.gd", "Task"),
         "installer_numeric": memory.numeric_fields(installer, "") + result + actor,
@@ -242,9 +242,9 @@ def entry_chain(memory, index: dict) -> dict:
         "installer_quote": memory.payload(quote["columns"]) + quote["numeric_control_bytes"],
     }
     return {"rows": rows, "bytes": sum(rows.values()), "frontier_counts": counts, "planned_task_bound": tasks,
-            "work_area_endpoints": endpoints, "crew_lot_bound": inputs,
+            "work_area_endpoints": endpoints,
             "scope": "Numeric and packed payload only. Object, Array and Variant headers (about 30 RefCounted packets and "
-                     "the task, endpoint and lot arrays) are native overhead, unmeasured, as in every other row."}
+                     "the task and endpoint arrays) are native overhead, unmeasured, as in every other row."}
 
 
 def contact_retirement_cold(memory, index: dict) -> dict:

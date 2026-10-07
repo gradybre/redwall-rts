@@ -460,11 +460,15 @@
      ],
      [
       "PRESENTATION_SET_BYTES",
-      "PRESENTATION_BYTES + HANDLING_PRESENTATION_BYTES + HAUL_PRESENTATION_BYTES"
+      "PRESENTATION_BYTES + HANDLING_PRESENTATION_BYTES + HAUL_PRESENTATION_BYTES \\"
      ],
      [
       "PROFILE_SOURCE_COUNT",
       "Catalog.SOURCE_COUNT"
+     ],
+     [
+      "STONE_PRESENTATION_BYTES",
+      "7285004"
      ]
     ],
     "int_constants_removed": [

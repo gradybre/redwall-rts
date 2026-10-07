@@ -12,7 +12,7 @@ check the tool happened to run. A bisect on archived trees shows:
   pinned by `memory-manifest-3.json`.
 - **Drift by HEAD:** 20 pinned current sources and 6 witnesses, across about 60 commits. The witness
   `qualified-step-v4/catalog_source.gd` changed through in-place pin renewals at `2d9f2cf1`, `0ea4b44a`
-  and `a8060ef3` (ADR 1205's historical-publication class).
+  and `a8060ef3` (ADR 1214's historical-publication class).
 
 **Root cause.** The room census (`underground_room_memory.py`) replays frozen, independently reviewed
 producers, and every input they read is byte-pinned. Any edit to any of the 65 pinned sources stops the
@@ -39,7 +39,7 @@ The fix separates the historical replay from the current count.
   - `projection.json` lists them and is pinned by `PROJECTION_SHA`;
   - the result lists every projected input (`projected_reviewed_inputs`).
 
-  This follows ADR 1205: historical evidence reads the bytes it was built from. The bytes are archived in
+  This follows ADR 1214: historical evidence reads the bytes it was built from. The bytes are archived in
   the repository and not read through `git show`, because CI checks out with depth 1.
 - **Current recount.** `tools/underground_current_census.py` (step 2) checks the current bytes of every
   projected input. If a pinned input changes and has no projection row, the check still refuses.

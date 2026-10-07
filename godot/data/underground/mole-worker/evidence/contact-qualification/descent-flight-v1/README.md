@@ -43,7 +43,7 @@ T5 → T6 → floor.
 - **Capacities.** Only the prover's capacities are raised: 4 → 8 segments and 32 → 96 solids.
 - **Historical script bytes.** The accepted source closure pins 20 project scripts that have changed since the
   actor images were captured. `historical_snapshot` restores each from the newest git commit whose bytes hash to its
-  pin (ADR 1205). `proof.json → historical_source_snapshot` lists every path with its commit. Scripts that are
+  pin (ADR 1214). `proof.json → historical_source_snapshot` lists every path with its commit. Scripts that are
   unchanged are hard-linked, as before.
 
 ## Inputs outside git

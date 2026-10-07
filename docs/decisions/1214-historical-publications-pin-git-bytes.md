@@ -1,4 +1,4 @@
-# 1205 — Superseded content-3 publications pin owner bytes from git
+# 1214 — Superseded content-3 publications pin owner bytes from git
 
 Date: 2026-10-06 · Status: Accepted
 
@@ -57,3 +57,5 @@ decision.
 Dated evidence replays under `docs/validation/evidence/` that pin the old bytes of
 `compile_entry_prefix.py` or `compile_entry_frontier.py` now record history only,
 as ADR 1192 §Consequences already states.
+
+> Renumbered from 1205 on 2026-10-07: two records claimed 1205. ADR 1205 is the incremental route re-check, which far more code and docs cite.

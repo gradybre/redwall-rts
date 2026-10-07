@@ -131,3 +131,9 @@ pick, front, side and top at one zoom), `paw-alone.png` and `README.md`. `test_c
 4. **Grip exclusion and exact grip proof.** A successor to `prove_self_clearance.body_triangle_ids` for the
    curled region, plus an exact proof of palm contact on the shaft, claws around it, and no other penetration.
 5. **Native capture and review, then the tread install tap re-run.** Rows 2–29 are re-authored later.
+
+## Brendan's review of step 1 (2026-10-07): **shape approved**
+
+Brendan approved the curled paw from `grip.png` and `paw-alone.png`. The planned steps 1–5 now proceed: the
+GDScript port, the per-source paw, the native bake, the grip exclusion and proof, and native capture, then the
+tread install tap.

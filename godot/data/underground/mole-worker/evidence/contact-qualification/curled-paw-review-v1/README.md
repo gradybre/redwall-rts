@@ -55,3 +55,7 @@ $PY .../test_curled_paw.py
 
 The demo assets were staged from the frozen `redwall-rts-codex-ug-space` worktree, checked against their pins, and
 removed afterwards. `test_curled_paw.py` (4 tests) needs only committed files.
+
+## Verdict (2026-10-07)
+
+Brendan **approved the shape**. See ADR 1216 for the steps that follow.

@@ -318,3 +318,20 @@ candidate still rebuilds byte for byte.
 
 L0/T0 are unaffected. The rest of ADR 1217's order (native capture, claw rows with the Frontier successor at
 1,430 u, the content successor, the runtime switch) does not depend on the treads.
+
+## Step 3 — native capture
+
+### 3a. The haul images with the corrected stand, walk and joins
+
+`stand-walk-v2/native_haul_v10.py` compiles, replays and verifies the successors of the haul images. It reuses the
+accepted v8/v9 compiler, runner, capture script and verifier unchanged; only the clip readers are pointed at the
+approved step-1c clips, which are pinned by the step-1c record. The published v8/v9 images are untouched.
+
+| Image | Successor of | Clips changed | Content | Native rows | Mismatches | Max vertex error (u) |
+|---|---|---|---|---:|---:|---|
+| wood v10 (source 2) | v8 | stand, walk, enter_haul, leave_haul | `fa8dc668…` (993,008 B) | 9,780 | 0 | 0.0003 body, 0.0010 wood |
+| stone v10 (source 3) | v9 | enter_haul_stone, leave_haul_stone | `1756932c…` (791,844 B) | 7,794 | 0 | 0.0003 body, 0.0010 stone |
+
+Both replays ran on the real non-headless Metal/Forward+ backend: 0 failures, 0 analyzer warnings, and 0
+diagnostics. The stone image's cross-image join (its `enter_haul_stone` key 0 equals wood v10's `stand` key 8,
+body and World coefficients) holds in all 3 views. Evidence is in `stand-walk-v2/evidence/native-haul-v10-*`.

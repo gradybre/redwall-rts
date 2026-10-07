@@ -232,7 +232,10 @@ func test_ale_brews_from_barley_alone() -> void:
 	assert_true(f.batch_refusal(Recipes.R_ALE).begins_with("the stores hold 0 U of barley"), f.batch_refusal(Recipes.R_ALE))
 	assert_equal(f.refused_code, "NO_BARLEY", "wheat is no barley")
 	rig.pantry.add_into(Catalog.ITEM_BARLEY, 3000, 0, _read)
-	assert_equal(f.order_batch(Recipes.R_ALE, PackedInt32Array([1])), "", "ordered")
+	assert_equal(f.order_batch(Recipes.R_ALE, PackedInt32Array()), "", "ordered")
+	var j: int = f.tables.j_live.find(1)
+	assert_equal(f.tables.j_goal[j], rig.pantry.storage.position_of(0), "the fetch walks to the barley's store")
+	assert_true(f.claim(j, 1), "a brewer takes it")
 	assert_true(_run(rig, func() -> bool: return f.tables.s_state[FIRST_VAT] == Tables.SLOT_CURING), "brewing")
 	assert_equal([rig.pantry.milli_of(Catalog.ITEM_BARLEY), rig.pantry.milli_of(13)], [0, 5000], "the barley, not the wheat")
 	rig.calendar.tick += 72 * SimClock.TICKS_PER_HOUR

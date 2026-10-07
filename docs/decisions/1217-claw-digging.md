@@ -412,3 +412,10 @@ So claw rows cannot be published as data alone. The plan, in order:
 foreman/installer/hauler and the room itinerary and planner. Other workers are changing these right now: G5 Routes
 admission and occupancy, G10 entry persistence, and the room planner. This work starts after those land, from a
 fresh rebase.
+
+## Brendan's decision (2026-10-07): treads are fitted side-on
+
+Brendan chose option 1 of step 2b. On the tread above, the mole turns a quarter turn and stands beside the bearer,
+so the bearer sits at the paws' natural reach, as at L0/T0. Each tread needs a new side-on station with footing,
+riser-clearance and turn proofs, beside ADR 1209 step 5's reposition. It is queued after the runtime switch and
+stops for review when the side-on seating pose is ready.

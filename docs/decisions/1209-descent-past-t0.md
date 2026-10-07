@@ -390,3 +390,10 @@ D1–D3, the cut rows and the bills stand; the stair gaits need tool-free re-pro
 The six timber treads and the T6 sill stay as decided (D1–D3). They are fitted by paw with ADR 1217's paw seating
 motion (step 2), adapted per tread as the proofs require: the station-local tread fixture above, the station 310 u
 behind T_{k−1}'s far edge, and for T6 the sill plane at y = 64. The pick tread tap (revisions 1–4) stays parked.
+
+### Brendan's decision (2026-10-07): side-on tread seating
+
+The paw cannot seat a tread from the 310 u station: the arms meet the legs (ADR 1217 step 2b). Brendan chose
+**side-on fitting**. On T_{k−1}, the mole turns a quarter turn and stands beside T_k's bearer, so the bearer sits at
+the paws' natural reach. Each tread gets a new side-on station with footing, riser-clearance and turn proofs, done
+with step 5's reposition. The station 310 u behind the far edge remains the descent's arrival point.

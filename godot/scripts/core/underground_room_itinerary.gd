@@ -132,6 +132,22 @@ static func _edge_profile(actual: WorldRoutes, edge: int, anchor: int) -> int:
 	return -1
 
 
+static func family_row(profiles: Profiles, anchor: int, yaw: int, policy: int) -> int:
+	"""ADR1213: the lowest certified exact-yaw row of this policy that shares the anchor's actor/tool/cargo identity."""
+	var stride: int = profiles._profile_capacity
+	if anchor < 0 or anchor >= profiles._live.header[1]: return -1
+	for row: int in profiles._live.header[1]:
+		if profiles._live.flags[row] != Profiles.CERT_REQUIRED or profiles._live.fields[Profiles.F_YAW_KIND * stride + row] != Profiles.YAW_EXACT \
+				or profiles._live.fields[Profiles.F_YAW * stride + row] != yaw \
+				or Profiles.selection_policy_leaf(profiles, row, profiles._live.quantities[row], profiles._live.header[0]) != policy: continue
+		var same: bool = true
+		for field: int in 10: same = same and profiles._live.fields[field * stride + row] == profiles._live.fields[field * stride + anchor]
+		for field: int in range(Profiles.L_QUANTITY_MIN, Profiles.L_QUANTITY_MAX + 1):
+			same = same and profiles._live.quantities[field * stride + row] == profiles._live.quantities[field * stride + anchor]
+		if same: return row
+	return -1
+
+
 static func _compatible(profiles: Profiles, anchor: int, row: int) -> bool:
 	"""Identical payload and heading families share READY; only the same source's complete all-yaw WALK is included."""
 	var stride: int = profiles._profile_capacity

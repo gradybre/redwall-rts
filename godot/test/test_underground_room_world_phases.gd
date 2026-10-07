@@ -82,6 +82,8 @@ class Fixture extends WorldFixture:
 	var phase_terrain: Terrain = null
 	var corridor: Vector2i = NULL_REF
 	var defer_contacts: bool = false
+	var location_capacity: int = 16 # Fixed fixture arenas; a multi-cube loop raises them before _actual_fixture.
+	var edge_capacity: int = 32
 
 	func _actual_fixture(_obstruction: int = 0) -> void:
 		"""Create one real generated World and a Mole, with no phase permission or paid progress assigned privately."""
@@ -140,7 +142,8 @@ class Fixture extends WorldFixture:
 		_actual_catalog(domain); _bind_orders(); _bootstrap_corridor()
 		endpoints = Locations.new()
 		assert_equal(endpoints.configure(_residents.directory(), _buildings, _transforms, _inventory,
-			_owner, _sources, _budget, 16, 228 * 16 + 256), &"", "exact Locations")
+			_owner, _sources, _budget, location_capacity,
+			228 * location_capacity + 256 + Locations.AIR_ARENA_BYTES_PER_SLOT * location_capacity), &"", "exact Locations with an ADR1215 air pool")
 		assert_equal(endpoints.bind_sites(sites), &"", "actual Sites")
 		assert_equal(endpoints.bind_room_orders(orders), &"", "actual Room companion")
 
@@ -215,7 +218,7 @@ class Fixture extends WorldFixture:
 		"""The actual graph and Room approach share these same immutable source and physical stores."""
 		_binding = Binding.new(); assert_equal(_binding.configure(_configuration()), &"", "actual World routes")
 		assert_equal(_routes.configure(endpoints, _owner, _sources, _buildings, _budget, _binding,
-			Routes.MAX_LOCATIONS, 32, 128, 64, Routes.ARENA_BYTES), &"", "actual production node/hash ceiling")
+			Routes.MAX_LOCATIONS, edge_capacity, 4 * edge_capacity, 64, Routes.ARENA_BYTES), &"", "actual production node/hash ceiling")
 		assert_equal(_routes.bind_profiles(_profiles, _inventory, _gear, _carry, _work, _pool, _piles), &"", "actual actor readers")
 		assert_equal(rooms.configure_room_approach(_binding), &"", "actual approach")
 

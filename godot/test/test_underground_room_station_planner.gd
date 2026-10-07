@@ -6,6 +6,7 @@ extends "res://test/framework/test_case.gd"
 const Phase := preload("res://test/test_underground_room_world_phases.gd")
 const PublicationTests := preload("res://test/test_underground_room_frontier_publication.gd")
 const Planner := preload("res://scripts/core/underground_room_station_planner.gd")
+const Itinerary := preload("res://scripts/core/underground_room_itinerary.gd")
 const Publication := preload("res://scripts/core/underground_room_frontier_publication.gd")
 const Frontier := preload("res://scripts/core/underground_room_frontier.gd")
 const Face := preload("res://scripts/core/underground_work_face.gd")
@@ -27,9 +28,11 @@ const YAW_PLUS_X: int = 49152
 class StepFixture extends Phase.SourceFixture:
 	## Mounted content-6 rows (finite 232u step, canonical ground) over the unchanged ADR1161 Room geometry.
 	var parking: Vector2i = NULL_REF
-	var chain: Array[Vector2i] = []
-	var chain_profiles: PackedInt64Array = PackedInt64Array()
+	var contact_location: Vector2i = NULL_REF
+	var legs: Array[Vector2i] = []
+	var leg_profiles: PackedInt32Array = PackedInt32Array()
 	var work_profile: int = -1
+	var published: PackedInt32Array = PackedInt32Array() # Station count of each publication, in loop order.
 	var admitted: bool = false
 	var last_key: int = -1
 	var last_site: Vector2i = NULL_REF
@@ -111,7 +114,8 @@ class StepFixture extends Phase.SourceFixture:
 		assert_true(_jobs.schedule().resolve(worker, 8, false).ok and _jobs.spawn_agent(worker).ok, "actual worker availability")
 
 	func confirmed_room() -> Vector2i:
-		"""Actual Kitchen confirmation over the explicit Corridor bootstrap."""
+		"""Actual Kitchen confirmation over the explicit Corridor bootstrap, with arenas for a whole-Kitchen chain set."""
+		location_capacity = 64; edge_capacity = 128
 		_actual_fixture(); connect_source_paths(); finite_stock_and_worker()
 		if not failures.is_empty(): return NULL_REF
 		var made: Buildings.OpResult = orders.confirm_room(room_request())
@@ -147,19 +151,33 @@ class StepFixture extends Phase.SourceFixture:
 		assert_equal(Routes.source_ready_leaf_refusal(_routes, _worker, job, profile, 1, CONTENT), &"", "READY on %d" % profile)
 
 	func approach(job: Vector2i) -> void:
-		"""From parking (or the initial access pose) along every published leg in order."""
+		"""From parking (or the initial access pose) along the actual forward-anchored itinerary to the contact."""
 		if admitted: walk_leg(job, _first, 5)
-		else:
-			assert_equal(_routes.admit_travel_actor(_worker, job, _first, int(chain_profiles[0]), 1, CONTENT, 0, -1, tool), &"", "admit")
+		plan_legs(_first, contact_location, 5)
+		if not admitted and failures.is_empty():
+			assert_equal(_routes.admit_travel_actor(_worker, job, _first, leg_profiles[0], 1, CONTENT, 0, -1, tool), &"", "admit")
 			admitted = true
-		for index: int in chain.size():
-			if failures.is_empty(): walk_leg(job, chain[index], int(chain_profiles[index * 4]))
+		for index: int in legs.size():
+			if failures.is_empty(): walk_leg(job, legs[index], leg_profiles[index])
 
 	func retreat() -> void:
-		"""Every published leg in reverse on its backward source, then real travel to parking."""
-		for index: int in range(chain.size() - 1, -1, -1):
-			if failures.is_empty(): walk_leg(NULL_REF, _first if index == 0 else chain[index - 1], int(chain_profiles[index * 4 + 2]))
+		"""The actual backward-anchored itinerary to the retreat, then real travel to parking."""
+		plan_legs(contact_location, _first, 9)
+		for index: int in legs.size():
+			if failures.is_empty(): walk_leg(NULL_REF, legs[index], leg_profiles[index])
 		if failures.is_empty(): walk_leg(NULL_REF, parking, 9)
+
+	func plan_legs(from: Vector2i, to: Vector2i, anchor: int) -> void:
+		"""Copy the static itinerary's edges and each edge's first certified family row before anyone moves."""
+		var remaining: PackedInt32Array = PackedInt32Array([0])
+		assert_equal(Itinerary.reachability_refusal(_binding, from, to, anchor, 1, CONTENT, Space.MAX_CHECKS, remaining), &"", "itinerary")
+		legs.clear(); leg_profiles.clear()
+		for index: int in _routes._proposed_count:
+			var row: int = _routes._proposed_edges[(_routes._proposed_count - index - 1) * 2]
+			legs.append(_routes._edge_pair(_routes._live, Routes.E_TO_SLOT, row))
+			for profile: int in _profiles._live.header[1]:
+				if _binding._live.admits(row, profile) and Itinerary._compatible(_profiles, anchor, profile):
+					leg_profiles.append(profile); break
 
 	func enter_source_work(job: Vector2i) -> void:
 		"""READY to WORK on the selected contact's exact row."""
@@ -224,15 +242,12 @@ class StepFixture extends Phase.SourceFixture:
 		return code
 
 	func adopt_chain(contact: Face.Request, request: Publication.Request, result: Publication.Result) -> void:
-		"""Published legs in order, or the bootstrap contact's own two directed certificates (forward5/backward9)."""
-		chain.clear(); work_profile = contact.profile_id
-		if result.count == 0:
-			chain.append(contact.location); chain_profiles = PackedInt64Array([5, 1, 9, 1])
-			return
+		"""Keep the proved contact; a fresh publication's WORK row must be that contact."""
+		contact_location = contact.location; work_profile = contact.profile_id
+		if result.count == 0: return
 		sample(0)
-		for index: int in result.count: chain.append(Vector2i(result.locations[index * 2], result.locations[index * 2 + 1]))
-		chain_profiles = request.profiles.duplicate()
-		assert_equal(chain[chain.size() - 1], contact.location, "the published WORK row is the proved contact")
+		published.append(request.count)
+		assert_equal(result.work, contact.location, "the published WORK row is the proved contact")
 
 	func work_cube() -> bool:
 		"""All three paid operations at the proved contact, then the full reverse chain."""
@@ -242,11 +257,12 @@ class StepFixture extends Phase.SourceFixture:
 		completed.append(last_key)
 		return failures.is_empty()
 
-	func room_loop(room: Vector2i) -> void:
-		"""Repeat next/plan/publish/contact/phases until a full canonical pass makes no progress."""
+	func room_loop(room: Vector2i, cube_limit: int = KITCHEN_SITES) -> void:
+		"""Repeat next/plan/publish/contact/phases until a full canonical pass makes no progress (or the limit)."""
 		var after: int = -1
 		var progressed: bool = false
 		for guard: int in KITCHEN_SITES * KITCHEN_SITES:
+			if completed.size() >= cube_limit: return
 			var code: StringName = loop_step(room, after)
 			if code == Frontier.REFUSE_END:
 				if not progressed: return
@@ -338,7 +354,6 @@ func test_refusals_are_named_and_preserve_the_callers_request() -> void:
 	assert_equal(Planner.plan_into(null, candidate, 0, YAW_PLUS_X, cold, Space.MAX_CHECKS, out), Frontier.REFUSE_BINDING, "unbound")
 	assert_equal(Planner.plan_into(_h.provider, candidate, 6, YAW_PLUS_X, cold, Space.MAX_CHECKS, out), Planner.REFUSE_SCOPE, "face")
 	assert_equal(Planner.plan_into(_h.provider, candidate, 2, YAW_PLUS_X, cold, Space.MAX_CHECKS, out), Planner.REFUSE_VERTICAL, "floor face")
-	assert_equal(Planner.plan_into(_h.provider, candidate, 1, 16384, cold, Space.MAX_CHECKS, out), Planner.REFUSE_HEADING, "other heading")
 	assert_equal(Planner.plan_into(_h.provider, candidate, 0, YAW_PLUS_X, cold, 20000, out), Planner.REFUSE_CAPACITY, "finite checks")
 	assert_equal(Planner.plan_into(_h.provider, candidate, 0, YAW_PLUS_X, cold + 1, Space.MAX_CHECKS, out), Frontier.REFUSE_LEASE, "foreign lease")
 	var lateral: Frontier.Candidate = _candidate(room, cold, 2048, 0, 1024)
@@ -421,8 +436,8 @@ func _assert_v3_ground_handoff_refused(result: Publication.Result) -> void:
 		&"PROFILE_VARIANT_UNAUTHORED", "the ADR1161 runtime seam stands in v3")
 
 
-func test_room_loop_runs_every_supported_cube_with_exact_ledgers() -> void:
-	"""Content 6: the loop pays both lower near cubes; every other Site ends on a named, derived refusal."""
+func test_room_loop_digs_both_lower_levels_with_exact_ledgers() -> void:
+	"""Content 6 with per-motion air: all eight level-0/1 cubes are paid; levels 2-3 name the missing reach."""
 	var fixture: StepFixture = StepFixture.new()
 	_h = fixture
 	var room: Vector2i = fixture.confirmed_room()
@@ -432,28 +447,80 @@ func test_room_loop_runs_every_supported_cube_with_exact_ledgers() -> void:
 	fixture.room_loop(room)
 	if not fixture.failures.is_empty(): return
 	var sites: Sites = fixture.sites
-	assert_equal(fixture.completed, PackedInt32Array([_key(sites, 2048, 0, 0), _key(sites, 2048, 0, 1024)]), "paid cubes in loop order")
-	_assert_refusals(fixture)
-	_assert_ledgers(fixture, 2)
-	assert_equal(fixture.endpoints._live.count, locations + 2, "one turn station and one WORK station published")
-	assert_equal(fixture._routes._live.edge_count, edges + 4, "four directed spans published")
+	var expected: PackedInt32Array = PackedInt32Array()
+	for cube: Vector3i in [Vector3i(2048, 0, 0), Vector3i(2048, 0, 1024), Vector3i(2048, 1024, 0), Vector3i(2048, 1024, 1024),
+			Vector3i(3072, 0, 0), Vector3i(3072, 0, 1024), Vector3i(3072, 1024, 0), Vector3i(3072, 1024, 1024)]:
+		expected.append(_key(sites, cube.x, cube.y, cube.z))
+	assert_equal(fixture.completed, expected, "paid cubes in loop order")
+	assert_equal(fixture.refusals.size(), KITCHEN_SITES - 8, "one refusal per unpaid Site")
+	for key: int in fixture.refusals: assert_equal(fixture.refusals[key], Planner.REFUSE_REACH, "levels 2-3: no anchor that high")
+	_assert_ledgers(fixture, 8)
+	var stations: int = 0
+	for count: int in fixture.published: stations += count
+	print("ROOM-LOOP-PUBLISHED ", fixture.published)
+	assert_equal(fixture.endpoints._live.count, locations + stations, "every planned station published once")
+	assert_equal(fixture._routes._live.edge_count, edges + 2 * stations, "two directed spans per station")
+	assert_true(_multi_air_rows(fixture) > 0, "upper WORK stations claim per-motion air")
 	print("ROOM-LOOP-PEAKS publication route=%d location=%d phase route=%d location=%d" % Array(fixture.peaks))
 	for peak: int in fixture.peaks: assert_true(peak > 0 and peak < Space.MAX_CHECKS, "measured below the cold check budget")
-	_assert_upper_chain_refused_by_publication(fixture, room)
+
+
+func _multi_air_rows(fixture: StepFixture) -> int:
+	"""Live Locations with at least one extra air box."""
+	var count: int = 0
+	var record: Locations.Record = Locations.Record.new()
+	record.envelope.resize(6); record.support.resize(6)
+	for row: int in fixture.endpoints._capacity:
+		if fixture.endpoints._live.present[row] != 1: continue
+		var ref: Vector2i = Vector2i(row, fixture.endpoints._get32(fixture.endpoints._live, Locations.GENERATION, row))
+		assert_equal(fixture.endpoints.read_location_into(ref, record), &"", "actual Location")
+		count += 1 if record.air_count > 0 else 0
+	return count
+
+
+func test_upper_cube_needs_per_motion_air_and_the_finite_step() -> void:
+	"""After the near lower cubes: one AABB refuses, the planned per-motion air publishes, no step names the step."""
+	var fixture: StepFixture = StepFixture.new()
+	_h = fixture
+	var room: Vector2i = fixture.confirmed_room()
+	if room == NULL_REF: return
+	fixture.room_loop(room, 2)
+	if not fixture.failures.is_empty(): return
 	_assert_step_rows_decide_the_upper_reason(fixture, room)
+	_assert_upper_chain_refused_by_publication(fixture, room)
+	var cold: int = fixture._budget.acquire(Budget.COLD_BYTES)
+	var request: Publication.Request = Publication.Request.new()
+	assert_equal(_plan(room, cold, 2048, 1024, 0, request), &"", "planned per-motion air")
+	assert_equal(request.count, 2, "step start, then HIGH root")
+	assert_equal([_point(request, 0), _point(request, 1)], [Vector3i(1280, 0, 512), Vector3i(1512, 0, 512)], "ADR1161 roots")
+	assert_equal(request.air_counts[0], 0, "the step start keeps one AABB")
+	assert_true(request.air_counts[1] > 1, "the HIGH station claims more than one air box")
+	var result: Publication.Result = Publication.Result.new(); result.locations.resize(6); result.edges.resize(12)
+	assert_equal(Publication.publish_into(fixture.provider, _candidate(room, cold, 2048, 1024, 0), request, cold, Space.MAX_CHECKS, result),
+		&"", "actual per-motion air publication")
+	var work: Locations.Record = Locations.Record.new(); work.envelope.resize(6); work.support.resize(6)
+	assert_equal(fixture.endpoints.read_location_into(result.work, work), &"", "published WORK row")
+	assert_equal(work.air_count, request.air_counts[1] - 1, "extra boxes stored beside the envelope")
+	assert_equal(fixture._budget.release(cold), &"", "lease released")
 
 
-func _assert_refusals(fixture: StepFixture) -> void:
-	"""Every unpaid Kitchen Site carries the planner's derived reason from the last, progress-free pass."""
-	var sites: Sites = fixture.sites
-	assert_equal(fixture.refusals.size(), KITCHEN_SITES - 2, "one refusal per unpaid Site")
-	for z: int in [0, 1024]:
-		assert_equal(fixture.refusals.get(_key(sites, 3072, 0, z)), Planner.REFUSE_CLOSED, "deep lower: 1036u travel under solid upper")
-		assert_equal(fixture.refusals.get(_key(sites, 2048, 1024, z)), Planner.REFUSE_ENVELOPE, "near upper: one-AABB Location air")
-		assert_equal(fixture.refusals.get(_key(sites, 3072, 1024, z)), Planner.REFUSE_CLOSED, "deep upper: interior never opens")
-		for y: int in [2048, 3072]:
-			for x: int in [2048, 3072]:
-				assert_equal(fixture.refusals.get(_key(sites, x, y, z)), Planner.REFUSE_REACH, "no WORK anchor that high")
+func test_bound_retreat_row_has_a_backward_sibling_for_every_heading() -> void:
+	"""Content keeps backward rows for all four yaws; the planner no longer refuses another heading by binding."""
+	var fixture: StepFixture = StepFixture.new()
+	_h = fixture
+	var room: Vector2i = fixture.confirmed_room()
+	if room == NULL_REF: return
+	var siblings: PackedInt32Array = PackedInt32Array()
+	for yaw: int in [0, 16384, 32768, 49152]:
+		siblings.append(Itinerary.family_row(fixture._profiles, 9, yaw, Profiles.POLICY_READY_BACKWARD))
+	assert_equal(siblings, PackedInt32Array([6, 7, 8, 9]), "one backward row per heading, same actor/tool/cargo")
+	assert_equal(Itinerary.family_row(fixture._profiles, 9, 49152, Profiles.POLICY_READY_FORWARD), 5, "forward partner")
+	var cold: int = fixture._budget.acquire(Budget.COLD_BYTES)
+	var out: Publication.Request = _sentinel()
+	var code: StringName = Planner.plan_into(fixture.provider, _candidate(room, cold, 2048, 0, 1024), 4, 32768, cold, Space.MAX_CHECKS, out)
+	assert_true(code != Planner.REFUSE_HEADING and code in Planner.RANKED, "a +Z face is planned, then refused on geometry: %s" % code)
+	_assert_sentinel(out, "other heading")
+	assert_equal(fixture._budget.release(cold), &"", "lease released")
 
 
 func _assert_ledgers(fixture: StepFixture, cubes: int) -> void:
@@ -478,7 +545,7 @@ func _assert_ledgers(fixture: StepFixture, cubes: int) -> void:
 
 
 func _assert_upper_chain_refused_by_publication(fixture: StepFixture, room: Vector2i) -> void:
-	"""The per-box step chain for (2048,1024,0) is what the planner refuses; the actual prover refuses it too."""
+	"""The step chain for (2048,1024,0) published with one AABB per station is refused by the actual prover."""
 	var cold: int = fixture._budget.acquire(Budget.COLD_BYTES)
 	var candidate: Frontier.Candidate = _candidate(room, cold, 2048, 1024, 0)
 	var request: Publication.Request = Publication.Request.new()
@@ -490,7 +557,7 @@ func _assert_upper_chain_refused_by_publication(fixture: StepFixture, room: Vect
 	var result: Publication.Result = Publication.Result.new(); result.locations.resize(6); result.edges.resize(12)
 	var before: int = fixture.endpoints._live.count
 	assert_equal(Publication.publish_into(fixture.provider, candidate, request, cold, Space.MAX_CHECKS, result),
-		&"LOCATION_ENVELOPE_BLOCKED", "HIGH26 air AABB enters the solid target")
+		&"LOCATION_ENVELOPE_BLOCKED", "HIGH26 one-AABB air enters the solid target")
 	assert_equal(fixture.endpoints._live.count, before, "nothing published")
 	candidate = null
 	assert_equal(fixture._budget.release(cold), &"", "lease released")
@@ -507,5 +574,5 @@ func _assert_step_rows_decide_the_upper_reason(fixture: StepFixture, room: Vecto
 	assert_equal(_plan(room, cold, 2048, 1024, 0, out), Planner.REFUSE_STEP, "full travel blocked, no finite step pair")
 	_assert_sentinel(out, "missing step")
 	flags[at + 10] = original[0]; flags[at + 11] = original[1]
-	assert_equal(_plan(room, cold, 2048, 1024, 0, out), Planner.REFUSE_ENVELOPE, "restored rows reach the envelope seam")
+	assert_equal(_plan(room, cold, 2048, 1024, 0, out), &"", "restored rows plan the step chain")
 	assert_equal(fixture._budget.release(cold), &"", "lease released")

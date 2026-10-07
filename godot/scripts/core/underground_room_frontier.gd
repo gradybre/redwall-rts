@@ -289,8 +289,19 @@ static func _observe(query: Query) -> StringName:
 	else: code = query.face.solid_face_refusal(query.config, query.request, query.candidate.cold_token)
 	if code == &"": code = _query_leaf(query)
 	if code == &"": code = _path(query, query.access, query.request.location, query.approach, query.approach_revision)
-	if code == &"": code = _path(query, query.request.location, query.retreat, query.retreat_profile, query.retreat_revision)
+	if code == &"": code = _retreat_path(query)
 	return _query_leaf(query) if code == &"" else code
+
+
+static func _retreat_path(query: Query) -> StringName:
+	"""ADR1213: a contact of another heading retreats on the bound row's backward sibling at the contact's yaw."""
+	var profiles: Profiles = query.config.profiles
+	var row: int = query.retreat_profile
+	var revision: int = query.retreat_revision
+	if _field(query, row, Profiles.F_YAW_KIND) == Profiles.YAW_EXACT and _field(query, row, Profiles.F_YAW) != query.request.yaw:
+		row = Itinerary.family_row(profiles, row, query.request.yaw, Profiles.POLICY_READY_BACKWARD)
+		revision = profiles._live.quantities[row] if row >= 0 else 0
+	return _path(query, query.request.location, query.retreat, row, revision)
 
 
 static func _spend(query: Query, amount: int) -> bool:

@@ -1,6 +1,6 @@
 # 1213 — Room-station planner: two of sixteen Kitchen cubes are reachable, and why the other fourteen are not
 
-Date: 2026-10-06 · Status: Accepted (ADR 1202 Kitchen scope, step 5 groundwork and a test-level step 6).
+Date: 2026-10-06 · Status: Accepted (ADR 1202 Kitchen scope, step 5 groundwork and a test-level step 6). **Updated 2026-10-07: with ADR 1215 the loop digs 8 of 16 cubes (see the last section).**
 Independent of the stair data (ADR 1209). Coordinates below are relative to the ADR 1161 fixture datum
 (x from `X`, y from the Corridor floor, z from `Z`; heading +X is yaw 49152).
 
@@ -165,3 +165,45 @@ closes ADR 1161's multi-heading retreat seam for turns through all-yaw ground.
 - The four seams above.
 - Native memory or timing.
 - The loop is test-level. The production piece is `next_contact_into`.
+
+## Update 2026-10-07: per-motion air, gateway reuse and per-heading retreat
+
+Brendan chose **an air box per motion** (ADR 1215). With it, the fixture loop on content 6 now digs **8 of 16**
+cubes: every cube at levels 0 and 1. Ledgers are exact:
+- 8 × 250 wood and 8 × 250 stone;
+- 8 × 2,000 earth;
+- 8 × (BRACE + CUT + FINISH) mWU;
+- support and earth conserved, no live Project, cold budget quiescent;
+- the worker ends parked.
+
+The 8 cubes at levels 2–3 still refuse `ROOM_STATION_REACH_MISSING`. This is item 3 above: no WORK anchor
+reaches above 1039u, and no standing datum exists at those heights.
+
+**How the remaining seams closed.**
+- *Item 1 (upper near cubes).* The planner now claims per-motion air whenever the one-AABB station air is not
+  open. The HIGH station publishes more than one air box (asserted).
+- *Item 2 (deep cubes).* They opened as soon as the upper near cubes were paid. The hand derivation above held:
+  3 stations each.
+- *(3072,1024,1024).* It needed 4 stations. The planner now starts an over-long chain at an existing TRANSIT
+  station it passes through exactly, so 2 new stations suffice.
+  - `publish_into`'s gateway reachability now uses the source-family itinerary for selected-heading anchors,
+    as `contact_into` and the provider already do.
+  - Station counts per publication, in loop order: 2, 2, 3, 3, 3, 3, 2 (18 Locations, 36 edges).
+- *Item 4 (other headings).* `Itinerary.family_row` finds the bound retreat row's backward sibling at another
+  yaw (rows 6/7/8/9 for yaws 0/16384/32768/49152 in content 6). Three callers use it, so a contact of another
+  heading retreats on its own backward row:
+  - the provider's phase retreat path;
+  - `contact_into`'s retreat path;
+  - the planner.
+- *Walking.* The test walks the actual itinerary, with per-edge rows taken from the live certificates, rather
+  than replaying the publication's legs.
+
+**Budgets.** The cold budget is 1,048,576 checks.
+
+| Preparation | Graph | Route checks | Location checks |
+|---|---|---:|---:|
+| Publication peak | — | 71,640 | 173 |
+| Phase peak (CUT commit), last cube | 40 edges, 21 Locations | 459,742 (43.8 %) | 979 |
+
+Route checks still cost roughly 10k per edge. A full 16-cube Kitchen, once levels 2–3 have content, still needs
+station retirement or a cheaper carry before about 94 edges.

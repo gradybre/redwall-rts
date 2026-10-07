@@ -22,11 +22,15 @@ const MAX_REGIONS: int = 192 # Per kind (void, support, blocker, section) inside
 const MAX_FRAGMENTS: int = 96
 const MAX_CANDIDATES: int = 2048
 const MAX_EDGES: int = 256
-## Declared logical cold slice (44,460 B): four region tables and their section refs, two fragment arenas,
-## candidate keys, edge/plane scratch, the chain packets, seven six-int boxes and a 1,024 B scalar/reference allowance.
+const MAX_PRIMITIVES: int = 32 # Air primitives of one station's adjoining sources, before merging.
+const AIR_BOXES: int = Publication.AIR_BOXES
+## Declared logical cold slice (45,752 B): four region tables and their section refs, two fragment arenas,
+## candidate keys, edge/plane scratch, the chain packets and their ADR1215 air boxes, the primitive scratch,
+## eight six-int boxes and a 1,024 B scalar/reference allowance.
 ## Not a native measurement. The Query dies before publish_into admits its own lifetime in the same lease.
 const CONTROL_BYTES: int = 4 * 6 * MAX_REGIONS * 4 + 2 * MAX_REGIONS * 4 + 2 * 6 * MAX_FRAGMENTS * 4 \
-	+ MAX_CANDIDATES * 8 + 2 * MAX_EDGES * 4 + MAX_CHAIN * (3 * 4 + 4 * 8 + 2 * 4) + 7 * 6 * 4 + 1024
+	+ MAX_CANDIDATES * 8 + 2 * MAX_EDGES * 4 + MAX_CHAIN * (3 * 4 + 4 * 8 + 2 * 4 + 4 + AIR_BOXES * 6 * 4) \
+	+ MAX_PRIMITIVES * 6 * 4 + 8 * 6 * 4 + 1024
 const IDENTITY_FIELDS: Array[int] = [Profiles.F_SOURCE, Profiles.F_SPECIES, Profiles.F_STAGE, Profiles.F_RIG,
 	Profiles.F_POSTURE, Profiles.F_TOOL, Profiles.F_TOOL_VARIANT, Profiles.F_CARGO, Profiles.F_CARGO_VARIANT]
 const REFUSE_SCOPE: StringName = &"ROOM_STATION_SCOPE"
@@ -58,6 +62,8 @@ class Query extends RefCounted:
 	var face: int = -1
 	var yaw: int = -1
 	var gateway: Vector2i = NULL_REF
+	var entry: Vector2i = NULL_REF # The published chain's gateway: the retreat, or an existing station on the chain.
+	var locations: Locations = null
 	var start: Vector3i = Vector3i.ZERO
 	var level: int = -1
 	var backward: int = -1
@@ -84,6 +90,10 @@ class Query extends RefCounted:
 	var points: PackedInt32Array = PackedInt32Array()
 	var spans: PackedInt64Array = PackedInt64Array()
 	var sections: PackedInt32Array = PackedInt32Array()
+	var air_counts: PackedInt32Array = PackedInt32Array()
+	var air: PackedInt32Array = PackedInt32Array()
+	var primitives: PackedInt32Array = PackedInt32Array()
+	var merged: PackedInt32Array = PackedInt32Array()
 	var stations: int = 0
 	var box: PackedInt32Array = PackedInt32Array()
 	var remaining: int = 0
@@ -169,6 +179,7 @@ static func facing_face(actual: Provider, yaw: int) -> int:
 static func _hold(q: Query, actual: Provider, candidate: Frontier.Candidate, face: int, yaw: int, checks: int) -> void:
 	"""Pin the original immutable owners and allocate every fixed scratch packet once."""
 	q.profiles = actual._ordinary_config.profiles; q.owner = actual._ordinary_config.owner
+	q.locations = actual._ordinary_config.locations
 	q.origin = Frontier._origin(actual._ordinary_original_sites(), candidate.key)
 	@warning_ignore("integer_division") var axis: int = face / 2
 	q.face = face; q.yaw = yaw; q.axis = axis; q.lateral = 2 if axis == 0 else 0
@@ -187,6 +198,7 @@ static func _hold(q: Query, actual: Provider, candidate: Frontier.Candidate, fac
 	q.front.resize(6 * MAX_FRAGMENTS); q.back.resize(6 * MAX_FRAGMENTS)
 	q.keys.resize(MAX_CANDIDATES); q.edges.resize(MAX_EDGES); q.planes.resize(MAX_EDGES)
 	q.points.resize(3 * MAX_CHAIN); q.spans.resize(4 * MAX_CHAIN); q.sections.resize(2 * MAX_CHAIN)
+	q.air_counts.resize(MAX_CHAIN); q.air.resize(MAX_CHAIN * AIR_BOXES * 6); q.primitives.resize(MAX_PRIMITIVES * 6); q.merged.resize(6)
 
 
 static func _spend(q: Query, checks: int) -> bool:
@@ -207,8 +219,10 @@ static func _sources(q: Query, actual: Provider) -> StringName:
 	q.backward = actual._ordinary_travel
 	var profiles: Profiles = q.profiles
 	if q.backward < 0 or q.backward >= profiles._live.header[1]: return REFUSE_TRAVEL
-	if _field(q, q.backward, Profiles.F_YAW_KIND) != Profiles.YAW_EXACT or _field(q, q.backward, Profiles.F_YAW) != q.yaw:
-		return REFUSE_HEADING
+	if _field(q, q.backward, Profiles.F_YAW_KIND) != Profiles.YAW_EXACT: return REFUSE_HEADING
+	if _field(q, q.backward, Profiles.F_YAW) != q.yaw: # ADR1213: the bound row's backward sibling at this heading.
+		q.backward = Itinerary.family_row(profiles, q.backward, q.yaw, Profiles.POLICY_READY_BACKWARD)
+		if q.backward < 0: return REFUSE_HEADING
 	for row: int in profiles._live.header[1]:
 		if not Itinerary._compatible(profiles, q.backward, row): continue
 		var policy: int = Profiles.selection_policy_leaf(profiles, row, profiles._live.quantities[row], profiles._live.header[0])
@@ -413,7 +427,7 @@ static func _unique(values: PackedInt32Array, count: int, value: int) -> int:
 
 static func _chain(q: Query) -> bool:
 	"""Work station, then the gateway turn, then heading legs (full travel, else the finite step)."""
-	q.stations = 0
+	q.stations = 0; q.entry = q.gateway
 	if not _work_fits(q): return false
 	var at: Vector3i = q.start
 	if q.start[q.lateral] != q.root[q.lateral]:
@@ -446,9 +460,43 @@ static func _complete(q: Query) -> bool:
 	for index: int in q.stations:
 		if not _station_fits(q, index):
 			_note(q, 5); return false
-	if q.stations <= MAX_STATIONS: return true
+	if q.stations <= MAX_STATIONS or _regateway(q): return true
 	_note(q, 6)
 	return false
+
+
+static func _regateway(q: Query) -> bool:
+	"""An over-long chain may start at an existing TRANSIT station it passes through exactly (latest first)."""
+	for keep: int in range(q.stations - 2, -1, -1):
+		if q.stations - keep - 1 > MAX_STATIONS: return false
+		var ref: Vector2i = _existing_station(q, keep)
+		if ref == NULL_REF: continue
+		var drop: int = keep + 1
+		for index: int in range(drop, q.stations):
+			var to: int = index - drop
+			for word: int in 3: q.points[to * 3 + word] = q.points[index * 3 + word]
+			for word: int in 4: q.spans[to * 4 + word] = q.spans[index * 4 + word]
+			for word: int in 2: q.sections[to * 2 + word] = q.sections[index * 2 + word]
+			q.air_counts[to] = q.air_counts[index]
+			for word: int in AIR_BOXES * 6: q.air[to * AIR_BOXES * 6 + word] = q.air[index * AIR_BOXES * 6 + word]
+		q.stations -= drop; q.entry = ref
+		return true
+	return false
+
+
+static func _existing_station(q: Query, index: int) -> Vector2i:
+	"""A live TRANSIT Location at exactly this planned point and section, or null."""
+	var locations: Locations = q.locations
+	var section: Vector2i = Vector2i(q.sections[index * 2], q.sections[index * 2 + 1])
+	for row: int in locations._capacity:
+		if not _spend(q, 4): return NULL_REF
+		if locations._live.present[row] != 1 or locations._get32(locations._live, Locations.ROLE, row) != Locations.ROLE_TRANSIT \
+				or locations._ref_at(locations._live, Locations.SECTION_SLOT, row) != section: continue
+		if locations._get32(locations._live, Locations.X, row) == q.points[index * 3] \
+				and locations._get32(locations._live, Locations.Y, row) == q.points[index * 3 + 1] \
+				and locations._get32(locations._live, Locations.Z, row) == q.points[index * 3 + 2]:
+			return Vector2i(row, locations._get32(locations._live, Locations.GENERATION, row))
+	return NULL_REF
 
 
 static func _station_fits(q: Query, index: int) -> bool:
@@ -460,14 +508,89 @@ static func _station_fits(q: Query, index: int) -> bool:
 	for profile: int in [q.spans[index * 4], q.spans[index * 4 + 2],
 			q.work if last else q.spans[index * 4 + 4], -1 if last else q.spans[index * 4 + 6]]:
 		if profile >= 0: _extend(q, profile, point)
-	for axis: int in 6: q.box[axis] = q.envelope[axis]
-	if _blocked(q) or not _covered(q, VOID, false): return false
 	for axis: int in 6: q.box[axis] = q.footing[axis]
 	if q.footing[0] >= q.footing[3] or not _covered(q, SUPPORT, false): return false
+	for axis: int in 6: q.box[axis] = q.envelope[axis]
+	q.air_counts[index] = 0
+	if (_blocked(q) or not _covered(q, VOID, false)) and not _station_air(q, index, point, last): return false
 	if not last: return true
 	var section: int = _section_at(q, point)
 	_slice(q.tables[SECTION], section, q.other)
 	return q.footing[0] >= q.other[0] and q.footing[2] >= q.other[2] and q.footing[3] <= q.other[3] and q.footing[5] <= q.other[5]
+
+
+static func _station_air(q: Query, index: int, point: Vector3i, last: bool) -> bool:
+	"""ADR1215: the one AABB is not open, so claim the sources' own air primitives, merged only where open."""
+	var count: int = 0
+	for profile: int in [q.spans[index * 4], q.spans[index * 4 + 2],
+			q.work if last else q.spans[index * 4 + 4], -1 if last else q.spans[index * 4 + 6]]:
+		if profile >= 0: count = _primitives(q, profile, point, count)
+	if count < 0: return false
+	count = _merge(q, count)
+	if count < 0 or count > AIR_BOXES or not _root_first(q, count, point): return false
+	q.air_counts[index] = count
+	for word: int in count * 6: q.air[index * AIR_BOXES * 6 + word] = q.primitives[word]
+	return true
+
+
+static func _primitives(q: Query, profile: int, point: Vector3i, count: int) -> int:
+	"""Body, turn and approach boxes above the root plane, clamped to it; contained duplicates are dropped."""
+	var bank: PackedInt32Array = q.profiles._live.boxes
+	var stride: int = q.profiles._box_capacity
+	for index: int in _field(q, profile, Profiles.F_BOX_COUNT):
+		var box: int = _field(q, profile, Profiles.F_FIRST_BOX) + index
+		var role: int = bank[6 * stride + box]
+		if count < 0 or (role != Profiles.BODY_HELD_LOAD and role != Profiles.TURN_RECOVERY and role != Profiles.WORK_APPROACH) \
+				or point.y + bank[4 * stride + box] <= point.y: continue
+		_set_box(q.other, _box_low(q, box, point), _box_high(q, box, point))
+		q.other[1] = maxi(q.other[1], point.y)
+		count = _add_primitive(q, count)
+	return count
+
+
+static func _add_primitive(q: Query, count: int) -> int:
+	"""Keep q.other unless an existing primitive contains it; drop existing ones it contains."""
+	var kept: int = 0
+	for index: int in count:
+		_slice(q.primitives, index, q.box)
+		if Space.contains_box(q.box, q.other): return count
+		if not Space.contains_box(q.other, q.box):
+			_put(q.primitives, kept, q.box); kept += 1
+	if kept >= MAX_PRIMITIVES: return -1
+	_put(q.primitives, kept, q.other)
+	return kept + 1
+
+
+static func _merge(q: Query, count: int) -> int:
+	"""Greedy, deterministic: replace the first pair whose AABB is open void by that AABB, until none is."""
+	var merged: bool = true
+	while merged and count > 1:
+		merged = false
+		for first: int in count:
+			for second: int in range(first + 1, count):
+				_slice(q.primitives, first, q.merged); _slice(q.primitives, second, q.other)
+				for axis: int in 3:
+					q.merged[axis] = mini(q.merged[axis], q.other[axis]); q.merged[axis + 3] = maxi(q.merged[axis + 3], q.other[axis + 3])
+				for axis: int in 6: q.box[axis] = q.merged[axis]
+				if q.exhausted: return -1
+				if _blocked(q) or not _covered(q, VOID, false): continue
+				_put(q.primitives, first, q.merged)
+				for later: int in range(second + 1, count):
+					_slice(q.primitives, later, q.box); _put(q.primitives, later - 1, q.box)
+				count -= 1; merged = true
+				break
+			if merged: break
+	return count
+
+
+static func _root_first(q: Query, count: int, point: Vector3i) -> bool:
+	"""The box holding the root on its floor becomes the published envelope."""
+	for index: int in count:
+		_slice(q.primitives, index, q.box)
+		if q.box[1] == point.y and point.x >= q.box[0] and point.x < q.box[3] and point.z >= q.box[2] and point.z < q.box[5]:
+			_slice(q.primitives, 0, q.other); _put(q.primitives, 0, q.box); _put(q.primitives, index, q.other)
+			return true
+	return false
 
 
 static func _extend(q: Query, profile: int, point: Vector3i) -> void:
@@ -658,7 +781,7 @@ static func _emit(q: Query, next: int) -> int:
 
 static func _output(q: Query, out: Publication.Request) -> void:
 	"""Only a complete admissible chain is written; unused tails are explicit nulls and zeros."""
-	out.gateway = q.gateway; out.count = q.stations
+	out.gateway = q.entry; out.count = q.stations
 	out.sections = PackedInt32Array([-1, 0, -1, 0, -1, 0])
 	out.points = PackedInt32Array(); out.points.resize(9)
 	out.profiles = PackedInt64Array(); out.profiles.resize(12)
@@ -666,5 +789,10 @@ static func _output(q: Query, out: Publication.Request) -> void:
 		out.sections[index * 2] = q.sections[index * 2]; out.sections[index * 2 + 1] = q.sections[index * 2 + 1]
 		for axis: int in 3: out.points[index * 3 + axis] = q.points[index * 3 + axis]
 		for field: int in 4: out.profiles[index * 4 + field] = q.spans[index * 4 + field]
+	for index: int in MAX_STATIONS:
+		out.air_counts[index] = q.air_counts[index] if index < q.stations else 0
+	out.air.fill(0)
+	for index: int in q.stations:
+		for word: int in AIR_BOXES * 6: out.air[index * AIR_BOXES * 6 + word] = q.air[index * AIR_BOXES * 6 + word]
 	out.work_profile = q.work; out.work_revision = q.profiles._live.quantities[q.work]
 	out.face = q.face; out.yaw = q.yaw

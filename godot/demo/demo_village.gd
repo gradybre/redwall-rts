@@ -1066,8 +1066,11 @@ func _show_routes(on: bool) -> void:
 
 func _bind_goal_measures() -> void:
 	"""The goals' parts a later feature measures (goal_book.gd `bind_measure`; decision 0781 left them declared): M4's
-	"fuel >= 18 winter days" from the winter's stores and hearths (decision 0902)."""
+	"fuel >= 18 winter days" from the winter's stores and hearths (decision 0902); "First crossing" and "Regatta day" read
+	the ferry's and the regatta's own counts (decision 1651)."""
 	_guide.goals.book.bind_measure(&"m4_hearth_charter", &"fuel", _winter.fuel_winter_days_milli)
+	_guide.goals.village.ferry = _ferry.ferry
+	_guide.goals.village.regatta = _regatta.regatta
 
 
 func _build_guide() -> void:

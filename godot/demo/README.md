@@ -844,7 +844,7 @@ line) points at the tab.
 - **Village goals** (approved by Brendan as built, 2026-10-01; decision 0781): Harvest home (40.0 U into store), Every dish on the table (each of the
   kitchen's dishes cooked), A table for everyone (a supper where every resident ate cooked), A full larder (4.0 days of
   Ready food the village cooked or brought in: the opening wheat and carrots still held are left out, read off the
-  pantry's own lots, whose opening share follows every split, move, merge, meal and spoiling -- decision 0994), Wood for the cold (60.0 U), Over the water (a bridge open), A way below (3 tunnel stretches), A clean
+  pantry's own lots, whose opening share follows every split, move, merge, meal and spoiling -- decision 0994), Wood for the cold (60.0 U), Over the water (a bridge open), First crossing (the ferry has rowed a crossing home: `ferry.gd crossings_done`), Regatta day (a regatta held to its end: `regatta.gd feasts_held`; both added on Brendan's ruling on decision 0901's question, option (b), decision 1651), A way below (3 tunnel stretches), A clean
   season (a whole season in the planner's record with food harvested and no crop lost), The first winter weathered.
 - **Milestones**: the GDD's M1-M4 (§5.11), every condition a part worded as the GDD states it. What the demo models is
   measured (day, residents, portions prepared, year, winters, Ready food); the rest -- mastery, feasts, specialists,

@@ -600,9 +600,9 @@ func test_bench_cubes_name_ascent_then_footing() -> void:
 	var room: Vector2i = fixture.confirmed_room()
 	if room == NULL_REF: return
 	var cold: int = fixture._budget.acquire(Budget.COLD_BYTES)
-	var floor: PackedInt32Array = PackedInt32Array([9, 9, 9])
-	assert_equal(Planner.bench_into(fixture.provider, _candidate(room, cold, 2048, 0, 0), 0, YAW_PLUS_X, cold, Space.MAX_CHECKS, floor), &"", "floor cube")
-	assert_equal(floor, PackedInt32Array([0, 27, -1]), "a floor station reaches a level-0 cube: no bench")
+	var on_floor: PackedInt32Array = PackedInt32Array([9, 9, 9])
+	assert_equal(Planner.bench_into(fixture.provider, _candidate(room, cold, 2048, 0, 0), 0, YAW_PLUS_X, cold, Space.MAX_CHECKS, on_floor), &"", "floor cube")
+	assert_equal(on_floor, PackedInt32Array([0, 27, -1]), "a floor station reaches a level-0 cube: no bench")
 	var short: PackedInt32Array = PackedInt32Array([9])
 	assert_equal(Planner.bench_into(fixture.provider, _candidate(room, cold, 2048, 0, 0), 0, YAW_PLUS_X, cold, Space.MAX_CHECKS, short),
 		Planner.REFUSE_SCOPE, "three-word caller packet")

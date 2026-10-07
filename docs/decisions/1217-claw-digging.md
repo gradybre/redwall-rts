@@ -644,3 +644,50 @@ Brendan chose **option 1**. These are the decision's parts:
 - After approval, content 9 is published with the Frontier/bundle successor at ±1,430. It binds source 4, and its
   workpieces file binds source 5.
 - The runtime's active content is not switched.
+
+## Step 4d — narrow claw approach and retreat: derived and proved, stopped for review
+
+- **Tools.** `claw-work-v1/author_claw_approach.py`, `render_claw_approach.py`, `measure_approach_gaps.py` (a
+  review aid) and `test_claw_approach.py` (5 tests).
+- **Record and packet.** The record is `evidence/claw-approach-v1/approach.json`. The review packet is
+  `evidence/claw-approach-review-v1/`: `README.md`, `overview.png`, `motion.png`, `paws.png` and `fade-gaps.json`.
+
+**Recipe.** This is the pick's approach recipe (`work-approach-v1/compile_work_approach.py`) on the claw image's
+own stand and walk. Nothing is authored.
+
+- The walk plays at a fixed body heading while the root moves along the station line. The driver's READY fade
+  joins it to stand key 8. The retreat plays the same poses in reverse.
+- The boxes are the outward hull of every walk key plus ready key 8, turned exactly to the four headings: 8 rows,
+  READY_FORWARD and READY_BACKWARD.
+- BODY is `[-485,0,-521,479,930,412]`, floor `[-271,-1,-274,284,0,249]` and stance `[-274,-1,-274,299,0,249]`.
+- This is 40 u wider than pick row 2 on −X and 66 u on +Z, so H's surveyed air must cover it at activation.
+
+**Proofs.** They run over the 45 fade simplices the rows use, selected as the pick's `selected_handoffs` selects
+them, with `prove_state_handoffs.separated_simplex`.
+
+- **Pending bearers: clear.** The L0 bearer at H and the T0 bearer at the L0 contact are
+  `qualified-assembly-v1/source_program.gd::bearer_refusal`'s prisms. Each is checked with the root anywhere from 0
+  to 4,096 u behind the station.
+- **Self-clearance: not clear.** 404 pairs are unresolved, all of them the right arm against the rest, in the READY
+  fade from walk keys 28–37. The sampled float gap falls to 0.009 u: the right paw grazes the right thigh as the
+  late stride blends back to ready.
+  - Every other handoff is clear.
+  - The idle-to-ready fades belong to a STAND row, which source 4 does not carry. Those were not counted.
+
+**Endpoints.** Row 42's 712 u sweep contains the pending bearer 384 u ahead at both the L0 contact (endpoint 3) and
+H (endpoint 0). R (endpoint 2) is install row 0's retreat, and leaving H on row 42 would turn into the L0 bearer.
+The proposal replaces like for like:
+
+- content 6's row 2 (endpoints 0, 1 and 3) becomes the narrow forward row;
+- row 6 (endpoints 2 and 13) becomes the narrow backward row;
+- row 12 (endpoints 4–12) becomes row 42.
+
+**Options for Brendan** (the packet's README):
+
+1. **Recommended: gate the fade by walk phase.** The source clock fades to ready only from walk intervals 0–27 or
+   38–43, which are proved clear. Arriving in keys 28–37, the walk plays on to key 38 first, at most 10 key
+   intervals. No geometry changes.
+2. **Author a fade path** that carries the right arm out, like step 1c's swing. This is new motion and another
+   review.
+
+Content 9, the claw endpoint certificate and the Frontier/bundle successor wait for this review.

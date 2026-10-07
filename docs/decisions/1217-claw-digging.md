@@ -1,7 +1,7 @@
 # 1217 — Claw digging and paw fitting: no tools for now
 
-Date: 2026-10-07 · Status: Accepted direction (DEC-052). Step 1, the first claw stroke, is authored and stopped
-for Brendan's review and his choice of cut-station distance (claw reach).
+Date: 2026-10-07 · Status: Accepted direction (DEC-052). Step 1 reviewed: stations move in to 1,430 u and the stroke
+becomes two-paw. Step 1b, the two-paw stroke, is stopped for Brendan's review.
 
 ## Decision
 
@@ -28,11 +28,9 @@ because every work row published today holds the pick.
 - **Unchanged:** every work amount and bill (brace 2,000, cut 4,000, finish 3,000 milli-WU; wood 250 + stone 250
   per quantum; L0 4,000 wood / 32,000 mWU; T0 and each tread 1,000 / 12,000), DEC-050's pace, and the haul rows.
 - **Depends on the tool, and changes:** tool wear. SET-MOVE-ECON-001 bills 1 durability per 10 completed WU on
-  "BUILD, tool" rows (GDD §5.7). Claw work has no tool, so it wears nothing. The "tool" owner condition of the
-  brace, cut and finish rows is amended (a note now sits under that table).
-- **Open for Brendan:** backfill, spoil-tip preparation, compaction, reclaim and tip closure are also marked
-  "tool" in SET-MOVE-ECON-001. DEC-052 names digging and fitting, so these keep their written condition until he
-  rules. Recommended: claws as well, since "all digging uses the claws".
+  "BUILD, tool" rows (GDD §5.7). Claw work has no tool, so it wears nothing. The "tool" owner condition of every
+  row of that table is amended (a note sits under it): Brendan extended claws to backfill, spoil-tip preparation,
+  compaction, reclaim and tip closure on 2026-10-07.
 - No GDD requirement or balance table scales a dig or BUILD rate by the tool, so no rate changes.
 
 ## Impact map: every runtime path that assumes a tool
@@ -71,7 +69,7 @@ closed paw's; only 845 right-hand positions differ. A claw source therefore need
 Consequence: at the switch between a haul row (closed paw) and a claw row (open paw) the right paw changes shape
 at READY. Rows 30/31 (source 2) are on the closed paw too. M6 can add open-paw stand/walk at little cost: the
 supplied idle and walk clips were captured on the open paw, so only the ADR 1199 proofs need re-running on it.
-This is a presentation question for Brendan's review of step 1.
+**Brendan (2026-10-07): the shape change at the switch is acceptable.** Rows 30/31 stay on the closed paw.
 
 ## Motion authoring plan
 
@@ -90,7 +88,7 @@ Every motion follows the established path:
 
 | # | Motion | Replaces | Reuses | Needed for |
 |---|---|---|---|---|
-| M1 | **Claw downward stroke** at the top face: BRACE, CUT and FINISH (one program, ADR 1188) | rows 13/17/21/25 | open paw, stand key 8, ADR 1144's lean/drop recipe | the six L0/T0 cubes, the descent's cut rows, the Room's level-0 tops |
+| M1 | **Claw downward stroke** at the top face, both paws alternately: BRACE, CUT and FINISH (one program, ADR 1188) | rows 13/17/21/25 | open paw, stand key 8, ADR 1144's lean/drop recipe | the six L0/T0 cubes, the descent's cut rows, the Room's level-0 tops |
 | M5 | **Paw handling** of the bearer | row 29 | the haul two-paw grip recipe (ADR 1144) | L0, T0 and treads |
 | M4a | **Paw seating** of the T0 bearer from L0 (contact 128 u up) | row 16 family | M5's hold; the INSTALL target faces of `install-source-v4` | L0 → T0 |
 | M6 | Tool-free source travel (approach/retreat, short step, canonical ground), open paw | rows 2–12 | empty walk (ADR 1199), rows 30/31 | Frontier and Room itineraries |
@@ -157,3 +155,21 @@ Options, put to Brendan in the packet's README:
 
 Native capture, integer rows, the content successor and the runtime changes wait on that choice and on his review
 of the stroke.
+
+### Brendan's review of step 1 (2026-10-07)
+
+Brendan reviewed candidate a's overview and motion images and decided:
+
+1. **Move the six cut stations in by 106 u, to 1,430 u** (option 1). A create-only Frontier successor, as
+   `qualified-landing-v4` was. The feet then stand at the dig area's edge.
+2. **Two paws, alternately:** both paws scoop in turn, which is more mole-like than a one-paw rake.
+3. **The paw changing shape** between hauling (closed) and digging (open) is acceptable.
+4. **Claws for all earth work:** backfill, spoil-tip work, compaction, reclaim and tip closure too (DEC-052 and the
+   SET-MOVE-ECON-001 note are extended).
+
+**Order.** The Frontier successor is not published in the same run as the two-paw stroke. Its station rows name the
+WORK profile and its header links the profile wire's content revision and source digest
+(`entry_source_constants._frontier`), and the claw rows do not exist until the stroke is approved and the content
+successor is published. Moving the stations while they still name pick row 25 would publish a Frontier no worker
+can use. It follows the content successor: stations 4–9 at x = ±1,430, the same endpoints translated, and paths
+re-proved through WorldRoutes and Locations.

@@ -1354,12 +1354,20 @@ What does not change: every work amount and every bill. Brace, cut and finish ke
 and wood 250 + stone 250 per quantum; L0, T0 and each tread keep their bills (DEC-050's pace and ADR 1209's D3
 included).
 
-**What this supersedes, and what it leaves open.** [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md)
-lists brace, cut and finish as "BUILD, tool", with inherited tool wear of 1 durability per 10 completed WU. For
-claw digging and paw fitting, no tool is required and no tool wear accrues. This decision names digging and fitting.
-The other tool-marked rows of that table (backfill, spoil-tip preparation, compaction, reclaim and tip closure) are
-not decided here; until Brendan rules on them they keep their written tool condition. The 2026-10-06 G11 ruling
+**What this supersedes.** [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) lists brace, cut and finish
+as "BUILD, tool", with inherited tool wear of 1 durability per 10 completed WU. For claw digging and paw fitting, no
+tool is required and no tool wear accrues. The 2026-10-06 G11 ruling
 (moles take tools from stores, [decision1197](decisions/1197-entry-work-in-the-live-demo.md)) is parked: with no
 tools, the first entry no longer waits on tool equipping.
 
 Engineering record, impact map and the motion plan: [decision1217](decisions/1217-claw-digging.md).
+
+**Follow-up rulings (2026-10-07), after reviewing the first claw stroke:**
+
+1. **The cut stations move in by 106 u**, from 1,536 u to 1,430 u from the entry centre. 106 is the most the
+   tool-free stance allows (512 − 406). The workers' feet then stand at the dig area's edge. This is published as a
+   Frontier successor; the published Frontier is kept.
+2. **Both paws dig, alternately**, instead of a one-paw rake: more mole-like.
+3. **The paw may change shape** between hauling (the closed paw) and digging (the open paw).
+4. **Claws for all earth work.** Backfill, spoil-tip preparation, compaction, reclaim and tip closure use the claws
+   too, so every row of SET-MOVE-ECON-001's table needs no tool and accrues no wear. Inputs and work are unchanged.

@@ -1,7 +1,7 @@
 # 1209 — Descent past T0: a flight of T0-family treads to the trench floor
 
-Date: 2026-10-06 · Status: Proposed. Step 1 (this plan) is done; step 2 (the flight proof) is next, and steps 3 onward wait on
-the three decisions below.
+Date: 2026-10-06 · Status: Proposed. Step 1 (this plan) and step 2 (the flight proof) are done; steps 3 onward
+wait on the three decisions below.
 
 ## Brendan's decision being implemented
 
@@ -51,8 +51,9 @@ T6's bearers would reach y = −1088, below the floor, so T6 cannot be a T0-fami
 The existing cut groups end at z = −3072, so T1 fits in the half metre ADR 1208 called nontraversable. T2…T6 need
 cube rows z ∈ [−4096, −3072], [−5120, −4096] and [−6144, −5120], two cubes each (x ∈ [−1024, 0] and [0, 1024]).
 The descent onto the floor ends at root z −5975, whose foot reaches exactly −6144. The walking body, though, reaches
-well ahead of its feet: the walk profile's boxes extend 474 u (body) and 732 u (held pick) ahead of the root. A
-seventh row, z ∈ [−7168, −6144], may therefore be needed ahead of the foot (decision D2; step 2 checks it).
+well ahead of its feet: the walk profile's boxes extend 474 u (body) and 732 u (held pick) ahead of the root. The
+step-2 diagnostic shows the last descent strikes the trench's end wall unless a seventh row,
+z ∈ [−7168, −6144], is open (decision D2).
 
 Each new cube is cut from the surface exactly as the existing six are: Frontier stations at (∓1536, 0, row + 512),
 profiles 25 (yaw 49152) and 17 (yaw 16384), the existing stations 4–7 translated in z. Their below-surface foot
@@ -121,13 +122,14 @@ That ground is `requires_never_cut`. A Kitchen dug from inside cannot be dug ben
 
 **D1 — T6's form.**
 - (a) **Recommended: a sill tread.** T0's deck and bearers six pitches down, with the bearers cut to 64 u so they
-  rest on the floor, and no posts. Its walking surface is identical to the family's.
+  rest on the floor, and no posts. Its walking surface is identical to the family's, and the step-2 diagnostic
+  proves the last two descents over it.
 - (b) A 128 u thick deck block resting on the floor. This is not proved: the swing foot passes its front face,
   which (a) leaves open between the bearers.
 - (c) No T6, with a 256 u last drop. This is impossible: the 256 u descent refuses.
 
 **D2 — the stair foot.**
-- (a) **Recommended: cut a seventh row, z ∈ [−7168, −6144], as part of the descent.** The walking body reaches past the foot (step 2 checks it).
+- (a) **Recommended: cut a seventh row, z ∈ [−7168, −6144], as part of the descent.** The step onto the floor needs it: with six rows it refuses, with seven it is clear.
   It also gives the all-yaw turning stance (±406) room at the foot (root −5975, stance to −6381).
 - (b) Make that row the Kitchen's first cubes, cut before the last step is walked.
 
@@ -139,7 +141,7 @@ That ground is `requires_never_cut`. A Kitchen dug from inside cannot be dug ben
 ## Order of work
 
 1. This plan. **Done.**
-2. Prove both accepted gaits over the derived T0-family flight.
+2. Prove both accepted gaits over the derived T0-family flight. **Done** (below).
 3. Brendan: D1, D2, D3.
 4. **New motion, install from the tread above.** Follow the install-source path: static pose candidates and exact
    provers, then a review packet. **Stop for Brendan's review.** After approval: the program, native capture,
@@ -159,3 +161,41 @@ That ground is `requires_never_cut`. A Kitchen dug from inside cannot be dug ben
 8. The foreman cuts rows 4–7, then for each k descends, installs T_k and ascends. First on the hand fixture, then
    live, with exact ledgers.
 9. The Kitchen, under its own ADR.
+
+## Step 2 — the flight proof (done)
+
+`prove_descent_flight.py` (contact-qualification) derives the flight from the prefix artifact only and runs the
+accepted `prove_stair_sequence.prove`, unchanged, over it.
+
+**Fixture: 82 solids.**
+- L0 and T0, as in the prefix artifact;
+- T1…T5 with their natural bearings;
+- the trench's floor slab, side walls and end walls, six rows long.
+
+The derivation refuses T6: `DESCENT_FLIGHT_TREAD_6_POST_BELOW_FLOOR`. Only the prover's capacities change (4 → 8
+segments, 32 → 96 solids). Pinned scripts that changed since the actor images were captured are restored from the
+git commit whose bytes match their pin (ADR 1205), and each restoration is recorded.
+
+**Result** (`descent-flight-v1/`):
+
+| Gait | Segments | Triangle pairs | Separating checks | Sole contacts | Unresolved | Support rows inside |
+|---|---|---:|---:|---:|---:|---:|
+| Descent L0 → T5 | 6 | 4,044 | 162 | 3,978 | 0 | 540 / 540 |
+| Ascent T5 → L0 | 6 | 4,686 | 336 | 4,350 | 0 | 540 / 540 |
+
+The descent's 4,044 pairs are exactly six times the single-step prefix proof's 674. The risers behind, the treads
+ahead and the trench add no candidate pairs.
+
+**Bottom diagnostic** (`descent-bottom-v1/`), with the D1-a sill and two descents, T5 → T6 → floor:
+
+| Trench | Result |
+|---|---|
+| 6 rows | Refuses. The body meets the far end wall from interval 44 of the step onto the floor (the prover stops at its 32-witness limit). |
+| 7 rows | Clear: 1,348 pairs, 0 unresolved. |
+
+**Scope.** These are source-local yaw-0 triangle and support proofs. They are not a native capture, a pace,
+Locations, routes or installed support. They read the accepted source closure through the inputs that the
+stair evidence's recorded invocation names (the frozen `redwall-rts-codex-ug-space` worktree, ADR 1192 §6),
+each hash-checked. They also read 76 gitignored `godot/demo/assets/` files cloned from that worktree for the
+run and verified against the image's source pins. Those files are not committed, so this is offline evidence,
+not a test (ADR 1192 §2). `test_descent_flight.py` checks the derivation and the stored results without them.

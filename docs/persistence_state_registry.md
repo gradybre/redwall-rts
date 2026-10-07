@@ -2110,4 +2110,4 @@ as source-qualified motion. No composed save adapter is claimed here.
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Live entry chain progress | -- | -- | -- | No packed columns | UNRESOLVED | §6 AUXILIARY_STATE | ADR1197. Step, origin, published handles, containers and crew are future-affecting while the entry is in progress. QUESTION: re-derive on load from the published Locations/Placement/containers, or save with the Host? Cleared with the Session. |
+| Live entry chain progress | -- | -- | -- | No packed columns | UNRESOLVED | §6 AUXILIARY_STATE | ADR1197. Step, origin, published handles, containers and crew are future-affecting while the entry is in progress. ADR1210: also the planned foreman (its cursor is the foreman row above), and the borrowed Jobs owner and crew row used to wait for the crew mole's resolved activity. QUESTION: re-derive on load from the published Locations/Placement/containers, or save with the Host? Cleared with the Session. |

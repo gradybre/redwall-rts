@@ -698,13 +698,64 @@ func test_live_entry_chain_publishes_confirms_then_alerts_each_missing_capabilit
 	assert_equal(o.locations._live.count, EntryWorkArea.ENDPOINTS, "published work area retained")
 	_equip_first_mole(o, entry._output)
 	assert_false(_host.begin_underground_entry(near), "retry resumes and meets the next gap")
-	assert_equal(entry.error(), Settlement.UndergroundEntryRuntime.REFUSE_INPUTS, "inputs not hauled")
-	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G4"), "haul gap row")
+	assert_equal(entry.error(), Settlement.UndergroundEntryRuntime.REFUSE_SURFACE_ARRIVAL, "mole is not on the station")
+	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G5"), "surface arrival gap row")
 	assert_equal(entry.step(), Settlement.UndergroundEntryRuntime.STEP_CREW, "crew chosen; nothing republished")
 	assert_equal(o.locations._live.count, EntryWorkArea.ENDPOINTS, "no second work area")
 
 
-func _equip_first_mole(o: Session.Retirement.Owners, container: Vector2i) -> void:
+func test_fixed_ticks_drive_the_live_foreman_until_the_haul_gap() -> void:
+	"""ADR1210 G7: run_tick alone advances the planned foreman on the real settlement until its first refusal,
+	the G4 haul gap: inputs staged at R never reach M, because no real haul can carry them there yet."""
+	var session: Session = _generate_and_mount()
+	assert_true(_host.compose_underground_room_owners() and _host.compose_underground_route_owners()
+		and _host.compose_underground_surface_anchor() and _host.compose_underground_entry_owners(), "every owner composed")
+	var near: Vector3i = Vector3i(60 * 2048 + 512, 512, 50 * 2048 + 512)
+	assert_false(_host.begin_underground_entry(near), "G11 first")
+	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
+	var o: Session.Retirement.Owners = session._retirement_owners
+	var worker: Vector2i = _equip_first_mole(o, entry._output)
+	var staged: Array[Vector2i] = [_stage(o, entry._output, &"wood", 7000), _stage(o, entry._output, &"stone", 2000)]
+	assert_false(_host.begin_underground_entry(near), "G5 next")
+	_stand_on_first_station(o, entry, worker)
+	assert_true(_host.begin_underground_entry(near), "foreman planned: %s" % _host.last_refusal())
+	assert_true(entry.is_running(), "the chain now waits for fixed ticks")
+	var tick: int = 1
+	while entry.is_running() and tick < 3000:
+		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
+		tick += 1
+	assert_false(entry.is_running(), "stopped at the first remaining gap")
+	assert_equal(entry.error(), Settlement.UndergroundEntryRuntime.Foreman.Installer.REFUSE_INPUT_STOCK, "exact refusal")
+	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G4"), "haul gap row")
+	assert_equal(entry._foreman.accepted_mwu(), 0, "no Work is earned before the inputs exist")
+	for lot: Vector2i in staged:
+		assert_equal(o.inventory.lot_reserved_milli(lot), 0, "staged stock is never claimed in place")
+		assert_equal(o.inventory.lot_container(lot), entry._output, "staged stock stays at R")
+	var actor: Session.Retirement.Routes.Actor = Session.Retirement.Routes.Actor.new()
+	assert_equal(o.routes.read_actor_into(worker, actor), &"", "the mole was admitted as a real route actor")
+	assert_equal(actor.location, entry._foreman.first_station(), "it entered WORK on the first station, then stopped")
+
+
+func _stage(o: Session.Retirement.Owners, container: Vector2i, key: StringName, milli: int) -> Vector2i:
+	"""Surface stock staged at R's real ground-staging container (ADR1197 G4, ADR1203 shared with spoil)."""
+	var lot: RefCounted = o.inventory.create_lot(container, o.items.compiled_id(key), milli, 1, 0, -1, 0, 0)
+	assert_true(lot.ok, "staged %s: %s" % [key, lot.error])
+	return lot.ref
+
+
+func _stand_on_first_station(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime,
+		worker: Vector2i) -> void:
+	"""Test stand-in for G5 surface arrival: the crew mole is placed exactly on the first planned station."""
+	var foreman: Settlement.UndergroundEntryRuntime.Foreman = Settlement.UndergroundEntryRuntime.Foreman.new()
+	assert_equal(foreman.configure(entry._foreman_owners(o), entry._crew, entry._entry_placement(o)), &"", "plan read")
+	var record: Session.Retirement.Locations.Record = Session.Retirement.Locations.Record.new()
+	record.envelope.resize(6); record.support.resize(6)
+	assert_equal(o.locations.read_location_into(foreman.first_station(), record), &"", "first station")
+	assert_true(o.transforms.place(worker, record.point.x, record.point.y, record.point.z, foreman._tasks[0].yaw),
+		"mole placed on the station")
+
+
+func _equip_first_mole(o: Session.Retirement.Owners, container: Vector2i) -> Vector2i:
 	"""Test stand-in for future tool gameplay: one real basic tool lot equipped by the first adult mole."""
 	var residents: RefCounted = o.residents
 	for slot: int in residents._present.size():
@@ -714,8 +765,9 @@ func _equip_first_mole(o: Session.Retirement.Owners, container: Vector2i) -> voi
 		assert_true(lot.ok, "real tool lot: %s" % lot.error)
 		assert_true(o.gear.create_gear(o.inventory, o.items, lot.ref, o.gear.MANUFACTURE_BASIC).ok, "real basic tool")
 		assert_true(o.gear.equip(lot.ref, owner).ok, "mole equips it")
-		return
+		return owner
 	assert_true(false, "starting cohort has a mole")
+	return Vector2i(-1, 0)
 
 
 func test_actual_surface_publication_retires_and_remounts_without_old_scope_or_endpoint_alias() -> void:

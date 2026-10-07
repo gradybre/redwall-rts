@@ -1952,7 +1952,9 @@ func begin_underground_entry(near: Vector3i) -> bool:
 	if code != &"": return _refuse(code)
 	if _underground_entry == null: _underground_entry = UndergroundEntryRuntime.new()
 	code = _underground_entry.start(_underground_session, near)
-	if code != &"": return _refuse(code)
+	if code != &"":
+		_alert_underground_entry(code)
+		return _refuse(code)
 	_last_refusal = REFUSE_NONE
 	return true
 
@@ -2221,8 +2223,24 @@ func _run_stages(tick_index: int) -> bool:
 	_plan_jobs(tick_index)
 	_select_jobs(tick_index)
 	_run_productive_work()
+	_advance_underground_entry(tick_index)
 	_extract_presentation(tick_index)
 	return true
+
+
+func _advance_underground_entry(tick_index: int) -> void:
+	"""ADR1210 G7: the planned first-entry foreman takes one fixed tick after ProductiveWork. Its BUILD Jobs are
+	not ticked there (they resolve to no removal Project), so its Work is earned exactly once, here. A refusal
+	stops the chain and raises its gap alert once; it never fails the settlement tick."""
+	if _underground_entry == null or not _underground_entry.is_running(): return
+	var code: StringName = _underground_entry.advance(tick_index)
+	if code != &"": _alert_underground_entry(code)
+
+
+func _alert_underground_entry(code: StringName) -> void:
+	"""ADR1197 alert rule: the exact refusal code, then the gap row that building it clears."""
+	UIManager.push_refusal(code)
+	UIManager.push_alert(UndergroundEntryRuntime.gap_of(code))
 
 
 func _plan_jobs(tick_index: int) -> void:

@@ -36,7 +36,7 @@ extends RefCounted
 ## FORMULAS by his approval (every library pickle takes salt; the demo has none):
 ##   vinegar    apples 4, water 1                       -> apple vinegar 4, 16 WU + 96 h in a vat, the brewery, keeps
 ##              1440 h (COMPONENT_shared_apple_vinegar: apple, fermentation and vinegar cultures)
-##   pickles    roots 3 (onions or any roots), vinegar 1 -> pickles 3, 12 WU + 24 h in a crock, the table, keeps 720 h
+##   pickles    roots 3 (onions or any farmed root, never potato), vinegar 1 -> pickles 3, 12 WU + 24 h in a crock, the table, keeps 720 h
 ##              (taggerung TAG_recipe_pickled_onions without its salt)
 ## The salted pickle is approved as well and waits on salt: the demo has no salt source (no coast, trader or stores salt).
 ## An input is a §5.7 CATEGORY or, where a recipe names one item (ale's barley, cider's apple), an ITEM selector
@@ -47,7 +47,6 @@ extends RefCounted
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const FisheryRules := preload("res://demo/fishery/fishery_rules.gd")
 const MealRules := preload("res://demo/kitchen/meal_rules.gd")
-const FarmingScript := preload("res://scripts/core/farming.gd")
 const TakesScript := preload("res://demo/kitchen/ingredient_takes.gd")
 
 const R_DRY_FISH: int = 0
@@ -65,6 +64,12 @@ const RECIPE_COUNT: int = 11
 ## The item selectors the new recipes name (decision 1625): barley alone of the grain, apples alone of the fruit.
 const SEL_BARLEY: int = TakesScript.SELECT_ITEMS | (1 << Catalog.ITEM_BARLEY)
 const SEL_APPLE: int = TakesScript.SELECT_ITEMS | (1 << Catalog.ITEM_APPLE)
+## The pickles' roots (Brendan, 2026-10-07: "exclude potatoes from pickles"): the six farmed roots -- farm_catalog.gd
+## items 0-5, radish to onion, every item whose ITEM_CROP is the roots row -- never the potato, which the catalog files
+## in the same §5.6 row. Said "roots" (SELECTOR_WORDS).
+const SEL_PICKLE_ROOTS: int = TakesScript.SELECT_ITEMS | (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5)
+## A named item selector's word, where its items' list would be long ("roots", not "radish, turnip, ... or onion").
+const SELECTOR_WORDS: Dictionary = {SEL_PICKLE_ROOTS: "roots"}
 
 const STATION_RACK: int = 0
 const STATION_TABLE: int = 1
@@ -118,7 +123,7 @@ const IN_COUNT: PackedInt32Array = [1, 1, 3, 1, 2, 2, 1, 1, 1, 1, 2]
 ## Int64: an item selector carries SELECT_ITEMS (bit 62).
 const IN_CATEGORY: PackedInt64Array = [Catalog.CAT_FISH, Catalog.CAT_FRUIT, Catalog.CAT_FLOUR, Catalog.CAT_DRIED_FISH,
 	Catalog.CAT_NUTS, Catalog.CAT_HONEY, Catalog.CAT_BERRIES, Catalog.CAT_HONEY, Catalog.CAT_BERRIES, Catalog.CAT_HONEY,
-	Catalog.CAT_NUTS, SEL_BARLEY, SEL_APPLE, SEL_APPLE, FarmingScript.CROP_ROOTS, Catalog.CAT_VINEGAR]
+	Catalog.CAT_NUTS, SEL_BARLEY, SEL_APPLE, SEL_APPLE, SEL_PICKLE_ROOTS, Catalog.CAT_VINEGAR]
 const IN_MILLI: PackedInt32Array = [FisheryRules.DRY_IN_MILLI, 4000, 2000, 1000, 1000, 3000, 2000, 500, 2000, 1000, 2000,
 	3000, 4000, 4000, 3000, 1000]
 ## A missing input's refusal code (the fish row's is decision 0434's NO_FISH).
@@ -211,6 +216,8 @@ static func cap(words: String) -> String:
 
 static func category_words(category: int) -> String:
 	"""An input as a recipe names it: a category's word ("dried fish"), or an item selector's items ("barley")."""
+	if SELECTOR_WORDS.has(category):
+		return String(SELECTOR_WORDS[category])
 	if category >= TakesScript.SELECT_ITEMS:
 		return MealRules.items_text(category)
 	return MealRules.CATEGORY_WORDS[category] if category >= 0 and category < MealRules.CATEGORY_WORDS.size() else "food"

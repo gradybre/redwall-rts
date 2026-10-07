@@ -363,7 +363,7 @@ func test_vinegar_and_pickles_are_the_approved_rows() -> void:
 	assert_equal([Recipes.IN_CATEGORY[Recipes.IN_FIRST[p]], Recipes.IN_MILLI[Recipes.IN_FIRST[p]],
 		Recipes.IN_CATEGORY[Recipes.IN_FIRST[p] + 1], Recipes.IN_MILLI[Recipes.IN_FIRST[p] + 1], Recipes.IN_COUNT[p],
 		Recipes.WATER_MILLI[p], Recipes.OUT_MILLI[p], Recipes.WORK_MWU[p], Recipes.PASSIVE_HOURS[p], Recipes.STATION[p]],
-		[FarmingScript.CROP_ROOTS, 3000, Catalog.CAT_VINEGAR, 1000, 2, 0, 3000, 12000, 24, Recipes.STATION_TABLE], "pickles")
+		[Recipes.SEL_PICKLE_ROOTS, 3000, Catalog.CAT_VINEGAR, 1000, 2, 0, 3000, 12000, 24, Recipes.STATION_TABLE], "pickles")
 	assert_equal(Catalog.ITEM_KEYS.slice(40, 42), [&"vinegar", &"pickles"], "appended")
 	assert_equal([MealRules.raw_np_per_u(40), MealRules.raw_np_per_u(41)], [0, 800], "vinegar never eaten")
 	assert_equal([Catalog.shelf_hours_of(40), Catalog.shelf_hours_of(41)], [1440, 720], "shelf")
@@ -430,14 +430,13 @@ const ROWS_TAKING: Dictionary = {
 	Catalog.ITEM_FLOUR: [Recipes.R_RATION],
 	Catalog.ITEM_DRIED_FISH: [Recipes.R_RATION],
 	Catalog.ITEM_VINEGAR: [Recipes.R_PICKLES],
-	Catalog.ITEM_POTATO: [Recipes.R_PICKLES],
 }
 
 
 func test_each_ingredient_feeds_the_rows_that_take_it() -> void:
 	"""Every pantry item, pinned: apples dried fruit, cider, vinegar; pears dried fruit; honey mead, cordial, jam; nuts
-	rations, cheese; berries cordial, jam; barley ale (oats and wheat none); the six roots and the potato (a root by
-	the catalog) pickles; flour, dried fish rations; vinegar pickles; everything else -- the catch (the fish row's text is
+	rations, cheese; berries cordial, jam; barley ale (oats and wheat none); the six farmed roots pickles -- never the
+	potato (Brendan, 2026-10-07), though the catalog files it in the roots row; flour, dried fish rations; vinegar pickles; everything else -- the catch (the fish row's text is
 	its own), mushrooms, herbs, every station good -- none."""
 	for item: int in Catalog.PANTRY_ITEM_COUNT:
 		var expected: Array = ROWS_TAKING.get(item, [])
@@ -521,3 +520,41 @@ func test_row_mates_grow_alike_but_are_not_said_to_be_used_alike() -> void:
 	var mates: String = guide.entry(guide.index_of(FieldGuideScript.crop_id(Catalog.ITEM_BARLEY))).alternatives
 	assert_true(mates.begins_with("The same row, grown and kept alike"), mates)
 	assert_false(mates.contains("used alike"), "not used alike")
+
+
+# --- Brendan, 2026-10-07: "exclude potatoes from pickles" ---------------------------------------------------------------
+
+func test_the_pickles_roots_are_the_six_farmed_roots_never_potato() -> void:
+	"""The selector takes exactly the farmed items of the roots row; the potato, filed in the same row, is not one; the
+	card and the refusal still say "roots"."""
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
+		var farmed_root: bool = Catalog.is_item(item) and Catalog.crop_of(item) == FarmingScript.CROP_ROOTS
+		assert_equal(TakesScript.matches(Recipes.SEL_PICKLE_ROOTS, item), farmed_root, Catalog.ITEM_KEYS[item])
+	assert_equal(Catalog.category_of(Catalog.ITEM_POTATO), FarmingScript.CROP_ROOTS, "the potato is in the roots row")
+	assert_equal(Recipes.category_words(Recipes.SEL_PICKLE_ROOTS), "roots", "said roots")
+
+
+func test_potatoes_are_refused_and_an_onion_pickles() -> void:
+	"""Potatoes 3 and vinegar 1: refused, NO_ROOTS, the potatoes untouched; onions 3 then order the batch."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	rig.pantry.add_into(Catalog.ITEM_POTATO, 3000, 0, _read)
+	rig.pantry.add_into(Catalog.ITEM_VINEGAR, 1000, 0, _read)
+	assert_true(f.batch_refusal(Recipes.R_PICKLES).begins_with("the stores hold 0 U of roots"), f.batch_refusal(Recipes.R_PICKLES))
+	assert_equal(f.refused_code, "NO_ROOTS", "its code")
+	assert_true(f.order_batch(Recipes.R_PICKLES, PackedInt32Array([2])) != "", "not ordered")
+	assert_equal(rig.pantry.milli_of(Catalog.ITEM_POTATO), 3000, "the potatoes untouched")
+	rig.pantry.add_into(5, 3000, 0, _read)
+	assert_equal(f.order_batch(Recipes.R_PICKLES, PackedInt32Array([2])), "", "onions pickle")
+	assert_true(_run(rig, func() -> bool: return f.tables.s_state[FIRST_CROCK] == Tables.SLOT_CURING), "packed")
+	assert_equal([rig.pantry.milli_of(5), rig.pantry.milli_of(Catalog.ITEM_POTATO)], [0, 3000], "onions taken, not potatoes")
+
+
+func test_the_potato_lists_no_pickles() -> void:
+	"""The derived Uses follow the row: no row takes the potato, and its guide entry names no pickles."""
+	assert_true(Recipes.rows_taking(Catalog.ITEM_POTATO).is_empty(), "no row")
+	var guide := FieldGuideScript.new()
+	var potato: FieldGuideScript.Entry = guide.entry(guide.index_of(FieldGuideScript.item_id(Catalog.ITEM_POTATO)))
+	assert_false(potato.uses.contains("pickles"), potato.uses)
+	assert_false(potato.links.has(FieldGuideScript.item_id(Catalog.ITEM_PICKLES)), "not linked")
+	assert_true(CropRoles.uses_text(5).contains("the preserving table (pickles)"), "the onion's card still does")

@@ -2120,8 +2120,8 @@ Brendan's "Approve and build Q-d5 and dec-007" (2026-10-07): four content-librar
   the mead and the cordial, a unit for every four guests.
 - **Make vinegar** at the brewery: apples 4 + water 1 → **apple vinegar** 4, 16 WU + 96 h in a vat, keeps 1440 h --
   the library's apple vinegar. An ingredient only: never eaten, never poured.
-- **Make pickles** at the preserving table: roots 3 + vinegar 1 → **pickles** 3 (800 NP a unit, eaten as they are),
-  12 WU, then 24 h in a crock, keeps 720 h -- **no salt**: a pickle beyond the library's formulas, by Brendan's
+- **Make pickles** at the preserving table: roots 3 (onions or any farmed root, never potato: Brendan's ruling)
+  + vinegar 1 → **pickles** 3 (800 NP a unit, eaten as they are), 12 WU, then 24 h in a crock, keeps 720 h -- **no salt**: a pickle beyond the library's formulas, by Brendan's
   approval ("both vinegar and salt", 2026-10-07).
 - **Every ingredient says what the stations make of it**, read from the recipe rows (`preserve_rules.gd`
   `rows_taking`), so a new row shows without an edit: the crop picker's Uses (roots: the preserving table's pickles;

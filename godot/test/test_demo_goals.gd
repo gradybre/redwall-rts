@@ -318,7 +318,7 @@ func test_first_crossing_is_reached_on_the_ferrys_own_count() -> void:
 
 
 func test_regatta_day_is_reached_on_the_regattas_own_count() -> void:
-	"""Decision 1651: "Regatta day" reads the regatta's latched `feasts_held` (a regatta day held to its end) -- not
+	"""Decision 1651: "Regatta day" reads the regatta's latched `feasts_served` (a regatta whose feast was served) -- not
 	before, reached at the first."""
 	var world := _world(9)
 	var book := BookScript.new()
@@ -332,7 +332,10 @@ func test_regatta_day_is_reached_on_the_regattas_own_count() -> void:
 		false], "a village goal at 0 of 1")
 	regatta.feasts_held = 1
 	book.update(1)
-	assert_true(goal.done, "reached at the first regatta held")
+	assert_false(goal.done, "a regatta held but its feast never served does not count (Brendan, 2026-10-07)")
+	regatta.feasts_served = 1
+	book.update(2)
+	assert_true(goal.done, "reached at the first regatta whose feast was served")
 	assert_false(book.goal(&"first_crossing").done, "the ferry's goal waits on its own count")
 
 
@@ -347,7 +350,7 @@ func test_the_occasion_counts_read_nothing_unbound() -> void:
 	village.ferry = FerryScript.new()
 	village.ferry.crossings_done = 3
 	village.regatta = RegattaScript.new()
-	village.regatta.feasts_held = 2
+	village.regatta.feasts_served = 2
 	assert_equal([village.value(VillageScript.M_CROSSINGS), village.value(VillageScript.M_REGATTAS)], [3, 2], "bound")
 
 

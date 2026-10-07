@@ -442,6 +442,7 @@ func test_a_feast_never_served_gives_its_food_and_wood_back() -> void:
 	r.update()
 	assert_equal(r.state, RegattaScript.ST_DONE, "the day is over")
 	assert_equal(r.attendees.size(), 0, "nobody shared it")
+	assert_equal([r.feasts_held, r.feasts_served], [1, 0], "a day held, no feast served: not a Regatta day (decision 1651)")
 	assert_equal(_services.stores.wood_milli_u, wood, "the unserved wood back")
 	for crop: int in [FarmingScript.CROP_BEANS, FarmingScript.CROP_CABBAGE]:
 		assert_equal(rig.kitchen.takes.live_milli(rig.pantry, take, -1, crop), 0, "the feast's category %d let go" % crop)
@@ -561,7 +562,7 @@ func test_the_feast_is_cooked_from_the_reserved_food_eaten_and_remembered() -> v
 	assert_equal(rig.pantry.milli_of(PEA), 8000 - batches * 2000, "the main course's beans eaten, no more")
 	assert_equal(rig.pantry.milli_of(CABBAGE), 8000 - batches * 2000, "its cabbage eaten, no more")
 	assert_true(r.attendees.size() * 2 > r.eligible, "most shared the feast (%d of %d)" % [r.attendees.size(), r.eligible])
-	assert_equal(r.feasts_held, 1, "a feast held")
+	assert_equal([r.feasts_held, r.feasts_served], [1, 1], "a feast held and served")
 	assert_equal(rig.posted.size(), 1, "one chronicle line")
 	assert_true(rig.posted[0].contains("regatta") and rig.posted[0].contains("The moment:"), "with its moment: %s" % rig.posted[0])
 	assert_equal(rig.deeds.size(), 1, "the winners' deed recorded")

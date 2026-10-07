@@ -96,3 +96,23 @@ Nothing CRITICAL or HIGH.
   `astra_inbox.py --check`, `generate_canonical_state_table.py --check`, `lane_notes.py --check`, the movement checks
   and `state_registry_coverage.py`) exit 0. No settlement bytes were added, so the memory ledger and capacity audit are
   unchanged.
+
+## Brendan's rulings (2026-10-07)
+
+**P1: (b).** Relayed by the coordinator; the question he approved read: "Regatta day counts only a regatta whose feast
+was served."
+
+Built:
+- `regatta.gd` keeps a second latched count, `feasts_served`. It is raised in `_tally` only when the kitchen published
+  the supper's meal-finalized event (`final != null`), not when the supper lapsed past (`_tally(null)`, a season
+  skip).
+- `village_goals.gd M_REGATTAS` reads it, and the goal's news line now says "…held its first regatta and sat down to
+  its feast."
+
+Tests:
+- `test_demo_regatta.gd`: the lapsed path leaves `feasts_served` at 0 while `feasts_held` is 1; the served feast
+  raises both.
+- `test_demo_goals.gd`: a regatta held but not served does not reach the goal; a served one does.
+
+Mutation of the new check: 3 mutants (count a lapsed supper, never count, the goal reading `feasts_held`), **3
+killed**.

@@ -48,7 +48,8 @@ const M_TUNNELS: int = 12
 const M_OWN_FOOD_DAYS: int = 13
 ## Crossings the ferry has rowed home (ferry.gd `crossings_done`, latched; decision 1651).
 const M_CROSSINGS: int = 14
-## Regatta days held to their end (regatta.gd `feasts_held`, latched when the day's feast supper is settled; decision 1651).
+## Regattas whose feast was served (regatta.gd `feasts_served`; Brendan's ruling of 2026-10-07, decision 1651): a regatta
+## day skipped past, its supper lapsed, does not count.
 const M_REGATTAS: int = 15
 
 const MILESTONE: int = BookScript.GROUP_MILESTONE
@@ -118,7 +119,7 @@ const GOALS: Array = [
 		[[&"crossings", "Ferry crossings rowed home", 1, COUNT, M_CROSSINGS]]],
 	[&"regatta_day", VILLAGE, "Regatta day",
 		"Once a season the village races its two rowboats on the pond and sits down to the Hearth feast at supper: a day kept together, and one the chronicle remembers.",
-		"the village has held its first regatta.",
+		"the village has held its first regatta and sat down to its feast.",
 		[[&"regattas", "Regattas held", 1, COUNT, M_REGATTAS]]],
 	[&"way_below", VILLAGE, "A way below",
 		"Tunnels join homes and stores under frost and rain; three open stretches make a passage rather than a hole.",
@@ -180,7 +181,7 @@ func value(kind: int) -> int:
 		M_BRIDGES: return world.open_bridges() if world != null else 0
 		M_TUNNELS: return world.open_tunnels() if world != null else 0
 		M_CROSSINGS: return ferry.crossings_done if ferry != null else 0
-		M_REGATTAS: return regatta.feasts_held if regatta != null else 0
+		M_REGATTAS: return regatta.feasts_served if regatta != null else 0
 	return _ledger_value(kind)
 
 

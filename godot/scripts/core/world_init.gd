@@ -657,6 +657,9 @@ var _fauna_tracks: PackedInt32Array = PackedInt32Array()
 var _fauna_harvest_today: PackedInt32Array = PackedInt32Array()
 var _fauna_migration_link: PackedInt32Array = PackedInt32Array()
 var _fauna_birth_remainder: PackedInt64Array = PackedInt64Array()
+## The code of the most recent refused bulk fauna column call, or REFUSE_NONE. Category 3: a
+## diagnostic channel separate from every other refusal, never saved or hashed.
+var _last_fauna_column_refusal: StringName = REFUSE_NONE
 
 # --- scratch (not simulation state) -------------------------------------------------------------
 
@@ -1362,6 +1365,150 @@ func fauna_reserved_bytes() -> int:
 	"""Bytes of REQ-SET-059's reserved fauna allocation, for the ARCH-MEM-009 ledger."""
 	return FAUNA_STOCK_ROWS * (FAUNA_I32_COLUMNS * BYTES_PER_INT32
 		+ FAUNA_I64_COLUMNS * BYTES_PER_INT64)
+
+
+# --- ARCH-SAVE-002 section 4 bulk column API (ADR 1222 build step 2) ----------------------------
+#
+# Owner 17's capture and apply steps, mirroring `priorities.gd`'s pair. `copy_fauna_columns_into()`
+# is an exact snapshot of the nine reserved columns over all 384 physical rows;
+# `restore_fauna_columns()` judges a candidate with the SAME `fauna_columns_refusal()` the save
+# bridge uses, writes nothing on refusal, then installs the nine columns. REQ-SET-059 has no
+# mutator and no derived member over this allocation -- no count, free list or reverse map -- so
+# there is nothing else to rebuild on a successful install. This block owns no member of section 1
+# (the `SavedMap` columns and the two publication scalars above): `restore_fauna_columns()` neither
+# reads nor writes any of them. `_last_fauna_column_refusal` is category 3 and is the only other
+# member either call writes.
+
+class FaunaColumns:
+	"""Caller-owned image of the nine reserved fauna columns, in `fauna_columns_refusal()` order.
+
+	One object per save or load, never per resident (ARCH-MEM-001). `copy_fauna_columns_into()`
+	refills the buffers in place and refuses a wrongly sized one rather than resizing it.
+	"""
+	var zone_slot: PackedInt32Array = PackedInt32Array()
+	var zone_generation: PackedInt32Array = PackedInt32Array()
+	var species_id: PackedInt32Array = PackedInt32Array()
+	var population: PackedInt32Array = PackedInt32Array()
+	var capacity: PackedInt32Array = PackedInt32Array()
+	var tracks: PackedInt32Array = PackedInt32Array()
+	var harvest_today: PackedInt32Array = PackedInt32Array()
+	var migration_link: PackedInt32Array = PackedInt32Array()
+	var birth_remainder: PackedInt64Array = PackedInt64Array()
+
+	func _init() -> void:
+		"""Size all nine columns to FAUNA_STOCK_ROWS, then fill the canonical reserved image."""
+		zone_slot.resize(FAUNA_STOCK_ROWS)
+		zone_generation.resize(FAUNA_STOCK_ROWS)
+		species_id.resize(FAUNA_STOCK_ROWS)
+		population.resize(FAUNA_STOCK_ROWS)
+		capacity.resize(FAUNA_STOCK_ROWS)
+		tracks.resize(FAUNA_STOCK_ROWS)
+		harvest_today.resize(FAUNA_STOCK_ROWS)
+		migration_link.resize(FAUNA_STOCK_ROWS)
+		birth_remainder.resize(FAUNA_STOCK_ROWS)
+		clear()
+
+	func clear() -> void:
+		"""Refill every column with REQ-SET-059's reserved image: null refs, every number 0."""
+		zone_slot.fill(EntityDirectory.NULL_SLOT)
+		zone_generation.fill(EntityDirectory.NULL_GENERATION)
+		species_id.fill(0)
+		population.fill(0)
+		capacity.fill(0)
+		tracks.fill(0)
+		harvest_today.fill(0)
+		migration_link.fill(0)
+		birth_remainder.fill(0)
+
+	func equals(other: FaunaColumns) -> bool:
+		"""True when all nine columns are byte-identical. Proves a refusal changed nothing."""
+		return other != null and zone_slot == other.zone_slot \
+			and zone_generation == other.zone_generation and species_id == other.species_id \
+			and population == other.population and capacity == other.capacity \
+			and tracks == other.tracks and harvest_today == other.harvest_today \
+			and migration_link == other.migration_link \
+			and birth_remainder == other.birth_remainder
+
+
+func last_fauna_column_refusal() -> StringName:
+	"""The code of the most recent refused bulk fauna column call, or REFUSE_NONE after a success.
+
+	A SEPARATE channel from every other refusal reader this module exposes, so a load can never
+	overwrite a reason recorded elsewhere before its caller reads it. Every code is a
+	`COLUMN_FAUNA_` code or REFUSE_NONE.
+	"""
+	return _last_fauna_column_refusal
+
+
+func copy_fauna_columns_into(out: FaunaColumns) -> bool:
+	"""Copy the nine reserved fauna columns into caller-owned buffers. False refuses; `out` kept.
+
+	The copies are snapshots: mutating `out` afterwards cannot reach a column, and a later write
+	here cannot reach `out`.
+	"""
+	if not _fauna_columns_are_capacity_sized(out):
+		_last_fauna_column_refusal = REFUSE_COLUMN_FAUNA_SHAPE
+		return false
+	_refill_i32(out.zone_slot, _fauna_zone_slot)
+	_refill_i32(out.zone_generation, _fauna_zone_generation)
+	_refill_i32(out.species_id, _fauna_species_id)
+	_refill_i32(out.population, _fauna_population)
+	_refill_i32(out.capacity, _fauna_capacity)
+	_refill_i32(out.tracks, _fauna_tracks)
+	_refill_i32(out.harvest_today, _fauna_harvest_today)
+	_refill_i32(out.migration_link, _fauna_migration_link)
+	out.birth_remainder.clear()
+	out.birth_remainder.append_array(_fauna_birth_remainder)
+	_last_fauna_column_refusal = REFUSE_NONE
+	return true
+
+
+func restore_fauna_columns(columns: FaunaColumns) -> bool:
+	"""Replace all nine reserved fauna columns. False refuses; nothing is written.
+
+	Allocate before consume (decision 0059): the null guard and the whole
+	`fauna_columns_refusal()` run before the first write, so a refusal leaves every column
+	byte-identical. There is no count or other derived member to rebuild (no mutator exists for
+	this allocation); section 1's columns and scalars are untouched by this call.
+	"""
+	var refusal: StringName = REFUSE_COLUMN_FAUNA_SHAPE
+	if _fauna_columns_are_capacity_sized(columns):
+		refusal = fauna_columns_refusal(columns.zone_slot, columns.zone_generation,
+			columns.species_id, columns.population, columns.capacity, columns.tracks,
+			columns.harvest_today, columns.migration_link, columns.birth_remainder)
+	if refusal != REFUSE_NONE:
+		_last_fauna_column_refusal = refusal
+		return false
+	_fauna_zone_slot = columns.zone_slot.duplicate()
+	_fauna_zone_generation = columns.zone_generation.duplicate()
+	_fauna_species_id = columns.species_id.duplicate()
+	_fauna_population = columns.population.duplicate()
+	_fauna_capacity = columns.capacity.duplicate()
+	_fauna_tracks = columns.tracks.duplicate()
+	_fauna_harvest_today = columns.harvest_today.duplicate()
+	_fauna_migration_link = columns.migration_link.duplicate()
+	_fauna_birth_remainder = columns.birth_remainder.duplicate()
+	_last_fauna_column_refusal = REFUSE_NONE
+	return true
+
+
+static func _fauna_columns_are_capacity_sized(columns: FaunaColumns) -> bool:
+	"""The shared null and extent guard of both bulk calls, before any indexed read."""
+	return columns != null and columns.zone_slot.size() == FAUNA_STOCK_ROWS \
+		and columns.zone_generation.size() == FAUNA_STOCK_ROWS \
+		and columns.species_id.size() == FAUNA_STOCK_ROWS \
+		and columns.population.size() == FAUNA_STOCK_ROWS \
+		and columns.capacity.size() == FAUNA_STOCK_ROWS \
+		and columns.tracks.size() == FAUNA_STOCK_ROWS \
+		and columns.harvest_today.size() == FAUNA_STOCK_ROWS \
+		and columns.migration_link.size() == FAUNA_STOCK_ROWS \
+		and columns.birth_remainder.size() == FAUNA_STOCK_ROWS
+
+
+static func _refill_i32(out: PackedInt32Array, source: PackedInt32Array) -> void:
+	"""Refill a caller's i32 buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
 
 
 func planned_tree_centre_count() -> int:

@@ -1,14 +1,25 @@
 extends RefCounted
-## Owner 17 (`world_init`) framed-column validation bridge (FAUNA-S4-VALIDATE-R01 v1, ADR 0174).
+## Owner 17 (`world_init`) framed-column validation bridge (FAUNA-S4-VALIDATE-R01 v1, ADR 0174;
+## bulk capture/apply per ADR 1222 build step 2).
 ##
-## ONE PUBLIC ENTRY POINT. `framed_refusal()` judges one already framed section 4 owner 17 block
-## against WorldInit's reserved-fauna rules and returns a `SaveHeader.Refusal`. It NEVER
-## constructs a WorldInit or any collaborator -- that constructor allocates both map buffers and
-## stages mask data, none of which belongs in save validation -- captures nothing, applies
-## nothing, and touches no live store, catalog, clock, barrier, signal, callback, filesystem,
-## reflection API, diagnostic field, projection or repair path.
+## THREE PUBLIC ENTRY POINTS.
+##   * `framed_refusal()` judges one already framed section 4 owner 17 block against WorldInit's
+##     reserved-fauna rules and returns a `SaveHeader.Refusal`. It NEVER constructs a WorldInit or
+##     any collaborator -- that constructor allocates both map buffers and stages mask data, none
+##     of which belongs in save validation -- captures nothing, applies nothing, and touches no
+##     live store, catalog, clock, barrier, signal, callback, filesystem, reflection API,
+##     diagnostic field, projection or repair path.
+##   * `capture_into(store, record)` copies the live store's nine reserved fauna columns through
+##     `WorldInit.copy_fauna_columns_into()` and projects them into the record's typed buckets in
+##     ordinal order -- the exact inverse of the projection below -- then judges the written
+##     record with `framed_refusal()`, so a capture can never emit an image apply would refuse. A
+##     refused capture leaves the record's contents unspecified; the caller discards it.
+##   * `apply(record, store)` runs `framed_refusal()` FIRST, then projects the record and calls
+##     `WorldInit.restore_fauna_columns()`, which re-runs the same predicate and writes nothing on
+##     refusal. A false maps to a Refusal carrying the store's exact `last_fauna_column_refusal()`
+##     code. Section 1's columns and scalars are untouched by either call.
 ##
-## GATE ORDER, and what each gate owns:
+## GATE ORDER for `framed_refusal()`, and what each gate owns:
 ##   1. a null record                   -> SAVE_COMPONENT_SHAPE
 ##   2. an owner index that is not 17   -> SAVE_COMPONENT_OWNER
 ##   3. `Schema.schema_refusal()`       -> forwarded UNCHANGED, both code and detail
@@ -19,6 +30,8 @@ extends RefCounted
 ##      predicate's canonical argument order
 ##   7. `WorldInit.fauna_columns_refusal()` -> the EXACT unwrapped column code, COLUMN_FAUNA_SHAPE
 ##      or COLUMN_FAUNA_RESERVED, in a detail naming owner 17 and that same code, never a row.
+## `capture_into()` and `apply()` additionally gate on a null store -> REFUSE_NULL_STORE, ahead of
+## the schema and metadata guards for `capture_into()` and after `framed_refusal()` for `apply()`.
 ## Success carries an empty code and an empty detail.
 ##
 ## THE RESERVED IMAGE IS NOT ALL ZERO. REQ-SET-059 pins every zone reference at (-1,0), so a raw
@@ -27,11 +40,13 @@ extends RefCounted
 ## both EntityDirectory null sentinels BEFORE any column is evaluated, so an altered sentinel is
 ## reported as a metadata fault and can never be mistaken for a column-data defect.
 ##
-## NO PROJECTION IS ALLOCATED. The nine accessor values are passed straight into the static
-## predicate and share the caller's frozen copy-on-write buffers; nothing is duplicated, sorted,
-## substituted or retained, so an accepted and a refused call alike leave every caller array
-## untouched. The caller must hold its record frozen for this synchronous read. One framed image
-## is 384 * (8 * 4 + 8) = 15360 logical packed value bytes, already inside the caller's streamed
+## NO PROJECTION IS ALLOCATED BY `framed_refusal()`. Its nine accessor values are passed straight
+## into the static predicate and share the caller's frozen copy-on-write buffers; nothing is
+## duplicated, sorted, substituted or retained, so an accepted and a refused call alike leave
+## every caller array untouched. The caller must hold its record frozen for this synchronous
+## read. `capture_into()` and `apply()` each allocate one `WorldInit.FaunaColumns`, which
+## `restore_fauna_columns()` takes its own private copies of. One framed image is
+## 384 * (8 * 4 + 8) = 15360 logical packed value bytes, already inside the caller's streamed
 ## owner allowance; native and wrapper overhead is unmeasured.
 ##
 ## WHAT AN ACCEPTED RESULT DOES NOT CERTIFY. Section 1 world publication, combined section 1/4
@@ -56,6 +71,8 @@ const OWNER_CHILD_EXTENT_COUNT: int = 0
 const OWNER_FIELD_COUNT: int = 9
 ## Gate 4's detail prefix. Gate 3 forwards the schema module's own detail unchanged.
 const METADATA_DETAIL_PREFIX: String = "WorldInit owner17 metadata:"
+## A capture or apply called without a live store. Bridge-local: no column code applies.
+const REFUSE_NULL_STORE: StringName = &"SAVE_COMPONENT_NULL_STORE"
 
 ## Owner-local field ordinals, in the canonical order the predicate's arguments take.
 const FIELD_ZONE_SLOT: int = 0
@@ -118,6 +135,82 @@ static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
 		return _refuse(code, "WorldInit owner %d refuses this image with column code %s"
 			% [OWNER_INDEX, String(code)])
 	return _accept()
+
+
+static func capture_into(store: WorldInit, record: Section.FramedOwner) -> SaveHeader.Refusal:
+	"""Capture the live store's nine fauna columns into one owner 17 record, then judge it.
+
+	Gates: a null record, a wrong owner, a null store, the schema and metadata guards, then the
+	store's own `copy_fauna_columns_into()` (its column code is forwarded), a typed setter
+	refusal (SAVE_COMPONENT_SHAPE), and last `framed_refusal()` over what was written.
+	"""
+	var target: SaveHeader.Refusal = _target_refusal(record, store)
+	if not target.is_ok():
+		return target
+	var columns: WorldInit.FaunaColumns = WorldInit.FaunaColumns.new()
+	if not store.copy_fauna_columns_into(columns):
+		return _refuse(store.last_fauna_column_refusal(),
+			"WorldInit owner %d capture refused with %s"
+				% [OWNER_INDEX, String(store.last_fauna_column_refusal())])
+	if not (record.set_i32(FIELD_ZONE_SLOT, columns.zone_slot)
+			and record.set_i32(FIELD_ZONE_GENERATION, columns.zone_generation)
+			and record.set_i32(FIELD_SPECIES_ID, columns.species_id)
+			and record.set_i32(FIELD_POPULATION, columns.population)
+			and record.set_i32(FIELD_CAPACITY, columns.capacity)
+			and record.set_i32(FIELD_TRACKS, columns.tracks)
+			and record.set_i32(FIELD_HARVEST_TODAY, columns.harvest_today)
+			and record.set_i32(FIELD_MIGRATION_LINK, columns.migration_link)
+			and record.set_i64(FIELD_BIRTH_REMAINDER, columns.birth_remainder)):
+		return _refuse(Section.REFUSE_SHAPE,
+			"WorldInit owner %d capture could not write a column" % OWNER_INDEX)
+	return framed_refusal(record)
+
+
+static func apply(record: Section.FramedOwner, store: WorldInit) -> SaveHeader.Refusal:
+	"""Validate one owner 17 record, then install it into `store`. Refusal writes nothing.
+
+	`framed_refusal()` runs first and its refusal is returned unchanged. The projection shares the
+	record's buffers by assignment; `restore_fauna_columns()` takes its own private copies.
+	"""
+	var framed: SaveHeader.Refusal = framed_refusal(record)
+	if not framed.is_ok():
+		return framed
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no WorldInit store was supplied for owner %d"
+			% OWNER_INDEX)
+	var columns: WorldInit.FaunaColumns = WorldInit.FaunaColumns.new()
+	columns.zone_slot = record.i32_column(FIELD_ZONE_SLOT)
+	columns.zone_generation = record.i32_column(FIELD_ZONE_GENERATION)
+	columns.species_id = record.i32_column(FIELD_SPECIES_ID)
+	columns.population = record.i32_column(FIELD_POPULATION)
+	columns.capacity = record.i32_column(FIELD_CAPACITY)
+	columns.tracks = record.i32_column(FIELD_TRACKS)
+	columns.harvest_today = record.i32_column(FIELD_HARVEST_TODAY)
+	columns.migration_link = record.i32_column(FIELD_MIGRATION_LINK)
+	columns.birth_remainder = record.i64_column(FIELD_BIRTH_REMAINDER)
+	if not store.restore_fauna_columns(columns):
+		return _refuse(store.last_fauna_column_refusal(),
+			"WorldInit owner %d restore refused with %s"
+				% [OWNER_INDEX, String(store.last_fauna_column_refusal())])
+	return _accept()
+
+
+static func _target_refusal(record: Section.FramedOwner, store: WorldInit) -> SaveHeader.Refusal:
+	"""Capture's preflight: record, owner index, store, then the schema and metadata guards."""
+	if record == null:
+		return _refuse(Section.REFUSE_SHAPE,
+			"no framed owner was supplied for owner %d ('%s')" % [OWNER_INDEX, OWNER_KEY])
+	if record.owner != OWNER_INDEX:
+		return _refuse(Section.REFUSE_OWNER,
+			"owner %d was supplied where owner %d ('%s') is required"
+				% [record.owner, OWNER_INDEX, OWNER_KEY])
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no WorldInit store was supplied for owner %d"
+			% OWNER_INDEX)
+	var schema: SaveHeader.Refusal = Schema.schema_refusal()
+	if not schema.is_ok():
+		return schema
+	return _metadata_refusal()
 
 
 static func _metadata_refusal() -> SaveHeader.Refusal:

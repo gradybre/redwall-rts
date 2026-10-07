@@ -80,3 +80,54 @@ fingers around the shaft need a different paw.
 
 No accepted fit, palette, mesh derivative, proof or motion was changed. Rows 2–29 and the haul sources keep the
 accepted grip.
+
+## Brendan's decision (2026-10-07)
+
+**A curled paw for the pick-holding sources only** (option 2). The tool-free haul sources keep the current closed
+paw, so their certified wood and stone grips stand.
+
+The work runs as reviewed steps:
+
+1. Author the curled-claw paw. It is a fixed mesh change and a successor to `mole_grip_source.gd`'s closed paw. The
+   claws curl around a bar across the paw at `lateral-1`'s shaft position, derived from the pick's shaft radius
+   and the paw geometry, with no external art.
+2. **Stop for Brendan's visual review** of the paw on the shaft. Close-ups from the front, side and top at one
+   zoom: the current fit, the curled paw holding the pick, and the paw alone.
+3. Only after approval:
+   - re-bake the grip palette with the native Godot bake (`rebake.py` → `tools/bake_mole_grip_content.gd`) into
+     `mole-grip-v4.ugpal` and its import archive;
+   - add per-source paw presentation for sources 0 and 1;
+   - write the successor grip exclusion and the exact grip proof;
+   - run native capture;
+   - re-run the tread install tap.
+
+## Step 1 — the curled paw (authored; stopped for Brendan's review)
+
+`author_curled_paw.py` writes `curled-paw-v1/`. It derives the shape from the paw before the accepted closing; the
+closing inverts exactly per vertex, so the round trip is 0.0 m. Every step reuses an accepted number or measures
+the mesh:
+
+- **Thin the fingers.** The accepted closing's profile (start 0.025 m, span 0.105 m, 70%) narrows thickness only.
+- **Rest the shaft on the palm.** It sits on the smooth +Z palm at the accepted socket's height (y = 0.078 m), with
+  the pick's own radius of 0.028 m. Its axis is at z = 0.070 m. The pick fit follows as "lateral-2".
+- **Curl.** Each finger cross-section turns about the shaft axis by its arc length over the neutral radius
+  (0.050 m). The claws reach about 101°. 841 vertices move.
+
+Float witnesses: 66 paw vertices touch the shaft's surface shell, covering 105° around it, and 8 lie inside it.
+
+**Review packet:** `curled-paw-review-v1/`. It holds `grip.png` (the accepted grip beside the curled paw on the
+pick, front, side and top at one zoom), `paw-alone.png` and `README.md`. `test_curled_paw.py` holds 4 tests.
+
+## Plan after approval (not run)
+
+1. **GDScript port.** A successor to `mole_grip_source.gd` that applies the approved deformation to the true
+   original mesh, with analytic normals and tangents as the accepted one has. It refuses any other source
+   fingerprint and pins the new derived fingerprint.
+2. **Per-source paw.** `entry_worker_meshes.gd` and the mole presenter (ADR 1201) give sources 0 and 1 the curled
+   paw. Sources 2 and 3 keep the accepted one. The memory census adds the second derived mesh.
+3. **Native bake.** `rebake.py` → `tools/bake_mole_grip_content.gd` (native Godot) writes `mole-grip-v4.ugpal`
+   and its import archive, with the curled paw and the lateral-2 fit. Proofs and authors for the pick sources get
+   a successor source set; the haul authors keep v3.
+4. **Grip exclusion and exact grip proof.** A successor to `prove_self_clearance.body_triangle_ids` for the
+   curled region, plus an exact proof of palm contact on the shaft, claws around it, and no other penetration.
+5. **Native capture and review, then the tread install tap re-run.** Rows 2–29 are re-authored later.

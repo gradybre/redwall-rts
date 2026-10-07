@@ -102,3 +102,9 @@ new grip exclusion in the self-clearance proof, which changes an accepted proof,
 `../test_tread_install_v2.py` holds 7 tests: the swivel's link lengths and preference, an unreachable hand,
 the domain, the stored proofs and pins, the image digests, the comparison, and the reconstruction. The
 reconstruction test skips without the assets. `tests.log` holds both runs.
+
+## Verdict (2026-10-07)
+
+Brendan chose **Revise**: the grip looks strange on the pick. The hand's orientation reads wrong. It should wrap the
+shaft from the side with the thumb toward the head, not hold the end from above. Revision 3 is reviewed in
+`../tread-install-review-v3/`; see ADR 1209.

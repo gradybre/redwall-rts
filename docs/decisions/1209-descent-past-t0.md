@@ -298,3 +298,12 @@ and the lean is capped at the accepted 50°.
 `comparison.json`). `test_tread_install_v2.py` holds 7 tests.
 
 **Not attempted: a two-hand hold.** It needs a second grip exclusion in the accepted self-clearance proof.
+
+### Review of revision 2 (2026-10-07): Brendan chose **Revise** again
+
+Brendan said **the grip looks strange on the pick**. Asked what, he chose **hand orientation**: the fist and wrist
+sit wrong on the shaft. They should wrap around it naturally, from the side with the thumb toward the head, not
+hold the end from above.
+
+He asked for no two-handed hold, no choke-up and no different tool. The revision is compared with the accepted
+install motion's grip and the ready grip. The review packet adds a close-up grip view.

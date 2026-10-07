@@ -286,7 +286,7 @@ func test_source_counted_companion_lifetimes_fit_only_in_the_documented_order() 
 	var endpoints: int = snapshot + 24 * Budget.PHASE_VOLUME_CAPACITY + 384 + plans + 2048
 	var routes: int = WorldRoutes.COLD_BYTES + plans + 2048
 	assert_equal(endpoints, 919936, "actual region/source snapshot, endpoint fragments, three plans and controls")
-	assert_equal(routes, 780288, "actual route proof (with ADR1205 staged changes 7168) and three plans")
+	assert_equal(routes, 774912, "actual route proof (with ADR1205 staged changes 1792 at 64 journal entries, ADR1212) and three plans")
 	assert_equal(Sites.room_claim_cold_bytes(count), 657408, "only sealed companions coexist with fourth copy and cursor")
 	assert_true(endpoints <= Budget.COLD_BYTES and routes <= Budget.COLD_BYTES, "sequential companions fit")
 	assert_true(endpoints + 8 * count > Budget.COLD_BYTES, "a retained interval bank during endpoints must refuse")

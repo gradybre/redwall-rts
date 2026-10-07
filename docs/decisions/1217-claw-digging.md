@@ -419,3 +419,32 @@ Brendan chose option 1 of step 2b. On the tread above, the mole turns a quarter 
 so the bearer sits at the paws' natural reach, as at L0/T0. Each tread needs a new side-on station with footing,
 riser-clearance and turn proofs, beside ADR 1209 step 5's reposition. It is queued after the runtime switch and
 stops for review when the side-on seating pose is ready.
+
+## Step 4a — content 7 published (data only, not active)
+
+**Rows.** `claw-work-v1/derive_claw_rows.py` derives the claw/paw rows:
+
+- It applies the accepted cardinal derivation to the approved clips: outward Q24 vertex hulls with the local, native
+  World and cardinal residual (`common_padding`), the clipped floor and plane partitions, the accepted foot
+  projection, and the exact quarter turns.
+- The body is split by the real skin weights into the paws and the rest; the paws take the pick's role in the stroke.
+- Contacts are each paw's exact downward crossing, per heading. CONTACT_POINT is the right paw's anchor;
+  CONTACT_PATCH is the union of both paws' patches.
+- Output is `evidence/claw-rows-v1/rows.json` (`540bb052…`): 4 dig rows and 4 seating-tap rows (11 boxes each), and
+  1 paw handling row (7 boxes).
+- As a check, the derived ready floor box equals published row 13's.
+
+**Publication.** `publish_claw_runtime.py` writes `qualified-claw-v8/` (create-only), content revision 7. Wire
+`8b79294f…`: 51 rows, 472 boxes, 5 sources.
+
+- Sources 0/1 are unchanged; sources 2 and 3 are the v10 haul images; source 4 is the claw/paw image.
+- Rows 0–41 keep every descriptor word; the pick rows 0–29 are dormant.
+- Rows 30/31 are re-derived from the corrected stand and walk (body sweep 712 u).
+- Rows 42–50 are the claw block: dig 42/45/47/49, seating tap 43/46/48/50, paw handling 44.
+- The ground paces and the motion bank are rebound to the new wire and revision only.
+
+**Tests.** `godot/test/test_mole_claw_profiles.gd` (5 tests, 796 assertions) loads content 7 through the actual
+Profiles loader and validator. `test_publish_claw_runtime.py` (4 tests) rebuilds it byte for byte.
+
+**Not active yet.** The catalog, Session and consumers still load content 6. Activation needs step 5's source
+programs and Routes dispatch.

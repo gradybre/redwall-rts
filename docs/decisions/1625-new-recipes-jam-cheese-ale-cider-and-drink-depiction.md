@@ -190,13 +190,14 @@ list from the recipe rows so it cannot drift**.
   "Or dried at the rack".
 
 - **Apples have no crop card** (they are the orchard's, not a bed's), so "apples should list cider and vinegar" is
-  met in the field guide's apple entry; the crop card covers the bed crops (roots, barley).
-- **The potato** is a root by the catalog (§5.6's roots row), so the pickles row's roots selector takes it too: its
-  guide entry says "Made into: pickles at the preserving table." The pickle's inputs are "onions or roots" as built; narrowing it to an item
-  mask would be a recipe change for Brendan.
+  met in the field guide's apple entry; the crop card covers the bed crops (roots, barley). **Kept as built by
+  Brendan's ruling below.**
+- **The potato**: as first built, the pickles row took the catalog's roots row, which files the potato too, so its
+  guide entry said "Made into: pickles at the preserving table." **Changed by Brendan's ruling below**: the row now
+  takes the six farmed roots only.
 - **The cordial is listed twice for honey and berries** -- "Cooked in: Raspberry cordial" (the recipe book's dish) and
   "Made into: cordial at the brewery" (the station row) -- each linked. Kept: they are two entries of the guide,
-  and the dish's own entry says where it is made.
+  and the dish's own entry says where it is made. **Kept as built by Brendan's ruling below.**
 - **Station goods** (vinegar) add the same "Made into: ..." to their own use; foraged goods keep "Eaten raw ..." as
   its own sentence, not a product; the orchard's fruit reads the dishes too (`_dishes_taking`), so a future fruit dish
   shows (the orchard text's unreachable berry branch and empty fallback are removed); a guide entry links each good
@@ -229,6 +230,21 @@ Gates for the follow-up (2026-10-07):
     wording, the raw clause as its own sentence, links deduplicated and guarded).
   - Re-review: no MEDIUM. Its LOWs were fixed in `07eaa6fb`; the mill's absence from the grain guide is noted above. The live harness checks the
 picker's radish and barley lines and captures `crop_picker_*`.
+
+## Brendan's ruling on the follow-up (2026-10-07): "exclude potatoes from pickles"
+
+Relayed by the coordinator:
+1. **Potatoes are excluded from pickles.** The pickles row takes onions and the other roots, never the potato.
+   - Built as a recipe change in the row. The row's roots input is now `SEL_PICKLE_ROOTS` in `preserve_rules.gd`,
+     an item selector of the six farmed roots (radish, turnip, carrot, beetroot, parsnip and onion: every item whose
+     ITEM_CROP is the roots row). It was the catalog's roots category, which also files the potato.
+   - `SELECTOR_WORDS` keeps the word "roots" on the card, in the refusal and in the guide's "made" line.
+   - The derived Uses follow on their own: no row takes the potato, and its guide entry no longer names or links the
+     pickles.
+   - Tests: the selector equals the farmed roots and never the potato; potatoes and vinegar are refused (NO_ROOTS,
+     potatoes untouched); onions then pickle; the potato's entry lists no pickles.
+2. **Kept as built:** the apple's Uses live in the field guide (apples have no crop card), and the cordial is listed
+   twice for honey and berries (the recipe-book dish and the brewery row).
 
 ## Source
 

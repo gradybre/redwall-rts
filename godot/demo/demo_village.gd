@@ -1025,6 +1025,7 @@ func _build_hall() -> void:
 	if _people_card != null:
 		_people_card.hide_while(_hall.is_open)
 	_hall.set_hearth(_hall_hearth_words, _winter.stamp)
+	_winter.bind_hall_tier(_hall.tier)
 	_weave_history()
 
 
@@ -1093,8 +1094,11 @@ func _show_routes(on: bool) -> void:
 
 func _bind_goal_measures() -> void:
 	"""The goals' parts a later feature measures (goal_book.gd `bind_measure`; decision 0781 left them declared): M4's
-	"fuel >= 18 winter days" from the winter's stores and hearths (decision 0902)."""
+	"fuel >= 18 winter days" from the winter's stores and hearths (decision 0902); "First crossing" and "Regatta day" read
+	the ferry's and the regatta's own counts (decision 1651)."""
 	_guide.goals.book.bind_measure(&"m4_hearth_charter", &"fuel", _winter.fuel_winter_days_milli)
+	_guide.goals.village.ferry = _ferry.ferry
+	_guide.goals.village.regatta = _regatta.regatta
 
 
 func _build_guide() -> void:
@@ -1805,6 +1809,12 @@ func _build_session() -> void:
 	_card.avoid = _top_card_rect
 	_card.keep_clear = func() -> Rect2: return _lens_picker.frame_rect() if _lens_picker.visible else Rect2()
 	_card.hud_cards_shown = _hud_cards_shown
+	_build_run_menu(manager)
+
+
+func _build_run_menu(manager: GameManagerScript) -> void:
+	"""The run's button and menu over the time controls, and the season skip it offers (decision 1653: the Demo Lab's
+	own `skip_to_next_season`)."""
 	add_child(_run_menu)
 	add_child(_run_menu.button_layer())
 	_run_menu.configure(_time.run, _hud_rect.bind(UiShell.ID_TIME_CLUSTER), _hud_rect.bind(UiShell.ID_SPEED_4))
@@ -1813,6 +1823,8 @@ func _build_session() -> void:
 	_run_menu.on_speed = manager.set_speed
 	_run_menu.speed = manager.get_speed
 	_run_menu.before_open = func() -> void: VillageTargets.project_into(_time.run, _tunnel_tool(), _waterplay)
+	_run_menu.calendar = _services.calendar
+	_run_menu.on_skip = skip_to_next_season
 	_time.run_menu = _run_menu
 
 

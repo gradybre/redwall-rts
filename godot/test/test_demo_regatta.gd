@@ -386,6 +386,50 @@ func test_the_tally_counts_only_those_who_ate_the_main_course() -> void:
 	r._tally(final)
 	assert_equal(r.attendees, PackedInt32Array([1, 3]), "the two diners who ate the hotpot, in resident order -- not 5, whom the event does not carry")
 	assert_equal(r.state, RegattaScript.ST_DONE, "the day over")
+	assert_equal(r.feasts_served, 1, "someone ate the main course: a Regatta day (decision 1651)")
+
+
+func test_one_resident_eating_the_main_course_is_a_regatta_day() -> void:
+	"""The boundary of Brendan's ruling (decision 1651): "at least one" -- of the supper's two diners, one ate the bean
+	hotpot and one ate soup: one attendee, and the day counts; with one alone there is no pair to share the feast's
+	company (REQ-SET-036 needs two)."""
+	var rig: Rig = _rig()
+	var r: RegattaScript = rig.regatta
+	_stock_feast(rig)
+	var day: int = SUMMER_1 + 1
+	assert_equal(r.hold(day, 2, true), "", "held")
+	var key: int = Rules.feast_key(day)
+	var hour: int = day * SimClock.HOURS_PER_DAY + 17
+	rig.kitchen.fed.ate_meal(1, key, MealRules.DISH_BEAN_HOTPOT, hour)
+	rig.kitchen.note_course(1, key, MealRules.DISH_BEAN_HOTPOT)
+	rig.kitchen.fed.ate_meal(2, key, MealRules.DISH_SOUP, hour)
+	rig.kitchen.note_course(2, key, MealRules.DISH_SOUP)
+	var final := KitchenScript.MealFinal.new()
+	final.key = key
+	final.diners = PackedInt32Array([1, 2])
+	r._tally(final)
+	assert_equal(r.attendees, PackedInt32Array([1]), "one ate the main course")
+	assert_equal(r.feasts_served, 1, "one is enough: a Regatta day")
+	assert_true(rig.shared.is_empty(), "no company shared by the tally itself")
+
+
+func test_a_supper_closed_with_no_hotpot_eaten_is_not_a_regatta_day() -> void:
+	"""Brendan's ruling of 2026-10-07 (decision 1651): the supper's serving closed (a meal-finalized event), but its only
+	diner ate soup -- nobody ate the feast's main course, so the day is held and NOT counted for "Regatta day"."""
+	var rig: Rig = _rig()
+	var r: RegattaScript = rig.regatta
+	_stock_feast(rig)
+	var day: int = SUMMER_1 + 1
+	assert_equal(r.hold(day, 2, true), "", "held")
+	var key: int = Rules.feast_key(day)
+	rig.kitchen.fed.ate_meal(2, key, MealRules.DISH_SOUP, day * SimClock.HOURS_PER_DAY + 17)
+	rig.kitchen.note_course(2, key, MealRules.DISH_SOUP)
+	var final := KitchenScript.MealFinal.new()
+	final.key = key
+	final.diners = PackedInt32Array([2])
+	r._tally(final)
+	assert_equal(r.attendees.size(), 0, "nobody ate the hotpot")
+	assert_equal([r.state, r.feasts_held, r.feasts_served], [RegattaScript.ST_DONE, 1, 0], "held, not a Regatta day")
 
 
 func test_called_off_while_crews_walk_the_boats_stay_the_boathouses() -> void:
@@ -442,6 +486,7 @@ func test_a_feast_never_served_gives_its_food_and_wood_back() -> void:
 	r.update()
 	assert_equal(r.state, RegattaScript.ST_DONE, "the day is over")
 	assert_equal(r.attendees.size(), 0, "nobody shared it")
+	assert_equal([r.feasts_held, r.feasts_served], [1, 0], "a day held, no feast served: not a Regatta day (decision 1651)")
 	assert_equal(_services.stores.wood_milli_u, wood, "the unserved wood back")
 	for crop: int in [FarmingScript.CROP_BEANS, FarmingScript.CROP_CABBAGE]:
 		assert_equal(rig.kitchen.takes.live_milli(rig.pantry, take, -1, crop), 0, "the feast's category %d let go" % crop)
@@ -561,7 +606,7 @@ func test_the_feast_is_cooked_from_the_reserved_food_eaten_and_remembered() -> v
 	assert_equal(rig.pantry.milli_of(PEA), 8000 - batches * 2000, "the main course's beans eaten, no more")
 	assert_equal(rig.pantry.milli_of(CABBAGE), 8000 - batches * 2000, "its cabbage eaten, no more")
 	assert_true(r.attendees.size() * 2 > r.eligible, "most shared the feast (%d of %d)" % [r.attendees.size(), r.eligible])
-	assert_equal(r.feasts_held, 1, "a feast held")
+	assert_equal([r.feasts_held, r.feasts_served], [1, 1], "a feast held and served")
 	assert_equal(rig.posted.size(), 1, "one chronicle line")
 	assert_true(rig.posted[0].contains("regatta") and rig.posted[0].contains("The moment:"), "with its moment: %s" % rig.posted[0])
 	assert_equal(rig.deeds.size(), 1, "the winners' deed recorded")

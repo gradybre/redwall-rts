@@ -97,14 +97,27 @@ static func state_line(fuel: FuelScript, source: int) -> String:
 
 
 static func demand_line(fuel: FuelScript) -> String:
-	"""Today's demand: "Burning 4.0 U a day: 1 hearth at 4.0 U, cooking 1.0 U (three-day mean)"."""
+	"""Today's demand: "Burning 4.0 U a day: 1 hearth at 4.0 U, cooking 1.0 U (three-day mean)"; a tier-2 hearth is
+	named at its own rate ("2 hearths at 4.0 U, the hall at 3.0 U", decision 1652)."""
 	var hearths: int = fuel.burning_count()
 	if fuel.heating_day_milli() <= 0:
 		return "%s — %d %s, none needed today (%s mean)" % [NO_DEMAND, hearths, "hearth" if hearths == 1 else "hearths",
 			degrees(fuel.day_mean_tenths)]
-	return "Burning %s a day: %d %s at %s, cooking %s (three-day mean)" % [units(fuel.heating_day_milli()
-		+ fuel.cook_mean_milli()), hearths, "hearth" if hearths == 1 else "hearths", units(fuel.day_rate_milli),
-		units(fuel.cook_mean_milli())]
+	return "Burning %s a day: %s, cooking %s (three-day mean)" % [units(fuel.heating_day_milli()
+		+ fuel.cook_mean_milli()), hearths_words(fuel, fuel.day_rate_milli, false), units(fuel.cook_mean_milli())]
+
+
+static func hearths_words(fuel: FuelScript, full_milli: int, winter: bool) -> String:
+	"""The burning hearths at their rates: "2 hearths at 4.0 U" at the full rate `full_milli`, then each tier-2 hearth by
+	name at its own ("the hall at 3.0 U"; `winter`: its winter rate, else today's). Allocates: words, never per frame."""
+	var full: int = fuel.burning_count() - fuel.reduced_count()
+	var parts := PackedStringArray()
+	if full > 0:
+		parts.append("%d %s at %s" % [full, "hearth" if full == 1 else "hearths", units(full_milli)])
+	for s: int in FuelScript.SOURCES:
+		if fuel.hearth[s] == 1 and fuel.banked[s] == 0 and fuel.tier[s] >= Rules.TIER_2:
+			parts.append("%s at %s" % [source_name(s), units(fuel.winter_rate_of(s) if winter else fuel.rate_of(s))])
+	return ", ".join(parts) if not parts.is_empty() else "0 hearths"
 
 
 static func last_heated_line(fuel: FuelScript) -> String:
@@ -117,10 +130,9 @@ static func projection_line(fuel: FuelScript) -> String:
 	"""REQ-SET-114 / ruling 6: "Winter needs 60.0 U (12 days: 1 hearth at 4 U, cooking 1.0 U a day) — the stores hold
 	40.0 U, 66%"."""
 	var target: int = fuel.projection_milli()
-	return "Winter needs %s (%d days: %d %s at %s, cooking %s a day) — the stores hold %s, %d%%" % [units(target),
-		Rules.PROJECTION_DAYS, fuel.burning_count(), "hearth" if fuel.burning_count() == 1 else "hearths",
-		units(Rules.WINTER_DAY_MILLI), units(fuel.cook_mean_milli()), units(fuel.wood_milli()),
-		Rules.div(Rules.permille_of(fuel.wood_milli(), target), 10)]
+	return "Winter needs %s (%d days: %s, cooking %s a day) — the stores hold %s, %d%%" % [units(target),
+		Rules.PROJECTION_DAYS, hearths_words(fuel, Rules.WINTER_DAY_MILLI, true), units(fuel.cook_mean_milli()),
+		units(fuel.wood_milli()), Rules.div(Rules.permille_of(fuel.wood_milli(), target), 10)]
 
 
 static func warning_line(fuel: FuelScript, affected: PackedInt32Array) -> String:

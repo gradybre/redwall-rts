@@ -188,6 +188,16 @@ Review UX-022 (`session/`). **Every pause says why, and there is one Resume.**
   capped, `demo_clock.gd limit_usec`): from 05:40 at 4x, Run until dawn stops at 06:00:00. Any pause or critical event
   first cancels the run, and the card says so ("Run until dawn cancelled: paused (you paused)"); the button reads
   "■ Dawn" while it runs, and the menu has **Stop the run**.
+- **Skip to next season** (decision 1653; Brendan's winter ruling 4, decision 0571, placed in the speed area): "Skip
+  to next season…" beside Close on the Run until… menu's last row (its tooltip names the landing). A click **asks
+  first**: the question, naming the landing, takes the targets' place, with Skip / Cancel (the keyboard on Cancel); Skip
+  calls the same `demo_village.gd skip_to_next_season` as the Demo Lab's trigger (F8, kept), so its effects are the
+  Lab's: the crops, the stores, the weather and the hearths run hour by hour to 06:00 on the next season's first day;
+  the residents' walking and work, the kitchen's meals and the cold they would have felt are not lived (its tooltip and
+  question say so, and the news after it). Not offered while a run is under way; a question answered after the season
+  turned asks again with the new date. F1–F3 do nothing while a pop-up's text field has the keyboard.
+- **F1 / F2 / F3** request 1x / 2x / 4x (UI §5's `time_speed_1/2/4`; decision 1653), as the HUD's speed toggles do:
+  the speed only, never clearing a pause.
 
 ## One village: one calendar, one weather, one water, one feed
 
@@ -396,7 +406,8 @@ into view in its own pixels at any interface scale (`ui/demo_scroll.gd`; decisio
 | Enter / Space | Press the focused button. Only the keyboard's focus takes them: after a click, Enter still digs the piece the Dig tool has laid, Space still pauses and the arrows still pan the camera |
 | Esc | With focus in a panel: back to the world. Otherwise the pop-up, tool or selection ladder below, then the game menu |
 | Space | Pause; paused, Resume (your pause, a planning pause, a critical pause; never the menu's or a stall's) |
-| G | "Run until…" (decision 0471): Tab and the arrows move through it, Enter chooses, G or Esc close it |
+| G | "Run until…" (decision 0471): Tab and the arrows move through it, Enter chooses, G or Esc close it; it also holds Skip to next season, which asks first (decision 1653) |
+| F1 / F2 / F3 | Speed 1x / 2x / 4x (UI §5; decision 1653). A pause stays a pause |
 | F6 | The object list (decision 0471): every resident, crop bed, tree, bridge, tunnel mouth and room; Enter on a row selects it and centres the view on it |
 
 **Accessibility** (decision 0471, review UX-023, `access/`): the game menu's Settings holds four **presets** -- pointing at
@@ -844,7 +855,7 @@ line) points at the tab.
 - **Village goals** (approved by Brendan as built, 2026-10-01; decision 0781): Harvest home (40.0 U into store), Every dish on the table (each of the
   kitchen's dishes cooked), A table for everyone (a supper where every resident ate cooked), A full larder (4.0 days of
   Ready food the village cooked or brought in: the opening wheat and carrots still held are left out, read off the
-  pantry's own lots, whose opening share follows every split, move, merge, meal and spoiling -- decision 0994), Wood for the cold (60.0 U), Over the water (a bridge open), A way below (3 tunnel stretches), A clean
+  pantry's own lots, whose opening share follows every split, move, merge, meal and spoiling -- decision 0994), Wood for the cold (60.0 U), Over the water (a bridge open), First crossing (the ferry has rowed a crossing home: `ferry.gd crossings_done`), Regatta day (a regatta whose feast's main course at least one resident ate: `regatta.gd feasts_served`, so neither a regatta skipped past nor a supper with no hotpot eaten counts, Brendan's rulings of 2026-10-07; both added on Brendan's ruling on decision 0901's question, option (b), decision 1651), A way below (3 tunnel stretches), A clean
   season (a whole season in the planner's record with food harvested and no crop lost), The first winter weathered.
 - **Milestones**: the GDD's M1-M4 (§5.11), every condition a part worded as the GDD states it. What the demo models is
   measured (day, residents, portions prepared, year, winters, Ready food); the rest -- mastery, feasts, specialists,
@@ -1646,6 +1657,12 @@ Brendan's rulings of 2026-10-01; `winter/`. Presentation only: the settlement si
   the outside air each hour (REQ-SET-131) until wood comes in -- then it burns again the next hour. A hearth glows and
   smokes while it burns (fuelled and demanded: `night_routine.gd hearth_lit(r)`, which the glow reads), and counts for
   its home's comfort while it is fuelled.
+- **The great hall's hearth** (decision 1652; Brendan's batch-7 ruling 5, decision 0902): every hearth burns at its
+  building's tier (`hearth_fuel.gd` THE TIER). Once the hall is raised to tier 2 its hearth burns **×0.75** (3 U a
+  winter day, 1.5 U a cold spring or autumn day; GDD §5.9, REQ-SET-136) and its room holds **20 °C** (REQ-SET-130).
+  The winter reads the hall's tier each game hour (`demo_winter.gd bind_hall_tier`). Today's demand, the fuel-days on
+  the top bar, the last heated hour, the twelve-day projection, the Firewood order's target and M4's fuel goal all sum
+  each hearth at its own rate, and the breakdown names it ("1 hearth at 4.0 U, the hall at 3.0 U").
 - **The day's mean** is the mean of its 24 hours' air, so a demo frost night's spring or autumn day (9.5 °C, 7.8 °C)
   demands heat and the hearths burn through the frost.
 - **Fuel-days** = the wood over today's heating demand plus the last three days' mean cooking wood; with no heating

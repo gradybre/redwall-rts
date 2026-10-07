@@ -338,3 +338,12 @@ angle, moved to the tread station.
 
 **Not changed: the end grip.** Wrapping lower on the shaft would need a regrip, and so new source authoring with
 its own grip proof.
+
+### Review of revision 3 (2026-10-07): Brendan chose **re-fit the pick grip**
+
+Brendan reviewed `grip-comparison.png` and candidate d and asked for a **new pick fit**: the paw wrapped around the
+shaft lower down, fingers and thumb around it, instead of the handle's end butting into the palm.
+
+The new fit is authored as a successor, and the existing fit and its evidence stay untouched. The accepted cut and
+install motions (profile rows 2–29) keep the old fit until they are separately re-authored, which Brendan called
+"later".

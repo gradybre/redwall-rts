@@ -99,3 +99,8 @@ worktree, verified against their pins, and removed afterwards.
 `../test_tread_install_v3.py` holds 7 tests: roll identity and axis, the roll domain, the stored proofs and pins,
 the image digests, d matching v4, and the reconstruction. The reconstruction test skips without the assets.
 `tests.log` holds both runs.
+
+## Verdict (2026-10-07)
+
+Brendan chose **re-fit the pick grip**. The paw should wrap the shaft lower down, fingers and thumb around it,
+instead of the handle's end butting into the palm. This needs a new pick fit, authored as a successor; see ADR 1209.

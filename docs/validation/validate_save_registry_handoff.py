@@ -115,7 +115,8 @@ def validate_source(data, source):
     # Derived indexes stay category2; no persistent field is reclassified or omitted.
     # Decision1218 declares the hauler's category-1 `_queue`, carried inside the progress record.
     # Decision1221 resolves haul_planner's five UNRESOLVED admission columns as category 1 (section 6).
-    assert len(actual)==data['packed_source_field_count']==677
+    # ADR 1222 step 5 implements chronicle.gd: its category-1 `_rolling_digest` gains contract C197.
+    assert len(actual)==data['packed_source_field_count']==678
     print(f"PASS source membership/types: {len(actual)} persisted packed fields (not semantic adapter validation)")
 
 def valid_name(present, named, raw):

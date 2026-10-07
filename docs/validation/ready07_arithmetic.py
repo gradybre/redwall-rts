@@ -139,7 +139,7 @@ registry_key_bytes=sum(len(owner['owner_key'].encode('utf-8')) for owner in regi
 # +165 field bytes and +171 UTF-8 key bytes. Decision 1062 reconciles the actual buffers.
 # Decision1221 adds the haul admission owner: one owner, five fields, 74 key bytes.
 assert (len(registry_owners),len(registry_fields),registry_key_bytes)==(63,773,11285)
-assert (registry['record_count'],registry['packed_source_field_count'])==(763,677)
+assert (registry['record_count'],registry['packed_source_field_count'])==(763,678)  # ADR 1222 step 5: Chronicle digest C197
 assert sum(bool(field['hash']) for field in registry_fields)==763
 DECISION_0127_ADDED=len(registry_owners)*16+len(registry_fields)*15+registry_key_bytes
 # Decision1218 adds the entry progress owner: +150 (one owner, four fields, 74 key bytes).

@@ -67,7 +67,7 @@
  },
  "canonical_stream": "RWL-STATE-1",
  "record_count": 763,
- "packed_source_field_count": 677,
+ "packed_source_field_count": 678,
  "policy": "Fixed per compatible build; add owners/fields explicitly on arrival, change rules identity and affected versions; refuse incompatible development saves. Never infer registry at runtime. source_module_sha256 records the named reconciliation snapshot, not current HEAD; current acceptance source hashes are retained with each task evidence ledger.",
  "owners": [
   {
@@ -11348,7 +11348,6 @@
      "hash": true,
      "source_module": "chronicle",
      "source_member": "_count",
-     "implementation": "REQUIRED_NOT_PRESENT_IN_SNAPSHOT",
      "shape": {
       "count": 1
      },
@@ -11362,12 +11361,12 @@
      "hash": true,
      "source_module": "chronicle",
      "source_member": "_rolling_digest",
-     "implementation": "REQUIRED_NOT_PRESENT_IN_SNAPSHOT",
      "shape": {
       "count": 32
      },
      "scalar": false,
-     "ordinal": 1
+     "ordinal": 1,
+     "source_contract": "C197"
     }
    ]
   },
@@ -12199,6 +12198,10 @@
   "C196": {
    "unused": "_job_generation 0 for no admission, then destination (-1,0), tile -1 (NO_TILE) and 0 grams; a ground-pile admission has a null destination, a tile and 0 grams; Delivery's spatial admission has a destination store and NO_TILE.",
    "notes": "Decision1221 resolves decision1023's UNRESOLVED admitted-haul record. Section 6, not section 4: section 4's owner set is frozen by SAVE-S4-STREAM-R01 (store_count 18), and the record is an auxiliary admission keyed by the reservation pool's Job key, like the entry progress record. The haul_planner local wire (schema 1) writes all 8192 rows; restore proves each row from the image (canonical empty row; a live store or a ground tile; a pool claim for the Job key; grams on each store no more than it reserves) before writing any. Underground Delivery keeps no per-haul state of its own."
+  },
+  "C197": {
+   "unused": "Thirty-two zero bytes is the chain start and is valid only with _count 0.",
+   "notes": "ADR 1222 step 5 (DEC-055 Q8). chronicle.gd is implemented: _count (u64 scalar) and the 32-byte _rolling_digest, SHA256(previous || record) from 32 zero bytes. The digest is a category-1 packed column, so it carries a source contract; history never lives in memory and the event domain is empty."
   }
  },
  "section_schema_versions": [

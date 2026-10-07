@@ -1080,7 +1080,7 @@ static func production_walker() -> Walker:
 # tools/generate_canonical_state_table.py. Do not hand-edit: test_canonical_state_hash.gd
 # re-reads that JSON and proves every entry below equals it.
 #   registry_id RWL-CANONICAL-REGISTRY-2026-10-07-CL1, registry_version 13
-#   63 owners, 773 declared fields, 763 canonical records, 677 persisted packed fields.
+#   63 owners, 773 declared fields, 763 canonical records, 678 persisted packed fields.
 
 const DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-10-07-CL1"
 const DECLARATION_VERSION: int = 13

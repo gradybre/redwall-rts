@@ -130,10 +130,12 @@ EXPLAINED_SINCE_CENSUS = {
 	# `_queue` as one packed source field, declared hash=false inside the record.
 	# Decision1221 adds section6 owner haul_planner: five hashed packed columns, each declared
 	# "`JOB_CAPACITY` = 8192" (an expression already present), so five equalities.
+	# ADR 1222 step 5 implements chronicle.gd; its fixed 32-byte `_rolling_digest` gains source
+	# contract C197 and becomes one more packed source field (a fixed count, no capacity row).
 	"prose_records": 73,
 	"equality": 33,
 	"upper_bound": 40,
-	"packed_source_fields": 124,
+	"packed_source_fields": 125,
 	"canonical_records": 164,
 	"other_canonical_shapes": 91,
 	"distinct_expressions": 9,
@@ -633,7 +635,7 @@ def _census(registry: dict, rows: list) -> dict:
 		delta = seen - value
 		line = "%s: this audit %d, Astra Cycle 3 %d (%+d)" % (key, seen, value, delta)
 		if EXPLAINED_SINCE_CENSUS.get(key) == delta:
-			explained.append(line + " -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218 and 1221: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record and the haul admission record")
+			explained.append(line + " -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221 and 1222: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record and the Chronicle digest")
 		else:
 			unexplained.append(line)
 	return {

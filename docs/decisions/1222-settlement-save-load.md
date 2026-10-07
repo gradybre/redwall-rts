@@ -331,6 +331,11 @@ These record the engineering choices made while building, step by step.
 - **Step 6, identities.** The release rules and lookup artifacts need owner registrations, and none exist yet.
   The development save therefore states its rules and lookup identities as SHA-256 over a `-DEV-` domain and the
   canonical registry declaration id.
+- **Step 5, the Chronicle digest's contract.** The Chronicle owner made `_rolling_digest` a category-1 packed
+  column, but the canonical registry still marked the field `REQUIRED_NOT_PRESENT_IN_SNAPSHOT` with no source
+  contract, so the save-registry handoff validator refused the drift. The field now carries contract C197 and
+  the persisted packed-field count is 678. The declaration itself (fields, types, ordinals, hash flags) is
+  unchanged, so the registry id and version stay at CL1 / 13.
 - **Step 2, memory.** Every section-4 capture and apply makes a transient owner image. It is charged to "ADR 1222
   save/load working set" in the reviewed census deltas, and the 09.3 ledger owns the total. It is never resident
   between ticks.

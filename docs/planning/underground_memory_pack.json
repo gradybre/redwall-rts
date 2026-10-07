@@ -43666,7 +43666,7 @@
     "godot/scripts/core/underground_world_routes.gd": "ef4b85c7a04bad32b947876c86cc224968d452d8b1fe6e1475eeeb3cddbf9ec9",
     "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310"
   },
-  "registry_sha256": "26db5688f4faa35dca5d935e7ce7f3b54e64828ac394abd3d4fb348aa456fa70",
+  "registry_sha256": "1809c2e5ab4048ad7b8ec09808dd015dbd5e8e7fb70216914896cd51804a5999",
   "limitations": [
     "Constructor limits alone are not joint runtime admission.",
     "Actual consumers must share the exact cold arena and charge nested coexistence before allocating.",

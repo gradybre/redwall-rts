@@ -108,7 +108,8 @@ const NAME_CAP_BYTES: int = 128
 ## Decision1072 adds67 packed and14 scalar records across five mandatory owners.
 ## Decision1218 adds section6 owner underground_entry_progress: +2 records, +1 packed (`_queue`).
 ## Decision1221 adds section6 owner haul_planner: +5 records, +5 packed admission columns.
-const REGISTRY_PACKED_FIELD_COUNT: int = 677
+## ADR 1222 step 5: chronicle's already-declared `_rolling_digest` gains contract C197: +1 packed.
+const REGISTRY_PACKED_FIELD_COUNT: int = 678
 
 ## Pinned as LITERALS, deliberately not read from the JSON or from `Digest.*`. Every other
 ## assertion in this suite compares the compiled table against the registry it was generated
@@ -447,7 +448,7 @@ func _assert_field_shape(declaration: Digest.Declaration, field: Dictionary, ind
 
 
 func test_registry_counts_are_the_ones_the_ruling_reconciled() -> void:
-	"""763 canonical records over63 owners,677 persisted packed fields, release_save_ready false."""
+	"""763 canonical records over63 owners,678 persisted packed fields, release_save_ready false."""
 	var data: Dictionary = _registry()
 	assert_equal(int(data["record_count"]), Digest.CANONICAL_RECORD_COUNT, "registry record_count")
 	assert_equal(int(data["packed_source_field_count"]), REGISTRY_PACKED_FIELD_COUNT,

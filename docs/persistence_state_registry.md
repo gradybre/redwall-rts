@@ -2033,6 +2033,12 @@ as source-qualified motion. No composed save adapter is claimed here.
 |---|---|---:|---|---|:-:|---|---|
 | Atomic add-only contact publication | -- | -- | -- | No retained publisher or borrowed context at quiescence | 3 | -- | ADR1161. Stateless coordinator; exact caller and private packets total2930 logical bytes. Its1024 helper slice and4096 provisional native/reference allowance fit8050/8192 cold controls. The borrowed Locations `_frontier` reference is null at quiescence; no canonical bank or wire changes. Actual original Location, graph and certificate banks publish together on already-paid Space. Whole-room construction and native measurement remain open. |
 
+### `godot/scripts/core/underground_room_station_planner.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Static Room-station plan | -- | -- | -- | No retained planner, Query or Request at quiescence | 3 | -- | ADR1213. Stateless module; one private Query (fixed region, fragment, candidate and chain scratch; declared logical CONTROL_BYTES 44,460, not a native measurement) lives only inside the caller's original cold lease and dies before publish_into allocates. Output is the caller's ADR1161 Request; a plan is not a route, contact or paid permission. |
+
 ### `godot/scripts/core/underground_room_composition.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

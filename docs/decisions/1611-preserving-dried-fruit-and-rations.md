@@ -76,9 +76,36 @@ No work-board source and no key is added; nothing is renumbered. Nothing under `
    Q-D5, with honey jam possible now that the apiary makes honey (decision 1601). *Recommendation: Q-D5 (a) now, (b) and
    (c) asked together.*
 
-## Gates
+## Gates (the branch's three packets together, 2026-10-07)
 
-Filled in by the branch's gate record at the end of the lane.
+- **CI-style full suite** (a clean checkout of `329c8519` with no `godot/demo/assets`, `.godot` deleted and re-imported,
+  `./tools/run_tests.sh`):
+  `9194 test(s), 613347 assertion(s), 0 failure(s)` ·
+  `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 355 tolerated; leaked at exit: 0 object(s), 0 resource(s)` ·
+  `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).`
+  The last commit (`21f928c2`) only adds tests and drops a redundant check; its suites were rerun focused (0 failures).
+- **Staged full suite** (the branch's head `21f928c2`, every demo asset staged): `9194 test(s), 613425 assertion(s),
+  0 failure(s)` · `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 292 tolerated; leaked at
+  exit: 0 object(s), 0 resource(s)` · `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s),
+  0 resource(s).`
+- **Analyzer**: `python3 tools/gdscript_warnings.py --max 0` → `0 GDScript warning(s) in 0 of 1038 file(s)`.
+- **Contracts**: decision_numbers, merge_gate, ready07_arithmetic, ready07_addendum_checks, state_registry_coverage,
+  ui_refinement_contract, validate_save_registry_handoff, setting_contract, astra_inbox, dispatch_plan,
+  generate_canonical_state_table, lane_notes -- all PASS; `tools/test_stage_art_passes.py` 17/17,
+  `tools/test_make_demo_pantry_index.py` OK.
+- **Live harness** `test/live/demo_food_live.gd` (staged art): `LIVE-SUMMARY 27 0` at 1280x720 and at 1920x1080.
+  Frames looked at, at both sizes: `apiary`, `apiary_panel`, `bees`, `preserving_table`, `preserves_panel`, `brewery`,
+  `brewing_panel` (session scratchpad `food_check/`). They moved the skep off a stump and the brewery's cask out of a
+  rock cluster; tests now keep every station's props clear of the world's obstacles.
+- **Mutation testing** (one mutant a run, the focused suites): HIVES 25 + 15 review mutants, PRESERVE 23, BREW 16.
+  Every survivor got a test and was rerun killed, except two shown EQUIVALENT and removed from the code (the
+  ration batch's own program, identical to the mill's; a check `consume_into` already makes). SURVIVED_MUTANTS: none.
+- **Independent review** (`code-reviewer`, one per packet, waited for): no CRITICAL. HIGH: HIVES -- honey could be
+  half-withdrawn for a refused recolonisation (fixed: all-or-none take); the village wiring untested (fixed: unit and
+  live checks). PRESERVE -- a batch could start short of an input (fixed: the take trimmed, every withdrawal checked,
+  given up whole). Every MEDIUM fixed in `329c8519`/`21f928c2` or answered here: the drinks' Hearth pouring is
+  proposal P2 of decision 1621, kept on as built until Brendan rules; a batch's fetch to its first input's store only
+  is proposal P6 of decision 1611.
 
 ## Source
 

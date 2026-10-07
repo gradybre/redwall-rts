@@ -63,6 +63,11 @@ func is_running() -> bool:
 	return _step == STEP_RUNNING and _foreman.error() == &""
 
 
+func crew() -> Foreman.Crew:
+	"""The selected entry crew once chosen, or null; read-only for presentation (ADR 1211)."""
+	return _crew
+
+
 func origin() -> Vector3i:
 	"""The surveyed entry origin once chosen."""
 	return _origin

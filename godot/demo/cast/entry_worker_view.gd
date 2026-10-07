@@ -111,10 +111,10 @@ func _process(_delta: float) -> void:
 func advance(tick: int) -> StringName:
 	"""One observation; returns the code of the alert standing for this frame, or empty."""
 	var runtime: RefCounted = _host.underground_entry()
-	if runtime == null or runtime.step() < EntryRuntime.STEP_CREW or runtime._crew == null:
+	if runtime == null or runtime.step() < EntryRuntime.STEP_CREW or runtime.crew() == null:
 		_stage = STAGE_NONE
 		return &""
-	var worker: Vector2i = runtime._crew.worker
+	var worker: Vector2i = runtime.crew().worker
 	var routes: Routes = _routes_of()
 	if routes != null and routes.read_actor_into(worker, _actor) == &"":
 		return _present_underground(routes, worker, tick)

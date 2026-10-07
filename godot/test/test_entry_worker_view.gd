@@ -49,7 +49,7 @@ class Cast extends Node:
 
 
 class Runtime extends RefCounted:
-	## The three entry-runtime reads the view makes, over a real crew worker.
+	## The entry-runtime reads the view makes, over a real crew worker.
 	var _crew: EntryRuntime.Foreman.Crew = EntryRuntime.Foreman.Crew.new()
 
 	func step() -> int:
@@ -59,6 +59,10 @@ class Runtime extends RefCounted:
 	func origin() -> Vector3i:
 		"""Any origin; the drawing half never reads it."""
 		return Vector3i.ZERO
+
+	func crew() -> EntryRuntime.Foreman.Crew:
+		"""The real crew worker the view draws."""
+		return _crew
 
 
 class Owners extends RefCounted:
@@ -173,7 +177,7 @@ func test_surface_walk_brings_a_cast_mole_to_the_anchor_then_raises_the_g5_alert
 	assert_equal(_alerts, [View.ALERT_HANDOFF] as Array[StringName], "raised exactly once")
 	assert_equal(cast.orders.size(), 1, "never re-ordered")
 	assert_true(View.gap_of(View.ALERT_HANDOFF).begins_with("G5"), "G5 gap row")
-	assert_true(View.gap_of(EntryRuntime.REFUSE_INPUTS).begins_with("G4"), "the runtime's own rows still map")
+	assert_true(View.gap_of(&"ENTRY_FOREMAN_INPUT_LOT").begins_with("G4"), "the runtime's own rows still map")
 
 
 func test_no_crew_draws_nothing_and_no_cast_mole_is_an_alert() -> void:

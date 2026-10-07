@@ -246,6 +246,21 @@ Relayed by the coordinator:
 2. **Kept as built:** the apple's Uses live in the field guide (apples have no crop card), and the cordial is listed
    twice for honey and berries (the recipe-book dish and the brewery row).
 
+Gates for the ruling (2026-10-07):
+- **CI-style full suite** on a clean checkout of `25c81615`, with no assets and `.godot` re-imported:
+  `9299 test(s), 649664 assertion(s), 0 failure(s)` ·
+  `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 371 tolerated; leaked at exit: 0 object(s), 0 resource(s)` ·
+  `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).`
+- **Analyzer:** `0 GDScript warning(s) in 0 of 1053 file(s)`. **Contracts:** decision_numbers PASS.
+- **Live harness:** `LIVE-SUMMARY 38 0` at 1280x720 and 1920x1080. The pickles card still reads "Roots: have ...".
+- **Mutation:** 4 mutants, all killed, run on `4d94040f` and again on `25c81615`. They were: the row taking the
+  catalog's roots row again, the potato added to the mask, the onion dropped from it, and the word "roots" dropped.
+- **Independent review** (`code-reviewer`, waited for): no CRITICAL or HIGH. Its LOWs were fixed in `25c81615`:
+  - the catalog header no longer says "onions or roots";
+  - `category_words` documents the named selectors, and `SELECTOR_WORDS` is a typed dictionary;
+  - the roots' fix text reads "onions or other roots (not potatoes)";
+  - the onion is named in the tests.
+
 ## Source
 
 Brendan, 2026-10-07 ("Approve and build Q-d5 and dec-007"); `docs/handoff/OPEN_QUESTIONS.md` Q-D5; DEC-006, DEC-007;

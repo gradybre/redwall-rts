@@ -1,7 +1,7 @@
 # 1209 — Descent past T0: a flight of T0-family treads to the trench floor
 
-Date: 2026-10-06 · Status: Proposed. Step 1 (this plan) and step 2 (the flight proof) are done; steps 3 onward
-wait on the three decisions below.
+Date: 2026-10-06 · Status: Accepted. Steps 1–3 are done (Brendan decided D1–D3 on 2026-10-06); step 4, the
+short-reach install motion, is in progress.
 
 ## Brendan's decision being implemented
 
@@ -118,7 +118,15 @@ The structure catalog's single OPENING region (the stair top) is unchanged. A fa
 Every new post and T6's support bear on natural ground below y = −1024 under the flight, z ∈ [−5632, −2048].
 That ground is `requires_never_cut`. A Kitchen dug from inside cannot be dug beneath the stair.
 
-## Decisions needed (stopped)
+## Brendan's decisions (2026-10-06)
+
+| Question | Decision |
+|---|---|
+| D1 — T6's form | **Sill tread** (option a): T0's deck and bearers six pitches down, the bearers cut to 64 u so they rest on the floor, no posts. |
+| D2 — the stair foot | **The seventh row is part of the descent** (option a): z ∈ [−7168, −6144] is cut with the stair. The Kitchen starts beyond it. |
+| D3 — the bill of T1…T6 | **T0's bill per tread** (option a): 1,000 milli wood and 12,000 mWU each. |
+
+## Decisions as they were put (options retained)
 
 **D1 — T6's form.**
 - (a) **Recommended: a sill tread.** T0's deck and bearers six pitches down, with the bearers cut to 64 u so they
@@ -142,7 +150,7 @@ That ground is `requires_never_cut`. A Kitchen dug from inside cannot be dug ben
 
 1. This plan. **Done.**
 2. Prove both accepted gaits over the derived T0-family flight. **Done** (below).
-3. Brendan: D1, D2, D3.
+3. Brendan: D1, D2, D3. **Done** (sill, seventh row, T0's bill).
 4. **New motion, install from the tread above.** Follow the install-source path: static pose candidates and exact
    provers, then a review packet. **Stop for Brendan's review.** After approval: the program, native capture,
    integer rows, and content 7 with one yaw-0 INSTALL row and one handling row. The rows are root-relative, so one

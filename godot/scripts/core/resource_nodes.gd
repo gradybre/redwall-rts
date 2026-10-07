@@ -1364,3 +1364,179 @@ static func _column_inactive_refusal(present: PackedByteArray,
 		if quantity_milli[row] != 0 or exhausted[row] != 0:
 			return REFUSE_COLUMN_INACTIVE
 	return REFUSE_NONE
+
+
+# --- ARCH-SAVE-002 section 4 bulk column API (ADR 1222 build step 2) ----------------------------
+#
+# Owner 13's capture and apply steps, mirroring `priorities.gd`'s pair. `copy_columns_into()` is
+# an exact snapshot of the ten §4.2 columns over ALL 4096 physical rows, inactive rows included;
+# `restore_columns()` judges a candidate with the SAME `columns_refusal()` the offline bridge
+# uses, writes nothing on refusal, then installs the ten columns and REBUILDS `_live_slots` and
+# `_live_count` (the ascending free-list derived from the installed `present` column). Section 1's
+# `_resource_slot` tile map and the three category-3 deposit scratch arrays are a DIFFERENT
+# section and are never read or written here; the shared `_directory` is an external authority
+# this call never touches.
+
+class Columns:
+	"""Caller-owned image of the ten §4.2 columns, in `columns_refusal()`'s ordinal order.
+
+	One object per save or load, never per row (ARCH-MEM-001). `copy_columns_into()` refills the
+	buffers in place and refuses a wrongly sized one rather than resizing it.
+	"""
+	var present: PackedByteArray = PackedByteArray()
+	var resource_id: PackedInt32Array = PackedInt32Array()
+	var quantity_milli: PackedInt64Array = PackedInt64Array()
+	var capacity_milli: PackedInt64Array = PackedInt64Array()
+	var regrow_days: PackedInt32Array = PackedInt32Array()
+	var planted_day: PackedInt32Array = PackedInt32Array()
+	var exhausted: PackedByteArray = PackedByteArray()
+	var tile: PackedInt32Array = PackedInt32Array()
+	var ref_slot: PackedInt32Array = PackedInt32Array()
+	var ref_generation: PackedInt32Array = PackedInt32Array()
+
+	func _init() -> void:
+		"""Size all ten columns to RESOURCE_NODE_CAPACITY, then fill the empty-store image."""
+		present.resize(RESOURCE_NODE_CAPACITY)
+		resource_id.resize(RESOURCE_NODE_CAPACITY)
+		quantity_milli.resize(RESOURCE_NODE_CAPACITY)
+		capacity_milli.resize(RESOURCE_NODE_CAPACITY)
+		regrow_days.resize(RESOURCE_NODE_CAPACITY)
+		planted_day.resize(RESOURCE_NODE_CAPACITY)
+		exhausted.resize(RESOURCE_NODE_CAPACITY)
+		tile.resize(RESOURCE_NODE_CAPACITY)
+		ref_slot.resize(RESOURCE_NODE_CAPACITY)
+		ref_generation.resize(RESOURCE_NODE_CAPACITY)
+		clear()
+
+	func clear() -> void:
+		"""Refill every column with what the store's own `clear()` leaves."""
+		present.fill(0)
+		resource_id.fill(0)
+		quantity_milli.fill(0)
+		capacity_milli.fill(0)
+		regrow_days.fill(0)
+		planted_day.fill(0)
+		exhausted.fill(0)
+		tile.fill(NO_NODE)
+		ref_slot.fill(EntityDirectory.NULL_SLOT)
+		ref_generation.fill(EntityDirectory.NULL_GENERATION)
+
+	func equals(other: Columns) -> bool:
+		"""True when all ten columns are byte-identical. Proves a refusal changed nothing."""
+		return other != null and present == other.present and resource_id == other.resource_id \
+			and quantity_milli == other.quantity_milli and capacity_milli == other.capacity_milli \
+			and regrow_days == other.regrow_days and planted_day == other.planted_day \
+			and exhausted == other.exhausted and tile == other.tile \
+			and ref_slot == other.ref_slot and ref_generation == other.ref_generation
+
+
+## The code of the most recent refused bulk column call, or REFUSE_NONE. Category 3: a
+## diagnostic channel separate from every mutator's OpResult, never saved or hashed.
+var _last_column_refusal: StringName = REFUSE_NONE
+
+
+func last_column_refusal() -> StringName:
+	"""The code of the most recent refused bulk column call, or REFUSE_NONE after a success.
+
+	A SEPARATE channel from the OpResult every mutator returns, so a load can never overwrite the
+	reason an earlier call was refused before its caller read it. Every code is `COLUMN_`.
+	"""
+	return _last_column_refusal
+
+
+func copy_columns_into(out: Columns) -> bool:
+	"""Copy the ten §4.2 columns into caller-owned buffers. False refuses; `out` unchanged.
+
+	The ONLY reader of an inactive row's retained-history bytes. The copies are snapshots:
+	mutating `out` afterwards cannot reach a column, and a later write here cannot reach `out`.
+	"""
+	if not _columns_are_capacity_sized(out):
+		_last_column_refusal = REFUSE_COLUMN_SHAPE
+		return false
+	_refill_bytes(out.present, _present)
+	_refill_i32(out.resource_id, _resource_id)
+	_refill_i64(out.quantity_milli, _quantity_milli)
+	_refill_i64(out.capacity_milli, _capacity_milli)
+	_refill_i32(out.regrow_days, _regrow_days)
+	_refill_i32(out.planted_day, _planted_day)
+	_refill_bytes(out.exhausted, _exhausted)
+	_refill_i32(out.tile, _tile)
+	_refill_i32(out.ref_slot, _ref_slot)
+	_refill_i32(out.ref_generation, _ref_generation)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func restore_columns(columns: Columns) -> bool:
+	"""Replace all ten columns and rebuild the live-row list. False refuses; nothing is written.
+
+	Allocate before consume (decision 0059): the shape guard and the whole `columns_refusal()` run
+	before the first write, so a refusal leaves every column, `_live_slots` and `_live_count`
+	byte-identical. The rebuild reads the INSTALLED present column, never a caller value. Section
+	1's tile map and the deposit scratch arrays are untouched; so is the shared `_directory`.
+	"""
+	var refusal: StringName = REFUSE_COLUMN_SHAPE
+	if _columns_are_capacity_sized(columns):
+		refusal = columns_refusal(columns.present, columns.resource_id, columns.quantity_milli,
+			columns.capacity_milli, columns.regrow_days, columns.planted_day, columns.exhausted,
+			columns.tile, columns.ref_slot, columns.ref_generation)
+	if refusal != REFUSE_NONE:
+		_last_column_refusal = refusal
+		return false
+	_present = columns.present.duplicate()
+	_resource_id = columns.resource_id.duplicate()
+	_quantity_milli = columns.quantity_milli.duplicate()
+	_capacity_milli = columns.capacity_milli.duplicate()
+	_regrow_days = columns.regrow_days.duplicate()
+	_planted_day = columns.planted_day.duplicate()
+	_exhausted = columns.exhausted.duplicate()
+	_tile = columns.tile.duplicate()
+	_ref_slot = columns.ref_slot.duplicate()
+	_ref_generation = columns.ref_generation.duplicate()
+	_rebuild_live_slots()
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func _rebuild_live_slots() -> void:
+	"""Rebuild the ascending live-row list and its count from the just-installed present column."""
+	var live_count: int = 0
+	for slot: int in RESOURCE_NODE_CAPACITY:
+		if _present[slot] == 1:
+			_live_slots[live_count] = slot
+			live_count += 1
+	for index: int in range(live_count, RESOURCE_NODE_CAPACITY):
+		_live_slots[index] = EntityDirectory.NULL_SLOT
+	_live_count = live_count
+
+
+static func _columns_are_capacity_sized(columns: Columns) -> bool:
+	"""The shared null and extent guard of both bulk calls, before any indexed read."""
+	return columns != null and columns.present.size() == RESOURCE_NODE_CAPACITY \
+		and columns.resource_id.size() == RESOURCE_NODE_CAPACITY \
+		and columns.quantity_milli.size() == RESOURCE_NODE_CAPACITY \
+		and columns.capacity_milli.size() == RESOURCE_NODE_CAPACITY \
+		and columns.regrow_days.size() == RESOURCE_NODE_CAPACITY \
+		and columns.planted_day.size() == RESOURCE_NODE_CAPACITY \
+		and columns.exhausted.size() == RESOURCE_NODE_CAPACITY \
+		and columns.tile.size() == RESOURCE_NODE_CAPACITY \
+		and columns.ref_slot.size() == RESOURCE_NODE_CAPACITY \
+		and columns.ref_generation.size() == RESOURCE_NODE_CAPACITY
+
+
+static func _refill_bytes(out: PackedByteArray, source: PackedByteArray) -> void:
+	"""Refill a caller's byte buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
+
+
+static func _refill_i32(out: PackedInt32Array, source: PackedInt32Array) -> void:
+	"""Refill a caller's int32 buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
+
+
+static func _refill_i64(out: PackedInt64Array, source: PackedInt64Array) -> void:
+	"""Refill a caller's int64 buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)

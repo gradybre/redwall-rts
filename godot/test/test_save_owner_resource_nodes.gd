@@ -327,3 +327,102 @@ func test_public_wide_harvest_overflow_regrow_and_destroy_history() -> void:
 	assert_equal(nodes.planted_day_of(second.value).value,3,"stump history retained")
 	_expect(_public_image(nodes),&"")
 	assert_true(nodes.destroy(second.ref).ok,"cleanup")
+
+
+# --- ADR 1222 step 2: bulk capture and apply ------------------------------------------------------
+
+func _live_owner() -> Nodes:
+	"""A store with live, edited, exhausted, freed and reused rows, built through the public API."""
+	var owner: Nodes = Nodes.new()
+	var a: Nodes.OpResult = owner.create_at_tile(0,2,90,48,1)
+	var b: Nodes.OpResult = owner.create_at_tile(1,3,50,0,1)
+	var c: Nodes.OpResult = owner.create_at_tile(2,5,20,10,5)
+	var d: Nodes.OpResult = owner.create_at_tile(16383,7,40,2,9)
+	for result: Nodes.OpResult in [a,b,c,d]: assert_true(result.ok,"create a fixture node")
+	assert_true(owner.harvest(a.value,10,2).ok,"partial debit")
+	assert_true(owner.harvest_all(c.value,6).ok,"exhaust a node")
+	assert_true(owner.destroy(b.ref).ok,"free a row")
+	assert_true(owner.create_at_tile(1,9,60,3,10).ok,"reuse the freed tile")
+	assert_true(owner.destroy(d.ref).ok,"leave a freed row behind")
+	return owner
+
+func _image(owner: Nodes) -> Nodes.Columns:
+	"""The owner's ten columns through the bulk reader."""
+	var columns: Nodes.Columns = Nodes.Columns.new()
+	assert_true(owner.copy_columns_into(columns),"bulk copy succeeds")
+	return columns
+
+func test_capture_then_apply_into_a_fresh_store_is_exact_and_continues_identically() -> void:
+	"""The restored store holds the same columns and count, and answers a later edit the same way."""
+	var source: Nodes = _live_owner()
+	var frame: Section.FramedOwner = Section.FramedOwner.new(13)
+	assert_true(Bridge.capture_into(source,frame).is_ok(),"capture succeeds")
+	var tile_map: PackedInt32Array = PackedInt32Array()
+	tile_map.resize(Nodes.TILE_COUNT)
+	assert_true(source.copy_section_1_columns_into(tile_map),"section1 copy succeeds")
+	var target: Nodes = Nodes.new()
+	assert_true(Bridge.apply(frame,target).is_ok(),"apply succeeds")
+	assert_true(target.restore_section_1_columns(tile_map),"section1 restore succeeds")
+	assert_true(_image(target).equals(_image(source)),"columns are byte-identical")
+	assert_equal(target.count(),source.count(),"the live-row list is rebuilt")
+	var probe: Variant = source.live_slot_at(0)
+	assert_true(probe.ok,"a live row exists")
+	for store: Nodes in [source,target]:
+		assert_true(store.harvest(probe.value,1,20).ok,"a later edit succeeds")
+	assert_true(_image(target).equals(_image(source)),"both stores stayed identical after the edit")
+
+func test_capture_matches_the_public_reader_projection() -> void:
+	"""The captured record equals the projection built only from public per-slot readers.
+
+	No row is destroyed here: a destroyed row retains private history (resource id, capacity,
+	regrow period, planting date) the public readers refuse to expose, so this equality only
+	holds while every physical row is either live or has never been touched.
+	"""
+	var source: Nodes = Nodes.new()
+	var a: Nodes.OpResult = source.create_at_tile(0,2,90,48,1)
+	var b: Nodes.OpResult = source.create_at_tile(2,5,20,10,5)
+	assert_true(a.ok and b.ok,"create two fixture nodes")
+	assert_true(source.harvest(a.value,10,2).ok,"partial debit")
+	assert_true(source.harvest_all(b.value,6).ok,"exhaust a node")
+	var frame: Section.FramedOwner = Section.FramedOwner.new(13)
+	assert_true(Bridge.capture_into(source,frame).is_ok(),"capture succeeds")
+	var witness: Array = _public_image(source)
+	for field: int in 10:
+		assert_true(_held(frame,field) == witness[field],"field %d matches" % field)
+
+func test_every_column_refusal_leaves_the_target_byte_identical() -> void:
+	"""Each column code refuses through apply with the exact code and writes nothing."""
+	var target: Nodes = _live_owner()
+	var before: Nodes.Columns = _image(target)
+	var count: int = target.count()
+	for field: int in 10:
+		var c: Array = _empty()
+		var bad: int = 2 if field == 0 or field == 6 else (-2 if field == 7 or field == 8 else -1)
+		_put(c,field,4095,bad)
+		var refusal: Variant = Bridge.apply(_frame(c),target)
+		assert_equal(refusal.code,CODES[field],"exact code for field %d" % field)
+	var free_row: Array = _empty()
+	_put(free_row,2,5,1)
+	_put(free_row,3,5,1)
+	assert_equal(Bridge.apply(_frame(free_row),target).code,&"COLUMN_INACTIVE",
+		"a free row carrying data refuses")
+	assert_true(_image(target).equals(before),"no refusal wrote a column")
+	assert_equal(target.count(),count,"no refusal moved the live count")
+
+func test_null_and_misshaped_inputs_refuse_without_writing() -> void:
+	"""Null stores, null records, a wrong owner and a short bulk buffer all refuse."""
+	var target: Nodes = _live_owner()
+	var before: Nodes.Columns = _image(target)
+	assert_equal(Bridge.apply(_frame(_empty()),null).code,Bridge.REFUSE_NULL_STORE,"null store")
+	assert_equal(Bridge.capture_into(null,Section.FramedOwner.new(13)).code,
+		Bridge.REFUSE_NULL_STORE,"capture from no store")
+	assert_equal(Bridge.capture_into(target,null).code,&"SAVE_COMPONENT_SHAPE","null record")
+	assert_equal(Bridge.capture_into(target,Section.FramedOwner.new(12)).code,
+		&"SAVE_COMPONENT_OWNER","wrong owner")
+	var short: Nodes.Columns = Nodes.Columns.new()
+	short.present.resize(3)
+	assert_false(target.restore_columns(short),"a short column refuses")
+	assert_equal(target.last_column_refusal(),Nodes.REFUSE_COLUMN_SHAPE,"shape code")
+	assert_false(target.copy_columns_into(short),"a short output buffer refuses")
+	assert_false(target.restore_columns(null),"null columns refuse")
+	assert_true(_image(target).equals(before),"nothing was written")

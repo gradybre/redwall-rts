@@ -1,5 +1,5 @@
 # 1631 — Ambient wildlife: robins, butterflies, frogs and trout
-Date: 2026-10-07 · Status: Accepted (the rules used are adopted; the demo values and PROPOSALS below wait on Brendan)
+Date: 2026-10-07 · Status: Accepted (the rules used are adopted; Brendan approved every PROPOSAL as built on 2026-10-07, below)
 
 **Numbering.** The handoff's packet assigns WILDLIFE decisions 1301–1310 (`docs/handoff/BACKLOG.md`, "WILDLIFE"). The
 lead remapped this lane to **1631–1649**, because a parallel digging branch already uses 0991–1217 and the packets'
@@ -148,6 +148,14 @@ table change in `wildlife_rules.gd` or `wildlife_view.gd`.
 - **W3. Reduced motion stills the wildlife**, rather than hiding it.
   - Options: (a) as built; (b) hide every animal with reduced motion on.
   - Recommendation: (a).
+
+## Brendan's rulings (2026-10-07)
+
+Relayed by the coordinator on 2026-10-07: Brendan approved all of this lane's proposals **as built** (P1–P4 in decision 1632, W1–W3 in decision 1631). In this record:
+
+- **W1**: approved as built.
+- **W2**: approved as built.
+- **W3**: approved as built.
 
 ## Follow-ups (not built here)
 

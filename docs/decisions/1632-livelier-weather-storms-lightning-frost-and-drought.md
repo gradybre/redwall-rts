@@ -1,5 +1,5 @@
 # 1632 — Livelier weather: storms with lightning, frost, drought, and the storm's work factor applied once
-Date: 2026-10-07 · Status: Accepted (the rules used are adopted; the PROPOSALS below wait on Brendan)
+Date: 2026-10-07 · Status: Accepted (the rules used are adopted; Brendan approved every PROPOSAL as built on 2026-10-07, below)
 
 **Numbering.** The handoff's packet assigns WEATHER decisions 1291–1300 (`docs/handoff/BACKLOG.md`, "WEATHER"). The
 lead remapped this lane to **1631–1649**, because a parallel digging branch already uses 0991–1217 and the packets'
@@ -130,6 +130,17 @@ in the coordinator's tracker; `docs/handoff/RULINGS.md` is its first repository 
   - A strike every 5–12 demo seconds while a storm day rains: about two to five a game hour.
   - Strikes land within 16 m of where the camera looks, so the player sees them.
   - Recommendation: as built.
+
+## Brendan's rulings (2026-10-07)
+
+Relayed by the coordinator on 2026-10-07: Brendan approved all of this lane's proposals **as built** (P1–P4 in decision 1632, W1–W3 in decision 1631). In this record:
+
+- **P1 (Q-D15)**: approved as built.
+- **P2**: approved as built.
+- **P3**: approved as built.
+- **P4**: approved as built.
+
+P1 settles Q-D15 (`docs/handoff/OPEN_QUESTIONS.md`) as option (a): lightning strikes trees or open ground only, never a building, and no fire spreads.
 
 ## Gates
 

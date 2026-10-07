@@ -63,6 +63,16 @@ native measurement was made.
 - **Masks are a load-time table.** The `.ugactor` wire has no per-clip part presence (ADR 1198,
   step 4a), so the mask must travel with the pinned digest.
 
+## Superseded in part (ADR 1211)
+
+- `ContentSet.MAX_SOURCES` is now **4**: the native stone image v9 is source 3 (rows 37–41).
+  `PRESENTATION_SET_BYTES` is now **28,541,580** B, the plain sum of four exact peaks (stone 7,285,004). The
+  three-source figures below are this ADR's history.
+- The live demo loads all four images and composes the worker Actors (`entry_worker_view.gd`).
+- Rows 30–41 are drawn by `present_row`'s row program. The "Haul program modes are not built" paragraph below no
+  longer holds: they are built presentation-side, on the settlement's fixed tick, because no simulation haul source
+  clock exists.
+
 ## Not covered
 
 - No mole Actor is drawn in the live demo yet. Nothing composes a worker presentation for the

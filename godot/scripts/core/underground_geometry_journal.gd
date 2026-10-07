@@ -48,6 +48,77 @@ func reset(revision: int) -> void:
 	_boxes.fill(0)
 
 
+## ADR1221: a journal is saved with the route certificates it vouches for (ADR1205's carry rule). The image is the
+## floor, the retained count and the view flag, then CAPACITY sides oldest first (revision, role, box), zero past the
+## count; a restored ring therefore starts at slot 0. The ring position is not state: only the order is read.
+const SIDE_BYTES: int = 8 + 1 + 24
+const WIRE_BYTES: int = 24 + CAPACITY * SIDE_BYTES
+
+
+func write_into(out: PackedByteArray, at: int) -> int:
+	"""Write the fixed-size image at `at`; returns the next offset."""
+	out.encode_s64(at, _floor)
+	out.encode_s64(at + 8, _count)
+	out.encode_s64(at + 16, 1 if _full else 0)
+	at += 24
+	for index: int in CAPACITY:
+		var slot: int = (_head + index) % CAPACITY
+		var kept: bool = index < _count and _revisions.size() == CAPACITY
+		out.encode_s64(at, _revisions[slot] if kept else 0)
+		out[at + 8] = _roles[slot] if kept else 0
+		for axis: int in 6:
+			out.encode_s32(at + 9 + 4 * axis, _boxes[slot * 6 + axis] if kept else 0)
+		at += SIDE_BYTES
+	return at
+
+
+func image_refusal(bytes: PackedByteArray, at: int, revision: int) -> StringName:
+	"""A saved journal of this view, against the restored geometry `revision`: floor at most one past it, sides in
+	revision order between the floor and it, known traversal roles, valid boxes, and a zero tail."""
+	var floor_value: int = bytes.decode_s64(at)
+	var count: int = bytes.decode_s64(at + 8)
+	if _revisions.size() != CAPACITY or floor_value < 0 or floor_value > revision + 1 or count < 0 \
+			or count > CAPACITY or bytes.decode_s64(at + 16) != (1 if _full else 0):
+		return &"JOURNAL_LOAD_HEADER"
+	var previous: int = floor_value
+	at += 24
+	for index: int in CAPACITY:
+		var side_revision: int = bytes.decode_s64(at)
+		if index >= count:
+			for offset: int in SIDE_BYTES:
+				if bytes[at + offset] != 0:
+					return &"JOURNAL_LOAD_SIDE"
+		elif side_revision < previous or side_revision > revision or bytes[at + 8] >= Space.WORLD_ROLE_COUNT \
+				or not _box_image_valid(bytes, at + 9):
+			return &"JOURNAL_LOAD_SIDE"
+		previous = side_revision if index < count else previous
+		at += SIDE_BYTES
+	return &""
+
+
+static func _box_image_valid(bytes: PackedByteArray, at: int) -> bool:
+	"""Six ordered half-open endpoints."""
+	for axis: int in 3:
+		if bytes.decode_s32(at + 4 * axis) >= bytes.decode_s32(at + 4 * (axis + 3)):
+			return false
+	return true
+
+
+func read_from(bytes: PackedByteArray, at: int) -> int:
+	"""Install an image `image_refusal` accepted; the ring restarts at slot 0. Returns the next offset."""
+	_floor = bytes.decode_s64(at)
+	_count = bytes.decode_s64(at + 8)
+	_head = 0
+	at += 24
+	for slot: int in CAPACITY:
+		_revisions[slot] = bytes.decode_s64(at)
+		_roles[slot] = bytes[at + 8]
+		for axis: int in 6:
+			_boxes[slot * 6 + axis] = bytes.decode_s32(at + 9 + 4 * axis)
+		at += SIDE_BYTES
+	return at
+
+
 func floor_revision() -> int:
 	"""The oldest certificate geometry revision whose later changes are all retained."""
 	return _floor

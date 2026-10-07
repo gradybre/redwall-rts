@@ -16,6 +16,9 @@ const Catalog := preload("res://scripts/core/catalog.gd")
 const Economy := preload("res://scripts/systems/economy_system.gd")
 const Transforms := preload("res://scripts/core/transforms.gd")
 const Progress := preload("res://scripts/core/underground_entry_progress.gd")
+const RouteFixture := preload("res://test/test_underground_world_routes.gd")
+## ADR1221: the live chain's route owners are cold-restored this often (ticks; prime).
+const ROUTE_RESTORE_EVERY: int = 23
 ## ADR1218 runtime wire: header, step, code, origin, section, endpoint count and eleven endpoints, then M's container.
 const AT_RUNTIME_STORAGE: int = 12 + 4 + Progress.CODE_BYTES + 12 + 8 + 4 + 11 * 8
 ## ADR1219 walk ticks left, arrival yaw and H's anchor point follow M's and R's containers.
@@ -1097,7 +1100,8 @@ func _expect_runtime_refusal(session: Session, bytes: PackedByteArray, code: Str
 func test_fixed_ticks_with_the_entry_restored_every_tick_end_byte_identical() -> void:
 	"""ADR1218/1219: the live run_tick chain from the surface walk, through arrival and registration on H, the
 	retreat and both hauls, to the G6 stop runs uninterrupted, then again with the whole entry runtime captured and
-	replaced by its restored record before every tick; the stop and every owner image are byte-identical."""
+	replaced by its restored record before every tick and (ADR1221) Routes and WorldRoutes cold-restored into blanked
+	banks every ROUTE_RESTORE_EVERY ticks; the stop, every owner image and both route images are byte-identical."""
 	var plain: Array = _live_chain(false)
 	if plain.is_empty(): return
 	after_each()
@@ -1129,12 +1133,21 @@ func _live_chain(restoring: bool) -> Array:
 		if restoring:
 			counts[0 if _host.underground_entry().walk_ticks_left() > 0 else 1] += 1
 			if not _replace_entry_with_its_record(session, tick): return []
+			if tick % ROUTE_RESTORE_EVERY == 0 and not _cold_restore_routes(o, tick): return []
 		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
 		tick += 1
 	_assert_g6_stop(o, _host.underground_entry(), worker)
 	var record: PackedByteArray = PackedByteArray()
 	assert_equal(_host.underground_entry().capture(record), &"", "final record")
-	return [counts[0], counts[1], tick, _host.underground_entry().error()] + _snapshot() + [record]
+	return [counts[0], counts[1], tick, _host.underground_entry().error()] + _snapshot() + [record] \
+		+ RouteFixture.route_images(o.routes, o.world_routes, o.budget)
+
+
+func _cold_restore_routes(o: Session.Retirement.Owners, tick: int) -> bool:
+	"""ADR1221: the Session's Routes and WorldRoutes captured, blanked as a fresh Session's and cold-restored."""
+	var code: StringName = RouteFixture.cold_restore_route_owners(o.routes, o.world_routes, o.space, o.budget)
+	assert_equal(code, &"", "route owners cold-restore before tick %d" % tick)
+	return code == &""
 
 
 func _replace_entry_with_its_record(session: Session, tick: int) -> bool:

@@ -4144,3 +4144,401 @@ func _frontier_publish_blocked() -> bool:
 	if _locations == null or _locations._frontier == null: return false
 	_locations._remaining = -1
 	return true
+
+
+# ADR1221 (cold load): the local Routes wire, schema 1. A header, then the live edge bank's columns, the vertex arena
+# and the actor bank's resident, resident_long and link columns, each little-endian in declared field order and
+# ascending row order. The free heaps, the adjacency order and the occupancy index are derived: never written,
+# rebuilt on restore. A restore decodes into the inactive banks (_stage, _load_motion), proves them, then swaps.
+const WIRE_MAGIC: int = 0x54524755 # "UGRT"
+const WIRE_SCHEMA: int = 1
+const WIRE_HEADER_FIELDS: int = 12
+const REFUSE_LOAD_BUSY: StringName = &"ROUTE_LOAD_BUSY"
+const REFUSE_LOAD_SHAPE: StringName = &"ROUTE_LOAD_SHAPE"
+const REFUSE_LOAD_HEADER: StringName = &"ROUTE_LOAD_HEADER"
+const REFUSE_LOAD_EDGE: StringName = &"ROUTE_LOAD_EDGE"
+const REFUSE_LOAD_PATH: StringName = &"ROUTE_LOAD_PATH"
+const REFUSE_LOAD_ACTOR: StringName = &"ROUTE_LOAD_ACTOR"
+const REFUSE_LOAD_LINK: StringName = &"ROUTE_LOAD_LINK"
+## The resident columns `MotionBank.allocate` fills with -1 on an unregistered row; every other column is zero.
+const ACTOR_NULL_FIELDS: Array[int] = [R_SLOT, R_LOCATION_SLOT, R_EDGE_SLOT, R_JOB_SLOT, R_HEAD, R_TAIL, R_MODE,
+	R_POSTURE, R_PHASE, R_PROFILE, R_FAMILY, R_TOOL_SLOT, R_CARGO_SLOT, R_SATCHEL_SLOT, R_ROOM_SLOT, R_SECTION_SLOT]
+## Full references a registered actor may hold null: its Job, gear, load and Room.
+const ACTOR_REF_FIELDS: Array[int] = [R_JOB_SLOT, R_TOOL_SLOT, R_CARGO_SLOT, R_SATCHEL_SLOT, R_ROOM_SLOT]
+
+
+func wire_bytes() -> int:
+	"""Exact schema-1 image size; zero before configuration."""
+	if _edge_capacity == 0:
+		return 0
+	return 8 * WIRE_HEADER_FIELDS + (4 * EDGE_FIELDS + 8 * EDGE_LONGS + 2) * _edge_capacity + 12 * _vertex_capacity \
+		+ (4 * RESIDENT_FIELDS + 8 * RESIDENT_LONGS) * RESIDENT_CAPACITY + 4 * LINK_FIELDS * _link_capacity
+
+
+func _wire_quiescent() -> bool:
+	"""A save or load happens only between operations: no graph candidate, search, motion or callback is open."""
+	return _edge_capacity > 0 and _token == 0 and not _searching and not _advancing and not _in_callback \
+		and not _occupancy_reading and _profiles != null and _locations != null and _owner != null
+
+
+func capture_state_into(cold_token: int, out: PackedByteArray) -> StringName:
+	"""ADR1221: the whole graph and every actor at a quiescent boundary, into one empty image under the lease."""
+	if not _wire_quiescent() or not out.is_empty():
+		return REFUSE_LOAD_BUSY
+	if not _cold.covers(cold_token, wire_bytes()):
+		return &"ROUTE_COLD_LEASE"
+	out.resize(wire_bytes())
+	var header: PackedInt64Array = PackedInt64Array([WIRE_MAGIC, WIRE_SCHEMA, _edge_capacity, _vertex_capacity,
+		_link_capacity, _location_capacity, _world.x, _world.y, _live.revision, _live.edge_count, _live.vertex_count,
+		_last_tick])
+	var at: int = _wire_put64(out, 0, header)
+	at = _wire_put32(out, at, _live.fields)
+	at = _wire_put64(out, at, _live.longs)
+	at = _wire_put8(out, at, _live.present)
+	at = _wire_put8(out, at, _live.retired)
+	at = _wire_put32(out, at, _live.vertices)
+	at = _wire_put32(out, at, _motion.resident)
+	at = _wire_put64(out, at, _motion.resident_long)
+	_wire_put32(out, at, _motion.links)
+	return &""
+
+
+static func _wire_put8(out: PackedByteArray, at: int, column: PackedByteArray) -> int:
+	"""Copy one byte column; returns the next offset."""
+	for value: int in column:
+		out[at] = value
+		at += 1
+	return at
+
+
+static func _wire_put32(out: PackedByteArray, at: int, column: PackedInt32Array) -> int:
+	"""Encode one signed 32-bit column little-endian; returns the next offset."""
+	for value: int in column:
+		out.encode_s32(at, value)
+		at += 4
+	return at
+
+
+static func _wire_put64(out: PackedByteArray, at: int, column: PackedInt64Array) -> int:
+	"""Encode one signed 64-bit column little-endian; returns the next offset."""
+	for value: int in column:
+		out.encode_s64(at, value)
+		at += 8
+	return at
+
+
+static func _wire_get8(bytes: PackedByteArray, at: int, column: PackedByteArray) -> int:
+	"""Decode one byte column into preallocated storage; returns the next offset."""
+	for index: int in column.size():
+		column[index] = bytes[at]
+		at += 1
+	return at
+
+
+static func _wire_get32(bytes: PackedByteArray, at: int, column: PackedInt32Array) -> int:
+	"""Decode one signed 32-bit column into preallocated storage; returns the next offset."""
+	for index: int in column.size():
+		column[index] = bytes.decode_s32(at)
+		at += 4
+	return at
+
+
+static func _wire_get64(bytes: PackedByteArray, at: int, column: PackedInt64Array) -> int:
+	"""Decode one signed 64-bit column into preallocated storage; returns the next offset."""
+	for index: int in column.size():
+		column[index] = bytes.decode_s64(at)
+		at += 8
+	return at
+
+
+func restore_state_bytes(cold_token: int, bytes: PackedByteArray) -> StringName:
+	"""ADR1221: decode into the inactive banks, prove every edge, path, actor and queue against the restored
+	Locations, Space, Directory, Residents and Transforms, then swap. A refusal leaves the live banks untouched."""
+	if not _wire_quiescent() or _binding_refusal() != &"" or _owner.has_prepared():
+		return REFUSE_LOAD_BUSY
+	if bytes.size() != wire_bytes():
+		return REFUSE_LOAD_SHAPE
+	if not _cold.covers(cold_token, wire_bytes()):
+		return &"ROUTE_COLD_LEASE"
+	var code: StringName = _wire_header_refusal(bytes)
+	if code != &"":
+		return code
+	_decode_wire(bytes)
+	_remaining = _domain._checks
+	_operation_error = &""
+	code = _loaded_graph_refusal(bytes.decode_s64(9 * 8), bytes.decode_s64(10 * 8))
+	if code == &"":
+		code = _install_loaded_banks(bytes.decode_s64(11 * 8))
+	_remaining = 0
+	_operation_error = &""
+	return code
+
+
+func _wire_header_refusal(bytes: PackedByteArray) -> StringName:
+	"""Schema, the configured capacities and the bound World must match exactly; counts and ticks are in range."""
+	var expected: PackedInt64Array = PackedInt64Array([WIRE_MAGIC, WIRE_SCHEMA, _edge_capacity, _vertex_capacity,
+		_link_capacity, _location_capacity, _world.x, _world.y])
+	for index: int in expected.size():
+		if bytes.decode_s64(index * 8) != expected[index]:
+			return REFUSE_LOAD_HEADER
+	var graph_revision: int = bytes.decode_s64(8 * 8)
+	var edges: int = bytes.decode_s64(9 * 8)
+	var vertices: int = bytes.decode_s64(10 * 8)
+	if graph_revision < 1 or graph_revision >= I64_MAX or edges < 0 or edges > _edge_capacity \
+			or vertices < 0 or vertices > _vertex_capacity or bytes.decode_s64(11 * 8) < -1:
+		return REFUSE_LOAD_HEADER
+	return &""
+
+
+func _decode_wire(bytes: PackedByteArray) -> void:
+	"""Stream every column into the preallocated inactive banks; nothing is allocated."""
+	var at: int = 8 * WIRE_HEADER_FIELDS
+	at = _wire_get32(bytes, at, _stage.fields)
+	at = _wire_get64(bytes, at, _stage.longs)
+	at = _wire_get8(bytes, at, _stage.present)
+	at = _wire_get8(bytes, at, _stage.retired)
+	at = _wire_get32(bytes, at, _stage.vertices)
+	at = _wire_get32(bytes, at, _load_motion.resident)
+	at = _wire_get64(bytes, at, _load_motion.resident_long)
+	_wire_get32(bytes, at, _load_motion.links)
+	_stage.revision = bytes.decode_s64(8 * 8)
+
+
+func _loaded_graph_refusal(edges: int, vertices: int) -> StringName:
+	"""Every staged row is canonical, the paths tile the vertex prefix exactly, every present span is a complete
+	current-domain path between live endpoints, and the adjacency order is rebuilt."""
+	_stage.edge_count = 0
+	_stage.vertex_count = vertices
+	for row: int in _edge_capacity:
+		if not _spend():
+			return _operation_error
+		var code: StringName = _loaded_row_refusal(row)
+		if code != &"":
+			return code
+		_stage.edge_count += _stage.present[row]
+	if _stage.edge_count != edges:
+		return REFUSE_LOAD_EDGE
+	var tiled: StringName = _loaded_tiling_refusal()
+	if tiled != &"":
+		return tiled
+	for row: int in _edge_capacity:
+		if _stage.present[row] == 1:
+			var code: StringName = _loaded_edge_refusal(row)
+			if code != &"":
+				return code
+	return _build_edge_order()
+
+
+func _loaded_row_refusal(row: int) -> StringName:
+	"""Lifecycle flags, retained generations and the canonical empty payload of an absent row."""
+	var generation: int = _edge_i32(_stage, E_GENERATION, row)
+	var present: int = _stage.present[row]
+	var retired: int = _stage.retired[row]
+	if present > 1 or retired > 1 or generation < 0 or (present == 1 and (retired == 1 or generation < 1)) \
+			or (retired == 1 and generation != I32_MAX) or (present == 0 and generation == I32_MAX and retired == 0):
+		return REFUSE_LOAD_EDGE
+	if present == 1:
+		return &""
+	for field: int in range(1, EDGE_FIELDS):
+		if _edge_i32(_stage, field, row) != 0:
+			return REFUSE_LOAD_EDGE
+	for field: int in EDGE_LONGS:
+		if _edge_i64(_stage, field, row) != 0:
+			return REFUSE_LOAD_EDGE
+	return &""
+
+
+func _loaded_tiling_refusal() -> StringName:
+	"""Present paths cover [0, vertex_count) once each (marked in the charged whole-edge packet); the tail is zero."""
+	var covered: int = 0
+	var code: StringName = &""
+	_edge.points.fill(0)
+	for row: int in _edge_capacity:
+		if _stage.present[row] == 0 or code != &"":
+			continue
+		var start: int = _edge_i32(_stage, E_PATH_START, row)
+		var count: int = _edge_i32(_stage, E_PATH_COUNT, row)
+		if count < 2 or start < 0 or start > _stage.vertex_count - count or not _spend(count):
+			code = REFUSE_LOAD_PATH
+			continue
+		for index: int in range(start, start + count):
+			code = REFUSE_LOAD_PATH if _edge.points[index] != 0 else code
+			_edge.points[index] = 1
+		covered += count
+	_edge.points.fill(0)
+	if code != &"" or covered != _stage.vertex_count:
+		return REFUSE_LOAD_PATH
+	for index: int in range(_stage.vertex_count * 3, _stage.vertices.size()):
+		if _stage.vertices[index] != 0:
+			return REFUSE_LOAD_PATH
+	return &""
+
+
+func _loaded_edge_refusal(row: int) -> StringName:
+	"""One present span: authored ranges, revisions no newer than the restored owners, live endpoints at its ends,
+	a live FLOOR_DATUM section and its exact integer length (the shared stage_add format proof)."""
+	if not _spend(1 + _edge_i32(_stage, E_PATH_COUNT, row) * 34):
+		return _operation_error
+	if _section_into(_edge_pair(_stage, E_SECTION_SLOT, row)) != &"":
+		return REFUSE_LOAD_EDGE
+	_read_edge(_stage, row, _edge)
+	var content: int = _edge.content_revision
+	var geometry: int = _edge.geometry_revision
+	if content < 1 or content > _profiles.content_revision() or geometry < 1 or geometry > _owner.revision():
+		return REFUSE_LOAD_EDGE
+	# The format proof pins revisions to the current ones; a loaded span keeps its own and is re-proved on use.
+	_edge.content_revision = _profiles.content_revision()
+	_edge.geometry_revision = _target_geometry_revision
+	var code: StringName = _edge_format_refusal(_edge)
+	_edge.content_revision = content
+	_edge.geometry_revision = geometry
+	return REFUSE_LOAD_EDGE if code != &"" else &""
+
+
+func _install_loaded_banks(tick: int) -> StringName:
+	"""Swap the proven graph in, prove the actor bank against it, then rebuild the derived heaps and occupancy.
+	Any refusal swaps the original banks back; their own heaps and order were never touched."""
+	_rebuild_edge_free(_stage)
+	_swap_loaded_banks()
+	var code: StringName = _loaded_motion_refusal()
+	if code != &"":
+		_swap_loaded_banks()
+		return code
+	_rebuild_link_free(_motion)
+	code = refresh_occupancy()
+	if code != &"":
+		_swap_loaded_banks()
+		# The original actors passed this very proof before the load began; re-index them for the next query.
+		var original: StringName = refresh_occupancy()
+		return code if original == &"" else original
+	_last_tick = tick
+	_last_published_token = 0
+	return &""
+
+
+func _swap_loaded_banks() -> void:
+	"""Exchange live and inactive graph and actor banks without copying a column."""
+	var bank: EdgeBank = _live
+	_live = _stage
+	_stage = bank
+	var motion: MotionBank = _motion
+	_motion = _load_motion
+	_load_motion = motion
+
+
+static func _rebuild_edge_free(bank: EdgeBank) -> void:
+	"""The free heap is every absent, unretired row in ascending order (a valid minimum heap), tail -1."""
+	bank.free_rows.fill(-1)
+	bank.free_count = 0
+	for row: int in bank.present.size():
+		if bank.present[row] == 0 and bank.retired[row] == 0:
+			bank.free_rows[bank.free_count] = row
+			bank.free_count += 1
+
+
+func _rebuild_link_free(motion: MotionBank) -> void:
+	"""The free link heap is every unowned link in ascending order, tail -1."""
+	motion.free_links.fill(-1)
+	motion.free_count = 0
+	for link: int in _link_capacity:
+		if motion.links[L_OWNER * _link_capacity + link] == -1:
+			motion.free_links[motion.free_count] = link
+			motion.free_count += 1
+
+
+func _loaded_motion_refusal() -> StringName:
+	"""Every link is free and blank or owned and live; every actor row is proved; every owned link lies on exactly
+	its owner's single terminated chain."""
+	var owned: int = 0
+	for link: int in _link_capacity:
+		var owner_row: int = _link(L_OWNER, link)
+		if owner_row == -1:
+			for field: int in LINK_FIELDS:
+				if _link(field, link) != -1:
+					return REFUSE_LOAD_LINK
+		elif owner_row < 0 or owner_row >= RESIDENT_CAPACITY \
+				or not is_live_edge(Vector2i(_link(L_EDGE_SLOT, link), _link(L_EDGE_GENERATION, link))):
+			return REFUSE_LOAD_LINK
+		else:
+			owned += 1
+	var chained: int = 0
+	for row: int in RESIDENT_CAPACITY:
+		var code: StringName = _loaded_actor_refusal(row)
+		if code != &"":
+			return code
+		chained += _route_count(row) if _motion.resident[R_SLOT * RESIDENT_CAPACITY + row] >= 0 else 0
+	return &"" if chained == owned else REFUSE_LOAD_LINK
+
+
+func _loaded_actor_refusal(row: int) -> StringName:
+	"""An unregistered row is canonical; a registered one is the live Resident of its typed row, contained exactly
+	where its pose says (endpoint or span progress), with a canonical source clock, queue and field ranges."""
+	if not _spend(16):
+		return _operation_error
+	if _motion.resident[R_SLOT * RESIDENT_CAPACITY + row] < 0:
+		return _unregistered_row_refusal(row)
+	var worker: Vector2i = _resident_ref(row)
+	if not _ids.is_valid_of_kind(worker, Directory.KIND_RESIDENT) or _ids.get_typed_row(worker) != row \
+			or not _residents.is_alive(row) or not _transforms.read_into(worker, _pose):
+		return REFUSE_LOAD_ACTOR
+	if _actor_location_refusal(row) != &"" or _source_clock_refusal(row) != &"" or _route_count(row) < 0:
+		return REFUSE_LOAD_ACTOR
+	return _loaded_actor_fields_refusal(row)
+
+
+func _unregistered_row_refusal(row: int) -> StringName:
+	"""Exactly the allocator's blank row: -1 in the declared null columns, zero everywhere else."""
+	for field: int in RESIDENT_FIELDS:
+		var blank: int = -1 if ACTOR_NULL_FIELDS.has(field) else 0
+		if _motion.resident[field * RESIDENT_CAPACITY + row] != blank:
+			return REFUSE_LOAD_ACTOR
+	for field: int in RESIDENT_LONGS:
+		if _motion.resident_long[field * RESIDENT_CAPACITY + row] != 0:
+			return REFUSE_LOAD_ACTOR
+	return &""
+
+
+func _loaded_actor_fields_refusal(row: int) -> StringName:
+	"""Enumerations, revisions, null spellings, the reduced motion fraction and the phase/span agreement."""
+	var mode: int = _motion.resident[R_MODE * RESIDENT_CAPACITY + row]
+	var posture: int = _motion.resident[R_POSTURE * RESIDENT_CAPACITY + row]
+	var family: int = _motion.resident[R_FAMILY * RESIDENT_CAPACITY + row]
+	var profile: int = _motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]
+	var content: int = _motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row]
+	if mode < Profiles.MODE_STAND or mode > Profiles.MODE_CLIMB or posture < Profiles.POSTURE_UPRIGHT \
+			or posture > Profiles.POSTURE_STOOPED or family < -1 or family >= 5 or profile < 0 \
+			or profile >= Profiles.MAX_PROFILES or content < 1 or content > _profiles.content_revision() \
+			or _motion.resident_long[R_PROFILE_REVISION * RESIDENT_CAPACITY + row] < 1 \
+			or _motion.resident_long[R_QUANTITY * RESIDENT_CAPACITY + row] < 0:
+		return REFUSE_LOAD_ACTOR
+	for field: int in ACTOR_REF_FIELDS:
+		var ref: Vector2i = _resident_pair(field, row)
+		if ref != NULL_REF and (ref.x < 0 or ref.y < 1):
+			return REFUSE_LOAD_ACTOR
+	if not _loaded_fraction_canonical(_motion.resident_long[R_REMAINDER * RESIDENT_CAPACITY + row]):
+		return REFUSE_LOAD_ACTOR
+	return _loaded_phase_refusal(row)
+
+
+static func _loaded_fraction_canonical(encoded: int) -> bool:
+	"""Zero, or a reduced positive numerator below a 31-bit denominator, exactly as `_encode_fraction` writes it."""
+	if encoded == 0:
+		return true
+	var numerator: int = encoded >> 32
+	var denominator: int = encoded & 4294967295
+	return encoded > 0 and numerator > 0 and numerator < denominator and denominator <= I32_MAX \
+		and _gcd(numerator, denominator) == 1
+
+
+func _loaded_phase_refusal(row: int) -> StringName:
+	"""An idle or queued actor stands on its endpoint with zero span progress; a travelling one occupies a span;
+	a queued one has a queue."""
+	var phase: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] & 3
+	var on_edge: bool = _resident_pair(R_EDGE_SLOT, row) != NULL_REF
+	if not on_edge and (_motion.resident[R_SEGMENT * RESIDENT_CAPACITY + row] != 0 \
+			or _motion.resident_long[R_PROGRESS * RESIDENT_CAPACITY + row] != 0):
+		return REFUSE_LOAD_ACTOR
+	if (phase == PHASE_IDLE and on_edge) or (phase == PHASE_TRAVELLING and not on_edge) \
+			or (phase == PHASE_QUEUED and (on_edge or _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] < 0)):
+		return REFUSE_LOAD_ACTOR
+	return &""

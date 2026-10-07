@@ -22,8 +22,12 @@ const SimClock := preload("res://scripts/core/sim_clock.gd")
 const Hauler := preload("res://scripts/core/underground_entry_hauler.gd")
 const Progress := preload("res://scripts/core/underground_entry_progress.gd")
 const Installer := preload("res://scripts/core/underground_entry_installer.gd")
+const RouteFixture := preload("res://test/test_underground_world_routes.gd")
 ## ADR1218: the hauled prefix is captured and restored into a fresh foreman this often (ticks).
 const RESTORE_EVERY: int = 1
+## ADR1221: and its route owners are captured, blanked and cold-restored this often (ticks; prime, so the saves
+## fall on every phase of the 30 Hz motion fractions).
+const ROUTE_RESTORE_EVERY: int = 41
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 
 
@@ -871,8 +875,10 @@ func _installed_l0_arrival() -> Vector2i:
 
 func test_entry_progress_restores_exactly_through_the_hauled_prefix() -> void:
 	"""ADR1218 (G10): the hauled prefix runs uninterrupted, then again with the foreman captured and replaced by a
-	fresh restore every RESTORE_EVERY ticks. Every stage of the foreman, installer and hauler is crossed, and the
-	final owner ledgers, the finishing tick and the terminal record are byte-identical to the uninterrupted run."""
+	fresh restore every RESTORE_EVERY ticks, and (ADR1221) Routes and WorldRoutes captured, blanked as a fresh
+	Session's and cold-restored every ROUTE_RESTORE_EVERY ticks. Every stage of the foreman, installer and hauler is
+	crossed, and the final owner ledgers, route images, the finishing tick and the terminal record are
+	byte-identical to the uninterrupted run."""
 	var started: int = Time.get_ticks_usec()
 	var plain: Array[PackedByteArray] = _hauled_run(0, PackedInt64Array([0, 0, 0, 0]))
 	if plain.is_empty(): return
@@ -915,6 +921,8 @@ func _hauled_run(every: int, seen: PackedInt64Array) -> Array[PackedByteArray]:
 	var tick: int = _probe._tick
 	while foreman != null and not foreman.is_done() and foreman.error() == &"" and tick < _probe._tick + 200000:
 		if every > 0 and (tick - _probe._tick) % every == 0: foreman = _round_trip(foreman, seen)
+		if every > 0 and (tick - _probe._tick) % ROUTE_RESTORE_EVERY == 0 and not _cold_route_round_trip(tick):
+			return []
 		if foreman != null: foreman.advance(tick)
 		tick += 1
 	if foreman == null: return []
@@ -922,6 +930,15 @@ func _hauled_run(every: int, seen: PackedInt64Array) -> Array[PackedByteArray]:
 	assert_true(foreman.is_done(), "every planned task finished")
 	_assert_hauled_ledger(foreman)
 	return _ledger_image(foreman, tick - _probe._tick)
+
+
+func _cold_route_round_trip(tick: int) -> bool:
+	"""ADR1221: Routes and WorldRoutes captured, blanked as a fresh Session's and restored before this tick."""
+	var world: RefCounted = _probe._world
+	var code: StringName = RouteFixture.cold_restore_route_owners(world._routes, world._binding, world._owner,
+		world._budget)
+	assert_equal(code, &"", "route owners cold-restore before tick %d" % tick)
+	return code == &""
 
 
 func _round_trip(foreman: Foreman, seen: PackedInt64Array) -> Foreman:
@@ -949,12 +966,14 @@ func _ledger_image(foreman: Foreman, ticks: int) -> Array[PackedByteArray]:
 	var world: RefCounted = _probe._world
 	var record: PackedByteArray = PackedByteArray()
 	assert_equal(foreman.capture(record), &"", "terminal record")
-	return [world._inventory.state_bytes(), world._pool.state_bytes(), world._construction.state_bytes(),
-		world._jobs.state_bytes(), world._work.state_bytes(), world._gear.state_bytes(), world._transforms.state_bytes(),
-		_probe._sites.state_bytes(), _probe._router.state_bytes(), world._owner.state_bytes(),
-		var_to_bytes(_probe._placements._live.i32), record,
+	var images: Array[PackedByteArray] = [world._inventory.state_bytes(), world._pool.state_bytes(),
+		world._construction.state_bytes(), world._jobs.state_bytes(), world._work.state_bytes(), world._gear.state_bytes(),
+		world._transforms.state_bytes(), _probe._sites.state_bytes(), _probe._router.state_bytes(),
+		world._owner.state_bytes(), var_to_bytes(_probe._placements._live.i32), record,
 		var_to_bytes(PackedInt64Array([ticks, foreman.accepted_mwu(), foreman.install_mwu(), foreman.haul_mwu(),
 			foreman.haul_trips()]))]
+	images.append_array(RouteFixture.route_images(world._routes, world._binding, world._budget)) # ADR1221
+	return images
 
 
 ## ADR1218 wire offsets of a 20-task foreman record (header 12, crew 40, two flags, content, Placement, count).

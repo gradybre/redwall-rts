@@ -2558,3 +2558,106 @@ func test_live_route_witness_measures_256_distinct_pairs_through_actual_ring() -
 	_measure_distinct_witness_queries(fixture)
 	assert_true(fixture._budget.is_quiescent(), "all setup leases released before the diagnostic")
 	_finish_profile_fixture(fixture)
+
+
+func _route_image() -> PackedByteArray:
+	"""One whole Routes wire image, captured under its own released lease."""
+	var image: PackedByteArray = PackedByteArray()
+	var cold: int = _budget.acquire(_routes.wire_bytes())
+	assert_equal(_routes.capture_state_into(cold, image), &"", "quiescent capture")
+	_budget.release(cold)
+	return image
+
+
+func _restore_route_image(image: PackedByteArray) -> StringName:
+	"""Restore one image under its own released lease."""
+	var cold: int = _budget.acquire(_routes.wire_bytes())
+	var code: StringName = _routes.restore_state_bytes(cold, image)
+	_budget.release(cold)
+	return code
+
+
+func test_route_wire_restores_a_moving_actor_into_blank_banks_and_arrives_exactly() -> void:
+	"""ADR1221: mid-span (with a carried 2/3 fraction) the graph and actor are saved, the banks blanked as a fresh
+	Session's are, and the restored actor finishes the same thirty-tick walk to the exact unit."""
+	var refs: Array[Vector2i] = _moving_actor()
+	for tick: int in range(1, 6):
+		assert_equal(_routes.advance_tick(tick), 1, "uninterrupted stride before the save")
+	var image: PackedByteArray = _route_image()
+	assert_equal(image.size(), _routes.wire_bytes(), "fixed schema-1 size")
+	assert_equal(image.size(), 96 + 82 * EDGES + 12 * VERTICES + 156 * 512 + 16 * LINKS, "declared layout")
+	WorldRouteTests.wipe_routes(_routes)
+	assert_false(_routes.retains_location(refs[0]), "blank banks retain nothing")
+	assert_equal(_restore_route_image(image), &"", "validated restore")
+	assert_equal(_route_image(), image, "a restored owner writes back its image")
+	assert_equal(_routes.advance_tick(5), 0, "the saved last tick still refuses a repeat")
+	var actor: Routes.Actor = Routes.Actor.new()
+	for tick: int in range(6, 31):
+		assert_equal(_routes.advance_tick(tick), 1, "restored actor advances")
+		assert_equal(_routes.read_actor_into(_worker, actor), &"", "readable")
+		@warning_ignore("integer_division") var distance: int = 1024 * tick / 30
+		assert_equal(actor.point, Vector3i(-512 + distance, 0, 512), "same exact rate and fraction")
+	assert_equal(actor.location, refs[1], "arrived at the far endpoint")
+	assert_true(_routes.retains_location(refs[0]) and _routes.retains_location(refs[1]), "edge retention restored")
+
+
+func _wire_offsets() -> Dictionary:
+	"""Byte offsets of each column in this fixture's image."""
+	var fields: int = 96
+	var longs: int = fields + 4 * Routes.EDGE_FIELDS * EDGES
+	var present: int = longs + 8 * Routes.EDGE_LONGS * EDGES
+	var vertices: int = present + 2 * EDGES
+	var resident: int = vertices + 12 * VERTICES
+	var resident_long: int = resident + 4 * Routes.RESIDENT_FIELDS * 512
+	var links: int = resident_long + 8 * Routes.RESIDENT_LONGS * 512
+	return {"fields": fields, "longs": longs, "present": present, "retired": present + EDGES, "vertices": vertices,
+		"resident": resident, "resident_long": resident_long, "links": links}
+
+
+func _route_corruptions(edge: Vector2i) -> Array:
+	"""[label, offset, width, value, expected refusal] for one damaged field each."""
+	var o: Dictionary = _wire_offsets()
+	var row: int = _residents.directory().get_typed_row(_worker)
+	var fraction: int = (2 << 32) | 4
+	return [["magic", 0, 8, 7, Routes.REFUSE_LOAD_HEADER], ["edge capacity", 16, 8, EDGES + 1, Routes.REFUSE_LOAD_HEADER],
+		["edge count", 72, 8, 2, Routes.REFUSE_LOAD_EDGE], ["last tick", 88, 8, -2, Routes.REFUSE_LOAD_HEADER],
+		["present flag", o.present + edge.x, 1, 2, Routes.REFUSE_LOAD_EDGE],
+		["retired live edge", o.retired + edge.x, 1, 1, Routes.REFUSE_LOAD_EDGE],
+		["absent payload", o.fields + 4 * (Routes.E_FAMILY * EDGES + 5), 4, 1, Routes.REFUSE_LOAD_EDGE],
+		["path start", o.fields + 4 * (Routes.E_PATH_START * EDGES + edge.x), 4, 1, Routes.REFUSE_LOAD_PATH],
+		["vertex tail", o.vertices + 4 * 6, 4, 7, Routes.REFUSE_LOAD_PATH],
+		["moved endpoint vertex", o.vertices, 4, -511, Routes.REFUSE_LOAD_EDGE],
+		["edge length", o.longs + 8 * (Routes.E_LENGTH * EDGES + edge.x), 8, 1025, Routes.REFUSE_LOAD_EDGE],
+		["actor generation", o.resident + 4 * (Routes.R_GENERATION * 512 + row), 4, 99, Routes.REFUSE_LOAD_ACTOR],
+		["span progress", o.resident_long + 8 * (Routes.R_PROGRESS * 512 + row), 8, 3, Routes.REFUSE_LOAD_ACTOR],
+		["unreduced fraction", o.resident_long + 8 * (Routes.R_REMAINDER * 512 + row), 8, fraction, Routes.REFUSE_LOAD_ACTOR],
+		["idle on a span", o.resident + 4 * (Routes.R_PHASE * 512 + row), 4, Routes.PHASE_IDLE, Routes.REFUSE_LOAD_ACTOR],
+		["blank row mode", o.resident + 4 * (Routes.R_MODE * 512 + 7), 4, 0, Routes.REFUSE_LOAD_ACTOR],
+		["orphan link", o.links + 4 * (Routes.L_OWNER * LINKS + 3), 4, row, Routes.REFUSE_LOAD_LINK]]
+
+
+func test_route_wire_refuses_every_corrupt_image_and_keeps_the_live_banks() -> void:
+	"""ADR1221: each damaged field is refused with its exact code and the live image is unchanged, including a
+	busy owner, a foreign lease and a truncated image; the undamaged image still restores afterwards."""
+	var edge: Vector2i = _moving_actor()[2]
+	for tick: int in range(1, 6):
+		_routes.advance_tick(tick)
+	var image: PackedByteArray = _route_image()
+	for damage: Array in _route_corruptions(edge):
+		var bad: PackedByteArray = image.duplicate()
+		if damage[2] == 1: bad[damage[1]] = damage[3]
+		elif damage[2] == 4: bad.encode_s32(damage[1], damage[3])
+		else: bad.encode_s64(damage[1], damage[3])
+		assert_equal(_restore_route_image(bad), damage[4], "refused: %s" % damage[0])
+		assert_equal(_route_image(), image, "live banks unchanged after: %s" % damage[0])
+	assert_equal(_restore_route_image(image.slice(0, image.size() - 1)), Routes.REFUSE_LOAD_SHAPE, "truncated")
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var token: int = _routes.begin_prepare(cold).token
+	assert_equal(_routes.restore_state_bytes(cold, image), Routes.REFUSE_LOAD_BUSY, "open graph candidate")
+	var out: PackedByteArray = PackedByteArray()
+	assert_equal(_routes.capture_state_into(cold, out), Routes.REFUSE_LOAD_BUSY, "no capture mid-candidate")
+	_routes.abort(token)
+	assert_equal(_routes.restore_state_bytes(cold + 1, image), &"ROUTE_COLD_LEASE", "foreign lease")
+	_budget.release(cold)
+	assert_equal(_restore_route_image(image), &"", "the intact image restores")
+	assert_equal(_routes.advance_tick(6), 1, "and the actor walks on")

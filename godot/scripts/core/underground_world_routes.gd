@@ -2421,3 +2421,115 @@ static func commit_frontier_preflighted(actual: RefCounted, context: Locations.F
 	Routes._commit_preflighted_bank(context.graph, context.route_token)
 	_commit_preflighted_certificates(actual, context.catalog)
 	return true
+
+
+# ADR1221 (cold load): live route certificates are SAVED, not re-derived. A certificate is the result of the last
+# preparation's proof, and some of its inputs are not saved state at all (live World exclusions, the installation
+# context that excuses a pending bearer for source profiles 2 and 6), so a recompilation at load could differ from
+# the run that saved. ADR1205's carry rule then requires both SpaceOwner journals to be saved with them. Schema 1:
+# a header, the live bank's masks, generations, geometry and content columns, then the traversal and full journals.
+const CERT_WIRE_MAGIC: int = 0x52574755 # "UGWR"
+const CERT_WIRE_SCHEMA: int = 1
+const CERT_WIRE_HEADER: int = 5
+const CERT_WIRE_BYTES: int = 8 * CERT_WIRE_HEADER + EDGE_CAPACITY * (MASK_BYTES + 4 + 16) + 2 * Journal.WIRE_BYTES
+const REFUSE_LOAD_BUSY: StringName = &"WORLD_ROUTE_LOAD_BUSY"
+const REFUSE_LOAD_SHAPE: StringName = &"WORLD_ROUTE_LOAD_SHAPE"
+const REFUSE_LOAD_HEADER: StringName = &"WORLD_ROUTE_LOAD_HEADER"
+const REFUSE_LOAD_CERTIFICATE: StringName = &"WORLD_ROUTE_LOAD_CERTIFICATE"
+
+
+func _wire_quiescent() -> bool:
+	"""No preparation, compilation, publication or read is open, and the once-bound installation context (ADR1105)
+	holds no route candidate."""
+	return _domain != null and not _opening and not _compiling and not _publishing and not _reading \
+		and _route_token == 0 and _proof == null and (_installation == null or _installation.route_token == 0) \
+		and _routes() != null and _owner() != null
+
+
+func capture_state_into(cold_token: int, out: PackedByteArray) -> StringName:
+	"""ADR1221: the live certificates and both journals at a quiescent boundary, under the caller's lease."""
+	if not _wire_quiescent() or not out.is_empty() or _owner().has_prepared():
+		return REFUSE_LOAD_BUSY
+	if not _budget.covers(cold_token, CERT_WIRE_BYTES):
+		return REFUSE_BUDGET
+	out.resize(CERT_WIRE_BYTES)
+	var header: PackedInt64Array = PackedInt64Array([CERT_WIRE_MAGIC, CERT_WIRE_SCHEMA, EDGE_CAPACITY, MASK_BYTES,
+		_live_catalog_revision])
+	var at: int = Routes._wire_put64(out, 0, header)
+	at = Routes._wire_put8(out, at, _live.masks)
+	at = Routes._wire_put32(out, at, _live.generations)
+	at = Routes._wire_put64(out, at, _live.geometry)
+	at = Routes._wire_put64(out, at, _live.content)
+	at = _owner()._journal.write_into(out, at)
+	_owner()._location_journal.write_into(out, at)
+	return &""
+
+
+func restore_state_bytes(cold_token: int, bytes: PackedByteArray) -> StringName:
+	"""ADR1221: after Routes is restored, decode into the inactive bank, require exactly one current certificate per
+	live edge (its own generation, geometry and content revision, no bit past the content's profiles) and canonical
+	empty rows elsewhere, check both journals against the restored Space, then swap and install the journals."""
+	if not _wire_quiescent() or _owner().has_prepared() or binding_refusal() != &"":
+		return REFUSE_LOAD_BUSY
+	if bytes.size() != CERT_WIRE_BYTES:
+		return REFUSE_LOAD_SHAPE
+	if not _budget.covers(cold_token, CERT_WIRE_BYTES):
+		return REFUSE_BUDGET
+	var catalog_revision: int = bytes.decode_s64(32)
+	if bytes.decode_s64(0) != CERT_WIRE_MAGIC or bytes.decode_s64(8) != CERT_WIRE_SCHEMA \
+			or bytes.decode_s64(16) != EDGE_CAPACITY or bytes.decode_s64(24) != MASK_BYTES \
+			or (catalog_revision != 0 and catalog_revision != _catalog.content_revision()):
+		return REFUSE_LOAD_HEADER
+	var at: int = Routes._wire_get8(bytes, 8 * CERT_WIRE_HEADER, _stage.masks)
+	at = Routes._wire_get32(bytes, at, _stage.generations)
+	at = Routes._wire_get64(bytes, at, _stage.geometry)
+	at = Routes._wire_get64(bytes, at, _stage.content)
+	var code: StringName = _loaded_certificates_refusal(catalog_revision)
+	if code == &"": code = _owner()._journal.image_refusal(bytes, at, _owner().revision())
+	if code == &"": code = _owner()._location_journal.image_refusal(bytes, at + Journal.WIRE_BYTES, _owner().revision())
+	if code != &"":
+		return code
+	var previous: Certificates = _live
+	_live = _stage
+	_stage = previous
+	_live_catalog_revision = catalog_revision
+	_witness_work = 0 # A fresh World has no remembered reachability search; neither does a loaded one.
+	_owner()._location_journal.read_from(bytes, _owner()._journal.read_from(bytes, at))
+	return &""
+
+
+func _loaded_certificates_refusal(catalog_revision: int) -> StringName:
+	"""Row by row against the restored graph: a live edge has its certificate, nothing else has one."""
+	var graph: Routes = _routes()
+	for row: int in EDGE_CAPACITY:
+		var generation: int = _stage.generations[row]
+		var live: bool = row < graph._edge_capacity and graph._live.present[row] == 1
+		if live != (generation > 0) or (live and catalog_revision == 0):
+			return REFUSE_LOAD_CERTIFICATE
+		var code: StringName = _loaded_row_refusal(graph, row, generation) if live else _loaded_blank_refusal(row)
+		if code != &"":
+			return code
+	return &""
+
+
+func _loaded_blank_refusal(row: int) -> StringName:
+	"""A row with no live edge is all zero."""
+	if _stage.generations[row] != 0 or _stage.geometry[row] != 0 or _stage.content[row] != 0:
+		return REFUSE_LOAD_CERTIFICATE
+	for index: int in MASK_BYTES:
+		if _stage.masks[row * MASK_BYTES + index] != 0:
+			return REFUSE_LOAD_CERTIFICATE
+	return &""
+
+
+func _loaded_row_refusal(graph: Routes, row: int, generation: int) -> StringName:
+	"""The certificate of one live edge: same generation and revisions, and only bits of existing profiles."""
+	if generation != graph._edge_i32(graph._live, Routes.E_GENERATION, row) \
+			or _stage.geometry[row] != graph._edge_i64(graph._live, Routes.E_GEOMETRY_REVISION, row) \
+			or _stage.content[row] != graph._edge_i64(graph._live, Routes.E_CONTENT_REVISION, row):
+		return REFUSE_LOAD_CERTIFICATE
+	var profiles: int = _profiles.profile_count(_stage.content[row])
+	for profile: int in range(profiles, MASK_BYTES * 8):
+		if _stage.admits(row, profile):
+			return REFUSE_LOAD_CERTIFICATE
+	return &""

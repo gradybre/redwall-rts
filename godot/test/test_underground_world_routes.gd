@@ -1554,3 +1554,156 @@ func test_floor_metadata_change_is_inert_to_route_clearance() -> void:
 	_publish_owner_rows([PackedInt32Array([X, 512, Z, X + 2048, 513, Z + 2048])], Space.FLOOR_DATUM)
 	assert_equal(_refresh(edge), &"", "floor metadata leaves the span clear")
 	assert_equal(_binding._carried_edges, 1, "inert role carried")
+
+
+static func wipe_routes(routes: Routes) -> void:
+	"""What a freshly composed Routes holds before any graph or actor: blank preallocated banks at revision 1, no
+	occupancy index and no last tick. Shared with the WorldRoutes and live-chain cold-load tests."""
+	routes._live = Routes.EdgeBank.new()
+	routes._live.allocate(routes._edge_capacity, routes._vertex_capacity)
+	routes._stage = Routes.EdgeBank.new()
+	routes._stage.allocate(routes._edge_capacity, routes._vertex_capacity)
+	routes._motion = Routes.MotionBank.new()
+	routes._motion.allocate(routes._link_capacity)
+	routes._load_motion = Routes.MotionBank.new()
+	routes._load_motion.allocate(routes._link_capacity)
+	routes._occupancy_heads.fill(-1)
+	routes._occupancy_next.fill(-1)
+	routes._occupancy_cell.fill(0)
+	routes._last_tick = -1
+	routes._last_published_token = 0
+
+
+static func wipe_certificates(world_routes: Binding, owner: Owner) -> void:
+	"""What a freshly composed WorldRoutes and SpaceOwner hold: blank certificate banks, no catalog pin, no
+	remembered search, and both journals reset at the current revision (SpaceOwner's own load does exactly that)."""
+	world_routes._live = Binding.Certificates.new()
+	world_routes._live.allocate()
+	world_routes._stage = Binding.Certificates.new()
+	world_routes._stage.allocate()
+	world_routes._live_catalog_revision = 0
+	world_routes._witness_work = 0
+	owner._journal.reset(owner.revision())
+	owner._location_journal.reset(owner.revision())
+
+
+static func route_images(routes: Routes, world_routes: Binding, budget: Budget) -> Array[PackedByteArray]:
+	"""ADR1221: both route owner images under one released lease; empty when either capture refuses."""
+	var images: Array[PackedByteArray] = [PackedByteArray(), PackedByteArray()]
+	var cold: int = budget.acquire(Budget.COLD_BYTES)
+	var code: StringName = routes.capture_state_into(cold, images[0]) if cold != 0 else Budget.REFUSE_BUSY
+	if code == &"": code = world_routes.capture_state_into(cold, images[1])
+	if cold != 0: budget.release(cold)
+	if code != &"": images.clear()
+	return images
+
+
+static func cold_restore_route_owners(routes: Routes, world_routes: Binding, owner: Owner, budget: Budget) -> StringName:
+	"""ADR1221: capture both route owners, blank them as a fresh Session's are, restore them in dependency order
+	(Routes, then its certificates) and require that the restored owners write back the very same images."""
+	var images: Array[PackedByteArray] = route_images(routes, world_routes, budget)
+	if images.is_empty(): return &"COLD_CAPTURE_REFUSED"
+	wipe_routes(routes)
+	wipe_certificates(world_routes, owner)
+	var cold: int = budget.acquire(Budget.COLD_BYTES)
+	var code: StringName = routes.restore_state_bytes(cold, images[0])
+	if code == &"": code = world_routes.restore_state_bytes(cold, images[1])
+	budget.release(cold)
+	if code == &"" and route_images(routes, world_routes, budget) != images: code = &"COLD_IMAGE_DRIFT"
+	return code
+
+
+func _cold_images() -> Array[PackedByteArray]:
+	"""The Routes image and the certificate image, captured under one released lease."""
+	var graph: PackedByteArray = PackedByteArray()
+	var certificates: PackedByteArray = PackedByteArray()
+	var cold: int = _budget.acquire(Budget.COLD_BYTES)
+	assert_equal(_routes.capture_state_into(cold, graph), &"", "graph captured")
+	assert_equal(_binding.capture_state_into(cold, certificates), &"", "certificates captured")
+	assert_equal(_budget.release(cold), &"", "lease returned")
+	return [graph, certificates]
+
+
+func _restore_cold_images(images: Array[PackedByteArray]) -> StringName:
+	"""Routes first, then its certificates, under one released lease."""
+	var cold: int = _budget.acquire(Budget.COLD_BYTES)
+	var code: StringName = _routes.restore_state_bytes(cold, images[0])
+	if code == &"": code = _binding.restore_state_bytes(cold, images[1])
+	assert_equal(_budget.release(cold), &"", "lease returned")
+	return code
+
+
+func test_cold_route_images_restore_into_blank_owners_and_the_actor_walks_on() -> void:
+	"""ADR1221: mid-walk the graph, actor and certificates are saved, every bank blanked as a fresh Session's is,
+	and the restored owners re-encode identically and finish the walk exactly as the uninterrupted test does."""
+	_actual_fixture()
+	_publish_route()
+	_admit_actor()
+	assert_equal(_routes.request_route(_worker, _last, 1), &"", "source-qualified route")
+	for tick: int in range(1, 5):
+		_routes.advance_tick(tick)
+	var images: Array[PackedByteArray] = _cold_images()
+	assert_equal(images[1].size(), Binding.CERT_WIRE_BYTES, "fixed certificate image")
+	wipe_routes(_routes)
+	wipe_certificates(_binding, _owner)
+	assert_equal(_restore_cold_images(images), &"", "both owners restored")
+	assert_equal(_cold_images(), images, "both re-encode their images")
+	for tick: int in range(5, 11):
+		_routes.advance_tick(tick)
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "restored actor readable")
+	assert_equal(actor.point, Vector3i(X + 1536, 512, Z + 512), "same ten-tick arrival")
+	assert_equal(actor.location, _last, "same destination")
+
+
+func test_restored_journal_still_carries_the_restored_certificate() -> void:
+	"""ADR1205 + ADR1221: a far change published before the save is still carried after the load, because the
+	journal travels with the certificate; a journal reset at load would force a full recheck instead."""
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	_publish_owner_rows(_far_rows(1), Space.OBSTACLE)
+	var images: Array[PackedByteArray] = _cold_images()
+	wipe_routes(_routes)
+	wipe_certificates(_binding, _owner)
+	assert_equal(_restore_cold_images(images), &"", "restored")
+	assert_equal(_refresh(edge), &"", "requalified after the load")
+	assert_equal(_binding._carried_edges, 1, "carried exactly as without the load")
+
+
+func _certificate_corruptions(edge: Vector2i) -> Array:
+	"""[label, offset, width, value, expected refusal] for one damaged certificate or journal field each."""
+	var generations: int = 40 + Binding.EDGE_CAPACITY * Binding.MASK_BYTES
+	var geometry: int = generations + 4 * Binding.EDGE_CAPACITY
+	var journal: int = geometry + 16 * Binding.EDGE_CAPACITY
+	var blank: int = 3 if edge.x != 3 else 4
+	return [["magic", 0, 8, 1, Binding.REFUSE_LOAD_HEADER], ["catalog revision", 32, 8, 99, Binding.REFUSE_LOAD_HEADER],
+		["live generation", generations + 4 * edge.x, 4, edge.y + 1, Binding.REFUSE_LOAD_CERTIFICATE],
+		["blank generation", generations + 4 * blank, 4, 1, Binding.REFUSE_LOAD_CERTIFICATE],
+		["blank mask", 40 + blank * Binding.MASK_BYTES, 1, 1, Binding.REFUSE_LOAD_CERTIFICATE],
+		["bit past the profiles", 40 + edge.x * Binding.MASK_BYTES + Binding.MASK_BYTES - 1, 1, 128,
+			Binding.REFUSE_LOAD_CERTIFICATE],
+		["geometry revision", geometry + 8 * edge.x, 8, 99, Binding.REFUSE_LOAD_CERTIFICATE],
+		["journal floor", journal, 8, _owner.revision() + 2, &"JOURNAL_LOAD_HEADER"],
+		["journal view flag", journal + 16, 8, 1, &"JOURNAL_LOAD_HEADER"],
+		["journal tail", journal + Journal.WIRE_BYTES - 1, 1, 1, &"JOURNAL_LOAD_SIDE"],
+		["full journal count", journal + Journal.WIRE_BYTES + 8, 8, Journal.CAPACITY + 1, &"JOURNAL_LOAD_HEADER"]]
+
+
+func test_cold_certificate_image_refuses_every_corrupt_field_and_keeps_live_banks() -> void:
+	"""ADR1221: each damaged field is refused with its exact code before the bank swap or any journal write."""
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	var images: Array[PackedByteArray] = _cold_images()
+	for damage: Array in _certificate_corruptions(edge):
+		var bad: PackedByteArray = images[1].duplicate()
+		if damage[2] == 1: bad[damage[1]] = damage[3]
+		elif damage[2] == 4: bad.encode_s32(damage[1], damage[3])
+		else: bad.encode_s64(damage[1], damage[3])
+		assert_equal(_restore_cold_images([images[0], bad]), damage[4], "refused: %s" % damage[0])
+		assert_equal(_cold_images(), images, "live banks and journals unchanged after: %s" % damage[0])
+	_lease = _budget.acquire(Budget.COLD_BYTES)
+	assert_equal(_binding.restore_state_bytes(_lease, images[1].slice(1)), Binding.REFUSE_LOAD_SHAPE, "truncated")
+	var token: int = _binding.begin_prepare(_lease).token
+	assert_equal(_binding.restore_state_bytes(_lease, images[1]), Binding.REFUSE_LOAD_BUSY, "open preparation")
+	_end(token)
+	assert_equal(_restore_cold_images(images), &"", "the intact images restore")

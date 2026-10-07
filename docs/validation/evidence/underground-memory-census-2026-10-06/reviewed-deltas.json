@@ -1,0 +1,733 @@
+{
+ "inputs": {
+  "godot/data/underground/mole-worker/mole_profile_catalog.gd": {
+   "charges": [
+    {
+     "bytes": 8676,
+     "carried_by": "PROFILE_BYTES joint (motion census, 257,308 of 262,144)",
+     "store": "content 6 paired Profile bank (42 rows, 377 boxes, 4 sources): 62,432 B with the 32 KiB control, was 53,756"
+    },
+    {
+     "bytes": 96,
+     "carried_by": "Profiles CONTROL_RESERVE (load-time, released)",
+     "store": "three 32-byte digest buffers while hashing sources at load"
+    }
+   ],
+   "delta": {
+    "allocation_sites": {
+     "PackedByteArray(": 3
+    },
+    "int_constants_added": [
+     [
+      "BOX_COUNT",
+      "377"
+     ],
+     [
+      "CONTENT_REVISION",
+      "6"
+     ],
+     [
+      "PAIRED_BANK_BYTES",
+      "29664"
+     ],
+     [
+      "PROFILE_COUNT",
+      "42"
+     ],
+     [
+      "SOURCE_COUNT",
+      "4"
+     ],
+     [
+      "WIRE_BYTES",
+      "14840"
+     ]
+    ],
+    "int_constants_removed": [
+     [
+      "BOX_COUNT",
+      "271"
+     ],
+     [
+      "CONTENT_REVISION",
+      "3"
+     ],
+     [
+      "PAIRED_BANK_BYTES",
+      "20988"
+     ],
+     [
+      "PROFILE_COUNT",
+      "29"
+     ],
+     [
+      "WIRE_BYTES",
+      "10502"
+     ]
+    ],
+    "resizes_added": [
+     "handling.resize(32)",
+     "haul.resize(32)",
+     "stone.resize(32)"
+    ]
+   }
+  },
+  "godot/data/underground/mole-worker/qualified-step-v4/catalog_source.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "historical publication pins renewed in place (ADR 1205); not loaded at runtime"
+    }
+   ],
+   "delta": {}
+  },
+  "godot/data/underground/mole-worker/qualified-step-v4/manifest.json": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "historical publication manifest (ADR 1205); not loaded at runtime"
+    }
+   ],
+   "delta": null
+  },
+  "godot/data/underground/mole-worker/work-step-v1/source_program.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "no retained-storage change"
+    }
+   ],
+   "delta": {}
+  },
+  "godot/scripts/core/modular_projects.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "no retained-storage change"
+    }
+   ],
+   "delta": {}
+  },
+  "godot/scripts/core/underground_connector_catalog.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "no retained-storage change"
+    }
+   ],
+   "delta": {}
+  },
+  "godot/scripts/core/underground_connector_contacts.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "no retained-storage change"
+    }
+   ],
+   "delta": {}
+  },
+  "godot/scripts/core/underground_connector_placements.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "no retained-storage change"
+    }
+   ],
+   "delta": {}
+  },
+  "godot/scripts/core/underground_locations.gd": {
+   "charges": [
+    {
+     "bytes": 129,
+     "carried_by": "new contribution",
+     "store": "carry controls _carried_locations, _carry_content, _carry_geometry (ADR 1207) and the borrowed ContactRetirementContext numeric packet (ADR 1202)"
+    }
+   ],
+   "delta": {
+    "classes": {
+     "ContactRetirementContext": [
+      null,
+      [
+       [
+        "budget",
+        "Budget"
+       ],
+       [
+        "candidate",
+        "Bank"
+       ],
+       [
+        "catalog",
+        "int"
+       ],
+       [
+        "cold",
+        "int"
+       ],
+       [
+        "first",
+        "Vector2i"
+       ],
+       [
+        "graph",
+        "RefCounted"
+       ],
+       [
+        "graph_candidate",
+        "RefCounted"
+       ],
+       [
+        "graph_live",
+        "RefCounted"
+       ],
+       [
+        "graph_revision",
+        "int"
+       ],
+       [
+        "issuer",
+        "RefCounted"
+       ],
+       [
+        "issuer_script",
+        "Script"
+       ],
+       [
+        "live",
+        "Bank"
+       ],
+       [
+        "location_revision",
+        "int"
+       ],
+       [
+        "location_token",
+        "int"
+       ],
+       [
+        "locations",
+        "RefCounted"
+       ],
+       [
+        "masks_candidate",
+        "RefCounted"
+       ],
+       [
+        "masks_live",
+        "RefCounted"
+       ],
+       [
+        "owner",
+        "RefCounted"
+       ],
+       [
+        "phase",
+        "int"
+       ],
+       [
+        "placement",
+        "Vector2i"
+       ],
+       [
+        "profiles",
+        "int"
+       ],
+       [
+        "revision",
+        "int"
+       ],
+       [
+        "route_receipt",
+        "int"
+       ],
+       [
+        "route_token",
+        "int"
+       ],
+       [
+        "routes",
+        "RefCounted"
+       ],
+       [
+        "second",
+        "Vector2i"
+       ],
+       [
+        "world",
+        "Vector2i"
+       ]
+      ]
+     ]
+    },
+    "members_added": [
+     [
+      "_carried_locations",
+      "int"
+     ],
+     [
+      "_carry_content",
+      "int"
+     ],
+     [
+      "_carry_geometry",
+      "bool"
+     ],
+     [
+      "_contact_retirement",
+      "ContactRetirementContext"
+     ]
+    ]
+   }
+  },
+  "godot/scripts/core/underground_motion_catalog.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "REVISION constant 6; tables and bank unchanged"
+    }
+   ],
+   "delta": {
+    "int_constants_added": [
+     [
+      "REVISION",
+      "6"
+     ]
+    ]
+   }
+  },
+  "godot/scripts/core/underground_motion_clock.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "no retained-storage change"
+    }
+   ],
+   "delta": {}
+  },
+  "godot/scripts/core/underground_profiles.gd": {
+   "charges": [
+    {
+     "bytes": 336,
+     "carried_by": "Profiles CONTROL_RESERVE (load-time, released)",
+     "store": "two load-time key-order scratch columns, one int per profile row (2 x 42 x 4)"
+    }
+   ],
+   "delta": {
+    "allocation_sites": {
+     "PackedInt32Array(": 2
+    },
+    "int_constants_added": [
+     [
+      "CONTACT_ASSEMBLY_PALM",
+      "3"
+     ],
+     [
+      "CONTACT_HAUL_GRIP",
+      "4"
+     ],
+     [
+      "POLICY_ASSEMBLY_HANDLING",
+      "7"
+     ]
+    ],
+    "resizes_added": [
+     "last_of.resize(_stage.header[3])",
+     "same_key.resize(_stage.header[3])"
+    ]
+   }
+  },
+  "godot/scripts/core/underground_room_composition.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "no retained-storage change"
+    }
+   ],
+   "delta": {}
+  },
+  "godot/scripts/core/underground_route_composition.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "bundle constants; 15 ground-pace rows inside the Catalog's fixed MAX_PACES = 256 bank"
+    }
+   ],
+   "delta": {
+    "int_constants_added": [
+     [
+      "CATALOG_DIGEST_0",
+      "Bundle.CATALOG_DIGEST_0"
+     ],
+     [
+      "CATALOG_DIGEST_1",
+      "Bundle.CATALOG_DIGEST_1"
+     ],
+     [
+      "CATALOG_DIGEST_2",
+      "Bundle.CATALOG_DIGEST_2"
+     ],
+     [
+      "CATALOG_DIGEST_3",
+      "Bundle.CATALOG_DIGEST_3"
+     ],
+     [
+      "CATALOG_REVISION",
+      "Bundle.CATALOG_REVISION"
+     ],
+     [
+      "GROUND_PACE_COUNT",
+      "15"
+     ],
+     [
+      "PROFILE_CONTENT_REVISION",
+      "Bundle.CONTENT_REVISION"
+     ]
+    ],
+    "int_constants_removed": [
+     [
+      "CATALOG_DIGEST_0",
+      "-6187198552126894523"
+     ],
+     [
+      "CATALOG_DIGEST_1",
+      "-3743869169456484174"
+     ],
+     [
+      "CATALOG_DIGEST_2",
+      "-8277596517807541495"
+     ],
+     [
+      "CATALOG_DIGEST_3",
+      "2607509635061225895"
+     ],
+     [
+      "CATALOG_REVISION",
+      "1"
+     ],
+     [
+      "PROFILE_CONTENT_REVISION",
+      "3"
+     ]
+    ]
+   }
+  },
+  "godot/scripts/core/underground_routes.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "no retained-storage change"
+    }
+   ],
+   "delta": {}
+  },
+  "godot/scripts/core/underground_session.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "presentation (outside the REQ-SET-163 simulation gate)",
+     "store": "presentation reservation constants (ADR 1201); profile source count 4 is in the Profile joint"
+    }
+   ],
+   "delta": {
+    "int_constants_added": [
+     [
+      "HANDLING_PRESENTATION_BYTES",
+      "6628488"
+     ],
+     [
+      "HAUL_PRESENTATION_BYTES",
+      "7486168"
+     ],
+     [
+      "PRESENTATION_SET_BYTES",
+      "PRESENTATION_BYTES + HANDLING_PRESENTATION_BYTES + HAUL_PRESENTATION_BYTES"
+     ],
+     [
+      "PROFILE_SOURCE_COUNT",
+      "Catalog.SOURCE_COUNT"
+     ]
+    ],
+    "int_constants_removed": [
+     [
+      "PROFILE_SOURCE_COUNT",
+      "1"
+     ]
+    ]
+   }
+  },
+  "godot/scripts/core/underground_space_owner.gd": {
+   "charges": [
+    {
+     "bytes": 16994,
+     "carried_by": "new contribution",
+     "store": "two geometry journals (ADR 1205 route view, ADR 1207 full view)"
+    }
+   ],
+   "delta": {
+    "allocation_sites": {
+     ".new(": 2
+    },
+    "members_added": [
+     [
+      "_journal",
+      "Journal"
+     ],
+     [
+      "_location_journal",
+      "Journal"
+     ]
+    ]
+   }
+  },
+  "godot/scripts/core/underground_surface_anchor.gd": {
+   "charges": [
+    {
+     "bytes": 8,
+     "carried_by": "SurfaceAnchor RESERVED_BYTES (asserted by the pack)",
+     "store": "_last_checks int"
+    }
+   ],
+   "delta": {
+    "members_added": [
+     [
+      "_last_checks",
+      "int"
+     ]
+    ]
+   }
+  },
+  "godot/scripts/core/underground_world_retirement.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "no retained-storage change"
+    }
+   ],
+   "delta": {}
+  },
+  "godot/scripts/core/underground_world_routes.gd": {
+   "charges": [
+    {
+     "bytes": 58,
+     "carried_by": "WorldRoutes CONTROL_RESERVE (recounted)",
+     "store": "_envelope (6 x i32) and six numeric carry controls"
+    },
+    {
+     "bytes": 7168,
+     "carried_by": "Budget.COLD_BYTES shared cold lease",
+     "store": "Clearance.changes staged sides (7 x 256 x i32)"
+    }
+   ],
+   "delta": {
+    "allocation_sites": {
+     "PackedInt32Array(": 2
+    },
+    "classes": {
+     "Clearance": [
+      [
+       [
+        "box",
+        "PackedInt32Array"
+       ],
+       [
+        "core",
+        "PackedInt32Array"
+       ],
+       [
+        "count",
+        "int"
+       ],
+       [
+        "cover",
+        "PackedInt32Array"
+       ],
+       [
+        "cut",
+        "PackedInt32Array"
+       ],
+       [
+        "error",
+        "StringName"
+       ],
+       [
+        "fragments",
+        "PackedInt32Array"
+       ],
+       [
+        "image",
+        "Space.Snapshot"
+       ],
+       [
+        "next_count",
+        "int"
+       ],
+       [
+        "next_fragments",
+        "PackedInt32Array"
+       ],
+       [
+        "remaining",
+        "int"
+       ]
+      ],
+      [
+       [
+        "box",
+        "PackedInt32Array"
+       ],
+       [
+        "change_count",
+        "int"
+       ],
+       [
+        "changes",
+        "PackedInt32Array"
+       ],
+       [
+        "core",
+        "PackedInt32Array"
+       ],
+       [
+        "count",
+        "int"
+       ],
+       [
+        "cover",
+        "PackedInt32Array"
+       ],
+       [
+        "cut",
+        "PackedInt32Array"
+       ],
+       [
+        "error",
+        "StringName"
+       ],
+       [
+        "fragments",
+        "PackedInt32Array"
+       ],
+       [
+        "image",
+        "Space.Snapshot"
+       ],
+       [
+        "next_count",
+        "int"
+       ],
+       [
+        "next_fragments",
+        "PackedInt32Array"
+       ],
+       [
+        "remaining",
+        "int"
+       ]
+      ]
+     ]
+    },
+    "int_constants_added": [
+     [
+      "CHANGE_CAPACITY",
+      "Journal.CAPACITY"
+     ],
+     [
+      "CLEARANCE_INERT_ROLE",
+      "Space.FLOOR_DATUM"
+     ],
+     [
+      "COLD_BYTES",
+      "SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 28 * CHANGE_CAPACITY + 1024"
+     ]
+    ],
+    "int_constants_removed": [
+     [
+      "COLD_BYTES",
+      "SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 1024"
+     ]
+    ],
+    "members_added": [
+     [
+      "_carried",
+      "bool"
+     ],
+     [
+      "_carried_edges",
+      "int"
+     ],
+     [
+      "_carry_edge",
+      "bool"
+     ],
+     [
+      "_envelope",
+      "PackedInt32Array"
+     ],
+     [
+      "_proof_checks",
+      "int"
+     ],
+     [
+      "_relevant",
+      "int"
+     ],
+     [
+      "_since",
+      "int"
+     ]
+    ],
+    "resizes_added": [
+     "_envelope.resize(6)",
+     "changes.resize(Journal.STAGED_STRIDE * CHANGE_CAPACITY)"
+    ]
+   }
+  },
+  "godot/scripts/systems/settlement_system.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "base ledger (decisions 1023, 1031)",
+     "store": "HaulPlanner and StorePolicy host instances"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "first-entry runtime reference; the chain is counted in first_entry_runtime"
+    }
+   ],
+   "delta": {
+    "allocation_sites": {
+     ".new(": 3
+    },
+    "members_added": [
+     [
+      "_haul_planner",
+      "HaulPlannerScript"
+     ],
+     [
+      "_store_policy",
+      "StorePolicyScript"
+     ],
+     [
+      "_underground_entry",
+      "UndergroundEntryRuntime"
+     ]
+    ]
+   }
+  }
+ },
+ "scope": "ADR 1212 reviewed storage deltas between manifest-3 reviewed bytes and the current source."
+}

@@ -1,0 +1,323 @@
+#!/usr/bin/env python3
+"""ADR 1212: recount the current retained storage the reviewed room census no longer sees.
+
+`underground_room_memory.py` replays frozen, independently reviewed census
+producers. They pin the exact bytes of every source they read (manifest 3).
+Work after 94dca0a3 changed 21 of those inputs. The room census now replays the
+archived reviewed bytes of those inputs (historical projection), and this module
+is the current-source half: for every projected input it compares the reviewed
+and current storage structure, and every difference must appear in the reviewed
+delta table below with its byte charge and the reserve that carries it. For every
+owner that did not exist at manifest 3 and is mounted at 256 residents, it counts
+the owner's complete retained declaration.
+
+What is counted, exactly from source: retained members (top-level and nested
+packet classes), packed resizes resolved through module constants, integer
+capacity constants, and allocation-site counts (`.new(`, packed constructors,
+`.duplicate(`, `.slice(`). What is not re-proved here: numeric helper frames of
+changed call chains and native object/Variant overhead. Those stay inside each
+owner's declared helper/native allowance, as the original reviews stated; they
+are logical allowances, not measurements.
+"""
+from __future__ import annotations
+
+from collections import Counter
+import hashlib
+import json
+from pathlib import Path
+import re
+
+import audit_registry_capacities as audit
+
+ROOT = Path(__file__).resolve().parents[1]
+WIDTH = {"int": 8, "bool": 1, "Vector2i": 8, "Vector3i": 12}
+PACKED = {"PackedByteArray": 1, "PackedInt32Array": 4, "PackedInt64Array": 8}
+NONCORE = {
+    "mole_profile_catalog": "godot/data/underground/mole-worker/mole_profile_catalog.gd",
+    "short_program": "godot/data/underground/mole-worker/work-step-v1/source_program.gd",
+    "settlement_system": "godot/scripts/systems/settlement_system.gd",
+}
+
+
+def require(condition, message):
+    if not condition:
+        raise ValueError("current census: " + message)
+
+
+def executable(text: str) -> str:
+    """Code without docstrings or comments; string literals other than docstrings are kept."""
+    text = re.sub(r'"""[\s\S]*?"""', '""', text)
+    return "\n".join(re.sub(r"\s+#[^\n]*$|^\s*#[^\n]*$", "", line) for line in text.splitlines())
+
+
+def facts(text: str) -> dict:
+    """The storage structure of one GDScript source: what a retained-memory review must see change."""
+    code = executable(text)
+    classes = {}
+    for match in re.finditer(r"^class (\w+)[^\n]*:\n((?:(?:\t[^\n]*|[ \t]*)\n)*)", code, re.M):
+        classes[match[1]] = sorted(re.findall(r"^\tvar (\w+)\s*:\s*([\w.\[\]]+)", match[2], re.M))
+    return {
+        "members": sorted(re.findall(r"^(?:static )?var (\w+)\s*:\s*([\w.\[\]]+)", code, re.M)),
+        "classes": classes,
+        "resizes": sorted(re.sub(r"\s+", " ", m) for m in re.findall(r"([\w.\[\]]+\.resize\([^\n]*?\))", code)),
+        "int_constants": sorted(re.findall(r"^const (\w+)\s*:\s*int\s*=\s*([^\n]+?)\s*$", code, re.M)),
+        "allocation_sites": dict(sorted(Counter(re.findall(
+            r"\.new\(|\bPacked\w+Array\(|\.duplicate\(|\.slice\(|\bArray\(|\bDictionary\(", code)).items())),
+    }
+
+
+def delta(before: str, after: str) -> dict:
+    """Added/removed storage facts; an empty dict means the storage structure is unchanged."""
+    old, new = facts(before), facts(after)
+    result = {}
+    for key in ("members", "resizes", "int_constants"):
+        a, b = Counter(map(tuple, old[key]) if key != "resizes" else old[key]), \
+            Counter(map(tuple, new[key]) if key != "resizes" else new[key])
+        added, removed = sorted((b - a).elements()), sorted((a - b).elements())
+        if added:
+            result[key + "_added"] = [list(x) if isinstance(x, tuple) else x for x in added]
+        if removed:
+            result[key + "_removed"] = [list(x) if isinstance(x, tuple) else x for x in removed]
+    for name in sorted(set(old["classes"]) | set(new["classes"])):
+        if old["classes"].get(name) != new["classes"].get(name):
+            result.setdefault("classes", {})[name] = [old["classes"].get(name), new["classes"].get(name)]
+    sites = {k: new["allocation_sites"].get(k, 0) - old["allocation_sites"].get(k, 0)
+             for k in set(old["allocation_sites"]) | set(new["allocation_sites"])}
+    sites = {k: v for k, v in sorted(sites.items()) if v}
+    if sites:
+        result["allocation_sites"] = sites
+    return result
+
+
+EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
+REVIEWED = EVIDENCE / "reviewed-deltas.json"
+REVIEWED_SHA = "b6375959cb2218fd2aad1afd099823ebbe61df2d8bbaf4aa3138a8d3d6594af6"
+FRONTIER = Path("godot/data/underground/first-entry-prefix-v1/qualified-stone-v5/frontier.ugfront")
+FRONTIER_SHA = "2d5c36163ed5e5f8e96a3f1b0611d85937c075abcb8b02c7d7f01f7cf0738660"
+CORE = "godot/scripts/core/"
+
+
+def module(index: dict, relative: str):
+    """The current parsed source for a repository path, loading owners outside the core index on demand."""
+    for parsed in index.values():
+        if parsed.relative_path == relative:
+            return parsed
+    name = Path(relative).stem
+    if name not in index:
+        index[name] = audit.parse_module(name, relative, (ROOT / relative).read_text())
+    require(index[name].relative_path == relative, "module identity: " + relative)
+    return index[name]
+
+
+def packet(memory, index: dict, relative: str, name: str, parent: str = "RefCounted") -> int:
+    """Numeric payload of one nested packet class; references and Variant headers are native, not counted."""
+    return memory.numeric_fields(memory.class_body(module(index, relative).text, name, parent), "\t")
+
+
+def frontier_counts() -> dict:
+    """Row counts of the pinned runtime Frontier; they bound the foreman's planned task list."""
+    raw = (ROOT / FRONTIER).read_bytes()
+    require(hashlib.sha256(raw).hexdigest() == FRONTIER_SHA, "runtime Frontier changed")
+    names = ("INSTALL", "STATION", "CUT", "BEARING", "ENDPOINT", "EPISODE")
+    return {name: int.from_bytes(raw[68 + 4 * table:72 + 4 * table], "little") for table, name in enumerate(names)}
+
+
+def journal(memory, index: dict) -> dict:
+    """The two geometry journals (ADR 1205/1207): fixed rings allocated when SpaceOwner is constructed."""
+    source = module(index, CORE + "underground_geometry_journal.gd").text
+    members = memory.explicit_members(source)
+    require(members == {"_revisions": "PackedInt64Array", "_roles": "PackedByteArray", "_boxes": "PackedInt32Array",
+                        "_box": "PackedInt32Array", "_full": "bool", "_head": "int", "_count": "int",
+                        "_floor": "int"}, "unreconciled journal member")
+    require(memory.resolve(index, "underground_geometry_journal", "CAPACITY") == 256, "journal ring capacity")
+    resizes = re.findall(r"^\t(_\w+)\.resize\(([^)]+)\)$", source, re.M)
+    require(resizes == [("_revisions", "CAPACITY"), ("_roles", "CAPACITY"), ("_boxes", "6 * CAPACITY"),
+                        ("_box", "6")], "journal allocation drift")
+    packed = sum(memory.WIDTHS[members[name]] * memory.resolve(index, "underground_geometry_journal", count)
+                 for name, count in resizes)
+    numeric = memory.numeric_fields(source, "")
+    owner = module(index, CORE + "underground_space_owner.gd").text
+    require(re.findall(r"^var (_\w+): Journal = Journal\.new\(\)", owner, re.M) == ["_journal", "_location_journal"]
+            and owner.count("\t_journal.allocate()") == 1 and owner.count("\t_location_journal.allocate(true)") == 1,
+            "SpaceOwner owns exactly two journals, each allocated once")
+    return {"packed_bytes_per_instance": packed, "numeric_bytes_per_instance": numeric, "instances": 2,
+            "bytes": 2 * (packed + numeric)}
+
+
+def locations_controls(memory, index: dict) -> dict:
+    """Locations' carried-row controls (ADR 1207) and the borrowed contact-retirement packet (ADR 1202)."""
+    relative = CORE + "underground_locations.gd"
+    source = module(index, relative).text
+    members = memory.explicit_members(source)
+    added = {"_carried_locations": "int", "_carry_content": "int", "_carry_geometry": "bool"}
+    require(all(members.get(name) == kind for name, kind in added.items())
+            and members.get("_contact_retirement") == "ContactRetirementContext", "Locations control members")
+    numeric = sum(WIDTH[kind] for kind in added.values())
+    context = packet(memory, index, relative, "ContactRetirementContext")
+    return {"carry_controls_bytes": numeric, "contact_retirement_context_numeric_bytes": context,
+            "bytes": numeric + context,
+            "scope": "The context exists only during one cold retirement; it is charged as retained, conservatively."}
+
+
+def world_routes_controls(memory, index: dict) -> dict:
+    """WorldRoutes' fixed numeric and small packed controls must still fit its CONTROL_RESERVE."""
+    relative = CORE + "underground_world_routes.gd"
+    source = module(index, relative).text
+    small = re.findall(r"^\t(_\w+)\.resize\((\d+)\)$", source, re.M)
+    require(small == [("_bounds", "6"), ("_support", "6"), ("_scratch", "6"), ("_first_point", "3"),
+                      ("_last_point", "3"), ("_envelope", "6")], "WorldRoutes small packed controls")
+    packets = {"Profiles.Descriptor": packet(memory, index, CORE + "underground_profiles.gd", "Descriptor"),
+               "Profiles.Box": 2 * packet(memory, index, CORE + "underground_profiles.gd", "Box"),
+               "Locations.Record": packet(memory, index, CORE + "underground_locations.gd", "Record") + 48,
+               "Owner.Region": packet(memory, index, CORE + "underground_space_owner.gd", "Region") + 24,
+               "Routes.Edge": packet(memory, index, CORE + "underground_routes.gd", "Edge"),
+               "IntMath.IntResult": packet(memory, index, CORE + "int_math.gd", "IntResult", "")}
+    fixed = memory.numeric_fields(source, "") + 4 * sum(int(count) for _, count in small) + sum(packets.values())
+    reserve = memory.resolve(index, "underground_world_routes", "CONTROL_RESERVE")
+    require(fixed <= reserve, "WorldRoutes controls exceed CONTROL_RESERVE")
+    return {"numeric_bytes": memory.numeric_fields(source, ""), "small_packed_bytes": 4 * sum(int(c) for _, c in small),
+            "packet_numeric_bytes": packets, "fixed_bytes": fixed, "control_reserve_bytes": reserve,
+            "added_by_adr_1205_bytes": 24 + 4 * 8 + 2}
+
+
+def world_routes_cold(memory, index: dict) -> dict:
+    """The staged-change sides (ADR 1205) widen WorldRoutes' cold lease, which the shared cold arena admits."""
+    source = module(index, CORE + "underground_world_routes.gd").text
+    require("\t\tchanges.resize(Journal.STAGED_STRIDE * CHANGE_CAPACITY)" in source, "staged-change allocation")
+    require("_budget.covers(cold_token, Budget.COLD_BYTES)" in source, "WorldRoutes runtime cold admission")
+    stride = memory.resolve(index, "underground_geometry_journal", "STAGED_STRIDE")
+    changes = 4 * stride * memory.resolve(index, "underground_geometry_journal", "CAPACITY")
+    cold = memory.resolve(index, "underground_world_routes", "COLD_BYTES")
+    shared = memory.resolve(index, "underground_budget", "COLD_BYTES")
+    require(changes == 7168 and cold == 385024 and cold <= shared, "WorldRoutes cold lease inside the shared arena")
+    return {"staged_change_bytes": changes, "world_routes_cold_bytes": cold, "shared_cold_bytes": shared}
+
+
+def exact_members(memory, index: dict, relative: str, expected: dict) -> str:
+    """A new owner's complete retained declaration; any added member refuses until it is counted."""
+    source = module(index, relative).text
+    require(memory.explicit_members(source) == expected, "unreconciled retained member: " + relative)
+    return source
+
+
+ENTRY_RUNTIME = {"_step": "int", "_error": "StringName", "_origin": "Vector3i", "_published": "WorkArea.Published",
+                 "_storage": "Vector2i", "_output": "Vector2i", "_crew": "Foreman.Crew"}
+ENTRY_FOREMAN = {"_owners": "Owners", "_crew": "Crew", "_tasks": "Array", "_index": "int", "_stage": "int",
+                 "_stage_ticks": "int", "_job": "int", "_error": "StringName", "_content": "int",
+                 "_accepted_mwu": "int", "_math": "IntMath.IntResult", "_actor": "Routes.Actor",
+                 "_installer": "Installer", "_paid": "Installer.Paid", "_install_count": "int", "_install_mwu": "int",
+                 "_last_install_stage": "int", "_placement": "Vector2i", "_leg_target": "Vector2i",
+                 "_leg_profile": "int", "_leg_revision": "int", "_retreat": "Vector2i", "_retreat_profile": "int",
+                 "_retreat_revision": "int", "_pending_retreat": "Vector2i"}
+ENTRY_INSTALLER = {"_o": "RefCounted", "_crew": "RefCounted", "_paid": "Paid", "_plan": "Plan", "_content": "int",
+                   "_stage": "int", "_project": "Vector2i", "_job": "int", "_accepted_mwu": "int",
+                   "_math": "IntMath.IntResult", "_actor": "Routes.Actor", "_quote": "Modular.Quote"}
+STATELESS = ("underground_entry_composition", "underground_entry_site", "underground_entry_contact_path",
+             "underground_entry_contact_retirement", "underground_entry_work_area")
+
+
+def entry_chain(memory, index: dict) -> dict:
+    """ADR 1195-1197 first-entry runtime, retained by SettlementSystem while the entry runs (ADR 1212)."""
+    for name in STATELESS:
+        require(not memory.explicit_members(module(index, CORE + name + ".gd").text), "stateless entry module: " + name)
+    runtime = exact_members(memory, index, CORE + "underground_entry_runtime.gd", ENTRY_RUNTIME)
+    foreman = exact_members(memory, index, CORE + "underground_entry_foreman.gd", ENTRY_FOREMAN)
+    installer = exact_members(memory, index, CORE + "underground_entry_installer.gd", ENTRY_INSTALLER)
+    counts = frontier_counts()
+    endpoints = memory.resolve(index, "underground_entry_work_area", "ENDPOINTS")
+    inputs = memory.resolve(index, "modular_project_contract", "INPUT_CAPACITY")
+    tasks = 3 * counts["EPISODE"] + counts["INSTALL"]
+    actor = packet(memory, index, CORE + "underground_routes.gd", "Actor")
+    result = packet(memory, index, CORE + "int_math.gd", "IntResult", "")
+    quote = memory.quote_payload(index)
+    rows = {
+        "runtime_numeric": memory.numeric_fields(runtime, ""),
+        "work_area_published": packet(memory, index, CORE + "underground_entry_work_area.gd", "Published") + 8 * endpoints,
+        "crew": packet(memory, index, CORE + "underground_entry_foreman.gd", "Crew") + 8 * inputs,
+        "foreman_numeric": memory.numeric_fields(foreman, "") + result + actor,
+        "foreman_tasks": tasks * packet(memory, index, CORE + "underground_entry_foreman.gd", "Task"),
+        "installer_numeric": memory.numeric_fields(installer, "") + result + actor,
+        "installer_plan": packet(memory, index, CORE + "underground_entry_installer.gd", "Plan"),
+        "installer_quote": memory.payload(quote["columns"]) + quote["numeric_control_bytes"],
+    }
+    return {"rows": rows, "bytes": sum(rows.values()), "frontier_counts": counts, "planned_task_bound": tasks,
+            "work_area_endpoints": endpoints, "crew_lot_bound": inputs,
+            "scope": "Numeric and packed payload only. Object, Array and Variant headers (about 30 RefCounted packets and "
+                     "the task, endpoint and lot arrays) are native overhead, unmeasured, as in every other row."}
+
+
+def contact_retirement_cold(memory, index: dict) -> dict:
+    """The retirement scope's private packets live inside the whole shared cold lease it acquires."""
+    source = module(index, CORE + "underground_entry_contact_retirement_scope.gd").text
+    sizes = dict(re.findall(r"^\t(_\w+)\.resize\(([^)]+)\)$", source, re.M))
+    kinds = memory.explicit_members(source)
+    retirement = module(index, CORE + "underground_entry_contact_retirement.gd").text
+    require("var cold: int = owners.budget.acquire(Budget.COLD_BYTES)" in retirement, "retirement leases whole cold arena")
+    edges = memory.resolve(index, "underground_routes", "MAX_EDGES")
+    total = 0
+    for name, expression in sizes.items():
+        count = edges if expression == "_routes._edge_capacity" else \
+            memory.resolve(index, "underground_entry_contact_retirement_scope", expression)
+        total += memory.WIDTHS[kinds[name]] * count
+    shared = memory.resolve(index, "underground_budget", "COLD_BYTES")
+    require(total <= shared, "retirement private packets exceed the shared cold lease")
+    return {"private_packet_bytes": total, "lease_bytes": shared,
+            "scope": "Cold, exclusive and released; the graph/Locations candidate images it publishes through are the "
+                     "owners' existing paired banks. Coexistence inside one lease is runtime-enforced, not re-proved here."}
+
+
+def reviewed_table() -> dict:
+    raw = (ROOT / REVIEWED).read_bytes()
+    require(hashlib.sha256(raw).hexdigest() == REVIEWED_SHA, "reviewed delta table changed")
+    return json.loads(raw)
+
+
+def projected_deltas(index: dict, projected: list, table: dict) -> dict:
+    """Every projected input's storage delta must equal its reviewed row, and no reviewed row may go unused."""
+    rows = table["inputs"]
+    require(sorted(projected) == sorted(rows), "projected inputs and reviewed rows differ: "
+            + json.dumps(sorted(set(projected) ^ set(rows))))
+    projection = json.loads((ROOT / EVIDENCE / "projection.json").read_text())["inputs"]
+    for relative, row in rows.items():
+        if not relative.endswith(".gd"):
+            require(row["delta"] is None, "data input carries no storage delta: " + relative)
+            continue
+        before = (ROOT / projection[relative]["locator"]).read_text()
+        after = module(index, relative).text
+        require(json.loads(json.dumps(delta(before, after))) == row["delta"], "unreviewed storage delta: " + relative)
+    return rows
+
+
+def build(index: dict, projected: list, motion: dict) -> dict:
+    """The current-source half of the joint pack: reviewed deltas plus every newly mounted owner."""
+    import underground_memory_budget as memory
+    index = dict(index)
+    for name in ("underground_geometry_journal", "underground_world_routes", "underground_entry_work_area",
+                 "underground_entry_contact_retirement_scope", "underground_budget", "underground_routes"):
+        # The shared audit parser keeps inline comments; read integer declarations without them.
+        source = module(index, CORE + name + ".gd")
+        clean = re.sub(r"(?m)^(const [A-Z][A-Z0-9_]*: int = [^#\n]+?)[ \t]+#.*$", r"\1", source.text)
+        index[name] = audit.parse_module(name, source.relative_path, clean)
+    rows = projected_deltas(index, projected, reviewed_table())
+    journals = journal(memory, index)
+    locations = locations_controls(memory, index)
+    entry = entry_chain(memory, index)
+    controls = world_routes_controls(memory, index)
+    cold = world_routes_cold(memory, index)
+    retirement = contact_retirement_cold(memory, index)
+    new = {"geometry_journals": journals["bytes"], "locations_carry_and_retirement_controls": locations["bytes"],
+           "first_entry_runtime_chain": entry["bytes"]}
+    charged = {}
+    for relative, row in rows.items():
+        for charge in row["charges"]:
+            charged.setdefault(charge["carried_by"], 0)
+            charged[charge["carried_by"]] += charge["bytes"]
+    require(charged.get("new contribution", 0) == journals["bytes"] + locations["bytes"],
+            "reviewed new-contribution rows disagree with the recount")
+    require(motion["joint"]["total"] + 1536 + 8192 <= 262144, "PROFILE_BYTES joint")
+    return {"scope": __doc__.strip().splitlines()[0], "reviewed_inputs": rows, "charged_by_carrier": charged,
+            "geometry_journals": journals, "locations_controls": locations, "first_entry_runtime": entry,
+            "world_routes_controls": controls, "world_routes_cold": cold, "contact_retirement_cold": retirement,
+            "new_retained_bytes": new, "new_contribution_bytes": sum(new.values()),
+            "runtime_qualified": False, "native_measured": False}
+

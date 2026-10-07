@@ -16,6 +16,7 @@ import underground_retirement_memory as retirement_memory
 import underground_approach_memory as approach_memory
 import underground_ui_reset_memory as ui_reset_memory
 import underground_room_memory as room_memory
+import underground_current_census as current_census
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "docs/planning/underground_memory_pack.json"
@@ -1020,6 +1021,7 @@ def build(index: dict | None = None) -> dict:
         retirement = retirement_memory.build(historical, session, reserves["PROFILE_BYTES"])
         ui_reset = ui_reset_memory.build(historical, retirement, reserves["PROFILE_BYTES"])
         room_memory.reconcile(room_extensions, index, session, retirement, ui_reset, motion)
+        current = current_census.build(index, room_extensions["projected_reviewed_inputs"], motion)
     except ValueError as error:
         raise AssertionError(str(error)) from error
     assert motion["joint"]["total"] <= reserves["PROFILE_BYTES"], "Motion/Profile/Level joint overbooking"
@@ -1034,6 +1036,8 @@ def build(index: dict | None = None) -> dict:
         "connector_workpieces": workpieces["reserved_bytes"],
         "guarded_haul_transfers": haul_transfer["reserved_bytes"],
         "connector_delivery": delivery["reserved_bytes"],
+        # ADR1212: retained stores added after 94dca0a3 that no existing reserve carries.
+        "current_census_new_retained": current["new_contribution_bytes"],
         "space_banks_and_indexes": payload(groups["underground_space_owner"]),
         "phase_proof_cache_and_candidate": payload(groups["underground_space_authority"]),
         "shared_geometry_cold_peak": resolve(index, budget.name, "COLD_BYTES"),
@@ -1084,6 +1088,7 @@ def build(index: dict | None = None) -> dict:
             "host_retirement_reservation": retirement,
             "ui_reset_reservation": ui_reset,
             "room_extension_reservation": room_extensions,
+            "current_source_census": current,
             "contributions": contributions, "new_mutable_and_reserved_bytes": added,
             "declaration_bytes": declaration, "declaration_delta_bytes": declaration - 21185,
             "live_with_reserve_bytes": total, "headroom_bytes": 100000000 - total,

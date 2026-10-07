@@ -1,6 +1,6 @@
 # 1222 — Settlement save and load (task 09): the plan, and the questions only Brendan can answer
 
-Date: 2026-10-07 · Status: Accepted as the plan. The build is stopped until Brendan answers the questions in the last section.
+Date: 2026-10-07 · Status: Accepted. Brendan answered all ten questions on 2026-10-07 (DEC-055); the build proceeds in the plan's order.
 
 ## Brendan's decision
 
@@ -311,6 +311,18 @@ Each question gives the options and a recommendation (marked "Rec").
 - **Q10. Startup recovery.** What happens to leftover `.tmp` or `.rollback` files at launch?
   - Rec: delete a `.tmp` whose target verifies. Keep a `.rollback` and offer it as "recovered".
   - Rename an unverifiable target to `.corrupt` and report it. Never delete a save.
+
+## Brendan's answers (DEC-055, 2026-10-07)
+
+Brendan took the recommendation on every question, Q1–Q10. The coordinator relayed his answers and authorised
+this lane, as integration lead, to edit the shared registry, header, version and validator files that the plan
+requires.
+
+The underground §6 body and mount record (ADR 1221 option B) are built inside this plan, at step 10.
+
+**Engineering choice for Q5.** A busy save waits at most **30 ticks**, one real second at 1x. Every underground
+quiescence gate is synchronous within a tick, so a boundary that still refuses after 30 ticks is a stuck owner,
+not a slow one. The save then reports `SAVE_BUSY` with the refusing owner's code.
 
 ## Consequences
 

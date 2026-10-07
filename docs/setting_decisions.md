@@ -1411,3 +1411,36 @@ amends neither. Level spacing and the level catalog's roof
 are unchanged; only the excavated part below the roof is capped.
 
 Engineering record: [decision1220](decisions/1220-kitchen-earth-benches.md).
+
+
+### DEC-055 — Settlement save and load policy
+
+On 2026-10-07, Brendan answered the ten open questions of [decision1222](decisions/1222-settlement-save-load.md),
+taking the recommended option each time. The coordinator session relayed the answers.
+
+1. **Compatibility.** Until 1.0, a save from another content revision (a different rules or catalog hash) is
+   refused. From 1.0 on, each release ships a tested migration.
+2. **Location and browser data.** Saves live at `user://saves/<kind>/<name>.rwlsave`. The save browser's row
+   data is kept in a sidecar file, outside the canonical hash.
+3. **Compression.** There is none for now.
+4. **Slots.**
+   - Manual saves are unbounded, and there is one quicksave slot.
+   - The daily autosave is taken at the first safe boundary after midnight.
+   - The prewinter save is taken at the first midnight of autumn's last week. It stays on when autosave is Off.
+5. **A busy save.** A save requested while some state cannot yet be saved waits up to a bounded number of
+   ticks, then reports an error.
+6. **Pre-demolition quicksave.** It is taken when the order is placed. It applies to any building, but not to a
+   single piece of furniture.
+7. **The seventeen UNRESOLVED registry rows.** Each kind of state gets a new owner of its own: the paid ledger,
+   demolition admission and work, households and store policy. The frozen buildings and construction owners stay
+   frozen.
+8. **Chronicle.** It ships with an empty event list. Saves stay development-only until events are authored.
+9. **First deliverable.** A development save that refuses, with `SAVE_UNSUPPORTED_STATE`, any world holding state
+   that has no codec yet.
+10. **Launch recovery.**
+    - Delete a `.tmp` file whose target verifies.
+    - Keep a `.rollback` file and offer it as "recovered".
+    - Rename an unverifiable save to `.corrupt` and report it.
+    - Never delete a save.
+
+Engineering record: [decision1222](decisions/1222-settlement-save-load.md).

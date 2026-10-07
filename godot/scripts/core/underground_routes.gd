@@ -2920,6 +2920,40 @@ func _release_route(row: int) -> void:
 	_motion.resident[R_TAIL * RESIDENT_CAPACITY + row] = -1
 
 
+func unregister_lost_actor(worker: Vector2i) -> StringName:
+	"""ADR1225 (amends ADR1168 for lost residents only): remove a registered actor whose resident has died or left.
+	Its queued links return to the free list, any span it held is released with its row, and the row becomes the
+	allocator's blank row, so every proof and the ADR1221 codec see it as never registered. A living resident is
+	refused: unregister-and-readmit stays forbidden for anyone who can still move."""
+	if _frontier_publish_blocked() or _reject_callback() or _token != 0 or _searching or _advancing:
+		return &"ROUTE_TRANSACTION_BUSY"
+	var code: StringName = _binding_refusal()
+	if code != &"": return code
+	if _owner.has_prepared(): return &"ROUTE_SPACE_TRANSACTION"
+	var row: int = _lost_actor_row(worker)
+	if row < 0: return &"ROUTE_ACTOR_NOT_REGISTERED"
+	if _ids.is_valid_of_kind(worker, Directory.KIND_RESIDENT) and _residents.is_alive(row):
+		return &"ROUTE_UNREGISTER_LIVING"
+	_release_route(row)
+	_unindex_actor(row)
+	for field: int in RESIDENT_FIELDS:
+		_motion.resident[field * RESIDENT_CAPACITY + row] = -1 if ACTOR_NULL_FIELDS.has(field) else 0
+	for field: int in RESIDENT_LONGS:
+		_motion.resident_long[field * RESIDENT_CAPACITY + row] = 0
+	return &""
+
+
+func _lost_actor_row(worker: Vector2i) -> int:
+	"""The registered row of `worker`: its typed row while the reference is live, else the row still naming it."""
+	if _ids.is_valid_of_kind(worker, Directory.KIND_RESIDENT):
+		var row: int = _ids.get_typed_row(worker)
+		return row if row >= 0 and row < RESIDENT_CAPACITY and _resident_ref(row) == worker else -1
+	if worker.x < 0: return -1
+	for row: int in RESIDENT_CAPACITY:
+		if _resident_ref(row) == worker: return row
+	return -1
+
+
 func cancel_route(worker: Vector2i) -> StringName:
 	"""Cancel future spans; an actor already on a span retains it and finishes at its safe endpoint."""
 	var code: StringName = _actor_edit_refusal(worker)

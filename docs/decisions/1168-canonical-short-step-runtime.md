@@ -138,3 +138,10 @@ Brendan allowed a **switch at rest** between the source-clocked and the automati
 direction. An actor stationary on its endpoint, with no edge, route or dispatch tail, may switch: from the exact
 canonical idle READY word, or from a plain idle automatic phase. It must pass the complete fresh-admission proof
 first. Unregister and readmit remain refused. See ADR 1210 for the gate and its tests.
+
+## Amendment (ADR 1225, 2026-10-07; DEC-055)
+
+Brendan chose to replace a lost entry crew. So **`Routes.unregister_lost_actor` removes the registered actor of a
+resident that is dead or has left**. Its queued links return, any span it held is released with its row, and the row
+becomes the allocator's blank row. A living resident is refused (`ROUTE_UNREGISTER_LIVING`). For anyone who can still
+move, unregister-and-readmit remains forbidden.

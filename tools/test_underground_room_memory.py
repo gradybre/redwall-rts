@@ -312,13 +312,11 @@ class RoomMemoryWitnessTests(unittest.TestCase):
                          self.manifest["entry_air_contact"]["previous_sha256"])
 
     def test_entry_current_source_changes_refuse_before_producer(self):
-        _, _, current = room.verified_inputs(self.index)
-        source = current["underground_entry_world_bindings"]
-        for text in (source.text + "\nvar hidden: int = 1\n", source.text.replace("_entry_box[4] >", "_entry_box[4] >=", 1)):
-            with self.subTest(tail=text[-60:]), mock.patch.object(room, "producer") as execute:
-                with self.assertRaisesRegex(ValueError, "current reviewed source changed"):
-                    room.build(dict(self.index, underground_entry_world_bindings=source._replace(text=text)))
-                execute.assert_not_called()
+        # ADR1225 projects the entry World bindings (its rebinding predicate), so a current storage edit is recounted
+        # by the current census rather than refused here; the reviewed bytes still feed the air-contact replay.
+        source = self.index["underground_entry_world_bindings"]
+        changed = source._replace(text=source.text + "\nvar hidden: int = 1\n")
+        self.refuses_current_change("underground_entry_world_bindings", changed, "current reviewed source changed")
 
     def test_entry_exact_predicate_cannot_admit_other_source_bytes(self):
         manifest, blobs, current = room.verified_inputs(self.index)

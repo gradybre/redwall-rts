@@ -1444,3 +1444,19 @@ taking the recommended option each time. The coordinator session relayed the ans
     - Never delete a save.
 
 Engineering record: [decision1222](decisions/1222-settlement-save-load.md).
+
+
+### DEC-056 — A lost entry crew is replaced; every resident follows its schedule
+
+On 2026-10-07 Brendan answered the two questions ADR 1223 left open:
+
+- **Crew loss: pick a replacement.** When the entry's crew mole dies or leaves, another eligible mole walks in by
+  the surface arrival path (ADR 1219) and the entry resumes where it stopped. The lost mole is removed from the
+  underground movement system. That needs a Routes unregister, limited to residents that are dead or have left; it
+  amends ADR 1168's no-unregister rule. The Jobs reserved to the old crew pass to the replacement.
+- **Follow the schedule (REQ-SET-034).** This applies to every resident. A resident whose schedule says rest pauses
+  its Job at a safe point and resumes it later. The entry crew pauses at a resting point and resumes: an endpoint,
+  at rest, under ADR 1210's switch-at-rest rule.
+
+Engineering records: [decision1225](decisions/1225-entry-crew-replacement.md) (replacement) and
+[decision1226](decisions/1226-schedule-rest-at-safe-points.md) (schedule).

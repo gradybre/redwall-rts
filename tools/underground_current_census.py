@@ -92,7 +92,7 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "ff311eafdc5278a48f78ce9c6aaf06ec6bd8cb3a42a1feef38e4e31e224a7dc7"
+REVIEWED_SHA = "8e281eaa7d905af4d912871acec059dd97687ad8e6714f7506743135010bf9c3"
 FRONTIER = Path("godot/data/underground/first-entry-prefix-v1/qualified-stone-v5/frontier.ugfront")
 FRONTIER_SHA = "2d5c36163ed5e5f8e96a3f1b0611d85937c075abcb8b02c7d7f01f7cf0738660"
 CORE = "godot/scripts/core/"

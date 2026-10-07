@@ -44,6 +44,10 @@
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/underground_connector_placements.gd-9f34160f9994.txt",
       "sha256": "9f34160f99949eca875bcc6d9f663324e7250193a5217dc83288f05015340aae"
     },
+    "godot/scripts/core/underground_entry_world_bindings.gd": {
+      "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/underground_entry_world_bindings.gd-dcc07743ea14.txt",
+      "sha256": "dcc07743ea142f4665e939387726fdcbf2a4db609f1f9047c606d3e405550c0b"
+    },
     "godot/scripts/core/underground_final_facts.gd": {
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/underground_final_facts.gd-5aeedd84cffb.txt",
       "sha256": "5aeedd84cffb46f363733bbe2b85f87a6e67b771170a0c3e0525e66e1f2a6a46"

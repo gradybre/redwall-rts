@@ -31,10 +31,14 @@ const STAGE_DONE: int = 6
 const STAGE_FAILED: int = 7
 const STAGE_INSTALL: int = 8
 const STAGE_HAUL: int = 9
+## ADR1225: the crew was lost; the step resumes from the replacement's arrival at H (or waits for one).
+const STAGE_RESUME: int = 10
 const STAGE_TICK_LIMIT: int = 1200
 const REFUSE_PLAN: StringName = &"ENTRY_FOREMAN_PLAN"
 const REFUSE_STALL: StringName = &"ENTRY_FOREMAN_STALLED"
 const REFUSE_STATE: StringName = &"ENTRY_FOREMAN_STATE"
+const Construction := preload("res://scripts/core/construction.gd")
+const REFUSE_LOST_INSTALLING: StringName = &"ENTRY_CREW_LOST_INSTALLING"
 
 
 class Owners extends RefCounted:
@@ -232,6 +236,7 @@ func _run_stage(tick: int) -> StringName:
 		STAGE_RECOVER: return _recover(tick)
 		STAGE_INSTALL: return _install(tick)
 		STAGE_HAUL: return _haul(tick)
+		STAGE_RESUME: return _resume(tick)
 	return REFUSE_STATE
 
 
@@ -458,12 +463,30 @@ func _enter(tick: int) -> StringName:
 
 
 func _start(tick: int) -> StringName:
-	"""Claim the exact existing input stock, record delivery, bind the worker and START the paid phase."""
+	"""Claim the exact existing input stock, record delivery, bind the worker and START the paid phase.
+	ADR1225: a phase a lost crew had already started is not paid again; the replacement is bound and resumes it."""
 	var task: Task = _tasks[_index]
+	if _phase_started(task): return _resume_started(task)
 	var code: StringName = _reserve_inputs(task)
 	if code != &"": return code
 	var result: RefCounted = _owners.sites.bind_worker(task.site)
 	if result.ok: result = _owners.sites.begin_phase_work(task.site, tick)
+	if not result.ok: return result.error
+	_set_stage(STAGE_EARN)
+	return &""
+
+
+func _phase_started(task: Task) -> bool:
+	"""ADR1225: the paid START already ran for this step's Project (it is WORKING or its work is done)."""
+	if not _owners.construction.phase_into(_owners.sites.project_of(task.site), _math): return false
+	return _math.value == Construction.PHASE_WORKING or _math.value == Construction.PHASE_WORK_DONE
+
+
+func _resume_started(task: Task) -> StringName:
+	"""ADR1225: bind the replacement where the lost crew worked; funded work resumes, finished work recovers."""
+	var working: bool = _owners.construction.phase_into(_owners.sites.project_of(task.site), _math) 		and _math.value == Construction.PHASE_WORKING
+	var result: RefCounted = _owners.sites.bind_worker(task.site)
+	if result.ok and working: result = _owners.sites.resume_phase_work(task.site)
 	if not result.ok: return result.error
 	_set_stage(STAGE_EARN)
 	return &""
@@ -538,6 +561,81 @@ func _fail(code: StringName) -> StringName:
 func halt(code: StringName) -> StringName:
 	"""ADR1223: the runtime stops the chain for a reason outside the dispatch (crew loss, arrival); same as a refusal."""
 	return _fail(code) if not _terminal() else _error
+
+
+func release_lost_crew() -> StringName:
+	"""ADR1225: detach the dispatch from a crew that died or left: cancel its admitted haul, release its Job and
+	tool claim (Sites' own departure path once the phase is bound), unregister its actor, then wait in RESUME for
+	a replacement. Paid progress, consumed inputs and the parked Jobs stay; carried goods stay with the lost crew.
+	An installation in progress is not resumable yet (ENTRY_CREW_LOST_INSTALLING)."""
+	if _terminal(): return _error
+	if _installer != null: return REFUSE_LOST_INSTALLING
+	var lost: Vector2i = _crew.worker
+	var row: int = _owners.residents.directory().get_typed_row(lost)
+	var code: StringName = _release_haul(lost, row)
+	if code == &"" and _job >= 0 and _owners.jobs.worker_of(_job) == lost: code = _release_phase_job(row)
+	if code == &"" and _owners.routes._lost_actor_row(lost) >= 0: code = _owners.routes.unregister_lost_actor(lost)
+	if code != &"": return code
+	_crew.worker = NULL_REF
+	_crew.tool = NULL_REF
+	_retreat = NULL_REF
+	_set_stage(STAGE_RESUME)
+	return &""
+
+
+func _release_haul(lost: Vector2i, row: int) -> StringName:
+	"""The admitted haul's claims go back through Delivery's own cancel; its HAUL Job is retired."""
+	if _hauler == null: return &""
+	var job: int = _hauler._job
+	_haul_mwu += _hauler.haul_mwu()
+	_haul_trips += _hauler.trips()
+	_hauler = null
+	_haul_marker = -1
+	if job == _job or not _owners.jobs.is_job_present(job): return &""
+	var ref: Vector2i = _owners.jobs.ref_of(job)
+	if _owners.delivery.handles_job(_owners.delivery, ref):
+		var cancelled: RefCounted = _owners.delivery.cancel(ref)
+		if not cancelled.ok: return cancelled.error
+	if row >= 0 and _owners.jobs.worker_of(job) == lost:
+		var released: RefCounted = _owners.jobs.release_worker(row)
+		if not released.ok: return released.error
+	var destroyed: RefCounted = _owners.jobs.destroy_job(job)
+	return &"" if destroyed.ok else destroyed.error
+
+
+func _release_phase_job(row: int) -> StringName:
+	"""Sites releases a bound phase worker itself; before START only the Job and any tool claim are released."""
+	if row < 0: return &""
+	var task: Task = _tasks[_index]
+	if _stage in [STAGE_START, STAGE_EARN, STAGE_RECOVER]:
+		var departed: RefCounted = _owners.sites.release_worker(task.site)
+		return &"" if departed.ok else departed.error
+	if _owners.work.tool_job_of(row) == _owners.jobs.ref_of(_job):
+		var unclaimed: RefCounted = _owners.work.release_tool_claim(row)
+		if not unclaimed.ok: return unclaimed.error
+	var released: RefCounted = _owners.jobs.release_worker(row)
+	return &"" if released.ok else released.error
+
+
+func _resume(tick: int) -> StringName:
+	"""ADR1225: the replacement, unregistered at H, continues the interrupted step exactly as a first arrival does:
+	an unopened step opens; an open one hauls what M still lacks or takes the parked Job and travels to the station."""
+	if _crew.worker == NULL_REF: return &""
+	var task: Task = _tasks[_index]
+	if _owners.sites.job_of(task.site) != _owners.jobs.ref_of(_job) or _owners.sites.job_of(task.site) == NULL_REF:
+		_set_stage(STAGE_OPEN)
+		return &""
+	var queue: PackedInt32Array = PackedInt32Array()
+	var code: StringName = &"" if _phase_started(task) else _phase_units(task, queue)
+	if code == &"" and not queue.is_empty():
+		return _begin_haul(task, _owners.sites.project_of(task.site), queue, tick)
+	if code == &"": code = _assign()
+	return _place_actor(task, _owners.jobs.ref_of(_job), tick) if code == &"" else code
+
+
+func awaiting_crew() -> bool:
+	"""ADR1225: the crew was lost and no replacement has been chosen yet."""
+	return _stage == STAGE_RESUME and _crew.worker == NULL_REF
 
 
 func is_done() -> bool:
@@ -785,6 +883,8 @@ func _terminal() -> bool:
 
 func _job_in_use() -> bool:
 	"""Stages that still read the current phase's BUILD Job."""
+	if _stage == STAGE_RESUME: return _index < _tasks.size() and _job >= 0 \
+		and _owners.sites.job_of(_tasks[_index].site) == _owners.jobs.ref_of(_job)
 	return _stage in [STAGE_TRAVEL, STAGE_ENTER, STAGE_START, STAGE_EARN, STAGE_RECOVER, STAGE_HAUL]
 
 
@@ -876,7 +976,7 @@ func read_state(r: Progress.Reader, owners: Owners, paid: Installer.Paid) -> Str
 	for index: int in r.ranged(1, Progress.MAX_TASKS):
 		_tasks.append(_read_task(r))
 	_index = r.ranged(0, _tasks.size())
-	_stage = r.ranged(STAGE_OPEN, STAGE_HAUL)
+	_stage = r.ranged(STAGE_OPEN, STAGE_RESUME)
 	_stage_ticks = r.ranged(0, STAGE_TICK_LIMIT + 1)
 	_job = r.i32()
 	var job: Vector2i = r.ref()
@@ -953,7 +1053,7 @@ func _cursor_shape_ok() -> bool:
 func _restored_refusal(job: Vector2i) -> StringName:
 	"""Content, crew, Placement, every future task and every pending leg must exist in the restored owners."""
 	if _content != _owners.profiles.content_revision(): return Progress.REFUSE_CONTENT
-	var code: StringName = _crew_refusal(_owners, _crew)
+	var code: StringName = &"" if awaiting_crew() and _crew.tool == NULL_REF else _crew_refusal(_owners, _crew)
 	var placements: RefCounted = _owners.placements
 	if code == &"" and not placements._is_live(placements._live, _placement): code = Progress.REFUSE_PLACEMENT
 	if code == &"": code = _task_refusal()

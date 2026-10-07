@@ -2661,3 +2661,26 @@ func test_route_wire_refuses_every_corrupt_image_and_keeps_the_live_banks() -> v
 	_budget.release(cold)
 	assert_equal(_restore_route_image(image), &"", "the intact image restores")
 	assert_equal(_routes.advance_tick(6), 1, "and the actor walks on")
+
+
+func test_a_lost_actor_is_unregistered_and_its_row_reads_blank_on_the_wire() -> void:
+	"""ADR1225 (amends ADR1168 for lost residents only): a living actor is never unregistered. Once its resident is
+	dead, the actor -- here mid-span with a queued route -- is removed: its links return, it holds no span, its row is
+	the allocator's blank row, and the ADR1221 image round-trips with it so."""
+	_moving_actor()
+	for tick: int in range(1, 6):
+		assert_equal(_routes.advance_tick(tick), 1, "moving before the loss")
+	var row: int = _residents.directory().get_typed_row(_worker)
+	var edge: Vector2i = _routes._resident_pair(Routes.R_EDGE_SLOT, row)
+	assert_true(edge != Routes.NULL_REF, "the actor holds a span")
+	assert_equal(_routes.unregister_lost_actor(_worker), &"ROUTE_UNREGISTER_LIVING", "a living actor stays registered")
+	assert_true(_residents.needs().apply_health_event(row, -100).ok, "the resident dies")
+	assert_equal(_routes.unregister_lost_actor(_worker), &"", "the lost actor is unregistered")
+	assert_equal(_routes._resident_ref(row), Routes.NULL_REF, "no registration left")
+	assert_equal(_routes._unregistered_row_refusal(row), &"", "exactly the allocator's blank row")
+	assert_false(_routes._held_edge(edge), "its span is no longer held")
+	assert_equal(_routes.unregister_lost_actor(_worker), &"ROUTE_ACTOR_NOT_REGISTERED", "only once")
+	var image: PackedByteArray = _route_image()
+	WorldRouteTests.wipe_routes(_routes)
+	assert_equal(_restore_route_image(image), &"", "the blank row restores")
+	assert_equal(_route_image(), image, "and writes back exactly")

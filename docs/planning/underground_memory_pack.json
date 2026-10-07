@@ -4224,7 +4224,7 @@
         "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
         "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
         "godot/scripts/core/underground_profiles.gd": "64325eed6772207817a043220fe4db371fe5aa68a89fec60a287099ea589dfaf",
-        "godot/scripts/core/underground_routes.gd": "48d7d0b0f1b1acc363118f2fad7f29141f723655c6a67a8ac352c8b7781bbdbe",
+        "godot/scripts/core/underground_routes.gd": "81889129688023688e3204a8f1954dfe8cb62bbcd2e3df1bb83cbdf7b9e56fbc",
         "godot/scripts/core/underground_world_routes.gd": "ef4b85c7a04bad32b947876c86cc224968d452d8b1fe6e1475eeeb3cddbf9ec9"
       }
     },
@@ -41234,6 +41234,7 @@
       "godot/scripts/core/underground_connector_catalog.gd",
       "godot/scripts/core/underground_connector_contacts.gd",
       "godot/scripts/core/underground_connector_placements.gd",
+      "godot/scripts/core/underground_entry_world_bindings.gd",
       "godot/scripts/core/underground_final_facts.gd",
       "godot/scripts/core/underground_locations.gd",
       "godot/scripts/core/underground_motion_catalog.gd",
@@ -43441,6 +43442,16 @@
             ]
           ]
         }
+      },
+      "godot/scripts/core/underground_entry_world_bindings.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1225: one rebinding predicate for a replacement crew; no member, packet or resize"
+          }
+        ],
+        "delta": {}
       }
     },
     "charged_by_carrier": {
@@ -43624,7 +43635,7 @@
     "godot/scripts/core/underground_entry_frontier.gd": "a13de97fa8c528739db9e9ce73322f0d3ba580e7f6f6555aba44a68684b3886c",
     "godot/scripts/core/underground_entry_plan.gd": "2103c7a93431b3bc6acfe4dc7934aaaabe557c1d978e5d2db5152ea2816aac7e",
     "godot/scripts/core/underground_entry_structure.gd": "4965b8e314171f5c1445d816b3b2c18d87f35dee0f5129371d15a1b1d2a7cefa",
-    "godot/scripts/core/underground_entry_world_bindings.gd": "dcc07743ea142f4665e939387726fdcbf2a4db609f1f9047c606d3e405550c0b",
+    "godot/scripts/core/underground_entry_world_bindings.gd": "f7c89ea91adbaba9e2091ad12446019848977d4af6789be3eb9f14fb4351783c",
     "godot/scripts/core/underground_level_catalog.gd": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
     "godot/scripts/core/underground_locations.gd": "a4475c4abbb9e7c0e8290c33dbf76dc5d196ddfe1d8c509a709003ece0213547",
     "godot/scripts/core/underground_motion_catalog.gd": "c3c95b677147cbcd0019b982c8e6f73cf7ed963c1eac8a18093fbc679565b14f",
@@ -43633,7 +43644,7 @@
     "godot/scripts/core/underground_profiles.gd": "64325eed6772207817a043220fe4db371fe5aa68a89fec60a287099ea589dfaf",
     "godot/scripts/core/underground_room_world_bindings.gd": "d012c526a267fc7aecb365e7a6afa40d00d931f2b710b1122fc19705f556f8b1",
     "godot/scripts/core/underground_route_composition.gd": "7ea85ba19ce0aaf91eb0bbaed74860a02f1e0290251b8e1616ce11a0e5f28497",
-    "godot/scripts/core/underground_routes.gd": "48d7d0b0f1b1acc363118f2fad7f29141f723655c6a67a8ac352c8b7781bbdbe",
+    "godot/scripts/core/underground_routes.gd": "81889129688023688e3204a8f1954dfe8cb62bbcd2e3df1bb83cbdf7b9e56fbc",
     "godot/scripts/core/underground_session.gd": "3fcd2db0da172e162df5c3d0bd6cffd1c1b63684a5bc4fbdbedabecfc2d1f3a6",
     "godot/scripts/core/underground_space_authority.gd": "3377e00f509e833e618330237c65fa7a18aaf20a4876b5b16322bbdab7d4ec5b",
     "godot/scripts/core/underground_space_owner.gd": "c5aea1c3904c621552f67537f303799d51c7ab1adbe2478cef2fbdfd81e955d5",

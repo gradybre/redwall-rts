@@ -1862,6 +1862,16 @@
      ]
     ]
    }
+  },
+  "godot/scripts/core/underground_entry_world_bindings.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "ADR 1225: one rebinding predicate for a replacement crew; no member, packet or resize"
+    }
+   ],
+   "delta": {}
   }
  },
  "scope": "ADR 1212 reviewed storage deltas between manifest-3 reviewed bytes and the current source."

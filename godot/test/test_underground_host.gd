@@ -1156,56 +1156,151 @@ func test_the_crew_waits_reserved_through_a_non_work_hour_at_arrival() -> void:
 	assert_true(entry.reserves_resident(row), "reserved throughout")
 
 
-func test_crew_death_mid_haul_stops_the_chain_and_no_other_resident_takes_its_jobs() -> void:
-	"""ADR1223 crew loss: the crew dies after its first trip. The next tick stops the chain with STEP1_RESIDENT_DEAD
-	(G6 alert). The entry's Jobs stay the dispatcher's: through three more selection windows, after a capture and a
-	restore of the runtime, no other resident is committed to one."""
-	var live: Array = _begin_live_entry()
+func _equip_both_moles(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime) -> Vector2i:
+	"""The G11 stand-in for two moles: the first is the crew, the second (returned) the replacement."""
+	var first: Vector2i = _equip_first_mole(o, entry._output)
+	var residents: RefCounted = o.residents
+	for slot: int in residents._present.size():
+		if not residents.is_present(slot) or residents.ref_of(slot) == first \
+				or residents.species_key(residents.species_of(slot).value) != &"mole": continue
+		var lot: RefCounted = o.inventory.create_lot(entry._output, o.items.compiled_id(&"tool"), 1000, 1, 0, -1, 0, 0)
+		assert_true(o.gear.create_gear(o.inventory, o.items, lot.ref, o.gear.MANUFACTURE_BASIC).ok, "second basic tool")
+		assert_true(o.gear.equip(lot.ref, residents.ref_of(slot)).ok, "the second mole equips it")
+		return residents.ref_of(slot)
+	assert_true(false, "the starting cohort has two moles")
+	return Vector2i(-1, 0)
+
+
+func _kill(o: Session.Retirement.Owners, worker: Vector2i) -> void:
+	"""The crew dies (health to zero)."""
+	assert_true(o.residents.needs().apply_health_event(o.residents.directory().get_typed_row(worker), -100).ok, "dies")
+
+
+func _live_with_spare() -> Array:
+	"""[owners, runtime, crew, spare mole] of a live chain begun with two tooled moles; the first is the crew."""
+	_generate_and_mount()
+	assert_true(_host.compose_underground_room_owners() and _host.compose_underground_route_owners()
+		and _host.compose_underground_surface_anchor() and _host.compose_underground_entry_owners(), "every owner composed")
+	var near: Vector3i = Vector3i(60 * 2048 + 512, 512, 50 * 2048 + 512)
+	assert_false(_host.begin_underground_entry(near), "G11 first")
+	var o: Session.Retirement.Owners = _host.underground_session()._retirement_owners
+	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
+	var spare: Vector2i = _equip_both_moles(o, entry)
+	_stage(o, entry._output, &"wood", 7000)
+	_stage(o, entry._output, &"stone", 2000)
+	assert_true(_host.begin_underground_entry(near), "begun: %s" % _host.last_refusal())
+	return [o, entry, entry.crew().worker, spare]
+
+
+func test_a_crew_lost_mid_haul_is_replaced_and_the_entry_resumes_where_it_stopped() -> void:
+	"""ADR1225 (Brendan: replace the crew): the crew dies after its first trip, while its second unit is admitted.
+	The loss tick cancels that admission, retires the HAUL Job, releases the dead mole's Job and unregisters its
+	actor; the spare mole becomes the crew, walks to H, is registered there, hauls what M still lacks and carries
+	the step on. The entry ends at the same gap with the same paid ledgers as an uninterrupted run."""
+	var live: Array = _live_with_spare()
 	var o: Session.Retirement.Owners = live[0]
 	var entry: Settlement.UndergroundEntryRuntime = live[1]
 	var tick: int = _run_until(entry, 1, _first_trip_done.bind(entry))
-	var row: int = o.residents.directory().get_typed_row(live[2])
-	assert_true(o.residents.needs().apply_health_event(row, -100).ok, "the crew dies")
-	tick = _run_until(entry, tick, func() -> bool: return false)
-	assert_equal(entry.error(), Jobs.REFUSE_RESIDENT_DEAD, "exact refusal")
-	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G6"), "named gap row")
-	assert_equal(entry._foreman.error(), Jobs.REFUSE_RESIDENT_DEAD, "the foreman failed with it; the record carries it")
+	var lost_row: int = o.residents.directory().get_typed_row(live[2])
+	_kill(o, live[2])
+	assert_equal(entry.advance(tick), Jobs.REFUSE_RESIDENT_DEAD, "the loss is alerted once, as G6")
+	assert_true(entry.is_running() and entry.crew().worker == live[3], "the spare mole is the crew; the chain runs")
+	assert_true(entry.walk_ticks_left() > 0, "it walks in from the surface (ADR1219)")
+	assert_true(o.routes._lost_actor_row(live[2]) < 0, "the lost actor is unregistered (ADR1225)")
+	assert_equal(o.jobs.job_of(lost_row), Jobs.NULL_REF, "the lost mole holds no Job")
+	assert_equal(o.jobs.worker_of(entry._foreman._job), Jobs.NULL_REF, "the step's BUILD Job is parked for the spare")
+	assert_true(entry.reserves_resident(o.residents.directory().get_typed_row(live[3])), "the reservation moved")
+	tick = _run_until(entry, tick + 1, func() -> bool: return false)
+	assert_equal(entry.error(), NEXT_GAP, "the resumed entry reaches the same next gap")
+	var foreman: RefCounted = entry._foreman
+	assert_equal([foreman._index, foreman.accepted_mwu(), foreman.haul_trips()], [12, 36000, 6],
+		"every L0 phase settled once, with the same Work and the same six hauled units")
+	assert_equal(o.jobs.worker_of(foreman._installer._job), live[3], "the replacement holds the installation Job")
+
+
+func test_a_crew_lost_mid_phase_is_replaced_and_the_paid_phase_is_not_paid_again() -> void:
+	"""ADR1225: the crew dies mid-CUT, after the paid START. Sites' own departure path releases it; the replacement
+	walks in, is bound to the same phase and resumes its Work (resume_phase_work), so the inputs are consumed once
+	and the phase's Work total is unchanged."""
+	var live: Array = _live_with_spare()
+	var o: Session.Retirement.Owners = live[0]
+	var entry: Settlement.UndergroundEntryRuntime = live[1]
+	var tick: int = _run_until(entry, 1, _earning_the_first_cut.bind(entry))
+	_kill(o, live[2])
+	assert_equal(entry.advance(tick), Jobs.REFUSE_RESIDENT_DEAD, "the loss is alerted")
+	assert_equal(entry._foreman._stage, entry._foreman.STAGE_RESUME, "the step waits for the replacement")
+	tick = _run_until(entry, tick + 1, func() -> bool: return false)
+	assert_equal(entry.error(), NEXT_GAP, "the resumed entry reaches the same next gap")
+	assert_equal([entry._foreman._index, entry._foreman.accepted_mwu()], [12, 36000], "no Work paid twice or lost")
+
+
+func _earning_the_first_cut(entry: Settlement.UndergroundEntryRuntime) -> bool:
+	"""The crew is a few ticks into the paid Work of the first CUT (task 1)."""
+	var foreman: RefCounted = entry._foreman
+	return foreman._index == 1 and foreman._stage == foreman.STAGE_EARN and foreman._stage_ticks > 5
+
+
+func test_with_no_spare_the_entry_waits_restores_and_takes_the_next_tooled_mole() -> void:
+	"""ADR1225: a crew lost on its walk with no idle tooled mole raises ENTRY_CREW_NO_REPLACEMENT and waits; the
+	waiting record round-trips; once a mole is equipped the next JobSelector interval sends it in."""
+	var live: Array = _begin_live_entry()
+	var o: Session.Retirement.Owners = live[0]
+	var entry: Settlement.UndergroundEntryRuntime = live[1]
+	assert_equal(entry.advance(1), &"", "walking")
+	_kill(o, live[2])
+	assert_equal(entry.advance(2), Settlement.UndergroundEntryRuntime.REFUSE_NO_REPLACEMENT, "nobody to send")
+	assert_true(Settlement.UndergroundEntryRuntime.gap_of(Settlement.UndergroundEntryRuntime.REFUSE_NO_REPLACEMENT)
+		.begins_with("G6"), "named gap row")
+	assert_true(entry.is_running() and entry._foreman.awaiting_crew(), "running, waiting for a crew")
 	var bytes: PackedByteArray = PackedByteArray()
-	assert_equal(entry.capture(bytes), &"", "a stopped chain still saves")
+	assert_equal(entry.capture(bytes), &"", "the waiting entry saves")
 	var fresh: Settlement.UndergroundEntryRuntime = Settlement.UndergroundEntryRuntime.new()
 	assert_equal(fresh.restore(bytes, _host.underground_session()), &"", "and restores")
 	_host._underground_entry = fresh
-	var owned: int = 0
-	for at: int in range(tick, tick + 3 * Jobs.REEVALUATION_INTERVAL_TICKS):
-		assert_true(_host.run_tick(at), "the settlement keeps ticking")
-		owned = _assert_entry_jobs_unclaimed(o, fresh, live[2], at)
-	assert_equal(owned, 2, "the parked BUILD Job and the in-flight HAUL Job stay the dispatcher's")
+	var spare: Vector2i = _equip_other_mole(o, fresh._output, live[2])
+	var tick: int = _run_until(fresh, 3, func() -> bool: return fresh.crew().worker != Vector2i(-1, 0))
+	assert_true(tick - 3 <= Jobs.REEVALUATION_INTERVAL_TICKS + 1, "within one interval")
+	assert_true(fresh.crew().worker == spare and fresh.walk_ticks_left() > 0, "the new mole walks in")
 
 
-func _assert_entry_jobs_unclaimed(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime,
-		worker: Vector2i, tick: int) -> int:
-	"""Every entry Job is unworked or the (lost) crew's; returns how many there are."""
-	var owned: int = 0
-	for index: int in o.jobs.job_count():
-		var job: int = o.jobs.live_job_at(index).value
-		if not entry.owns_job(job): continue
-		owned += 1
-		assert_true(o.jobs.worker_of(job) in [Jobs.NULL_REF, worker], "no other resident takes entry Job %d (tick %d)" % [job, tick])
-	return owned
+func _equip_other_mole(o: Session.Retirement.Owners, container: Vector2i, except: Vector2i) -> Vector2i:
+	"""Equip a basic tool on a mole other than `except`."""
+	var residents: RefCounted = o.residents
+	for slot: int in residents._present.size():
+		if not residents.is_present(slot) or residents.ref_of(slot) == except \
+				or residents.species_key(residents.species_of(slot).value) != &"mole": continue
+		var lot: RefCounted = o.inventory.create_lot(container, o.items.compiled_id(&"tool"), 1000, 1, 0, -1, 0, 0)
+		assert_true(o.gear.create_gear(o.inventory, o.items, lot.ref, o.gear.MANUFACTURE_BASIC).ok, "basic tool")
+		assert_true(o.gear.equip(lot.ref, residents.ref_of(slot)).ok, "equipped")
+		return residents.ref_of(slot)
+	return Vector2i(-1, 0)
 
 
-func test_a_crew_that_leaves_on_its_walk_stops_the_chain_and_is_released() -> void:
-	"""ADR1223 crew loss: a crew row that no longer names the crew (it left) stops the chain with ENTRY_CREW_LOST; a
-	chain stopped before registration reserves nobody."""
+func test_a_crew_lost_during_the_paid_installation_stops_with_its_own_code() -> void:
+	"""ADR1225 limit: resuming a paid installation with a replacement is not built; the loss stops the chain with
+	ENTRY_CREW_LOST_INSTALLING (G6) and nothing is rolled back."""
+	var live: Array = _live_with_spare()
+	var o: Session.Retirement.Owners = live[0]
+	var entry: Settlement.UndergroundEntryRuntime = live[1]
+	var tick: int = _run_until(entry, 1, func() -> bool: return entry._foreman._installer != null)
+	_kill(o, live[2])
+	assert_equal(entry.advance(tick), entry._foreman.REFUSE_LOST_INSTALLING, "exact refusal")
+	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G6"), "named gap row")
+	assert_false(entry.is_running(), "stopped")
+
+
+func test_a_crew_that_leaves_on_its_walk_is_released_and_the_entry_waits() -> void:
+	"""ADR1225 crew loss: a crew row that no longer names the crew (it left) is detected; with no spare mole the
+	entry waits (ENTRY_CREW_NO_REPLACEMENT) and the departed row is reserved by nobody."""
 	var live: Array = _begin_live_entry()
 	var o: Session.Retirement.Owners = live[0]
 	var entry: Settlement.UndergroundEntryRuntime = live[1]
 	var row: int = o.residents.directory().get_typed_row(live[2])
 	assert_true(entry.advance(1) == &"" and entry.walk_ticks_left() > 0 and entry.reserves_resident(row), "walking, reserved")
 	assert_true(o.jobs.despawn_agent(row).ok and o.residents.despawn(live[2]).ok, "the crew leaves")
-	assert_equal(entry.advance(2), Settlement.UndergroundEntryRuntime.REFUSE_CREW_LOST, "exact refusal")
-	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G6"), "named gap row")
-	assert_false(entry.is_running() or entry.reserves_resident(row), "stopped, and its row is reserved by nobody")
+	assert_equal(entry.advance(2), Settlement.UndergroundEntryRuntime.REFUSE_NO_REPLACEMENT, "lost; nobody to send")
+	assert_true(entry.is_running() and entry._foreman.awaiting_crew(), "waiting for a crew")
+	assert_false(entry.reserves_resident(row), "its row is reserved by nobody")
 
 
 func test_a_busy_tooled_mole_is_not_taken_as_the_crew() -> void:

@@ -23,6 +23,7 @@ const REFUSE_SCOPE: StringName = &"ENTRY_RUNTIME_SCOPE"
 const REFUSE_NO_TOOLED_MOLE: StringName = &"ENTRY_CREW_NO_TOOLED_MOLE"
 const REFUSE_SURFACE_ARRIVAL: StringName = &"ENTRY_SURFACE_ARRIVAL_MISSING"
 const REFUSE_CREW_LOST: StringName = &"ENTRY_CREW_LOST"
+const REFUSE_NO_REPLACEMENT: StringName = &"ENTRY_CREW_NO_REPLACEMENT"
 const INSTALLATIONS: int = 2 # The first-entry prefix: L0, then the T0 cuts and T0 (ADR1202).
 const STEP_NONE: int = 0
 const STEP_SITE: int = 1
@@ -43,8 +44,10 @@ const GAPS: Dictionary = {
 	&"STEP2_ACTIVITY_FORBIDS_WORK": "G6 the crew's schedule forbade work when the foreman committed it (the runtime waits for a work hour; ADR 1223)",
 	&"JOB_DISPATCHED_TO_CREW": "G6 an entry Job was committed to a resident outside the crew (ADR 1223)",
 	&"JOB_AGENT_RESERVED_BY_DISPATCH": "G6 the crew was committed to a Job outside the entry (ADR 1223)",
-	&"ENTRY_CREW_LOST": "G6 the crew left the settlement; choosing a replacement crew is not built (ADR 1223)",
-	&"STEP1_RESIDENT_DEAD": "G6 the crew died; choosing a replacement crew is not built (ADR 1223)",
+	&"ENTRY_CREW_LOST": "G6 the crew left the settlement; a replacement mole walks in and resumes the step (ADR 1225)",
+	&"STEP1_RESIDENT_DEAD": "G6 the crew died; a replacement mole walks in and resumes the step (ADR 1225)",
+	&"ENTRY_CREW_NO_REPLACEMENT": "G6 the crew was lost and no idle adult mole with a tool can replace it yet; the entry waits and retries (ADR 1225)",
+	&"ENTRY_CREW_LOST_INSTALLING": "G6 the crew was lost during a paid installation; resuming an installation with a replacement is not built (ADR 1225)",
 	&"STEP1_RESIDENT_INCAPACITATED": "G6 the crew was incapacitated mid-dispatch; interrupting and resuming a dispatch is not built (ADR 1223)",
 	&"STEP1_REST_COLLAPSED": "G6 the crew collapsed from exhaustion mid-dispatch; interrupting and resuming a dispatch is not built (ADR 1223)",
 	&"ROUTE_ASSEMBLY_ACTOR_UNBOUND": "G5 the paid installation's handling occupancy proof still requires every living resident to be a route actor (ADR 1219's reach-cube rule is not applied there yet; ADR 1224)",
@@ -123,8 +126,9 @@ func advance(tick: int) -> StringName:
 	"""ADR1210 G7: one fixed tick of the planned foreman; its first refusal stops the chain for alerting.
 	ADR1219: while the crew walks to H the tick is the walk's; arrival places it on H the same tick."""
 	if not is_running(): return &""
+	if _foreman.awaiting_crew(): return _replace_crew(tick, false)
 	var code: StringName = _crew_loss_refusal()
-	if code != &"": return _halt(code)
+	if code != &"": return _lose_crew(code, tick)
 	if _walk_left > 0:
 		_walk_left -= 1
 		if _walk_left > 0: return &""
@@ -140,6 +144,32 @@ func _halt(code: StringName) -> StringName:
 	"""A runtime-level stop also fails the foreman, so the chain stops for good and the record carries the code."""
 	_foreman.halt(code)
 	return _stop(code)
+
+
+func _lose_crew(code: StringName, tick: int) -> StringName:
+	"""ADR1225: the foreman detaches the step from the lost crew (Routes unregisters it), then a replacement is
+	chosen at once if one is idle. The loss raises its G6 alert once; the chain keeps running."""
+	var released: StringName = _foreman.release_lost_crew()
+	if released != &"": return _halt(released)
+	_walk_left = 0
+	_worker_row = -1
+	var replaced: StringName = _replace_crew(tick, true)
+	return replaced if replaced != &"" else code
+
+
+func _replace_crew(tick: int, now: bool) -> StringName:
+	"""ADR1225: the first idle tooled adult mole becomes the crew and walks to H (ADR1219's arrival path); the
+	Jobs reserved to the entry follow it, being derived from the crew. Without one, the entry retries every
+	JobSelector interval."""
+	if not now and tick % Foreman.Jobs.REEVALUATION_INTERVAL_TICKS != 0: return &""
+	var o: Foreman.Owners = _foreman._owners
+	var found: Array[Vector2i] = []
+	if _tooled_mole(o, found) != &"": return REFUSE_NO_REPLACEMENT if now else &""
+	_crew.worker = found[0]
+	_crew.tool = found[1]
+	_worker_row = o.residents.directory().get_typed_row(_crew.worker)
+	var code: StringName = _begin_walk(o.locations, _transforms, o.residents, _foreman.arrival_yaw())
+	return _halt(code) if code != &"" else &""
 
 
 func _crew_loss_refusal() -> StringName:
@@ -239,25 +269,34 @@ func _containers(o: RefCounted) -> StringName:
 
 
 func _select_crew(o: RefCounted) -> StringName:
-	"""The first idle adult mole holding an equipped tool lot; no tool is created or equipped here. ADR1223: a mole
-	holding another Job is passed over (its Job is never taken from it), and `JOB_AGENT_BUSY` names that case."""
+	"""The first idle living adult mole holding an equipped tool lot; no tool is created or equipped here."""
+	var found: Array[Vector2i] = []
+	var code: StringName = _tooled_mole(o, found)
+	if code != &"": return code
+	_crew = Foreman.Crew.new()
+	_crew.worker = found[0]
+	_crew.tool = found[1]
+	_crew.storage = _storage
+	_crew.output = _output
+	_step = STEP_CREW
+	return &""
+
+
+static func _tooled_mole(o: RefCounted, out: Array[Vector2i]) -> StringName:
+	"""[worker, tool] of the first living adult mole with an equipped tool and no Job. ADR1223: a mole holding
+	another Job is passed over (its Job is never taken from it), and `JOB_AGENT_BUSY` names that case."""
 	var residents: RefCounted = o.residents
 	var busy: bool = false
 	for row: int in o.gear._row_capacity:
 		if o.gear._occupied[row] != 1 or o.gear._equipped[row] != 1: continue
 		var owner: Vector2i = Vector2i(o.gear._owner_slot[row], o.gear._owner_generation[row])
 		var slot: int = residents.directory().get_typed_row(owner)
-		if slot < 0 or not residents.is_present(slot) or residents.species_key(residents.species_of(slot).value) != &"mole":
+		if slot < 0 or not residents.is_alive(slot) or residents.species_key(residents.species_of(slot).value) != &"mole":
 			continue
 		if o.jobs.job_of(slot) != NULL_REF:
 			busy = true
 			continue
-		_crew = Foreman.Crew.new()
-		_crew.worker = owner
-		_crew.tool = Vector2i(o.gear._lot_slot[row], o.gear._lot_generation[row])
-		_crew.storage = _storage
-		_crew.output = _output
-		_step = STEP_CREW
+		out.assign([owner, Vector2i(o.gear._lot_slot[row], o.gear._lot_generation[row])])
 		return &""
 	return Foreman.Jobs.REFUSE_AGENT_BUSY if busy else REFUSE_NO_TOOLED_MOLE
 
@@ -271,7 +310,7 @@ func _plan_foreman(o: RefCounted) -> StringName:
 	for ordinal: int in INSTALLATIONS:
 		if code == &"": code = foreman.configure_installation(paid, ordinal)
 	if code == &"": code = foreman.plan_arrival(_published.endpoints[0])
-	if code == &"": code = _begin_walk(o, foreman.arrival_yaw())
+	if code == &"": code = _begin_walk(o.locations, o.transforms, o.residents, foreman.arrival_yaw())
 	if code != &"": return code
 	_foreman = foreman
 	_jobs = o.jobs
@@ -301,7 +340,7 @@ func _entry_placement(o: RefCounted) -> Vector2i:
 	return found
 
 
-func _begin_walk(o: RefCounted, yaw: int) -> StringName:
+func _begin_walk(locations: RefCounted, transforms: Transforms, residents: RefCounted, yaw: int) -> StringName:
 	"""ADR1219: the crew walks from its surface pose to H (endpoint 0) over BAL-WORK-003's straight-leg lower bound
 	ceil_div(D*30, v), D the exact integer length rounded up and v its size class's ground cap. No path, obstacle or
 	clearance is modelled (no surface Navigation is composed); the Transform stays put until arrival places it."""
@@ -310,16 +349,16 @@ func _begin_walk(o: RefCounted, yaw: int) -> StringName:
 	var ticks: IntMath.IntResult = IntMath.IntResult.new()
 	record.envelope.resize(6)
 	record.support.resize(6)
-	if o.locations.read_location_into(_published.endpoints[0], record) != &"": return REFUSE_SCOPE
-	if not o.transforms.read_into(_crew.worker, pose): return REFUSE_SURFACE_ARRIVAL
-	var size: IntMath.IntResult = o.residents.size_class_of(o.residents.directory().get_typed_row(_crew.worker))
-	var speed: IntMath.IntResult = o.residents.size_movement_u_per_s(size.value) if size.ok else size
+	if locations.read_location_into(_published.endpoints[0], record) != &"": return REFUSE_SCOPE
+	if not transforms.read_into(_crew.worker, pose): return REFUSE_SURFACE_ARRIVAL
+	var size: IntMath.IntResult = residents.size_class_of(residents.directory().get_typed_row(_crew.worker))
+	var speed: IntMath.IntResult = residents.size_movement_u_per_s(size.value) if size.ok else size
 	if not speed.ok: return REFUSE_SURFACE_ARRIVAL
 	var length: int = ceil_length(record.point - Vector3i(pose.x, pose.y, pose.z))
 	if not Haul.travel_ticks_into(length, speed.value, ticks): return REFUSE_SURFACE_ARRIVAL
 	_anchor = record.point
 	_arrival_yaw = yaw
-	_transforms = o.transforms
+	_transforms = transforms
 	_walk_left = ticks.value
 	return &"" if ticks.value > 0 or _place_on_anchor() else REFUSE_SURFACE_ARRIVAL
 

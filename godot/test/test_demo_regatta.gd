@@ -389,6 +389,30 @@ func test_the_tally_counts_only_those_who_ate_the_main_course() -> void:
 	assert_equal(r.feasts_served, 1, "someone ate the main course: a Regatta day (decision 1651)")
 
 
+func test_one_resident_eating_the_main_course_is_a_regatta_day() -> void:
+	"""The boundary of Brendan's ruling (decision 1651): "at least one" -- of the supper's two diners, one ate the bean
+	hotpot and one ate soup: one attendee, and the day counts; with one alone there is no pair to share the feast's
+	company (REQ-SET-036 needs two)."""
+	var rig: Rig = _rig()
+	var r: RegattaScript = rig.regatta
+	_stock_feast(rig)
+	var day: int = SUMMER_1 + 1
+	assert_equal(r.hold(day, 2, true), "", "held")
+	var key: int = Rules.feast_key(day)
+	var hour: int = day * SimClock.HOURS_PER_DAY + 17
+	rig.kitchen.fed.ate_meal(1, key, MealRules.DISH_BEAN_HOTPOT, hour)
+	rig.kitchen.note_course(1, key, MealRules.DISH_BEAN_HOTPOT)
+	rig.kitchen.fed.ate_meal(2, key, MealRules.DISH_SOUP, hour)
+	rig.kitchen.note_course(2, key, MealRules.DISH_SOUP)
+	var final := KitchenScript.MealFinal.new()
+	final.key = key
+	final.diners = PackedInt32Array([1, 2])
+	r._tally(final)
+	assert_equal(r.attendees, PackedInt32Array([1]), "one ate the main course")
+	assert_equal(r.feasts_served, 1, "one is enough: a Regatta day")
+	assert_true(rig.shared.is_empty(), "no company shared by the tally itself")
+
+
 func test_a_supper_closed_with_no_hotpot_eaten_is_not_a_regatta_day() -> void:
 	"""Brendan's ruling of 2026-10-07 (decision 1651): the supper's serving closed (a meal-finalized event), but its only
 	diner ate soup -- nobody ate the feast's main course, so the day is held and NOT counted for "Regatta day"."""

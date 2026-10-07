@@ -120,7 +120,7 @@ const GOALS: Array = [
 	[&"regatta_day", VILLAGE, "Regatta day",
 		"Once a season the village races its two rowboats on the pond and sits down to the Hearth feast at supper: a day kept together, and one the chronicle remembers.",
 		"the village has held its first regatta and sat down to its feast.",
-		[[&"regattas", "Regattas held", 1, COUNT, M_REGATTAS]]],
+		[[&"regattas", "Regatta feasts eaten", 1, COUNT, M_REGATTAS]]],
 	[&"way_below", VILLAGE, "A way below",
 		"Tunnels join homes and stores under frost and rain; three open stretches make a passage rather than a hole.",
 		"three stretches of tunnel are dug open.",

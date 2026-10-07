@@ -318,7 +318,7 @@ func test_first_crossing_is_reached_on_the_ferrys_own_count() -> void:
 
 
 func test_regatta_day_is_reached_on_the_regattas_own_count() -> void:
-	"""Decision 1651: "Regatta day" reads the regatta's latched `feasts_served` (a regatta whose feast was served) -- not
+	"""Decision 1651: "Regatta day" reads the regatta's latched `feasts_served` (a regatta whose feast's main course at least one resident ate) -- not
 	before, reached at the first."""
 	var world := _world(9)
 	var book := BookScript.new()
@@ -335,7 +335,7 @@ func test_regatta_day_is_reached_on_the_regattas_own_count() -> void:
 	assert_false(goal.done, "a regatta held but its feast never served does not count (Brendan, 2026-10-07)")
 	regatta.feasts_served = 1
 	book.update(2)
-	assert_true(goal.done, "reached at the first regatta whose feast was served")
+	assert_true(goal.done, "reached at the first regatta whose feast someone ate")
 	assert_false(book.goal(&"first_crossing").done, "the ferry's goal waits on its own count")
 
 

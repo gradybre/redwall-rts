@@ -116,3 +116,19 @@ Tests:
 
 Mutation of the new check: 3 mutants (count a lapsed supper, never count, the goal reading `feasts_held`), **3
 killed**.
+
+Gates for this change:
+- Full suite, CI-style: `9149 test(s), 612089 assertion(s), 0 failure(s)`, 0 unexpected errors and warnings, 0 objects
+  and 0 resources leaked, on both the `diagnostics:` and `log:` lines.
+
+Review (independent `code-reviewer`, on 86ca4222). Nothing CRITICAL or HIGH. The reviewer confirmed:
+- a served feast cannot reach the lapsed path;
+- an unserved feast (skipped past) cannot get a meal event;
+- `_tally` is the only way to ST_DONE.
+
+Its MEDIUM is a question about what the ruling means, so it is **open for Brendan**:
+- **How the code reads "served" now:** the kitchen closed the regatta supper's serving.
+- **The edge case:** a supper can close with no feast hotpot eaten (no cook, or the reserved food spoiled). That still
+  counts, while the news line says the village "sat down to its feast".
+- **If he means "eaten by at least one resident":** count only when `attendees` is non-empty. That is a one-line change
+  plus a test.

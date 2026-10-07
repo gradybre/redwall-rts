@@ -430,14 +430,24 @@ def haul_transfer_reservation(index: dict) -> dict:
 def connector_delivery_allocation_statements(source: str, arrays: dict, packets: dict) -> None:
     """Freeze the reviewed allocation entry, statements and growth vocabulary, including locals."""
     lines = []
+    in_docstring = False
     for raw in source.splitlines():
         line = raw.strip()
+        if in_docstring:
+            # ADR1212: a docstring continues until a line that ends it; nothing may follow the close.
+            assert line.count('"""') <= 1 and (not '"""' in line or line.endswith('"""')), \
+                "Delivery ambiguous docstring"
+            in_docstring = '"""' not in line
+            continue
         if not line or line.startswith("#"):
             continue
         if line.startswith('"""'):
-            assert line.count('"""') == 2 and line.endswith('"""'), "Delivery ambiguous docstring"
+            assert line.count('"""') in (1, 2) and (line.count('"""') == 1 or line.endswith('"""')), \
+                "Delivery ambiguous docstring"
+            in_docstring = line.count('"""') == 1
             continue
         lines.append(line)
+    assert not in_docstring, "Delivery unterminated docstring"
     executable = "\n".join(lines)
     assert re.findall(r"\b_allocate\b", executable) == ["_allocate", "_allocate"], \
         "Delivery allocation entry gained another reference or call"
@@ -452,6 +462,8 @@ def connector_delivery_allocation_statements(source: str, arrays: dict, packets:
         "return REFUSE_BINDING", "_placements = placements", "_frontier = frontier", "_planner = planner",
         "_provider = provider", "_work = work", "_clock = clock", "var code: StringName = _binding_leaf(self)",
         'if code == &"": code = work.bind_spatial_delivery(self)', 'if code != &"":',
+        "# A late refusal must not hide an already installed one-way Work binding.",
+        "if work._spatial_delivery == null or work._spatial_delivery.get_ref() != self:",
         "_placements = null; _frontier = null; _planner = null; _provider = null; _work = null; _clock = null",
         "return code", "_allocate()", "_configured = true", 'return &""',
     ], "Delivery allocation admission/order changed"
@@ -489,7 +501,7 @@ def connector_delivery_reservation(index: dict) -> dict:
     numbers = dict.fromkeys(("_decision_tick", "_action", "_quantity", "_grams", "_expiry",
                             "_geometry_revision", "_frontier_revision", "_location_receipt",
                             "_route_receipt", "_job_remaining", "_job_state", "_claim_row", "_checks"), "int")
-    numbers.update(dict.fromkeys(("_configured", "_busy", "_poisoned", "_work_tick"), "bool"))
+    numbers.update(dict.fromkeys(("_configured", "_busy", "_poisoned", "_work_tick", "_excavation"), "bool"))
     numbers.update(dict.fromkeys(("_job", "_worker", "_project", "_placement", "_source_lot",
                                  "_source_container", "_destination", "_source_location",
                                  "_destination_location"), "Vector2i"))
@@ -513,7 +525,7 @@ def connector_delivery_reservation(index: dict) -> dict:
     }
     assert packet_bytes == {"order": 96, "selection": 168, "location": 116, "box": 32, "number": 9}
     fixed = numeric_fields(source, "") + 4 * sum(arrays.values()) + sum(packet_bytes.values())
-    assert fixed == 753
+    assert fixed == 754 # ADR1212: +1 retained ADR1197 G3 _excavation bool.
     work_source = index["work"].text
     planner_source = index["haul_planner"].text
     for owner in ("work", "haul_planner"):
@@ -540,7 +552,7 @@ def connector_delivery_reservation(index: dict) -> dict:
     native = int(native_values[0])
     reserved = resolve(index, module, "RESERVED_BYTES")
     assert (helper, native, reserved) == (1024, 2048, 4096)
-    assert fixed + 1 + helper + native == 3826 and fixed + 1 + helper + native <= reserved
+    assert fixed + 1 + helper + native == 3827 and fixed + 1 + helper + native <= reserved
     return {"retained_members": expected, "packed_cells": arrays, "packet_bytes": packet_bytes,
             "fixed_numeric_and_packed_bytes": fixed, "work_new_numeric_bytes": 1,
             "work_bindings": work_bindings, "logical_helper_allowance_bytes": helper,

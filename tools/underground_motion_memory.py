@@ -105,7 +105,11 @@ def build(index):
     numeric = {name: WIDTH[kind] for name, kind in EXPECTED.items() if kind in WIDTH}
     fixed = sum(control_arrays.values()) + sum(numeric.values())
     require(fixed == 250, 'actual fixed owner numeric/packed payload')
-    constants = {name: ast.literal_eval(values) for name, values in re.findall(r'^const (\w+): Array\[int\] = (\[[^\n]+\])$', source, re.M)}
+    # ADR1212: HEADER names the integer REVISION constant; substitute only that declared literal.
+    revision = re.findall(r'^const REVISION: int = (\d+)(?:[ \t]+#[^\n]*)?$', source, re.M)
+    require(len(revision) == 1, 'one integer Motion REVISION')
+    constants = {name: ast.literal_eval(re.sub(r'\bREVISION\b', revision[0], values))
+                 for name, values in re.findall(r'^const (\w+): Array\[int\] = (\[[^\n]+\])$', source, re.M)}
     require(set(constants) == {'GAIT_BASE', 'GAIT_ROWS', 'HANDOFF_BASE', 'HANDOFF_ROWS', 'HEADER', 'BOUNDS'}, 'all shared numeric constants')
     constant_bytes = sum(len(values)*8 for values in constants.values())
     require(constant_bytes == 432, 'shared constant numeric payload charged once conservatively per owner')
@@ -139,7 +143,8 @@ def build(index):
     joint = profile + level + 2*one_bank + 4096 + 176 + 4096 + 32768
     maximum_profiles = derived['maximum_profile_bytes']
     maximum_joint = joint - profile + maximum_profiles
-    require((profile, one_bank, joint, maximum_joint) == (53756, 70860, 238904, 444284), 'exact joint formula')
+    # ADR1212: content 6 (42 rows, 377 boxes, 4 sources) replaces content 3 (29, 271, 1): +8,676 profile bytes.
+    require((profile, one_bank, joint, maximum_joint) == (62432, 70860, 247580, 444284), 'exact joint formula')
     require(joint <= 262144 < maximum_joint, 'configured coexistence, no independent maxima')
     return {
         'source_sha256': hashlib.sha256(source.encode()).hexdigest(),
@@ -161,7 +166,7 @@ def build(index):
                              'one FileAccess and one HashingContext during load',
                              'bounded header/slice/string/digest temporaries and interpreter frames'],
         'native_measured': False,
-        'foreign_call_lifetime': 'MoleCatalog runtime source hashing and exact Profile wire check run sequentially before decoding. Their existing32KiB Profiles control reserve is included once in53756, not additionally allocated. Actual Content palettes in tests have separate declared presentation reservation; none is retained by Motion.',
+        'foreign_call_lifetime': 'MoleCatalog runtime source hashing and exact Profile wire check run sequentially before decoding. Their existing32KiB Profiles control reserve is included once in62432, not additionally allocated. Actual Content palettes in tests have separate declared presentation reservation; none is retained by Motion.',
         'profile_configuration': derived['configuration'],
         'joint': {'profiles': profile, 'levels': level, 'paired_motion': 2*one_bank, 'decode': 4096, 'caller': 176,
                   'logical_helper': 4096, 'native': 32768, 'total': joint, 'reservation': 262144, 'headroom': 262144-joint,
@@ -195,8 +200,12 @@ def joint_sources(index, memory):
         ('I32_FIELDS', 4), ('I64_FIELDS', 8), ('BYTE_FIELDS', 1)))
     require(per_profile == resolve('underground_profiles', 'PROFILE_WIRE_BYTES') == 98, 'Profile row width')
     catalog = index['mole_profile_catalog']
-    counts = (resolve(catalog.name, 'PROFILE_COUNT'), resolve(catalog.name, 'BOX_COUNT'), 1)
-    require(counts == (29, 271, 1), 'current accepted publication configuration')
+    counts = tuple(resolve(catalog.name, key) for key in ('PROFILE_COUNT', 'BOX_COUNT', 'SOURCE_COUNT'))
+    require(counts == (42, 377, 4), 'current accepted publication configuration')
+    session = index['underground_session'].text
+    require('const PROFILE_SOURCE_COUNT: int = Catalog.SOURCE_COUNT' in session
+            and '_profiles.configure(Catalog.PROFILE_COUNT, Catalog.BOX_COUNT, PROFILE_SOURCE_COUNT,' in session,
+            'Session configures the published source count')
     control = resolve('underground_profiles', 'CONTROL_RESERVE')
     require(control == 32768, 'Profile helper/native envelope unchanged')
     level = resolve('underground_level_catalog', 'RESERVED_BYTES')

@@ -103,6 +103,12 @@ Every row was checked against the record named.
 | The kitchen | "Fix kitchen now": the cook serves on call | Tracker only; 1005 not yet written (PF, uncommitted) |
 | Wrap-up | Near the weekly limit: start the follow-up fixes and these handoff documents; merge everything in flight through CI; then stop | Tracker only |
 
+## 2026-10-07
+
+| Topic | Ruling | Recorded in |
+|---|---|---|
+| The season skip in the time controls (1653 P1–P3) | Approved as built: it sits in the Run until… menu (no new button or key); the Demo Lab keeps its trigger; it is disabled during a run | 1653 (relayed by the coordinator) |
+
 ## Standing rules (not dated rulings)
 
 - **Windows builds only when Brendan asks** (his standing instruction; README §3.10).

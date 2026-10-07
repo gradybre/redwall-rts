@@ -120,3 +120,11 @@ sizes.
   `astra_inbox.py --check`, `generate_canonical_state_table.py --check`, `lane_notes.py --check`, the movement checks
   and `state_registry_coverage.py`) exit 0. No settlement bytes were added, so the memory ledger and capacity audit are
   unchanged.
+
+## Brendan's rulings (2026-10-07)
+
+Relayed by the coordinator on 2026-10-07 as approved as built:
+
+- **P1**: (a). The skip sits in the Run until… menu, beside Close. There is no new button and no new key.
+- **P2**: (a). The Demo Lab keeps its own "Skip to next season" trigger too.
+- **P3**: (a). The skip is disabled while a Run until… is under way.

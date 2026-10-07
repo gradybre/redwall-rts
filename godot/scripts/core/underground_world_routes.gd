@@ -2025,7 +2025,7 @@ func _endpoint_body_contained(point: Vector3i) -> bool:
 		_scratch[axis] = _bounds[axis]
 	if _bounds[4] > floor_y:
 		_scratch[1] = maxi(_bounds[1], floor_y)
-		if not Space.contains_box(_endpoint.envelope, _scratch):
+		if not Locations.air_contains(_endpoint, _scratch): # ADR1215: envelope or one extra air box.
 			return false
 	if _bounds[1] >= floor_y:
 		return true
@@ -2295,7 +2295,7 @@ static func _turn_body_contained(actual: RefCounted, graph: Routes, point: Vecto
 	for axis: int in 6: actual._scratch[axis] = actual._bounds[axis]
 	if actual._bounds[4] > floor_y:
 		actual._scratch[1] = maxi(actual._bounds[1], floor_y)
-		if not Space.contains_box(actual._endpoint.envelope, actual._scratch): return false
+		if not Locations.air_contains(actual._endpoint, actual._scratch): return false # ADR1215
 	if actual._bounds[1] >= floor_y: return true
 	actual._scratch[1] = actual._bounds[1]
 	actual._scratch[4] = mini(actual._bounds[4], floor_y)

@@ -226,7 +226,7 @@ class Witness extends RefCounted:
 		for axis: int in 6:
 			if expected.envelope[axis] != bank.i32[(Locations.ENVELOPE + axis) * capacity + row] \
 					or expected.support[axis] != bank.i32[(Locations.SUPPORT + axis) * capacity + row]: return false
-		return _record_sources_match(actual, expected, owner)
+		return Locations.air_record_matches(actual, bank, row, expected) and _record_sources_match(actual, expected, owner)
 
 	static func _record_sources_match(actual: Locations, expected: Locations.Record, owner: Owner) -> bool:
 		"""Generation-checked section and actual Room mirrors remain live without a Building observation."""

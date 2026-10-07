@@ -1054,6 +1054,8 @@ func _role_geometry(role: int, source_profile: int = -1) -> StringName:
 		return REFUSE_GEOMETRY
 	if role == Profiles.STANCE_SUPPORT:
 		return &"" if Space.contains_box(_location.support, _bounds) else REFUSE_GEOMETRY
+	if _location.air_count > 0: # ADR1215: installation contacts are single-box; extra air is never proved here.
+		return REFUSE_GEOMETRY
 	_fragments.start(_bounds)
 	if not _fragments.subtract(_location.envelope):
 		return REFUSE_CAPACITY

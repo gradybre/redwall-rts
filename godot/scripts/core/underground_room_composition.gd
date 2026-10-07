@@ -12,6 +12,9 @@ const RoomBindings := preload("res://scripts/core/underground_entry_bindings.gd"
 const Orders := preload("res://scripts/core/underground_room_orders.gd")
 const RoomCatalog := preload("res://scripts/core/room_catalog.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
+## ADR1215: per-motion air pool for Room stations. 64 slots cost 3,584 B of banks and 1,792 B of wire image,
+## inside the existing Location/topology reserve's unallocated 6,848 B; no reserve grows.
+const LOCATION_AIR_SLOTS: int = 64
 const Inventory := preload("res://scripts/core/inventory.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 
@@ -104,7 +107,8 @@ static func _bind_locations(session: RefCounted) -> StringName:
 	var o: Retirement.Owners = session._retirement_owners
 	o.locations = Locations.new()
 	var code: StringName = o.locations.configure(o.directory, o.buildings, o.transforms, o.inventory,
-		o.space, o.sources, o.budget, Budget.LOCATION_CAPACITY, 228 * Budget.LOCATION_CAPACITY + 256)
+		o.space, o.sources, o.budget, Budget.LOCATION_CAPACITY,
+		228 * Budget.LOCATION_CAPACITY + 256 + Locations.AIR_ARENA_BYTES_PER_SLOT * LOCATION_AIR_SLOTS)
 	if code != &"":
 		o.locations = null
 		return code

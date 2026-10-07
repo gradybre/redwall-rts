@@ -1880,3 +1880,128 @@ func test_contact_retirement_bracket_closes_generic_mutation_and_capture_doors()
 	assert_true(_locations.abort(token), "original generic owner can clean up after borrowed bracket")
 	assert_equal(_cold.release(cold), &"", "original lease retained")
 	assert_equal(_image(), before, "all ordinary-door refusals preserve live bytes")
+
+
+func _air_owner(slots: int) -> void:
+	"""ADR1215: a fresh owner whose arena admits `slots` extra-air pool slots beyond the schema-1 banks."""
+	_locations = Locations.new()
+	assert_equal(_configure(_locations, CAPACITY, 228 * CAPACITY + 256 + Locations.AIR_ARENA_BYTES_PER_SLOT * slots), &"", "air arena")
+
+
+func _air_record(boxes: Array[PackedInt32Array]) -> Locations.Record:
+	"""A transit endpoint whose air is its envelope plus these extra boxes."""
+	var record: Locations.Record = _record()
+	record.role = Locations.ROLE_TRANSIT
+	record.air_count = boxes.size()
+	for index: int in boxes.size():
+		for axis: int in 6: record.air[index * 6 + axis] = boxes[index][axis]
+	return record
+
+
+func _try_add(record: Locations.Record) -> StringName:
+	"""Stage one record and discard the candidate, returning the staging code."""
+	var lease: int = _cold.acquire(COLD_BYTES)
+	var prepared: Locations.Result = _locations.begin_prepare(lease)
+	var code: StringName = _locations.stage_add(prepared.token, record).error
+	_locations.abort(prepared.token)
+	_cold.release(lease)
+	return code
+
+
+func test_zero_air_slots_keep_the_schema_one_bank_sizes() -> void:
+	"""Without surplus arena the owner is the single-box model: same packed and per-row wire bytes."""
+	assert_equal(_locations.packed_memory_bytes(), 228 * CAPACITY + 256, "unchanged banks")
+	assert_equal(_locations.wire_bytes(), Locations.ROW_BYTES * CAPACITY + Locations.HEADER_FIELDS * 8, "unchanged wire")
+	var record: Locations.Record = _air_record([PackedInt32Array([-256, 0, 256, 256, 512, 768])])
+	assert_equal(_try_add(record), &"LOCATION_GEOMETRY_FORMAT", "no pool, no extra air")
+
+
+func test_per_motion_air_publishes_reads_back_and_round_trips() -> void:
+	"""Extra boxes are stored beside the envelope, read back in order and survive capture/restore unchanged."""
+	_air_owner(4)
+	assert_equal(_locations.packed_memory_bytes(), 228 * CAPACITY + 256 + 4 * Locations.AIR_ARENA_BYTES_PER_SLOT, "pool admitted")
+	var boxes: Array[PackedInt32Array] = [PackedInt32Array([-768, 0, 256, -256, 1024, 768]), PackedInt32Array([0, 0, 0, 512, 256, 512])]
+	var location: Vector2i = _add(_air_record(boxes))
+	var out: Locations.Record = Locations.Record.new()
+	out.envelope.resize(6); out.support.resize(6)
+	assert_equal(_locations.read_location_into(location, out), &"", "actual read")
+	assert_equal(out.air_count, 2, "two extra boxes")
+	assert_equal(out.air.slice(0, 12), boxes[0] + boxes[1], "exact boxes in order")
+	assert_true(Locations.air_contains(out, PackedInt32Array([0, 100, 100, 400, 200, 400])), "inside an extra box")
+	assert_false(Locations.air_contains(out, PackedInt32Array([-1024, 0, 0, 1024, 100, 100])), "straddling boxes is not contained")
+	var bytes: PackedByteArray = _image()
+	var lease: int = _cold.acquire(COLD_BYTES)
+	assert_equal(_locations.restore_state_bytes(lease, bytes), &"", "restore re-proves the extra air")
+	_cold.release(lease)
+	assert_equal(_image(), bytes, "canonical air image")
+
+
+func test_per_motion_air_refuses_uncovered_malformed_and_exhausted_pools() -> void:
+	"""Each extra box needs open void above the root plane, the count is bounded and the pool is finite."""
+	_air_owner(2)
+	assert_equal(_try_add(_air_record([PackedInt32Array([-768, 0, 256, -256, 3000, 768])])), &"LOCATION_COVERAGE_MISSING", "air above the void")
+	assert_equal(_try_add(_air_record([PackedInt32Array([-768, -64, 256, -256, 512, 768])])), &"LOCATION_GEOMETRY_FORMAT", "air below the root")
+	var record: Locations.Record = _air_record([])
+	record.air_count = Locations.MAX_AIR_EXTRA + 1
+	assert_equal(_try_add(record), &"LOCATION_GEOMETRY_FORMAT", "bounded extra count")
+	var box: PackedInt32Array = PackedInt32Array([0, 0, 0, 512, 256, 512])
+	var first: Vector2i = _add(_air_record([box, box]))
+	var second: Locations.Record = _air_record([box])
+	second.point = Vector3i(512, 0, 512)
+	second.envelope = PackedInt32Array([256, 0, 256, 768, 512, 768])
+	second.support = PackedInt32Array([256, -128, 256, 768, 0, 768])
+	assert_equal(_try_add(second), &"LOCATION_AIR_CAPACITY", "finite pool")
+	var lease: int = _cold.acquire(COLD_BYTES)
+	var prepared: Locations.Result = _locations.begin_prepare(lease)
+	assert_equal(_locations.stage_remove(prepared.token, first), &"", "removal frees its slots")
+	assert_equal(_locations.stage_add(prepared.token, second).error, &"", "freed slots are reused")
+	_locations.abort(prepared.token)
+	_cold.release(lease)
+
+
+func test_restore_refuses_a_noncanonical_air_pool() -> void:
+	"""A free slot with a box, or a slot owned by an absent row, is refused with live bytes intact."""
+	_air_owner(2)
+	_add(_air_record([PackedInt32Array([0, 0, 0, 512, 256, 512])]))
+	var before: PackedByteArray = _image()
+	var pool: int = before.size() - 2 * Locations.AIR_SLOT_BYTES
+	for at: int in [pool + Locations.AIR_SLOT_BYTES + 4, pool]:
+		var corrupt: PackedByteArray = before.duplicate()
+		corrupt.encode_s32(at, 3 if at == pool else 99)
+		var lease: int = _cold.acquire(COLD_BYTES)
+		assert_equal(_locations.restore_state_bytes(lease, corrupt), &"LOCATION_IMAGE_AIR", "malformed pool")
+		_cold.release(lease)
+		assert_equal(_image(), before, "no partial restore")
+
+
+func _air_world_round(scope: SyntheticWorldScope, obstacle: Array[int], location: Vector2i) -> StringName:
+	"""ADR1207 World refresh with one staged obstacle; a clean refresh publishes, a refusal discards both candidates."""
+	scope.cold_token = _cold.acquire(COLD_BYTES)
+	scope.space_token = _owner.begin_stage(_owner.revision()).token
+	_put(scope.space_token, obstacle, Space.OBSTACLE)
+	assert_equal(_owner.seal(scope.space_token), &"", "future Space")
+	var token: int = _locations.begin_world_prepare(scope.cold_token, scope.space_token).token
+	var code: StringName = _locations.stage_refresh(token, location)
+	if code == &"":
+		assert_equal(_locations.seal(token), &"", "sealed refresh")
+		_owner.publish(scope.space_token)
+		scope.publishing = true
+		assert_true(_locations.publish(token), "World publication")
+		scope.publishing = false
+		token = 0
+	_close_world(scope, token)
+	return code
+
+
+func test_world_refresh_carries_or_reproves_extra_air_like_the_envelope() -> void:
+	"""ADR1207/1215: a change meeting only an extra air box forbids the carry, and the full re-proof refuses it."""
+	_air_owner(2)
+	_adapter = Locations.InventoryLocations.new(_locations)
+	var location: Vector2i = _add(_air_record([PackedInt32Array([0, 0, 0, 512, 256, 512])]))
+	var scope: SyntheticWorldScope = _world_scope()
+	assert_equal(_air_world_round(scope, [3000, 0, 3000, 3100, 100, 3100], location), &"", "first World proof stamps content")
+	assert_equal(_air_world_round(scope, [3200, 0, 3200, 3300, 100, 3300], location), &"", "far change")
+	assert_equal(_locations._carried_locations, 1, "far change: the air row is carried")
+	assert_equal(_air_world_round(scope, [100, 0, 100, 200, 100, 200], location), &"LOCATION_ENVELOPE_BLOCKED", "blocker in extra air")
+	assert_equal(_locations._carried_locations, 0, "a change meeting only the extra box is never carried")
+	assert_true(_locations.is_live_location(location), "refused refresh keeps the live row")

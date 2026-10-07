@@ -24,7 +24,7 @@ const ContactRetirementScope := preload("res://scripts/core/underground_entry_co
 const AssemblyEndpoint := preload("res://data/underground/mole-worker/qualified-assembly-v1/endpoint_certificate.gd")
 const Journal := preload("res://scripts/core/underground_geometry_journal.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
-const SCHEMA: int = 1
+const SCHEMA: int = 2 # ADR1215: schema 2 appends the optional per-motion air pool to the wire.
 const HEADER_FIELDS: int = 16
 const I32_FIELDS: int = 22
 const I64_FIELDS: int = 2
@@ -35,6 +35,13 @@ const WORLD_COPY_CONTROL_BYTES: int = 256 # Private116B record plus guards coexi
 const RESOLVE_CONTROL_BYTES: int = 512 # Caller frame36B/ref8B plus bounded scalar lookup frames; no image or array allocation.
 const PREPARED_OBSERVATION_CHECKS: int = 256 # Fixed context/row reads; Routes charges each observation before copying.
 const FRONTIER_HEAP_WORDS: int = 168 # Six removals times14 bounded index/value writes; one caller-owned cold patch.
+## ADR1215 per-motion air: a Location's air is its envelope plus up to MAX_AIR_EXTRA further half-open boxes,
+## held in a fixed pool sized only by arena surplus beyond 228N+256 (zero slots: the schema-1 single-box model).
+const MAX_AIR_EXTRA: int = 3
+const AIR_FIELDS: int = 7 # Owner row, then the half-open box.
+const AIR_SLOT_BYTES: int = 4 * AIR_FIELDS
+const AIR_ARENA_BYTES_PER_SLOT: int = 2 * AIR_SLOT_BYTES
+const MAX_AIR_SLOTS: int = 256
 const ROLE_TRANSIT: int = 0
 const ROLE_STORAGE: int = 1
 const ROLE_WORK: int = 2
@@ -70,6 +77,12 @@ class Record extends RefCounted:
 	var world: Vector2i = NULL_REF
 	var payload_revision: int = 0
 	var geometry_revision: int = 0
+	var air_count: int = 0 # ADR1215: further air boxes beyond the envelope; zero for a single-box Location.
+	var air: PackedInt32Array = PackedInt32Array()
+
+	func _init() -> void:
+		"""Every packet carries the fixed extra-air shape, so readers never resize caller output."""
+		air.resize(6 * MAX_AIR_EXTRA)
 
 
 class Result extends RefCounted:
@@ -93,11 +106,15 @@ class Bank extends RefCounted:
 	var retired: PackedByteArray = PackedByteArray()
 	var free_rows: PackedInt32Array = PackedInt32Array()
 	var ordered: PackedInt32Array = PackedInt32Array()
+	var air: PackedInt32Array = PackedInt32Array() # ADR1215 pool: owner row (-1 free) then box, slot-major.
 	var free_count: int = 0
 	var count: int = 0
 
-	func allocate(capacity: int) -> void:
+	func allocate(capacity: int, air_slots: int = 0) -> void:
 		"""Allocate exactly the admitted packed schema; all unused bytes start canonical."""
+		air.resize(AIR_FIELDS * air_slots)
+		for slot: int in air_slots:
+			air[slot * AIR_FIELDS] = -1
 		header.resize(HEADER_FIELDS)
 		i32.resize(I32_FIELDS * capacity)
 		i64.resize(I64_FIELDS * capacity)
@@ -125,6 +142,8 @@ class Bank extends RefCounted:
 			retired[index] = other.retired[index]
 			free_rows[index] = other.free_rows[index]
 			ordered[index] = other.ordered[index]
+		for index: int in air.size():
+			air[index] = other.air[index]
 		free_count = other.free_count
 		count = other.count
 
@@ -330,6 +349,8 @@ var _cold: Budget = null
 var _frontier: FrontierContext = null # Borrowed only for one admitted synchronous cold transaction.
 var _contact_retirement: ContactRetirementContext = null # Borrowed original two-publication bracket, never a bank.
 var _capacity: int = 0
+var _air_slots: int = 0 # ADR1215: fixed per-motion air pool slots admitted from arena surplus; zero by default.
+var _air_box: PackedInt32Array = PackedInt32Array() # One reused extra-air box scratch, sized at configure.
 var _live: Bank = Bank.new()
 var _stage: Bank = Bank.new()
 var _world: Vector2i = NULL_REF
@@ -398,10 +419,18 @@ func configure(ids: Directory, buildings: Buildings, transforms: Transforms,
 	_cold = cold
 	_capacity = capacity
 	_world = domain._world
-	_live.allocate(capacity)
-	_stage.allocate(capacity)
+	_allocate_banks(capacity, arena_bytes)
 	_write_header()
 	return &""
+
+
+func _allocate_banks(capacity: int, arena_bytes: int) -> void:
+	"""ADR1215: arena surplus beyond the schema-1 banks admits the per-motion air pool, then both banks allocate."""
+	@warning_ignore("integer_division") var surplus: int = (arena_bytes - 228 * capacity - 256) / AIR_ARENA_BYTES_PER_SLOT
+	_air_slots = mini(MAX_AIR_SLOTS, surplus)
+	_air_box.resize(6)
+	_live.allocate(capacity, _air_slots)
+	_stage.allocate(capacity, _air_slots)
 
 
 func bind_sites(sites: Sites) -> StringName:
@@ -498,7 +527,7 @@ func live_location_at_into(slot: int, expected_geometry_revision: int,
 		out_ref: PackedInt32Array, out: Record) -> StringName:
 	"""Read one current full row without observers; all refused calls preserve both caller outputs."""
 	if slot < 0 or slot >= _capacity: return &"LOCATION_FORMAT"
-	if out_ref.size() != 2 or out == null or out.envelope.size() != 6 or out.support.size() != 6:
+	if out_ref.size() != 2 or out == null or out.envelope.size() != 6 or out.support.size() != 6 or out.air.size() != 6 * MAX_AIR_EXTRA:
 		return &"LOCATION_OUTPUT_SHAPE"
 	var code: StringName = _iteration_scope_refusal(self, expected_geometry_revision)
 	if code != &"": return code
@@ -636,7 +665,7 @@ func _route_retention_refusal(location: Vector2i) -> StringName:
 
 func packed_memory_bytes() -> int:
 	"""Both banks and their own heap/index arrays; caller cold outputs are separate."""
-	return 228 * _capacity + 256 if _capacity > 0 else 0
+	return 228 * _capacity + 256 + AIR_ARENA_BYTES_PER_SLOT * _air_slots if _capacity > 0 else 0
 
 
 func last_published_token() -> int:
@@ -646,7 +675,7 @@ func last_published_token() -> int:
 
 func wire_bytes() -> int:
 	"""One explicit capture image, which must retain its cold lease until consumed."""
-	return ROW_BYTES * _capacity + HEADER_FIELDS * 8 if _capacity > 0 else 0
+	return ROW_BYTES * _capacity + HEADER_FIELDS * 8 + AIR_SLOT_BYTES * _air_slots if _capacity > 0 else 0
 
 
 func cold_peak_bytes() -> int:
@@ -666,7 +695,7 @@ func location_revision(location: Vector2i) -> int:
 
 func read_location_into(location: Vector2i, out: Record) -> StringName:
 	"""Copy scalar fields into caller-owned fixed-size arrays; never allocate on a contact read."""
-	if out == null or out.envelope.size() != 6 or out.support.size() != 6:
+	if out == null or out.envelope.size() != 6 or out.support.size() != 6 or out.air.size() != 6 * MAX_AIR_EXTRA:
 		return &"LOCATION_OUTPUT_SHAPE"
 	if not is_live_location(location):
 		return &"LOCATION_STALE"
@@ -832,7 +861,7 @@ func prepared_location_into(token: int, location: Vector2i, out: Record) -> Stri
 	var code: StringName = prepared_refusal(token)
 	if code != &"":
 		return code
-	if out == null or out.envelope.size() != 6 or out.support.size() != 6:
+	if out == null or out.envelope.size() != 6 or out.support.size() != 6 or out.air.size() != 6 * MAX_AIR_EXTRA:
 		return &"LOCATION_OUTPUT_SHAPE"
 	if not _live_ref(_stage, location):
 		return &"LOCATION_STALE"
@@ -843,7 +872,7 @@ func prepared_location_into(token: int, location: Vector2i, out: Record) -> Stri
 static func prepared_route_location_into(actual: RefCounted, graph: RefCounted,
 		location: Vector2i, out: Record) -> StringName:
 	"""Observe one sealed row between the graph's full pre/post proofs; this is never physical permission."""
-	if out == null or out.envelope.size() != 6 or out.support.size() != 6:
+	if out == null or out.envelope.size() != 6 or out.support.size() != 6 or out.air.size() != 6 * MAX_AIR_EXTRA:
 		return &"LOCATION_OUTPUT_SHAPE"
 	var code: StringName = _route_observation_binding_refusal(actual, graph)
 	if code == &"":
@@ -956,6 +985,7 @@ static func _copy_route_observation(actual: RefCounted, bank: Bank, row: int, ou
 	for axis: int in 6:
 		out.envelope[axis] = bank.i32[(ENVELOPE + axis) * capacity + row]
 		out.support[axis] = bank.i32[(SUPPORT + axis) * capacity + row]
+	_air_copy(actual, bank, row, out)
 
 
 func storage_endpoint_refusal(location: Vector2i) -> StringName:
@@ -1572,6 +1602,8 @@ func stage_add(token: int, record: Record) -> Result:
 		return Result.new(code)
 	if _stage.free_count == 0:
 		return Result.new(&"LOCATION_ARENA_FULL")
+	if record.air_count > _air_free_count(_stage):
+		return Result.new(&"LOCATION_AIR_CAPACITY")
 	var row: int = _pop_free(_stage)
 	var generation: int = _get32(_stage, GENERATION, row) + 1
 	_set32(_stage, GENERATION, row, generation)
@@ -1609,13 +1641,20 @@ func _carry_eligible(token: int, location: Vector2i) -> bool:
 			or _owner.prepared_identity_refusal(_owner_token) != &"" or _owner.revision() + 1 != _target_geometry_revision:
 		return false
 	var since: int = _get64(_live, GEOMETRY_REVISION, location.x)
-	var cost: int = 4 * Journal.CAPACITY + 2 * _owner._changed_count + _owner._region_capacity + 64
+	_prepare_record_scratch()
+	_read_row(_live, location.x, _record)
+	var cost: int = (4 * Journal.CAPACITY + 2 * _owner._changed_count + _owner._region_capacity + 64) * (1 + _record.air_count)
 	if since > _owner.revision() or cost > _remaining:
 		return false
 	_remaining -= cost
-	_prepare_record_scratch()
-	_read_row(_live, location.x, _record)
-	return _untouched(_record, since) and _envelope_unblocked(_record.envelope)
+	if not _untouched(_record, since) or not _envelope_unblocked(_record.envelope):
+		return false
+	for index: int in _record.air_count:
+		var box: PackedInt32Array = _air_box_at(_record, index)
+		if not _owner._location_journal.clean(box, since, Space.FLOOR_DATUM) \
+				or not Journal.staged_clean(_owner, box, Space.FLOOR_DATUM) or not _envelope_unblocked(box):
+			return false
+	return true
 
 
 func _untouched(record: Record, since: int) -> bool:
@@ -1952,6 +1991,8 @@ func _copy_world_record(record: Record) -> Record:
 	pinned.role = record.role
 	pinned.envelope = record.envelope.duplicate()
 	pinned.support = record.support.duplicate()
+	pinned.air_count = record.air_count
+	pinned.air = record.air.duplicate()
 	return pinned
 
 
@@ -1959,7 +2000,8 @@ func _world_record_matches(record: Record, pinned: Record) -> bool:
 	"""Compare every caller input used by validation or row publication after the last source observer."""
 	return record.point == pinned.point and record.room == pinned.room and record.section == pinned.section \
 		and record.level == pinned.level and record.role == pinned.role \
-		and record.envelope == pinned.envelope and record.support == pinned.support
+		and record.envelope == pinned.envelope and record.support == pinned.support \
+		and record.air_count == pinned.air_count and record.air == pinned.air
 
 
 func _record_geometry_refusal(record: Record) -> StringName:
@@ -1967,7 +2009,7 @@ func _record_geometry_refusal(record: Record) -> StringName:
 	if record == null or not Space.valid_box(record.envelope) or not Space.valid_box(record.support) \
 			or record.level < 0 or record.role < ROLE_TRANSIT or record.role > ROLE_WORK \
 			or not Space.contains_box(_domain._bounds, record.envelope) \
-			or not Space.contains_box(_domain._bounds, record.support):
+			or not Space.contains_box(_domain._bounds, record.support) or not _air_format_valid(record):
 		return &"LOCATION_GEOMETRY_FORMAT"
 	for axis: int in 3:
 		if record.point[axis] < record.envelope[axis] or record.point[axis] >= record.envelope[axis + 3]:
@@ -1980,9 +2022,36 @@ func _record_geometry_refusal(record: Record) -> StringName:
 	if code != &"" or _carry_geometry:
 		return code
 	code = _record_obstacles_refusal(record)
+	if code == &"": code = _air_obstacles_refusal(record)
 	if code != &"": return code
 	if not _covered(record.envelope, Space.SUPPORTED_VOID) or not _covered(record.support, Space.SUPPORT):
 		return &"LOCATION_COVERAGE_MISSING" if _remaining >= 0 else &"LOCATION_OPERATION_BUDGET"
+	for index: int in record.air_count:
+		if not _covered(_air_box_at(record, index), Space.SUPPORTED_VOID):
+			return &"LOCATION_COVERAGE_MISSING" if _remaining >= 0 else &"LOCATION_OPERATION_BUDGET"
+	return &""
+
+
+func _air_format_valid(record: Record) -> bool:
+	"""ADR1215: bounded count, fixed shape, and each extra box valid, in the domain and wholly above the root plane."""
+	if record.air.size() != 6 * MAX_AIR_EXTRA or record.air_count < 0 or record.air_count > MAX_AIR_EXTRA \
+			or (record.air_count > 0 and record.air_count > _air_slots): return false
+	for index: int in record.air_count:
+		var box: PackedInt32Array = _air_box_at(record, index)
+		if not Space.valid_box(box) or not Space.contains_box(_domain._bounds, box) or box[1] < record.point.y: return false
+	return true
+
+
+func _air_obstacles_refusal(record: Record) -> StringName:
+	"""ADR1215: extra air has no pending-bearer exemption; any blocking row meeting it refuses."""
+	var rows: Space.Volumes = _snapshot.volumes
+	for index: int in record.air_count:
+		var box: PackedInt32Array = _air_box_at(record, index)
+		for row: int in rows.role.size():
+			if not _spend():
+				return &"LOCATION_OPERATION_BUDGET"
+			if rows.role[row] in BLOCKING_ROLES and Space.overlaps(box, rows.box_at(row)):
+				return &"LOCATION_ENVELOPE_BLOCKED"
 	return &""
 
 
@@ -2083,7 +2152,7 @@ func _snapshot_for_into(record: Record, physical: Sites, site: Vector2i, image: 
 		return _owner.prepared_snapshot_leased_into(_owner_token, image, _cold, _cold_token)
 	if _installation_active() or _phase_active():
 		return _installation_snapshot_into(record, physical, site, image)
-	if record.role == ROLE_TRANSIT:
+	if record.role == ROLE_TRANSIT or record.air_count > 0: # ADR1215: per-motion air is proved like route sweeps.
 		return _owner.prepared_snapshot_for_traversal_into(_owner_token, image) \
 			if _owner_token != 0 else _owner.snapshot_for_traversal_into(image)
 	if record.room == NULL_REF:
@@ -2098,7 +2167,7 @@ func _installation_snapshot_into(record: Record, physical: Sites, site: Vector2i
 	if (_phase_active() and phase_scope_leaf_refusal(self, _phase_context) != &"") \
 			or (not _phase_active() and installation_scope_refusal(self, _installation) != &""):
 		return &"LOCATION_INSTALLATION_CONTEXT"
-	if record.role == ROLE_TRANSIT:
+	if record.role == ROLE_TRANSIT or record.air_count > 0:
 		return _owner.prepared_snapshot_for_traversal_leased_into(_owner_token, image, _cold, _cold_token)
 	if record.room != NULL_REF:
 		return _owner.prepared_snapshot_for_site_leased_into(_owner_token, image, physical, site, _cold, _cold_token)
@@ -2537,6 +2606,135 @@ func _ref_at(bank: Bank, field: int, row: int) -> Vector2i:
 	return Vector2i(bank.i32[field * _capacity + row], bank.i32[(field + 1) * _capacity + row])
 
 
+static func _air_owned(bank: Bank, slots: int, row: int) -> int:
+	"""ADR1215: every pool slot this row owns, uncapped, so a malformed surplus is never hidden."""
+	var count: int = 0
+	for slot: int in slots:
+		if bank.air[slot * AIR_FIELDS] == row: count += 1
+	return count
+
+
+static func _air_copy(actual: RefCounted, bank: Bank, row: int, out: Record) -> void:
+	"""ADR1215: the row's extra air in pool order into the fixed caller shape; unused words are zero."""
+	var count: int = 0
+	out.air.fill(0)
+	for slot: int in actual._air_slots:
+		var at: int = slot * AIR_FIELDS
+		if bank.air[at] != row or count >= MAX_AIR_EXTRA: continue
+		for axis: int in 6: out.air[count * 6 + axis] = bank.air[at + 1 + axis]
+		count += 1
+	out.air_count = count
+
+
+func _air_write(row: int, record: Record) -> void:
+	"""ADR1215: each extra box takes the lowest free pool slot of the inactive bank, in record order."""
+	for index: int in record.air_count:
+		var slot: int = _air_free_slot(_stage)
+		var at: int = slot * AIR_FIELDS
+		_stage.air[at] = row
+		for axis: int in 6: _stage.air[at + 1 + axis] = record.air[index * 6 + axis]
+
+
+static func _air_free_slot(bank: Bank) -> int:
+	"""Lowest free pool slot, or -1."""
+	@warning_ignore("integer_division") var slots: int = bank.air.size() / AIR_FIELDS
+	for slot: int in slots:
+		if bank.air[slot * AIR_FIELDS] == -1: return slot
+	return -1
+
+
+static func _air_free_count(bank: Bank) -> int:
+	"""Free pool slots in one bank."""
+	@warning_ignore("integer_division") var slots: int = bank.air.size() / AIR_FIELDS
+	return _air_owned(bank, slots, -1)
+
+
+static func _air_release(bank: Bank, row: int) -> void:
+	"""Return every slot the row owns to the canonical free form (owner -1, zero box)."""
+	@warning_ignore("integer_division") var slots: int = bank.air.size() / AIR_FIELDS
+	for slot: int in slots:
+		if bank.air[slot * AIR_FIELDS] != row: continue
+		bank.air[slot * AIR_FIELDS] = -1
+		for axis: int in 6: bank.air[slot * AIR_FIELDS + 1 + axis] = 0
+
+
+static func _air_rows_equal(actual: RefCounted, row: int) -> bool:
+	"""The row's extra-air sequence is identical in both banks (slot positions may differ)."""
+	var live: Bank = actual._live
+	var stage: Bank = actual._stage
+	var j: int = 0
+	for i: int in actual._air_slots:
+		if live.air[i * AIR_FIELDS] != row: continue
+		while j < actual._air_slots and stage.air[j * AIR_FIELDS] != row: j += 1
+		if j >= actual._air_slots: return false
+		for axis: int in 6:
+			if live.air[i * AIR_FIELDS + 1 + axis] != stage.air[j * AIR_FIELDS + 1 + axis]: return false
+		j += 1
+	while j < actual._air_slots:
+		if stage.air[j * AIR_FIELDS] == row: return false
+		j += 1
+	return true
+
+
+static func _air_pool_canonical(actual: RefCounted, bank: Bank) -> bool:
+	"""Free slots are zero; owned slots name present rows, each with at most MAX_AIR_EXTRA boxes."""
+	if bank.air.size() != AIR_FIELDS * actual._air_slots: return false
+	for slot: int in actual._air_slots:
+		var owner: int = bank.air[slot * AIR_FIELDS]
+		if owner == -1:
+			for axis: int in 6:
+				if bank.air[slot * AIR_FIELDS + 1 + axis] != 0: return false
+		elif owner < 0 or owner >= actual._capacity or bank.present[owner] != 1 \
+				or _air_owned(bank, actual._air_slots, owner) > MAX_AIR_EXTRA: return false
+	return true
+
+
+static func air_record_matches(actual: RefCounted, bank: Bank, row: int, record: Record) -> bool:
+	"""ADR1215: the record's extra air equals the row's stored sequence exactly."""
+	if record.air.size() != 6 * MAX_AIR_EXTRA or record.air_count != _air_owned(bank, actual._air_slots, row): return false
+	var index: int = 0
+	for slot: int in actual._air_slots:
+		if bank.air[slot * AIR_FIELDS] != row: continue
+		for axis: int in 6:
+			if bank.air[slot * AIR_FIELDS + 1 + axis] != record.air[index * 6 + axis]: return false
+		index += 1
+	return true
+
+
+static func air_contains(record: Record, box: PackedInt32Array) -> bool:
+	"""ADR1215: the box lies wholly inside the envelope or inside one extra air box of the record."""
+	if Space.contains_box(record.envelope, box): return true
+	for index: int in record.air_count:
+		var inside: bool = true
+		for axis: int in 3:
+			inside = inside and box[axis] >= record.air[index * 6 + axis] and box[axis + 3] <= record.air[index * 6 + axis + 3]
+		if inside: return true
+	return false
+
+
+static func live_air_contains(actual: RefCounted, location: Vector2i, box: PackedInt32Array) -> bool:
+	"""ADR1215: the same test against a live full-generation row, without a Record copy."""
+	if not actual._live_ref(actual._live, location): return false
+	var inside: bool = true
+	for axis: int in 3:
+		inside = inside and box[axis] >= actual._get32(actual._live, ENVELOPE + axis, location.x) \
+			and box[axis + 3] <= actual._get32(actual._live, ENVELOPE + axis + 3, location.x)
+	for slot: int in actual._air_slots:
+		if inside: return true
+		if actual._live.air[slot * AIR_FIELDS] != location.x: continue
+		inside = true
+		for axis: int in 3:
+			inside = inside and box[axis] >= actual._live.air[slot * AIR_FIELDS + 1 + axis] \
+				and box[axis + 3] <= actual._live.air[slot * AIR_FIELDS + 4 + axis]
+	return inside
+
+
+func _air_box_at(record: Record, index: int) -> PackedInt32Array:
+	"""Extra box `index` of a record in the reused scratch (valid until the next call)."""
+	for axis: int in 6: _air_box[axis] = record.air[index * 6 + axis]
+	return _air_box
+
+
 func _prepare_record_scratch() -> void:
 	"""Cold setup alone sizes one reusable packet; hot endpoint reads require caller sizing."""
 	_record.envelope.resize(6)
@@ -2556,6 +2754,7 @@ func _read_row(bank: Bank, row: int, out: Record) -> void:
 	for axis: int in 6:
 		out.envelope[axis] = _get32(bank, ENVELOPE + axis, row)
 		out.support[axis] = _get32(bank, SUPPORT + axis, row)
+	_air_copy(self, bank, row, out)
 
 
 func _write_row(row: int, record: Record) -> void:
@@ -2573,11 +2772,13 @@ func _write_row(row: int, record: Record) -> void:
 		_set32(_stage, SUPPORT + axis, row, record.support[axis])
 	_set64(_stage, PAYLOAD_REVISION, row, _get32(_stage, GENERATION, row))
 	_set64(_stage, GEOMETRY_REVISION, row, _snapshot.revision)
+	_air_write(row, record)
 
 
 func _clear_row(bank: Bank, row: int) -> void:
 	"""Canonical absent rows retain only their generation and exhaustion marker."""
 	bank.present[row] = 0
+	_air_release(bank, row)
 	for field: int in range(1, I32_FIELDS):
 		_set32(bank, field, row, -1 if field in [ROOM_SLOT, SECTION_SLOT] else 0)
 	for field: int in I64_FIELDS:
@@ -2651,6 +2852,9 @@ func capture_state_into(cold_token: int, out: PackedByteArray) -> StringName:
 	for value: int in _live.retired:
 		out[offset] = value
 		offset += 1
+	for value: int in _live.air:
+		out.encode_s32(offset, value)
+		offset += 4
 	return &""
 
 
@@ -2709,11 +2913,16 @@ func _decode_columns(bytes: PackedByteArray) -> void:
 	for index: int in _capacity:
 		_stage.retired[index] = bytes[offset]
 		offset += 1
+	for index: int in _stage.air.size():
+		_stage.air[index] = bytes.decode_s32(offset)
+		offset += 4
 
 
 func _loaded_rows_refusal() -> StringName:
 	"""Every live record rechecks complete geometry; unused payload and exhausted generations are canonical."""
 	_prepare_record_scratch()
+	if not _air_pool_canonical(self, _stage):
+		return &"LOCATION_IMAGE_AIR"
 	for row: int in _capacity:
 		if not _spend():
 			return &"LOCATION_OPERATION_BUDGET"
@@ -2750,7 +2959,7 @@ func _row_payload_unchanged(row: int) -> bool:
 	for field: int in I32_FIELDS:
 		if _get32(_live, field, row) != _get32(_stage, field, row):
 			return false
-	return true
+	return _air_rows_equal(self, row)
 
 
 func _loaded_retention_refusal(row: int) -> StringName:
@@ -2790,7 +2999,8 @@ func _unused_row_canonical(row: int) -> bool:
 	for field: int in range(1, I32_FIELDS):
 		if _get32(_stage, field, row) != (-1 if field in [ROOM_SLOT, SECTION_SLOT] else 0):
 			return false
-	return _get64(_stage, PAYLOAD_REVISION, row) == 0 and _get64(_stage, GEOMETRY_REVISION, row) == 0
+	return _get64(_stage, PAYLOAD_REVISION, row) == 0 and _get64(_stage, GEOMETRY_REVISION, row) == 0 \
+		and _air_owned(_stage, _air_slots, row) == 0
 
 
 func _rebuild_allocation(bank: Bank) -> void:
@@ -2858,7 +3068,7 @@ static func frontier_scope_refusal(actual: RefCounted, context: FrontierContext,
 
 static func frontier_location_into(actual: RefCounted, context: FrontierContext, ref: Vector2i, out: Record) -> StringName:
 	"""This bounded observation grants neither live identity nor work permission; refused output is unchanged."""
-	if out == null or out.envelope.size() != 6 or out.support.size() != 6: return &"LOCATION_OUTPUT_SHAPE"
+	if out == null or out.envelope.size() != 6 or out.support.size() != 6 or out.air.size() != 6 * MAX_AIR_EXTRA: return &"LOCATION_OUTPUT_SHAPE"
 	var code: StringName = frontier_scope_refusal(actual, context)
 	if code != &"": return code
 	if _frontier_ordinal(context, ref) < 0: return &"LOCATION_FRONTIER_CONTEXT"
@@ -2881,7 +3091,7 @@ static func frontier_record_matches(actual: RefCounted, context: FrontierContext
 	for axis: int in 6:
 		if record.envelope[axis] != actual._get32(actual._stage, ENVELOPE + axis, row) \
 				or record.support[axis] != actual._get32(actual._stage, SUPPORT + axis, row): return false
-	return true
+	return air_record_matches(actual, actual._stage, row, record)
 
 
 static func _frontier_ordinal(context: FrontierContext, ref: Vector2i) -> int:
@@ -2997,8 +3207,9 @@ static func _frontier_unchanged_rows(actual: RefCounted, context: FrontierContex
 				if actual._get32(actual._live, field, row) != actual._get32(actual._stage, field, row): return &"LOCATION_FRONTIER_ROWS"
 			for field: int in I64_FIELDS:
 				if actual._get64(actual._live, field, row) != actual._get64(actual._stage, field, row): return &"LOCATION_FRONTIER_ROWS"
+			if not _air_rows_equal(actual, row): return &"LOCATION_FRONTIER_ROWS"
 		if actual._live.retired[row] != actual._stage.retired[row]: return &"LOCATION_FRONTIER_ROWS"
-	return &""
+	return &"" if _air_pool_canonical(actual, actual._stage) else &"LOCATION_FRONTIER_ROWS"
 
 
 static func commit_frontier_preflighted(actual: RefCounted, context: FrontierContext) -> void:

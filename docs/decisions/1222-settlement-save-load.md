@@ -312,6 +312,29 @@ Each question gives the options and a recommendation (marked "Rec").
   - Rec: delete a `.tmp` whose target verifies. Keep a `.rollback` and offer it as "recovered".
   - Rename an unverifiable target to `.corrupt` and report it. Never delete a save.
 
+## Build notes
+
+These record the engineering choices made while building, step by step.
+
+- **Step 0, section 1.** `save_section_01.gd` now carries the registry's tenth owner,
+  `underground_space_owner`, and section 1 is at schema 4.
+  - There are exactly two compiled layouts. UNMOUNTED is a world with no underground Session: capacities 0, an
+    all-zero header and empty columns, 416 payload bytes, for a section of 3,753,231 bytes. MOUNTED is a world at
+    the production pack of 6,144 regions and 2,048 sources: 504,224 payload bytes, for a section of 4,257,039 bytes.
+  - The decoder reads both capacity scalars at their compiled offsets, which are the same in either layout, and
+    from them selects the layout. It then requires every later item at that layout's compiled offset.
+  - Capture reads the owner only through `state_bytes()`, so it refuses unless the owner is at a completed
+    boundary. `restore_space_owner()` is separate from `restore_section()`, because the Space owner exists only
+    after the Session has been re-mounted.
+  - The owner file is unchanged. Its wire order differs from the registry's ordinal order, and
+    `SPACE_WIRE_ORDER` maps one to the other.
+- **Step 6, identities.** The release rules and lookup artifacts need owner registrations, and none exist yet.
+  The development save therefore states its rules and lookup identities as SHA-256 over a `-DEV-` domain and the
+  canonical registry declaration id.
+- **Step 2, memory.** Every section-4 capture and apply makes a transient owner image. It is charged to "ADR 1222
+  save/load working set" in the reviewed census deltas, and the 09.3 ledger owns the total. It is never resident
+  between ticks.
+
 ## Brendan's answers (DEC-055, 2026-10-07)
 
 Brendan took the recommendation on every question, Q1–Q10. The coordinator relayed his answers and authorised

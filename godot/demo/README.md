@@ -1492,7 +1492,7 @@ Review group X (ECO-001, ECO-003, ECO-004 with feature #48, ECO-006, ECO-007). E
 - **Crop roles** (0881, `farm/farm_crop_roles.gd`): a crop's role is its §5.6 row's -- Keeping root (keeps 10 days,
   ripens in 5), Fresh greens (sown summer and autumn, keeps 6 days), Soil restorer (gives the soil 800 fertility, keeps
   20 days), Flour crop (10 U a bed, ripens in 8 days) -- with its uses read from the kitchen's dishes, the mill, the
-  stations' recipe rows (decision 1625: roots → pickles, barley → ale) and the raw-emergency table. Siblings of one row stay equal. Shown in the crop picker and the harvest plan.
+  stations' recipe rows (decision 1625: roots → pickles, barley → ale) and the raw-emergency table. Siblings of one row grow and keep alike; their uses can differ by item (barley alone makes ale). Shown in the crop picker and the harvest plan.
 - **Twelve field beds** (0886, Brendan's balance ruling E5): the six world beds and the **south field**'s six 2 m tiles,
   one 6 m x 4 m field on the grass south of the covered store, laid from the start, loam and clay.
 - **Sowing in season** (0886): the live village starts with the tending policy **Sow empty beds in season** on for the

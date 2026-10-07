@@ -233,7 +233,8 @@ static func fruit_words(species: int) -> String:
 
 static func guide_fields(item: int, made_into: String = "") -> Array:
 	"""The field guide's entry for an orchard item (demo/guide/field_guide.gd's goods): [summary, fields]; `made_into`
-	is what the stations make of it (preserve_text.gd made_into_text), said instead of "no demo dish cooks it yet"."""
+	is what the dishes and the stations make of it (field_guide.gd `_dishes_taking`), said instead of "no demo dish
+	cooks it yet"."""
 	var shelf: int = Catalog.shelf_hours_of(item)
 	if Catalog.category_of(item) == Catalog.CAT_FRUIT:
 		var species: int = Catalog.ORCHARD_SPECIES_ITEM.find(item)
@@ -245,7 +246,7 @@ static func guide_fields(item: int, made_into: String = "") -> Array:
 			"Keeps %d game hours in store; the Pantry (K) lists it." % shelf])]
 	return ["Picked from the berry hedge", PackedStringArray([
 		"Berries (§5.7): raspberries, blackberries and strawberries alike; eaten raw by a hungry resident when a meal is " \
-			+ "missed (700 NP a unit); kept for the cordials, tarts and preserves still to come.",
+			+ "missed (700 NP a unit); the cordial and berry jam take them.",
 		"The hedge fruits in summer and less in autumn (§5.5); none in spring or winter.",
 		"Picked by the basket at 4 WU a unit, never below a fifth of the hedge.",
 		"Keeps %d game hours in store; the Pantry (K) lists it." % shelf])]

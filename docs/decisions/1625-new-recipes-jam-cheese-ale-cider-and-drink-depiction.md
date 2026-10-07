@@ -168,7 +168,7 @@ Ruled 2026-10-07 (above): 1 approved as provisional; 2 and 3 confirmed; 4 ruled 
   - LOW: the Brewing line says "vats in use"; the stale "not built" README lines and comments are corrected; the
     "(decision 1625)" is gone from player text; the refusal code and fix are asserted; the docs say vinegar "is not
     booked as a preserve".
-  - Not done (LOW, already a gap before this commit): the roots' crop card "Uses:" does not list pickles
+  - Not done then (LOW, already a gap before this commit; **fixed in the follow-up below**): the roots' crop card "Uses:" did not list pickles
     (`farm_crop_roles.uses_of` reads only the kitchen and mill tables). Barley → ale has the same gap.
 
 ## Follow-up: every ingredient's Uses come from the recipe rows (Brendan, 2026-10-07)
@@ -189,8 +189,24 @@ list from the recipe rows so it cannot drift**.
 - Not changed: the mill stays its own use (it is not a recipe row); the fish row's dried fish keeps the catch's own
   "Or dried at the rack".
 
-Tests: `test_demo_new_recipes.gd` pins each ingredient's rows and sweeps every pantry item -- each row that takes it
-must be named and linked in its guide entry, and on its crop card when it is a crop. The live harness checks the
+- **Apples have no crop card** (they are the orchard's, not a bed's), so "apples should list cider and vinegar" is
+  met in the field guide's apple entry; the crop card covers the bed crops (roots, barley).
+- **The potato** is a root by the catalog (§5.6's roots row), so the pickles row's roots selector takes it too: its
+  guide entry says "made into pickles". The pickle's inputs are "onions or roots" as built; narrowing it to an item
+  mask would be a recipe change for Brendan.
+- **The cordial is listed twice for honey and berries** -- "Cooked in: Raspberry cordial" (the recipe book's dish) and
+  "Made into: cordial at the brewery" (the station row) -- each linked. Kept: they are two entries of the guide,
+  and the dish's own entry says where it is made.
+- **Station goods** (vinegar) add the same "Made into: ..." to their own use; foraged goods keep "Eaten raw ..." as
+  its own sentence, not a product; the orchard's fruit reads the dishes too (`_dishes_taking`), so a future fruit dish
+  shows; a guide entry links each good once; the crop's "same row" line says "grown and kept alike", since barley's
+  ale differs from its row-mates.
+- Not changed (outside this follow-up): `farm_harvest_plan.gd`'s spoiling risk counts only the kitchen's eating, so a
+  root harvest meant for pickling still reads as at risk.
+
+Tests: `test_demo_new_recipes.gd` pins every pantry item's rows (all 42) and sweeps every pantry item -- each row that
+takes it must be named as "<good> at <station>" and linked in its guide entry, and on its crop card when it is a crop;
+no guide entry links an id twice. The live harness checks the
 picker's radish and barley lines and captures `crop_picker_*`.
 
 ## Source

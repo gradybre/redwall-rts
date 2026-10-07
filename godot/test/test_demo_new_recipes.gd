@@ -403,7 +403,8 @@ func test_pickles_without_vinegar_say_so() -> void:
 
 func test_the_guide_calls_vinegar_an_ingredient() -> void:
 	"""Vinegar is an ingredient, never a drink; pickles are a reserve with their own alternative."""
-	assert_equal(PreserveText.guide_fields(Catalog.ITEM_VINEGAR, 0)[0], PreserveText.VINEGAR_USE, "vinegar")
+	assert_equal(PreserveText.guide_fields(Catalog.ITEM_VINEGAR, 0)[0],
+		PreserveText.VINEGAR_USE + " Made into: pickles at the preserving table.", "vinegar, and the row it feeds")
 	assert_true(PreserveText.guide_fields(Catalog.ITEM_VINEGAR, 0)[2].contains("kept for pickling"), "not a drink's alternative")
 	assert_true(PreserveText.guide_fields(Catalog.ITEM_PICKLES, 800)[0].contains("800 NP"), "pickles")
 	assert_true(PreserveText.guide_fields(Catalog.ITEM_PICKLES, 800)[2].contains("keep 240 game hours; pickled they keep 720"), "their alternative")
@@ -429,19 +430,20 @@ const ROWS_TAKING: Dictionary = {
 	Catalog.ITEM_FLOUR: [Recipes.R_RATION],
 	Catalog.ITEM_DRIED_FISH: [Recipes.R_RATION],
 	Catalog.ITEM_VINEGAR: [Recipes.R_PICKLES],
-	0: [Recipes.R_PICKLES],
-	5: [Recipes.R_PICKLES],
+	Catalog.ITEM_POTATO: [Recipes.R_PICKLES],
 }
 
 
 func test_each_ingredient_feeds_the_rows_that_take_it() -> void:
-	"""Apples: dried fruit, cider, vinegar; pears: dried fruit; honey: mead, cordial, jam; nuts: rations, cheese; berries:
-	cordial, jam; barley: ale (oats and wheat not); roots (radish, onion): pickles; the catch: none (the fish row's text
-	is its own)."""
-	for item: int in ROWS_TAKING:
-		assert_equal(Array(Recipes.rows_taking(item)), ROWS_TAKING[item], Catalog.ITEM_KEYS[item])
-	for item: int in [13, 15, Catalog.FIRST_CATCH, Catalog.ITEM_MEAD]:
-		assert_true(Recipes.rows_taking(item).is_empty(), "%s feeds no row" % Catalog.ITEM_KEYS[item])
+	"""Every pantry item, pinned: apples dried fruit, cider, vinegar; pears dried fruit; honey mead, cordial, jam; nuts
+	rations, cheese; berries cordial, jam; barley ale (oats and wheat none); the six roots and the potato (a root by
+	the catalog) pickles; flour, dried fish rations; vinegar pickles; everything else -- the catch (the fish row's text is
+	its own), mushrooms, herbs, every station good -- none."""
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
+		var expected: Array = ROWS_TAKING.get(item, [])
+		if Catalog.is_item(item) and Catalog.crop_of(item) == FarmingScript.CROP_ROOTS:
+			expected = [Recipes.R_PICKLES]
+		assert_equal(Array(Recipes.rows_taking(item)), expected, Catalog.ITEM_KEYS[item])
 
 
 func test_the_crop_cards_list_the_stations() -> void:
@@ -459,10 +461,12 @@ func test_no_use_can_drift_from_the_rows() -> void:
 	each row's output and linking to it."""
 	var guide := FieldGuideScript.new()
 	for item: int in Catalog.PANTRY_ITEM_COUNT:
+		assert_true(guide.index_of(FieldGuideScript.item_id(item)) >= 0, "%s has an entry" % Catalog.ITEM_KEYS[item])
 		var entry: FieldGuideScript.Entry = guide.entry(guide.index_of(FieldGuideScript.item_id(item)))
 		for recipe: int in Recipes.rows_taking(item):
 			var good: String = PreserveText.good_words(recipe)
-			assert_true(entry.uses.contains(good), "%s's guide names %s: %s" % [Catalog.ITEM_KEYS[item], good, entry.uses])
+			var phrase: String = "%s at %s" % [good, Recipes.STATION_NAMES[Recipes.STATION[recipe]]]
+			assert_true(entry.uses.contains(phrase), "%s's guide: %s -- %s" % [Catalog.ITEM_KEYS[item], phrase, entry.uses])
 			assert_true(entry.links.has(FieldGuideScript.item_id(Recipes.OUT_ITEM[recipe])), "and links it")
 			if Catalog.is_item(item):
 				assert_true(CropRoles.uses_text(item).contains("(%s)" % good), "%s's card" % Catalog.ITEM_KEYS[item])
@@ -478,3 +482,33 @@ func test_the_guide_says_what_the_apple_and_honey_make() -> void:
 	assert_true(honey.contains("berry jam at the preserving table"), honey)
 	var onion: String = guide.entry(guide.index_of(FieldGuideScript.crop_id(5))).uses
 	assert_true(onion.contains("made into pickles at the preserving table"), onion)
+
+
+func test_a_good_no_dish_cooks_still_says_what_it_makes() -> void:
+	"""Vinegar: no dish takes it, but the pickles do -- "Made into: pickles at the preserving table.", linked; and no
+	row is listed twice for one item."""
+	var links: Array[StringName] = []
+	assert_equal(FieldGuideScript._dishes_taking(Catalog.ITEM_VINEGAR, links), "Made into: pickles at the preserving table.", "vinegar")
+	assert_equal(links, [FieldGuideScript.item_id(Catalog.ITEM_PICKLES)], "linked")
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
+		var rows: PackedInt32Array = Recipes.rows_taking(item)
+		for recipe: int in rows:
+			assert_equal(rows.count(recipe), 1, "%s lists row %d once" % [Catalog.ITEM_KEYS[item], recipe])
+
+
+func test_no_guide_entry_links_twice() -> void:
+	"""Every entry's links are distinct (a row's good linked once, however many paths add it)."""
+	var guide := FieldGuideScript.new()
+	for k: int in guide.count():
+		var entry: FieldGuideScript.Entry = guide.entry(k)
+		for id: StringName in entry.links:
+			assert_equal(entry.links.count(id), 1, "%s links %s once" % [entry.id, id])
+
+
+func test_forage_eaten_raw_is_its_own_sentence() -> void:
+	"""Nuts: "Made into: ...; nut cheese at the preserving table. Eaten raw by ..." -- the raw clause is not a product."""
+	var guide := FieldGuideScript.new()
+	var nuts: String = guide.entry(guide.index_of(FieldGuideScript.item_id(Catalog.ITEM_NUTS))).uses
+	assert_true(nuts.contains("nut cheese at the preserving table. Eaten raw by a hungry resident"), nuts)
+	var vinegar: String = guide.entry(guide.index_of(FieldGuideScript.item_id(Catalog.ITEM_VINEGAR))).uses
+	assert_true(vinegar.ends_with("Made into: pickles at the preserving table."), vinegar)

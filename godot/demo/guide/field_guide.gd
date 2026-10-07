@@ -171,12 +171,13 @@ func _crop_uses(item: int, links: Array[StringName]) -> String:
 
 
 static func _row_mates(item: int) -> String:
-	"""The other crops of its row, which do the same job."""
+	"""The other crops of its row, which grow and keep alike (their uses may differ: barley alone makes ale)."""
 	var mates := PackedStringArray()
 	for other: int in Catalog.ITEM_COUNT:
 		if other != item and Catalog.ITEM_CROP[other] == Catalog.ITEM_CROP[item]:
 			mates.append(Catalog.ITEM_LABELS[other].to_lower())
-	return "The same row, grown and used alike: %s." % ", ".join(mates) if not mates.is_empty() else "None."
+	return "The same row, grown and kept alike (each one's dishes and rows are under its Uses): %s." % ", ".join(mates) \
+		if not mates.is_empty() else "None."
 
 
 static func _grown_here(item: int) -> String:
@@ -363,9 +364,11 @@ static func _made_into(item: int, links: Array[StringName]) -> String:
 
 
 static func _link_rows(item: int, links: Array[StringName]) -> void:
-	"""Link the output of every station row that takes `item` (preserve_rules.gd rows_taking)."""
+	"""Link the output of every station row that takes `item` (preserve_rules.gd rows_taking), each once."""
 	for recipe: int in PreserveText.Recipes.rows_taking(item):
-		links.append(item_id(PreserveText.Recipes.OUT_ITEM[recipe]))
+		var id: StringName = item_id(PreserveText.Recipes.OUT_ITEM[recipe])
+		if not links.has(id):
+			links.append(id)
 
 
 func _forage_goods(item: int) -> Entry:
@@ -373,13 +376,13 @@ func _forage_goods(item: int) -> Entry:
 	var k: int = item - Catalog.FIRST_FORAGE
 	var raw: int = Rules.raw_np_per_u(item)
 	var links: Array[StringName] = [&"station_foraging", &"station_store"]
-	var uses: PackedStringArray = PackedStringArray([_forage_use(item, links)])
+	var uses: String = _forage_use(item, links) + "."
 	if raw > 0:
-		uses.append("eaten raw by a hungry resident when a meal is missed (%d NP a unit)" % raw)
+		uses += " Eaten raw by a hungry resident when a meal is missed (%d NP a unit)." % raw
 	if item == Catalog.ITEM_NUTS or item == Catalog.ITEM_HERB:
 		links.append(&"occasion_regatta")
 	var made: Entry = make(item_id(item), KIND_GOODS, Catalog.ITEM_LABELS[item], "Gathered in the woods",
-		PackedStringArray(["; ".join(uses) + ".",
+		PackedStringArray([uses,
 		"A foraging trip (the Woods panel's Foraging) while they are in season; the woods' daily quota and their stock above its floor bound it.",
 		"The other kinds of the woods; the fields for everyday food.",
 		"Gathered at %s%s; keeps %d game hours in store." % [ForageRules.SPOT_NAMES[k],
@@ -427,7 +430,7 @@ func _preserve_goods(item: int) -> Entry:
 func _orchard_goods(item: int) -> Entry:
 	"""The orchard's apple or pear (decision 0671): its summary and fields are the orchard's own text."""
 	var links: Array[StringName] = [&"station_store"]
-	var orchard: Array = OrchardText.guide_fields(item, _made_into(item, links))
+	var orchard: Array = OrchardText.guide_fields(item, _dishes_taking(item, links))
 	var made: Entry = make(item_id(item), KIND_GOODS, Catalog.ITEM_LABELS[item], orchard[0], orchard[1], links)
 	made.item = item
 	return made

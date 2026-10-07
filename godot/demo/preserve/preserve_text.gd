@@ -53,6 +53,8 @@ static func guide_fields(item: int, raw_np: int) -> PackedStringArray:
 		else "The village's reserve: eaten as it is by a hungry resident when a meal is missed (%d NP a unit)." % raw_np
 	if Recipes.USE[recipe] == Recipes.USE_INGREDIENT:
 		use = VINEGAR_USE
+	if not Recipes.rows_taking(item).is_empty():
+		use += " " + made_into_text(item)
 	return PackedStringArray([use, made_words(recipe), DRINK_ALTERNATIVE if drink else _alternative(item),
 		"Keeps %d game hours in store; the Pantry (K) lists it." % Catalog.shelf_hours_of(item)])
 

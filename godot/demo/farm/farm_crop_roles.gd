@@ -5,7 +5,8 @@ extends RefCounted
 ##
 ## THE ROLES ARE THE GDD'S OWN ROWS. GDD §5.6 has five crop rows and §5.7 gives each its storage category; the demo
 ## grows each ingredient by exactly one row (farm_catalog.gd ITEM_CROP), and every ingredient of one row grows, keeps and
-## feeds identically. The review asks for "six role profiles ... quick fresh crop, reliable staple, long-storing root,
+## keeps identically (their USES may differ by item: the dishes and the stations' item-mask rows -- barley alone makes
+## ale). The review asks for "six role profiles ... quick fresh crop, reliable staple, long-storing root,
 ## rotation restorative, flour crop and fiber crop"; five of those six ARE the adopted rows, so each row's role is named
 ## for what its numbers already make it:
 ##   §5.6 Roots   -> KEEPING ROOT    the reliable staple: keeps 10 days (§5.7 240 h), ripens in 5 days (§5.6 120 h);

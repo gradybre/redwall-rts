@@ -143,7 +143,8 @@ const ITEM_COUNT: int = 16
 ##                  720 h, directly edible ("dried fruit is directly edible") -- CAT_DRIED_FRUIT;
 ##   * ration       §5.7 `ration`'s output, flour 2 + dried fish 1 + nuts 1 + water 1 -> 3 x 2400 NP at the kitchen's
 ##                  preserving table, 1440 h, directly edible ("rations are directly edible") -- CAT_RATION.
-## Salt fish waits for a coast (salt is coastal brine only); jam, pickles and cheese have no GDD row (Q-D5).
+## Salt fish waits for a coast (salt is coastal brine only); jam, cheese and the vinegar pickle came later as authored
+## rows (decision 1625, after Q-D5), and the salted pickle waits on salt.
 ## THE DRINKS (decision 1621, BREW #19), after the preserves -- kept for feasts, never eaten as a meal:
 ##   * mead     §5.7 `mead`'s output, honey 3 + water 3 -> mead 4 at the brewery (72 h in a vat), "Mead | 0 | No | 1440 |
 ##              Feast ingredient only; no intoxication subsystem" -- CAT_MEAD;

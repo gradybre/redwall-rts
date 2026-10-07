@@ -248,7 +248,7 @@ func _open_the_brewing() -> void:
 	var panel: CanvasLayer = _village.get("_waterplay").get("panel")
 	_village.get("_fishery").call(&"refresh_panel")
 	panel.call(&"scroll_to_line", &"brewing")
-	_check("the Brewing line is filled", String(panel.call(&"line", &"brewing")).contains("vats brewing"),
+	_check("the Brewing line is filled", String(panel.call(&"line", &"brewing")).contains("vats in use"),
 		panel.call(&"line", &"brewing"))
 	for key: StringName in [&"brew_mead", &"make_cordial"]:
 		var button: Button = panel.call(&"button", key)

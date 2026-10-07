@@ -227,7 +227,7 @@ func test_the_crocks_are_two() -> void:
 	for k: int in Recipes.CROCK_SLOTS:
 		assert_equal(f.order_batch(Recipes.R_CHEESE, PackedInt32Array()), "", "crock %d" % k)
 	assert_equal(f.batch_refusal(Recipes.R_CHEESE), "all 2 crocks are in use", "full")
-	assert_equal(f.refused_code, "CROCKS_FULL", "its code")
+	assert_equal([f.refused_code, f.refused_fix], ["CROCKS_FULL", "wait for one to be emptied"], "its code and fix")
 	assert_equal([f.free_slot(Recipes.STATION_RACK), f.free_slot(Recipes.STATION_BREWERY)], [0, FIRST_VAT], "the others free")
 
 
@@ -376,6 +376,7 @@ func test_apples_sour_into_vinegar_and_roots_pickle_in_it() -> void:
 	var f: FisheryScript = rig.fishery
 	rig.pantry.add_into(Catalog.ITEM_APPLE, 4000, 0, _read)
 	assert_equal(f.batch_refusal(Recipes.R_PICKLES).begins_with("the stores hold 0 U of roots"), true, "no roots yet")
+	assert_equal([f.refused_code, f.refused_fix], ["NO_ROOTS", Recipes.IN_FIX[14]], "the roots' code and fix")
 	assert_equal(f.order_batch(Recipes.R_VINEGAR, PackedInt32Array([1])), "", "vinegar ordered")
 	assert_true(_run(rig, func() -> bool: return f.tables.s_state[FIRST_VAT] == Tables.SLOT_CURING), "souring")
 	rig.calendar.tick += 96 * SimClock.TICKS_PER_HOUR
@@ -402,12 +403,14 @@ func test_pickles_without_vinegar_say_so() -> void:
 func test_the_guide_calls_vinegar_an_ingredient() -> void:
 	"""Vinegar is an ingredient, never a drink; pickles are a reserve with their own alternative."""
 	assert_equal(PreserveText.guide_fields(Catalog.ITEM_VINEGAR, 0)[0], PreserveText.VINEGAR_USE, "vinegar")
+	assert_true(PreserveText.guide_fields(Catalog.ITEM_VINEGAR, 0)[2].contains("kept for pickling"), "not a drink's alternative")
 	assert_true(PreserveText.guide_fields(Catalog.ITEM_PICKLES, 800)[0].contains("800 NP"), "pickles")
-	assert_true(PreserveText.guide_fields(Catalog.ITEM_PICKLES, 800)[2].contains("three times"), "their alternative")
+	assert_true(PreserveText.guide_fields(Catalog.ITEM_PICKLES, 800)[2].contains("keep 240 game hours; pickled they keep 720"), "their alternative")
 
 
 func test_the_recipe_card_says_what_each_good_is_for() -> void:
 	"""Vinegar's card says it is kept for pickling, not for feasts; pickles are eaten; the drinks are kept for feasts (the
 	live harness checks the card itself)."""
-	assert_equal([PreserveText.card_use(Catalog.ITEM_VINEGAR, 0), PreserveText.card_use(Catalog.ITEM_PICKLES, 800),
-		PreserveText.card_use(Catalog.ITEM_ALE, 0)], ["kept for pickling", "eaten as it is", "kept for feasts"], "uses")
+	assert_equal([PreserveText.card_use(Recipes.R_VINEGAR), PreserveText.card_use(Recipes.R_PICKLES),
+		PreserveText.card_use(Recipes.R_ALE), PreserveText.card_use(Recipes.R_JAM)],
+		["kept for pickling", "eaten as it is", "kept for feasts", "eaten as it is"], "uses")

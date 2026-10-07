@@ -77,7 +77,7 @@ const ACTION_RATIONS: StringName = &"pack_rations"
 ## Brewing (decision 1621): mead into a vat, the cordial at the brewery's bench.
 const ACTION_MEAD: StringName = &"brew_mead"
 const ACTION_CORDIAL: StringName = &"make_cordial"
-## The new recipes (decision 1625): jam and cheese at the preserving table, ale and cider at the brewery.
+## The new recipes (decision 1625): jam, cheese and pickles at the preserving table; ale, cider and vinegar at the brewery.
 const ACTION_JAM: StringName = &"make_jam"
 const ACTION_CHEESE: StringName = &"make_cheese"
 const ACTION_ALE: StringName = &"brew_ale"

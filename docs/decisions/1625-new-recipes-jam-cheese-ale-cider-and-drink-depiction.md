@@ -70,8 +70,10 @@ Two more rows and two more items, appended: **vinegar 40, pickles 41** (categori
 Why these numbers: vinegar takes cider's apples, water and vat, and waits a day longer for the souring; pickles take
 fruit-drying's 3 U out of a 4 U batch (3 roots + 1 vinegar), 12 WU for packing a crock, and the crock's 24 h. The
 raw NP spreads the roots' NP over the output, rounded down. Vinegar keeps mead's 1440 h; pickles keep dried fruit's
-720 h. Vinegar is never eaten, never poured at a feast and is booked as an ingredient, not a preserve (the guide says
-"An ingredient"; the card "kept for pickling"). Pickles are booked as a preserve and eaten as they are.
+720 h. Vinegar is never eaten, never poured at a feast and is not booked as a preserve (the guide says "An
+ingredient"; the card "kept for pickling"; its vat counts in the Brewing line's "vats in use"). Each row's use --
+eaten, drink or ingredient -- is a column of the recipe table (`preserve_rules.gd` USE), read by the guide and the
+cards. Pickles are booked as a preserve and eaten as they are.
 
 ### Pickles with salt: approved, waiting on salt
 

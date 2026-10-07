@@ -2352,7 +2352,7 @@ func slots_in_use(station: int) -> int:
 
 
 func packing() -> bool:
-	"""Whether a batch is being worked at the preserving table now (its worker at the table: rations, jam, a cheese)."""
+	"""Whether a batch is being worked at the preserving table now (its worker at the table: rations, jam, a cheese, pickles)."""
 	for j: int in Tables.MAX_JOBS:
 		var batch: bool = tables.j_kind[j] == Tables.KIND_BATCH or tables.j_kind[j] == Tables.KIND_DRY
 		if tables.j_live[j] == 1 and batch and tables.j_at[j] == 1 and _station_of_job(j) == Recipes.STATION_TABLE:

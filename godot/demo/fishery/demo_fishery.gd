@@ -60,7 +60,6 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const Recipes := preload("res://demo/preserve/preserve_rules.gd")
-const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 
 const PANEL_REFRESH_S: float = 0.25
 const OVERDUE_KEY: String = "water:overdue:%d"
@@ -494,7 +493,7 @@ func stations_text() -> String:
 
 func preserves_text() -> String:
 	"""The preserves (decisions 1611, 1625): what the rack's slots dry, the preserving table and its crocks, and the
-	pantry's fruit, dried fruit, rations, jam and cheese."""
+	pantry's fruit, dried fruit, rations, jam, cheese, vinegar and pickles."""
 	var fruit: int = 0
 	for slot: int in Rules.RACK_SLOTS:
 		var drying: bool = fishery.tables.s_state[slot] != Tables.SLOT_EMPTY
@@ -509,8 +508,8 @@ func preserves_text() -> String:
 
 
 func brewing_text() -> String:
-	"""The brewery (decisions 1621, 1625): its vats, and the pantry's honey and its drinks."""
-	return "Brewery: %d of %d vats brewing\nIn the pantry: honey %s · mead %s · cordial %s · ale %s · cider %s" % [
+	"""The brewery (decisions 1621, 1625): its vats (vinegar sours in one too), and the pantry's honey and its drinks."""
+	return "Brewery: %d of %d vats in use\nIn the pantry: honey %s · mead %s · cordial %s · ale %s · cider %s" % [
 		fishery.brewing(), Recipes.VAT_SLOTS, Text.units(fishery.pantry.milli_of(Catalog.ITEM_HONEY)),
 		Text.units(fishery.pantry.milli_of(Catalog.ITEM_MEAD)), Text.units(fishery.pantry.milli_of(Catalog.ITEM_CORDIAL)),
 		Text.units(fishery.pantry.milli_of(Catalog.ITEM_ALE)), Text.units(fishery.pantry.milli_of(Catalog.ITEM_CIDER))]
@@ -660,7 +659,7 @@ func batch_card(recipe: int, members: PackedInt32Array) -> CardScript:
 		_card.add_cost("Water", fishery.stores.water_milli_u if fishery.stores != null else 0, Recipes.WATER_MILLI[recipe])
 	_card.result = "%s of %s (keeps %d h; %s)%s" % [Text.units(Recipes.OUT_MILLI[recipe]),
 		Catalog.ITEM_LABELS[item].to_lower(), Catalog.shelf_hours_of(item),
-		PreserveText.card_use(item, MealRules.raw_np_per_u(item)), " after %d game hours at %s" % [Recipes.PASSIVE_HOURS[recipe],
+		PreserveText.card_use(recipe), " after %d game hours at %s" % [Recipes.PASSIVE_HOURS[recipe],
 		Recipes.STATION_NAMES[Recipes.STATION[recipe]]] if Recipes.is_passive(recipe) else ""]
 	if not why.is_empty():
 		_card.refuse(fishery.refused_code, why, fishery.refused_fix)

@@ -96,6 +96,12 @@ const TAKE_DOWN_DOING: Array[String] = ["Taking down dried fish", "Taking down d
 	"Lifting out the pickles"]
 const STATION: PackedInt32Array = [STATION_RACK, STATION_RACK, STATION_TABLE, STATION_BREWERY, STATION_BREWERY,
 	STATION_TABLE, STATION_TABLE, STATION_BREWERY, STATION_BREWERY, STATION_BREWERY, STATION_TABLE]
+## What each row's good is for (the guide's and the card's words): eaten as it is, a feast drink, or an ingredient.
+const USE_EATEN: int = 0
+const USE_DRINK: int = 1
+const USE_INGREDIENT: int = 2
+const USE: PackedInt32Array = [USE_EATEN, USE_EATEN, USE_EATEN, USE_DRINK, USE_DRINK, USE_EATEN, USE_EATEN, USE_DRINK,
+	USE_DRINK, USE_INGREDIENT, USE_EATEN]
 const OUT_ITEM: PackedInt32Array = [Catalog.ITEM_DRIED_FISH, Catalog.ITEM_DRIED_FRUIT, Catalog.ITEM_RATION,
 	Catalog.ITEM_MEAD, Catalog.ITEM_CORDIAL, Catalog.ITEM_JAM, Catalog.ITEM_CHEESE, Catalog.ITEM_ALE, Catalog.ITEM_CIDER,
 	Catalog.ITEM_VINEGAR, Catalog.ITEM_PICKLES]

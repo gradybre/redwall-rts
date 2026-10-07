@@ -2057,8 +2057,8 @@ can make; every number not the GDD's is named in `preserve/preserve_rules.gd`.
   the village's reserve; the kitchen still cooks fresh food first (ECO-028).
 - The inputs that spoil first are set aside when a batch is ordered and taken only when its work starts; cancelled
   after that, half its food is spoiled (REQ-SET-094). Each button's card says what is short and where to get it.
-- **Not built**: salt fish (salt is coastal brine only, and the village has no coast); jam, pickles and a plant-milk
-  cheese have no GDD row and wait on Brendan's recipe approval (open question Q-D5).
+- **Not built**: salt fish (salt is coastal brine only, and the village has no coast). Jam, nut cheese and the
+  vinegar pickle came later (decision 1625; "New recipes" below); the salted pickle waits on salt.
 
 | Input | Does |
 |---|---|
@@ -2079,8 +2079,8 @@ fishery's station jobs). Nothing models what drink does: mead is "a feast ingred
 - **At the feast**: the regatta's supper pours what the brewery has made -- mead and the cordial, a unit each for
   every four guests, for those who came -- beside the Hearth feast's warm infusion. A drink never decides Shared
   Warmth, and the preview says which will be poured.
-- **Not built**: ale and cider (icons exist; no GDD row) wait on Brendan's ruling on how drink is depicted (DEC-007)
-  and new drink recipes (open question Q-D5).
+- **Later**: ale and cider were built by decision 1625 (Brendan's DEC-007 ruling: they follow the mead rule); see
+  "New recipes" below.
 
 | Input | Does |
 |---|---|

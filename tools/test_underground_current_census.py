@@ -37,10 +37,19 @@ class CurrentCensusTests(unittest.TestCase):
     def test_current_counts(self):
         result = census.build(self.index, self.projected, self.motion)
         self.assertEqual(result["new_retained_bytes"], {"geometry_journals": 4322,
-                         "locations_carry_and_retirement_controls": 161, "first_entry_runtime_chain": 8338})
+                         "locations_carry_and_retirement_controls": 161, "first_entry_runtime_chain": 8338, "cold_load_images": 196694})
         self.assertEqual(result["room_publication_controls"]["controls"], 8970)
         self.assertEqual(result["location_air_pool"]["remaining_bytes"], 1472)
         self.assertEqual(result["world_routes_cold"]["world_routes_cold_bytes"], 379648)
+
+    def test_cold_load_images_are_charged_from_their_codec_constants(self):
+        """ADR 1221: the Contacts scope (74) and the Planner admission image (12 + 24 x 8192); a grown image refuses."""
+        result = census.build(self.index, self.projected, self.motion)
+        self.assertEqual(result["cold_load_images"]["rows"], {"contact_scope": 74, "haul_admissions": 196620})
+        text = self.index["haul_planner"].text.replace("const ADMISSION_WIRE_BYTES: int = 12 + 24 * JOB_CAPACITY",
+                                                       "const ADMISSION_WIRE_BYTES: int = 12 + 28 * JOB_CAPACITY")
+        with self.assertRaises((AssertionError, ValueError)):
+            census.build(self.changed("haul_planner", text), self.projected, self.motion)
 
     def test_entry_progress_record_is_charged_at_its_wire_bound(self):
         """ADR 1218: two whole records at MAX_WIRE_BYTES plus the Writer/Reader packets; a changed bound refuses."""
@@ -89,7 +98,7 @@ class CurrentCensusTests(unittest.TestCase):
     def test_joint_pack_fits_the_raised_gate(self):
         result = memory.build()
         self.assertEqual((result["live_with_reserve_bytes"], result["gate_bytes"], result["headroom_bytes"]),
-                         (100013033, 150000000, 49986967))
+                         (100209892, 150000000, 49790108))
 
     def test_publication_controls_refuse_above_their_ceiling(self):
         text = self.index["underground_room_frontier_publication"].text.replace(

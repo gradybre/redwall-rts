@@ -632,12 +632,12 @@ def test_p05_real_census_matches_astra_or_says_so_loudly() -> None:
 	"""
 	built = real_audit()
 	observed = built["census"]["observed"]
-	check("P05 587 prose records", observed["prose_records"] == 587)
-	check("P05 501 equality", observed["equality"] == 501)
+	check("P05 592 prose records (decision1221 +5)", observed["prose_records"] == 592)
+	check("P05 506 equality", observed["equality"] == 506)
 	check("P05 86 upper bounds", observed["upper_bound"] == 86)
 	check("P05 171 other canonical shapes", observed["other_canonical_shapes"] == 171)
 	check("P05 65 distinct expressions", observed["distinct_expressions"] == 65)
-	check("P05 758 canonical records and 10 non-hash", observed["canonical_records"] == 758 and observed["non_hash_fields"] == 10)
+	check("P05 763 canonical records and 10 non-hash", observed["canonical_records"] == 763 and observed["non_hash_fields"] == 10)
 	check("P05 no non-hash row was swept in", observed["non_hash_fields_admitted_to_audit"] == 0)
 	# The census no longer equals Astra's 388f4f4 snapshot, and must not be made to. Decision
 	# 0142 removed three packed fields; 0157 added three packed fields and three scalars.
@@ -655,7 +655,7 @@ def test_p05_real_census_matches_astra_or_says_so_loudly() -> None:
 
 
 def test_p06_real_proof_status_is_exactly_reported() -> None:
-	"""The real proof outcome under REG-C4-R01: 501 equalities, 86 bounds, 0 unproved, 0 contradictions.
+	"""The real proof outcome under REG-C4-R01: 506 equalities, 86 bounds, 0 unproved, 0 contradictions.
 
 	Before REG-C4-R01, the two orchard_hive link capacities (`_link_hive_generation`,
 	`_link_hive_slot`) halted on a nested constant's own `+` and were quarantined as
@@ -665,10 +665,10 @@ def test_p06_real_proof_status_is_exactly_reported() -> None:
 	"""
 	built = real_audit()
 	counts = built["status_counts"]
-	check("P06 501 proved equalities", counts.get("proved_equality") == 501)
+	check("P06 506 proved equalities", counts.get("proved_equality") == 506)
 	check("P06 86 proved upper bounds", counts.get("proved_upper_bound") == 86)
 	check("P06 no other status appears", set(counts) == {"proved_equality", "proved_upper_bound"})
-	check("P06 the statuses sum to 587", sum(counts.values()) == 587)
+	check("P06 the statuses sum to 592", sum(counts.values()) == 592)
 	check("P06 nothing is quarantined or contradicted", built["unproved_or_contradicted"] == [])
 	links = [row for row in built["rows"] if row["field_key"] in ("_link_hive_generation", "_link_hive_slot")]
 	check("P06 both orchard link capacities are present and proved",
@@ -683,7 +683,7 @@ def test_p07_every_proved_row_carries_its_provenance() -> None:
 	"""A proved row without a file, line and chain is an assertion, not a proof."""
 	built = real_audit()
 	proved = [row for row in built["rows"] if row["status"].startswith("proved_")]
-	check("P07 all 587 rows are proved", len(proved) == 587)
+	check("P07 all 592 rows are proved", len(proved) == 592)
 	check("P07 every proved row names a real source file",
 		all((ROOT / row["source_file"]).is_file() for row in proved))
 	check("P07 every proved row cites a resize line", all(row["source_resize_line"] >= 1 for row in proved))
@@ -697,13 +697,13 @@ def test_p07_every_proved_row_carries_its_provenance() -> None:
 
 
 def test_p08_keys_are_unique_and_nothing_is_lost() -> None:
-	"""Every audit key is unique, and the 758 canonical records are fully accounted for."""
+	"""Every audit key is unique, and the 763 canonical records are fully accounted for."""
 	built = real_audit()
 	keys = [(row["section_id"], row["owner_key"], row["ordinal"], row["field_key"]) for row in built["rows"]]
-	check("P08 587 keys, all unique", len(keys) == 587 and len(set(keys)) == 587)
+	check("P08 592 keys, all unique", len(keys) == 592 and len(set(keys)) == 592)
 	other = built["non_capacity_canonical_records"]
 	check("P08 171 non-capacity records are listed, not dropped", len(other) == 171)
-	check("P08 the two lists partition the 758 canonical records", len(keys) + len(other) == 758)
+	check("P08 the two lists partition the 763 canonical records", len(keys) + len(other) == 763)
 	overlap = set(keys) & {(row["section_id"], row["owner_key"], row["ordinal"], row["field_key"]) for row in other}
 	check("P08 the two lists do not overlap", overlap == set())
 

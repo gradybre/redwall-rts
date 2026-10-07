@@ -1,4 +1,4 @@
-# 1221 — Underground cold load: owner codecs for Routes and WorldRoutes
+# 1221 — Underground cold load: the owner codecs
 
 Date: 2026-10-07 · Status: Accepted for the owner codecs below (Brendan's decision: build cold load now). The
 section-6 body and the settlement wiring are not built; see "Not done".
@@ -92,11 +92,73 @@ a fresh search spend identical debt, so clearing it does not change the result.
 The quiescence check treats the once-bound installation context (ADR 1105) as quiet when it holds no route token.
 The first live run refused the capture because the check had required the context to be absent.
 
+## 3. Connector Contacts: a retained scope is saved
+
+The registry called Contacts category 3, with "no open observation across a frame/save boundary". **That is not
+quite true.** `_pin_scope` keeps `_primary_job` and `_material_container` whenever the Placement and Project are
+unchanged. Router's PRODUCTIVE `transition_refusal` then reads `_primary_job` in its crew proof (`_crew_leaf`), and
+in practice that Job was pinned by a `worker_refusal` in an earlier tick. A fresh Contacts would refuse
+`CONNECTOR_CONTACT_WORKER` where the uninterrupted run passes. `discard_transition` and `discard_phase` also act
+only on an exactly matching retained scope, and they clear the cache.
+
+So these twelve values are saved: `_placement`, `_project`, `_ordinal`, `_action`, `_valid`, `_phase_mode`,
+`_primary_job`, `_material_container`, `_phase_site`, `_phase_operation`, `_phase_episode` and
+`_phase_output_container`.
+
+The wire is schema 1, magic `UWCP`, 74 bytes. It is captured only when no proof is in progress. On restore, the
+handles are checked only for shape. Nothing reads them without re-proving them: `_job_row` checks the Job's
+Directory, Jobs and Router binding, and the material leaves check Construction's binding and the storage endpoint.
+Every other member is re-pinned by the next call.
+
+## 4. Delivery writes nothing; the admitted haul is the Planner's (resolves decision 1023's UNRESOLVED row)
+
+Delivery clears its whole synchronous packet after every operation (`_clear`). Its per-haul facts are:
+
+- HaulPlanner's admission record (`_job_generation`, the destination store, `_dest_tile`, `_reserved_g`);
+- the Reservation pool's claims;
+- Inventory;
+- the Job.
+
+So **Delivery saves nothing.** `save_quiescence_refusal()` admits a save or load only when no operation, work-tick
+window or pinned Job is open.
+
+**The admission record is now saved by its owner.** It is section 6 owner `haul_planner`: schema 1, ordinals 0–4,
+contract C196, keyed by the pool's Job key.
+
+- **Why section 6, not section 4.** The row's question assumed section 4. But SAVE-S4-STREAM-R01 froze section 4's
+  owner set at 18 (`store_count` 18), and the record is an auxiliary admission keyed by a Job, like the entry
+  progress record.
+- **Wire.** Schema 1, magic `UHPL`, 196,620 bytes, all 8,192 rows.
+- **Restore.** It runs after Inventory and the pool. It proves every row **from the image** before writing any:
+  - an empty row is canonical;
+  - an admission names either a live store, or (with 0 grams) a ground tile;
+  - an admission holds at least one pool claim under its Job key;
+  - the image's grams on each store fit what that store reserves (`audit()`'s rule).
+
+The persistence registry rows become category 1, and the canonical registry advances to version 13
+(`RWL-CANONICAL-REGISTRY-2026-10-07-CL1`). Section 6 goes to schema 7: 63 owners, 773 fields, 763 records and 677
+packed fields. The generated declaration table, the capacity audit (5 new equalities) and the validators' pins move
+with it.
+
 ## Memory
 
-All capture and restore images for Routes (320,608 bytes) and WorldRoutes (84,184 bytes) are charged to the
-caller's existing cold Budget lease (`Budget.COLD_BYTES` = 1,048,960). Together they are 404,792 bytes. No packed
-column is added, so the joint pack and `tools/underground_memory_budget.py --check` are unchanged.
+The Routes (320,608 bytes) and WorldRoutes (84,184 bytes) images are charged to the caller's existing cold Budget
+lease (`Budget.COLD_BYTES` = 1,048,960). Together they are 404,792 bytes. The other images are not leased:
+
+- the Contacts scope image, 74 bytes;
+- the Planner's admission image, 196,620 bytes.
+
+Each is one caller image, charged as retained, conservatively. The current-source census row `cold_load_images`
+(196,694 bytes) recomputes both from the codecs' constants. The new declaration adds 165 bytes. No packed column is
+added.
+
+The joint pack moves from 100,013,033 to **100,209,892 bytes**, leaving **49,790,108 bytes** under DEC-053's 150 MB
+gate. The ledger in `systems_architecture.md` and `ready07_arithmetic.py` gains two rows.
+
+Step 1 also changed Routes', WorldRoutes' and Contacts' storage facts (wire constants, the image resize). Their
+reviewed-delta rows in `docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-deltas.json` now
+carry them, and the census's pinned table hash moves. **Step 1's own commit left those rows stale**, so
+`underground_memory_budget.py --check` refused between that commit and this one.
 
 ## Evidence
 
@@ -120,7 +182,18 @@ column is added, so the joint pack and `tools/underground_memory_budget.py --che
     cold-restores both owners every 23 ticks.
   - In both chains, every final ledger and both route images are byte-identical to the uninterrupted run.
 
+Both goal chains also cold-restore Contacts' scope and the Planner's admissions, blanked as fresh owners hold them,
+with Delivery and the arena required quiescent. They do it every 41 and 23 ticks respectively, and the final images
+are byte-identical. Unit tests cover the rest:
+
+- `test_haul_planner.gd`: a store admission survives clear-and-restore and then cancels exactly, and 6 kinds of damage
+  plus a truncated image are each refused with nothing written.
+- `test_underground_connector_contacts.gd`: a primed scope restored into a fresh scope still lets the actual paid
+  START succeed, and corruptions and busy states are refused.
+- `test_underground_connector_delivery.gd`: quiescence is required.
+- `test_canonical_state_hash.gd`: the new owner's declaration.
+
 ## Not done
 
-- Contacts, Delivery, HaulPlanner admissions and the Budget: later steps of this record.
-- The section-6 body, its canonical declarations and the settlement wiring.
+- The Budget (a later step of this record).
+- The section-6 body, its canonical declarations for the other underground owners, and the settlement wiring.

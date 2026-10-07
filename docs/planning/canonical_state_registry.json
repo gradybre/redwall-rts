@@ -1,6 +1,6 @@
 {
- "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-07-EP1",
- "registry_version": 12,
+ "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-07-CL1",
+ "registry_version": 13,
  "status": "ADOPTED_KEYS_TYPES_AND_ORDINALS_FOR_NAMED_SNAPSHOT",
  "release_save_ready": false,
  "source_commit": "reconciled_to_integration_head_from_197472b9d7f2",
@@ -66,8 +66,8 @@
   "construction": "1ce4a49cebff074ac673d574af2b0e4d9b674ff7056d2524b63eabb5138f73c1"
  },
  "canonical_stream": "RWL-STATE-1",
- "record_count": 758,
- "packed_source_field_count": 672,
+ "record_count": 763,
+ "packed_source_field_count": 677,
  "policy": "Fixed per compatible build; add owners/fields explicitly on arrival, change rules identity and affected versions; refuse incompatible development saves. Never infer registry at runtime. source_module_sha256 records the named reconciliation snapshot, not current HEAD; current acceptance source hashes are retained with each task evidence ledger.",
  "owners": [
   {
@@ -7117,6 +7117,83 @@
   },
   {
    "section_id": 6,
+   "owner_key": "haul_planner",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "_job_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "haul_planner",
+     "source_member": "_job_generation",
+     "shape": {
+      "declared_capacity": "`JOB_CAPACITY` = 8192",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 0,
+     "source_contract": "C196"
+    },
+    {
+     "field_key": "_dest_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "haul_planner",
+     "source_member": "_dest_slot",
+     "shape": {
+      "declared_capacity": "`JOB_CAPACITY` = 8192",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 1,
+     "source_contract": "C196"
+    },
+    {
+     "field_key": "_dest_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "haul_planner",
+     "source_member": "_dest_generation",
+     "shape": {
+      "declared_capacity": "`JOB_CAPACITY` = 8192",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 2,
+     "source_contract": "C196"
+    },
+    {
+     "field_key": "_dest_tile",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "haul_planner",
+     "source_member": "_dest_tile",
+     "shape": {
+      "declared_capacity": "`JOB_CAPACITY` = 8192",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 3,
+     "source_contract": "C196"
+    },
+    {
+     "field_key": "_reserved_g",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "haul_planner",
+     "source_member": "_reserved_g",
+     "shape": {
+      "declared_capacity": "`JOB_CAPACITY` = 8192",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 4,
+     "source_contract": "C196"
+    }
+   ]
+  },
+  {
+   "section_id": 6,
    "owner_key": "inventory",
    "owner_schema_version": 1,
    "fields": [
@@ -12118,6 +12195,10 @@
   "C195": {
    "unused": "No record while no entry runs; an empty queue outside STAGE_HAUL; null handles are exactly (-1,0).",
    "notes": "Decision1218 (ADR1197 G10, Brendan 2026-10-07: save the entry's progress explicitly). The runtime, foreman, installer and hauler cursors are one versioned little-endian record written by their owners' write_state and restored only into fresh dispatchers; every handle is re-proved against the restored Jobs, Construction/Router, Locations, Placements, Sites, Inventory and Routes with exact ENTRY_SAVE_* refusals, and a decoded record must re-encode byte-identically. Save only at a quiescent tick boundary."
+  },
+  "C196": {
+   "unused": "_job_generation 0 for no admission, then destination (-1,0), tile -1 (NO_TILE) and 0 grams; a ground-pile admission has a null destination, a tile and 0 grams; Delivery's spatial admission has a destination store and NO_TILE.",
+   "notes": "Decision1221 resolves decision1023's UNRESOLVED admitted-haul record. Section 6, not section 4: section 4's owner set is frozen by SAVE-S4-STREAM-R01 (store_count 18), and the record is an auxiliary admission keyed by the reservation pool's Job key, like the entry progress record. The haul_planner local wire (schema 1) writes all 8192 rows; restore proves each row from the image (canonical empty row; a live store or a ground tile; a pool claim for the Job key; grams on each store no more than it reserves) before writing any. Underground Delivery keeps no per-haul state of its own."
   }
  },
  "section_schema_versions": [
@@ -12126,7 +12207,7 @@
   1,
   2,
   1,
-  6,
+  7,
   6,
   2,
   2,

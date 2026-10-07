@@ -151,13 +151,33 @@
      "bytes": 256,
      "carried_by": "BINDINGS_AND_GROWTH_BYTES (fully assigned, 524,544)",
      "store": "CONTROL_BYTES 4,096 -> 4,352: ADR 1215 air in its two Location records (+160; fixed 3,219)"
+    },
+    {
+     "bytes": 74,
+     "carried_by": "none (new)",
+     "store": "ADR 1221: retained contact scope image (SCOPE_WIRE_BYTES 74), one caller image at a time, charged as retained, conservatively"
     }
    ],
    "delta": {
+    "resizes_added": [
+     "out.resize(SCOPE_WIRE_BYTES)"
+    ],
     "int_constants_added": [
      [
       "CONTROL_BYTES",
       "4352"
+     ],
+     [
+      "SCOPE_WIRE_BYTES",
+      "6 * 4 + 2 + 6 * 8"
+     ],
+     [
+      "SCOPE_WIRE_MAGIC",
+      "0x50435755"
+     ],
+     [
+      "SCOPE_WIRE_SCHEMA",
+      "1"
      ]
     ],
     "int_constants_removed": [
@@ -165,7 +185,12 @@
       "CONTROL_BYTES",
       "4096"
      ]
-    ]
+    ],
+    "allocation_sites": {
+     "=[": 1,
+     "PackedInt32Array(": 1,
+     "return[": 1
+    }
    }
   },
   "godot/scripts/core/underground_connector_placements.gd": {
@@ -889,15 +914,40 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "ADR 1219: UNREGISTERED_REACH_U is a compile-time constant of the unregistered-resident occupancy rule; no retained storage"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "Budget.COLD_BYTES shared cold lease",
+     "store": "ADR 1221: Routes wire schema 1 capture/restore image (320,608 B at the composed capacities) is the caller's leased cold image; restore decodes into the existing stage and load banks. No retained storage"
     }
    ],
    "delta": {
+    "resizes_added": [
+     "out.resize(wire_bytes()"
+    ],
     "int_constants_added": [
      [
       "UNREGISTERED_REACH_U",
       "2 * 2611"
+     ],
+     [
+      "WIRE_HEADER_FIELDS",
+      "12"
+     ],
+     [
+      "WIRE_MAGIC",
+      "0x54524755"
+     ],
+     [
+      "WIRE_SCHEMA",
+      "1"
      ]
-    ]
+    ],
+    "allocation_sites": {
+     "=[": 2,
+     "PackedInt64Array(": 2,
+     "range(": 3
+    }
    }
   },
   "godot/scripts/core/underground_session.gd": {
@@ -1001,12 +1051,85 @@
      "bytes": 1792,
      "carried_by": "Budget.COLD_BYTES shared cold lease",
      "store": "Clearance.changes staged sides (7 x 64 x i32)"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "Budget.COLD_BYTES shared cold lease",
+     "store": "ADR 1221: certificate and journal image (84,184 B) is the caller's leased cold image; restore decodes into the existing stage bank. No retained storage"
     }
    ],
    "delta": {
-    "allocation_sites": {
-     "PackedInt32Array(": 2
-    },
+    "members_added": [
+     [
+      "_carried",
+      "bool"
+     ],
+     [
+      "_carried_edges",
+      "int"
+     ],
+     [
+      "_carry_edge",
+      "bool"
+     ],
+     [
+      "_envelope",
+      "PackedInt32Array"
+     ],
+     [
+      "_proof_checks",
+      "int"
+     ],
+     [
+      "_relevant",
+      "int"
+     ],
+     [
+      "_since",
+      "int"
+     ]
+    ],
+    "resizes_added": [
+     "_envelope.resize(6)",
+     "changes.resize(Journal.STAGED_STRIDE * CHANGE_CAPACITY)",
+     "out.resize(CERT_WIRE_BYTES)"
+    ],
+    "int_constants_added": [
+     [
+      "CERT_WIRE_BYTES",
+      "8 * CERT_WIRE_HEADER + EDGE_CAPACITY * (MASK_BYTES + 4 + 16) + 2 * Journal.WIRE_BYTES"
+     ],
+     [
+      "CERT_WIRE_HEADER",
+      "5"
+     ],
+     [
+      "CERT_WIRE_MAGIC",
+      "0x52574755"
+     ],
+     [
+      "CERT_WIRE_SCHEMA",
+      "1"
+     ],
+     [
+      "CHANGE_CAPACITY",
+      "Journal.CAPACITY"
+     ],
+     [
+      "CLEARANCE_INERT_ROLE",
+      "Space.FLOOR_DATUM"
+     ],
+     [
+      "COLD_BYTES",
+      "SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 28 * CHANGE_CAPACITY + 1024"
+     ]
+    ],
+    "int_constants_removed": [
+     [
+      "COLD_BYTES",
+      "SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 1024"
+     ]
+    ],
     "classes": {
      "Clearance": [
       [
@@ -1111,60 +1234,11 @@
       ]
      ]
     },
-    "int_constants_added": [
-     [
-      "CHANGE_CAPACITY",
-      "Journal.CAPACITY"
-     ],
-     [
-      "CLEARANCE_INERT_ROLE",
-      "Space.FLOOR_DATUM"
-     ],
-     [
-      "COLD_BYTES",
-      "SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 28 * CHANGE_CAPACITY + 1024"
-     ]
-    ],
-    "int_constants_removed": [
-     [
-      "COLD_BYTES",
-      "SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 1024"
-     ]
-    ],
-    "members_added": [
-     [
-      "_carried",
-      "bool"
-     ],
-     [
-      "_carried_edges",
-      "int"
-     ],
-     [
-      "_carry_edge",
-      "bool"
-     ],
-     [
-      "_envelope",
-      "PackedInt32Array"
-     ],
-     [
-      "_proof_checks",
-      "int"
-     ],
-     [
-      "_relevant",
-      "int"
-     ],
-     [
-      "_since",
-      "int"
-     ]
-    ],
-    "resizes_added": [
-     "_envelope.resize(6)",
-     "changes.resize(Journal.STAGED_STRIDE * CHANGE_CAPACITY)"
-    ]
+    "allocation_sites": {
+     "PackedInt32Array(": 2,
+     "PackedInt64Array(": 1,
+     "range(": 1
+    }
    }
   },
   "godot/scripts/systems/settlement_system.gd": {

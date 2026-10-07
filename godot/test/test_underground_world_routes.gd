@@ -1613,6 +1613,46 @@ static func cold_restore_route_owners(routes: Routes, world_routes: Binding, own
 	return code
 
 
+static func wipe_contact_scope(contacts: RefCounted) -> void:
+	"""What a freshly configured Contacts retains between calls: no scope at all."""
+	contacts._ordinal = -1
+	contacts._action = -1
+	contacts._phase_operation = -1
+	contacts._phase_episode = -1
+	contacts._valid = false
+	contacts._phase_mode = false
+	for member: String in ["_placement", "_project", "_primary_job", "_material_container", "_phase_site",
+			"_phase_output_container"]:
+		contacts.set(member, NULL_REF)
+
+
+static func entry_owner_images(contacts: RefCounted, delivery: RefCounted, budget: Budget) -> Array[PackedByteArray]:
+	"""ADR1221 steps 2 and 3: Contacts' scope and the Planner's admissions, with Delivery and the arena quiescent
+	(neither writes anything); empty when any capture refuses."""
+	var images: Array[PackedByteArray] = [PackedByteArray(), PackedByteArray()]
+	var code: StringName = contacts.capture_state_into(images[0])
+	if code == &"": code = delivery.save_quiescence_refusal()
+	if code == &"" and not budget.is_quiescent(): code = Budget.REFUSE_BUSY
+	if code == &"": code = delivery._planner.capture_admissions_into(images[1])
+	if code != &"": images.clear()
+	return images
+
+
+static func cold_restore_entry_owners(contacts: RefCounted, delivery: RefCounted, budget: Budget) -> StringName:
+	"""ADR1221: capture Contacts, Delivery, the arena and the Planner, blank Contacts' scope and the Planner's record
+	as fresh owners hold them, restore all four and require the very same images back."""
+	var images: Array[PackedByteArray] = entry_owner_images(contacts, delivery, budget)
+	if images.is_empty(): return &"COLD_CAPTURE_REFUSED"
+	wipe_contact_scope(contacts)
+	delivery._planner.clear()
+	var code: StringName = &"" if budget.is_quiescent() else Budget.REFUSE_BUSY
+	if code == &"": code = contacts.restore_state_bytes(images[0])
+	if code == &"": code = delivery._planner.restore_admissions(images[1])
+	if code == &"": code = delivery.save_quiescence_refusal()
+	if code == &"" and entry_owner_images(contacts, delivery, budget) != images: code = &"COLD_IMAGE_DRIFT"
+	return code
+
+
 func _cold_images() -> Array[PackedByteArray]:
 	"""The Routes image and the certificate image, captured under one released lease."""
 	var graph: PackedByteArray = PackedByteArray()

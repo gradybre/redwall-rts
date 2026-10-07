@@ -2552,3 +2552,79 @@ func discard_phase(placement: Vector2i, site: Vector2i, operation: int, stage: i
 		_phase_output_container = NULL_REF
 		_phase_companion_token = 0
 		_phase_space_token = 0
+
+
+# ADR1221 (cold load): the contact scope that survives between calls. Every proof entry point re-pins its own
+# observation, but `_pin_scope` keeps the primary Job and material container while the Placement and Project are
+# unchanged, and `discard_transition`/`discard_phase` act only on an exactly matching retained scope. Those twelve
+# values are therefore future-affecting and saved; every other member is re-pinned by the next call. Schema 1:
+# magic, schema, ordinal, action, phase operation, phase episode (i32 each), the valid and phase flags (u8 each),
+# then six full refs (placement, project, primary Job, material container, phase Site, phase output container).
+const SCOPE_WIRE_MAGIC: int = 0x50435755 # "UWCP"
+const SCOPE_WIRE_SCHEMA: int = 1
+const SCOPE_WIRE_BYTES: int = 6 * 4 + 2 + 6 * 8
+const REFUSE_LOAD_BUSY: StringName = &"CONNECTOR_CONTACT_LOAD_BUSY"
+const REFUSE_LOAD_SHAPE: StringName = &"CONNECTOR_CONTACT_LOAD_SHAPE"
+
+
+func _scope_refs() -> Array[Vector2i]:
+	"""The six retained full references in wire order."""
+	return [_placement, _project, _primary_job, _material_container, _phase_site, _phase_output_container]
+
+
+func capture_state_into(out: PackedByteArray) -> StringName:
+	"""ADR1221: the retained scope at a quiescent boundary (no proof in progress), into one empty image."""
+	if not _configured or _busy or not out.is_empty():
+		return REFUSE_LOAD_BUSY
+	out.resize(SCOPE_WIRE_BYTES)
+	var words: PackedInt32Array = PackedInt32Array([SCOPE_WIRE_MAGIC, SCOPE_WIRE_SCHEMA, _ordinal, _action,
+		_phase_operation, _phase_episode])
+	for index: int in words.size():
+		out.encode_s32(4 * index, words[index])
+	out[24] = 1 if _valid else 0
+	out[25] = 1 if _phase_mode else 0
+	var at: int = 26
+	for ref: Vector2i in _scope_refs():
+		out.encode_s32(at, ref.x)
+		out.encode_s32(at + 4, ref.y)
+		at += 8
+	return &""
+
+
+func restore_state_bytes(bytes: PackedByteArray) -> StringName:
+	"""ADR1221: install a saved scope. Its handles are only shape-checked: no reader trusts them without re-proving
+	them (a stale Job or container is refused by `_job_row` and the material leaves at its next use)."""
+	if not _configured or _busy:
+		return REFUSE_LOAD_BUSY
+	if bytes.size() != SCOPE_WIRE_BYTES or bytes.decode_s32(0) != SCOPE_WIRE_MAGIC \
+			or bytes.decode_s32(4) != SCOPE_WIRE_SCHEMA or bytes[24] > 1 or bytes[25] > 1:
+		return REFUSE_LOAD_SHAPE
+	var action: int = bytes.decode_s32(12)
+	if bytes.decode_s32(8) < -1 or action < -1 or action > Contract.START or bytes.decode_s32(16) < -1 \
+			or bytes.decode_s32(16) > PhaseContract.OP_FINISH or bytes.decode_s32(20) < -1:
+		return REFUSE_LOAD_SHAPE
+	for index: int in 6:
+		var ref: Vector2i = Vector2i(bytes.decode_s32(26 + 8 * index), bytes.decode_s32(30 + 8 * index))
+		if ref != NULL_REF and (ref.x < 0 or ref.y < 1):
+			return REFUSE_LOAD_SHAPE
+	_install_scope(bytes)
+	return &""
+
+
+func _install_scope(bytes: PackedByteArray) -> void:
+	"""Write an accepted scope image into the retained members."""
+	_ordinal = bytes.decode_s32(8)
+	_action = bytes.decode_s32(12)
+	_phase_operation = bytes.decode_s32(16)
+	_phase_episode = bytes.decode_s32(20)
+	_valid = bytes[24] == 1
+	_phase_mode = bytes[25] == 1
+	var refs: Array[Vector2i] = []
+	for index: int in 6:
+		refs.append(Vector2i(bytes.decode_s32(26 + 8 * index), bytes.decode_s32(30 + 8 * index)))
+	_placement = refs[0]
+	_project = refs[1]
+	_primary_job = refs[2]
+	_material_container = refs[3]
+	_phase_site = refs[4]
+	_phase_output_container = refs[5]

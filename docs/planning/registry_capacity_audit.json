@@ -4,9 +4,9 @@
   "audit_schema_version": 2,
   "audited_registry": {
     "path": "docs/planning/canonical_state_registry.json",
-    "registry_canonical_json_sha256": "7634311c83edf32eaa93046f1ddbd815a07e1e62009286278101551994ae2efe",
-    "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-07-EP1",
-    "registry_version": 12
+    "registry_canonical_json_sha256": "0732d51e385b7764168dd9a05f759904139b3b181ca091323d811a63ba1f98d5",
+    "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-07-CL1",
+    "registry_version": 13
   },
   "audited_source": {
     "module_sha256": {
@@ -21,6 +21,7 @@
       "fishing": "2fed8f810709d5029744e9991b4c09c946bbc4bdc61d4b006884e703daf1bdfe",
       "forage": "fbc941117ee084e80998c91510ee7ff4a320a265c6a4c16fcee8134fd5fa115f",
       "gear": "aeed59191a5e06fbd6e8b4bccf93d9b991ff9a73e2a1229afa1f2ed0cc6972ea",
+      "haul_planner": "ff125c7c0a1a9ab3c23be832ceec77b54354e4b87c0b7fe8ebc482fee0a400e4",
       "injury": "e881a967099df59cadb9440f4d69632ca19c1ea2b3c8eddfe79dde3857603447",
       "inventory": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
       "job_planner": "bc024854f95b7b31f7ed580252a84e85fba565f4adec7b354df776c3a4870591",
@@ -63,27 +64,27 @@
     "astra_cycle_03_taken_at": "388f4f4",
     "disagreements": [],
     "explained_since_census": [
-      "canonical_records: this audit 758, Astra Cycle 3 599 (+159) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072 and 1218: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record",
-      "distinct_expressions: this audit 65, Astra Cycle 3 56 (+9) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072 and 1218: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record",
-      "equality: this audit 501, Astra Cycle 3 473 (+28) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072 and 1218: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record",
-      "other_canonical_shapes: this audit 171, Astra Cycle 3 80 (+91) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072 and 1218: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record",
-      "owners: this audit 62, Astra Cycle 3 52 (+10) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072 and 1218: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record",
-      "packed_source_fields: this audit 672, Astra Cycle 3 553 (+119) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072 and 1218: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record",
-      "prose_records: this audit 587, Astra Cycle 3 519 (+68) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072 and 1218: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record",
-      "upper_bound: this audit 86, Astra Cycle 3 46 (+40) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072 and 1218: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record"
+      "canonical_records: this audit 763, Astra Cycle 3 599 (+164) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218 and 1221: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record and the haul admission record",
+      "distinct_expressions: this audit 65, Astra Cycle 3 56 (+9) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218 and 1221: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record and the haul admission record",
+      "equality: this audit 506, Astra Cycle 3 473 (+33) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218 and 1221: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record and the haul admission record",
+      "other_canonical_shapes: this audit 171, Astra Cycle 3 80 (+91) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218 and 1221: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record and the haul admission record",
+      "owners: this audit 63, Astra Cycle 3 52 (+11) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218 and 1221: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record and the haul admission record",
+      "packed_source_fields: this audit 677, Astra Cycle 3 553 (+124) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218 and 1221: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record and the haul admission record",
+      "prose_records: this audit 592, Astra Cycle 3 519 (+73) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218 and 1221: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record and the haul admission record",
+      "upper_bound: this audit 86, Astra Cycle 3 46 (+40) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218 and 1221: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record and the haul admission record"
     ],
     "observed": {
-      "canonical_records": 758,
+      "canonical_records": 763,
       "distinct_expressions": 65,
-      "equality": 501,
+      "equality": 506,
       "non_hash_fields": 10,
       "non_hash_fields_admitted_to_audit": 0,
       "non_hash_fields_carrying_declared_capacity": 0,
       "other_canonical_shapes": 171,
-      "owners": 62,
-      "packed_source_fields": 672,
-      "prose_records": 587,
-      "registry_listed_fields": 768,
+      "owners": 63,
+      "packed_source_fields": 677,
+      "prose_records": 592,
+      "registry_listed_fields": 773,
       "upper_bound": 86
     }
   },
@@ -11278,6 +11279,126 @@
     },
     {
       "declared_capacity_prose": "`JOB_CAPACITY` = 8192",
+      "field_key": "_job_generation",
+      "ordinal": 0,
+      "owner_key": "haul_planner",
+      "parsed_expression": "JOB_CAPACITY",
+      "proof_chain": [
+        "ReservationsScript.JOB_CAPACITY -> godot/scripts/core/reservations.gd:77 `const JOB_CAPACITY = 8192` = 8192",
+        "JOB_CAPACITY -> godot/scripts/core/haul_planner.gd:55 `const JOB_CAPACITY = ReservationsScript.JOB_CAPACITY` = 8192"
+      ],
+      "proof_kind": "compiled_constant",
+      "prose_relation": "eq",
+      "prose_value": 8192,
+      "quarantine_reason": "",
+      "section_id": 6,
+      "source_file": "godot/scripts/core/haul_planner.gd",
+      "source_member": "_job_generation",
+      "source_module": "haul_planner",
+      "source_relation": "eq",
+      "source_resize_expression": "JOB_CAPACITY",
+      "source_resize_line": 151,
+      "source_value": 8192,
+      "status": "proved_equality"
+    },
+    {
+      "declared_capacity_prose": "`JOB_CAPACITY` = 8192",
+      "field_key": "_dest_slot",
+      "ordinal": 1,
+      "owner_key": "haul_planner",
+      "parsed_expression": "JOB_CAPACITY",
+      "proof_chain": [
+        "ReservationsScript.JOB_CAPACITY -> godot/scripts/core/reservations.gd:77 `const JOB_CAPACITY = 8192` = 8192",
+        "JOB_CAPACITY -> godot/scripts/core/haul_planner.gd:55 `const JOB_CAPACITY = ReservationsScript.JOB_CAPACITY` = 8192"
+      ],
+      "proof_kind": "compiled_constant",
+      "prose_relation": "eq",
+      "prose_value": 8192,
+      "quarantine_reason": "",
+      "section_id": 6,
+      "source_file": "godot/scripts/core/haul_planner.gd",
+      "source_member": "_dest_slot",
+      "source_module": "haul_planner",
+      "source_relation": "eq",
+      "source_resize_expression": "JOB_CAPACITY",
+      "source_resize_line": 152,
+      "source_value": 8192,
+      "status": "proved_equality"
+    },
+    {
+      "declared_capacity_prose": "`JOB_CAPACITY` = 8192",
+      "field_key": "_dest_generation",
+      "ordinal": 2,
+      "owner_key": "haul_planner",
+      "parsed_expression": "JOB_CAPACITY",
+      "proof_chain": [
+        "ReservationsScript.JOB_CAPACITY -> godot/scripts/core/reservations.gd:77 `const JOB_CAPACITY = 8192` = 8192",
+        "JOB_CAPACITY -> godot/scripts/core/haul_planner.gd:55 `const JOB_CAPACITY = ReservationsScript.JOB_CAPACITY` = 8192"
+      ],
+      "proof_kind": "compiled_constant",
+      "prose_relation": "eq",
+      "prose_value": 8192,
+      "quarantine_reason": "",
+      "section_id": 6,
+      "source_file": "godot/scripts/core/haul_planner.gd",
+      "source_member": "_dest_generation",
+      "source_module": "haul_planner",
+      "source_relation": "eq",
+      "source_resize_expression": "JOB_CAPACITY",
+      "source_resize_line": 153,
+      "source_value": 8192,
+      "status": "proved_equality"
+    },
+    {
+      "declared_capacity_prose": "`JOB_CAPACITY` = 8192",
+      "field_key": "_dest_tile",
+      "ordinal": 3,
+      "owner_key": "haul_planner",
+      "parsed_expression": "JOB_CAPACITY",
+      "proof_chain": [
+        "ReservationsScript.JOB_CAPACITY -> godot/scripts/core/reservations.gd:77 `const JOB_CAPACITY = 8192` = 8192",
+        "JOB_CAPACITY -> godot/scripts/core/haul_planner.gd:55 `const JOB_CAPACITY = ReservationsScript.JOB_CAPACITY` = 8192"
+      ],
+      "proof_kind": "compiled_constant",
+      "prose_relation": "eq",
+      "prose_value": 8192,
+      "quarantine_reason": "",
+      "section_id": 6,
+      "source_file": "godot/scripts/core/haul_planner.gd",
+      "source_member": "_dest_tile",
+      "source_module": "haul_planner",
+      "source_relation": "eq",
+      "source_resize_expression": "JOB_CAPACITY",
+      "source_resize_line": 154,
+      "source_value": 8192,
+      "status": "proved_equality"
+    },
+    {
+      "declared_capacity_prose": "`JOB_CAPACITY` = 8192",
+      "field_key": "_reserved_g",
+      "ordinal": 4,
+      "owner_key": "haul_planner",
+      "parsed_expression": "JOB_CAPACITY",
+      "proof_chain": [
+        "ReservationsScript.JOB_CAPACITY -> godot/scripts/core/reservations.gd:77 `const JOB_CAPACITY = 8192` = 8192",
+        "JOB_CAPACITY -> godot/scripts/core/haul_planner.gd:55 `const JOB_CAPACITY = ReservationsScript.JOB_CAPACITY` = 8192"
+      ],
+      "proof_kind": "compiled_constant",
+      "prose_relation": "eq",
+      "prose_value": 8192,
+      "quarantine_reason": "",
+      "section_id": 6,
+      "source_file": "godot/scripts/core/haul_planner.gd",
+      "source_member": "_reserved_g",
+      "source_module": "haul_planner",
+      "source_relation": "eq",
+      "source_resize_expression": "JOB_CAPACITY",
+      "source_resize_line": 155,
+      "source_value": 8192,
+      "status": "proved_equality"
+    },
+    {
+      "declared_capacity_prose": "`JOB_CAPACITY` = 8192",
       "field_key": "_job_slot",
       "ordinal": 0,
       "owner_key": "modular_projects",
@@ -15698,7 +15819,7 @@
     }
   ],
   "status_counts": {
-    "proved_equality": 501,
+    "proved_equality": 506,
     "proved_upper_bound": 86
   },
   "unproved_or_contradicted": []

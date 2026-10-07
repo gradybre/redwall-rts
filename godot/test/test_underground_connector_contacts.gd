@@ -39,6 +39,7 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const Transforms := preload("res://scripts/core/transforms.gd")
 const EntryBindings := preload("res://scripts/core/underground_entry_bindings.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
+const RouteFixture := preload("res://test/test_underground_world_routes.gd")
 const SOURCE_PATH: String = "user://test-actual-connector-contacts-frontier.bin"
 const SOURCE_REVISION: int = 29
 const ROOT_X: int = -3584
@@ -1418,3 +1419,50 @@ func test_phase_discard_cannot_invalidate_a_different_mode_or_site() -> void:
 	f.contacts.discard_phase(f.placement, f.site(), PhaseContract.OP_BRACE, PhaseContract.STAGE_ADMIT)
 	assert_equal(f.contacts.phase_final_leaf_refusal(f.placement, f.site(), PhaseContract.OP_BRACE,
 		PhaseContract.STAGE_ADMIT), Contacts.REFUSE_SCOPE, "exact cleanup invalidates proof")
+
+
+
+func test_retained_contact_scope_restores_into_a_fresh_scope_and_the_order_still_pays() -> void:
+	"""ADR1221: after a worker observation and delivery the retained scope (Placement, Project, primary Job,
+	material container) is saved, blanked as a fresh Contacts holds it, restored, re-encoded identically, and the
+	actual paid START then succeeds exactly as without the load."""
+	_unpaid_order()
+	var image: PackedByteArray = PackedByteArray()
+	assert_equal(_fixture.contacts.capture_state_into(image), &"", "quiescent capture")
+	assert_equal(image.size(), Contacts.SCOPE_WIRE_BYTES, "declared size")
+	assert_equal(_fixture.contacts._primary_job != NULL_REF, true, "a retained primary Job is saved")
+	RouteFixture.wipe_contact_scope(_fixture.contacts)
+	assert_equal(_fixture.contacts.restore_state_bytes(image), &"", "restored")
+	var again: PackedByteArray = PackedByteArray()
+	assert_equal(_fixture.contacts.capture_state_into(again), &"", "recaptured")
+	assert_equal(again, image, "re-encodes")
+	var started: Construction.OpResult = _fixture.start()
+	assert_true(started.ok, "actual paid START after the load: %s" % started.error)
+
+
+func test_corrupt_contact_scope_images_are_refused_and_the_scope_is_kept() -> void:
+	"""ADR1221: magic, schema, flags, action and handle spellings are checked before any member is written."""
+	_unpaid_order()
+	var image: PackedByteArray = PackedByteArray()
+	assert_equal(_fixture.contacts.capture_state_into(image), &"", "quiescent capture")
+	var cases: Array = [["magic", 0, 7], ["schema", 4, 2], ["action", 12, 9], ["phase operation", 16, 4],
+		["placement null spelling", 30, 5], ["primary Job generation", 46, 0]]
+	for damage: Array in cases:
+		var bad: PackedByteArray = image.duplicate()
+		bad.encode_s32(damage[1], damage[2])
+		if damage[0] == "placement null spelling": bad.encode_s32(26, -1)
+		if damage[0] == "primary Job generation" and bad.decode_s32(42) < 0: bad.encode_s32(42, 3)
+		assert_equal(_fixture.contacts.restore_state_bytes(bad), Contacts.REFUSE_LOAD_SHAPE, "refused: %s" % damage[0])
+		var after: PackedByteArray = PackedByteArray()
+		_fixture.contacts.capture_state_into(after)
+		assert_equal(after, image, "scope unchanged after: %s" % damage[0])
+	var flag: PackedByteArray = image.duplicate()
+	flag[24] = 2
+	assert_equal(_fixture.contacts.restore_state_bytes(flag), Contacts.REFUSE_LOAD_SHAPE, "flag byte")
+	assert_equal(_fixture.contacts.restore_state_bytes(image.slice(1)), Contacts.REFUSE_LOAD_SHAPE, "truncated")
+	_fixture.contacts._busy = true
+	var out: PackedByteArray = PackedByteArray()
+	assert_equal(_fixture.contacts.capture_state_into(out), Contacts.REFUSE_LOAD_BUSY, "no capture mid-proof")
+	assert_equal(_fixture.contacts.restore_state_bytes(image), Contacts.REFUSE_LOAD_BUSY, "no restore mid-proof")
+	_fixture.contacts._busy = false
+

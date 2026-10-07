@@ -805,3 +805,16 @@ func _excavation_haul_job() -> Jobs.OpResult:
 	assert_true(world._transforms.place(world._worker, record.point.x, record.point.y, record.point.z, 0), "worker stands on the endpoint")
 	assert_equal(world._routes.admit_actor(world._worker, made.ref, _fixture._endpoints[2], Profiles.MODE_WALK, 0, -1), &"", "real walking admission")
 	return made if failures.is_empty() else null
+
+
+func test_delivery_saves_nothing_and_requires_quiescence() -> void:
+	"""ADR1221: Delivery's saved form is empty (the Planner owns the admission); a pinned Job, a busy packet or an
+	open work-tick window refuses a save or load."""
+	assert_equal(_delivery.save_quiescence_refusal(), &"", "quiescent between operations")
+	for member: String in ["_busy", "_work_tick"]:
+		_delivery.set(member, true)
+		assert_equal(_delivery.save_quiescence_refusal(), Delivery.REFUSE_LOAD_BUSY, "refused: %s" % member)
+		_delivery.set(member, false)
+	_delivery._job = Vector2i(3, 1)
+	assert_equal(_delivery.save_quiescence_refusal(), Delivery.REFUSE_LOAD_BUSY, "refused with a pinned Job")
+	_delivery._job = NULL_REF

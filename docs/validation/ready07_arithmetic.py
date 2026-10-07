@@ -137,12 +137,14 @@ registry_key_bytes=sum(len(owner['owner_key'].encode('utf-8')) for owner in regi
 # Decision 0531 appended `_c_anchor_tile`: 52 owners, 612 fields and 9065 key bytes.
 # Decisions 1053/1060 add one RoomProjects owner and eleven fields: +16 owner bytes,
 # +165 field bytes and +171 UTF-8 key bytes. Decision 1062 reconciles the actual buffers.
-assert (len(registry_owners),len(registry_fields),registry_key_bytes)==(62,768,11211)
-assert (registry['record_count'],registry['packed_source_field_count'])==(758,672)
-assert sum(bool(field['hash']) for field in registry_fields)==758
+# Decision1221 adds the haul admission owner: one owner, five fields, 74 key bytes.
+assert (len(registry_owners),len(registry_fields),registry_key_bytes)==(63,773,11285)
+assert (registry['record_count'],registry['packed_source_field_count'])==(763,677)
+assert sum(bool(field['hash']) for field in registry_fields)==763
 DECISION_0127_ADDED=len(registry_owners)*16+len(registry_fields)*15+registry_key_bytes
 # Decision1218 adds the entry progress owner: +150 (one owner, four fields, 74 key bytes).
-assert DECISION_0127_ADDED==23723 and DECISION_0127_ADDED-21185==2538
+# Decision1221 adds the haul admission owner: +165 (16 + 5*15 + 74).
+assert DECISION_0127_ADDED==23888 and DECISION_0127_ADDED-21185==2703
 # RoomProjects is additional mutable state, not a replacement for Construction's paid ledger.
 # Read all eleven source declarations and allocation expressions, then require exact agreement
 # with both the canonical owner's widths/capacities and the three printed auxiliary rows.
@@ -321,9 +323,14 @@ assert '| First-entry progress record images | 1 | 5128 | 5128 |' in s
 DECISION_1219_ADDED=underground_pack['current_source_census']['first_entry_runtime']['bytes']-DECISION_1218_RECORD-3086
 assert DECISION_1219_ADDED==124
 assert '| Crew arrival walk and registration state | 1 | 124 | 124 |' in s
-DECISION_1212_MUTABLE=underground_pack['contributions']['current_census_new_retained']-DECISION_1218_RECORD-DECISION_1219_ADDED+256
+# Decision1221: the census charges the cold-load images outside the cold lease (Contacts scope 74, Planner
+# admission record 196620); that is its own row.
+DECISION_1221_IMAGES=underground_pack['current_source_census']['cold_load_images']['bytes']
+assert DECISION_1221_IMAGES==196694
+assert '| Underground cold-load images | 1 | 196694 | 196694 |' in s
+DECISION_1212_MUTABLE=underground_pack['contributions']['current_census_new_retained']-DECISION_1218_RECORD-DECISION_1219_ADDED-DECISION_1221_IMAGES+256
 assert DECISION_1212_MUTABLE==7825 and underground_pack['contributions']['BINDINGS_AND_GROWTH_BYTES']==524544
-assert DECISION_1102_MUTABLE==4096 and CURRENT_UNDERGROUND_MUTABLE-DECISION_1212_MUTABLE-DECISION_1218_RECORD-DECISION_1219_ADDED==5007041
+assert DECISION_1102_MUTABLE==4096 and CURRENT_UNDERGROUND_MUTABLE-DECISION_1212_MUTABLE-DECISION_1218_RECORD-DECISION_1219_ADDED-DECISION_1221_IMAGES==5007041
 assert '| Underground current-source census increments | 1 | 7825 | 7825 |' in s
 # Decisions1117/1120 add two synchronous guard bytes each. Decision1122's
 # full fixed/helper reservation is additional to the already assigned binding
@@ -355,7 +362,7 @@ assert '| Paid connector workpiece banks, source and fixed allowances | 1 | 2992
 assert '| Guarded hauling controls and fixed allowances | 1 | 3072 | 3072 |' in s
 assert '| Connector delivery controls and fixed allowances | 1 | 4096 | 4096 |' in s
 LATER_UNDERGROUND_MUTABLE=DECISION_1117_MUTABLE+DECISION_1120_MUTABLE+DECISION_1122_MUTABLE+DECISION_1131_MUTABLE+DECISION_1134_MUTABLE+DECISION_1141_MUTABLE+DECISION_1140_MUTABLE+DECISION_1152_MUTABLE
-DECISION_1072_MUTABLE=CURRENT_UNDERGROUND_MUTABLE-DECISION_1102_MUTABLE-LATER_UNDERGROUND_MUTABLE-DECISION_1212_MUTABLE-DECISION_1218_RECORD-DECISION_1219_ADDED
+DECISION_1072_MUTABLE=CURRENT_UNDERGROUND_MUTABLE-DECISION_1102_MUTABLE-LATER_UNDERGROUND_MUTABLE-DECISION_1212_MUTABLE-DECISION_1218_RECORD-DECISION_1219_ADDED-DECISION_1221_IMAGES
 assert DECISION_1072_MUTABLE==4962389
 assert underground_pack['declaration_bytes']==DECISION_0127_ADDED
 assert not underground_pack['runtime_qualified']
@@ -472,10 +479,10 @@ DECISION_1023_ADDED=DECISION_1023_RECORD+DECISION_1023_SCRATCH
 # Decision 0532 adds four allocation rows (34 -> 38); decision 0521 folds into the existing
 # Auxiliary payload row and adds none; decision 0534 adds one (38 -> 39); decisions 0536, 0537, 1031 and 0996 add none;
 # decision 1023 adds one (39 -> 40); decision 1053 folds into Auxiliary payload and adds none.
-assert len(allocations)==56 and sum(allocations)==DECISION_1219_ADDED+DECISION_1218_RECORD+DECISION_1212_MUTABLE+DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED+DECISION_1023_ADDED+DECISION_1053_ADDED+DECISION_1066_ADDED+DECISION_1068_ADDED+DECISION_1071_MUTABLE+DECISION_1072_MUTABLE+DECISION_1102_MUTABLE+LATER_UNDERGROUND_MUTABLE
+assert len(allocations)==57 and sum(allocations)==DECISION_1221_IMAGES+DECISION_1219_ADDED+DECISION_1218_RECORD+DECISION_1212_MUTABLE+DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED+DECISION_1023_ADDED+DECISION_1053_ADDED+DECISION_1066_ADDED+DECISION_1068_ADDED+DECISION_1071_MUTABLE+DECISION_1072_MUTABLE+DECISION_1102_MUTABLE+LATER_UNDERGROUND_MUTABLE
 payload=sum(allocations);reserve=8388608;candidate=payload-(3670016+2097152+262144+131072+55200+DECISION_0127_ADDED+DECISION_0169_ADDED);live=payload+reserve
-assert payload==91624425
-assert live==100013033 and candidate==85374582 and live+candidate==185387615
+assert payload==91821284
+assert live==100209892 and candidate==85571276 and live+candidate==185781168
 GATE=underground_pack['gate_bytes'] # REQ-SET-163 as amended by DEC-053 (supersedes DEC-051): 150 MB.
 assert GATE==150000000
 assert live==underground_pack['live_with_reserve_bytes']

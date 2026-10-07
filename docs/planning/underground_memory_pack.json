@@ -4224,8 +4224,8 @@
         "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
         "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
         "godot/scripts/core/underground_profiles.gd": "64325eed6772207817a043220fe4db371fe5aa68a89fec60a287099ea589dfaf",
-        "godot/scripts/core/underground_routes.gd": "c91f28dd5e9e755d7b235685fd338d05876fc389f71a9d7968c2e316d7f5c2b2",
-        "godot/scripts/core/underground_world_routes.gd": "3c26a79f9ddf6278ba923820939f201f8207cad07fa8bbe67c16ece5f2ab6b62"
+        "godot/scripts/core/underground_routes.gd": "48d7d0b0f1b1acc363118f2fad7f29141f723655c6a67a8ac352c8b7781bbdbe",
+        "godot/scripts/core/underground_world_routes.gd": "ef4b85c7a04bad32b947876c86cc224968d452d8b1fe6e1475eeeb3cddbf9ec9"
       }
     },
     "current_profile_control": {
@@ -41726,13 +41726,33 @@
             "bytes": 256,
             "carried_by": "BINDINGS_AND_GROWTH_BYTES (fully assigned, 524,544)",
             "store": "CONTROL_BYTES 4,096 -> 4,352: ADR 1215 air in its two Location records (+160; fixed 3,219)"
+          },
+          {
+            "bytes": 74,
+            "carried_by": "none (new)",
+            "store": "ADR 1221: retained contact scope image (SCOPE_WIRE_BYTES 74), one caller image at a time, charged as retained, conservatively"
           }
         ],
         "delta": {
+          "resizes_added": [
+            "out.resize(SCOPE_WIRE_BYTES)"
+          ],
           "int_constants_added": [
             [
               "CONTROL_BYTES",
               "4352"
+            ],
+            [
+              "SCOPE_WIRE_BYTES",
+              "6 * 4 + 2 + 6 * 8"
+            ],
+            [
+              "SCOPE_WIRE_MAGIC",
+              "0x50435755"
+            ],
+            [
+              "SCOPE_WIRE_SCHEMA",
+              "1"
             ]
           ],
           "int_constants_removed": [
@@ -41740,7 +41760,12 @@
               "CONTROL_BYTES",
               "4096"
             ]
-          ]
+          ],
+          "allocation_sites": {
+            "=[": 1,
+            "PackedInt32Array(": 1,
+            "return[": 1
+          }
         }
       },
       "godot/scripts/core/underground_connector_placements.gd": {
@@ -42464,15 +42489,40 @@
             "bytes": 0,
             "carried_by": "none",
             "store": "ADR 1219: UNREGISTERED_REACH_U is a compile-time constant of the unregistered-resident occupancy rule; no retained storage"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "Budget.COLD_BYTES shared cold lease",
+            "store": "ADR 1221: Routes wire schema 1 capture/restore image (320,608 B at the composed capacities) is the caller's leased cold image; restore decodes into the existing stage and load banks. No retained storage"
           }
         ],
         "delta": {
+          "resizes_added": [
+            "out.resize(wire_bytes()"
+          ],
           "int_constants_added": [
             [
               "UNREGISTERED_REACH_U",
               "2 * 2611"
+            ],
+            [
+              "WIRE_HEADER_FIELDS",
+              "12"
+            ],
+            [
+              "WIRE_MAGIC",
+              "0x54524755"
+            ],
+            [
+              "WIRE_SCHEMA",
+              "1"
             ]
-          ]
+          ],
+          "allocation_sites": {
+            "=[": 2,
+            "PackedInt64Array(": 2,
+            "range(": 3
+          }
         }
       },
       "godot/scripts/core/underground_session.gd": {
@@ -42576,12 +42626,85 @@
             "bytes": 1792,
             "carried_by": "Budget.COLD_BYTES shared cold lease",
             "store": "Clearance.changes staged sides (7 x 64 x i32)"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "Budget.COLD_BYTES shared cold lease",
+            "store": "ADR 1221: certificate and journal image (84,184 B) is the caller's leased cold image; restore decodes into the existing stage bank. No retained storage"
           }
         ],
         "delta": {
-          "allocation_sites": {
-            "PackedInt32Array(": 2
-          },
+          "members_added": [
+            [
+              "_carried",
+              "bool"
+            ],
+            [
+              "_carried_edges",
+              "int"
+            ],
+            [
+              "_carry_edge",
+              "bool"
+            ],
+            [
+              "_envelope",
+              "PackedInt32Array"
+            ],
+            [
+              "_proof_checks",
+              "int"
+            ],
+            [
+              "_relevant",
+              "int"
+            ],
+            [
+              "_since",
+              "int"
+            ]
+          ],
+          "resizes_added": [
+            "_envelope.resize(6)",
+            "changes.resize(Journal.STAGED_STRIDE * CHANGE_CAPACITY)",
+            "out.resize(CERT_WIRE_BYTES)"
+          ],
+          "int_constants_added": [
+            [
+              "CERT_WIRE_BYTES",
+              "8 * CERT_WIRE_HEADER + EDGE_CAPACITY * (MASK_BYTES + 4 + 16) + 2 * Journal.WIRE_BYTES"
+            ],
+            [
+              "CERT_WIRE_HEADER",
+              "5"
+            ],
+            [
+              "CERT_WIRE_MAGIC",
+              "0x52574755"
+            ],
+            [
+              "CERT_WIRE_SCHEMA",
+              "1"
+            ],
+            [
+              "CHANGE_CAPACITY",
+              "Journal.CAPACITY"
+            ],
+            [
+              "CLEARANCE_INERT_ROLE",
+              "Space.FLOOR_DATUM"
+            ],
+            [
+              "COLD_BYTES",
+              "SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 28 * CHANGE_CAPACITY + 1024"
+            ]
+          ],
+          "int_constants_removed": [
+            [
+              "COLD_BYTES",
+              "SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 1024"
+            ]
+          ],
           "classes": {
             "Clearance": [
               [
@@ -42686,60 +42809,11 @@
               ]
             ]
           },
-          "int_constants_added": [
-            [
-              "CHANGE_CAPACITY",
-              "Journal.CAPACITY"
-            ],
-            [
-              "CLEARANCE_INERT_ROLE",
-              "Space.FLOOR_DATUM"
-            ],
-            [
-              "COLD_BYTES",
-              "SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 28 * CHANGE_CAPACITY + 1024"
-            ]
-          ],
-          "int_constants_removed": [
-            [
-              "COLD_BYTES",
-              "SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 1024"
-            ]
-          ],
-          "members_added": [
-            [
-              "_carried",
-              "bool"
-            ],
-            [
-              "_carried_edges",
-              "int"
-            ],
-            [
-              "_carry_edge",
-              "bool"
-            ],
-            [
-              "_envelope",
-              "PackedInt32Array"
-            ],
-            [
-              "_proof_checks",
-              "int"
-            ],
-            [
-              "_relevant",
-              "int"
-            ],
-            [
-              "_since",
-              "int"
-            ]
-          ],
-          "resizes_added": [
-            "_envelope.resize(6)",
-            "changes.resize(Journal.STAGED_STRIDE * CHANGE_CAPACITY)"
-          ]
+          "allocation_sites": {
+            "PackedInt32Array(": 2,
+            "PackedInt64Array(": 1,
+            "range(": 1
+          }
         }
       },
       "godot/scripts/systems/settlement_system.gd": {
@@ -42782,13 +42856,14 @@
       "none": 0,
       "joint pack (the reserve is a pack contribution)": 256,
       "BINDINGS_AND_GROWTH_BYTES (fully assigned, 524,544)": 256,
+      "none (new)": 74,
       "new contribution": 4483,
       "LOCATION_AND_TOPOLOGY_BYTES unassigned remainder (recounted)": 5376,
       "Room publication CONTROL_BYTES (8,970 of 9,216) inside Budget.COLD_BYTES": 920,
+      "Budget.COLD_BYTES shared cold lease": 1792,
       "presentation (outside the REQ-SET-163 simulation gate)": 0,
       "SurfaceAnchor RESERVED_BYTES (asserted by the pack)": 8,
       "WorldRoutes CONTROL_RESERVE (recounted)": 58,
-      "Budget.COLD_BYTES shared cold lease": 1792,
       "base ledger (decisions 1023, 1031)": 0
     },
     "geometry_journals": {
@@ -42874,12 +42949,20 @@
       "lease_bytes": 1048960,
       "scope": "Cold and released before publish_into admits its own lifetime in the same lease."
     },
+    "cold_load_images": {
+      "rows": {
+        "contact_scope": 74,
+        "haul_admissions": 196620
+      },
+      "bytes": 196694
+    },
     "new_retained_bytes": {
       "geometry_journals": 4322,
       "locations_carry_and_retirement_controls": 161,
-      "first_entry_runtime_chain": 8338
+      "first_entry_runtime_chain": 8338,
+      "cold_load_images": 196694
     },
-    "new_contribution_bytes": 12821,
+    "new_contribution_bytes": 209515,
     "runtime_qualified": false,
     "native_measured": false
   },
@@ -42891,7 +42974,7 @@
     "connector_workpieces": 29928,
     "guarded_haul_transfers": 3072,
     "connector_delivery": 4096,
-    "current_census_new_retained": 12821,
+    "current_census_new_retained": 209515,
     "space_banks_and_indexes": 1104160,
     "phase_proof_cache_and_candidate": 17724,
     "shared_geometry_cold_peak": 1048960,
@@ -42906,18 +42989,18 @@
     "LAYOUT_COLD_BYTES": 262144,
     "BINDINGS_AND_GROWTH_BYTES": 524544
   },
-  "new_mutable_and_reserved_bytes": 5020118,
-  "declaration_bytes": 23723,
-  "declaration_delta_bytes": 2538,
-  "live_with_reserve_bytes": 100013033,
+  "new_mutable_and_reserved_bytes": 5216812,
+  "declaration_bytes": 23888,
+  "declaration_delta_bytes": 2703,
+  "live_with_reserve_bytes": 100209892,
   "gate_bytes": 150000000,
-  "headroom_bytes": 49986967,
+  "headroom_bytes": 49790108,
   "source_sha256": {
     "godot/scripts/core/construction.gd": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a",
     "godot/scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
     "godot/scripts/core/excavation_inventory.gd": "e69e83b0fa3851f7408b574fec44b0978d048fb759eb90b458492ac81d15c001",
     "godot/scripts/core/excavation_sites.gd": "69797b79377bf5b5b3a055126d065304668c3415460863ef958fbef72385eb74",
-    "godot/scripts/core/haul_planner.gd": "44d3497ab27088ab0af061b79e8b12c20befc538fd4295c75ce37877eb708f59",
+    "godot/scripts/core/haul_planner.gd": "ff125c7c0a1a9ab3c23be832ceec77b54354e4b87c0b7fe8ebc482fee0a400e4",
     "godot/scripts/core/haul_transfer_contract.gd": "dad5b6beb6d215fa9e71e7c31ab4b10e505393116374249eb8efc1bf58fcb60d",
     "godot/scripts/core/int_math.gd": "fbc9c291059dc65cef91bf0ed1496b95532c5d8bc8f9a2876871c64f0545adc1",
     "godot/scripts/core/inventory.gd": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
@@ -42936,8 +43019,8 @@
     "godot/scripts/core/underground_budget.gd": "fc8e43428787784f1ada4b8f26348ebfd8f7c4c907f5169a9658dcc5d71713f8",
     "godot/scripts/core/underground_connector_assemblies.gd": "3199049decf5b6ca95da09bb416196d82a96e89af194166b196df29f1cf7b73c",
     "godot/scripts/core/underground_connector_catalog.gd": "bab9c370eb6253d65c12cb330ee90e06f4fb7f02493a47ef27784ad2fdd1cbdb",
-    "godot/scripts/core/underground_connector_contacts.gd": "c4d9805e3d2997d7f6a97cd461ed9054301afcb6c0a22f49fc337dd3717c244b",
-    "godot/scripts/core/underground_connector_delivery.gd": "668907c8c2f16ef2dd00103df1265e790108acd324de543343b31a781bb2f81e",
+    "godot/scripts/core/underground_connector_contacts.gd": "9c54343a63f9ba1bf43ad692dc9d8ee8f9b978713ac7fd8894a33816d303701d",
+    "godot/scripts/core/underground_connector_delivery.gd": "baa1a1882cf53a77f829df417cba2bc54731a4c004596b59b7cc32920952ca45",
     "godot/scripts/core/underground_connector_placements.gd": "173e0fcad1bf2da32dd6e12a9679d75bd066a6321575a5f305eef3ab72ff8d03",
     "godot/scripts/core/underground_connector_recipes.gd": "a23c0f6087597b1c3bee978f9008824af86856dca6ddaba1b6bc41d1d03cba1a",
     "godot/scripts/core/underground_connector_work.gd": "3efb1b9faf15585ed732682433aa0b5df0e77e5fb4666ea88466fde17b6bf602",
@@ -42955,7 +43038,7 @@
     "godot/scripts/core/underground_profiles.gd": "64325eed6772207817a043220fe4db371fe5aa68a89fec60a287099ea589dfaf",
     "godot/scripts/core/underground_room_world_bindings.gd": "d012c526a267fc7aecb365e7a6afa40d00d931f2b710b1122fc19705f556f8b1",
     "godot/scripts/core/underground_route_composition.gd": "7ea85ba19ce0aaf91eb0bbaed74860a02f1e0290251b8e1616ce11a0e5f28497",
-    "godot/scripts/core/underground_routes.gd": "c91f28dd5e9e755d7b235685fd338d05876fc389f71a9d7968c2e316d7f5c2b2",
+    "godot/scripts/core/underground_routes.gd": "48d7d0b0f1b1acc363118f2fad7f29141f723655c6a67a8ac352c8b7781bbdbe",
     "godot/scripts/core/underground_session.gd": "3fcd2db0da172e162df5c3d0bd6cffd1c1b63684a5bc4fbdbedabecfc2d1f3a6",
     "godot/scripts/core/underground_space_authority.gd": "3377e00f509e833e618330237c65fa7a18aaf20a4876b5b16322bbdab7d4ec5b",
     "godot/scripts/core/underground_space_owner.gd": "c5aea1c3904c621552f67537f303799d51c7ab1adbe2478cef2fbdfd81e955d5",
@@ -42963,10 +43046,10 @@
     "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
     "godot/scripts/core/underground_work_face.gd": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
     "godot/scripts/core/underground_world_retirement.gd": "7f509aed2c5710e6b148806baa90d178ba0857502d257cfc4dd42f26791134de",
-    "godot/scripts/core/underground_world_routes.gd": "3c26a79f9ddf6278ba923820939f201f8207cad07fa8bbe67c16ece5f2ab6b62",
+    "godot/scripts/core/underground_world_routes.gd": "ef4b85c7a04bad32b947876c86cc224968d452d8b1fe6e1475eeeb3cddbf9ec9",
     "godot/scripts/core/work.gd": "a79363ab3e6a116e89b32fc89ded50aa32a0849a81e34b6737043a3362255338"
   },
-  "registry_sha256": "36e289d2268879d600c3388f83b468ed5d91d4bee796f41ead76e40d68964db1",
+  "registry_sha256": "26db5688f4faa35dca5d935e7ce7f3b54e64828ac394abd3d4fb348aa456fa70",
   "limitations": [
     "Constructor limits alone are not joint runtime admission.",
     "Actual consumers must share the exact cold arena and charge nested coexistence before allocating.",

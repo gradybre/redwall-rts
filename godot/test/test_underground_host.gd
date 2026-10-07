@@ -1140,13 +1140,18 @@ func _live_chain(restoring: bool) -> Array:
 	var record: PackedByteArray = PackedByteArray()
 	assert_equal(_host.underground_entry().capture(record), &"", "final record")
 	return [counts[0], counts[1], tick, _host.underground_entry().error()] + _snapshot() + [record] \
-		+ RouteFixture.route_images(o.routes, o.world_routes, o.budget)
+		+ RouteFixture.route_images(o.routes, o.world_routes, o.budget) \
+		+ RouteFixture.entry_owner_images(o.contacts, o.delivery, o.budget)
 
 
 func _cold_restore_routes(o: Session.Retirement.Owners, tick: int) -> bool:
-	"""ADR1221: the Session's Routes and WorldRoutes captured, blanked as a fresh Session's and cold-restored."""
+	"""ADR1221: the Session's Routes, WorldRoutes, Contacts, Delivery, arena and the host Planner captured, blanked
+	as a fresh Session's and cold-restored."""
 	var code: StringName = RouteFixture.cold_restore_route_owners(o.routes, o.world_routes, o.space, o.budget)
 	assert_equal(code, &"", "route owners cold-restore before tick %d" % tick)
+	if code == &"":
+		code = RouteFixture.cold_restore_entry_owners(o.contacts, o.delivery, o.budget)
+		assert_equal(code, &"", "Contacts, Delivery, arena and Planner cold-restore before tick %d" % tick)
 	return code == &""
 
 

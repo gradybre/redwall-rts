@@ -30,6 +30,9 @@ const RESTORE_EVERY: int = 1
 const ROUTE_RESTORE_EVERY: int = 41
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 
+## ADR1221: the hauled prefix's one Delivery (with its Planner), cold-restored with the route owners.
+var _cold_delivery: Delivery = null
+
 
 class ObservedPaidTerrain extends PaidGroundTests.CountedTerrain:
 	var source_probe: Callable = Callable()
@@ -280,6 +283,7 @@ func after_each() -> void:
 		_probe.after_each()
 		assert_true(_probe.failures.is_empty(), "actual source fixture: %s" % _probe.failures)
 	_probe = null
+	_cold_delivery = null
 
 
 func test_real_l0_requires_paid_handling_before_unchanged_productive_install() -> void:
@@ -779,6 +783,7 @@ func _bind_delivery(owners: Foreman.Owners) -> void:
 		SimClock.new(), Delivery.RESERVED_BYTES), &"", "one bounded Delivery")
 	owners.delivery = delivery
 	owners.gear = world._gear
+	_cold_delivery = delivery
 
 
 func _complete_prefix_foreman(hauled: bool = false) -> Foreman:
@@ -933,11 +938,15 @@ func _hauled_run(every: int, seen: PackedInt64Array) -> Array[PackedByteArray]:
 
 
 func _cold_route_round_trip(tick: int) -> bool:
-	"""ADR1221: Routes and WorldRoutes captured, blanked as a fresh Session's and restored before this tick."""
+	"""ADR1221: Routes and WorldRoutes, then Contacts, Delivery, the arena and the Planner, captured, blanked as a
+	fresh Session's and restored before this tick."""
 	var world: RefCounted = _probe._world
 	var code: StringName = RouteFixture.cold_restore_route_owners(world._routes, world._binding, world._owner,
 		world._budget)
 	assert_equal(code, &"", "route owners cold-restore before tick %d" % tick)
+	if code == &"" and _cold_delivery != null:
+		code = RouteFixture.cold_restore_entry_owners(_probe._contacts, _cold_delivery, world._budget)
+		assert_equal(code, &"", "Contacts, Delivery, arena and Planner cold-restore before tick %d" % tick)
 	return code == &""
 
 
@@ -973,6 +982,7 @@ func _ledger_image(foreman: Foreman, ticks: int) -> Array[PackedByteArray]:
 		var_to_bytes(PackedInt64Array([ticks, foreman.accepted_mwu(), foreman.install_mwu(), foreman.haul_mwu(),
 			foreman.haul_trips()]))]
 	images.append_array(RouteFixture.route_images(world._routes, world._binding, world._budget)) # ADR1221
+	images.append_array(RouteFixture.entry_owner_images(_probe._contacts, _cold_delivery, world._budget))
 	return images
 
 

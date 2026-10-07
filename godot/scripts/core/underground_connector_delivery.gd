@@ -1345,3 +1345,15 @@ static func _release_retired_packet_in(actual: RefCounted) -> void:
 	actual._bounds.clear()
 	actual._support.clear()
 	actual._remaining.clear()
+
+
+# ADR1221 (cold load): Delivery retains nothing between operations. Every per-haul fact is the Planner's admission
+# record (haul_planner.gd, saved by its own owner), the Reservation pool's claims, Inventory and the Job. Delivery
+# therefore writes no record; a save or load only requires it to be quiescent: no operation or work-tick window
+# open and no pinned Job.
+const REFUSE_LOAD_BUSY: StringName = &"DELIVERY_LOAD_BUSY"
+
+
+func save_quiescence_refusal() -> StringName:
+	"""ADR1221: empty when a save may be taken or a load accepted; Delivery has nothing else to write or read."""
+	return &"" if _configured and not _busy and not _work_tick and _job == NULL_REF else REFUSE_LOAD_BUSY

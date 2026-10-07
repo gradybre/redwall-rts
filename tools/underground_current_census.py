@@ -92,7 +92,7 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "b0cff8a1ef3f2f5d8d4dab379c8b88641a21580c1ecf160037676d8648e9731f"
+REVIEWED_SHA = "06ebe6e403f07f12def9e3a1493c61d4dd13a1314d6e84aa021bb354a5485be4"
 FRONTIER = Path("godot/data/underground/first-entry-prefix-v1/qualified-stone-v5/frontier.ugfront")
 FRONTIER_SHA = "2d5c36163ed5e5f8e96a3f1b0611d85937c075abcb8b02c7d7f01f7cf0738660"
 CORE = "godot/scripts/core/"
@@ -375,6 +375,17 @@ def contact_retirement_cold(memory, index: dict) -> dict:
                      "owners' existing paired banks. Coexistence inside one lease is runtime-enforced, not re-proved here."}
 
 
+def cold_load_images(memory, index: dict) -> dict:
+    """ADR 1221: the cold-load images that are not charged to the shared cold lease. Routes and WorldRoutes images
+    are the caller's leased cold image; the Contacts scope and the Planner's admission record are one caller image
+    each, recomputed from their codecs' own constants and charged as retained, conservatively."""
+    contacts = memory.resolve(index, "underground_connector_contacts", "SCOPE_WIRE_BYTES")
+    planner = memory.resolve(index, "haul_planner", "ADMISSION_WIRE_BYTES")
+    require(contacts == 6 * 4 + 2 + 6 * 8, "Contacts scope image changed")
+    require(planner == 12 + 24 * memory.resolve(index, "reservations", "JOB_CAPACITY"), "admission image changed")
+    return {"rows": {"contact_scope": contacts, "haul_admissions": planner}, "bytes": contacts + planner}
+
+
 def reviewed_table() -> dict:
     raw = (ROOT / REVIEWED).read_bytes()
     require(hashlib.sha256(raw).hexdigest() == REVIEWED_SHA, "reviewed delta table changed")
@@ -424,8 +435,9 @@ def build(index: dict, projected: list, motion: dict) -> dict:
     pool = location_air_pool(memory, index)
     publication = publication_controls(memory, index)
     planner = room_planner_cold(memory, index)
+    images = cold_load_images(memory, index)
     new = {"geometry_journals": journals["bytes"], "locations_carry_and_retirement_controls": locations["bytes"],
-           "first_entry_runtime_chain": entry["bytes"]}
+           "first_entry_runtime_chain": entry["bytes"], "cold_load_images": images["bytes"]}
     charged = {}
     for relative, row in rows.items():
         for charge in row["charges"]:
@@ -438,7 +450,7 @@ def build(index: dict, projected: list, motion: dict) -> dict:
             "geometry_journals": journals, "locations_controls": locations, "first_entry_runtime": entry,
             "world_routes_controls": controls, "world_routes_cold": cold, "contact_retirement_cold": retirement,
             "location_air_pool": pool, "room_publication_controls": publication,
-            "room_planner_cold": planner,
+            "room_planner_cold": planner, "cold_load_images": images,
             "new_retained_bytes": new, "new_contribution_bytes": sum(new.values()),
             "runtime_qualified": False, "native_measured": False}
 

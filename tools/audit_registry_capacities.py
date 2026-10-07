@@ -128,14 +128,16 @@ EXPLAINED_SINCE_CENSUS = {
 	# Decision1218 adds one section6 owner (underground_entry_progress): two canonical
 	# non-capacity records (record length and the bounded progress record) and the hauler's
 	# `_queue` as one packed source field, declared hash=false inside the record.
-	"prose_records": 68,
-	"equality": 28,
+	# Decision1221 adds section6 owner haul_planner: five hashed packed columns, each declared
+	# "`JOB_CAPACITY` = 8192" (an expression already present), so five equalities.
+	"prose_records": 73,
+	"equality": 33,
 	"upper_bound": 40,
-	"packed_source_fields": 119,
-	"canonical_records": 159,
+	"packed_source_fields": 124,
+	"canonical_records": 164,
 	"other_canonical_shapes": 91,
 	"distinct_expressions": 9,
-	"owners": 10,
+	"owners": 11,
 }
 
 RELATION_EQ = "eq"
@@ -631,7 +633,7 @@ def _census(registry: dict, rows: list) -> dict:
 		delta = seen - value
 		line = "%s: this audit %d, Astra Cycle 3 %d (%+d)" % (key, seen, value, delta)
 		if EXPLAINED_SINCE_CENSUS.get(key) == delta:
-			explained.append(line + " -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072 and 1218: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record")
+			explained.append(line + " -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218 and 1221: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record and the haul admission record")
 		else:
 			unexplained.append(line)
 	return {

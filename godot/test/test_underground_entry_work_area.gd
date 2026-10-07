@@ -169,15 +169,15 @@ static func foreman_owners(probe: RefCounted) -> Foreman.Owners:
 	o.sites = probe._sites; o.jobs = w._jobs; o.work = w._work; o.routes = w._routes; o.binding = w._binding
 	o.residents = w._residents; o.pool = w._pool; o.construction = w._construction; o.inventory = w._inventory
 	o.profiles = w._profiles; o.frontier = probe._source; o.placements = probe._placements; o.locations = w._locations
+	o.items = w._items
 	return o
 
 
 static func foreman_crew(probe: RefCounted) -> Foreman.Crew:
-	"""One worker, its tool, the source storage/output containers and the finite wood/stone lots."""
+	"""One worker, its tool and the source storage/output containers; inputs come from the storage's own stock."""
 	var c: Foreman.Crew = Foreman.Crew.new()
 	c.worker = probe._world._worker; c.tool = probe._tool
 	c.storage = probe._storage; c.output = probe._output
-	c.lot_keys = [&"wood", &"stone"]; c.lots = [probe._wood, probe._stone]
 	return c
 
 

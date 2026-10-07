@@ -50,16 +50,16 @@ class Owners extends RefCounted:
 	var placements: RefCounted = null
 	var locations: Locations = null
 	var anchor: RefCounted = null # SurfaceAnchor; needed only when an installation stands on an installed contact.
+	var items: RefCounted = null # Compiled item ids of the authored input keys (ADR1210).
 
 
 class Crew extends RefCounted:
-	## One worker, its equipped tool, the source-selected containers and the stock lots it may draw.
+	## One worker, its equipped tool and the source-selected containers. Inputs are drawn from whatever free stock
+	## of each input item the storage container holds (ADR1210); no caller names a lot.
 	var worker: Vector2i = NULL_REF
 	var tool: Vector2i = NULL_REF
 	var storage: Vector2i = NULL_REF
 	var output: Vector2i = NULL_REF
-	var lot_keys: Array[StringName] = []
-	var lots: Array[Vector2i] = []
 
 
 class Task extends RefCounted:
@@ -104,8 +104,7 @@ var _pending_retreat: Vector2i = NULL_REF
 
 func configure(owners: Owners, crew: Crew, placement: Vector2i) -> StringName:
 	"""Derive all twelve L0 phase tasks from the loaded Frontier before any owner is touched."""
-	if owners == null or crew == null or owners.frontier == null or owners.placements == null \
-			or crew.lot_keys.size() != crew.lots.size():
+	if owners == null or crew == null or owners.frontier == null or owners.placements == null or owners.items == null:
 		return REFUSE_PLAN
 	_owners = owners
 	_crew = crew
@@ -333,16 +332,13 @@ func _start(tick: int) -> StringName:
 
 
 func _reserve_inputs(task: Task) -> StringName:
-	"""Each authored input line draws its exact quantity from the crew's lot for that key."""
+	"""Each authored input line claims its exact quantity from the free stock of its item in the Site's storage."""
 	var count: int = Contract.input_count(task.operation)
 	for line: int in count:
-		var key: StringName = Contract.input_key(task.operation, line)
-		var at: int = _crew.lot_keys.find(key)
-		if at < 0: return &"ENTRY_FOREMAN_INPUT_LOT"
-		var batch: PackedInt64Array = PackedInt64Array([_crew.lots[at].x, _crew.lots[at].y,
-			Reservations.PURPOSE_EXCAVATION_INPUT, Contract.input_milli(task.operation, line), 100000])
-		var claimed: RefCounted = _owners.pool.claim_batch(_owners.jobs.ref_of(_job), batch, 1, _owners.inventory)
-		if not claimed.ok: return claimed.error
+		var code: StringName = Installer.claim_stock(_owners, _crew.storage, _owners.jobs.ref_of(_job),
+			_owners.items.compiled_id(Contract.input_key(task.operation, line)), Contract.input_milli(task.operation, line),
+			Reservations.PURPOSE_EXCAVATION_INPUT)
+		if code != &"": return code
 	if count == 0: return &""
 	var delivered: RefCounted = _owners.sites.record_deliveries(task.site)
 	return &"" if delivered.ok else delivered.error
@@ -409,6 +405,11 @@ func is_done() -> bool:
 func error() -> StringName:
 	"""The first refusal, or empty while running or after success."""
 	return _error if _stage == STAGE_FAILED else &""
+
+
+func first_station() -> Vector2i:
+	"""The Location the first planned phase works at, where the worker must already stand; null before planning."""
+	return _tasks[0].station if not _tasks.is_empty() else NULL_REF
 
 
 func task_count() -> int:

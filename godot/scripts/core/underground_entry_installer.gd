@@ -27,6 +27,9 @@ const STAGE_DONE: int = 8
 const STAGE_LEG_ARRIVAL: int = 9 # Split landing: M to the station's arrival on the material profile.
 const REFUSE_PLAN: StringName = &"ENTRY_INSTALLER_PLAN"
 const REFUSE_HEADING: StringName = &"ENTRY_INSTALLER_HEADING"
+## ADR1197 G4 / ADR1210: the storage container holds less free stock of an input item than the bill.
+const REFUSE_INPUT_STOCK: StringName = &"ENTRY_FOREMAN_INPUT_LOT"
+const CLAIM_EXPIRY: int = 100000
 
 
 class Paid extends RefCounted:
@@ -230,18 +233,35 @@ func _fund(tick: int) -> StringName:
 
 
 func _deliver() -> StringName:
-	"""Claim the quoted inputs from the crew's lots and make the Project READY."""
+	"""Claim the quoted inputs from the storage container's free stock and make the Project READY."""
 	var result: RefCounted = _paid.router.bind_material_container(_project, _crew.storage)
 	if not result.ok: return result.error
 	for line: int in _quote.input_count:
-		var at: int = _crew.lot_keys.find(_quote.input_keys[line])
-		if at < 0: return &"ENTRY_INSTALLER_INPUT_LOT"
-		var batch: PackedInt64Array = PackedInt64Array([_crew.lots[at].x, _crew.lots[at].y,
-			Reservations.PURPOSE_MODULAR_INPUT, _quote.input_milli[line], 100000])
-		var claimed: RefCounted = _o.pool.claim_batch(_job_ref(), batch, 1, _o.inventory)
-		if not claimed.ok: return claimed.error
+		var code: StringName = claim_stock(_o, _crew.storage, _job_ref(), _o.items.compiled_id(_quote.input_keys[line]),
+			_quote.input_milli[line], Reservations.PURPOSE_MODULAR_INPUT)
+		if code != &"": return code
 	result = _paid.router.record_deliveries(_project)
 	return &"" if result.ok else result.error
+
+
+static func claim_stock(owners: RefCounted, container: Vector2i, job: Vector2i, item: int, milli: int,
+		purpose: int) -> StringName:
+	"""ADR1210: claim exactly `milli` of one item for the Job from the container's free lots in list order, in one
+	batch; refuse REFUSE_INPUT_STOCK, claiming nothing, when the container holds less than that."""
+	var batch: PackedInt64Array = PackedInt64Array()
+	var inventory: RefCounted = owners.inventory
+	var lot: Vector2i = inventory.container_first_lot(container)
+	var left: int = milli
+	while left > 0 and lot != NULL_REF:
+		var take: int = mini(left, inventory.lot_available_milli(lot)) if inventory.lot_item_id(lot) == item else 0
+		if take > 0:
+			batch.append_array(PackedInt64Array([lot.x, lot.y, purpose, take, CLAIM_EXPIRY]))
+			left -= take
+		lot = inventory.container_next_lot(lot)
+	if item < 0 or milli <= 0 or left > 0: return REFUSE_INPUT_STOCK
+	@warning_ignore("integer_division") var rows: int = batch.size() / Reservations.CLAIM_STRIDE
+	var claimed: RefCounted = owners.pool.claim_batch(job, batch, rows, inventory)
+	return &"" if claimed.ok else claimed.error
 
 
 func _retire_pair() -> StringName:

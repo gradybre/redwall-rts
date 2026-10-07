@@ -200,3 +200,90 @@ func test_every_shape_before_values_and_bucket_guards() -> void:
 		elif variant == 2: frame.u8_columns.append(PackedByteArray())
 		else: frame.i64_columns.append(PackedInt64Array())
 		assert_equal(Bridge.framed_refusal(frame).code,&"SAVE_COMPONENT_SHAPE","bucket mismatch")
+
+
+# --- ADR 1222 step 2: bulk capture and apply ------------------------------------------------------
+
+func _live_owner(directory: Directory) -> Transforms:
+	"""A store with live, edited, freed and reused rows, built through the public lifecycle only."""
+	var owner: Transforms = Transforms.new(directory)
+	var refs: Array[Vector2i] = []
+	for i: int in 4: refs.append(directory.create(Directory.KIND_RESIDENT))
+	assert_true(owner.place(refs[0],1,2,3,4),"place a row")
+	assert_true(owner.place(refs[1],10,20,30,40),"place a second row")
+	assert_true(owner.advance(refs[1],11,21,31),"advance a row")
+	assert_true(owner.place(refs[2],100,200,300,400),"place a third row")
+	assert_true(owner.set_yaw(refs[2],500),"edit a yaw")
+	assert_true(owner.place(refs[3],7,8,9,10),"place a fourth row")
+	assert_true(directory.destroy(refs[3]),"free a row")
+	refs[3] = directory.create(Directory.KIND_RESIDENT)
+	assert_true(owner.place(refs[3],70,80,90,100),"reuse the freed row")
+	assert_true(directory.destroy(refs[2]),"leave a stale stamp behind")
+	return owner
+
+func _image(owner: Transforms) -> Transforms.Columns:
+	"""The owner's nine columns through the bulk reader."""
+	var columns: Transforms.Columns = Transforms.Columns.new()
+	assert_true(owner.copy_columns_into(columns),"bulk copy succeeds")
+	return columns
+
+func test_capture_then_apply_into_a_fresh_store_is_exact_and_continues_identically() -> void:
+	"""The restored store holds the same columns and count, and answers the next edit the same way."""
+	var directory: Directory = Directory.new()
+	var source: Transforms = _live_owner(directory)
+	var frame: Section.FramedOwner = Section.FramedOwner.new(15)
+	assert_true(Bridge.capture_into(source,frame).is_ok(),"capture succeeds")
+	var target: Transforms = Transforms.new(directory)
+	assert_true(Bridge.apply(frame,target).is_ok(),"apply succeeds")
+	assert_true(_image(target).equals(_image(source)),"columns are byte-identical")
+	assert_equal(target.bound_count(),source.bound_count(),"bound_count is rebuilt")
+	var ref: Vector2i = directory.create(Directory.KIND_RESIDENT)
+	for store: Transforms in [source,target]: assert_true(store.place(ref,9,9,9,9),"a later edit succeeds")
+	assert_true(_image(target).equals(_image(source)),"both stores stayed identical after the edit")
+
+func test_capture_matches_the_public_reader_projection() -> void:
+	"""The captured record equals the projection built only from the public diagnostic reader."""
+	var directory: Directory = Directory.new()
+	var source: Transforms = _live_owner(directory)
+	var frame: Section.FramedOwner = Section.FramedOwner.new(15)
+	assert_true(Bridge.capture_into(source,frame).is_ok(),"capture succeeds")
+	var witness: Array[PackedInt32Array] = _from_owner(source)
+	for field: int in 9: assert_true(frame.i32_column(field) == witness[field],"field %d matches" % field)
+
+func test_every_column_refusal_leaves_the_target_byte_identical() -> void:
+	"""Each column code refuses through apply with the exact code and writes nothing."""
+	var directory: Directory = Directory.new()
+	var target: Transforms = _live_owner(directory)
+	var before: Transforms.Columns = _image(target)
+	var count: int = target.bound_count()
+	var negative: Array[PackedInt32Array] = _empty()
+	_put(negative,0,0,-1)
+	assert_equal(Bridge.apply(_frame(negative),target).code,&"COLUMN_BINDING_ID","binding id code")
+	var duplicate: Array[PackedInt32Array] = _empty()
+	_put(duplicate,0,0,5)
+	_put(duplicate,0,1,5)
+	assert_equal(Bridge.apply(_frame(duplicate),target).code,&"COLUMN_BINDING_DUPLICATE","duplicate code")
+	var free_row: Array[PackedInt32Array] = _empty()
+	_put(free_row,1,0,1)
+	assert_equal(Bridge.apply(_frame(free_row),target).code,&"COLUMN_FREE_ROW","free row code")
+	assert_true(_image(target).equals(before),"no refusal wrote a column")
+	assert_equal(target.bound_count(),count,"no refusal moved the count")
+
+func test_null_and_misshaped_inputs_refuse_without_writing() -> void:
+	"""Null stores, null records, a wrong owner and a short bulk buffer all refuse."""
+	var directory: Directory = Directory.new()
+	var target: Transforms = _live_owner(directory)
+	var before: Transforms.Columns = _image(target)
+	assert_equal(Bridge.apply(_frame(_empty()),null).code,Bridge.REFUSE_NULL_STORE,"null store")
+	assert_equal(Bridge.capture_into(null,Section.FramedOwner.new(15)).code,
+		Bridge.REFUSE_NULL_STORE,"capture from no store")
+	assert_equal(Bridge.capture_into(target,null).code,&"SAVE_COMPONENT_SHAPE","null record")
+	assert_equal(Bridge.capture_into(target,Section.FramedOwner.new(14)).code,
+		&"SAVE_COMPONENT_OWNER","wrong owner")
+	var short: Transforms.Columns = Transforms.Columns.new()
+	short.bound_persistent_id.resize(3)
+	assert_false(target.restore_columns(short),"a short column refuses")
+	assert_equal(target.last_column_refusal(),Transforms.REFUSE_COLUMN_SHAPE,"shape code")
+	assert_false(target.copy_columns_into(short),"a short output buffer refuses")
+	assert_false(target.restore_columns(null),"null columns refuse")
+	assert_true(_image(target).equals(before),"nothing was written")

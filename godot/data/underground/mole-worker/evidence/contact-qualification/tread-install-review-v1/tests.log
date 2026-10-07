@@ -1,0 +1,25 @@
+test_fixture_puts_the_workpiece_on_the_far_edge_and_the_riser_behind (__main__.TreadInstallTests.test_fixture_puts_the_workpiece_on_the_far_edge_and_the_riser_behind) ... ok
+test_fixture_sides_contain_the_real_bearers_and_posts (__main__.TreadInstallTests.test_fixture_sides_contain_the_real_bearers_and_posts) ... ok
+test_input_domain_refuses_outside_its_bounds (__main__.TreadInstallTests.test_input_domain_refuses_outside_its_bounds) ... ok
+test_probe_finds_no_upright_recipe (__main__.TreadInstallTests.test_probe_finds_no_upright_recipe) ... ok
+test_reconstruction_matches_candidate_v3 (__main__.TreadInstallTests.test_reconstruction_matches_candidate_v3) ... ok
+test_review_images_match_their_record (__main__.TreadInstallTests.test_review_images_match_their_record) ... ok
+test_stored_candidates_are_clear_and_pinned (__main__.TreadInstallTests.test_stored_candidates_are_clear_and_pinned) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 7.251s
+
+OK
+--- rerun without the staged demo assets ---
+test_fixture_puts_the_workpiece_on_the_far_edge_and_the_riser_behind (__main__.TreadInstallTests.test_fixture_puts_the_workpiece_on_the_far_edge_and_the_riser_behind) ... ok
+test_fixture_sides_contain_the_real_bearers_and_posts (__main__.TreadInstallTests.test_fixture_sides_contain_the_real_bearers_and_posts) ... ok
+test_input_domain_refuses_outside_its_bounds (__main__.TreadInstallTests.test_input_domain_refuses_outside_its_bounds) ... ok
+test_probe_finds_no_upright_recipe (__main__.TreadInstallTests.test_probe_finds_no_upright_recipe) ... ok
+test_reconstruction_matches_candidate_v3 (__main__.TreadInstallTests.test_reconstruction_matches_candidate_v3) ... skipped 'gitignored demo assets are not staged (ADR 1192 §2)'
+test_review_images_match_their_record (__main__.TreadInstallTests.test_review_images_match_their_record) ... ok
+test_stored_candidates_are_clear_and_pinned (__main__.TreadInstallTests.test_stored_candidates_are_clear_and_pinned) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.004s
+
+OK (skipped=1)

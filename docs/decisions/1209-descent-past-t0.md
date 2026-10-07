@@ -151,7 +151,7 @@ That ground is `requires_never_cut`. A Kitchen dug from inside cannot be dug ben
 1. This plan. **Done.**
 2. Prove both accepted gaits over the derived T0-family flight. **Done** (below).
 3. Brendan: D1, D2, D3. **Done** (sill, seventh row, T0's bill).
-4. **New motion, install from the tread above.** Follow the install-source path: static pose candidates and exact
+4. **New motion, install from the tread above** (candidates ready, awaiting review). Follow the install-source path: static pose candidates and exact
    provers, then a review packet. **Stop for Brendan's review.** After approval: the program, native capture,
    integer rows, and content 7 with one yaw-0 INSTALL row and one handling row. The rows are root-relative, so one
    pair serves every tread.
@@ -207,3 +207,56 @@ stair evidence's recorded invocation names (the frozen `redwall-rts-codex-ug-spa
 each hash-checked. They also read 76 gitignored `godot/demo/assets/` files cloned from that worktree for the
 run and verified against the image's source pins. Those files are not committed, so this is offline evidence,
 not a test (ADR 1192 §2). `test_descent_flight.py` checks the derivation and the stored results without them.
+
+## Step 4 — the short-reach install tap (candidates ready; stopped for Brendan's review)
+
+`author_tread_install.py` (contact-qualification) authors the tap that installs T_k from T_{k−1}. It reuses the
+accepted fitting source (`install-source-v4`) as far as the tread allows.
+
+**Derived, not chosen.**
+- **Workpiece.** T_k's left bearer, quarter-turned as T0's part 8 is, lies across T_{k−1}'s forward top edge:
+  station-local `[-256,0,-310, 256,128,-182]`. The contact plane stays y = 128.
+- **Station.** On T_{k−1}, at x = 0, yaw 0, 310 u behind its far edge. The ready body's own vertices
+  (front −168.3 below the plane, back +188.4 in the riser band) admit 297–323 u. 310 is the midpoint.
+- **Fixture.** One station-local fixture covers every tread: the support deck, the deck behind (a superset of
+  L0's and any tread's), superset side boxes for the bearers and posts, and the workpiece.
+
+**Unchanged.**
+- The arm solver (`poll_pose`) with the real grip and unchanged arm links.
+- The planted lower body.
+- The 17-key poll lowering (208 → 126), mirrored to 33 keys, with the 31-key planted entry and its exact reverse.
+- Every v4 proof: the crossing patch, the tool below the plane inside the workpiece, continuous self-clearance
+  and the complete world proof.
+
+**New.**
+- **The upper body pitches back** 20–35° about Spine02 (`pitched_ready`). Bones 0–8 stay bit-identical.
+- **The handle lean may reach 60°**, where v4 stopped at 50°.
+
+`probe_tread_install.py` records why. Upright, 0 of 80 recipes clear:
+
+| Result | Count |
+|---|---:|
+| The shaft meets the right arm | 70 |
+| The head escapes the bearer | 2 |
+| No arm solution | 8 |
+
+Pitched back, 20 of 36 recipes clear. Pitching forward puts the snout on the handle.
+
+**Candidates** (`tread-install-v1/`). All pass every proof.
+
+| Candidate | Torso | Lean, azimuth | Contact (x, z) | Tool to body |
+|---|---:|---|---|---:|
+| v1 | −30° | 50°, 30° | 128, −278 | 4.8 u |
+| v2 | −35° | 50°, 30° | 128, −262 | 4.5 u |
+| v3 | −25° | 60°, 30° | 128, −246 | 7.8 u |
+
+Accepted v4's tool-to-body minimum is also 7.8 u. **Recommended: v3.** It contacts the bearer's centre line,
+pitches the torso least and keeps v4's clearance.
+
+**Review packet:** `tread-install-review-v1/`. It holds `README.md`, `invocation.json`, `tests.log`, and for
+each candidate `overview.png`, `hands.png`, `motion.png` and `review.json`. `test_tread_install.py` holds 7 tests.
+
+**Open after approval:**
+- **Arrival.** A 141 u backward reposition from the descent's end (169 u from the edge) to the station.
+- **T6.** The sill's bearer is 64 u tall, so T6 needs a variant of the tap at y = 64.
+- **Then:** the handling program, native capture, integer rows, content 7 and the Frontier.

@@ -1,7 +1,8 @@
 extends SceneTree
 ## The food lanes on the REAL scene with REAL Viewport input (decision 1601 onward): the apiary's skep and bees beside the
 ## old orchard, a left click on the skep bringing the Orchard panel with the apiary's readout and verbs; the preserving
-## table by the kitchen and the Water panel's Preserves (decision 1611). Not discovered by
+## table by the kitchen and the Water panel's Preserves (decision 1611); the brewery and its Brewing section (decision
+## 1621). Not discovered by
 ## the runner: test/test_demo_food_live.gd runs it in its own process.
 ##
 ##     godot --headless --path godot --script res://test/live/demo_food_live.gd [-- --size 1920x1080]
@@ -44,7 +45,7 @@ func _initialize() -> void:
 	root.add_child(_village)
 	current_scene = _village
 	_steps = [_pause, _the_apiary_is_wired, _look_at_the_apiary, _click_the_skep, _its_readout_and_verbs,
-		_close_on_the_bees, _look_at_the_preserving_table, _open_the_preserves]
+		_close_on_the_bees, _look_at_the_preserving_table, _open_the_preserves, _look_at_the_brewery, _open_the_brewing]
 
 
 func _process(_delta: float) -> bool:
@@ -225,3 +226,28 @@ func _open_the_preserves() -> void:
 		_check("%s is shown with its card" % key, button != null and button.visible and button.tooltip_text.contains("Can't now"),
 			button.tooltip_text.replace("\n", " / ") if button != null else "")
 	_capture("preserves_panel")
+
+
+func _look_at_the_brewery() -> void:
+	"""The brewery east of the kitchen: its mash vat and conditioning cask (decision 1621)."""
+	_click(_zone().tab(DetailZone.PANEL_FARM).get_global_transform_with_canvas() * (_zone().tab(DetailZone.PANEL_FARM).size / 2.0))
+	_look_at(Vector3(Recipes.BREWERY_AT.x, 0.4, Recipes.BREWERY_AT.y - 0.6), 7.0, 32.0, 160.0)
+	var view: Node = _village.get("_fishery").get("view")
+	_check("the mash vat is drawn", view != null and view.has_node(NodePath("Preserves_brew_vat")))
+	_check("the cask is drawn", view != null and view.has_node(NodePath("Preserves_ale_cask")))
+	_capture("brewery")
+
+
+func _open_the_brewing() -> void:
+	"""The Water tab's Brewing section: Brew mead and Make cordial, each with its card (no honey yet: both say so)."""
+	_click(_zone().tab(DetailZone.PANEL_WATER).get_global_transform_with_canvas() * (_zone().tab(DetailZone.PANEL_WATER).size / 2.0))
+	var panel: CanvasLayer = _village.get("_waterplay").get("panel")
+	_village.get("_fishery").call(&"refresh_panel")
+	panel.call(&"scroll_to_line", &"brewing")
+	_check("the Brewing line is filled", String(panel.call(&"line", &"brewing")).contains("vats brewing"),
+		panel.call(&"line", &"brewing"))
+	for key: StringName in [&"brew_mead", &"make_cordial"]:
+		var button: Button = panel.call(&"button", key)
+		_check("%s is shown with its card" % key, button != null and button.visible and button.tooltip_text.to_lower().contains("honey"),
+			button.tooltip_text.replace("\n", " / ") if button != null else "")
+	_capture("brewing_panel")

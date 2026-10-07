@@ -104,6 +104,8 @@ const SIZES: Dictionary = {
 	# Art pass 3's preserving props (decision 0971's DEC-048 heights; wired by decision 1611): the preserving table's
 	# shelf of cloth-capped jars and its salt-glazed crock.
 	&"jar_shelf": [RULE_HEIGHT, 0.95], &"crock_stoneware": [RULE_HEIGHT, 0.5],
+	# Art pass 3's brewing props (DEC-048; wired by decision 1621): the brewery's mash vat (rim 0.80 m) and its cask.
+	&"brew_vat": [RULE_HEIGHT, 0.95], &"ale_cask": [RULE_HEIGHT, 0.8],
 }
 ## Library BUILDINGS this pass draws as props: drawn at their authoritative envelope height
 ## (world_sizes.gd, lookdev_dimensions.gd BUILDING_MAX_Y_MM) -- the root cellar's door-in-a-mound

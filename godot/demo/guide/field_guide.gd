@@ -274,7 +274,7 @@ func _goods(item: int) -> Entry:
 		return _orchard_goods(item)
 	if item == Catalog.ITEM_HONEY:
 		return _hive_goods(item)
-	if PreserveText.is_preserve(item):
+	if PreserveText.is_station_good(item):
 		return _preserve_goods(item)
 	if item >= Catalog.FIRST_FORAGE:
 		return _forage_goods(item)
@@ -384,7 +384,7 @@ func _hive_goods(item: int) -> Entry:
 
 
 func _preserve_goods(item: int) -> Entry:
-	"""Dried fruit or rations (decision 1611): the preserves' own words."""
+	"""Dried fruit, rations (decision 1611), mead or the cordial (decision 1621): the stations' own words."""
 	var links: Array[StringName] = [&"station_rack_mill", &"station_store"]
 	var made: Entry = make(item_id(item), KIND_GOODS, Catalog.ITEM_LABELS[item], PreserveText.summary(item),
 		PreserveText.guide_fields(item, Rules.raw_np_per_u(item)), links)

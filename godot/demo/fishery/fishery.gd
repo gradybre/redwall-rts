@@ -127,6 +127,10 @@ const MILL_FACE: Vector2 = Vector2(27.9, -19.5)
 const WORKBENCH_AT: Vector2 = Vector2(8.6, 11.6)
 const WORKBENCH_FACE: Vector2 = Vector2(8.6, 12.6)
 const ICE_HOLE: Vector2 = Vector2(27.4, 34.6)
+## Each recipe station's spot name and the point its worker faces (preserve_rules.gd STATION_*): the rack, the
+## preserving table (decision 1611), the brewery (decision 1621).
+const STATION_SPOTS: Array[StringName] = [&"rack", &"table", &"brewery"]
+const STATION_FACES: Array[Vector2] = [RACK_FACE, Recipes.TABLE_FACE, Recipes.BREWERY_FACE]
 ## Where an ice fisher steps onto the ice: the pond's south bank, a straight 3 m walk from the hole, clear of the
 ## jetty, the berths and the raft.
 const ICE_EDGE: Vector2 = Vector2(27.5, 37.6)
@@ -151,7 +155,7 @@ const CLIP_WAIT: StringName = &"idle"
 const REFUSE_NONE: String = ""
 
 ## The village's parts, and the fishery's own.
-var tables: Tables = Tables.new(Rules.RACK_SLOTS)
+var tables: Tables = Tables.new(Recipes.SLOT_COUNT)
 var locker: LockerScript = LockerScript.new()
 var skills: SkillsScript = SkillsScript.new()
 var ice: IceScript = IceScript.new()
@@ -177,8 +181,8 @@ var milled_out_milli: int = 0
 var spoiled_by_cancel_milli: int = 0
 ## THE STATIONS' RECIPES' BOOKS (decision 1611; preserve_rules.gd rows), milli-U: food a row's batches took, what they
 ## made, and the preserves (dried fruit, rations) stored. The fish row is booked here and in `dried_in/out_milli` too.
-var batch_in_milli: PackedInt64Array = PackedInt64Array([0, 0, 0])
-var batch_out_milli: PackedInt64Array = PackedInt64Array([0, 0, 0])
+var batch_in_milli: PackedInt64Array = _zeros(Recipes.RECIPE_COUNT)
+var batch_out_milli: PackedInt64Array = _zeros(Recipes.RECIPE_COUNT)
 var preserves_stored_milli: int = 0
 ## The decision's answer (`trip_refusal` and the stations'): its code and its fix, for the card.
 var refused_code: String = ""
@@ -199,6 +203,13 @@ var _hour_seen: int = -1
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 var _preview: Driver.Preview = Driver.Preview.new()
 var _tasks: Array = []
+
+
+static func _zeros(count: int) -> PackedInt64Array:
+	"""A column of `count` zeros (a recipe row's books)."""
+	var column := PackedInt64Array()
+	column.resize(count)
+	return column
 
 
 func configure(p_cast: DemoCastScript, water_driver: Driver, p_pantry: PantryScript, p_takes: TakesScript,
@@ -230,6 +241,7 @@ func _find_places() -> void:
 	_spots[&"rack"] = _standable(RACK_FACE)
 	_spots[&"mill"] = _standable(MILL_AT)
 	_spots[&"table"] = _standable(Recipes.TABLE_AT)
+	_spots[&"brewery"] = _standable(Recipes.BREWERY_AT)
 	_spots[&"workbench"] = _poi_or(&"workbench", WORKBENCH_FACE)
 	_spots[&"jetty"] = _standable(Routes.m_of(Routes.JETTY_LAND_U))
 	_jetty_waits.clear()
@@ -948,7 +960,7 @@ func _station_spot(j: int) -> Vector2:
 	"""A station job's place: the rack, the mill, the workbench, the locker, or the jetty (a boat's mending)."""
 	match tables.j_kind[j]:
 		Tables.KIND_DRY, Tables.KIND_TAKE_DOWN, Tables.KIND_BATCH:
-			return spot(&"table") if Recipes.STATION[tables.j_recipe[j]] == Recipes.STATION_TABLE else spot(&"rack")
+			return spot(STATION_SPOTS[Recipes.STATION[tables.j_recipe[j]]])
 		Tables.KIND_MILL:
 			return spot(&"mill")
 		Tables.KIND_MAKE:
@@ -1242,7 +1254,7 @@ func _face_of(j: int) -> Vector2:
 		return _bank_water.get(tables.t_site[t], spot(&"locker")) if not _on_ice(j) else ICE_HOLE + Vector2(1.0, 0.0)
 	match tables.j_kind[j]:
 		Tables.KIND_DRY, Tables.KIND_TAKE_DOWN, Tables.KIND_BATCH:
-			return Recipes.TABLE_FACE if Recipes.STATION[tables.j_recipe[j]] == Recipes.STATION_TABLE else RACK_FACE
+			return STATION_FACES[Recipes.STATION[tables.j_recipe[j]]]
 		Tables.KIND_MILL:
 			return MILL_FACE
 		Tables.KIND_MAKE:
@@ -1666,8 +1678,8 @@ func batch_refusal(recipe: int) -> String:
 	row, each input's food nobody has reserved, the butt's water, room for what it makes (REQ-SET-112), a free job row."""
 	refused_code = ""
 	refused_fix = ""
-	if Recipes.is_passive(recipe) and tables.s_state.find(Tables.SLOT_EMPTY) < 0:
-		return _refuse("RACK_FULL", "all %d rack slots are taken" % Rules.RACK_SLOTS, "wait for a batch to cure")
+	if Recipes.is_passive(recipe) and free_slot(Recipes.STATION[recipe]) < 0:
+		return _slots_full(Recipes.STATION[recipe])
 	var short: String = _inputs_refusal(recipe)
 	if not short.is_empty():
 		return short
@@ -1679,6 +1691,22 @@ func batch_refusal(recipe: int) -> String:
 		return _refuse("NO_ROOM", "no store has room for %s of %s" % [Text.units(Recipes.OUT_MILLI[recipe]),
 			Catalog.ITEM_LABELS[item].to_lower()], "Pantry (K): make room")
 	return _job_room_refusal()
+
+
+func free_slot(station: int) -> int:
+	"""The first empty passive slot of `station` (the rack's or the brewery's vats), NONE when every one is taken."""
+	var first: int = Recipes.STATION_FIRST_SLOT[station]
+	for slot: int in range(first, first + Recipes.STATION_SLOTS[station]):
+		if tables.s_state[slot] == Tables.SLOT_EMPTY:
+			return slot
+	return NONE
+
+
+func _slots_full(station: int) -> String:
+	"""Every passive slot of `station` taken, in words."""
+	if station == Recipes.STATION_BREWERY:
+		return _refuse("VATS_FULL", "all %d vats are brewing" % Recipes.VAT_SLOTS, "wait for a batch to be drawn off")
+	return _refuse("RACK_FULL", "all %d rack slots are taken" % Rules.RACK_SLOTS, "wait for a batch to cure")
 
 
 func _inputs_refusal(recipe: int) -> String:
@@ -1723,7 +1751,7 @@ func order_batch(recipe: int, members: PackedInt32Array) -> String:
 		takes.reserve_into(pantry, tables.j_take[j], Recipes.IN_CATEGORY[input], Recipes.IN_MILLI[input], _hour_seen, _read)
 	var hold: int = _hold_for(Recipes.OUT_ITEM[recipe], Recipes.OUT_MILLI[recipe], _station_spot(j))
 	if passive:
-		var slot: int = tables.s_state.find(Tables.SLOT_EMPTY)
+		var slot: int = free_slot(Recipes.STATION[recipe])
 		tables.j_slot[j] = slot
 		tables.s_state[slot] = Tables.SLOT_LOADING
 		tables.s_hold[slot] = hold
@@ -2006,8 +2034,8 @@ func _take_down(j: int) -> void:
 	tables.j_hold[j] = tables.s_hold[slot]
 	tables.s_hold[slot] = NONE
 	tables.s_state[slot] = Tables.SLOT_EMPTY
-	_note("A batch of %s is off the rack: %s" % [Catalog.ITEM_LABELS[Recipes.OUT_ITEM[recipe]].to_lower(),
-		Text.units(Recipes.OUT_MILLI[recipe])], false)
+	_note("A batch of %s is done at %s: %s" % [Catalog.ITEM_LABELS[Recipes.OUT_ITEM[recipe]].to_lower(),
+		Recipes.STATION_NAMES[Recipes.STATION[recipe]], Text.units(Recipes.OUT_MILLI[recipe])], false)
 
 
 func _batch_made(j: int) -> void:
@@ -2110,7 +2138,7 @@ func place_words(j: int) -> String:
 			return "the food set aside"
 		S_TO_WORKBENCH:
 			return "the workbench"
-	if tables.j_kind[j] == Tables.KIND_BATCH or tables.j_kind[j] == Tables.KIND_DRY:
+	if Recipes.is_recipe(tables.j_recipe[j]):
 		return Recipes.STATION_NAMES[Recipes.STATION[tables.j_recipe[j]]]
 	return ["", "", "the rack", "the rack", "the mill", "the workbench", "the gear locker"][tables.j_kind[j]]
 
@@ -2289,6 +2317,15 @@ func ice_trip_out() -> bool:
 		if tables.t_live[t] == 1 and tables.t_method[t] == Rules.METHOD_ICE and tables.t_state[t] == Tables.TRIP_FISHING:
 			return true
 	return false
+
+
+func brewing() -> int:
+	"""How many of the brewery's vats hold a batch (loading, brewing or ready to draw off)."""
+	var n: int = 0
+	var first: int = Recipes.STATION_FIRST_SLOT[Recipes.STATION_BREWERY]
+	for slot: int in range(first, first + Recipes.VAT_SLOTS):
+		n += 0 if tables.s_state[slot] == Tables.SLOT_EMPTY else 1
+	return n
 
 
 func packing() -> bool:

@@ -1,41 +1,67 @@
 extends RefCounted
-## What the preserves say in the field guide (decision 1611): dried fruit and rations -- what they are for (ECO-028: each
-## preservation its own purpose; fresh food keeps its role), how they are made, and how long they keep. Presentation.
+## What the stations' goods say in the field guide (decision 1611: dried fruit and rations; decision 1621: mead and the
+## cordial) -- what each is for (ECO-028: each preservation its own purpose, fresh food keeping its role; ECO-031: a
+## modest drink culture, no intoxication), how it is made, and how long it keeps. Presentation only.
 
 const Recipes := preload("res://demo/preserve/preserve_rules.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 
-const SUMMARY: Array[String] = ["Fruit dried on the rack", "Packed at the preserving table"]
+## Per recipe row (preserve_rules.gd R_*): the guide's one line (the fish row's is the guide's own, decision 0434).
+const SUMMARY: Array[String] = ["", "Fruit dried on the rack", "Packed at the preserving table", "Brewed at the brewery",
+	"Made at the brewery's bench"]
+const DRINK_USE: String = "A drink for the feast: poured at the regatta's supper, a unit for every four guests, when the brewery has made enough. No one is made drunk."
+const DRINK_ALTERNATIVE: String = "The Hearth feast's warm infusion of herbs and water is poured whatever the brewery has made."
 
 
-static func is_preserve(item: int) -> bool:
-	"""Whether `item` is one of the preserves (dried fruit, rations)."""
-	return item == Catalog.ITEM_DRIED_FRUIT or item == Catalog.ITEM_RATION
+static func recipe_of(item: int) -> int:
+	"""The station row that makes `item` (-1: none, or the fish row's dried fish, which the guide already describes)."""
+	for recipe: int in range(Recipes.R_DRY_FRUIT, Recipes.RECIPE_COUNT):
+		if Recipes.OUT_ITEM[recipe] == item:
+			return recipe
+	return -1
+
+
+static func is_station_good(item: int) -> bool:
+	"""Whether `item` is one of the stations' goods this file describes (dried fruit, rations, mead, cordial)."""
+	return recipe_of(item) >= 0
 
 
 static func summary(item: int) -> String:
-	"""The guide's one line for a preserve."""
-	return SUMMARY[0] if item == Catalog.ITEM_DRIED_FRUIT else SUMMARY[1]
+	"""The guide's one line for a station good ("" for none)."""
+	var recipe: int = recipe_of(item)
+	return SUMMARY[recipe] if recipe >= 0 else ""
 
 
 static func guide_fields(item: int, raw_np: int) -> PackedStringArray:
-	"""A preserve's four fields: its use, how it is made, its alternative, how long it keeps."""
-	var recipe: int = Recipes.R_DRY_FRUIT if item == Catalog.ITEM_DRIED_FRUIT else Recipes.R_RATION
+	"""A station good's four fields: its use, how it is made, its alternative, how long it keeps."""
+	var recipe: int = recipe_of(item)
+	var drink: bool = Recipes.STATION[recipe] == Recipes.STATION_BREWERY
+	var use: String = DRINK_USE if drink \
+		else "The village's reserve: eaten as it is by a hungry resident when a meal is missed (%d NP a unit)." % raw_np
+	return PackedStringArray([use, made_words(recipe), DRINK_ALTERNATIVE if drink else _alternative(item),
+		"Keeps %d game hours in store; the Pantry (K) lists it." % Catalog.shelf_hours_of(item)])
+
+
+static func made_words(recipe: int) -> String:
+	"""How a row is made, in the guide's words: its button, station, inputs, output, work and wait."""
 	var inputs := PackedStringArray()
 	for k: int in Recipes.IN_COUNT[recipe]:
 		var input: int = Recipes.IN_FIRST[recipe] + k
 		inputs.append("%s %s" % [Recipes.category_words(Recipes.IN_CATEGORY[input]), ForestRules.units_text(Recipes.IN_MILLI[input])])
 	if Recipes.WATER_MILLI[recipe] > 0:
 		inputs.append("water %s" % ForestRules.units_text(Recipes.WATER_MILLI[recipe]))
-	var wait: String = " and %d hours on the rack" % Recipes.PASSIVE_HOURS[recipe] if Recipes.is_passive(recipe) else ""
+	var wait: String = " and %d hours at %s" % [Recipes.PASSIVE_HOURS[recipe], Recipes.STATION_NAMES[Recipes.STATION[recipe]]] \
+		if Recipes.is_passive(recipe) else ""
 	@warning_ignore("integer_division") var work_wu: int = Recipes.WORK_MWU[recipe] / 1000
-	return PackedStringArray([
-		"The village's reserve: eaten as it is by a hungry resident when a meal is missed (%d NP a unit)." % raw_np,
-		"%s (the Water panel's Preserves) at %s: %s make %s, %d WU%s." % [Recipes.VERB[recipe],
-			Recipes.STATION_NAMES[Recipes.STATION[recipe]], ", ".join(inputs), ForestRules.units_text(Recipes.OUT_MILLI[recipe]),
-			work_wu, wait],
-		"Fresh fruit for the table while it keeps (%d game hours); the kitchen cooks fresh food first." %
-			Catalog.shelf_hours_of(Catalog.ITEM_APPLE) if item == Catalog.ITEM_DRIED_FRUIT else
-			"Dried fish and nuts eaten as they are; rations keep longest of all.",
-		"Keeps %d game hours in store; the Pantry (K) lists it." % Catalog.shelf_hours_of(item)])
+	return "%s (the Water panel) at %s: %s make %s, %d WU%s." % [Recipes.VERB[recipe],
+		Recipes.STATION_NAMES[Recipes.STATION[recipe]], ", ".join(inputs), ForestRules.units_text(Recipes.OUT_MILLI[recipe]),
+		work_wu, wait]
+
+
+static func _alternative(item: int) -> String:
+	"""What else does a preserve's work."""
+	if item == Catalog.ITEM_DRIED_FRUIT:
+		return "Fresh fruit for the table while it keeps (%d game hours); the kitchen cooks fresh food first." % \
+			Catalog.shelf_hours_of(Catalog.ITEM_APPLE)
+	return "Dried fish and nuts eaten as they are; rations keep longest of all."

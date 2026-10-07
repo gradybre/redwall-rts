@@ -2065,6 +2065,28 @@ can make; every number not the GDD's is named in `preserve/preserve_rules.gd`.
 | Water panel ▸ Preserves ▸ **Dry fruit** | 4 U of the fruit that spoils first onto the rack (selected residents first, else the board) |
 | Water panel ▸ Preserves ▸ **Pack rations** | A batch of rations at the preserving table |
 
+## Brewing: mead and the cordial (decision 1621)
+
+Feature #19 and the review's ECO-031, a modest drink culture (`preserve/preserve_rules.gd`'s brewing rows, through the
+fishery's station jobs). Nothing models what drink does: mead is "a feast ingredient only; no intoxication subsystem".
+
+- **The brewery** stands east of the kitchen: art pass 3's mash vat (steam rises over its rim while a batch brews) and
+  conditioning cask. Its **four vats** are §5.9's Brewery's passive slots.
+- **Brew mead** (§5.7 `mead`): honey 3 + water 3 → **mead** 4, 20 WU, then 72 game hours in a vat with the brewer
+  free, then drawn off to the stores (1440 h).
+- **Make cordial**: the raspberry cordial of the recipe book (Brendan's DEC-045, decision 0603: berries 2 + honey 0.5
+  + water 2 → 4, 10 WU, 72 h) at the brewery's bench, kept as a drink. Its honey is the apiary's (decision 1601).
+- **At the feast**: the regatta's supper pours what the brewery has made -- mead and the cordial, a unit each for
+  every four guests, for those who came -- beside the Hearth feast's warm infusion. A drink never decides Shared
+  Warmth, and the preview says which will be poured.
+- **Not built**: ale and cider (icons exist; no GDD row) wait on Brendan's ruling on how drink is depicted (DEC-007)
+  and new drink recipes (open question Q-D5).
+
+| Input | Does |
+|---|---|
+| Water panel ▸ Brewing ▸ **Brew mead** | A batch of mead into a free vat (selected residents first, else the board) |
+| Water panel ▸ Brewing ▸ **Make cordial** | A batch of the raspberry cordial at the brewery's bench |
+
 ## Water
 
 A stream runs down the village's east edge -- narrowing to a neck at the north-east corner, past

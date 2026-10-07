@@ -24,7 +24,8 @@ WHAT IS RESOLVED, exactly as the handoff's section 3 specifies:
     (FORAGE_LEAVES: the batch 7 integration's demo selection, decision 0902 -- never nutmeg, a spice);
   * the orchard's apple and pear (decision 0671) by their LEAF (batch 8 integration, decision 0903);
   * the preserves (decision 1611): dried fruit as the library's dried forms of apple and pear (as dried fish is of the
-    fish); rations by a LEAF the library does not have, so with no targets and no dishes;
+    fish); rations by a LEAF the library does not have, so with no targets and no dishes; likewise the drinks (decision
+    1621: mead and the cordial), which the library has as no leaf;
   * Salmon and carp have no pantry leaf (the library's fish leaves are dace, herring, mackerel,
     mussel, perch, trout and whitefish): they are listed with no targets and no dishes.
 
@@ -64,6 +65,7 @@ ITEM_KEYS = [
     "nuts", "mushrooms", "herb", "berries",
     "apple", "pear",
     "dried_fruit", "ration",
+    "mead", "cordial",
 ]
 ## The woods' forage (farm_catalog.gd THE WOODS' FORAGE): each item's pantry leaves, the demo's own selection of the
 ## woodland's nuts, fungi, pot herbs and wild berries (decision 0902).

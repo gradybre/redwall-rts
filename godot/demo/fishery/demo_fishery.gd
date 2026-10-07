@@ -15,6 +15,8 @@ extends Node3D
 ##   Mill grain                     3 U of grain to the mill: 3 U of flour
 ##   Dry fruit                      4 U of the fruit that spoils first onto the rack: 3 U dried in 12 h (decision 1611)
 ##   Pack rations                   flour 2, dried fish 1, nuts 1, water 1 at the preserving table: 3 U of rations
+##   Brew mead                      honey 3, water 3 into a vat at the brewery: 4 U of mead after 72 h (decision 1621)
+##   Make cordial                   berries 2, honey 0.5, water 2 at the brewery's bench: 4 U of the raspberry cordial
 ##
 ## TIME. The fishery runs on this frame's demo time (paused, nothing moves or cures; at 4x everything four times as
 ## fast); the panel and the incidents follow on real time (they work paused), the panel only while shown.
@@ -54,6 +56,7 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const Recipes := preload("res://demo/preserve/preserve_rules.gd")
+const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 
 const PANEL_REFRESH_S: float = 0.25
 const OVERDUE_KEY: String = "water:overdue:%d"
@@ -263,6 +266,10 @@ func on_action(action_name: StringName) -> void:
 			_answer(_ordered(fishery.order_batch(Recipes.R_DRY_FRUIT, members), "Dry fruit: on the work board"))
 		PanelScript.ACTION_RATIONS:
 			_answer(_ordered(fishery.order_batch(Recipes.R_RATION, members), "Pack rations: on the work board"))
+		PanelScript.ACTION_MEAD:
+			_answer(_ordered(fishery.order_batch(Recipes.R_MEAD, members), "Brew mead: on the work board"))
+		PanelScript.ACTION_CORDIAL:
+			_answer(_ordered(fishery.order_batch(Recipes.R_CORDIAL, members), "Make cordial: on the work board"))
 		_:
 			return
 	_refresh_in = 0.0
@@ -361,12 +368,17 @@ func refresh_panel() -> void:
 	panel.set_card(PanelScript.ACTION_DRY_FRUIT, card.text(), card.is_ok())
 	card = batch_card(Recipes.R_RATION, members)
 	panel.set_card(PanelScript.ACTION_RATIONS, card.text(), card.is_ok())
+	card = batch_card(Recipes.R_MEAD, members)
+	panel.set_card(PanelScript.ACTION_MEAD, card.text(), card.is_ok())
+	card = batch_card(Recipes.R_CORDIAL, members)
+	panel.set_card(PanelScript.ACTION_CORDIAL, card.text(), card.is_ok())
 
 
 func panel_lines() -> Dictionary:
 	"""The sections' text (water_panel.gd FISHERY_LINES)."""
 	return {&"fish_choice": choice_line(), &"fish_preview": preview_text(), &"fish_trips": trips_text(),
-		&"fish_gear": gear_text(), &"boats": boats_text(), &"stations": stations_text(), &"preserves": preserves_text()}
+		&"fish_gear": gear_text(), &"boats": boats_text(), &"stations": stations_text(), &"preserves": preserves_text(),
+		&"brewing": brewing_text()}
 
 
 func choice_line() -> String:
@@ -494,6 +506,13 @@ func preserves_text() -> String:
 		fruit, "" if fruit == 1 else "s", "being packed" if fishery.packing() else "none being packed",
 		Text.units(fishery.pantry.milli_of(Catalog.ITEM_APPLE) + fishery.pantry.milli_of(Catalog.ITEM_PEAR)),
 		Text.units(fishery.pantry.milli_of(Catalog.ITEM_DRIED_FRUIT)), Text.units(fishery.pantry.milli_of(Catalog.ITEM_RATION))]
+
+
+func brewing_text() -> String:
+	"""The brewery (decision 1621): its vats, and the pantry's honey, mead and cordial."""
+	return "Brewery: %d of %d vats brewing\nIn the pantry: honey %s · mead %s · cordial %s" % [fishery.brewing(),
+		Recipes.VAT_SLOTS, Text.units(fishery.pantry.milli_of(Catalog.ITEM_HONEY)),
+		Text.units(fishery.pantry.milli_of(Catalog.ITEM_MEAD)), Text.units(fishery.pantry.milli_of(Catalog.ITEM_CORDIAL))]
 
 
 func _fresh_fish() -> int:
@@ -638,9 +657,10 @@ func batch_card(recipe: int, members: PackedInt32Array) -> CardScript:
 			fishery.pantry, Recipes.IN_CATEGORY[input]), Recipes.IN_MILLI[input])
 	if Recipes.WATER_MILLI[recipe] > 0:
 		_card.add_cost("Water", fishery.stores.water_milli_u if fishery.stores != null else 0, Recipes.WATER_MILLI[recipe])
-	_card.result = "%s of %s (keeps %d h; eaten as it is)%s" % [Text.units(Recipes.OUT_MILLI[recipe]),
-		Catalog.ITEM_LABELS[item].to_lower(), Catalog.shelf_hours_of(item), " after %d game hours on the rack" %
-		Recipes.PASSIVE_HOURS[recipe] if Recipes.is_passive(recipe) else ""]
+	_card.result = "%s of %s (keeps %d h; %s)%s" % [Text.units(Recipes.OUT_MILLI[recipe]),
+		Catalog.ITEM_LABELS[item].to_lower(), Catalog.shelf_hours_of(item), "eaten as it is" if MealRules.raw_np_per_u(item) > 0
+		else "kept for feasts", " after %d game hours at %s" % [Recipes.PASSIVE_HOURS[recipe],
+		Recipes.STATION_NAMES[Recipes.STATION[recipe]]] if Recipes.is_passive(recipe) else ""]
 	if not why.is_empty():
 		_card.refuse(fishery.refused_code, why, fishery.refused_fix)
 		return _card

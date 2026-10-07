@@ -50,6 +50,8 @@ var _in_water_key: Array[StringName] = []
 var _boat_nets: Array[MeshInstance3D] = []
 var _loads: Array[MeshInstance3D] = []
 var _smoke: CPUParticles3D = null
+## The brewery vat's steam while a batch brews (decision 1621; art_pass3_mapping.md: over its rim, no new art).
+var _steam: CPUParticles3D = null
 var _churn: CPUParticles3D = null
 var _ice_seen: int = -1
 
@@ -65,6 +67,7 @@ func configure(fishery: FisheryScript, props: PropsScript) -> void:
 	_build_props()
 	_smoke = _particles(Vector3(RACK_AT.x, 0.35, RACK_AT.y), Color(0.78, 0.76, 0.72, 0.28), 1.0)
 	_churn = _particles(MILL_WHEEL_AT, Color(0.92, 0.96, 1.0, 0.6), 1.6)
+	_steam = _particles(Vector3(Recipes.VAT_AT.x, Recipes.VAT_RIM_M, Recipes.VAT_AT.y), Color(0.95, 0.94, 0.9, 0.22), 0.8)
 
 
 func _build_ice() -> void:
@@ -157,14 +160,21 @@ func _build_props() -> void:
 	_build_preserves()
 
 
+## The stations' props (art pass 3, decision 0971): the preserving table's shelf of jars and crock (decision 1611), the
+## brewery's mash vat and conditioning cask (decision 1621) -- each key, where it stands and its turn (fronts, +Z, toward
+## the worker; the cask's spigot head too).
+const STATION_PROPS: Array[StringName] = [Recipes.SHELF_KEY, Recipes.CROCK_KEY, Recipes.VAT_KEY, Recipes.CASK_KEY]
+const STATION_PROP_AT: Array[Vector2] = [Recipes.SHELF_AT, Recipes.CROCK_AT, Recipes.VAT_AT, Recipes.CASK_AT]
+const STATION_PROP_YAW: PackedFloat32Array = [0.0, 0.6, 0.4, -0.5]
+
+
 func _build_preserves() -> void:
-	"""The preserving table's shelf of jars and its crock (art pass 3's `jar_shelf` and `crock_stoneware`, decision
-	1611; placeholder boxes unstaged), their fronts (+Z) toward the worker."""
-	for k: int in 2:
-		var key: StringName = Recipes.SHELF_KEY if k == 0 else Recipes.CROCK_KEY
-		var at: Vector2 = Recipes.SHELF_AT if k == 0 else Recipes.CROCK_AT
+	"""The stations' props (STATION_PROPS; placeholder boxes unstaged), named `Preserves_<key>`."""
+	for k: int in STATION_PROPS.size():
+		var key: StringName = STATION_PROPS[k]
+		var at: Vector2 = STATION_PROP_AT[k]
 		var prop: MeshInstance3D = _props.instance(key)
-		prop.transform = Transform3D(Basis(Vector3.UP, 0.0 if k == 0 else 0.6), Vector3(at.x, 0.0, at.y)) * _props.fit_of(key)
+		prop.transform = Transform3D(Basis(Vector3.UP, STATION_PROP_YAW[k]), Vector3(at.x, 0.0, at.y)) * _props.fit_of(key)
 		prop.name = "Preserves_%s" % key
 		add_child(prop)
 
@@ -273,8 +283,16 @@ func _follow_ice() -> void:
 
 
 func _follow_rack() -> void:
-	"""Smoke rises from the rack's fire while any batch cures (the staged rack shows its hanging fish itself)."""
-	_smoke.emitting = _fishery.tables.s_state.has(Tables.SLOT_CURING)
+	"""Smoke rises from the rack's fire while any of its batches cures (the staged rack shows its hanging fish itself);
+	steam from the brewery's vat while any of its batches brews."""
+	var curing: bool = false
+	var brewing: bool = false
+	for slot: int in Recipes.SLOT_COUNT:
+		if _fishery.tables.s_state[slot] == Tables.SLOT_CURING:
+			curing = curing or Recipes.station_of_slot(slot) == Recipes.STATION_RACK
+			brewing = brewing or Recipes.station_of_slot(slot) == Recipes.STATION_BREWERY
+	_smoke.emitting = curing
+	_steam.emitting = brewing
 
 
 func _follow_loads() -> void:

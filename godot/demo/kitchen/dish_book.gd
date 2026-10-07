@@ -57,7 +57,8 @@ extends RefCounted
 ## its category from them. The library's hazelnut, mushroom and raspberry are the foraging lane's `nuts`, `mushrooms` and
 ## `berries` (farm_catalog.gd THE WOODS' FORAGE, decision 0681): the batch 7 integration mapped them so and struck them
 ## from PENDING_SOURCES (decision 0902). Honey is the apiary's since decision 1601 (demo/hives/); potato still waits.
-## The cordial is a DRINK: never chosen for a meal (the feasts lane serves drinks); it is listed with its recipe.
+## The cordial is a DRINK: never chosen for a meal; it is listed with its recipe, made at the brewery's bench from this
+## row's numbers and poured at the regatta's feast (decision 1621).
 ##
 ## THE FEAST'S SECOND COURSE (decision 0682): nut_loaf, the library's Nutbread cooked as §5.7's own `nut_loaf` row
 ## (flour 2 + nuts 2, the GDD's numbers), is an OCCASION dish -- never a meal's choice, cooked only as the Hearth feast's

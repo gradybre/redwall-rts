@@ -143,7 +143,7 @@ func _stock_rations(rig: Rig) -> void:
 func test_the_rows_are_the_gdds() -> void:
 	"""§5.7: dry_fruit fruit 4 -> 3, 20 WU + 12 h, Dryer; ration flour 2, dried fish 1, nuts 1, water 1 -> 3, 24 WU,
 	Kitchen; dry_fish unchanged (decision 0434)."""
-	assert_equal(Recipes.GDD_ROW, ["dry_fish", "dry_fruit", "ration"] as Array[String], "the rows")
+	assert_equal(Recipes.GDD_ROW.slice(0, 3), ["dry_fish", "dry_fruit", "ration"], "the rows")
 	assert_equal([Recipes.IN_CATEGORY[1], Recipes.IN_MILLI[1], Recipes.OUT_MILLI[1], Recipes.WORK_MWU[1],
 		Recipes.PASSIVE_HOURS[1], Recipes.STATION[1]], [Catalog.CAT_FRUIT, 4000, 3000, 20000, 12, Recipes.STATION_RACK],
 		"dry_fruit")
@@ -163,7 +163,7 @@ func test_the_new_items_are_appended_with_their_section_5_7_rows() -> void:
 	"""Dried fruit (32) and rations (33) appended (never renumbering): 720 h and 1440 h, their own categories, eaten as
 	they are at 1400 and 2400 NP; the pantry index carries them."""
 	assert_equal([Catalog.ITEM_KEYS[32], Catalog.ITEM_KEYS[33]], [&"dried_fruit", &"ration"], "appended")
-	assert_equal(Catalog.PANTRY_ITEM_COUNT, 34, "34 items")
+	assert_equal(Catalog.ITEM_KEYS.size(), Catalog.PANTRY_ITEM_COUNT, "every item keyed")
 	assert_equal([Catalog.shelf_hours_of(Catalog.ITEM_DRIED_FRUIT), Catalog.shelf_hours_of(Catalog.ITEM_RATION)], [720, 1440],
 		"§5.7 shelf")
 	assert_equal([Catalog.category_of(32), Catalog.category_of(33)], [Catalog.CAT_DRIED_FRUIT, Catalog.CAT_RATION], "categories")
@@ -223,7 +223,7 @@ func test_fish_and_fruit_share_the_racks_four_slots() -> void:
 		assert_equal(f.order_batch(recipe, PackedInt32Array()), "", "slot taken")
 	assert_equal(f.batch_refusal(Recipes.R_DRY_FRUIT), "all 4 rack slots are taken", "full")
 	assert_equal(f.refused_code, "RACK_FULL", "its code")
-	assert_equal(Array(f.tables.s_recipe), [0, 1, 0, 1], "each slot's row")
+	assert_equal(Array(f.tables.s_recipe).slice(0, Rules.RACK_SLOTS), [0, 1, 0, 1], "each rack slot's row")
 
 
 func test_dry_fruit_says_what_is_missing() -> void:
@@ -321,8 +321,9 @@ func test_the_guide_has_the_preserves() -> void:
 		assert_equal(entry.summary, PreserveText.summary(item), "%s's summary" % Catalog.ITEM_KEYS[item])
 	var fields: PackedStringArray = PreserveText.guide_fields(Catalog.ITEM_RATION, 2400)
 	assert_true(fields[1].contains("flour 2.0 U, dried fish 1.0 U, nuts 1.0 U, water 1.0 U make 3.0 U, 24 WU"), fields[1])
-	assert_true(PreserveText.guide_fields(Catalog.ITEM_DRIED_FRUIT, 1400)[1].contains("12 hours on the rack"), "the wait")
-	assert_true(PreserveText.is_preserve(Catalog.ITEM_RATION) and not PreserveText.is_preserve(APPLE), "which are")
+	assert_true(PreserveText.guide_fields(Catalog.ITEM_DRIED_FRUIT, 1400)[1].contains("12 hours at the rack"), "the wait")
+	assert_true(PreserveText.is_station_good(Catalog.ITEM_RATION) and not PreserveText.is_station_good(APPLE), "which are")
+	assert_equal(PreserveText.recipe_of(Catalog.ITEM_DRIED_FISH), -1, "the fish row's dried fish is the guide's own")
 
 
 func test_the_preserving_table_is_drawn_and_walked_round() -> void:
@@ -332,5 +333,5 @@ func test_the_preserving_table_is_drawn_and_walked_round() -> void:
 	view.configure(rig.fishery, PropsScript.new())
 	assert_true(view.has_node(NodePath("Preserves_jar_shelf")) and view.has_node(NodePath("Preserves_crock_stoneware")),
 		"both drawn")
-	assert_equal(Recipes.land_obstacles().size(), 2, "two circles")
+	assert_equal(Recipes.land_obstacles().size(), 4, "the table's two circles and the brewery's two")
 	assert_true(rig.fishery.spot(&"table").distance_to(Recipes.TABLE_AT) < 2.0, "the table's spot is reachable nearby")

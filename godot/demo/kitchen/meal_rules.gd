@@ -157,7 +157,7 @@ static var SIDE_MILLI: PackedInt32Array = PackedInt32Array()
 ## fish, flour, honey, and the woods' forage: nuts, mushrooms, herbs, berries). §5.7's `cabbage` input is the cabbage
 ## row -- cabbage, lettuce, spinach, leek and celery -- so it is "greens" to the player.
 const CATEGORY_WORDS: Array[String] = ["beans", "greens", "flax", "grain", "roots", "fresh fish", "dried fish", "flour",
-	"honey", "nuts", "mushrooms", "herbs", "berries", "fruit", "dried fruit", "rations"]
+	"honey", "nuts", "mushrooms", "herbs", "berries", "fruit", "dried fruit", "rations", "mead", "cordial"]
 ## BAL-SUPPLY-004: "wood 100 milli-U/batch".
 const WOOD_MILLI_PER_BATCH: int = 100
 ## A portion's mass and spoiled food's (§5.7: 500 g and 250 g a unit): a spoiled portion is twice its milli-U.

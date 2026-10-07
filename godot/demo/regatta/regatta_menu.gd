@@ -22,6 +22,12 @@ extends RefCounted
 ## second Hearth feast while it lasts neither stacks nor extends it. The demo models no mood and no cold exposure
 ## (meal_rules.gd: "the demo models no mood"), so the buff is a settlement state its readers can use (`cold_exposure_
 ## permille`, `mood_bonus`) and the village news and the Regatta section show; nothing in the demo consumes it yet.
+## THE FEAST'S DRINKS (decision 1621, a PROPOSAL): beside the Hearth row's warm infusion, the regatta pours what the
+## brewery has made -- mead ceil(E/4) U (§5.7's quantity on the Harvest and Orchard feasts; "feast ingredient only; no
+## intoxication subsystem") and the raspberry cordial ceil(E/4) U (ECO-031's one seasonal fruit drink) -- each reserved
+## at confirmation in a take of its own when the pantry holds all of it free, and poured at the supper's end
+## proportionally to attended/E (§5.7's rounding at the last attendee), the rest given back. A drink is never required:
+## it neither earns nor blocks Shared Warmth (the Hearth row's courses do), and nothing models what drink does.
 
 const Rules := preload("res://demo/regatta/regatta_rules.gd")
 const MealRules := preload("res://demo/kitchen/meal_rules.gd")
@@ -34,6 +40,9 @@ const SimClock := preload("res://scripts/core/sim_clock.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 
 const NUT_LOAF: int = MealRules.DISH_NUT_LOAF
+## The drinks poured (see THE FEAST'S DRINKS), and their names.
+const DRINK_ITEMS: PackedInt32Array = [Catalog.ITEM_MEAD, Catalog.ITEM_CORDIAL]
+const DRINK_NAMES: Array[String] = ["mead", "cordial"]
 
 var kitchen: KitchenScript = null
 var stores: StoresScript = null
@@ -48,6 +57,10 @@ var water_used_milli: int = 0
 ## Shared Warmth: the calendar tick it lasts until (-1: never granted), and how many were granted.
 var warmth_until: int = -1
 var warmth_granted: int = 0
+## The drinks' take, what is reserved of each (milli-U; 0: not poured this feast), and all ever poured.
+var drink_take: int = 0
+var drinks_planned: PackedInt64Array = PackedInt64Array([0, 0])
+var drinks_poured_milli: PackedInt64Array = PackedInt64Array([0, 0])
 
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 
@@ -122,8 +135,30 @@ func preview_lines(eligible: int) -> PackedStringArray:
 	var infusion: String = infusion_short(eligible)
 	lines.append("Warm infusion: water %s, herb %s (free %s)%s" % [_units(Rules.infusion_water_milli(eligible)),
 		_units(Rules.infusion_herb_milli(eligible)), _units(free_herb()), "" if infusion.is_empty() else " — can't be made: " + infusion])
+	lines.append(drinks_words(eligible))
 	lines.append(buff_words(eligible, second.is_empty() and infusion.is_empty()))
 	return lines
+
+
+static func drink_need_milli(eligible: int) -> int:
+	"""A drink poured at the feast: ceil(E/4) U (§5.7's mead quantity on its feasts)."""
+	@warning_ignore("integer_division") var units: int = (maxi(eligible, 0) + 3) / 4
+	return units * 1000
+
+
+func free_drink(k: int) -> int:
+	"""Drink `k` (DRINK_ITEMS) in the pantry nobody has set aside, milli-U."""
+	return _free(Catalog.category_of(DRINK_ITEMS[k]))
+
+
+func drinks_words(eligible: int) -> String:
+	"""The preview's drinks line: what will be poured, and what the brewery has not made (never a refusal)."""
+	var parts := PackedStringArray()
+	for k: int in DRINK_ITEMS.size():
+		var poured: bool = free_drink(k) >= drink_need_milli(eligible)
+		parts.append("%s %s (free %s)%s" % [DRINK_NAMES[k], _units(drink_need_milli(eligible)), _units(free_drink(k)),
+			"" if poured else " — not poured: the brewery has not made enough"])
+	return "Drinks, if there: %s; no one is made drunk" % ", ".join(parts)
 
 
 static func buff_words(eligible: int, every_course: bool) -> String:
@@ -152,6 +187,19 @@ func reserve(take: int, eligible: int, hour_index: int) -> void:
 		kitchen.takes.reserve_into(kitchen.pantry, herb_take, Catalog.CAT_HERB, Rules.infusion_herb_milli(eligible), hour_index, _read)
 		water_held_milli = Rules.infusion_water_milli(eligible)
 		infusion_planned = true
+	_reserve_drinks(eligible, hour_index)
+
+
+func _reserve_drinks(eligible: int, hour_index: int) -> void:
+	"""The drinks the pantry holds enough of, reserved in their own take (see THE FEAST'S DRINKS)."""
+	var need: int = drink_need_milli(eligible)
+	for k: int in DRINK_ITEMS.size():
+		if need <= 0 or free_drink(k) < need:
+			continue
+		if drink_take == 0:
+			drink_take = kitchen.takes.new_take()
+		kitchen.takes.reserve_into(kitchen.pantry, drink_take, Catalog.category_of(DRINK_ITEMS[k]), need, hour_index, _read)
+		drinks_planned[k] = need
 
 
 func second_dish() -> int:
@@ -160,11 +208,15 @@ func second_dish() -> int:
 
 
 func release() -> void:
-	"""Give back what the infusion set aside -- its herb's reservation; its water was only owed, never drawn (the second
-	course's food is in the regatta's take, released with it)."""
+	"""Give back what the infusion and the drinks set aside -- the herb's and the drinks' reservations; the infusion's
+	water was only owed, never drawn (the second course's food is in the regatta's take, released with it)."""
 	if herb_take != 0:
 		kitchen.takes.release(herb_take)
 	herb_take = 0
+	if drink_take != 0:
+		kitchen.takes.release(drink_take)
+	drink_take = 0
+	drinks_planned.fill(0)
 	water_held_milli = 0
 	second_planned = false
 	infusion_planned = false
@@ -177,6 +229,7 @@ func settle(eligible: int, attended: int, every_course: int, now_tick: int, hour
 	Shared Warmth granted when every course was served and `every_course` reached 80% of E. The chronicle's words."""
 	var poured: bool = infusion_planned and _pour(eligible, attended, hour_index)
 	var served_all: bool = second_planned and poured
+	_pour_drinks(eligible, attended, hour_index)
 	release()
 	if not served_all:
 		return "no %s (not every course was served)" % Rules.BUFF_NAME
@@ -205,6 +258,19 @@ func _pour(eligible: int, attended: int, hour_index: int) -> bool:
 	var drawn: int = kitchen.draw_service_water(water)
 	water_used_milli += drawn
 	return herb_ok and drawn == water
+
+
+func _pour_drinks(eligible: int, attended: int, hour_index: int) -> void:
+	"""The drinks reserved, poured proportionally to attended/E (floor), each from the drinks' take; the rest is given back
+	when the take is released."""
+	var guests: int = clampi(attended, 0, eligible)
+	for k: int in DRINK_ITEMS.size():
+		@warning_ignore("integer_division") var pour: int = drinks_planned[k] * guests / maxi(eligible, 1)
+		if pour <= 0 or kitchen == null:
+			continue
+		if kitchen.takes.consume_into(kitchen.pantry, drink_take, pour, TakesScript.AT_STORE, hour_index, _read,
+				Catalog.category_of(DRINK_ITEMS[k])):
+			drinks_poured_milli[k] += pour
 
 
 func warmth_active(now_tick: int) -> bool:

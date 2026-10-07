@@ -3,6 +3,11 @@
 This is a recommendation, not a ruling: Brendan may reorder. It follows the dependencies in BACKLOG.md and keeps
 lanes that share a hot file apart. Keep to about 15 lanes at once (STATUS §3).
 
+**Decision numbers (noted 2026-10-07).** BACKLOG.md's ranges (1101–1560) collide with the parallel digging and
+underground branches, which already use 0991–1217. **Remaining packets take ten numbers each from 1701 up**;
+1601–1669 are in use by the three lanes of 2026-10-07. Check every number against `git log --all` and every open
+branch before using it (README §3.6).
+
 ## 1. Land what is in flight (wave 0)
 
 In this order, each merging `origin/master` again and rerunning the gates before its PR (STATUS §2):

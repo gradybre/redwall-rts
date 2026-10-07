@@ -96,7 +96,7 @@ func _initialize() -> void:
 			_look_up, _wait_chilled, _wait_firewood_worked, _wait_recovery, _finish_log])
 	else:
 		_steps.append_array([_hours_pass_without_wood, _wood_comes_in, _the_cell_recovers, _consolidate_in_the_breakdown,
-			_esc_closes_the_breakdown])
+			_esc_closes_the_breakdown, _the_great_hall_burns_three_quarters, _esc_closes_the_breakdown])
 
 
 func _process(delta: float) -> bool:
@@ -449,6 +449,23 @@ func _consolidate_in_the_breakdown() -> void:
 	_click(_centre(button))
 	_check("and says what it did", String(_panel().call(&"status_text")).begins_with("Consolidated:"), String(_panel().call(&"status_text")))
 	_capture("breakdown")
+
+
+func _the_great_hall_burns_three_quarters() -> void:
+	"""Decision 1652: the hall raised to tier 2 (its projects' tier set as the finished upgrade sets it; the hall harness
+	builds it for real) -- at the next hour the winter reads it: the hall's hearth burns 3 U a winter day, its room holds
+	20 °C, and the breakdown names it at its own rate."""
+	var hall: Node = _village.call(&"hall")
+	hall.get("projects").set("tier", 2)
+	_stores().call(&"add_wood", 24000)
+	_forward_hours(1)
+	_check("the winter reads the great hall", int(_winter().fuel.tier[HALL]) == 2 and int(hall.call(&"tier")) == 2)
+	_check("its hearth at x0.75", int(_winter().fuel.rate_of(HALL)) == 3000, str(_winter().fuel.rate_of(HALL)))
+	_check("its room at 20 °C", int(_winter().fuel.temperature_of(HALL)) == 200, str(_winter().fuel.temperature_of(HALL)))
+	_click(_centre(_fuel_cell()))
+	var shown: String = String(_panel().get("_lines").get("text"))
+	_check("the breakdown names the hall at 3.0 U", shown.contains("the hall at 3.0 U"), shown)
+	_capture("breakdown_great_hall")
 
 
 func _first_chilled() -> int:

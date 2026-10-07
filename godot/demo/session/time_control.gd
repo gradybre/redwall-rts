@@ -20,6 +20,9 @@ extends Node
 ## toggle -- paused, it is THE Resume (your pause, a planning pause, a critical pause), running, it pauses; G opens
 ## the "Run until..." menu (demo_run_menu.gd). The HUD's own pause button toggles only PLAYER (ui_shell.gd), so after
 ## its press the rest of Resume follows (`_on_shell_action`): pressed while paused, it resumes as Space does.
+## F1 / F2 / F3 (`time_speed_1/2/4`, UI §5's input table for UI-SET-015-017) request 1x / 2x / 4x through GameManager
+## `set_speed`, as the HUD's speed toggles do -- setting the requested speed only, never clearing a pause reason
+## (decision 1653: the actions were mapped but nothing in the demo read them).
 
 const LedgerScript := preload("res://demo/session/pause_ledger.gd")
 const RunScript := preload("res://demo/session/run_until.gd")
@@ -32,6 +35,9 @@ const RunMenuScript := preload("res://demo/ui/demo_run_menu.gd")
 
 ## After every system the run reads (the farm 0, the village 1, the farm view 20).
 const PRIORITY: int = 50
+## UI §5's speed actions and the speed each requests (SimClock.SELECTABLE_SPEEDS: no 3x).
+const SPEED_ACTIONS: Array[StringName] = [&"time_speed_1", &"time_speed_2", &"time_speed_4"]
+const SPEED_VALUES: Array[int] = [1, 2, 4]
 const PAUSED_WORDS: String = "paused (%s)"
 const CRITICAL_CANCEL: String = "a critical incident: %s"
 const STOPPED_WORDS: String = "you stopped it"
@@ -227,16 +233,46 @@ func _on_shell_action(element_id: int) -> void:
 		ledger.resume()
 
 
+static func speed_of(event: InputEvent) -> int:
+	"""The speed a key event requests through UI §5's speed actions (0: none); exactly F1/F2/F3, no modifier."""
+	for k: int in SPEED_ACTIONS.size():
+		if event.is_action_pressed(SPEED_ACTIONS[k], false, true):
+			return SPEED_VALUES[k]
+	return 0
+
+
 func _unhandled_input(event: InputEvent) -> void:
-	"""Space: pause, or (paused) Resume; G: the run menu."""
+	"""The time keys (`handle_key`), marked handled when taken; a speed key not while typing (`is_typing`)."""
 	var key := event as InputEventKey
-	if key == null or not key.pressed or key.echo:
-		return
+	if key != null and take_key(key, get_viewport().gui_get_focus_owner()):
+		get_viewport().set_input_as_handled()
+
+
+func take_key(key: InputEventKey, focus: Control) -> bool:
+	"""`handle_key`, except a speed key while `focus` is a text field (`is_typing`). Whether it was taken."""
+	if speed_of(key) > 0 and is_typing(focus):
+		return false
+	return handle_key(key)
+
+
+static func is_typing(focus: Control) -> bool:
+	"""Whether the keyboard's focus is in a text field (a pop-up's search): the speed keys then do nothing (the input
+	gate passes a typing field every key but Enter, and an F-key types nothing)."""
+	return focus is LineEdit or focus is TextEdit
+
+
+func handle_key(key: InputEventKey) -> bool:
+	"""Space: pause, or (paused) Resume; F1/F2/F3: the requested speed; G: the run menu. Whether it was taken."""
+	if not key.pressed or key.echo:
+		return false
+	var speed: int = speed_of(key)
 	if key.is_action_pressed(&"time_pause"):
 		ledger.toggle()
+	elif speed > 0 and _manager != null:
+		_manager.set_speed(speed)
 	elif run_menu != null and key.keycode == RunMenuScript.KEY and not (key.ctrl_pressed or key.alt_pressed
 			or key.meta_pressed or key.shift_pressed):
 		run_menu.toggle()
 	else:
-		return
-	get_viewport().set_input_as_handled()
+		return false
+	return true

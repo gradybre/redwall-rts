@@ -24,6 +24,8 @@ const SimScript := preload("res://demo/farm/farm_sim.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const FerryScript := preload("res://demo/ferry/ferry.gd")
+const RegattaScript := preload("res://demo/regatta/regatta.gd")
 
 const HOUR_TICKS: int = SimClock.TICKS_PER_HOUR
 const DAY_TICKS: int = SimClock.TICKS_PER_DAY
@@ -138,7 +140,7 @@ func test_a_goal_is_reached_once_and_stays_reached() -> void:
 	stands); later hours say nothing more."""
 	var book := BookScript.new()
 	var said: Array[StringName] = []
-	book.reached = func(goal: BookScript.Goal) -> void: said.append(goal.id)
+	book.reached = func(reached_goal: BookScript.Goal) -> void: said.append(reached_goal.id)
 	book.register(&"a", "A", "", _one(&"x", 5, _measure))
 	_level = 4
 	book.update(1)
@@ -290,6 +292,66 @@ func test_the_evaluator_counts_bridges_tunnels_and_ready_food() -> void:
 	var stocked := VillageScript.new(counted, LedgerScript.new(), null)
 	assert_equal([stocked.value(VillageScript.M_BRIDGES), stocked.value(VillageScript.M_TUNNELS),
 		stocked.value(VillageScript.M_FOOD_DAYS)], [2, 3, 2500], "the bridges, tunnels and Ready food counted")
+
+
+func test_first_crossing_is_reached_on_the_ferrys_own_count() -> void:
+	"""Decision 1651 (Brendan's ruling on 0901's question, option (b)): "First crossing" reads the ferry's latched
+	`crossings_done` -- nothing at 0, reached at the first crossing rowed home, and said once."""
+	var world := _world(9)
+	var book := BookScript.new()
+	var village := VillageScript.new(world, LedgerScript.new(), null)
+	village.register_all(book)
+	var ferry := FerryScript.new()
+	village.ferry = ferry
+	var said: Array[StringName] = []
+	book.reached = func(reached_goal: BookScript.Goal) -> void: said.append(reached_goal.id)
+	book.update(0)
+	var goal: BookScript.Goal = book.goal(&"first_crossing")
+	assert_equal([goal.group, goal.parts[0].target, goal.parts[0].value, goal.done], [BookScript.GROUP_VILLAGE, 1, 0,
+		false], "a village goal at 0 of 1")
+	ferry.crossings_done = 1
+	book.update(1)
+	assert_true(goal.done, "reached at the first crossing")
+	ferry.crossings_done = 2
+	book.update(2)
+	assert_equal(said.count(&"first_crossing"), 1, "said once")
+
+
+func test_regatta_day_is_reached_on_the_regattas_own_count() -> void:
+	"""Decision 1651: "Regatta day" reads the regatta's latched `feasts_served` (a regatta whose feast's main course at least one resident ate) -- not
+	before, reached at the first."""
+	var world := _world(9)
+	var book := BookScript.new()
+	var village := VillageScript.new(world, LedgerScript.new(), null)
+	village.register_all(book)
+	var regatta := RegattaScript.new()
+	village.regatta = regatta
+	book.update(0)
+	var goal: BookScript.Goal = book.goal(&"regatta_day")
+	assert_equal([goal.group, goal.parts[0].target, goal.parts[0].value, goal.done], [BookScript.GROUP_VILLAGE, 1, 0,
+		false], "a village goal at 0 of 1")
+	regatta.feasts_held = 1
+	book.update(1)
+	assert_false(goal.done, "a regatta held but its feast never served does not count (Brendan, 2026-10-07)")
+	regatta.feasts_served = 1
+	book.update(2)
+	assert_true(goal.done, "reached at the first regatta whose feast someone ate")
+	assert_false(book.goal(&"first_crossing").done, "the ferry's goal waits on its own count")
+
+
+func test_the_occasion_counts_read_nothing_unbound() -> void:
+	"""With no ferry or regatta bound (a suite, or before the village binds them), both measures read 0 and the goals
+	are measured (never "not in this demo yet")."""
+	var village := VillageScript.new(_world(9), LedgerScript.new(), null)
+	assert_equal([village.value(VillageScript.M_CROSSINGS), village.value(VillageScript.M_REGATTAS)], [0, 0], "unbound")
+	var book := BookScript.new()
+	village.register_all(book)
+	assert_true(book.goal(&"first_crossing").is_measured() and book.goal(&"regatta_day").is_measured(), "measured")
+	village.ferry = FerryScript.new()
+	village.ferry.crossings_done = 3
+	village.regatta = RegattaScript.new()
+	village.regatta.feasts_served = 2
+	assert_equal([village.value(VillageScript.M_CROSSINGS), village.value(VillageScript.M_REGATTAS)], [3, 2], "bound")
 
 
 # --- the ledger --------------------------------------------------------------------------------------------------------

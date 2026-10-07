@@ -37,6 +37,7 @@ const GearLocker := preload("res://demo/fishery/gear_locker.gd")
 const FerryRules := preload("res://demo/ferry/ferry_rules.gd")
 const RegattaRules := preload("res://demo/regatta/regatta_rules.gd")
 const WinterRules := preload("res://demo/winter/winter_rules.gd")
+const WeatherScript := preload("res://scripts/core/weather.gd")
 const ForageRules := preload("res://demo/forage/forage_rules.gd")
 const OrchardText := preload("res://demo/orchard/orchard_text.gd")
 const HiveText := preload("res://demo/hives/hive_text.gd")
@@ -435,8 +436,8 @@ func _add_materials() -> void:
 static func _material_wood() -> Entry:
 	"""The material wood entry."""
 	return make(&"material_wood", KIND_MATERIAL, "Wood", "Logs from the woods", PackedStringArray([
-		"Heating: every lit hearth burns %s a day in winter; sawn into planks (%s of wood makes %s of planks); a log bridge's log (%s); a pier (%s each); the kitchen's fire (%s a batch); a lantern, a rag rug or hanging stores (%s each); bracing tunnels." % [
-			FarmText.units_text(WinterRules.WINTER_DAY_MILLI),
+		"Heating: every lit hearth burns %s a day in winter (the great hall's %s); sawn into planks (%s of wood makes %s of planks); a log bridge's log (%s); a pier (%s each); the kitchen's fire (%s a batch); a lantern, a rag rug or hanging stores (%s each); bracing tunnels." % [
+			FarmText.units_text(WinterRules.WINTER_DAY_MILLI), FarmText.units_text(_great_hall_winter_milli()),
 			FarmText.units_text(ForestRules.SAW_BATCH_MILLI), FarmText.units_text(ForestRules.SAW_BATCH_MILLI),
 			FarmText.units_text(SwimRules.LOG_WOOD_MILLI), FarmText.units_text(SwimRules.PIER_WOOD_MILLI),
 			FarmText.units_text(Rules.WOOD_MILLI_PER_BATCH), FarmText.units_text(Fixtures.COST_WOOD_MILLI[RoomsScript.FIX_RUG])],
@@ -532,12 +533,18 @@ func _add_stations() -> void:
 	_add(_station_hearths())
 
 
+static func _great_hall_winter_milli() -> int:
+	"""A tier-2 (great hall) hearth's winter day, x0.75 (decision 1652)."""
+	return WinterRules.day_demand_milli(WeatherScript.SEASON_WINTER, 0, WinterRules.TIER2_FUEL_PERMILLE)
+
+
 static func _station_hearths() -> Entry:
 	"""The hearths and their fuel (decision 0571), from winter_rules.gd's own figures."""
 	return make(&"station_hearths", KIND_STATION, "Hearths and heating fuel", "Warmth for the homes and the hall",
 		PackedStringArray([
-		"A lit hearth holds its room at %s: anyone inside warms up (%d exposure-hours an hour), and a home's hearth adds to its comfort while it burns." % [
-			FarmText.degrees_text(WinterRules.HEATED_TENTHS) + " °C", WinterRules.div(WinterRules.CLEAR_MILLI_PER_HOUR, 1000)],
+		"A lit hearth holds its room at %s (the great hall's at %s, burning %s a winter day): anyone inside warms up (%d exposure-hours an hour), and a home's hearth adds to its comfort while it burns." % [
+			FarmText.degrees_text(WinterRules.HEATED_TENTHS) + " °C", FarmText.degrees_text(WinterRules.HEATED_TIER2_TENTHS) + " °C",
+			FarmText.units_text(_great_hall_winter_milli()), WinterRules.div(WinterRules.CLEAR_MILLI_PER_HOUR, 1000)],
 		"Wood from the stores: %s a day in winter, %s on a spring or autumn day under %s °C, none in summer (1 U heats a hearth %d hours). A burrow home's hearth costs %s of stone." % [
 			FarmText.units_text(WinterRules.WINTER_DAY_MILLI), FarmText.units_text(WinterRules.SHOULDER_DAY_MILLI),
 			FarmText.degrees_text(WinterRules.SHOULDER_BELOW_TENTHS), WinterRules.HEARTH_HOURS_PER_U,

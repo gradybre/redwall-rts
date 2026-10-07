@@ -335,3 +335,27 @@ approved step-1c clips, which are pinned by the step-1c record. The published v8
 Both replays ran on the real non-headless Metal/Forward+ backend: 0 failures, 0 analyzer warnings, and 0
 diagnostics. The stone image's cross-image join (its `enter_haul_stone` key 0 equals wood v10's `stand` key 8,
 body and World coefficients) holds in all 3 views. Evidence is in `stand-walk-v2/evidence/native-haul-v10-*`.
+
+### 3b. The claw/paw image (the new source)
+
+`claw-work-v1/native_claw.py` and `claw-work-v1/native/capture_claw_native.gd` produce and check the image. The
+capture script is the accepted v8 one without the pick-paw derivative or a second part.
+
+**Image.**
+
+- Content `6be24202…`, with one part: the original imported body (the open paw, `a938d479…`, matched natively).
+- 11 approved clips, 421 keys:
+  - the corrected stand and walk;
+  - pa's dig entry, stroke and recovery, from the corrected ready key;
+  - the paw handling seat (entry, work, recovery);
+  - the paw seating tap (entry, work, recovery).
+
+**Native replay.**
+
+- 4,953 rows on Metal/Forward+: 0 failures, 0 analyzer warnings, 0 coefficient mismatches.
+- Maximum vertex error 0.0003 u.
+- 36 exact joins: ready to each entry, entry to work, work to recovery, recovery back to ready, each recovery the
+  exact reverse of its entry.
+- The minimum floor gap is 0.0014 u for every vertex except the paws while digging.
+
+Evidence is in `claw-work-v1/evidence/native-claw-v1/`.

@@ -541,3 +541,49 @@ paw. The clips are checked against the claw image's compilation record. The outp
 
 The dig, tap and handling boxes are content 7's `claw-rows-v1/rows.json`. Those rows were derived from the same
 pinned clips on the same body, so splitting the image into two changes none of them.
+
+### 4c.3 Content 8 published (data only, not active)
+
+`publish_claw_split_runtime.py` writes `mole-worker/qualified-claw-split-v9/` (create-only), content revision 8.
+
+- **Wire** `2b79e39b…`: 18,684 B, 52 rows, 477 boxes, 6 sources. The paired bank is 37,352 B, 540 B more than
+  content 7's.
+- **Sources:** 0–3 are content 7's. Source 4 is the claw image `2b58852e…` and source 5 the paw-handling image
+  `cbe80b76…`.
+- **Rows 0–41** keep content 7's words and boxes.
+- **Source 4's block:**
+  - 42 is the tool-free WALK;
+  - 43/45/47/49 dig at yaws 0, 16384, 32768 and 49152;
+  - 44/46/48/50 tap at the same yaws.
+- **Source 5:** 51 is paw handling.
+- The dig, tap and handling rows are content 7's words and boxes, re-homed. The publisher re-checks them against
+  `claw-rows-v1/rows.json`.
+- **Ground paces** `fb749b77…`: content 7's fifteen ground caps plus row 42's, at revision 8. They reuse the adopted
+  Movement cap; no constant is new.
+- **Motion bank** `19b2b71c…`: rebound to revision 8 and the new wire only.
+
+**Finding: source 4 can carry a WALK, but not a STAND.** Rows 30/31 are automatic. Profiles' key excludes the
+source, so an automatic source-4 STAND or WALK would have exactly row 30's or 31's key, and the loader refuses that
+pair as `PROFILE_AMBIGUOUS_KEY`. Profiles admits a non-automatic policy only on WALK rows. The only one a YAW_ALL
+WALK may carry is `POLICY_CANONICAL_GROUND`, the policy of row 12, the pick's Frontier travel row.
+
+- Row 42 is therefore row 31's words with source 4 and that policy: the tool-free counterpart of row 12, which
+  is the role the Frontier's endpoint travel needs.
+- The derived STAND row is not published. STAND admits only the automatic policy, so it cannot be published
+  without the ambiguity. The derivation record keeps it.
+- At activation (step 5), row 42 is source-clocked canonical-ground travel, like row 12, so the source-program
+  dispatch for source 4 must accept it. This joins items 2 and 3.
+
+**Ground-pace binding.** The ground catalog now binds source 4, the Frontier source, instead of source 0. A
+first-entry bundle can then carry it unchanged beside a structure that binds source 4:
+`entry_source_constants._linked` requires the two headers to agree. The catalog holds only ground caps, which may
+name a row of any source (ADR 1200), so the binding grants no travel. No runtime path loads this file.
+
+**Tests.**
+
+- `godot/test/test_mole_claw_split_profiles.gd`: 6 tests, 847 assertions, through the actual loader and validator.
+  One test edits row 42 back to the automatic policy and gets `PROFILE_AMBIGUOUS_KEY`.
+- `test_publish_claw_split_runtime.py`: 6 tests, including a byte-for-byte rebuild.
+- The renewed consumer pins of `qualified-claw-split-v9` check clean, and the registry audit passes.
+
+**Not active.** The catalog, Session and consumers still load content 6.

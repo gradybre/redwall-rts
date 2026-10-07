@@ -69,7 +69,7 @@ const SEL_APPLE: int = TakesScript.SELECT_ITEMS | (1 << Catalog.ITEM_APPLE)
 ## in the same §5.6 row. Said "roots" (SELECTOR_WORDS).
 const SEL_PICKLE_ROOTS: int = TakesScript.SELECT_ITEMS | (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5)
 ## A named item selector's word, where its items' list would be long ("roots", not "radish, turnip, ... or onion").
-const SELECTOR_WORDS: Dictionary = {SEL_PICKLE_ROOTS: "roots"}
+const SELECTOR_WORDS: Dictionary[int, String] = {SEL_PICKLE_ROOTS: "roots"}
 
 const STATION_RACK: int = 0
 const STATION_TABLE: int = 1
@@ -137,7 +137,7 @@ const IN_FIX: Array[String] = ["Fishing ▸ Authorise a trip", "Orchard ▸ Harv
 	"Orchard ▸ the apiary (and send the baskets on)", "Orchard ▸ Pick berries, or Woods ▸ Foraging",
 	"Orchard ▸ the apiary (and send the baskets on)", "Woods ▸ Foraging", "Farm ▸ sow and harvest barley",
 	"Orchard ▸ Harvest the apple (and send the baskets on)", "Orchard ▸ Harvest the apple (and send the baskets on)",
-	"Farm ▸ sow and harvest onions or roots", "Make vinegar (Water ▸ Preserves)"]
+	"Farm ▸ sow and harvest onions or other roots (not potatoes)", "Make vinegar (Water ▸ Preserves)"]
 
 ## THE PRESERVING TABLE (DEMO): its place west of the kitchen, by the cauldron, the spot a worker faces, and its props' places.
 const TABLE_AT: Vector2 = Vector2(7.8, -6.6)
@@ -215,9 +215,10 @@ static func cap(words: String) -> String:
 
 
 static func category_words(category: int) -> String:
-	"""An input as a recipe names it: a category's word ("dried fish"), or an item selector's items ("barley")."""
+	"""An input as a recipe names it: a category's word ("dried fish"), a named selector's word (SELECTOR_WORDS:
+	"roots"), or an item selector's items ("barley")."""
 	if SELECTOR_WORDS.has(category):
-		return String(SELECTOR_WORDS[category])
+		return SELECTOR_WORDS[category]
 	if category >= TakesScript.SELECT_ITEMS:
 		return MealRules.items_text(category)
 	return MealRules.CATEGORY_WORDS[category] if category >= 0 and category < MealRules.CATEGORY_WORDS.size() else "food"

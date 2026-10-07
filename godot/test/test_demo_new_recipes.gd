@@ -524,6 +524,10 @@ func test_row_mates_grow_alike_but_are_not_said_to_be_used_alike() -> void:
 
 # --- Brendan, 2026-10-07: "exclude potatoes from pickles" ---------------------------------------------------------------
 
+## The onion (farm_catalog.gd ITEM_KEYS[5]), a farmed root.
+const ONION: int = 5
+
+
 func test_the_pickles_roots_are_the_six_farmed_roots_never_potato() -> void:
 	"""The selector takes exactly the farmed items of the roots row; the potato, filed in the same row, is not one; the
 	card and the refusal still say "roots"."""
@@ -544,10 +548,10 @@ func test_potatoes_are_refused_and_an_onion_pickles() -> void:
 	assert_equal(f.refused_code, "NO_ROOTS", "its code")
 	assert_true(f.order_batch(Recipes.R_PICKLES, PackedInt32Array([2])) != "", "not ordered")
 	assert_equal(rig.pantry.milli_of(Catalog.ITEM_POTATO), 3000, "the potatoes untouched")
-	rig.pantry.add_into(5, 3000, 0, _read)
+	rig.pantry.add_into(ONION, 3000, 0, _read)
 	assert_equal(f.order_batch(Recipes.R_PICKLES, PackedInt32Array([2])), "", "onions pickle")
 	assert_true(_run(rig, func() -> bool: return f.tables.s_state[FIRST_CROCK] == Tables.SLOT_CURING), "packed")
-	assert_equal([rig.pantry.milli_of(5), rig.pantry.milli_of(Catalog.ITEM_POTATO)], [0, 3000], "onions taken, not potatoes")
+	assert_equal([rig.pantry.milli_of(ONION), rig.pantry.milli_of(Catalog.ITEM_POTATO)], [0, 3000], "onions taken, not potatoes")
 
 
 func test_the_potato_lists_no_pickles() -> void:
@@ -557,4 +561,4 @@ func test_the_potato_lists_no_pickles() -> void:
 	var potato: FieldGuideScript.Entry = guide.entry(guide.index_of(FieldGuideScript.item_id(Catalog.ITEM_POTATO)))
 	assert_false(potato.uses.contains("pickles"), potato.uses)
 	assert_false(potato.links.has(FieldGuideScript.item_id(Catalog.ITEM_PICKLES)), "not linked")
-	assert_true(CropRoles.uses_text(5).contains("the preserving table (pickles)"), "the onion's card still does")
+	assert_true(CropRoles.uses_text(ONION).contains("the preserving table (pickles)"), "the onion's card still does")

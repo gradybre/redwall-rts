@@ -158,7 +158,7 @@ const ITEM_COUNT: int = 16
 ##   * cider   apples and water (the library's pale cider) -- CAT_CIDER, a drink only, like mead.
 ##   * vinegar  apple vinegar from the orchard's apples (the library's COMPONENT_shared_apple_vinegar) -- CAT_VINEGAR,
 ##              an ingredient only, never eaten;
-##   * pickles  onions or roots in that vinegar, WITHOUT SALT -- beyond the library's formulas (every library pickle
+##   * pickles  onions or the other farmed roots (never potato: Brendan, 2026-10-07) in that vinegar, WITHOUT SALT -- beyond the library's formulas (every library pickle
 ##              takes salt) by Brendan's approval ("both vinegar and salt", 2026-10-07) -- CAT_PICKLES, eaten as they are.
 ## The salted pickle is approved too and waits on salt, which the demo has no source for (decision 1625).
 const PANTRY_ITEM_COUNT: int = 42

@@ -1,5 +1,5 @@
 extends RefCounted
-## ADR1201 per-source mole presentation: one Actor per loaded source image, chosen by the row's source digest.
+## ADR1201/1211 per-source mole presentation: one Actor per loaded source image, chosen by the row's source digest.
 ## Presentation only. It reads the actual Routes owner and never advances a clock or grants work or movement.
 
 const ContentSet := preload("res://demo/cast/underground_content_set.gd")
@@ -10,15 +10,22 @@ const Routes := preload("res://scripts/core/underground_routes.gd")
 const Session := preload("res://scripts/core/underground_session.gd")
 const Assembly := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
 const Clock := preload("res://data/underground/mole-worker/qualified-assembly-v1/handling_clock.gd")
+const HaulProgram := preload("res://data/underground/mole-worker/mole_haul_program.gd")
+const Dressing := preload("res://demo/tunnel/bore_dressing.gd")
 const ONE: int = 65536
 const SOURCE_ACTOR: int = 0
 const SOURCE_HANDLING: int = 1
 const SOURCE_HAUL: int = 2
+const SOURCE_STONE: int = 3
 # Body = part 0, held item (pick or haul stock) = part 1. Every pick clip shows both parts.
 const ACTOR_MASKS: PackedInt32Array = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
 const HANDLING_MASKS: PackedInt32Array = [3, 3, 3]
 # haul-handling-v1 native-program-v8 plan.json part_visibility_masks (ADR1198 step 4a).
 const HAUL_MASKS: PackedInt32Array = [3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 3, 3]
+# haul-handling-v1 native-program-v9 plan.json part_visibility_masks: body and stone lump in every clip (ADR1206).
+const STONE_MASKS: PackedInt32Array = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+# Stone image part 1 is the tunnel dressing's own lump (bore_dressing.gd::stone_mesh), bound by its exact fingerprint.
+const STONE_PART: int = 1
 # Haul image clip ordinals, in plan order. Rows that select them are content-5 work (ADR1198 step 4).
 const HAUL_APPROACH: int = 0
 const HAUL_LIFT: int = 1
@@ -45,11 +52,16 @@ var _pose: PackedInt32Array = PackedInt32Array([0, 0, 0])
 var _frames: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0, ONE])
 
 
-static func load_sources(sources: ContentSet, include_haul: bool) -> StringName:
-	"""Actor and assembly images are required; the haul image is optional until content 5 publishes it."""
-	if sources == null:
+static func load_sources(sources: ContentSet, include_haul: bool, include_stone: bool = false) -> StringName:
+	"""Actor and assembly images are required; the haul and stone images are optional, inside the declared set."""
+	return load_sources_within(sources, Session.PRESENTATION_SET_BYTES, include_haul, include_stone)
+
+
+static func load_sources_within(sources: ContentSet, budget: int, include_haul: bool, include_stone: bool) -> StringName:
+	"""The pinned table in source order; stone needs the haul image, which holds the tool-free stand and walk."""
+	if sources == null or (include_stone and not include_haul):
 		return &"MOLE_PRESENTATION_INPUT"
-	var code: StringName = sources.configure(Session.PRESENTATION_SET_BYTES)
+	var code: StringName = sources.configure(budget)
 	if code == &"":
 		code = sources.load_source(SOURCE_ACTOR, Session.ACTOR_PATH, Session.Catalog.Pins.ACTOR_SHA,
 			Session.PRESENTATION_BYTES, ACTOR_MASKS)
@@ -61,7 +73,20 @@ static func load_sources(sources: ContentSet, include_haul: bool) -> StringName:
 	if code == &"" and include_haul:
 		code = sources.load_source(SOURCE_HAUL, Session.HAUL_ACTOR_PATH, Session.HAUL_ACTOR_SHA,
 			Session.HAUL_PRESENTATION_BYTES, HAUL_MASKS)
+	if code == &"" and include_stone:
+		code = sources.load_source(SOURCE_STONE, Session.STONE_ACTOR_PATH, Session.STONE_ACTOR_SHA,
+			Session.STONE_PRESENTATION_BYTES, STONE_MASKS)
 	return code
+
+
+static func stone_material() -> StandardMaterial3D:
+	"""The tunnel dressing's own stone material, with its per-instance colour fixed at STONE_COLOUR (no new art).
+	The dressing colours each MultiMesh instance; a single Actor part has no instance colour, so it would draw white."""
+	var source: StandardMaterial3D = Dressing.stone_mesh().surface_get_material(0) as StandardMaterial3D
+	var material: StandardMaterial3D = source.duplicate() as StandardMaterial3D
+	material.vertex_color_use_as_albedo = false
+	material.albedo_color = Dressing.STONE_COLOUR
+	return material
 
 
 static func handling_timing_refusal(image: Content) -> StringName:

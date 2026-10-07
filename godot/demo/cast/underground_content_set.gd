@@ -1,10 +1,10 @@
 extends RefCounted
-## ADR1201: one immutable presentation Content per profile source image, inside one declared byte budget.
+## ADR1201/1211: one immutable presentation Content per profile source image, inside one declared byte budget.
 ## Presentation only. A loaded image grants no movement, work, contact or Profile permission.
 
 const Content := preload("res://demo/cast/underground_actor_content.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
-const MAX_SOURCES: int = 3
+const MAX_SOURCES: int = 4 # ADR1211: actor, assembly handling, wood haul, stone haul.
 const CLIP_STRIDE: int = Content.MAX_CLIPS + 1
 
 var _contents: Array[Content] = []

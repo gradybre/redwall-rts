@@ -49,7 +49,12 @@ const HANDLING_PRESENTATION_BYTES: int = 6628488
 const HAUL_ACTOR_PATH: String = "res://data/underground/mole-worker/haul-handling-v1/evidence/native-program-v8/compiled/haul-handling.ugactor"
 const HAUL_ACTOR_SHA: String = "cc8542712705248f944d7430cbba0b7a365860f0073473c2fc0cb9106cf97a85"
 const HAUL_PRESENTATION_BYTES: int = 7486168
-const PRESENTATION_SET_BYTES: int = PRESENTATION_BYTES + HANDLING_PRESENTATION_BYTES + HAUL_PRESENTATION_BYTES
+# ADR1206/1211: the native stone image v9 is the fourth source (rows 37-41).
+const STONE_ACTOR_PATH: String = "res://data/underground/mole-worker/haul-handling-v1/evidence/native-program-v9/compiled/stone-handling.ugactor"
+const STONE_ACTOR_SHA: String = "49ff3018d363c7dbad05df0af91368e8fec11e30525c2f8231e6a959f80a7b95"
+const STONE_PRESENTATION_BYTES: int = 7285004
+const PRESENTATION_SET_BYTES: int = PRESENTATION_BYTES + HANDLING_PRESENTATION_BYTES + HAUL_PRESENTATION_BYTES \
+	+ STONE_PRESENTATION_BYTES
 const CONTROL_BYTES: int = 1024
 const HELPER_BYTES: int = 512
 const RESERVED_BYTES: int = CONTROL_BYTES + HELPER_BYTES

@@ -212,6 +212,9 @@ var _sleep_satisfied: PackedByteArray = PackedByteArray()
 var _resolved: PackedByteArray = PackedByteArray()
 
 var _present_count: int = 0
+## The code of the most recent refused bulk column call, or REFUSE_NONE. Category 3: a
+## diagnostic channel separate from every mutator's OpResult, never saved or hashed.
+var _last_column_refusal: StringName = REFUSE_NONE
 
 # --- scratch (not simulation state) ----------------------------------------------------------
 
@@ -685,6 +688,135 @@ static func _row_state_refusal(present: PackedByteArray, hourly_activity: Packed
 				and current_activity[slot] != ACTIVITY_ANYTHING:
 			return REFUSE_COLUMN_SLEEP_STATE
 	return REFUSE_NONE
+
+
+# --- ARCH-SAVE-002 section 4 bulk column API (ADR 1222 build step 2) ----------------------------
+#
+# Owner 14's capture and apply steps, mirroring `priorities.gd`'s pair. `copy_columns_into()` is
+# an exact snapshot of the six category-1 columns over ALL 512 physical rows, free rows included;
+# `restore_columns()` judges a candidate with the SAME `columns_refusal()` the offline bridge
+# uses, writes nothing on refusal, then installs the six columns and REBUILDS `_present_count`
+# (category 2) from the installed presence bytes. No member belongs to another section: this
+# store holds no section 1 map, section 5 arena or section 6/7 state. `_last_column_refusal` is
+# category 3 and is the only other member either call writes. The compiled template catalog
+# (`_template_ids`, `_template_hours`, `_catalog_error`) is derived-at-construction state, not a
+# saved column, and neither call touches it.
+
+class Columns:
+	"""Caller-owned image of the six category-1 columns, in registry ordinal order.
+
+	One object per save or load, never per resident (ARCH-MEM-001). `copy_columns_into()` refills
+	the buffers in place and refuses a wrongly sized one rather than resizing it.
+	"""
+	var present: PackedByteArray = PackedByteArray()
+	var hourly_activity: PackedByteArray = PackedByteArray()
+	var template: PackedInt32Array = PackedInt32Array()
+	var current_activity: PackedInt32Array = PackedInt32Array()
+	var sleep_satisfied: PackedByteArray = PackedByteArray()
+	var resolved: PackedByteArray = PackedByteArray()
+
+	func _init() -> void:
+		"""Size all six columns to their declared extents, then fill the empty-store image."""
+		present.resize(SCHEDULE_CAPACITY)
+		hourly_activity.resize(SCHEDULE_CAPACITY * HOURS_PER_DAY)
+		template.resize(SCHEDULE_CAPACITY)
+		current_activity.resize(SCHEDULE_CAPACITY)
+		sleep_satisfied.resize(SCHEDULE_CAPACITY)
+		resolved.resize(SCHEDULE_CAPACITY)
+		clear()
+
+	func clear() -> void:
+		"""Refill every column with what the store's own `clear()` leaves."""
+		present.fill(0)
+		hourly_activity.fill(ACTIVITY_ANYTHING)
+		template.fill(0)
+		current_activity.fill(ACTIVITY_ANYTHING)
+		sleep_satisfied.fill(0)
+		resolved.fill(0)
+
+	func equals(other: Columns) -> bool:
+		"""True when all six columns are byte-identical. Proves a refusal changed nothing."""
+		return other != null and present == other.present \
+			and hourly_activity == other.hourly_activity and template == other.template \
+			and current_activity == other.current_activity \
+			and sleep_satisfied == other.sleep_satisfied and resolved == other.resolved
+
+
+func last_column_refusal() -> StringName:
+	"""The code of the most recent refused bulk column call, or REFUSE_NONE after a success.
+
+	A SEPARATE channel from the OpResult every mutator returns, so a load can never overwrite the
+	reason a `set_hour_activity()` was refused before its caller read it. Every code is `COLUMN_`.
+	"""
+	return _last_column_refusal
+
+
+func copy_columns_into(out: Columns) -> bool:
+	"""Copy the six category-1 columns into caller-owned buffers. False refuses; `out` unchanged.
+
+	The ONLY reader of a free row's bytes. The copies are snapshots: mutating `out` afterwards
+	cannot reach a column, and a later write here cannot reach `out`.
+	"""
+	if not _columns_are_capacity_sized(out):
+		_last_column_refusal = REFUSE_COLUMN_SHAPE
+		return false
+	_refill_byte_column(out.present, _present)
+	_refill_byte_column(out.hourly_activity, _hourly_activity)
+	_refill_i32_column(out.template, _template)
+	_refill_i32_column(out.current_activity, _current_activity)
+	_refill_byte_column(out.sleep_satisfied, _sleep_satisfied)
+	_refill_byte_column(out.resolved, _resolved)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func restore_columns(columns: Columns) -> bool:
+	"""Replace all six columns and recount `_present_count`. False refuses; nothing is written.
+
+	Allocate before consume (decision 0059): the null guard and the whole `columns_refusal()` run
+	before the first write, so a refusal leaves every column and the count byte-identical. The
+	recount is from the INSTALLED presence bytes, never a caller value. No cross-owner presence
+	agreement is checked here; the orchestrator's whole-world check owns that. The compiled
+	template catalog is untouched: it is derived state, not a saved column.
+	"""
+	var refusal: StringName = REFUSE_COLUMN_SHAPE
+	if _columns_are_capacity_sized(columns):
+		refusal = columns_refusal(columns.present, columns.hourly_activity, columns.template,
+			columns.current_activity, columns.sleep_satisfied, columns.resolved)
+	if refusal != REFUSE_NONE:
+		_last_column_refusal = refusal
+		return false
+	_present = columns.present.duplicate()
+	_hourly_activity = columns.hourly_activity.duplicate()
+	_template = columns.template.duplicate()
+	_current_activity = columns.current_activity.duplicate()
+	_sleep_satisfied = columns.sleep_satisfied.duplicate()
+	_resolved = columns.resolved.duplicate()
+	_present_count = _present.count(1)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+static func _columns_are_capacity_sized(columns: Columns) -> bool:
+	"""The shared null and extent guard of both bulk calls, before any indexed read."""
+	return columns != null and columns.present.size() == SCHEDULE_CAPACITY \
+		and columns.hourly_activity.size() == SCHEDULE_CAPACITY * HOURS_PER_DAY \
+		and columns.template.size() == SCHEDULE_CAPACITY \
+		and columns.current_activity.size() == SCHEDULE_CAPACITY \
+		and columns.sleep_satisfied.size() == SCHEDULE_CAPACITY \
+		and columns.resolved.size() == SCHEDULE_CAPACITY
+
+
+static func _refill_byte_column(out: PackedByteArray, source: PackedByteArray) -> void:
+	"""Refill a caller's byte buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
+
+
+static func _refill_i32_column(out: PackedInt32Array, source: PackedInt32Array) -> void:
+	"""Refill a caller's int32 buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
 
 
 func sleep_satisfied_of(slot: int) -> IntMath.IntResult:

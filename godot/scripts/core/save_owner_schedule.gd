@@ -1,12 +1,23 @@
 extends RefCounted
 ## Owner 14 (`schedule`) framed-column validation bridge (SCHEDULE-S4-VALIDATE-R01 v1, ADR 0172).
 ##
-## ONE PUBLIC ENTRY POINT. `framed_refusal()` judges one already framed section 4 owner block
-## against the Schedule store's own column rules and returns a `SaveHeader.Refusal`. It never
-## constructs a Schedule -- that constructor allocates a private Needs -- or any other live
-## owner, captures nothing, applies nothing, and touches no clock, barrier, signal, callback,
-## filesystem, catalog compiler, projection, reflection API or per-row object. CatalogIds is
-## deliberately NOT preloaded: it already preloads Schedule, and the reverse edge would cycle.
+## THREE PUBLIC ENTRY POINTS (ADR 1222 build step 2).
+##   * `framed_refusal()` judges one already framed section 4 owner block against the Schedule
+##     store's own column rules and returns a `SaveHeader.Refusal`. It captures nothing and
+##     applies nothing.
+##   * `capture_into(store, record)` copies the live store's six columns through
+##     `Schedule.copy_columns_into()` and projects them into the record's typed buckets in
+##     ordinal order -- the exact inverse of the projection below -- then judges the written
+##     record with `framed_refusal()`, so a capture can never emit an image apply would refuse. A
+##     refused capture leaves the record's contents unspecified; the caller discards it.
+##   * `apply(record, store)` runs `framed_refusal()` FIRST, then projects the record and calls
+##     `Schedule.restore_columns()`, which re-runs the same predicate, writes nothing on refusal
+##     and rebuilds `present_count`. A false maps to a Refusal carrying the store's exact
+##     `last_column_refusal()` code.
+## None of the three constructs a Schedule itself -- its constructor allocates a private Needs --
+## except the caller's own supplied `store`; none touches a clock, barrier, signal, callback,
+## filesystem, catalog compiler, reflection API or per-row object. CatalogIds is deliberately NOT
+## preloaded: it already preloads Schedule, and the reverse edge would cycle.
 ##
 ## GATE ORDER, and what each gate owns:
 ##   1. a null record                  -> SAVE_COMPONENT_SHAPE
@@ -32,7 +43,8 @@ extends RefCounted
 ## or any live timetable; lifecycle or barrier publication; migration, which is unwritten;
 ## full-file provenance; or permission to install anything into a live store. AN ARBITRARY ZERO
 ## FRAME IS NOT A VALID EMPTY SCHEDULE: an empty image fills hourly and current with ANYTHING,
-## so a zero image is refused rather than filled in with defaults.
+## so a zero image is refused rather than filled in with defaults. Bulk capture/apply and the
+## present_count rebuild are the two entry points above; the other owners remain elsewhere.
 ##
 ## THE METADATA GUARD compares the compiled schema to pinned contract literals and to the
 ## owner's own capacity, hour, activity and template constants. That is not an
@@ -78,6 +90,8 @@ const OWNER_HOURS_PER_DAY: int = 24
 const OWNER_ACTIVITY_COUNT: int = 4
 const OWNER_TEMPLATE_COUNT: int = 3
 const OWNER_ACTIVITY_ANYTHING: int = 1
+## A capture or apply called without a live store. Bridge-local: no column code applies.
+const REFUSE_NULL_STORE: StringName = &"SAVE_COMPONENT_NULL_STORE"
 
 
 static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
@@ -110,6 +124,74 @@ static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
 		return _refuse(code, "Schedule owner %d refuses this image with column code %s"
 			% [OWNER_INDEX, String(code)])
 	return _accept()
+
+
+static func capture_into(store: Schedule, record: Section.FramedOwner) -> SaveHeader.Refusal:
+	"""Capture the live store's six columns into one owner 14 record, then judge the result.
+
+	Gates: a null record, a wrong owner, a null store, the schema and metadata guards, then the
+	store's own `copy_columns_into()` (its column code is forwarded), then a typed setter refusal
+	(SAVE_COMPONENT_SHAPE), and last `framed_refusal()` over what was written.
+	"""
+	var target: SaveHeader.Refusal = _target_refusal(record, store)
+	if not target.is_ok():
+		return target
+	var columns: Schedule.Columns = Schedule.Columns.new()
+	if not store.copy_columns_into(columns):
+		return _refuse(store.last_column_refusal(), "Schedule owner %d capture refused with %s"
+			% [OWNER_INDEX, String(store.last_column_refusal())])
+	if not (record.set_u8(FIELD_PRESENT, columns.present)
+			and record.set_u8(FIELD_HOURLY_ACTIVITY, columns.hourly_activity)
+			and record.set_i32(FIELD_TEMPLATE, columns.template)
+			and record.set_i32(FIELD_CURRENT_ACTIVITY, columns.current_activity)
+			and record.set_u8(FIELD_SLEEP_SATISFIED, columns.sleep_satisfied)
+			and record.set_u8(FIELD_RESOLVED, columns.resolved)):
+		return _refuse(Section.REFUSE_SHAPE,
+			"Schedule owner %d capture could not write a column" % OWNER_INDEX)
+	return framed_refusal(record)
+
+
+static func apply(record: Section.FramedOwner, store: Schedule) -> SaveHeader.Refusal:
+	"""Validate one owner 14 record, then install it into `store`. Refusal writes nothing.
+
+	`framed_refusal()` runs first and its refusal is returned unchanged. The projection shares the
+	record's buffers by assignment; `restore_columns()` takes its own private copies.
+	"""
+	var framed: SaveHeader.Refusal = framed_refusal(record)
+	if not framed.is_ok():
+		return framed
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no Schedule store was supplied for owner %d"
+			% OWNER_INDEX)
+	var columns: Schedule.Columns = Schedule.Columns.new()
+	columns.present = record.u8_column(FIELD_PRESENT)
+	columns.hourly_activity = record.u8_column(FIELD_HOURLY_ACTIVITY)
+	columns.template = record.i32_column(FIELD_TEMPLATE)
+	columns.current_activity = record.i32_column(FIELD_CURRENT_ACTIVITY)
+	columns.sleep_satisfied = record.u8_column(FIELD_SLEEP_SATISFIED)
+	columns.resolved = record.u8_column(FIELD_RESOLVED)
+	if not store.restore_columns(columns):
+		return _refuse(store.last_column_refusal(), "Schedule owner %d restore refused with %s"
+			% [OWNER_INDEX, String(store.last_column_refusal())])
+	return _accept()
+
+
+static func _target_refusal(record: Section.FramedOwner, store: Schedule) -> SaveHeader.Refusal:
+	"""Capture's preflight: record, owner index, store, then the schema and metadata guards."""
+	if record == null:
+		return _refuse(Section.REFUSE_SHAPE,
+			"no framed owner was supplied for owner %d ('%s')" % [OWNER_INDEX, OWNER_KEY])
+	if record.owner != OWNER_INDEX:
+		return _refuse(Section.REFUSE_OWNER,
+			"owner %d was supplied where owner %d ('%s') is required"
+				% [record.owner, OWNER_INDEX, OWNER_KEY])
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no Schedule store was supplied for owner %d"
+			% OWNER_INDEX)
+	var schema: SaveHeader.Refusal = Schema.schema_refusal()
+	if not schema.is_ok():
+		return schema
+	return _metadata_refusal()
 
 
 static func _metadata_refusal() -> SaveHeader.Refusal:

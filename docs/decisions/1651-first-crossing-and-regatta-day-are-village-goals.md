@@ -132,3 +132,20 @@ Its MEDIUM is a question about what the ruling means, so it is **open for Brenda
   counts, while the news line says the village "sat down to its feast".
 - **If he means "eaten by at least one resident":** count only when `attendees` is non-empty. That is a one-line change
   plus a test.
+
+**The open point is closed (Brendan, 2026-10-07, relayed by the coordinator).** "Regatta day" counts only when at least
+one resident ate the feast's main course.
+
+Built:
+- `regatta.gd` now raises `feasts_served` in `_tally` only when `attendees` is non-empty: the supper's committed diners
+  who ate the bean hotpot.
+- So neither of these counts:
+  - a supper the season skip passed over;
+  - a supper whose serving closed with no hotpot eaten.
+
+Tests:
+- New in `test_demo_regatta.gd`: `test_a_supper_closed_with_no_hotpot_eaten_is_not_a_regatta_day`. Its only diner ate
+  soup, and the day is held but not counted.
+- The attendance test now also asserts that a day where someone ate the hotpot counts.
+
+Mutation: 3 mutants (count any closed supper, count every day, the check inverted), **3 killed**.

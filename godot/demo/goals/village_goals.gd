@@ -48,8 +48,8 @@ const M_TUNNELS: int = 12
 const M_OWN_FOOD_DAYS: int = 13
 ## Crossings the ferry has rowed home (ferry.gd `crossings_done`, latched; decision 1651).
 const M_CROSSINGS: int = 14
-## Regattas whose feast was served (regatta.gd `feasts_served`; Brendan's ruling of 2026-10-07, decision 1651): a regatta
-## day skipped past, its supper lapsed, does not count.
+## Regattas whose feast's main course at least one resident ate (regatta.gd `feasts_served`; Brendan's rulings of
+## 2026-10-07, decision 1651): a regatta skipped past, or one whose supper closed with no hotpot eaten, does not count.
 const M_REGATTAS: int = 15
 
 const MILESTONE: int = BookScript.GROUP_MILESTONE

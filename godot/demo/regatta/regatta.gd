@@ -142,8 +142,9 @@ var attendees: PackedInt32Array = PackedInt32Array()
 var chronicle_line: String = ""
 var moment_line: String = ""
 var feasts_held: int = 0
-## Regatta days whose feast supper was SERVED (the kitchen published its meal-finalized event), not merely lapsed past
-## by a season skip: what the "Regatta day" goal counts (Brendan's ruling of 2026-10-07; decision 1651).
+## Regatta days whose feast was EATEN: at least one resident ate its main course (`attendees`, read off the kitchen's
+## meal-finalized event), so neither a supper lapsed past by a season skip nor one closed with no hotpot eaten counts.
+## What the "Regatta day" goal counts (Brendan's rulings of 2026-10-07; decision 1651).
 var feasts_served: int = 0
 ## The last answer `refusal` gave: its code and fix, for the card.
 var refused_code: String = ""
@@ -898,7 +899,7 @@ func _tally(final: KitchenScript.MealFinal) -> void:
 		_call_off("the race never started")
 	state = ST_DONE
 	feasts_held += 1
-	feasts_served += 1 if final != null else 0
+	feasts_served += 1 if not attendees.is_empty() else 0
 	_remember()
 	revision += 1
 

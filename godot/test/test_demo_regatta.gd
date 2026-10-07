@@ -386,6 +386,26 @@ func test_the_tally_counts_only_those_who_ate_the_main_course() -> void:
 	r._tally(final)
 	assert_equal(r.attendees, PackedInt32Array([1, 3]), "the two diners who ate the hotpot, in resident order -- not 5, whom the event does not carry")
 	assert_equal(r.state, RegattaScript.ST_DONE, "the day over")
+	assert_equal(r.feasts_served, 1, "someone ate the main course: a Regatta day (decision 1651)")
+
+
+func test_a_supper_closed_with_no_hotpot_eaten_is_not_a_regatta_day() -> void:
+	"""Brendan's ruling of 2026-10-07 (decision 1651): the supper's serving closed (a meal-finalized event), but its only
+	diner ate soup -- nobody ate the feast's main course, so the day is held and NOT counted for "Regatta day"."""
+	var rig: Rig = _rig()
+	var r: RegattaScript = rig.regatta
+	_stock_feast(rig)
+	var day: int = SUMMER_1 + 1
+	assert_equal(r.hold(day, 2, true), "", "held")
+	var key: int = Rules.feast_key(day)
+	rig.kitchen.fed.ate_meal(2, key, MealRules.DISH_SOUP, day * SimClock.HOURS_PER_DAY + 17)
+	rig.kitchen.note_course(2, key, MealRules.DISH_SOUP)
+	var final := KitchenScript.MealFinal.new()
+	final.key = key
+	final.diners = PackedInt32Array([2])
+	r._tally(final)
+	assert_equal(r.attendees.size(), 0, "nobody ate the hotpot")
+	assert_equal([r.state, r.feasts_held, r.feasts_served], [RegattaScript.ST_DONE, 1, 0], "held, not a Regatta day")
 
 
 func test_called_off_while_crews_walk_the_boats_stay_the_boathouses() -> void:

@@ -82,9 +82,26 @@ source is invented and pickles are not built.
    needs your approval; (c) drop pickles from the demo and retire the icon's use. *Recommendation: (b), since the
    orchard and the brewery now give the demo apples and a fermenting place; otherwise (a).*
 
-## Gates
+## Gates (2026-10-07)
 
-Filled in when the lane's gates have run (below).
+- **Base**: `feat/demo-hives-preserving` after its merge of `origin/master` (#231, wildlife and weather): `e2e52d17`,
+  itself CI-style clean (`9249 test(s), 648498 assertion(s), 0 failure(s)`, 0 unexpected, 0 leaks) and pushed to #233.
+- **CI-style full suite** (a clean checkout of `173489b8`, no `godot/demo/assets`, `.godot` re-imported,
+  `./tools/run_tests.sh`): `9262 test(s), 648642 assertion(s), 0 failure(s)` ·
+  `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 371 tolerated; leaked at exit: 0 object(s), 0 resource(s)` ·
+  `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).`
+- **Analyzer**: `0 GDScript warning(s) in 0 of 1052 file(s)` (the merged tree; the fix-up's files rerun: 0).
+- **Contracts**: decision_numbers PASS (334 records); `tools/test_make_demo_pantry_index.py` OK.
+- **Live harness** `test/live/demo_food_live.gd` (staged art): `LIVE-SUMMARY 32 0` at 1280x720 and 1920x1080; frames
+  `new_recipes_panel_*` and `brewing_panel_*` looked at (the two new button rows fit the column at both sizes).
+- **Mutation**: 13 mutants on the rows, slots, selectors, words, drinks and shelves; 12 killed, the survivor (the
+  item-selector fetch) killed after a test; 6 of the review's survivors rerun on the fix, all killed.
+  SURVIVED_MUTANTS: none.
+- **Independent review** (`code-reviewer`, waited for): no CRITICAL or HIGH. MEDIUMs fixed in `173489b8`: the
+  salt-free wording (the library has other salt-free bases, which need an oat drink), the index no longer lists the
+  salted hazelnut cheese's dishes, the cheese keeps 1440 h (its purpose: its nuts kept twice as long), `packing()`
+  counts a cheese at the table. LOWs fixed: crock words, jam and cheese booked as preserves, the feast's pour marked
+  provisional, stale comments, elderberry jam dropped from the index.
 
 ## Source
 

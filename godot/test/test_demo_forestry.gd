@@ -751,6 +751,18 @@ func test_a_storm_day_on_the_one_weather_blows_one_tree_down() -> void:
 	assert_equal(_mature(forestry), mature_before - 1, "not twice in a day")
 
 
+func test_a_storm_day_leaves_the_crews_own_timing_to_the_work_pace() -> void:
+	"""Decision 1632: the crew's step time is the same on a storm day -- §5.10's x0.80 is the village work pace's
+	"storm" factor (demo/weather/storm_pace.gd), credited through the brain once, not twice."""
+	var forestry := _forestry()
+	forestry.crew.raise_routine_jobs()
+	var t: int = _first_fell_target(forestry)
+	var calm: int = forestry.crew.step_usec(JobsScript.WORK_FELL, t, -1)
+	_services.weather.observe(0, 3, 12, 90, 3200, WeatherCore.EVENT_HEAVY_RAIN)
+	assert_equal(forestry.crew.step_usec(JobsScript.WORK_FELL, t, -1), calm, "not slowed here")
+	assert_true(calm > 0, "a real step time")
+
+
 func _mature(forestry: ForestryScript) -> int:
 	"""How many trees are mature."""
 	var counts := PackedInt32Array()

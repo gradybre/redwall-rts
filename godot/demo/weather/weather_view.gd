@@ -26,6 +26,11 @@ extends Node3D
 ## energy nor the haze: the cycle reads `sun_share`, `fog_add` and `gloom` and is the one writer of both, so the
 ## weather multiplies the time of day rather than fighting it. Its falls, which are unshaded, take the cycle's tint
 ## (`set_unlit_tint`), so rain and snow darken with the evening instead of glowing in the night.
+##
+## THE DAY'S EVENT ON TOP (decision 1632, livelier weather). The §5.10 event of the day (`_weather.event()`) adds its own
+## look (event_look.gd): a storm's rain driven slant, a drought's parched grass (the ground's `dryness`) and heat haze, an
+## early frost's rime and a hard freeze's heavy hoar frost lying all its days (a FROST FLOOR under the cover: the greater
+## of the two lies), a freeze's mist and low cold sun, an ideal spell's brighter air. They ease in with the rest.
 
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
 const DemoClockScript := preload("res://demo/demo_clock.gd")
@@ -67,6 +72,8 @@ const WaterRules := preload("res://demo/water/water_rules.gd")
 const DemoMotion := preload("res://demo/access/demo_motion.gd")
 const PARAM_COVER: StringName = &"snow_cover"
 const PARAM_FROST: StringName = &"frost_cover"
+const PARAM_DRYNESS: StringName = &"dryness"
+const EventLook := preload("res://demo/weather/event_look.gd")
 
 var _weather: WeatherScript = null
 var _clock: DemoClockScript = null
@@ -89,6 +96,10 @@ var _fog_add: float = 0.0
 var _cover: float = 0.0
 var _frost: float = 0.0
 var _gloom: float = 0.0
+var _dryness: float = 0.0
+## The ground's own material (the drought's `dryness` is set on it alone), and the rain's slant now (radians).
+var _ground_material: ShaderMaterial = null
+var _slant: float = 0.0
 ## Whether this view writes the sun's energy and the haze itself (see THE WEATHER ON TOP OF THE HOUR).
 var drives_light: bool = true
 
@@ -179,6 +190,7 @@ func _build_cover(world: Node) -> void:
 		return
 	var ground := world.find_child("Ground", true, false) as MeshInstance3D
 	var bank := world.get_parent().find_child("WaterBank", true, false) as MeshInstance3D if world.get_parent() != null else null
+	_ground_material = ground.get_active_material(0) as ShaderMaterial if ground != null else null
 	for surface: MeshInstance3D in [ground, bank]:
 		var material := surface.get_active_material(0) as ShaderMaterial if surface != null else null
 		if material != null:
@@ -254,11 +266,17 @@ func _set_emitting(particles: CPUParticles3D, on: bool) -> void:
 func _apply_targets(weight: float) -> void:
 	"""Ease the sun, the haze and the cover `weight` of the way toward the current condition's look."""
 	var condition := _weather.condition()
-	_share = lerpf(_share, SUN_SHARE[condition], weight)
-	_fog_add = lerpf(_fog_add, FOG_ADD[condition], weight)
-	_cover = lerpf(_cover, COVER[condition], weight)
-	_frost = lerpf(_frost, FROSTY[condition], weight)
+	var event: int = _weather.event()
+	_share = lerpf(_share, SUN_SHARE[condition] * EventLook.sun_share(event), weight)
+	_fog_add = lerpf(_fog_add, FOG_ADD[condition] + EventLook.haze_add(event), weight)
+	_cover = lerpf(_cover, cover_target(condition, event), weight)
+	_frost = lerpf(_frost, frost_target(condition, event), weight)
 	_gloom = lerpf(_gloom, gloom_target(_weather), weight)
+	var dry: float = lerpf(_dryness, EventLook.dryness(event), weight)
+	if _ground_material != null and dry != _dryness:
+		_ground_material.set_shader_parameter(PARAM_DRYNESS, dry)
+	_dryness = dry
+	_slant_rain(EventLook.rain_slant(event))
 	if _sun != null and drives_light:
 		_sun.light_energy = _sun_energy * _share
 	if _environment != null and drives_light:
@@ -267,6 +285,25 @@ func _apply_targets(weight: float) -> void:
 		material.set_shader_parameter(PARAM_COVER, _cover)
 		material.set_shader_parameter(PARAM_FROST, _frost)
 	_wear_overlay(_cover > COVER_OFF)
+
+
+static func cover_target(condition: int, event: int) -> float:
+	"""How much frost or snow lies under this condition and event: the condition's cover or the event's frost floor,
+	whichever is greater (see THE DAY'S EVENT ON TOP)."""
+	return maxf(COVER[condition], EventLook.frost_floor(event))
+
+
+static func frost_target(condition: int, event: int) -> float:
+	"""How much of the cover is frost: all of it where the event's frost floor is the greater, else the condition's."""
+	return 1.0 if EventLook.frost_floor(event) > COVER[condition] else FROSTY[condition]
+
+
+func _slant_rain(slant: float) -> void:
+	"""Drive the rain `slant` radians from the vertical (only written on a change)."""
+	if is_equal_approx(slant, _slant) or _rain == null:
+		return
+	_slant = slant
+	_rain.direction = Vector3(sin(slant), -cos(slant), 0.0)
 
 
 func begin_prewarm() -> void:
@@ -357,6 +394,16 @@ static func _tint_fall(particles: CPUParticles3D, own: Color, tint: Color) -> vo
 func cover() -> float:
 	"""How much frost or snow lies now, 0..1 (for checks)."""
 	return _cover
+
+
+func dryness() -> float:
+	"""How parched the grass is now, 0..1 (for checks)."""
+	return _dryness
+
+
+func rain_slant() -> float:
+	"""How far from the vertical the rain falls now, radians (for checks)."""
+	return _slant
 
 
 func frost() -> float:

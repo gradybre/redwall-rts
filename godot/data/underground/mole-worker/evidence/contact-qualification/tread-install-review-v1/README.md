@@ -96,3 +96,9 @@ staged from the frozen `redwall-rts-codex-ug-space` worktree, verified against t
 
 `../test_tread_install.py` holds 7 tests: the fixture, the input-domain refusals, the stored proofs and pins, the
 image digests and the probe. Its reconstruction test skips without the assets.
+
+## Verdict (2026-10-07)
+
+Brendan chose **Revise**: the pick looks awkward. The handle reads too steep and crosses the body. The lean, the
+station and the strike point were not objected to. The revision is reviewed in `../tread-install-review-v2/`;
+see ADR 1209.

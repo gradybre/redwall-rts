@@ -260,3 +260,16 @@ each candidate `overview.png`, `hands.png`, `motion.png` and `review.json`. `tes
 - **Arrival.** A 141 u backward reposition from the descent's end (169 u from the edge) to the station.
 - **T6.** The sill's bearer is 64 u tall, so T6 needs a variant of the tap at y = 64.
 - **Then:** the handling program, native capture, integer rows, content 7 and the Frontier.
+
+### Review of step 4 (2026-10-07): Brendan chose **Revise**
+
+Brendan's reason: **the pick looks awkward.** The handle angle reads badly: it is too steep and crosses the body.
+He did not object to the backward lean, the station or the strike point.
+
+The revision must:
+- hold the pick naturally, with the handle angle and grip close to the accepted install motion's (≤ 50° if
+  possible);
+- keep the shaft from crossing the body.
+
+The lean, stance, grip position or strike point may adjust as the proofs need. Every accepted proof stays. The
+candidates v1–v3 stay as the record of what was reviewed.

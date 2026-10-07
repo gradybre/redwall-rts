@@ -336,6 +336,22 @@ These record the engineering choices made while building, step by step.
   contract, so the save-registry handoff validator refused the drift. The field now carries contract C197 and
   the persisted packed-field count is 678. The declaration itself (fields, types, ordinals, hash flags) is
   unchanged, so the registry id and version stay at CL1 / 13.
+- **Step 4a, section 6 framing.**
+  - **Layout.** `store_count` is followed by all 13 declared owner blocks in ASCII order. Each block has §1's
+    wrapper and its ordinary payload form.
+  - **Generated table.** `save_auxiliary_state_schema.gd` is generated from the registry and the capacity audit
+    (`tools/generate_auxiliary_state_schema.py --check`, run in CI).
+  - **Field rules.** Each field is SCALAR, FIXED(n), or BOUNDED(max). A BOUNDED count is checked before any byte is
+    sliced.
+  - **Fields with no proven bound.** Nineteen count fields have no bound that either file proves:
+    - Inventory's spatial endpoint columns. ADR 1072's pack says 1,024.
+    - Spoil Tips' columns. ADR 1072 says 256.
+
+    These are compiled as UNPROVED, and they accept zero elements only. A world holding either kind of state
+    therefore refuses to save, as DEC-055 Q9 requires. When their adapters are built, the bound must come from an
+    audit row, never from prose.
+  - **Unsupported owners.** Owners with no adapter yet use `UnsupportedAdapter`. It writes the canonical empty block
+    or refuses `SAVE_UNSUPPORTED_STATE`.
 - **Step 2, memory.** Every section-4 capture and apply makes a transient owner image. It is charged to "ADR 1222
   save/load working set" in the reviewed census deltas, and the 09.3 ledger owns the total. It is never resident
   between ticks.

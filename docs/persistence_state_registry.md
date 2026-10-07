@@ -757,6 +757,18 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 |---|---|---:|---|---|:-:|---|---|
 | Section 13 CHRONICLE codec | -- | -- | -- | -- | 3 | -- | ADR 1222 step 5. Holds no module-level `var`; all static over a caller-owned `Record` (count + 32-byte digest, never records), `EncodeResult` and per-call `DigestVerifier`. Body `record_count:u64, rolling_digest:32, records:24*N`, exactly `40 + 24*N` bytes, schema 1; the descriptor `row_count` and header offset 208 must equal N. Decode streams records in whole-record chunks of at most 65536 bytes (2730 records, 65520 bytes) through the owner's digest rule, reports digest mismatch before any record refusal, and refuses every nonempty stream while the event domain is empty (DEC-055 Q8). Carries the `chronicle` canonical adapter. The classified rows for what it carries are `chronicle.gd`'s two above. |
 
+### `godot/scripts/core/save_auxiliary_state_schema.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Section 6 AUXILIARY_STATE framing table | -- | -- | -- | -- | 3 | -- | ADR 1222 step 4a. Stateless: no module-level `var`, only immutable `const` tables plus static lookups. `tools/generate_auxiliary_state_schema.py [--check] [--require-proved]` compiles the registry's 13 section-6 owners (135 fields, section schema 7) and the capacity audit into the marked region: per field one count rule -- SCALAR 1, FIXED n (a declared capacity the audit proves equal), BOUNDED 0..n (an audited `_x <= N` or a literal `max_count`) or UNPROVED. The 19 count_field columns with no literal and no audit row (`inventory` ordinals 3-7, `spoil_tips` ordinals 6-19) are UNPROVED and admit ZERO elements only; no bound is guessed. Empty section 4471529 bytes, maximum 16428145. `table_refusal()` re-derives both against pinned owner count and schema. |
+
+### `godot/scripts/core/save_section_auxiliary.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Section 6 AUXILIARY_STATE codec | -- | -- | -- | -- | 3 | -- | ADR 1222 step 4a. Holds no module-level `var`; all static over caller-owned `State` (13 `Block`s of per-field counts plus raw little-endian value bytes), `EncodeResult`, `Adapters` and per-call `Cursor`s. `store_count:u32` = 13, then every owner block in ASCII key order: `key_len:u32, key, owner_schema_version:u32, primary_count:u64, payload_length:u64`, payload of per-field `element_count:u64` plus values; payloads and blocks must tile exactly. Counts are checked against the compiled rule before any slice; decode stages a whole State and adopts only on success. `State.new()` is the canonical empty section (zero-filled; non-zero empty values are the owner adapters' business). Owner capture/validate/apply go through registered adapters (validate all, then apply in ASCII order); `UnsupportedAdapter` is DEC-055 Q9's `SAVE_UNSUPPORTED_STATE` refuser. Carries the 13 section-6 canonical value adapters. Writes no owner state itself. |
+
 ### `godot/scripts/core/save_identity_hashes.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

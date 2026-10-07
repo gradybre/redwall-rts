@@ -770,3 +770,51 @@ rows need:
 The surveyed air around H must therefore cover at least `[-485,0,-732,910,1036,412]` if the pick rows stay
 admitted, or the claw envelope alone once they retire. Footing must reach x = −276. The L0 contact's record carries
 the same words, checked by `_record_refusal`.
+
+### 4e.3 The claw first-entry bundle `qualified-claw-v6` (published, not active)
+
+`first-entry-prefix-v1/publish_qualified_claw.py` creates the bundle from `qualified-stone-v5`, create-only. The
+Frontier binds source 4 and the workpieces file binds source 5, as the step-4b decision requires.
+
+- **Profiles and ground caps:** content 9's `mole-worker.ugprof` and `ground-pace.ugconn`.
+- **Structure** (`e13ce51d…`): content 9, source 4 and its digest, and 24 ground caps. Its geometry is unchanged.
+- **Frontier** (`0d81d4f4…`, revision 5): content 9, source 4.
+  - The six cut stations and endpoints 4–9 stand at x = ±1,430 (step 1).
+  - Stations 0/1 use tap 52. The left cut stations use dig 57 (yaw 49152) and the right ones dig 53 (16384).
+  - Endpoint travel follows the like-for-like mapping: 0, 1, 3 → 43; 2, 13 → 47; 4–12 → 42.
+- **Workpieces** (`6082e62a…`): content 9, set-down program source 5, row 59 for both assemblies.
+- **Grouping and recipes:** only their linked digests change.
+
+**M (endpoint 1) and the T0 arrival (endpoint 13), verified.** The publisher checks these facts:
+
+- the narrow row's BODY, stance and TURN boxes lie inside row 42's;
+- endpoints 1, 2 and 13 share their points with endpoints 10, 11 and 12, which travel on row 42. Any air surveyed
+  for those aliases therefore covers the narrow rows;
+- the arrival's narrow body reaches z = −1,185, clear of the T0 bearer's far face at −1,920. The retreat from the
+  contact to the arrival is 872 u, inside step 4d's proved 4,096 u span;
+- every cut station's row-42 stance edge lands exactly on the dig area's edge, at |x| = 1,024.
+
+H and the L0 contact have no row-42 alias. Their air must grow at activation, as recorded in 4e.2.
+
+**Formatter.** `entry_source_constants._linked` used to compare the structure's source digest with profile source
+0 only. It now reads the structure's own source word, as Godot's `SourceFacts` does. Its existing 10 tests pass,
+and it accepts the claw bundle. Its ADR 1190 rule against a shared set-down source is exercised by a negative test.
+
+**Tests.**
+
+- `test_publish_qualified_claw.py`: 5 tests.
+- `godot/test/test_underground_claw_bundle_source.gd`: 4 tests, 137 assertions, against content 9 loaded in a
+  fixture Profiles store. The mounted Session keeps content 6.
+  - The actual Catalog, Recipes, Assemblies and Frontier readers load the bundle.
+  - Every station is a source-4 row and every endpoint's travel is mapped.
+  - The stone Frontier refuses against the claw structure.
+  - The workpieces header binds source 5, row 59, with a digest distinct from the Frontier's.
+- **Not covered:** the actual Workpieces owner still sends ASSEMBLY_PALM rows to `qualified-assembly-v1`'s row-29
+  source program, so it cannot load this file until the paw-handling source program lands (step 5).
+
+**Checks.**
+
+- Source pins check clean for the active publication and for content 9.
+- The analyzer reports 0 warnings on the 6 changed .gd files.
+- The registry audit (`--check`) currently fails on capacity digests of `injury`, `priorities`, `schedule`,
+  `transforms`, `work` and `world_init`, which the save/load work changed. This step does not touch them.

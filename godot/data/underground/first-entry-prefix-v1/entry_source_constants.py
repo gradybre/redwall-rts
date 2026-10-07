@@ -60,7 +60,11 @@ def _linked(packet):
     require(content == words(cat, 48)[0] and 1 <= profiles <= 256 and 1 <= boxes <= 3072
             and 2 <= sources <= 64 and len(profile) == 40 + sources * 32 + profiles * 98 + boxes * 28,
             "PROFILE_CENSUS")
-    require(cat[72:104] == profile[32:64], "CATALOG_SOURCE")
+    # The Catalog binds the source named by its own source word (header[10]), as Godot's SourceFacts reads it;
+    # ADR 1217 step 4e binds source 4 (the claw image), where earlier bundles bound source 0.
+    catalog_source = words(cat, 64)[0]
+    require(0 <= catalog_source < sources and
+            cat[72:104] == profile[32 + 32 * catalog_source:64 + 32 * catalog_source], "CATALOG_SOURCE")
     require(len(group) >= 96 and group[:8] == b"UGASMB01" and group[-8:] == b"UGAEND01"
             and words(group, 8, kind="I") == (1,), "GROUP_FORMAT")
     assemblies = words(group, 48, kind="I")[0]

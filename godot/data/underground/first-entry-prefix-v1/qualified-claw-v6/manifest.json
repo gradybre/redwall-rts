@@ -1,0 +1,93 @@
+{
+  "schema": 1,
+  "decision": "1217",
+  "predecessor": "qualified-stone-v5 (ADR 1206)",
+  "content_revision": 9,
+  "frontier_revision": 5,
+  "frontier_source": 4,
+  "workpieces_source": 5,
+  "census": {
+    "INSTALL": 2,
+    "STATION": 8,
+    "CUT": 2,
+    "BEARING": 10,
+    "ENDPOINT": 14,
+    "EPISODE": 6
+  },
+  "cut_station_x": 1430,
+  "station_profiles": {
+    "16": 52,
+    "17": 53,
+    "25": 57
+  },
+  "endpoint_travel": {
+    "2": 43,
+    "6": 47,
+    "12": 42
+  },
+  "set_down": {
+    "29": 59
+  },
+  "endpoint_checks": {
+    "narrow_inside_row_42": true,
+    "aliases": {
+      "1 (M)": 10,
+      "2 (R)": 11,
+      "13 (T0 arrival)": 12
+    },
+    "arrival_body_low_z": -1185,
+    "t0_bearer_far_z": -1920,
+    "cut_station_stance_edge_x": 1024
+  },
+  "entry_source_constants": {
+    "CATALOG_REVISION": 1,
+    "GROUPING_REVISION": 1,
+    "RECIPE_REVISION": 1,
+    "FRONTIER_REVISION": 5,
+    "WORKPIECES_REVISION": 1,
+    "CONTENT_REVISION": 9,
+    "INSTALL_COUNT": 2,
+    "STATION_COUNT": 8,
+    "CUT_COUNT": 2,
+    "BEARING_COUNT": 10,
+    "ENDPOINT_COUNT": 14,
+    "EPISODE_COUNT": 6
+  },
+  "files": {
+    "structure.ugconn": {
+      "role": "CATALOG",
+      "sha256": "e13ce51dbf394c825fbd7a240ef2568dc9ea4ec5df58b7fa19e02794a72a89e6",
+      "predecessor_sha256": "7ea0d26c6420075536ab3e542273b13dd2b45a7f1f0cc8cdd11e620af77907d6"
+    },
+    "assemblies.ugasmb": {
+      "role": "GROUPING",
+      "sha256": "735451b535c515eb4038337cdaf80dddc1284472df26e8a17150d932678c5d70",
+      "predecessor_sha256": "c185a5c4ff0e256f7af134d26cd25d077951276853ab5fcb02f08c0b3c202904"
+    },
+    "recipes.ugrecp": {
+      "role": "RECIPE",
+      "sha256": "bc62795cf9e5294a139d4d482b2888e6c354efb167c0c2d895d9ccaf65e1a5ff",
+      "predecessor_sha256": "2009f54ca7059b4cbc52486bc2fe2962eeda6cca1b69729bb994cafe04ccb5ef"
+    },
+    "frontier.ugfront": {
+      "role": "FRONTIER",
+      "sha256": "0d81d4f439912f737a5848d29cbfce4ad612da30b85f2d7fe38b5c23e0e8dfc7",
+      "predecessor_sha256": "2d5c36163ed5e5f8e96a3f1b0611d85937c075abcb8b02c7d7f01f7cf0738660"
+    },
+    "workpieces.ugwipc": {
+      "role": "WORKPIECES",
+      "sha256": "6082e62a139cc00a602ad992be55cce3a1c0a69490d66553c7cd9adb3f7c1a47",
+      "predecessor_sha256": "ba98db4330ead65cdda4a5bc2d66ce72271621699ca960b272911a53140d246e"
+    },
+    "ground-pace.ugconn": {
+      "role": "GROUND",
+      "sha256": "7bcaec942694df24d5fb01cec08b87d2da7d8b6d5806b02715c75b453acd307c",
+      "predecessor_sha256": "7fc1eeb45200292dd90e5659c494159485e56b0b487cbfc5c70d1346b2c6dc13"
+    },
+    "mole-worker.ugprof": {
+      "role": "PROFILE",
+      "sha256": "c8e34f12865e05b735772bd9db1a836c65720db2d3a03e84e617a7c8c2589e3b",
+      "predecessor_sha256": "30c3dc1f5e9162f5530f410c437ed6f85d28dc6879f88dec81cb193ea87b0df5"
+    }
+  }
+}

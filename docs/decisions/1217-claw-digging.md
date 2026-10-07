@@ -448,3 +448,40 @@ Profiles loader and validator. `test_publish_claw_runtime.py` (4 tests) rebuilds
 
 **Not active yet.** The catalog, Session and consumers still load content 6. Activation needs step 5's source
 programs and Routes dispatch.
+
+## Step 4b — the Frontier successor at 1,430 u cannot be data-only against content 7 (stopped for a choice)
+
+The current owners bind a first-entry bundle to **one** profile source and need a **separate** set-down source:
+
+- `underground_entry_frontier.gd`:
+  - `_station_profile_refusal`: every station profile must be on the Frontier source (header word 64).
+  - `_travel_refusal`: every endpoint travel profile must be a WALK/CARRY/CLIMB row on that same source.
+  - `_sources_refusal`: the Frontier source must equal the Catalog's `header[10]`.
+- `underground_connector_workpieces.gd` `_distinct_program_leaf` (and `entry_source_constants.py`
+  `WORKPIECES_NOT_DISTINCT`): the set-down program's source must differ from the Frontier's. In content 6 these are
+  the pick (source 0: stations 16/17/25, travel 2/6/12) and assembly handling (source 1: row 29).
+
+Content 7 puts dig, seating tap and paw handling all on source 4, and has no source-4 travel row. Rows 30/31 are
+on source 2. So a Frontier naming claw rows 43/45/49 with travel row 31 is refused by `_travel_refusal`, and a
+workpieces file naming row 44 is refused as not distinct. The plan's "endpoint travel names row 31" (item 4 above)
+was wrong. Catalog pace rows are unaffected: all fifteen are ground caps (family -1), which may name any source.
+
+Options:
+
+1. **Recommended — a content successor that mirrors the pick/assembly split.**
+   - Source 4 becomes a claw image with stand, walk, dig and tap clips; source 5 is a paw-handling image with the
+     seat clips. Both come from the approved clips, with a new native capture of two images.
+   - Source-4 tool-free STAND/WALK rows are derived from the claw image's own stand and walk clips, with ground
+     pace caps.
+   - The Frontier binds source 4: dig and tap stations, and travel on the source-4 walk row. The workpieces file
+     binds source 5 (paw handling).
+   - Every runtime invariant stays. Item 5 is left with only the tool-related changes.
+   - Content 7 (5a44207f) is local and has no consumer, so it can be replaced rather than succeeded. That is the
+     coordinator's call; otherwise this is content 8.
+2. **Relax the owners in item 5:**
+   - Allow a Frontier travel profile from another source of the same content, as ADR 1200 did for ground caps.
+   - Drop the distinct set-down source rule.
+
+   There is less data churn, but this weakens two deliberate invariants (ADR 1190), and it must wait for G10.
+
+Until one is chosen, no Frontier successor is published.

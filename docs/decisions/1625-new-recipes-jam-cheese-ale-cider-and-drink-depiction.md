@@ -171,6 +171,28 @@ Ruled 2026-10-07 (above): 1 approved as provisional; 2 and 3 confirmed; 4 ruled 
   - Not done (LOW, already a gap before this commit): the roots' crop card "Uses:" does not list pickles
     (`farm_crop_roles.uses_of` reads only the kitchen and mill tables). Barley → ale has the same gap.
 
+## Follow-up: every ingredient's Uses come from the recipe rows (Brendan, 2026-10-07)
+
+Relayed by the coordinator: fix the crop card "Uses:" gaps the review left open (roots should list pickles, barley
+ale, apples cider and vinegar), check every crop and ingredient that feeds the new or earlier rows, and **derive the
+list from the recipe rows so it cannot drift**.
+
+- `preserve_rules.gd` `rows_taking(item)`: the station rows (after the fish row, whose catch has its own text) with an
+  input selector that takes the item (`ingredient_takes.gd` `matches`, the same test the stations' pickup uses).
+- The crop picker (`farm_crop_roles.gd` `uses_of`): dishes, the mill, then each row as "the brewery (ale)", then raw
+  last. Roots (all six) gain the preserving table's pickles; barley gains the brewery's ale; oats and wheat gain none.
+- The field guide (`field_guide.gd`): a crop's Uses add "made into pickles at the preserving table"; every other
+  good's "Cooked in: ..." adds "Made into: ...", and each output is linked. The apple's entry no longer says "no demo
+  dish cooks it yet" (`orchard_text.gd` takes the stations' words): dried fruit, cider, apple vinegar. A pear: dried
+  fruit. Honey: mead, cordial, berry jam. Nuts: rations, nut cheese. Berries: cordial, berry jam. Flour and dried fish:
+  rations. Vinegar: pickles (linked from its entry).
+- Not changed: the mill stays its own use (it is not a recipe row); the fish row's dried fish keeps the catch's own
+  "Or dried at the rack".
+
+Tests: `test_demo_new_recipes.gd` pins each ingredient's rows and sweeps every pantry item -- each row that takes it
+must be named and linked in its guide entry, and on its crop card when it is a crop. The live harness checks the
+picker's radish and barley lines and captures `crop_picker_*`.
+
 ## Source
 
 Brendan, 2026-10-07 ("Approve and build Q-d5 and dec-007"); `docs/handoff/OPEN_QUESTIONS.md` Q-D5; DEC-006, DEC-007;

@@ -1,6 +1,7 @@
 # Open questions for Brendan
 
-Everything here waits on Brendan. None has been ruled; each recommendation is the handoff's, not his. Ask them in
+Everything here waits on Brendan unless marked **CLOSED** (with where its ruling is recorded). Each recommendation is the
+handoff's, not his. Ask them in
 groups (README §4): the settlement group before HAUL-H3 or DEMO-D7 starts, and each demo group before its packet
 starts. When he answers, record the ruling verbatim in the lane's decision record (and a `DEC-nnn` for a creative or
 policy ruling), then delete the question from this file.
@@ -189,7 +190,8 @@ winter; supper is at 17:00 against the GDD's SOCIAL 18–20. [DAYPLAN]
 
 Recommendation: (a), with candles from HIVES as the remedy.
 
-**Q-D15. Lightning and fire.** The GDD says release 1 has no structure fire or random disaster; the fire effect exists.
+**Q-D15. Lightning and fire.** **CLOSED: ruled (a) by Brendan on 2026-10-07** (decision 1632, P1, approved as built;
+`RULINGS.md`). The GDD says release 1 has no structure fire or random disaster; the fire effect exists.
 [WEATHER]
 - (a) Lightning strikes trees or open ground only, never a building; no fire spreads.
 - (b) Lightning may start a fire.

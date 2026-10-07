@@ -17,7 +17,7 @@ extends RefCounted
 ## can build (LORE-P12); SKILL changes only how long each WU takes: bridge building is a demo skill
 ## (like felling; §4.3 names none), §5.3's arithmetic -- 10 XP a WU, the level curve, a work time
 ## divided by 1000 + 50 x level -- shown in the party panel. The beaver starts at level 6. A storm day
-## slows outdoor work to 80% (§5.10). A builder ordered away leaves the bridge where it got to.
+## slows outdoor work to 80% (§5.10) through the village's work pace (decision 1632). A builder ordered away leaves the bridge where it got to.
 ##
 ## ARRIVING IS EXPLICIT (decision 0361, the review's F05). A builder holding is not a builder arrived: one whose walk was
 ## given up holds too. Each step at the source or the site starts only when the brain's trip ARRIVED and the builder
@@ -474,9 +474,9 @@ func _credit(row: int, wu: int, cap_stage_wu: int) -> void:
 
 
 func _usec_per_wu(level: int) -> int:
-	"""Demo microseconds one WU takes at `level`, slowed on a storm day (§5.10)."""
-	var event: int = _weather.event() if _weather != null else -1
-	@warning_ignore("integer_division") return Rules.work_usec(1, level) * Rules.PERMILLE / ForestRules.weather_permille(event)
+	"""Demo microseconds one WU takes at `level`. A storm day's §5.10 factor is the village's work pace's "storm" factor,
+	credited through the builder's brain (demo/weather/storm_pace.gd, decision 1632), not here."""
+	return Rules.work_usec(1, level)
 
 
 func _finish(row: int) -> void:

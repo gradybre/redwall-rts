@@ -110,6 +110,7 @@ Every row was checked against the record named.
 | The season skip in the time controls (1653 P1–P3) | Approved as built: it sits in the Run until… menu (no new button or key); the Demo Lab keeps its trigger; it is disabled during a run | 1653 (relayed by the coordinator) |
 | "Regatta day" (1651 P1) | (b): "Regatta day counts only a regatta whose feast was served"; a regatta skipped past does not count | 1651 (relayed by the coordinator) |
 | "Regatta day", what "served" means (1651) | The stricter reading: it counts only when at least one resident ate the feast's main course | 1651 (relayed by the coordinator) |
+| Wildlife (#11) and livelier weather (#34) proposals | All approved as built: W1–W3 (the animals' year and counts; robins flush from residents; reduced motion stills the wildlife) and P1–P4 (P1 settles **Q-D15 as (a)**: lightning strikes trees or open ground only, never a building, no fire spreads; a struck tree's brief smoulder; the events' looks; lightning frequency). Relayed by the coordinator | 1631, 1632 (`feat/demo-wildlife-weather`) |
 
 ## Standing rules (not dated rulings)
 

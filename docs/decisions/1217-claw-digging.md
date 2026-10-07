@@ -733,3 +733,40 @@ Next: content 9, the claw endpoint certificate, and the Frontier/bundle successo
 - **Tests.**
   - `godot/test/test_mole_claw_approach_profiles.gd`: 4 tests, 1,011 assertions, through the actual loader.
   - `test_publish_claw_approach_runtime.py`: 5 tests.
+
+### 4e.2 The claw endpoint certificate (authored, not wired)
+
+`mole-worker/qualified-claw-certificate-v1/endpoint_certificate.gd` is the tool-free successor of
+`qualified-assembly-v1/endpoint_certificate.gd`. It keeps every runtime identity check, root, Room rule and bearer
+prism of the pick certificate. It changes only what is bound to the source:
+
+- **Span.** It admits the narrow approach and retreat at yaw 0 (rows 43 and 47, source 4, 5 boxes), over the root
+  span of 0–4,096 u that step 4d proved.
+- **Rows.** It compares every word of rows 43, 47, 52 (claw tap) and 59 (paw handling), plus both split image
+  digests.
+- **Workpieces.** The set-down program must be source 5 with row 59.
+- **Envelope and support words.** The envelope is `[-485,0,-578,479,930,412]` (the pick's was
+  `[-445,0,-732,910,1036,346]`). The support is `[-276,-1,-274,299,0,249]` (the pick's was
+  `[-274,-1,-274,299,0,249]`).
+
+Locations and WorldRoutes keep the pick certificate until the runtime switch (step 5). That switch also points their
+preloads here.
+
+`godot/test/test_claw_endpoint_certificate.gd` holds 5 tests, run against the actual content-9 rows:
+
+- the row and digest leaf accepts content 9 only;
+- the envelope and support words equal the rows' unions;
+- only the yaw-0 narrow rows pass the span descriptor;
+- the span direction and length rules hold;
+- the bearer words agree with `Source.bearer_refusal`.
+
+**What H's surveyed air must change at activation.** The work area's `H_AIR` `[-445,0,-732,910,1036,346]` and
+`H_FOOT` `[-274,-1,-274,299,0,249]` (`compile_entry_work_area.py`, ADR 1191) were sized for the pick rows. The claw
+rows need:
+
+- envelope `[-485,0,-578,479,930,412]`: 40 u more on −X and 66 u more on +Z, and less elsewhere;
+- footing `[-276,-1,-274,299,0,249]`: 2 u more on −X.
+
+The surveyed air around H must therefore cover at least `[-485,0,-732,910,1036,412]` if the pick rows stay
+admitted, or the claw envelope alone once they retire. Footing must reach x = −276. The L0 contact's record carries
+the same words, checked by `_record_refusal`.

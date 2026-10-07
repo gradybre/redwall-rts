@@ -18,7 +18,8 @@ const Jobs := preload("res://scripts/core/jobs.gd")
 const Itinerary := preload("res://scripts/core/underground_room_itinerary.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const MAX_STATIONS: int = 3
-const CONTROL_BYTES: int = 8192
+## ADR1212: the ADR1215 air recount is 8,970 B; the ceiling is charged inside Budget.COLD_BYTES.
+const CONTROL_BYTES: int = 9216
 const REFUSE_SCOPE: StringName = &"ROOM_FRONTIER_PUBLICATION_SCOPE"
 const REFUSE_BUSY: StringName = &"ROOM_FRONTIER_PUBLICATION_BUSY"
 const REFUSE_CHANGED: StringName = &"ROOM_FRONTIER_PUBLICATION_CHANGED"

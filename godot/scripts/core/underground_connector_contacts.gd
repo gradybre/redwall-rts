@@ -32,7 +32,8 @@ const Workpieces := preload("res://scripts/core/underground_connector_workpieces
 const AssemblySource := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
 const AssemblyPhysical := preload("res://data/underground/mole-worker/qualified-assembly-v1/physical_certificate.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
-const CONTROL_BYTES: int = 4096
+## ADR1212: +256 for the ADR1215 air shape in its two retained Location records (fixed 3,219 + 1,024 helper).
+const CONTROL_BYTES: int = 4352
 const FRAGMENT_CAPACITY: int = 32
 const SOURCE_CHECKS: int = 2048
 const REFUSE_BINDING: StringName = &"CONNECTOR_CONTACT_BINDING"

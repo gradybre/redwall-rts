@@ -20,7 +20,8 @@ const INVENTORY_EXTENSION_BYTES: int = 131072
 const PROFILE_BYTES: int = 262144
 const TERRAIN_BYTES: int = 131072
 const LAYOUT_COLD_BYTES: int = 262144
-const BINDINGS_AND_GROWTH_BYTES: int = 524288
+## ADR1212: +256 so the enlarged Contacts control (ADR1215 Record air) stays inside a fully assigned reserve.
+const BINDINGS_AND_GROWTH_BYTES: int = 524544
 const I64_MAX: int = 9223372036854775807
 const REFUSE_BUSY: StringName = &"UNDERGROUND_COLD_BUSY"
 const REFUSE_BYTES: StringName = &"UNDERGROUND_COLD_CAPACITY"

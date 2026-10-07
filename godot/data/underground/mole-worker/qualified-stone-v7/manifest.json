@@ -47,7 +47,7 @@
   "consumers": {
     "godot/scripts/core/underground_profiles.gd": "64325eed6772207817a043220fe4db371fe5aa68a89fec60a287099ea589dfaf",
     "godot/scripts/core/underground_work_face.gd": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
-    "godot/scripts/core/underground_connector_contacts.gd": "9f3f5d9c3bd05a4df9e017bb0c9e7a7005340df8fbfa845966db4985f1c142d5",
+    "godot/scripts/core/underground_connector_contacts.gd": "2e78aa88633e02ddceb66499e65460a9fff8e96c56a0edc42fe9ef22335022f2",
     "godot/scripts/core/underground_routes.gd": "7cca094843626e3a6b730041ca809d4b798b3bd72ced7da9ba425acb1e35e659",
     "godot/scripts/core/underground_world_routes.gd": "71a1bbc47b49eeedb71ffd6ce2d9e9c10ed5084381f87282353f9b4e8332d53e",
     "godot/demo/cast/underground_actor.gd": "b0ef7640d2b5626eb95c162d19318d9b3985a51479d19dfdf9a38e0176a06e91",
@@ -74,6 +74,11 @@
       "path": "godot/scripts/core/underground_world_routes.gd",
       "from": "0da30151fc38cbc8b329ec01e5067e134099f370799b52e69cfea04e4102915c",
       "to": "71a1bbc47b49eeedb71ffd6ce2d9e9c10ed5084381f87282353f9b4e8332d53e"
+    },
+    {
+      "path": "godot/scripts/core/underground_connector_contacts.gd",
+      "from": "9f3f5d9c3bd05a4df9e017bb0c9e7a7005340df8fbfa845966db4985f1c142d5",
+      "to": "2e78aa88633e02ddceb66499e65460a9fff8e96c56a0edc42fe9ef22335022f2"
     }
   ]
 }

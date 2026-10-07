@@ -1065,7 +1065,8 @@ func test_reflected_fixed_packets_fit_the_admitted_control_reserve() -> void:
 	for source: RefCounted in [actual, actual._order, actual._location, actual._other, actual._descriptor,
 			actual._selection, actual._box, actual._stance, actual._number, actual._fragments]:
 		bytes += _packet_numeric_bytes(source)
-	assert_equal(bytes, 3059, "source-derived reusable payload includes the sole original companion token, with no hidden per-placement bank")
+	# ADR1212: +160 for the ADR1215 air shape (72 B + air_count) in the two retained Location records.
+	assert_equal(bytes, 3219, "source-derived reusable payload includes the sole original companion token, with no hidden per-placement bank")
 	assert_true(bytes + 1024 <= Contacts.CONTROL_BYTES, "nested numeric helper ceiling fits the same reserve")
 	assert_equal(_packet_numeric_bytes(actual._fragments), 1633, "both fragment banks coexist and are counted")
 

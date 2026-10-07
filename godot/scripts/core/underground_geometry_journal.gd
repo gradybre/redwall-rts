@@ -9,7 +9,8 @@ extends RefCounted
 ## included), which is the image a World preparation proves Locations against.
 
 const Space := preload("res://scripts/core/room_space.gd")
-const CAPACITY: int = 256
+## ADR1212: measured peaks are 2 committed and 32 staged sides between proofs; overflow rechecks in full.
+const CAPACITY: int = 64
 const STAGED_STRIDE: int = 7 # Six box words, then the effective traversal role.
 const REVISION_FIELD: int = 17
 const CLAIM_NONE: int = 0

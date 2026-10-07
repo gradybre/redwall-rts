@@ -63,3 +63,25 @@ accumulator carries on at the new rate (no wood owed or lost).
   counted in today's demand) and was killed by an added winter assertion.
 - The full suite (CI-style), the analyzer, the contracts and the independent review are run once the branch's three
   packets are in; their lines are added below under "Branch gates" and "Review".
+
+## Review (independent `code-reviewer`, on 2b9c0597)
+
+Nothing CRITICAL or HIGH. The reviewer's probe confirmed the accumulator conserves wood exactly across a tier change at
+every hour of a 48-hour run, and that every consumer of the old single rate now reads the per-source sums.
+
+- **MEDIUM, fixed: six more mutants survived** the five related suites (the "20/20" above was this lane's own list):
+  a tier-2 hearth OUT giving back the tier-1 rate; the words always at the winter rate, or the demand line's full rate
+  at winter's; a banked tier-2 hearth still listed; the two revision bumps. New assertions: a cold spring day's words
+  ("1 hearth at 2.0 U, the hall at 1.5 U") beside the projection's winter words, a banked hall absent from both lines,
+  and `test_a_tier_two_hearth_out_of_fuel_owes_nothing` (five hours OUT at tier 2, nothing owed, then 3 U a day; the
+  revision bumps). **All six now killed (6/6)**, so the lane's total is 26 mutants, 26 killed.
+- **MEDIUM, fixed: player text with tier-1 figures only.** The field guide's wood and hearth entries
+  (`field_guide.gd`) and the planner's winter rule (`farm_season.gd _fuel_rule`) now also give the great hall's 3.0 U
+  (and its 20 °C), from the rules' own constants.
+- **LOW, answered: `Rules.projection_milli(hearths, cook)`** has no production caller now; it is kept as the all-tier-1
+  reference formula that `test_demo_winter.gd` checks the per-source projection against.
+- **LOW, fixed:** the stale "18 °C" docstrings and an over-long header line.
+- **LOW, answered:** the allocation test is a guard against an Object made per hour (OBJECT_COUNT does not see packed
+  arrays or ints); its docstring now says so.
+- **LOW, fixed:** the hall harness now also passes a game hour after the real upgrade and checks the hearth's row is
+  tier 2 (`LIVE-SUMMARY 43 0` at both sizes).

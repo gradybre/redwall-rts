@@ -11,6 +11,8 @@ extends SceneTree
 ##
 ## Prints `LIVE <name>: PASS|FAIL <detail>` per check and `LIVE-SUMMARY <checks> <failures>`; exits 1 on any failure.
 
+const CalendarScript := preload("res://demo/demo_calendar.gd")
+const HearthFuel := preload("res://demo/winter/hearth_fuel.gd")
 const Rules := preload("res://demo/hall/hall_rules.gd")
 const ProjectsScript := preload("res://demo/hall/hall_projects.gd")
 const HallScript := preload("res://demo/hall/demo_hall.gd")
@@ -345,6 +347,10 @@ func _raise_the_great_hall() -> void:
 	_check("tier 2", _projects().tier == Rules.TIER_GREAT)
 	_check("the winter's hall hearth reads tier 2 (decision 1652)",
 		int(_village.get("_winter").call(&"hall_tier_now")) == Rules.TIER_GREAT)
+	_village.get("_farm").call(&"advance_calendar", CalendarScript.HOUR_USEC)
+	_village.get("_winter").call(&"catch_up")
+	_check("and its hearth's row is tier 2 at the next hour",
+		int(_village.get("_winter").get("fuel").get("tier")[HearthFuel.HALL]) == Rules.TIER_GREAT)
 	_check("the great hall is drawn", _hall().view.great_shown() and not _hall().view.scaffold_shown())
 	_check("stage 2 is woven", _hall().tapestry.has_key(HallScript.KEY_STAGE_2))
 	_hall().open()

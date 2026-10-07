@@ -16,7 +16,7 @@ extends RefCounted
 ##   NONE     no hearth: nothing burns; the room drifts toward the outside air.
 ##   BANKED   the player let it go out (the fuel panel's emergency choice): no demand, no heat.
 ##   IDLE     a hearth, but no heat is demanded today (summer; a mild spring or autumn day): nothing burns.
-##   HEATED   demanded, and the hour's wood was taken: the room holds 18 °C.
+##   HEATED   demanded, and the hour's wood was taken: the room holds 18 °C (20 °C at tier 2).
 ##   OUT      demanded, and the stores could not give the hour's wood: OUT OF FUEL -- the room converges halfway toward
 ##            the outside air each hour (REQ-SET-131) until wood comes in; the next hour it is taken again.
 ## THE ACCUMULATOR (ruling 2: "Take the wood hourly through a milli-U accumulator; integer state only"). Each demanded
@@ -242,7 +242,7 @@ func hearth_lit(source: int) -> bool:
 
 
 func is_heated(source: int) -> bool:
-	"""Whether `source`'s room is held at 18 °C this hour."""
+	"""Whether `source`'s room is held at 18 °C (20 °C at tier 2) this hour."""
 	return hearth_lit(source)
 
 

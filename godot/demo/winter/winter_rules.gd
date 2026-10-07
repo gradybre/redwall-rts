@@ -16,8 +16,8 @@ extends RefCounted
 ## FUEL-DAYS (§5.8): available wood over the daily heating demand plus the last three days' mean cooking use; with no
 ## heating demand, "No current heat demand" -- NO_DEMAND, never a division by zero (§5.10's failure table).
 ##
-## ROOMS (REQ-SET-130/131): a heated room holds HEATED_TENTHS (18 °C) at tier 1, HEATED_TIER2_TENTHS (20 °C) at tier 2. A hearth out of fuel lets its room
-## converge HALFWAY toward the outside air each game hour.
+## ROOMS (REQ-SET-130/131): a heated room holds HEATED_TENTHS (18 °C) at tier 1, HEATED_TIER2_TENTHS (20 °C) at tier 2.
+## A hearth out of fuel lets its room converge HALFWAY toward the outside air each game hour.
 ##
 ## EXPOSURE (REQ-SET-018/019, §5.2): outdoors, or in an unheated room, below 0 °C at clothing tier 1, a resident gains
 ## needs.gd's COLD_GAIN_TIER1 (1000 milli-hours an hour), its HARD_FREEZE figure (2000) in a hard freeze; a heated room

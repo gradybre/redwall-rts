@@ -290,6 +290,9 @@ func test_the_figures_sum_each_hearth_at_its_own_rate() -> void:
 	fuel.note_cooking(1000, 5)
 	assert_equal(fuel.projection_milli(), 12 * (7000 + 1000), "twelve days at 7 U and 1 U of cooking")
 	assert_true(Text.projection_line(fuel).contains("1 hearth at 4.0 U, the hall at 3.0 U"), Text.projection_line(fuel))
+	fuel.pass_hour(101, SPRING, 90, 90)
+	assert_true(Text.demand_line(fuel).contains("1 hearth at 2.0 U, the hall at 1.5 U"), "today's rates: " + Text.demand_line(fuel))
+	assert_true(Text.projection_line(fuel).contains("1 hearth at 4.0 U, the hall at 3.0 U"), "winter's: " + Text.projection_line(fuel))
 	fuel.pass_hour(101, SUMMER, 220, 220)
 	assert_equal([fuel.heating_day_milli(), fuel.winter_day_milli()], [0, 7000], "summer: none today, 7 U a winter day")
 	assert_equal(fuel.reduced_count(), 1, "one hearth at a reduced rate")
@@ -297,6 +300,30 @@ func test_the_figures_sum_each_hearth_at_its_own_rate() -> void:
 	assert_equal([fuel.winter_day_milli(), fuel.reduced_count()], [4000, 0], "the hall let go out")
 	fuel.pass_hour(102, WINTER, -50, -50)
 	assert_equal(fuel.heating_day_milli(), 4000, "winter, the hall let go out: home 1's 4 U alone")
+	assert_false(Text.demand_line(fuel).contains("the hall"), "a hall let go out is not listed: " + Text.demand_line(fuel))
+	assert_false(Text.projection_line(fuel).contains("the hall"), Text.projection_line(fuel))
+
+
+func test_a_tier_two_hearth_out_of_fuel_owes_nothing() -> void:
+	"""REQ-SET-131 at tier 2: with no wood the great hall is OUT each hour, its share given back so nothing is owed (the
+	accumulator back at 0), and with wood in it burns 3 U a day exactly; its tier and the winter's revision move on a
+	change."""
+	var fuel: FuelScript = _fuel(0)
+	var revision: int = fuel.revision
+	fuel.set_tier(HALL, Rules.TIER_2)
+	assert_true(fuel.revision > revision, "a tier change is a change")
+	for h: int in 5:
+		fuel.pass_hour(h, WINTER, -50, -50)
+	assert_true(fuel.is_out(HALL), "out")
+	assert_equal([fuel.cold_hours, fuel.burn_acc[HALL], fuel.burned_milli], [5, 0, 0], "five cold hours, nothing owed")
+	fuel._stores.add_wood(100000)
+	for h: int in range(5, 29):
+		fuel.pass_hour(h, WINTER, -50, -50)
+	assert_equal(fuel.burned_milli, 3000, "a day at x0.75 once relit")
+	var v: Village = _village(_winter_tick())
+	var before: int = v.winter.revision
+	v.winter.bind_hall_tier(func() -> int: return Rules.TIER_2)
+	assert_true(v.winter.revision > before, "binding repaints the panels")
 
 
 func test_the_winter_reads_the_halls_tier_each_hour() -> void:
@@ -323,7 +350,8 @@ func test_the_winter_reads_the_halls_tier_each_hour() -> void:
 
 
 func test_the_tiered_hour_allocates_no_objects() -> void:
-	"""pass_hour and the summed figures at mixed tiers leave no object behind."""
+	"""pass_hour and the summed figures at mixed tiers leave no object behind (a guard: it would catch an Object made
+	per hour; packed arrays and ints are not counted by OBJECT_COUNT)."""
 	var fuel: FuelScript = _fuel(10000000)
 	fuel.set_hearth(1, true)
 	fuel.set_tier(HALL, Rules.TIER_2)

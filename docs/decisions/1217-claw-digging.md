@@ -708,3 +708,28 @@ Brendan reviewed `overview.png`, `motion.png` and `paws.png` and decided:
    M (endpoint 1) and the T0 arrival (endpoint 13) are to be verified.
 
 Next: content 9, the claw endpoint certificate, and the Frontier/bundle successor at ±1,430.
+
+## Step 4e — content 9, the claw endpoint certificate and the Frontier successor
+
+### 4e.1 Content 9 published (data only, not active)
+
+`publish_claw_approach_runtime.py` writes `mole-worker/qualified-claw-approach-v10/` (create-only), content revision
+9.
+
+- **Wire** `c8e34f12…`: 60 rows, 517 boxes, content 8's 6 sources.
+- **Rows:**
+  - 0–42 are content 8's;
+  - 43–46 are the narrow approach (READY_FORWARD) at yaws 0, 16384, 32768 and 49152;
+  - 47–50 are the narrow retreat (READY_BACKWARD) at the same yaws;
+  - 51–59 are content 8's rows 43–51: dig 51/53/55/57, tap 52/54/56/58, paw handling 59 on source 5.
+- **Why the claw rows move.** Profiles sorts rows by key within each source, so source 4's WALK rows must precede
+  its WORK rows. Content 8 has no consumer, and the moved rows keep their words and boxes.
+- **Narrow rows.** Their words are row 42's with YAW_EXACT, the heading and the policy (pick rows 2–9 without the
+  tool). Their boxes are `claw-approach-v1/approach.json`'s, copied as derived.
+- **Ground paces** `7bcaec94…`: 24 ground caps, adding one per narrow row as pick rows 2–9 have. No constant is new.
+- **Fade window.** The accessor publishes it for the source program to read, along with the row IDs:
+  `CLAW_FADE_BLOCKED_FIRST`/`LAST` = 28/37 and `CLAW_FADE_RESUME_KEY` = 38. The publisher refuses unless every
+  unresolved self-clearance pair in the derivation record lies in a fade from those keys and both bearers are clear.
+- **Tests.**
+  - `godot/test/test_mole_claw_approach_profiles.gd`: 4 tests, 1,011 assertions, through the actual loader.
+  - `test_publish_claw_approach_runtime.py`: 5 tests.

@@ -475,7 +475,8 @@ func test_short_step_requires_three_root_ticks_and_complete_fades_in_both_direct
 	assert_equal(_routes.request_route(_worker, first, 20), &"", "same complete reverse programme")
 	_short_replay(b, a, 11, 20)
 	assert_equal(_routes.refresh_travel_actor(_worker, NULL_REF, 12, 1, 3, 0, -1), &"", "complete recovery returns to canonical ground")
-	assert_equal(_routes.refresh_actor(_worker, NULL_REF, Profiles.MODE_WALK, 0, -1), &"ROUTE_SOURCE_HANDOFF_REQUIRED", "no silent loss of canonical source into legacy policy0")
+	assert_equal(_routes.refresh_actor(_worker, NULL_REF, Profiles.MODE_WALK, 0, -1), &"", "ADR1210: at rest on READY, canonical ground may switch to automatic with a full re-proof")
+	assert_equal(_routes.actor_phase(_worker), Routes.PHASE_IDLE, "the automatic actor carries no source word")
 
 
 func _short_replay(first: Vector3i, last: Vector3i, profile: int, first_tick: int) -> void:
@@ -591,15 +592,15 @@ func test_short_saved_progress_rejects_fraction_and_source_clock_disagreement() 
 	assert_equal(Routes.ShortStep.progress_refusal(word, 0, 0, 0, true), &"ROUTE_SOURCE_STEP_PROGRESS", "zero prefix has not entered an edge")
 
 
-func test_legacy_actor_cannot_claim_canonical_ground_or_ready_from_an_unknown_visual_phase() -> void:
-	"""Policy0 request ticks remain ordinary; identical all-yaw geometry cannot supply missing source history."""
+func test_legacy_actor_reaches_canonical_ground_only_through_a_ready_switch_at_rest() -> void:
+	"""ADR1210 amends ADR1168: never unadmit/readmit; an automatic actor at rest switches with the full admission
+	re-proof and starts canonical ground at READY, never at a renderer-derived phase."""
 	_clock_profiles(NULL_REF, false, 6)
 	var first: Vector2i = _location(Vector3i(-512, 0, 512))
 	assert_equal(_routes.admit_actor(_worker, NULL_REF, first, Profiles.MODE_WALK, 0, -1), &"", "legacy admission remains policy0")
-	var original: PackedByteArray = _short_route_image()
-	assert_equal(_routes.refresh_travel_actor(_worker, NULL_REF, 12, 1, 3, 0, -1), &"ROUTE_SOURCE_HANDOFF_REQUIRED", "no renderer-derived takeover")
 	assert_equal(_routes.admit_travel_actor(_worker, NULL_REF, first, 12, 1, 3, 0, -1), &"ROUTE_ACTOR_ALREADY_REGISTERED", "no unadmit/readmit shortcut")
-	assert_equal(_short_route_image(), original, "unknown phase refusal preserves all legacy state")
+	assert_equal(_routes.refresh_travel_actor(_worker, NULL_REF, 12, 1, 3, 0, -1), &"", "switch at rest")
+	assert_equal(Routes.source_ready_leaf_refusal(_routes, _worker, NULL_REF, 12, 1, 3), &"", "canonical ground starts exactly at READY")
 
 
 func test_headless_source_approach_work_recovery_and_backward_retreat() -> void:

@@ -174,6 +174,76 @@ func test_toolless_mole_hauls_one_staged_stone_unit_to_m_through_delivery() -> v
 	assert_equal(world._inventory.container_lot_count(_probe._storage), before + 1, "one new stone lot in M's container")
 
 
+func test_switch_between_tooled_source_and_tool_free_rows_only_at_rest() -> void:
+	"""ADR1210 amends ADR1168: at rest on READY a tooled source actor switches to the tool-free automatic rows and
+	back, each time through the full admission re-proof; moving, mid-programme or unproved switches refuse."""
+	if not _source_actor_at_m(): return
+	var world: RefCounted = _probe._world
+	assert_equal(world._routes.request_route(world._worker, _probe._endpoints[3], 0), &"", "leave M")
+	world._routes.advance_tick(1)
+	assert_equal(world._routes.refresh_actor(world._worker, NULL_REF, Profiles.MODE_WALK, 0, -1, NULL_REF),
+		&"ROUTE_ACTOR_BUSY", "never while moving")
+	var actor: Routes.Actor = Routes.Actor.new()
+	for tick: int in range(2, 3000):
+		world._routes.advance_tick(tick)
+		world._routes.read_actor_into(world._worker, actor)
+		if actor.location == _probe._endpoints[3] and actor.phase == Routes.PHASE_IDLE and actor.edge == NULL_REF: break
+	assert_true(Routes.source_ready_leaf_refusal(world._routes, world._worker, NULL_REF, 12, 1, Grip.CONTENT_REVISION)
+		!= &"", "stopped on the station, still recovering")
+	assert_equal(world._routes.refresh_actor(world._worker, NULL_REF, Profiles.MODE_WALK, 0, -1, NULL_REF),
+		&"ROUTE_SOURCE_HANDOFF_REQUIRED", "never before the source is READY")
+
+
+func test_switch_at_rest_reruns_the_full_admission_proof_both_ways() -> void:
+	"""The tool must really be put down before the tool-free rows, and really held before the tooled ones."""
+	if not _source_actor_at_m(): return
+	var world: RefCounted = _probe._world
+	assert_true(world._routes.refresh_actor(world._worker, NULL_REF, Profiles.MODE_WALK, 0, -1, NULL_REF) != &"",
+		"a held tool refuses the tool-free selection")
+	assert_true(world._gear.unequip(_probe._tool, _probe._storage, false).ok, "tool down at M")
+	assert_true(world._routes.refresh_travel_actor(world._worker, NULL_REF, 12, 1, Grip.CONTENT_REVISION, 0, -1,
+		_probe._tool) != &"", "the tooled row needs the tool in hand")
+	assert_equal(world._routes.refresh_actor(world._worker, NULL_REF, Profiles.MODE_WALK, 0, -1, NULL_REF), &"",
+		"READY at rest switches to tool-free WALK")
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(world._routes.read_actor_into(world._worker, actor), &"", "actual actor")
+	assert_equal(actor.profile_id, 31, "the tool-free walk row")
+	assert_true(world._routes.refresh_travel_actor(world._worker, NULL_REF, 12, 1, Grip.CONTENT_REVISION, 0, -1,
+		_probe._tool) != &"", "still tool-free: the tooled source refuses")
+	assert_true(world._gear.equip(_probe._tool, world._worker).ok, "tool back in hand")
+	assert_equal(world._routes.refresh_travel_actor(world._worker, NULL_REF, 12, 1, Grip.CONTENT_REVISION, 0, -1,
+		_probe._tool), &"", "idle automatic actor at rest switches back to tooled ground")
+	assert_equal(Routes.source_ready_leaf_refusal(world._routes, world._worker, NULL_REF, 12, 1, Grip.CONTENT_REVISION),
+		&"", "it starts exactly at READY")
+
+
+func _source_actor_at_m() -> bool:
+	"""A real tooled mole admitted on canonical ground 12 at the first station, then walked to M (READY)."""
+	_probe = WorkArea.Probe.new()
+	_probe.before_each()
+	if _probe._confirm_prefix() == NULL_REF: return false
+	var world: RefCounted = _probe._world
+	var at: Vector3i = _probe._surface_point(3)
+	assert_true(world._transforms.place(world._worker, at.x, at.y, at.z, 49152), "on the first station")
+	assert_equal(world._routes.admit_travel_actor(world._worker, NULL_REF, _probe._endpoints[3], 12, 1,
+		Grip.CONTENT_REVISION, 0, -1, _probe._tool), &"", "canonical ground admission")
+	assert_equal(world._routes.request_route(world._worker, _probe._endpoints[1], 0), &"", "to M")
+	return _settle_at(_probe._endpoints[1], 1) and failures.is_empty()
+
+
+func _settle_at(target: Vector2i, first_tick: int) -> bool:
+	"""Route ticks until idle on the target with canonical ground recovered to READY."""
+	var world: RefCounted = _probe._world
+	var actor: Routes.Actor = Routes.Actor.new()
+	for tick: int in range(first_tick, first_tick + 3000):
+		world._routes.advance_tick(tick)
+		world._routes.read_actor_into(world._worker, actor)
+		if actor.location == target and Routes.source_ready_leaf_refusal(world._routes, world._worker, NULL_REF, 12, 1,
+				Grip.CONTENT_REVISION) == &"": return true
+	assert_true(false, "arrived READY on %s" % target)
+	return false
+
+
 func _ready() -> bool:
 	"""Real entry, an open BRACE phase whose Site holds M's container, Delivery composed, and the tool unequipped."""
 	_probe = WorkArea.Probe.new()

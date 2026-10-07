@@ -48,7 +48,7 @@
     "godot/scripts/core/underground_profiles.gd": "64325eed6772207817a043220fe4db371fe5aa68a89fec60a287099ea589dfaf",
     "godot/scripts/core/underground_work_face.gd": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
     "godot/scripts/core/underground_connector_contacts.gd": "1c8a641e1a680637e7be922bb42d9928d6c1066095ded3dca46800701766143e",
-    "godot/scripts/core/underground_routes.gd": "8a4cd2a60b05f7c34e9baef32b8bdc6e38d458bb5594fb4999730dee3f74fef0",
+    "godot/scripts/core/underground_routes.gd": "7cca094843626e3a6b730041ca809d4b798b3bd72ced7da9ba425acb1e35e659",
     "godot/scripts/core/underground_world_routes.gd": "0da30151fc38cbc8b329ec01e5067e134099f370799b52e69cfea04e4102915c",
     "godot/demo/cast/underground_actor.gd": "b0ef7640d2b5626eb95c162d19318d9b3985a51479d19dfdf9a38e0176a06e91",
     "godot/demo/cast/underground_actor_content.gd": "388374964d20879b6b896021ebde7927e472634ea8a32b6834ec7b1b5042157f",
@@ -58,5 +58,12 @@
   },
   "not_qualified": [
     "presentation of the source-3 image (ContentSet holds three sources)"
+  ],
+  "renewals": [
+    {
+      "path": "godot/scripts/core/underground_routes.gd",
+      "from": "8a4cd2a60b05f7c34e9baef32b8bdc6e38d458bb5594fb4999730dee3f74fef0",
+      "to": "7cca094843626e3a6b730041ca809d4b798b3bd72ced7da9ba425acb1e35e659"
+    }
   ]
 }

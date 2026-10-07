@@ -2323,17 +2323,29 @@ func _reset_source_clock(row: int) -> void:
 
 
 func _source_refresh_refusal(row: int, profile: int, profile_revision: int, content: int) -> StringName:
-	"""An unclocked old actor cannot claim a ready pose; a source actor must finish recovery before any rebind."""
+	"""ADR1168 as amended by ADR1210: a source actor changes source profile only at READY. Switching between the
+	source-clocked and the automatic families, either way, also needs the actor at rest: a stationary idle route
+	with nothing queued and, from a source clock, exactly the canonical idle READY word. The caller then reruns
+	the complete fresh-admission proof (_qualify_actor_at) at the actor's endpoint before any column changes."""
 	var code: StringName = _source_clock_refusal(row)
 	if code != &"": return code
 	var old: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+	var automatic: bool = profile < 0 \
+		or Profiles.selection_policy_leaf(_profiles, profile, profile_revision, content) == Profiles.POLICY_AUTOMATIC
 	if _source_word_known(old):
-		if ShortStep.uses(_profiles) and (profile < 0 or Profiles.selection_policy_leaf(_profiles, profile, profile_revision, content) == Profiles.POLICY_AUTOMATIC):
-			return &"ROUTE_SOURCE_HANDOFF_REQUIRED"
+		if automatic:
+			return &"" if old == _source_word_for(_profiles, PHASE_IDLE, SourceProgram.READY) and _at_rest(row) \
+				else &"ROUTE_SOURCE_HANDOFF_REQUIRED"
 		return &"" if ((old >> 2) & 15) == SourceProgram.READY else &"ROUTE_SOURCE_HANDOFF_REQUIRED"
-	if profile >= 0 and Profiles.selection_policy_leaf(_profiles, profile, profile_revision, content) > Profiles.POLICY_AUTOMATIC:
-		return &"ROUTE_SOURCE_HANDOFF_REQUIRED"
+	if not automatic:
+		return &"" if old == PHASE_IDLE and _at_rest(row) else &"ROUTE_SOURCE_HANDOFF_REQUIRED"
 	return &""
+
+
+func _at_rest(row: int) -> bool:
+	"""ADR1210: stationary on its endpoint with no edge, no queued route and no pending dispatch tail."""
+	return _resident_pair(R_LOCATION_SLOT, row) != NULL_REF and _resident_pair(R_EDGE_SLOT, row) == NULL_REF \
+		and _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] < 0 and _motion.resident[R_TAIL * RESIDENT_CAPACITY + row] < 0
 
 
 static func _source_tuple_row(actual: RefCounted, worker: Vector2i, job: Vector2i, profile: int,

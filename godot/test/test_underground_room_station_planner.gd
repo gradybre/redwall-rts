@@ -402,7 +402,8 @@ func test_adr1161_v3_fixture_lateral_publishes_but_its_ground_leg_cannot_hand_of
 
 
 func _assert_v3_ground_handoff_refused(result: Publication.Result) -> void:
-	"""Static eligibility is not motion: v3 Routes still refuses automatic ground to selected-source handoff."""
+	"""Static eligibility is not motion: the switch at rest is allowed (ADR1210), but its full admission re-proof
+	still refuses the selected v3 source on automatic ground."""
 	var fixture: PublicationTests.LateralFixture = _h as PublicationTests.LateralFixture
 	assert_equal(fixture._routes.refresh_travel_actor(fixture._worker, NULL_REF, 5, 1, 2, 0, -1, fixture.tool), &"", "READY 9 to 5")
 	assert_equal(fixture._routes.request_route(fixture._worker, fixture._first, fixture.tick), &"", "parking to access")
@@ -417,7 +418,7 @@ func _assert_v3_ground_handoff_refused(result: Publication.Result) -> void:
 		fixture.tick += 1; fixture._routes.advance_tick(fixture.tick)
 	assert_equal(actor.location, turn, "arrived on automatic ground")
 	assert_equal(fixture._routes.refresh_travel_actor(fixture._worker, NULL_REF, 5, 1, 2, 0, -1, fixture.tool),
-		&"ROUTE_SOURCE_HANDOFF_REQUIRED", "the ADR1161 runtime seam stands in v3")
+		&"PROFILE_VARIANT_UNAUTHORED", "the ADR1161 runtime seam stands in v3")
 
 
 func test_room_loop_runs_every_supported_cube_with_exact_ledgers() -> void:

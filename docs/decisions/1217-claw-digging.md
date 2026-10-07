@@ -1,7 +1,7 @@
 # 1217 — Claw digging and paw fitting: no tools for now
 
-Date: 2026-10-07 · Status: Accepted direction (DEC-052). Step 1, the first claw stroke, is stopped for Brendan's
-review.
+Date: 2026-10-07 · Status: Accepted direction (DEC-052). Step 1, the first claw stroke, is authored and stopped
+for Brendan's review and his choice of cut-station distance (claw reach).
 
 ## Decision
 
@@ -106,6 +106,54 @@ Standing upright, the right shoulder is 549 u up, so the claw tip reaches at mos
 The Room's level-1 cubes need an anchor above 1,024 u (ADR 1213), which leaves a thin band. If it does not fit,
 Brendan will be asked to choose between a standing datum (a step or bench) and another station layout.
 
-## Step 1 — the first claw stroke
+## Step 1 — the first claw stroke (M1): authored, and stopped for Brendan's station choice
 
-See "Step 1 results" below.
+The packet is `godot/data/underground/mole-worker/claw-work-v1/`:
+
+| File | What it does |
+|---|---|
+| `claw_source.py` | The pinned tool-free open-paw closure. |
+| `author_claw_stroke.py` | The pose recipe. |
+| `probe_claw_stroke.py` | The bounded search. |
+| `prove_claw_stroke.py` | The exact proofs. |
+| `render_claw_stroke.py` | The review images. |
+| `test_claw_stroke.py` | 10 tests. |
+
+The review packet is `evidence/claw-stroke-review-v1/`.
+
+**The stroke.** One program serves BRACE, CUT and FINISH (ADR 1188), authored for the Frontier's first episode:
+cube 0 from station 4, which replaces row 25 at yaw 0. It is built as follows:
+
+- the open paw and the tool-free stand key 8;
+- ADR 1144's hip drop, sole planting and lean;
+- the accepted fixed-length arm solve, aimed at the claw tip (vertex 2, the paw's most distal vertex);
+- a 33-key rake loop, 80 u above the face (the fitting tap's raise) to 60 u below it (row 13's stroke depth);
+- an entry of 31 keys with the arm solved on every key, and its exact reverse as the recovery.
+
+**Exact proofs.** All run on the accepted Q24 interval machinery with the full native residual:
+
+- the claw-tip face crossing, with its anchor and patch;
+- the clipped below-face hull of every non-foot triangle, which must lie inside the target cube and touch it with
+  the paw only;
+- every triangle against the ground prisms, with sole support on every interval;
+- right-arm self-clearance against the rest of the body.
+
+**Finding: claw reach forces a station choice.** Today's cut stations stand 512 u behind the cube's near face
+(1,536 u out, ADR 1188). From there the open paw reaches only 70–100 u into the cube, and the back of the paw dips
+under the face behind the near edge, into retained earth.
+
+- The best recipe at that station (candidate p) refuses: its paw's exact below-face hull reaches 26 u past the
+  near face.
+- The bounded search found **no** clear recipe at 1,536 (0 of 94 solvable).
+- Moved in by **106 u**, the same pose clears every proof (candidate a), as do two variants (b, c).
+- 106 is derived, not chosen: 512 minus the 406 u stance half-width of tool-free rows 30/31. It is the most
+  ADR 1188's foot rule allows.
+
+Options, put to Brendan in the packet's README:
+
+1. **Recommended: move the six cut stations to 1,430 u** (a Frontier successor).
+2. Keep 1,536 and only scratch the surface, about 12–24 u deep: a new constant, with thin margins.
+3. Another design, such as a starter hole or a two-paw stroke.
+
+Native capture, integer rows, the content successor and the runtime changes wait on that choice and on his review
+of the stroke.

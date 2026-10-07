@@ -1,0 +1,10 @@
+{
+  "images_sha256": {
+    "overview.png": "88aa5861e426ae59a9c693ef085f7dd51e136ba453da5e30fe86f22aff98de0d",
+    "hands.png": "415ac58ee467a4271f28ee4f41b31c329e1b07724bf6cafb03d755e0f3e51559",
+    "motion.png": "e6b7068e00e14ca98ba01943e33e02a6ea7f1a5c886df83c1e15d07f65d9e6ab"
+  },
+  "renderer_sha256": "d9e1b5e6184d6775608b4f7f6b96cc4de5d804a5e5960ef2d6b7d97ec23ab0a4",
+  "candidate_sha256": "629091367452b38192aa618510a0e855f9fd50c8d275b8762ee8b7296b70c45f",
+  "proof_sha256": "815eaa4e510f3935bc7cf4e19923ca930cc6be930ae19da90653529c62292064"
+}

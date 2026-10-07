@@ -629,3 +629,18 @@ clears the bearer with row 42. Endpoints 0 and 2 were not checked here.
 
 Until this is chosen, no Frontier, structure or workpieces successor is published. Content 8 itself does not
 depend on the choice.
+
+### Brendan's decision on step 4c.4 (2026-10-07): option 1, narrow tool-free approach and retreat rows
+
+Brendan chose **option 1**. These are the decision's parts:
+
+- Narrow tool-free approach and retreat rows are authored on source 4 for the endpoints that need them. One is
+  the L0 contact (endpoint 3). H (endpoint 0) and R (endpoint 2), which used the narrow rows in content 6, are
+  checked as well.
+- They are derived from the claw image's own stand and walk clips, the way the pick-era rows 2–9 were. They go
+  through the exact provers and stop with a review packet before anything is published.
+- A claw version of the endpoint certificate goes with them.
+- Every other endpoint uses row 42.
+- After approval, content 9 is published with the Frontier/bundle successor at ±1,430. It binds source 4, and its
+  workpieces file binds source 5.
+- The runtime's active content is not switched.

@@ -143,6 +143,34 @@ Ruled 2026-10-07 (above): 1 approved as provisional; 2 and 3 confirmed; 4 ruled 
   counts a cheese at the table. LOWs fixed: crock words, jam and cheese booked as preserves, the feast's pour marked
   provisional, stale comments, elderberry jam dropped from the index.
 
+### Gates for the vinegar pickle (2026-10-07, after Brendan's rulings)
+
+- **Base**: `origin/master` merged twice -- first with #233 (`4fbe1b11`), then with #232 (goals, hall fuel, time
+  controls: `c1f9268f`). Neither needed a hand resolution.
+- **CI-style full suite** (a clean checkout of `c1f9268f`, no `godot/demo/assets`, `.godot` re-imported,
+  `./tools/run_tests.sh`): `9288 test(s), 648899 assertion(s), 0 failure(s)` ·
+  `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 371 tolerated; leaked at exit: 0 object(s), 0 resource(s)` ·
+  `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).` (Also clean on
+  `bf0a70d5`, before review: 9267 tests.)
+- **Analyzer**: `0 GDScript warning(s) in 0 of 1053 file(s)`. **Contracts**: decision_numbers PASS (337 records),
+  merge_gate PASS, lane_notes PASS, `tools/test_make_demo_pantry_index.py` OK.
+- **Live harness** (staged art): `LIVE-SUMMARY 36 0` at 1280x720 and 1920x1080 on the merge. In the frames
+  `new_recipes_panel_*` and `brewing_panel_*`, Make vinegar and Make pickles sit as a third Preserves row inside the
+  column, the pantry line lists vinegar and pickles, and the Brewing line reads "vats in use".
+- **Mutation**: 19 mutants on the rows, inputs, codes, shelves, NP, booking, words and action map; 18 killed. The
+  survivor (vinegar treated as a drink in the guide) was killed by an added assertion. After review, 11 mutants on the
+  USE column and its readers: 9 killed. Two did not need killing. `card_drink` is equivalent, because the ingredient
+  case returns first. `brewing_vats` (the "vats in use" words) is caught by the live harness's Brewing-line check,
+  not by the unit suites. SURVIVED_MUTANTS: none besides those two.
+- **Independent review** (`code-reviewer`, waited for): no CRITICAL or HIGH. Fixed in `6f93e8f4`:
+  - MEDIUM: a per-row USE column (eaten / drink / ingredient) replaces the vinegar special cases, and the pickles'
+    alternative is built from the shelf hours.
+  - LOW: the Brewing line says "vats in use"; the stale "not built" README lines and comments are corrected; the
+    "(decision 1625)" is gone from player text; the refusal code and fix are asserted; the docs say vinegar "is not
+    booked as a preserve".
+  - Not done (LOW, already a gap before this commit): the roots' crop card "Uses:" does not list pickles
+    (`farm_crop_roles.uses_of` reads only the kitchen and mill tables). Barley → ale has the same gap.
+
 ## Source
 
 Brendan, 2026-10-07 ("Approve and build Q-d5 and dec-007"); `docs/handoff/OPEN_QUESTIONS.md` Q-D5; DEC-006, DEC-007;

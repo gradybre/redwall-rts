@@ -468,7 +468,7 @@ func _scroll_to_the_occasion_goals() -> void:
 	var title: Label = _occasion_title()
 	_check("First crossing has a title row", title != null)
 	if title != null:
-		scroll.scroll_vertical = int(title.get_global_rect().position.y - scroll.get_global_rect().position.y)
+		scroll.scroll_vertical += int(title.get_global_rect().position.y - scroll.get_global_rect().position.y)
 
 
 func _the_occasion_goals_are_in_view() -> void:
@@ -477,6 +477,8 @@ func _the_occasion_goals_are_in_view() -> void:
 	var title: Label = _occasion_title()
 	_check("First crossing is in view", title != null and scroll.get_global_rect().encloses(title.get_global_rect()),
 		"%s / %s" % [title.get_global_rect() if title != null else Rect2(), scroll.get_global_rect()])
+	_check("the page was scrolled to it", scroll.scroll_vertical > 0 and title != null
+		and absf(title.get_global_rect().position.y - scroll.get_global_rect().position.y) < 4.0, str(scroll.scroll_vertical))
 	_capture("guide_goals_occasions")
 
 

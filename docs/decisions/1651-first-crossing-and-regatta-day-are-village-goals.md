@@ -51,7 +51,7 @@ through `bind_measure` on `M_NONE` parts (they would read "not in this demo yet"
   bound). The suite: `31 test(s), 504 assertion(s), 0 failure(s)`.
 - Live harness `test/live/demo_guide_live.gd` (both sizes): the goals' evaluator holds the scene's own ferry and regatta
   models and the page lists both goals; a new step scrolls them into view and captures `guide_goals_occasions`.
-  `LIVE-SUMMARY 62 0` at 1920x1080 and 1280x720.
+  `LIVE-SUMMARY 62 0` at 1920x1080 and 1280x720 (63 after the review fix below).
 - Frames (looked at): `scratchpad/goals2_check/guide_goals_occasions_{1920x1080,1280x720}.png` -- both goals, their why
   and "0 of 1"; `guide_goals_*` -- "Village goals: 0 of 11 reached".
 - Mutation: 9 mutants, **9 killed** (the two measures swapped or zeroed, both targets raised, a kind colliding with
@@ -59,3 +59,26 @@ through `bind_measure` on `M_NONE` parts (they would read "not in this demo yet"
   two killed by the live harness).
 - The full suite (CI-style), the analyzer, the contracts and the independent review are run once the branch's three
   packets are in; their lines are added below under "Branch gates" and "Review".
+
+## Review (independent `code-reviewer`, on 724a5a99)
+
+Nothing CRITICAL or HIGH.
+
+- **MEDIUM, answered here as a PROPOSAL (P1 below).** `regatta.gd feasts_held` is also bumped when the regatta's supper
+  *lapsed* (`_settle_feast` → `_tally(null)`): a regatta held and then skipped past (the season skip) ends `ST_DONE`
+  with "the race never started", nobody at the feast, and "Regatta day" reached. The reviewer reproduced it
+  (`[feasts_held, race_off, winner] = [1, "the race never started", -1]`).
+- **LOW, fixed.** The live harness's scroll step set an absolute offset from a relative distance; it now adds the
+  distance (`+=`) and checks the page really scrolled with the title at the top.
+- **LOW, kept.** The goals suite sets the two counters directly; the ferry and regatta suites already cover what
+  raises them (`test_demo_ferry.gd`, `test_demo_regatta.gd`).
+
+## PROPOSAL for Brendan
+
+- **P1. Does a regatta skipped past count as "Regatta day"?** Built: it counts (`feasts_held` is the counter decision
+  0901's option (b) named, "regattas held"). A regatta is only skipped past by the player's own season skip, whose
+  news line says that meals were not lived.
+  (a) As built: any regatta day that ran to its end counts.
+  (b) Count only a regatta whose feast supper was served (a second counter in `regatta.gd`, raised in `_tally` when the
+  kitchen published the meal; about five lines and one test).
+  Recommendation: (b), since the goal's own words promise the race and the feast; it is a small follow-up if chosen.

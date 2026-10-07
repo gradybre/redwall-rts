@@ -75,3 +75,8 @@ selected as the pick's `selected_handoffs` selects them, and checked with `prove
    program successor. The retreat uses the same gate when it arrives; its departure (ready → walk start) is clear.
 2. **Author a fade path** that carries the right arm out during the late-stride fade, like step 1c's 13° swing.
    This is new motion, so it means re-proving and another review.
+
+## Brendan's decision (2026-10-07)
+
+He chose option 1, **fade only from clear frames**: the fade starts only from walk keys 0–27 or 38–43. He accepted
+the narrow rows and the like-for-like endpoint mapping. The record is in ADR 1217.

@@ -691,3 +691,20 @@ The proposal replaces like for like:
    review.
 
 Content 9, the claw endpoint certificate and the Frontier/bundle successor wait for this review.
+
+### Brendan's review of step 4d (2026-10-07): fade only from clear frames
+
+Brendan reviewed `overview.png`, `motion.png` and `paws.png` and decided:
+
+1. **Fade only from clear frames.** The fade to ready may start only from walk keys 0–27 or 38–43. A mole that
+   arrives in keys 28–37 walks on to key 38 first, which takes at most 10 keys. The rule is published with the
+   rows as data that the source program reads.
+2. **The narrow rows are accepted as derived.**
+3. **The like-for-like endpoint mapping is accepted:**
+   - row 2 becomes the narrow approach for endpoints 0, 1 and 3;
+   - row 6 becomes the narrow retreat for endpoints 2 and 13;
+   - row 12 becomes row 42 for endpoints 4–12.
+
+   M (endpoint 1) and the T0 arrival (endpoint 13) are to be verified.
+
+Next: content 9, the claw endpoint certificate, and the Frontier/bundle successor at ±1,430.

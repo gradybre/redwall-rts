@@ -112,6 +112,7 @@ Every row was checked against the record named.
 | PRESERVE | Proposals P1–P7 approved as built (dried fruit on the rack, the preserving table, player-ordered batches, rations as a reserve, units not mass, the first-input fetch, salt fish and jam/pickles/cheese not built) | 1611 |
 | BREW | Proposals P1–P7 approved as built; the Hearth regatta feast pours mead and the cordial | 1621 |
 | Q-D5 and DEC-007 | "Approve and build Q-d5 and dec-007": build the new recipes for the waiting icons (jam, pickles, a plant-milk cheese, ale, cider) and rule DEC-007's drink depiction -- ale and cider follow the mead rule (a feast or table drink only, no intoxication, no effect on Shared Warmth) | 1621; 1625 (`feat/demo-new-recipes`) |
+| 1625's proposals | Q1 (the four rows' numbers and the feast pour) **approved as provisional**, to be tuned after a balance run; Q2 (nut cheese) and Q3 (ale from barley, cider from apples) **confirmed as built**; pickles **"both vinegar and salt"**: (b) build the salt-free vinegar pickle now -- apple vinegar from the orchard's apples, then roots in that vinegar, every number PROVISIONAL and beyond the library's formulas by his approval; (a) a salted pickle gated on salt **if the demo has a salt path** -- it has none, so the salted pickle is approved and waits on salt (no salt source invented) | 1625 (`feat/demo-new-recipes`, #234) |
 
 ## Standing rules (not dated rulings)
 

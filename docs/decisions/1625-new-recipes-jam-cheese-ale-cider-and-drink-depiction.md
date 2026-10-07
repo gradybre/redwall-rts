@@ -1,5 +1,6 @@
 # 1625 — New recipes for the waiting icons: berry jam, nut cheese, ale and cider; drink depicted by the mead rule
-Date: 2026-10-07 · Status: Accepted (engineering) under Brendan's approval; **every number PROVISIONAL; pickles BLOCKED**
+Date: 2026-10-07 · Status: Accepted under Brendan's approval; **every number PROVISIONAL**; the vinegar pickle built by
+his ruling; **the salted pickle approved, waiting on salt**
 
 **Numbering.** The lead assigned 1625–1629 on `feat/demo-new-recipes` (the food packets' remapped 1601–1629 range; the
 packets' own 1251–1260 collides with a parallel digging branch). 1625 is free on every local and remote ref.
@@ -15,6 +16,21 @@ Relayed by the coordinator: **"Approve and build Q-d5 and dec-007"** -- open que
 **Brendan's ruling on DEC-007's drink depiction (2026-10-07):** ale and cider follow the mead rule -- a feast or table
 drink only, no intoxication, and no effect on Shared Warmth. (`docs/setting_decisions.md` is not edited here, as
 instructed; the ruling is recorded in this record and in `docs/handoff/RULINGS.md`.)
+
+## Brendan's rulings on the proposals (2026-10-07)
+
+Relayed by the coordinator after the first build:
+1. **The four rows and the feast pour: approved as provisional**, to be tuned after a balance run (proposal 1).
+2. **Cheese as nut cheese (proposal 2) and ale/cider from barley/apples alone (proposal 3): confirmed as built.**
+3. **Pickles: "both vinegar and salt".**
+   - **(b) now**: the salt-free vinegar pickle -- apple vinegar first, from the orchard's apples, then onions or roots
+     in that vinegar. Built (below). Every number PROVISIONAL, and the pickle **goes beyond the library's formulas by
+     his approval**.
+   - **(a) the salted pickle, once salt exists.** The demo was searched for any salt path (a trader, a pedlar, a stores
+     item): there is none -- no salt item, no trade, and `water_dressing.gd` leaves the saltpan unplaced because §5.7
+     needs coastal brine. So, as instructed, no salt source is invented: **the salted pickle is approved, waiting on
+     salt**, and is not built. When a salt item exists it is one more appended row (roots + vinegar + salt, the
+     library's `TAG_recipe_pickled_onions` / `LP-RECIPE-tangy-pickles` shape), gated on salt like any input.
 
 ## Decision
 
@@ -42,14 +58,29 @@ shelves are dried fruit's 720 h for jam and mead's 1440 h for both drinks and th
 twice as long as the nuts' own 720 h -- its purpose, since its NP equals theirs). The feast pours ale and cider ceil(E/4)
 U each, mead's quantity. None is a GDD number.
 
-### Pickles: BLOCKED
+### Vinegar and the salt-free pickle (by Brendan's ruling; beyond the library's formulas)
+
+Two more rows and two more items, appended: **vinegar 40, pickles 41** (categories 22–23).
+
+| Row | Inputs → output | Work, wait, station | Shelf | Eaten raw | Source |
+|---|---|---|---|---|---|
+| `vinegar` | apples 4 + water 1 → **apple vinegar 4** | 16 WU + 96 h in a vat, brewery | 1440 h | no (an ingredient) | `COMPONENT_shared_apple_vinegar` (apple, fermentation culture, vinegar culture): the library's vinegar. Cider's inputs and vat; the two cultures folded into a longer wait (cider's 72 h + 24 h for the souring). |
+| `pickles` | roots 3 + vinegar 1 → **pickles 3** | 12 WU + 24 h in a crock, preserving table | 720 h | 800 NP | **Authored, beyond the library's formulas by Brendan's approval** ("both vinegar and salt"): the library's pickled onions and tangy pickles (`taggerung::TAG_recipe_pickled_onions`, `long_patrol::LP-RECIPE-tangy-pickles`) with their salt and water left out. `roots` is the farm's root crops (onion, carrot, beetroot, ...); the crock is the cheese's crock. |
+
+Why these numbers: vinegar takes cider's apples, water and vat, and waits a day longer for the souring; pickles take
+fruit-drying's 3 U out of a 4 U batch (3 roots + 1 vinegar), 12 WU for packing a crock, and the crock's 24 h. The
+raw NP spreads the roots' NP over the output, rounded down. Vinegar keeps mead's 1440 h; pickles keep dried fruit's
+720 h. Vinegar is never eaten, never poured at a feast and is booked as an ingredient, not a preserve (the guide says
+"An ingredient"; the card "kept for pickling"). Pickles are booked as a preserve and eaten as they are.
+
+### Pickles with salt: approved, waiting on salt
 
 Every pickle formula in the content library takes **salt**: `taggerung::TAG_recipe_pickled_onions` (onion, cider
 vinegar, water, salt), `long_patrol::LP-RECIPE-tangy-pickles` and `lord_brocktree::LB-RECIPE-kitchen-song-pickles`
 (cucumber, onion, apple vinegar, water, salt); the fish pickles are coastal. The library does give a vinegar route --
 `COMPONENT_shared_apple_vinegar` (apple, fermentation culture, vinegar culture) -- but no pickle that uses vinegar
 without salt. Salt is coastal brine only (GDD §5.7; SET-AMEND-001), and the demo village has no coast. So no salt
-source is invented and pickles are not built.
+source is invented and the salted pickle is not built (Brendan's ruling (a) above).
 
 ### Rules kept
 
@@ -65,9 +96,16 @@ source is invented and pickles are not built.
 `preserve_rules.gd` (four rows, crocks, item selectors, the int64 input column), `preserve_text.gd`, `fishery.gd`
 (item-selector pickup, CROCKS_FULL, `slots_in_use`), `demo_fishery.gd` (cards from the action map, the lines),
 `water_panel.gd` (two button rows), `regatta_menu.gd` (ale and cider poured), `tools/make_demo_pantry_index.py` and
-`pantry_index.json`. Nothing under `scripts/core/`, `demo/burrow/`, `demo/tunnel/`, `demo/cast/` or the settlement UI.
+`pantry_index.json`. For the vinegar pickle: items 40–41 and categories 22–23 in `farm_catalog.gd`; the pickles' raw NP
+in `meal_rules.gd`; two rows in `preserve_rules.gd` (roots as `farming.gd`'s CROP_ROOTS, read-only);
+`preserve_text.gd` (summaries, vinegar's use, `card_use`); `fishery.gd` (crocks "in use", pickles booked as
+preserves); `demo_fishery.gd` (the cards' use words, the line); `water_panel.gd` (a third Preserves row: Make vinegar /
+Make pickles); the pantry index (vinegar → `COMPONENT_shared_apple_vinegar`). Nothing under `scripts/core/`, `demo/burrow/`, `demo/tunnel/`, `demo/cast/` or the settlement UI.
 
 ## PROPOSALS (for Brendan)
+
+Ruled 2026-10-07 (above): 1 approved as provisional; 2 and 3 confirmed; 4 ruled "both vinegar and salt" -- (b) built,
+(a) approved and waiting on salt. The text below is the proposal as it was put.
 
 1. **The four rows' numbers** in the table above, and the feast's ceil(E/4) U pour of ale and of cider (with mead and
    cordial, a fully stocked feast now pours four drinks). *Recommendation: approve as provisional; tune after a balance

@@ -112,6 +112,29 @@
    ],
    "delta": {}
   },
+  "godot/scripts/core/underground_budget.gd": {
+   "charges": [
+    {
+     "bytes": 256,
+     "carried_by": "joint pack (the reserve is a pack contribution)",
+     "store": "BINDINGS_AND_GROWTH_BYTES 524,288 -> 524,544 for the Contacts control below"
+    }
+   ],
+   "delta": {
+    "int_constants_added": [
+     [
+      "BINDINGS_AND_GROWTH_BYTES",
+      "524544"
+     ]
+    ],
+    "int_constants_removed": [
+     [
+      "BINDINGS_AND_GROWTH_BYTES",
+      "524288"
+     ]
+    ]
+   }
+  },
   "godot/scripts/core/underground_connector_catalog.gd": {
    "charges": [
     {
@@ -125,6 +148,29 @@
   "godot/scripts/core/underground_connector_contacts.gd": {
    "charges": [
     {
+     "bytes": 256,
+     "carried_by": "BINDINGS_AND_GROWTH_BYTES (fully assigned, 524,544)",
+     "store": "CONTROL_BYTES 4,096 -> 4,352: ADR 1215 air in its two Location records (+160; fixed 3,219)"
+    }
+   ],
+   "delta": {
+    "int_constants_added": [
+     [
+      "CONTROL_BYTES",
+      "4352"
+     ]
+    ],
+    "int_constants_removed": [
+     [
+      "CONTROL_BYTES",
+      "4096"
+     ]
+    ]
+   }
+  },
+  "godot/scripts/core/underground_connector_placements.gd": {
+   "charges": [
+    {
      "bytes": 0,
      "carried_by": "none",
      "store": "no retained-storage change"
@@ -132,7 +178,7 @@
    ],
    "delta": {}
   },
-  "godot/scripts/core/underground_connector_placements.gd": {
+  "godot/scripts/core/underground_final_facts.gd": {
    "charges": [
     {
      "bytes": 0,
@@ -145,18 +191,103 @@
   "godot/scripts/core/underground_locations.gd": {
    "charges": [
     {
-     "bytes": 129,
+     "bytes": 161,
      "carried_by": "new contribution",
-     "store": "carry controls _carried_locations, _carry_content, _carry_geometry (ADR 1207) and the borrowed ContactRetirementContext numeric packet (ADR 1202)"
+     "store": "carry controls (ADR 1207), ADR 1215 _air_box and _air_slots, and the borrowed ContactRetirementContext numeric packet (ADR 1202); the Bank air pool is the room_composition row"
     }
    ],
    "delta": {
     "allocation_sites": {
+     ".duplicate(": 1,
+     ".new(": 1,
      "=[": 1,
+     "PackedInt32Array(": 3,
      "in[": -1,
      "range(": 2
     },
     "classes": {
+     "Bank": [
+      [
+       [
+        "count",
+        "int"
+       ],
+       [
+        "free_count",
+        "int"
+       ],
+       [
+        "free_rows",
+        "PackedInt32Array"
+       ],
+       [
+        "header",
+        "PackedInt64Array"
+       ],
+       [
+        "i32",
+        "PackedInt32Array"
+       ],
+       [
+        "i64",
+        "PackedInt64Array"
+       ],
+       [
+        "ordered",
+        "PackedInt32Array"
+       ],
+       [
+        "present",
+        "PackedByteArray"
+       ],
+       [
+        "retired",
+        "PackedByteArray"
+       ]
+      ],
+      [
+       [
+        "air",
+        "PackedInt32Array"
+       ],
+       [
+        "count",
+        "int"
+       ],
+       [
+        "free_count",
+        "int"
+       ],
+       [
+        "free_rows",
+        "PackedInt32Array"
+       ],
+       [
+        "header",
+        "PackedInt64Array"
+       ],
+       [
+        "i32",
+        "PackedInt32Array"
+       ],
+       [
+        "i64",
+        "PackedInt64Array"
+       ],
+       [
+        "ordered",
+        "PackedInt32Array"
+       ],
+       [
+        "present",
+        "PackedByteArray"
+       ],
+       [
+        "retired",
+        "PackedByteArray"
+       ]
+      ]
+     ],
      "ContactRetirementContext": [
       null,
       [
@@ -269,9 +400,143 @@
         "Vector2i"
        ]
       ]
+     ],
+     "Record": [
+      [
+       [
+        "envelope",
+        "PackedInt32Array"
+       ],
+       [
+        "geometry_revision",
+        "int"
+       ],
+       [
+        "level",
+        "int"
+       ],
+       [
+        "payload_revision",
+        "int"
+       ],
+       [
+        "point",
+        "Vector3i"
+       ],
+       [
+        "role",
+        "int"
+       ],
+       [
+        "room",
+        "Vector2i"
+       ],
+       [
+        "section",
+        "Vector2i"
+       ],
+       [
+        "support",
+        "PackedInt32Array"
+       ],
+       [
+        "world",
+        "Vector2i"
+       ]
+      ],
+      [
+       [
+        "air",
+        "PackedInt32Array"
+       ],
+       [
+        "air_count",
+        "int"
+       ],
+       [
+        "envelope",
+        "PackedInt32Array"
+       ],
+       [
+        "geometry_revision",
+        "int"
+       ],
+       [
+        "level",
+        "int"
+       ],
+       [
+        "payload_revision",
+        "int"
+       ],
+       [
+        "point",
+        "Vector3i"
+       ],
+       [
+        "role",
+        "int"
+       ],
+       [
+        "room",
+        "Vector2i"
+       ],
+       [
+        "section",
+        "Vector2i"
+       ],
+       [
+        "support",
+        "PackedInt32Array"
+       ],
+       [
+        "world",
+        "Vector2i"
+       ]
+      ]
      ]
     },
+    "int_constants_added": [
+     [
+      "AIR_ARENA_BYTES_PER_SLOT",
+      "2 * AIR_SLOT_BYTES"
+     ],
+     [
+      "AIR_FIELDS",
+      "7"
+     ],
+     [
+      "AIR_SLOT_BYTES",
+      "4 * AIR_FIELDS"
+     ],
+     [
+      "MAX_AIR_EXTRA",
+      "3"
+     ],
+     [
+      "MAX_AIR_SLOTS",
+      "256"
+     ],
+     [
+      "SCHEMA",
+      "2"
+     ]
+    ],
+    "int_constants_removed": [
+     [
+      "SCHEMA",
+      "1"
+     ]
+    ],
     "members_added": [
+     [
+      "_air_box",
+      "PackedInt32Array"
+     ],
+     [
+      "_air_slots",
+      "int"
+     ],
      [
       "_carried_locations",
       "int"
@@ -288,6 +553,11 @@
       "_contact_retirement",
       "ContactRetirementContext"
      ]
+    ],
+    "resizes_added": [
+     "_air_box.resize(6)",
+     "air.resize(6 * MAX_AIR_EXTRA)",
+     "air.resize(AIR_FIELDS * air_slots)"
     ]
    }
   },
@@ -351,6 +621,169 @@
    }
   },
   "godot/scripts/core/underground_room_composition.gd": {
+   "charges": [
+    {
+     "bytes": 5376,
+     "carried_by": "LOCATION_AND_TOPOLOGY_BYTES unassigned remainder (recounted)",
+     "store": "ADR 1215 session air pool, 64 slots: 3,584 B in the two Location banks + 1,792 B wire"
+    }
+   ],
+   "delta": {
+    "int_constants_added": [
+     [
+      "LOCATION_AIR_SLOTS",
+      "64"
+     ]
+    ]
+   }
+  },
+  "godot/scripts/core/underground_room_frontier.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "no retained-storage change"
+    }
+   ],
+   "delta": {}
+  },
+  "godot/scripts/core/underground_room_frontier_publication.gd": {
+   "charges": [
+    {
+     "bytes": 920,
+     "carried_by": "Room publication CONTROL_BYTES (8,970 of 9,216) inside Budget.COLD_BYTES",
+     "store": "ADR 1215 air shape in the caller and private Requests (2 x 300) and four Query Records (4 x 80)"
+    }
+   ],
+   "delta": {
+    "allocation_sites": {
+     "PackedInt32Array(": 3,
+     "in[": 2
+    },
+    "classes": {
+     "Request": [
+      [
+       [
+        "count",
+        "int"
+       ],
+       [
+        "face",
+        "int"
+       ],
+       [
+        "gateway",
+        "Vector2i"
+       ],
+       [
+        "points",
+        "PackedInt32Array"
+       ],
+       [
+        "profiles",
+        "PackedInt64Array"
+       ],
+       [
+        "sections",
+        "PackedInt32Array"
+       ],
+       [
+        "work_profile",
+        "int"
+       ],
+       [
+        "work_revision",
+        "int"
+       ],
+       [
+        "yaw",
+        "int"
+       ]
+      ],
+      [
+       [
+        "air",
+        "PackedInt32Array"
+       ],
+       [
+        "air_counts",
+        "PackedInt32Array"
+       ],
+       [
+        "count",
+        "int"
+       ],
+       [
+        "face",
+        "int"
+       ],
+       [
+        "gateway",
+        "Vector2i"
+       ],
+       [
+        "points",
+        "PackedInt32Array"
+       ],
+       [
+        "profiles",
+        "PackedInt64Array"
+       ],
+       [
+        "sections",
+        "PackedInt32Array"
+       ],
+       [
+        "work_profile",
+        "int"
+       ],
+       [
+        "work_revision",
+        "int"
+       ],
+       [
+        "yaw",
+        "int"
+       ]
+      ]
+     ]
+    },
+    "int_constants_added": [
+     [
+      "AIR_BOXES",
+      "1 + Locations.MAX_AIR_EXTRA"
+     ],
+     [
+      "CONTROL_BYTES",
+      "9216"
+     ]
+    ],
+    "int_constants_removed": [
+     [
+      "CONTROL_BYTES",
+      "8192"
+     ]
+    ],
+    "resizes_added": [
+     "air.resize(MAX_STATIONS * AIR_BOXES * 6)"
+    ]
+   }
+  },
+  "godot/scripts/core/underground_room_itinerary.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "one range() iterator in a cold path; no retained storage"
+    }
+   ],
+   "delta": {
+    "allocation_sites": {
+     "range(": 1
+    }
+   }
+  },
+  "godot/scripts/core/underground_room_world_bindings.gd": {
    "charges": [
     {
      "bytes": 0,
@@ -482,9 +915,9 @@
   "godot/scripts/core/underground_space_owner.gd": {
    "charges": [
     {
-     "bytes": 16994,
+     "bytes": 4322,
      "carried_by": "new contribution",
-     "store": "two geometry journals (ADR 1205 route view, ADR 1207 full view)"
+     "store": "two geometry journals (ADR 1205 route view, ADR 1207 full view), 64 sides each"
     }
    ],
    "delta": {
@@ -538,9 +971,9 @@
      "store": "_envelope (6 x i32) and six numeric carry controls"
     },
     {
-     "bytes": 7168,
+     "bytes": 1792,
      "carried_by": "Budget.COLD_BYTES shared cold lease",
-     "store": "Clearance.changes staged sides (7 x 256 x i32)"
+     "store": "Clearance.changes staged sides (7 x 64 x i32)"
     }
    ],
    "delta": {

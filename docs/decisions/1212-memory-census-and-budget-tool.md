@@ -1,6 +1,6 @@
 # 1212 — Joint memory census after content 6, and the memory budget tool
 
-Date: 2026-10-06 · Status: Accepted (tool and census). **The 100 MB gate fails; this needs Brendan's decision.**
+Date: 2026-10-06, amended 2026-10-07 · Status: Accepted. Brendan raised the REQ-SET-163 gate to **100.1 MB** (DEC-051) after the journals were shrunk; see §6.
 
 ## 1. Why `underground_memory_budget.py --check` failed
 
@@ -114,7 +114,7 @@ the pack artifact is not regenerated and `ready07_arithmetic.py` still records 9
 presentation counts toward the 4 GB process budget (ADR 1201). The declared presentation set is
 21,256,576 B, or 28,541,580 B with the stone image (v9 declared peak 7,285,004; image 791,844 B).
 
-## 4. Brendan's decision needed
+## 4. Brendan's decision needed (superseded by §6)
 
 Choose one:
 
@@ -148,6 +148,90 @@ Method calls bind tighter than unary minus, so this is `-(floor(-n/d).min())`, w
 **Outcome:** no published row or box changes, and nothing is republished. `compile_profiles.py` is left
 byte-identical, because its SHA-256 is pinned in about 270 evidence files and asserted by two live
 haul-handling tests. ADR 1198's note is corrected by this record.
+
+## 6. Amendment (2026-10-07): journal capacity 64, a full recount, and the 100.1 MB gate
+
+Brendan first chose to shrink the journals. Shrinking alone could not fit: without any journal, the
+first-entry runtime and the Location controls still exceeded the 194 B of headroom. He then chose to
+raise the limit (DEC-051). Both are done.
+
+### Journal capacity from measured peaks
+
+A temporary probe logged every carry query (`count_after(since)` at each `clean` call, both views) and
+every staged comparison. It ran over seven suites: world_routes, surface_anchor, entry_work_area,
+paid_assembly_handling, room_station_planner, room_world_phases and haul_grip. The entry confirmation,
+the paid L0 cycle, the T0 install and both room-phase suites are included.
+
+| Measure | Peak in real preparations |
+|---|---:|
+| Committed changes after a certificate's revision | **2** |
+| Staged sides in one preparation | **32** (paid assembly) |
+
+The only larger values come from the deliberate scale and overflow tests. Two use `Journal.CAPACITY + 1`
+and so follow the constant. One carries over sixty far rows.
+
+**`CAPACITY` is 64.** This is 32× the committed peak and 2× the staged peak. It still carries the 60-row
+test, and an overflow falls back to a full recheck.
+
+- Each journal is 2,161 B (was 8,473 B); together they are **4,322 B**.
+- WorldRoutes' staged sides are 1,792 B, so its cold lease is 379,648 B.
+- Locations' carry charge uses `4 * CAPACITY`, so carried checks get cheaper.
+
+All seven suites pass at 64: 146 tests and 0 failures, with every check-budget assertion intact. So do
+the budget, contacts, entry composition, first prefix, host, room frontier and room frontier publication
+suites. `persistence_state_registry.md` rows now say 64.
+
+### Recount with everything on the branch (tip `f4948e00`)
+
+Five more inputs had drifted and are now projected, with reviewed rows: `underground_final_facts`,
+`room_frontier`, `room_frontier_publication`, `room_itinerary` and `room_world_bindings`. The census also
+covers the stores added since step 2:
+
+| Store | Bytes | Carried by |
+|---|---:|---|
+| ADR 1215 air pool, 64 slots (banks 3,584 + wire 1,792) | 5,376 | `LOCATION_AND_TOPOLOGY_BYTES`. Routes admits 1,045,312, wire included 1,047,104; 1,472 remain |
+| ADR 1215 `Record.air` (+80 per packet) | — | Each owner row recounted: Delivery fixed 834 (3,907 of 4,096), WorldRoutes controls, SurfaceAnchor and EntryBindings |
+| Contacts' two Records (+160 → fixed 3,219) | +256 | Contacts `CONTROL_BYTES` 4,096 → **4,352**, and `BINDINGS_AND_GROWTH_BYTES` 524,288 → **524,544** (still fully assigned) |
+| ADR 1161 publication controls | 8,970 | Recounted as 8,050 + 2 Requests × 300 + 4 Records × 80; this exceeded the 8,192 ceiling |
+| Room-station planner cold slice (ADR 1213) | 45,752 | Inside an existing cold lease (`Frontier._guard`) |
+| ADR 1210 haulers (foreman and installer, each 2 units and 2 legs) | in the entry chain | New |
+
+**Publication ceiling.** The 8,970 B recount needed a larger ceiling. Room-frontier publication
+`CONTROL_BYTES` is now **9,216**: the next 1 KiB step, leaving 246 B. At runtime that ceiling is checked
+with `CONTROL_BYTES + max(cold peaks) ≤ Budget.COLD_BYTES`, so raising it costs the pack nothing.
+
+### Pack totals
+
+| Component | Bytes |
+|---|---:|
+| Geometry journals | 4,322 |
+| Locations carry and air controls | 161 |
+| First-entry runtime chain | 3,086 |
+| Binding reserve increase | 256 |
+| **Increment over the reviewed pack** | **7,825** |
+| **Joint pack** | **100,007,631** |
+
+### The new gate: 100,100,000 B (100.1 MB)
+
+100.1 MB is the smallest 0.1 MB step above the joint pack, and it leaves **92,369 B of headroom**.
+Expected near-term claims, by the same source arithmetic:
+
+| Coming work | Estimate |
+|---|---:|
+| A content-7 descent publication (Profile joint headroom is 4,836 B inside `PROFILE_BYTES`; an increase costs up to one 16 KiB step) | ~16 KiB |
+| Widening the Location air pool to 256 slots (+192 × 84 B) | ~16 KiB |
+| A second foreman or hauler chain for descent or Kitchen | ~4 KiB |
+| **Total** | **~36 KiB** |
+
+That leaves about 55 KiB for what is not yet known. 100.05 MB would leave only 42,369 B. The next round
+step, 101 MB, would hide about 1 MB of unreviewed growth.
+
+### Records updated
+
+- The GDD (REQ-SET-163 paragraph) and `systems_architecture.md` ARCH-PERF-001 now cite DEC-051.
+- The §2.3 ledger has a decision 1212 row of 7,825 B. Payload is 91,619,023; live is 100,007,631;
+  headroom 92,369.
+- `ready07_arithmetic.py` reads the gate from the pack.
 
 ## Tests
 

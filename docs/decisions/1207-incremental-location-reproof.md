@@ -37,7 +37,7 @@ SpaceOwner owns a second `underground_geometry_journal.gd` instance, `_location_
 
 - It is fed at the same single choke point as the route journal: `Journal.record` at `_commit_columns_0`,
   before the bank swap, on every publication path.
-- It uses the same ring (256 sides), the same overflow floor and the same out-of-sequence reset.
+- It uses the same ring (256 sides; 64 since ADR 1212), the same overflow floor and the same out-of-sequence reset.
 
 It differs from the route journal in one way. **Every present row is visible**, including a Room's own
 reservation marker, which the traversal view omits. A World preparation proves Locations against the full

@@ -22,11 +22,11 @@ published permanently, all eight of them.
   reads OBSTACLE) and the half-open box. Each changed slot journals its before side and its after side
   with the target revision and that side's effective role. Nothing relies on callers declaring what
   they changed.
-- **Bounded ring.** 256 sides. A full ring evicts its oldest entry and raises the *floor* to that
+- **Bounded ring.** 256 sides (64 since ADR 1212: measured peaks 2 committed, 32 staged). A full ring evicts its oldest entry and raises the *floor* to that
   entry's revision; a certificate older than the floor is rechecked in full. That is the overflow
   fallback. A revision that is not exactly base + 1 resets the ring (floor = that revision).
 - **Staged changes.** For a preparation on a sealed Space stage (`space_token != 0`) the same slot
-  comparison runs once, stage against live, into the leased Clearance (`changes`, 256 sides). More
+  comparison runs once, stage against live, into the leased Clearance (`changes`, 256 sides; 64 since ADR 1212, cold lease 379,648 B). More
   than 256 means `change_count = -1`: nothing is carried in that proof.
 
 ### The carry test (`WorldRoutes._carry_eligible`)

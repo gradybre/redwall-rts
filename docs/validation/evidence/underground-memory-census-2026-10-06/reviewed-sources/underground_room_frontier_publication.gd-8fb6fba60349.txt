@@ -1,0 +1,577 @@
+extends RefCounted
+## Atomic add-only next Room contact on unchanged paid Space. Decision1161; no paid work permission.
+
+const Frontier := preload("res://scripts/core/underground_room_frontier.gd")
+const Provider := preload("res://scripts/core/underground_room_world_bindings.gd")
+const Face := preload("res://scripts/core/underground_work_face.gd")
+const FinalFacts := preload("res://scripts/core/underground_final_facts.gd")
+const Locations := preload("res://scripts/core/underground_locations.gd")
+const Routes := preload("res://scripts/core/underground_routes.gd")
+const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
+const Profiles := preload("res://scripts/core/underground_profiles.gd")
+const Owner := preload("res://scripts/core/underground_space_owner.gd")
+const Terrain := preload("res://scripts/core/underground_terrain.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
+const Space := preload("res://scripts/core/room_space.gd")
+const Contract := preload("res://scripts/core/excavation_contract.gd")
+const Jobs := preload("res://scripts/core/jobs.gd")
+const NULL_REF: Vector2i = Vector2i(-1, 0)
+const MAX_STATIONS: int = 3
+const CONTROL_BYTES: int = 8192
+const REFUSE_SCOPE: StringName = &"ROOM_FRONTIER_PUBLICATION_SCOPE"
+const REFUSE_BUSY: StringName = &"ROOM_FRONTIER_PUBLICATION_BUSY"
+const REFUSE_CHANGED: StringName = &"ROOM_FRONTIER_PUBLICATION_CHANGED"
+const REFUSE_SECTION: StringName = &"ROOM_FRONTIER_SECTION_SPAN"
+const REFUSE_PROFILE: StringName = &"ROOM_FRONTIER_SELECTED_PROFILE"
+const REFUSE_BUDGET: StringName = &"ROOM_FRONTIER_PUBLICATION_BUDGET"
+
+
+class Request extends RefCounted:
+	## Fixed caller packet admitted under the original cold lease; final station is WORK, preceding stations TRANSIT.
+	var gateway: Vector2i = NULL_REF
+	var count: int = 0
+	var sections: PackedInt32Array = PackedInt32Array() # Three full section refs.
+	var points: PackedInt32Array = PackedInt32Array() # Three integer XYZ points.
+	var profiles: PackedInt64Array = PackedInt64Array() # Per station: forward ID/revision, reverse ID/revision.
+	var work_profile: int = -1
+	var work_revision: int = 0
+	var face: int = -1
+	var yaw: int = -1
+
+
+class Result extends RefCounted:
+	## Caller-owned fixed output; every refusal leaves all fields and packed elements unchanged.
+	var work: Vector2i = NULL_REF
+	var count: int = 0
+	var locations: PackedInt32Array = PackedInt32Array() # Three full new refs.
+	var edges: PackedInt32Array = PackedInt32Array() # Three forward then three reverse refs; only count prefixes are used.
+
+
+class Query extends RefCounted:
+	## All state is cold and synchronous; no host, Job or per-Room permission survives this call.
+	var provider: Provider = null
+	var config: WorldRoutes.Configuration = null
+	var actual: WorldRoutes = null
+	var face_owner: Face = null
+	var locations: Locations = null
+	var graph: Routes = null
+	var input: Request = null
+	var original: Frontier.Candidate = null
+	var request: Request = Request.new()
+	var candidate: Frontier.Candidate = Frontier.Candidate.new()
+	var context: Locations.FrontierContext = Locations.FrontierContext.new()
+	var gateway: Locations.Record = Locations.Record.new()
+	var records: Array[Locations.Record] = []
+	var sections: Array[Owner.Region] = []
+	var refs: PackedInt32Array = PackedInt32Array()
+	var edges: PackedInt32Array = PackedInt32Array()
+	var heap_patch: PackedInt32Array = PackedInt32Array()
+	var original_location_live: Locations.Bank = null
+	var original_location_stage: Locations.Bank = null
+	var original_graph_live: Routes.EdgeBank = null
+	var original_graph_stage: Routes.EdgeBank = null
+	var original_masks_live: WorldRoutes.Certificates = null
+	var original_masks_stage: WorldRoutes.Certificates = null
+	var world: Vector2i = NULL_REF
+	var profile_revision: int = 0
+	var catalog_revision: int = 0
+	var outer_section: Owner.Region = Owner.Region.new()
+	var descriptor: Profiles.Descriptor = Profiles.Descriptor.new()
+	var box: Profiles.Box = Profiles.Box.new()
+	var edge: Routes.Edge = Routes.Edge.new()
+	var contact: Face.Request = Face.Request.new()
+	var origin: Vector3i = Vector3i.ZERO
+	var bounds: PackedInt32Array = PackedInt32Array()
+	var remaining_out: PackedInt32Array = PackedInt32Array()
+	var remaining: int = 0
+	var cold: int = 0
+	var location_token: int = 0
+	var route_token: int = 0
+	var retreat: Vector2i = NULL_REF
+	var backward: int = -1
+	var backward_revision: int = 0
+
+
+static func publish_into(actual: Provider, candidate: Frontier.Candidate, request: Request,
+		cold: int, max_checks: int, out: Result) -> StringName:
+	"""Admit the complete sequential lifetime before any private allocation, then publish the bounded handle packet atomically."""
+	var code: StringName = Frontier._guard(actual, cold, Budget.COLD_BYTES, max_checks)
+	if code != &"": return code
+	if candidate == null or candidate.get_script() != Frontier.Candidate or request == null \
+			or request.get_script() != Request or out == null or out.get_script() != Result or out.locations.size() != 6 or out.edges.size() != 12: return REFUSE_SCOPE
+	code = _input(actual, candidate, request)
+	if code != &"": return code
+	var query: Query = Query.new()
+	_hold(query, actual, candidate, request, cold, max_checks)
+	code = _run(query, out)
+	if code == &"": _output(query, out)
+	_cleanup(query)
+	return code
+
+
+static func _input(actual: Provider, candidate: Frontier.Candidate, request: Request) -> StringName:
+	"""Bound all caller-selected identities and shape before private allocation; source/physical proof follows."""
+	if candidate.project != NULL_REF or candidate.operation not in [Contract.OP_BRACE, Contract.OP_CUT] \
+			or request.face < 0 or request.face > 5 or request.work_profile < 0 or request.work_revision <= 0 \
+			or request.yaw < 0 or request.yaw > 65535 or request.count < 1 or request.count > MAX_STATIONS \
+			or request.sections.size() != 6 or request.points.size() != 9 or request.profiles.size() != 12: return REFUSE_SCOPE
+	for index: int in request.count:
+		if request.profiles[4 * index] < 0 or request.profiles[4 * index + 1] <= 0 \
+				or request.profiles[4 * index + 2] < 0 or request.profiles[4 * index + 3] <= 0: return REFUSE_PROFILE
+	var config: WorldRoutes.Configuration = actual._ordinary_config
+	var binding: WorldRoutes = actual._ordinary_routes.get_ref() as WorldRoutes
+	if binding.get_script() != WorldRoutes or config.terrain.get_script() != Terrain \
+			or config.locations._frontier != null: return REFUSE_BUSY
+	if CONTROL_BYTES + maxi(config.locations.cold_peak_bytes(), maxi(Face.COLD_BYTES, WorldRoutes.COLD_BYTES)) > Budget.COLD_BYTES:
+		return REFUSE_BUDGET
+	return Frontier._candidate_leaf(actual, candidate, candidate.cold_token)
+
+static func _hold(q: Query, actual: Provider, candidate: Frontier.Candidate, request: Request,
+		cold: int, checks: int) -> void:
+	"""Copy all caller fields and retain original concrete owners/banks before the first observation."""
+	q.provider = actual; q.config = actual._ordinary_config; q.actual = actual._ordinary_routes.get_ref() as WorldRoutes
+	q.face_owner = actual._ordinary_face.get_ref() as Face; q.locations = q.config.locations; q.graph = q.config.routes
+	q.input = request; q.original = candidate
+	q.cold = cold; q.remaining = checks; q.retreat = actual._ordinary_retreat
+	q.backward = actual._ordinary_travel; q.backward_revision = actual._ordinary_travel_revision
+	q.origin = Frontier._origin(actual._ordinary_original_sites(), candidate.key)
+	_allocate(q)
+	_copy_request(request, q.request); Frontier._copy_candidate(candidate, q.candidate)
+	_pin_context(q)
+
+static func _allocate(q: Query) -> void:
+	"""Only the pre-admitted cold Query owns these exact fixed packets; no geometry or route bank is allocated."""
+	q.request.sections.resize(6); q.request.points.resize(9); q.request.profiles.resize(12)
+	q.gateway.envelope.resize(6); q.gateway.support.resize(6)
+	q.records.resize(MAX_STATIONS); q.sections.resize(MAX_STATIONS)
+	for index: int in MAX_STATIONS:
+		q.records[index] = Locations.Record.new(); q.sections[index] = Owner.Region.new()
+		q.records[index].envelope.resize(6); q.records[index].support.resize(6); q.sections[index].box.resize(6)
+	q.outer_section.box.resize(6); q.bounds.resize(6); q.edge.points.resize(6); q.remaining_out.resize(1)
+	q.refs.resize(6); q.refs.fill(-1); q.context.refs.resize(6); q.context.refs.fill(-1)
+	q.context.edges.resize(12); q.context.edges.fill(-1)
+	q.edges.resize(12); q.edges.fill(-1); q.heap_patch.resize(Locations.FRONTIER_HEAP_WORDS)
+
+
+static func _pin_context(q: Query) -> void:
+	"""The original banks and owners are independent of later public observations and candidate token copies."""
+	var c: Locations.FrontierContext = q.context
+	c.locations = q.config.locations; c.graph = q.config.routes; c.routes = q.actual
+	c.owner = q.config.owner; c.budget = q.config.budget; c.world = c.owner._domain._world
+	c.live = c.locations._live; c.candidate = c.locations._stage
+	c.graph_live = c.graph._live; c.graph_candidate = c.graph._stage
+	c.masks_live = q.actual._live; c.masks_candidate = q.actual._stage
+	c.room = q.candidate.room; c.cold = q.cold; c.revision = q.candidate.geometry_revision
+	c.profiles = q.config.profiles._live.header[0]; c.catalog = q.config.catalog._live.header[0]
+	c.count = q.request.count
+	q.original_location_live = c.live; q.original_location_stage = c.candidate
+	q.original_graph_live = c.graph_live; q.original_graph_stage = c.graph_candidate
+	q.original_masks_live = c.masks_live; q.original_masks_stage = c.masks_candidate
+	q.world = c.world; q.profile_revision = c.profiles; q.catalog_revision = c.catalog
+
+
+static func _copy_request(source: Request, out: Request) -> void:
+	"""Copy elements into admitted private storage; observers never receive the private expected row packets."""
+	out.gateway = source.gateway; out.count = source.count
+	out.work_profile = source.work_profile; out.work_revision = source.work_revision
+	out.face = source.face; out.yaw = source.yaw
+	for index: int in 6: out.sections[index] = source.sections[index]
+	for index: int in 9: out.points[index] = source.points[index]
+	for index: int in 12: out.profiles[index] = source.profiles[index]
+
+static func _same_request(a: Request, b: Request) -> bool:
+	"""All fixed input elements remain exact, including unused tails, after every observation."""
+	return a.gateway == b.gateway and a.count == b.count and a.sections == b.sections and a.points == b.points \
+		and a.profiles == b.profiles and a.work_profile == b.work_profile and a.work_revision == b.work_revision \
+		and a.face == b.face and a.yaw == b.yaw
+
+static func _spend(q: Query, checks: int) -> bool:
+	"""The coordinator's original finite counter is monotone and never replenished by a failed observer."""
+	if checks <= 0 or q.remaining < checks: q.remaining = -1; return false
+	q.remaining -= checks
+	return true
+
+
+static func _scope(q: Query) -> StringName:
+	"""Close caller mutation, actual binding replacement, current Site history and original arena before each stage."""
+	if not _spend(q, Frontier._scope_checks(q.provider) + 64): return REFUSE_BUDGET
+	if q.provider._ordinary_binding_leaf() != &"" or not Frontier._same_candidate(q.original, q.candidate) \
+			or not _same_request(q.input, q.request) or q.provider._ordinary_config != q.config \
+			or q.config.locations != q.locations or q.context.locations != q.locations or q.config.routes != q.graph or q.context.graph != q.graph \
+			or q.config.owner != q.context.owner or q.config.budget != q.context.budget \
+			or q.provider._ordinary_retreat != q.retreat or q.provider._ordinary_travel != q.backward \
+			or q.provider._ordinary_travel_revision != q.backward_revision \
+			or q.actual._profiles != q.config.profiles or q.actual._catalog != q.config.catalog \
+			or q.config.budget._token != q.cold or q.config.budget._used < Budget.COLD_BYTES \
+			or q.config.owner._stage_token != 0 or q.config.profiles._live.header[0] != q.context.profiles \
+			or q.config.catalog._live.header[0] != q.context.catalog: return REFUSE_CHANGED
+	if q.locations._frontier != q.context or q.locations._remaining < 0 \
+			or (q.location_token == 0 and q.locations._token != 0) \
+			or q.config.routes._token != q.route_token or q.actual._route_token != q.route_token: return REFUSE_CHANGED
+	if not WorldRoutes._frontier_mask_shapes(q.actual, q.graph): return REFUSE_CHANGED
+	if not _original_context(q): return REFUSE_CHANGED
+	var code: StringName = Frontier._candidate_leaf(q.provider, q.candidate, q.cold)
+	if code == &"" and q.location_token > 0:
+		if q.context.location_token != q.location_token or q.context.route_token != q.route_token \
+				or q.context.refs != q.refs or q.context.edges != q.edges: return REFUSE_CHANGED
+		code = Locations.frontier_scope_refusal(q.config.locations, q.context, false)
+	return code
+
+
+static func _original_context(q: Query) -> bool:
+	"""Borrowed context fields cannot replace the private original owner, bank, source or operation pins."""
+	var c: Locations.FrontierContext = q.context
+	return c.live == q.original_location_live and c.candidate == q.original_location_stage \
+		and c.graph_live == q.original_graph_live and c.graph_candidate == q.original_graph_stage \
+		and c.masks_live == q.original_masks_live and c.masks_candidate == q.original_masks_stage \
+		and q.locations._live == q.original_location_live and q.locations._stage == q.original_location_stage \
+		and q.config.routes._live == q.original_graph_live and q.config.routes._stage == q.original_graph_stage \
+		and q.actual._live == q.original_masks_live and q.actual._stage == q.original_masks_stage \
+		and c.count == q.request.count and c.world == q.world and c.room == q.candidate.room \
+		and c.profiles == q.profile_revision and c.catalog == q.catalog_revision and c.cold == q.cold \
+		and c.revision == q.candidate.geometry_revision and c.routes == q.actual
+
+
+static func _run(q: Query, out: Result) -> StringName:
+	"""Sequential images leave ample original cold headroom; the only mutation of live state is the last pure tail."""
+	var code: StringName = q.locations.hold_frontier(q.context)
+	if code == &"": code = _existing(q)
+	if code == &"": code = _records(q)
+	if code == &"": code = _stage_locations(q)
+	if code == &"": code = _face(q)
+	if code == &"": code = _stage_routes(q)
+	if code == &"": code = _observe_final(q)
+	if code == &"": code = _final_leaf(q)
+	if code != &"": return code
+	if out.get_script() != Result or out.locations.size() != 6 or out.edges.size() != 12: return REFUSE_SCOPE
+	q.actual._publishing = true
+	var published: bool = WorldRoutes.commit_frontier_preflighted(q.actual, q.context)
+	q.actual._publishing = false
+	return &"" if published else REFUSE_CHANGED
+
+
+static func _existing(q: Query) -> StringName:
+	"""Keep actual original access/exit; each root belongs to its real section, independently of the target Room."""
+	var code: StringName = _scope(q)
+	if code == &"": code = q.config.locations.read_location_into(q.request.gateway, q.gateway)
+	if code == &"": code = q.config.owner.region_into_reused(q.gateway.section, q.outer_section)
+	for index: int in q.request.count:
+		if code != &"": return code
+		code = q.config.owner.region_into_reused(_section_ref(q, index), q.sections[index])
+		if code == &"": code = _scope(q)
+		if code == &"" and (q.sections[index].role != Space.FLOOR_DATUM \
+				or q.sections[index].level != q.gateway.level or _point(q, index).y != q.gateway.point.y \
+				or q.sections[index].box[1] != q.gateway.point.y): return REFUSE_SECTION
+	if code != &"": return code
+	if q.outer_section.role != Space.FLOOR_DATUM: return REFUSE_SECTION
+	code = _path(q, q.retreat, q.request.gateway, int(q.request.profiles[0]), int(q.request.profiles[1]))
+	if code == &"": code = _path(q, q.request.gateway, q.retreat, q.backward, q.backward_revision)
+	return code
+
+static func _section_ref(q: Query, index: int) -> Vector2i:
+	"""The full section comes from the privately copied fixed request, not a point lookup or slot alias."""
+	return Vector2i(q.request.sections[index * 2], q.request.sections[index * 2 + 1])
+
+
+static func _point(q: Query, index: int) -> Vector3i:
+	"""One fixed source-root proposal; complete contact and every physical primitive remain checked."""
+	return Vector3i(q.request.points[index * 3], q.request.points[index * 3 + 1], q.request.points[index * 3 + 2])
+
+
+static func _new_ref(q: Query, index: int) -> Vector2i:
+	"""Only actual allocated full generations from this original inactive bank are usable."""
+	return Vector2i(q.refs[2 * index], q.refs[2 * index + 1])
+
+
+static func _path(q: Query, first: Vector2i, last: Vector2i, profile: int, revision: int) -> StringName:
+	"""Static actual source-qualified graph search spends the same remaining coordinator budget."""
+	var code: StringName = WorldRoutes.profile_reachability_refusal(q.actual, first, last, profile, revision,
+		q.context.profiles, q.remaining, q.remaining_out)
+	if code == &"": q.remaining = q.remaining_out[0]
+	return code
+
+
+static func _records(q: Query) -> StringName:
+	"""A handoff endpoint proves both adjoining source envelopes; final WORK also includes the complete work source."""
+	for index: int in q.request.count:
+		_init_record(q, index)
+		var row: Locations.Record = q.records[index]
+		var code: StringName = _extend_profile(q, row, int(q.request.profiles[4 * index]), int(q.request.profiles[4 * index + 1]), true)
+		if code == &"": code = _extend_profile(q, row, int(q.request.profiles[4 * index + 2]), int(q.request.profiles[4 * index + 3]), false)
+		if code == &"" and index + 1 < q.request.count:
+			code = _extend_profile(q, row, int(q.request.profiles[4 * index + 4]), int(q.request.profiles[4 * index + 5]), false)
+			if code == &"": code = _extend_profile(q, row, int(q.request.profiles[4 * index + 6]), int(q.request.profiles[4 * index + 7]), false)
+		elif code == &"": code = _extend_profile(q, row, q.request.work_profile, q.request.work_revision, false)
+		if code != &"": return code
+	return _scope(q)
+
+static func _init_record(q: Query, index: int) -> void:
+	"""Room identity comes from the existing root section; target Room identity stays in the independent Site candidate."""
+	var row: Locations.Record = q.records[index]
+	row.point = _point(q, index); row.section = _section_ref(q, index); row.level = q.sections[index].level
+	row.room = NULL_REF if q.sections[index].owner == q.context.world else q.sections[index].owner
+	row.role = Locations.ROLE_WORK if index == q.request.count - 1 else Locations.ROLE_TRANSIT
+	row.world = q.context.world; row.geometry_revision = q.context.revision
+	for axis: int in 3:
+		row.envelope[axis] = row.point[axis]; row.envelope[axis + 3] = int(row.point[axis]) + 1
+
+static func _extend_profile(q: Query, row: Locations.Record, profile: int, revision: int, initial: bool) -> StringName:
+	"""Every complete above-plane body/recovery/approach primitive contributes; only source stance supplies footing."""
+	var code: StringName = q.config.profiles.descriptor_into(profile, q.context.profiles, q.descriptor)
+	if code != &"": return code
+	if q.descriptor.profile_revision != revision or q.descriptor.certificate_flags != Profiles.CERT_REQUIRED: return REFUSE_PROFILE
+	var stance: bool = not initial
+	for ordinal: int in q.descriptor.box_count:
+		if not _spend(q, 64): return REFUSE_BUDGET
+		code = q.config.profiles.box_into(profile, revision, q.context.profiles, ordinal, q.box)
+		if code != &"": return code
+		if q.box.role == Profiles.STANCE_SUPPORT:
+			code = _extend_box(row, q.box, row.support, not stance, false)
+			stance = true
+		elif q.box.role in [Profiles.BODY_HELD_LOAD, Profiles.TURN_RECOVERY, Profiles.WORK_APPROACH]:
+			code = _extend_box(row, q.box, row.envelope, false, true)
+		if code != &"": return code
+	return &"" if stance and Locations.support_covers_root(row.point, row.support) else REFUSE_PROFILE
+
+
+static func _extend_box(row: Locations.Record, box: Profiles.Box, bounds: PackedInt32Array, initial: bool, air: bool) -> StringName:
+	"""Integer translation preserves full X/Z overhang; only the independently proved floor contact is separated."""
+	if not air and (box.low.y >= 0 or box.high.y != 0): return REFUSE_PROFILE
+	for axis: int in 3:
+		var low: int = int(row.point[axis]) + box.low[axis]
+		var high: int = int(row.point[axis]) + box.high[axis]
+		if not Space.int32(low) or not Space.int32(high): return REFUSE_PROFILE
+		if air and axis == 1: low = maxi(low, row.point.y)
+		bounds[axis] = low if initial else mini(bounds[axis], low)
+		bounds[axis + 3] = high if initial else maxi(bounds[axis + 3], high)
+	return &""
+
+
+static func _stage_locations(q: Query) -> StringName:
+	"""All new endpoint rows share one original inactive bank; no private expected Record escapes in the context."""
+	var started: Locations.Result = q.config.locations.begin_frontier_prepare(q.context)
+	if started.error != &"": return started.error
+	q.location_token = started.token
+	for index: int in q.request.count:
+		var added: Locations.Result = q.config.locations.stage_add(q.location_token, q.records[index])
+		if added.error != &"": return added.error
+		q.refs[2 * index] = added.location.x; q.refs[2 * index + 1] = added.location.y
+		q.context.refs[2 * index] = added.location.x; q.context.refs[2 * index + 1] = added.location.y
+		q.records[index].payload_revision = added.location.y
+	var code: StringName = q.config.locations.seal(q.location_token)
+	return _scope(q) if code == &"" else code
+
+static func _face(q: Query) -> StringName:
+	"""The exact prospective work endpoint proves the same complete authored solid-target motion as a live contact."""
+	q.contact.location = _new_ref(q, q.request.count - 1); q.contact.target_origin = q.origin; q.contact.face = q.request.face
+	q.contact.profile_id = q.request.work_profile; q.contact.profile_revision = q.request.work_revision
+	q.contact.content_revision = q.context.profiles; q.contact.geometry_revision = q.context.revision; q.contact.yaw = q.request.yaw
+	var code: StringName = q.face_owner.prospective_solid_face_refusal(q.config, q.contact, q.cold, q.context)
+	return _scope(q) if code == &"" else code
+
+
+static func _stage_routes(q: Query) -> StringName:
+	"""All selected actual source sweeps compile under the original Location token; no route is inferred from metadata."""
+	var begun: Routes.Result = q.actual.begin_prepare(q.cold, 0, q.location_token)
+	if begun.error != &"": return begun.error
+	q.route_token = begun.token; q.context.route_token = begun.token
+	for ordinal: int in 2 * q.request.count:
+		var edge_code: StringName = _edge_into(q, ordinal)
+		if edge_code != &"": return edge_code
+		var added: Routes.Result = q.config.routes.stage_add(q.route_token, q.edge)
+		if added.error != &"": return added.error
+		q.context.edges[ordinal * 2] = added.ref.x; q.context.edges[ordinal * 2 + 1] = added.ref.y
+		q.edges[ordinal * 2] = added.ref.x; q.edges[ordinal * 2 + 1] = added.ref.y
+		edge_code = _scope(q)
+		if edge_code != &"": return edge_code
+	var code: StringName = q.actual.seal(q.route_token)
+	return _scope(q) if code == &"" else code
+
+
+static func _edge_into(q: Query, ordinal: int) -> StringName:
+	"""Every leg has its own source pair and exact section; reverse legs use the identical physical section."""
+	var index: int = ordinal % q.request.count
+	var reverse: bool = ordinal >= q.request.count
+	var first: Locations.Record = q.gateway if index == 0 else q.records[index - 1]
+	var last: Locations.Record = q.records[index]
+	var first_ref: Vector2i = q.request.gateway if index == 0 else _new_ref(q, index - 1)
+	var last_ref: Vector2i = _new_ref(q, index)
+	var section: Owner.Region = q.outer_section if index == 0 else q.sections[index - 1]
+	q.edge.from_location = last_ref if reverse else first_ref
+	q.edge.to_location = first_ref if reverse else last_ref
+	q.edge.section = first.section; q.edge.room = first.room; q.edge.level = section.level
+	q.edge.family = -1; q.edge.variant = 0; q.edge.rotation = 0
+	q.edge.mode = Profiles.MODE_WALK; q.edge.posture = Profiles.POSTURE_UPRIGHT
+	q.edge.content_revision = q.context.profiles; q.edge.geometry_revision = q.context.revision; q.edge.point_count = 2
+	q.edge.length_u = 0
+	for axis: int in 3:
+		q.edge.points[axis] = last.point[axis] if reverse else first.point[axis]
+		q.edge.points[axis + 3] = first.point[axis] if reverse else last.point[axis]
+		q.edge.length_u += absi(int(first.point[axis]) - last.point[axis])
+	return section_span_refusal(first.point, last.point, section.box)
+
+static func section_span_refusal(first: Vector3i, last: Vector3i, section: PackedInt32Array) -> StringName:
+	"""Axis-aligned nonzero ground spans allow a boundary endpoint, never an interior point outside the full section."""
+	if section.size() != 6 or first.y != last.y or first.y != section[1] or first == last: return REFUSE_SECTION
+	if first.x != last.x and first.z != last.z: return REFUSE_SECTION
+	for axis: int in [0, 2]:
+		if first[axis] < section[axis] or last[axis] < section[axis] \
+				or first[axis] > section[axis + 3] or last[axis] > section[axis + 3] \
+				or (first[axis] == last[axis] and first[axis] == section[axis + 3]): return REFUSE_SECTION
+	return &""
+
+
+static func _observe_final(q: Query) -> StringName:
+	"""Finish every ordinary callback before the direct source/physical/identity tail."""
+	var code: StringName = q.config.locations.prepared_refusal(q.location_token)
+	if code == &"": code = _scope(q)
+	if code == &"": code = q.config.routes.prepared_refusal(q.route_token)
+	if code == &"": code = _scope(q)
+	if code == &"": code = q.actual.binding_refusal()
+	if code == &"": code = _scope(q)
+	if code == &"": code = q.config.owner.snapshot_revision_refusal(q.context.revision)
+	if code == &"": code = _scope(q)
+	if code == &"": code = q.config.terrain.binding_refusal()
+	return _scope(q) if code == &"" else code
+
+
+static func _final_leaf(q: Query) -> StringName:
+	"""Precharge each complete scan, then close selected masks, physical exclusions, sources and original inputs."""
+	var scans: int = 256 + 40 * q.config.locations._capacity + 64 * q.config.routes._edge_capacity \
+		+ 3 * q.config.routes._live.vertex_count + 2 * WorldRoutes.MASK_BYTES * q.config.routes._edge_capacity
+	scans += 84 * (q.config.locations._capacity + q.config.routes._edge_capacity) + 2 * 6 * 14 * 84 * 4
+	if not _spend(q, scans): return REFUSE_BUDGET
+	var code: StringName = WorldRoutes.frontier_leaf_refusal(q.actual, q.context, q.records, q.heap_patch)
+	if code == &"": code = _selected_edges(q)
+	if code == &"": code = _physical(q)
+	if code == &"":
+		var checks: int = FinalFacts._required_checks(q.config.owner)
+		if not _spend(q, checks): return REFUSE_BUDGET
+		code = FinalFacts.frontier_refusal(q.config.owner, q.config.routes, q.config.locations, q.context, checks)
+	return _scope(q) if code == &"" else code
+
+
+static func _selected_edges(q: Query) -> StringName:
+	"""Every explicit forward/reverse profile must qualify its exact directed certificate; no mixed-profile route is inferred."""
+	for ordinal: int in 2 * q.request.count:
+		var at: int = (ordinal % q.request.count) * 4 + (2 if ordinal >= q.request.count else 0)
+		var profile: int = int(q.request.profiles[at])
+		var row: int = q.context.edges[ordinal * 2]
+		var code: StringName = _edge_into(q, ordinal)
+		if code != &"": return code
+		if row < 0 or row >= q.config.routes._edge_capacity or not _edge_matches(q, row, ordinal) \
+				or q.config.profiles._live.quantities[profile] != q.request.profiles[at + 1] \
+				or (q.actual._stage.masks[row * WorldRoutes.MASK_BYTES + (profile >> 3)] & (1 << (profile % 8))) == 0: return REFUSE_PROFILE
+	return &""
+
+static func _physical(q: Query) -> StringName:
+	"""Current local facts cover the complete work source and each new swept span, after every ordinary observer."""
+	for axis: int in 3:
+		q.bounds[axis] = q.origin[axis]; q.bounds[axis + 3] = int(q.origin[axis]) + Contract.QUANTUM_SIDE_U
+	var code: StringName = _terrain(q, Terrain.DIG)
+	if code == &"": code = _source_local(q, q.request.work_profile, q.request.work_revision, q.records[q.request.count - 1].point, q.records[q.request.count - 1].point)
+	if code == &"": code = _new_span_facts(q)
+	if code == &"": code = _occupants(q)
+	return code
+
+
+static func _terrain(q: Query, purpose: int) -> StringName:
+	"""Use only actual direct live Terrain columns; the ordinary binding observation already closed above."""
+	if not _spend(q, Terrain.LOCAL_QUERY_CHECKS): return REFUSE_BUDGET
+	var terrain: Terrain = q.config.terrain
+	if terrain.get_script() != Terrain or terrain._checked_geometry_revision != q.context.revision \
+			or not Terrain._final_owners_match(terrain, q.config.sources) or terrain._space == null or terrain._sources == null \
+			or terrain._space.get_ref() != q.config.owner or terrain._sources.get_ref() != q.config.sources \
+			or terrain._world_ref != q.context.world or terrain._domain_bounds != q.config.owner._domain._bounds \
+			or not Space.valid_box(q.bounds) or not Space.contains_box(terrain._domain_bounds, q.bounds): return REFUSE_CHANGED
+	return Terrain._final_local_tiles(terrain, q.bounds, purpose)
+
+
+static func _source_local(q: Query, profile: int, revision: int, first: Vector3i, last: Vector3i) -> StringName:
+	"""Exact immutable source primitives sweep by integer translation; point/patch rows are not occupied volume."""
+	var profiles: Profiles = q.config.profiles
+	if Profiles.selection_policy_leaf(profiles, profile, revision, q.context.profiles) < 0: return REFUSE_PROFILE
+	var start: int = profiles._live.fields[Profiles.F_FIRST_BOX * profiles._profile_capacity + profile]
+	var count: int = profiles._live.fields[Profiles.F_BOX_COUNT * profiles._profile_capacity + profile]
+	for ordinal: int in count:
+		if not _spend(q, 32): return REFUSE_BUDGET
+		var box: int = start + ordinal
+		var role: int = profiles._live.boxes[6 * profiles._box_capacity + box]
+		if role == Profiles.CONTACT_POINT or role == Profiles.CONTACT_PATCH: continue
+		for axis: int in 3:
+			var low: int = mini(first[axis], last[axis]) + int(profiles._live.boxes[axis * profiles._box_capacity + box])
+			var high: int = maxi(first[axis], last[axis]) + int(profiles._live.boxes[(axis + 3) * profiles._box_capacity + box])
+			if not Space.int32(low) or not Space.int32(high): return REFUSE_PROFILE
+			q.bounds[axis] = low; q.bounds[axis + 3] = high
+		var code: StringName = _terrain(q, Terrain.EXCLUSIONS)
+		if code != &"": return code
+	return &""
+
+
+static func _new_span_facts(q: Query) -> StringName:
+	"""A late resource anywhere along any selected source sweep invalidates the earlier compiled mask."""
+	for ordinal: int in 2 * q.request.count:
+		var code: StringName = _edge_into(q, ordinal)
+		if code != &"": return code
+		var first: Vector3i = Vector3i(q.edge.points[0], q.edge.points[1], q.edge.points[2])
+		var last: Vector3i = Vector3i(q.edge.points[3], q.edge.points[4], q.edge.points[5])
+		var at: int = (ordinal % q.request.count) * 4 + (2 if ordinal >= q.request.count else 0)
+		code = _source_local(q, int(q.request.profiles[at]), int(q.request.profiles[at + 1]), first, last)
+		if code != &"": return code
+	return &""
+
+static func _occupants(q: Query) -> StringName:
+	"""Unregistered living residents refuse; all registered residents use complete current physical payloads."""
+	for ordinal: int in q.request.count:
+		var checks: int = WorldRoutes.workpiece_occupancy_checks(q.actual)
+		if not _spend(q, checks): return REFUSE_BUDGET
+		var code: StringName = WorldRoutes.workpiece_occupancy_refusal(q.actual, q.records[ordinal].envelope, checks)
+		if code != &"": return code
+	return &""
+
+static func _edge_matches(q: Query, row: int, ordinal: int) -> bool:
+	"""Compare every complete authored payload and path vertices, not merely the existence of a selected bit."""
+	var graph: Routes = q.config.routes
+	var bank: Routes.EdgeBank = graph._stage
+	var edge: Routes.Edge = q.edge
+	if graph._edge_pair(bank, Routes.E_FROM_SLOT, row) != edge.from_location \
+			or graph._edge_pair(bank, Routes.E_TO_SLOT, row) != edge.to_location \
+			or graph._edge_pair(bank, Routes.E_SECTION_SLOT, row) != edge.section \
+			or graph._edge_i32(bank, Routes.E_FAMILY, row) != edge.family \
+			or graph._edge_i32(bank, Routes.E_VARIANT, row) != edge.variant \
+			or graph._edge_i32(bank, Routes.E_ROTATION, row) != edge.rotation \
+			or graph._edge_i32(bank, Routes.E_MODE, row) != edge.mode \
+			or graph._edge_i32(bank, Routes.E_POSTURE, row) != edge.posture \
+			or bank.longs[Routes.E_LENGTH * graph._edge_capacity + row] != edge.length_u: return false
+	var start: int = graph._edge_i32(bank, Routes.E_PATH_START, row)
+	if start != graph._live.vertex_count + 2 * ordinal or start + 2 > bank.vertex_count \
+			or not _edge_section_matches(q): return false
+	for index: int in 6:
+		if bank.vertices[start * 3 + index] != edge.points[index]: return false
+	return true
+
+
+static func _edge_section_matches(q: Query) -> bool:
+	"""Room and Level are derived from the exact live section, not independent stored edge columns."""
+	var edge: Routes.Edge = q.edge
+	var owner: Owner = q.config.owner
+	if not owner._region_live(edge.section, false): return false
+	var row: int = edge.section.x
+	var section_owner: Vector2i = Vector2i(owner._r_owner_slot[row], owner._r_owner_generation[row])
+	var room: Vector2i = NULL_REF if section_owner == q.world else section_owner
+	return edge.room == room and edge.level == owner._r_level[row] and owner._r_role[row] == Space.FLOOR_DATUM
+
+
+static func _output(q: Query, out: Result) -> void:
+	"""Only the completed coupled publication writes the caller's fixed full-handle packet."""
+	out.work = _new_ref(q, q.request.count - 1); out.count = q.request.count
+	for index: int in 6: out.locations[index] = q.refs[index]
+	for index: int in 12: out.edges[index] = q.context.edges[index]
+
+static func _cleanup(q: Query) -> void:
+	"""Original independent tokens survive borrowed-context mutation; drop only owned candidates and never another lease."""
+	if q.locations._frontier != q.context: return
+	if q.actual._route_token > 0 and q.actual._cold_token == q.cold: q.actual.abort(q.actual._route_token)
+	if q.graph._token > 0 and q.graph._cold_token == q.cold: q.graph.abort(q.graph._token)
+	if q.locations._token > 0 and q.locations._cold_token == q.cold: q.locations.abort(q.locations._token)
+	if q.locations._frontier == q.context: q.locations._frontier = null

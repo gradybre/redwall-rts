@@ -1323,3 +1323,17 @@ paid construction or presentation. Those engineering obligations still precede
 runtime activation. Stair material and work costs are unchanged. The original
 alternatives and implementation constraints are retained in
 [decision1145](decisions/1145-proposed-initial-timber-stair-timing.md).
+
+
+### DEC-051 — Simulation-owned memory gate raised to 100.1 MB
+
+On 2026-10-07, Brendan chose to **raise the limit**: REQ-SET-163's simulation-owned memory budget is
+**100,100,000 bytes (100.1 MB, decimal)**, up from 100,000,000. He first chose to shrink the geometry
+journals; the joint census then showed that even with no journal at all the first-entry runtime and
+Location controls exceeded the 194 bytes that remained.
+
+The figure is the smallest 0.1 MB step above the recounted joint pack (100,007,631 B with the journals
+shrunk to 64 sides each) that leaves real room for the Kitchen and descent work still coming: 92,369 B of
+headroom. Every other REQ-SET-163 budget is unchanged, including the 4 GB process budget, and the gate
+remains a source-derived logical figure until native measurement on the qualification floor.
+Engineering record: [decision1212](decisions/1212-memory-census-and-budget-tool.md).

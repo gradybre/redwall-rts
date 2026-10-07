@@ -20,6 +20,8 @@ import underground_current_census as current_census
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "docs/planning/underground_memory_pack.json"
+# REQ-SET-163 simulation-owned memory gate, raised from 100,000,000 by DEC-051 (ADR 1212).
+GATE_BYTES = 100100000
 WIDTHS = {"PackedByteArray": 1, "PackedInt32Array": 4, "PackedInt64Array": 8}
 
 
@@ -150,10 +152,23 @@ def anchor_packet_bytes(source: str, expected: dict, member: str, allocator: str
                for name, kind in fields.items()), (member, "unreconciled packet field", fields)
     total = numeric_fields(source, "\t")
     for name, kind in actual.items():
+        if name == "air":
+            total += record_air_bytes(source)
+            continue
         expression = re.escape(member + "." + name) + r"\.resize\(([^)]+)\)"
         assert re.findall(expression, allocator) == ["6"], (member, name)
         total += WIDTHS[kind] * 6
     return total
+
+
+RECORD_BOXES = {"envelope": "PackedInt32Array", "support": "PackedInt32Array", "air": "PackedInt32Array"}
+
+
+def record_air_bytes(record: str) -> int:
+    """ADR1215: every Locations.Record allocates its fixed extra-air shape in _init (MAX_AIR_EXTRA = 3 boxes)."""
+    assert re.findall(r"(?m)^\t\tair\.resize\(([^)]+)\)$", record) == ["6 * MAX_AIR_EXTRA"], "Record air shape drift"
+    assert record.count(".resize(") == 1, "Record allocates another packed member"
+    return 4 * 6 * 3
 
 
 def anchor_owned_packets(source: str) -> None:
@@ -186,7 +201,7 @@ def surface_anchor_reservation(index: dict) -> dict:
     region = class_body(index["underground_space_owner"].text, "Region")
     result = class_body(source, "Result")
     controls = numeric_fields(source, "")
-    packets = anchor_packet_bytes(record, {"envelope": "PackedInt32Array", "support": "PackedInt32Array"}, "_record", source)
+    packets = anchor_packet_bytes(record, RECORD_BOXES, "_record", source)
     packets += anchor_packet_bytes(region, {"box": "PackedInt32Array"}, "_region", source)
     packets += anchor_packet_bytes(result, {}, "Result", source)
     reserved = resolve(index, module, "RESERVED_BYTES")
@@ -519,14 +534,14 @@ def connector_delivery_reservation(index: dict) -> dict:
     packet_bytes = {
         "order": scalar_packet(index, "underground_connector_placements", "OrderRecord"),
         "selection": scalar_packet(index, "underground_profiles", "Selection"),
-        "location": scalar_packet(index, "underground_locations", "Record",
-                                  {"envelope": "PackedInt32Array", "support": "PackedInt32Array"}) + 48,
+        "location": scalar_packet(index, "underground_locations", "Record", RECORD_BOXES) + 48
+            + record_air_bytes(class_body(index["underground_locations"].text, "Record")),
         "box": scalar_packet(index, "underground_profiles", "Box"),
         "number": scalar_packet(index, "int_math", "IntResult", {"error": "String"}, parent=""),
     }
-    assert packet_bytes == {"order": 96, "selection": 168, "location": 116, "box": 32, "number": 9}
+    assert packet_bytes == {"order": 96, "selection": 168, "location": 196, "box": 32, "number": 9}
     fixed = numeric_fields(source, "") + 4 * sum(arrays.values()) + sum(packet_bytes.values())
-    assert fixed == 754 # ADR1212: +1 retained ADR1197 G3 _excavation bool.
+    assert fixed == 834 # ADR1212: +1 ADR1197 _excavation bool; +80 ADR1215 Record air.
     work_source = index["work"].text
     planner_source = index["haul_planner"].text
     for owner in ("work", "haul_planner"):
@@ -553,7 +568,7 @@ def connector_delivery_reservation(index: dict) -> dict:
     native = int(native_values[0])
     reserved = resolve(index, module, "RESERVED_BYTES")
     assert (helper, native, reserved) == (1024, 2048, 4096)
-    assert fixed + 1 + helper + native == 3827 and fixed + 1 + helper + native <= reserved
+    assert fixed + 1 + helper + native == 3907 and fixed + 1 + helper + native <= reserved
     return {"retained_members": expected, "packed_cells": arrays, "packet_bytes": packet_bytes,
             "fixed_numeric_and_packed_bytes": fixed, "work_new_numeric_bytes": 1,
             "work_bindings": work_bindings, "logical_helper_allowance_bytes": helper,
@@ -614,7 +629,7 @@ def entry_bindings_reservation(index: dict) -> dict:
     assert {k: v for k, v in fields.items() if v not in {"int", "bool", "Vector2i", "Vector3i"}} == expected, \
         "unreconciled EntryBindings retained member"
     record = class_body(index["underground_locations"].text, "Record")
-    boxes = {"envelope": "PackedInt32Array", "support": "PackedInt32Array"}
+    boxes = RECORD_BOXES
     packets = sum(anchor_packet_bytes(record, boxes, name, source) for name in ("_entry_anchor", "_entry_contact"))
     transform = {"endpoint_refs": "PackedInt32Array", "endpoint_revisions": "PackedInt64Array",
                  "opening_refs": "PackedInt32Array", "opening_revisions": "PackedInt64Array"}
@@ -677,7 +692,7 @@ def connector_contacts_reservation(index: dict) -> dict:
         fragment_bytes += 4 * resolve(index, module, expression)
     assert fragment_bytes == 1633, "Contacts fragment capacity or numeric lifetime drift"
     record = class_body(index["underground_locations"].text, "Record")
-    boxes = {"envelope": "PackedInt32Array", "support": "PackedInt32Array"}
+    boxes = RECORD_BOXES
     owned = sum(anchor_packet_bytes(record, boxes, name, source) for name in ("_location", "_other"))
     owned += scalar_packet(index, "underground_connector_placements", "OrderRecord")
     owned += sum(scalar_packet(index, "underground_profiles", name) for name in ("Descriptor", "Selection", "Box", "Box"))
@@ -689,7 +704,7 @@ def connector_contacts_reservation(index: dict) -> dict:
     owned += numeric_fields(number, "\t")
     fixed = numeric_fields(source, "") + packed + fragment_bytes + owned
     reserved = resolve(index, module, "CONTROL_BYTES")
-    assert reserved == 4096 and fixed + 1024 <= reserved, "Contacts fixed/helper allowance exceeded"
+    assert reserved == 4352 and fixed + 1024 <= reserved, "Contacts fixed/helper allowance exceeded" # ADR1212
     return {"numeric_controls": numeric_fields(source, ""), "packed_rows": packed,
             "fragment_banks_and_controls": fragment_bytes, "owned_packet_bytes": owned,
             "fixed_numeric_and_packed_bytes": fixed, "logical_helper_allowance_bytes": 1024,
@@ -1057,7 +1072,7 @@ def build(index: dict | None = None) -> dict:
     declaration = len(owners) * 16 + len(fields) * 15 + keys_bytes
     added = sum(contributions.values())
     total = 86601769 + added + declaration - 21185 + 8388608
-    assert total < 100000000, ("joint pack exceeds unchanged memory limit", total)
+    assert total < GATE_BYTES, ("joint pack exceeds the REQ-SET-163 memory gate", total)
     sources = set(groups) - {"inventory_spatial"}
     sources.update(("inventory", "excavation_inventory", "excavation_sites", "construction", "modular_project_contract", "underground_budget",
                     "underground_connector_recipes", "underground_connector_catalog", "underground_world_routes",
@@ -1091,7 +1106,7 @@ def build(index: dict | None = None) -> dict:
             "current_source_census": current,
             "contributions": contributions, "new_mutable_and_reserved_bytes": added,
             "declaration_bytes": declaration, "declaration_delta_bytes": declaration - 21185,
-            "live_with_reserve_bytes": total, "headroom_bytes": 100000000 - total,
+            "live_with_reserve_bytes": total, "gate_bytes": GATE_BYTES, "headroom_bytes": GATE_BYTES - total,
             "source_sha256": {index[name].relative_path: index[name].sha256 for name in sorted(sources)},
             "registry_sha256": hashlib.sha256((ROOT / "docs/planning/canonical_state_registry.json").read_bytes()).hexdigest(),
             "limitations": ["Constructor limits alone are not joint runtime admission.",

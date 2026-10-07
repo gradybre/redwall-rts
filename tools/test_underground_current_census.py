@@ -32,13 +32,15 @@ class CurrentCensusTests(unittest.TestCase):
 
     def changed(self, name, text):
         module = self.index[name]
-        return dict(self.index, **{name: module._replace(text=text)})
+        return dict(self.index, **{name: audit.parse_module(name, module.relative_path, text)})
 
     def test_current_counts(self):
         result = census.build(self.index, self.projected, self.motion)
-        self.assertEqual(result["new_retained_bytes"], {"geometry_journals": 16994,
-                         "locations_carry_and_retirement_controls": 129, "first_entry_runtime_chain": 2430})
-        self.assertEqual(result["world_routes_cold"]["world_routes_cold_bytes"], 385024)
+        self.assertEqual(result["new_retained_bytes"], {"geometry_journals": 4322,
+                         "locations_carry_and_retirement_controls": 161, "first_entry_runtime_chain": 3086})
+        self.assertEqual(result["room_publication_controls"]["controls"], 8970)
+        self.assertEqual(result["location_air_pool"]["remaining_bytes"], 1472)
+        self.assertEqual(result["world_routes_cold"]["world_routes_cold_bytes"], 379648)
 
     def test_new_member_in_projected_source_refuses(self):
         text = self.index["underground_locations"].text + "\nvar _hidden: PackedInt64Array = PackedInt64Array()\n"
@@ -69,13 +71,20 @@ class CurrentCensusTests(unittest.TestCase):
 
     def test_wider_journal_refuses(self):
         text = self.index["underground_geometry_journal"].text.replace(
-            "const CAPACITY: int = 256", "const CAPACITY: int = 512", 1)
+            "const CAPACITY: int = 64", "const CAPACITY: int = 256", 1)
         with self.assertRaisesRegex(ValueError, "journal ring capacity"):
             census.build(self.changed("underground_geometry_journal", text), self.projected, self.motion)
 
-    def test_joint_pack_reports_the_overrun(self):
-        with self.assertRaisesRegex(AssertionError, "100019359"):
-            memory.build()
+    def test_joint_pack_fits_the_raised_gate(self):
+        result = memory.build()
+        self.assertEqual((result["live_with_reserve_bytes"], result["gate_bytes"], result["headroom_bytes"]),
+                         (100007631, 100100000, 92369))
+
+    def test_publication_controls_refuse_above_their_ceiling(self):
+        text = self.index["underground_room_frontier_publication"].text.replace(
+            "const CONTROL_BYTES: int = 9216", "const CONTROL_BYTES: int = 8192", 1)
+        with self.assertRaisesRegex(ValueError, "publication controls exceed CONTROL_BYTES"):
+            census.publication_controls(memory, self.changed("underground_room_frontier_publication", text))
 
 
 if __name__ == "__main__":

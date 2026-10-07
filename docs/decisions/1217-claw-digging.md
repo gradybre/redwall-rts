@@ -587,3 +587,45 @@ name a row of any source (ADR 1200), so the binding grants no travel. No runtime
 - The renewed consumer pins of `qualified-claw-split-v9` check clean, and the registry audit passes.
 
 **Not active.** The catalog, Session and consumers still load content 6.
+
+### 4c.4 The Frontier successor at ±1,430: stopped for a choice
+
+The decision puts every endpoint's travel on source 4's WALK (row 42). Rows 42–50 pass the Frontier owner's own
+checks: source, mode, policy, heading and certificate. So a Frontier built that way would load, and the
+Frontier and structure suites would pass. It would still reopen a blocker that Brendan has already resolved.
+
+**Finding: row 42 at the L0 contact contains the pending T0 bearer (ADR 1202 blocker 3).**
+
+- Endpoint 3 is the L0 WORK contact, the station of T0 handling and installation.
+- Under ADR 1202's split landing it travels on the narrow READY_FORWARD row 2.
+- Row 42's all-yaw body `[-712,0,-712,712,930,712]`, placed at the contact (0, 0, −1536), reaches z = −2248. It
+  therefore contains the pending T0 prism `[-256,0,-2048,256,128,-1920]`.
+- T0 START would refuse `LOCATION_ENVELOPE_BLOCKED`. The endpoint certificate exempts only the narrow H envelope
+  (the union of rows 2/6/16/29).
+- No published tool-free row is narrow enough to replace row 2. Rows 30/31/42 all have the 712 u sweep. Even an
+  exact-heading walk hull reaches 521 u forward (z = −2057), which is inside the prism's z range.
+
+In content 6, endpoints 0 and 2 (H and R) and the arrival 13 also used the narrow source rows 2 and 6. Arrival 13
+clears the bearer with row 42. Endpoints 0 and 2 were not checked here.
+
+**Activation notes (not blocking publication):**
+
+- The actual Workpieces owner sends an ASSEMBLY_PALM set-down row to `qualified-assembly-v1/source_program.gd`,
+  which accepts row 29 only. Workpieces naming row 51 is therefore refused by the owner until the paw-handling
+  source program (step-4 item 2) lands. The Python formatter accepts it.
+- `entry_source_constants._linked` compares the structure's source digest with profile source 0. A source-4
+  structure needs that check read through the structure's own source word, as Godot's `SourceFacts` already does.
+
+**Options:**
+
+1. **Recommended: author narrow tool-free source-4 approach and retreat rows** (an M6 subset). They are READY_FORWARD
+   into the claw ready key and READY_BACKWARD out of it, derived as rows 2/6 were, and go through the usual review.
+   A claw successor of the endpoint certificate goes with them. The Frontier then gives the narrow endpoints those
+   rows and every other endpoint row 42.
+2. **Publish now with every endpoint on row 42, as decided.** The T0 installation then waits for a re-layout (ADR
+   1202 option 3).
+3. **Re-lay the T0 station or bearer** clear of the 712 u sweep now (ADR 1202 option 3). Then publish with row 42
+   everywhere.
+
+Until this is chosen, no Frontier, structure or workpieces successor is published. Content 8 itself does not
+depend on the choice.

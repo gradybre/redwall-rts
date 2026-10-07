@@ -92,7 +92,7 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "06ebe6e403f07f12def9e3a1493c61d4dd13a1314d6e84aa021bb354a5485be4"
+REVIEWED_SHA = "9f645b594fca7e38fe5433222fb6f91dc86c611b10851f79379960bef2c3a3fc"
 FRONTIER = Path("godot/data/underground/first-entry-prefix-v1/qualified-stone-v5/frontier.ugfront")
 FRONTIER_SHA = "2d5c36163ed5e5f8e96a3f1b0611d85937c075abcb8b02c7d7f01f7cf0738660"
 CORE = "godot/scripts/core/"
@@ -206,7 +206,7 @@ def exact_members(memory, index: dict, relative: str, expected: dict) -> str:
 ENTRY_RUNTIME = {"_step": "int", "_error": "StringName", "_origin": "Vector3i", "_published": "WorkArea.Published",
                  "_storage": "Vector2i", "_output": "Vector2i", "_crew": "Foreman.Crew", "_foreman": "Foreman",
                  "_jobs": "RefCounted", "_worker_row": "int", "_transforms": "Transforms", "_anchor": "Vector3i",
-                 "_walk_left": "int", "_arrival_yaw": "int"}
+                 "_walk_left": "int", "_arrival_yaw": "int", "_scratch": "IntMath.IntResult"}
 ENTRY_FOREMAN = {"_owners": "Owners", "_crew": "Crew", "_tasks": "Array", "_index": "int", "_stage": "int",
                  "_stage_ticks": "int", "_job": "int", "_error": "StringName", "_content": "int",
                  "_accepted_mwu": "int", "_math": "IntMath.IntResult", "_actor": "Routes.Actor",
@@ -268,7 +268,8 @@ def entry_chain(memory, index: dict) -> dict:
     result = packet(memory, index, CORE + "int_math.gd", "IntResult", "")
     quote = memory.quote_payload(index)
     rows = {
-        "runtime_numeric": memory.numeric_fields(runtime, ""),
+        # ADR1223: the dispatcher's one IntResult of read scratch (the Jobs-side binding is reviewed in jobs.gd's row).
+        "runtime_numeric": memory.numeric_fields(runtime, "") + result,
         "work_area_published": packet(memory, index, CORE + "underground_entry_work_area.gd", "Published") + 8 * endpoints,
         "crew": packet(memory, index, CORE + "underground_entry_foreman.gd", "Crew"),
         "foreman_numeric": memory.numeric_fields(foreman, "") + result + actor,

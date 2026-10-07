@@ -16,7 +16,18 @@ const Catalog := preload("res://scripts/core/catalog.gd")
 const Economy := preload("res://scripts/systems/economy_system.gd")
 const Transforms := preload("res://scripts/core/transforms.gd")
 const Progress := preload("res://scripts/core/underground_entry_progress.gd")
+const SimClock := preload("res://scripts/core/sim_clock.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
 const RouteFixture := preload("res://test/test_underground_world_routes.gd")
+const Jobs := preload("res://scripts/core/jobs.gd")
+const Needs := preload("res://scripts/core/needs.gd")
+const Schedule := preload("res://scripts/core/schedule.gd")
+const Contract := preload("res://scripts/core/excavation_contract.gd")
+## ADR1223: past G6 the live chain stops here -- the paid BRACE START, because the live Session binds no
+## phase-structure provider into its WorldBindings (`bind_phase_structure`); unclassified, recorded as ADR1197 G12.
+const NEXT_GAP: StringName = &"WORLD_COMPOSITION_BINDING"
+## The tick the uninterrupted live chain stops on (ADR1223), asserted by both the plain and the restored chain.
+const NEXT_GAP_TICK: int = 619
 ## ADR1221: the live chain's route owners are cold-restored this often (ticks; prime).
 const ROUTE_RESTORE_EVERY: int = 23
 ## ADR1218 runtime wire: header, step, code, origin, section, endpoint count and eleven endpoints, then M's container.
@@ -718,8 +729,10 @@ func test_fixed_ticks_drive_the_live_foreman_until_the_first_gap() -> void:
 	"""ADR1219: run_tick alone walks the crew mole from its surface pose to H over BAL-WORK-003's straight-leg ticks,
 	places it exactly on H, registers it there on H's authored approach row and drives the foreman on; no stand-in
 	places it. Only the crew is a route actor; the other surface residents pass every occupancy proof by their reach
-	cubes. It retreats to R, walks tooled to M, puts the tool down and hauls both units, then the step's BUILD Job
-	has already been given to another resident by the JobSelector (a G6 gap)."""
+	cubes. It retreats to R, walks tooled to M, puts the tool down and hauls both units. ADR1223: the JobSelector
+	never selects the reserved crew (it holds no Job through the walk) nor offers its Jobs to anyone, so at every tick
+	from arrival the crew holds one of the entry's own Jobs and no other resident holds one; it walks home under its
+	BUILD Job, re-equips, travels to the station, enters WORK, and the BRACE START stops at the next gap."""
 	var session: Session = _generate_and_mount()
 	assert_true(_host.compose_underground_room_owners() and _host.compose_underground_route_owners()
 		and _host.compose_underground_surface_anchor() and _host.compose_underground_entry_owners(), "every owner composed")
@@ -740,10 +753,14 @@ func test_fixed_ticks_drive_the_live_foreman_until_the_first_gap() -> void:
 	assert_equal(arrived[3], entry._foreman._arrival_retreat_profile,
 		"admitted on H's own approach row, then at once on the authored retreat row toward R")
 	var tick: int = arrived[0] + 1
+	var held: int = 0
 	while entry.is_running() and tick < 8000:
 		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
+		held += _assert_dispatch_held(o, entry, worker, tick)
 		tick += 1
-	_assert_g6_stop(o, entry, worker)
+	assert_equal(held, tick - arrived[0] - 1, "the crew held an entry Job at every tick from arrival to the stop")
+	_assert_next_gap_stop(o, entry, worker)
+	assert_equal(tick - 1, NEXT_GAP_TICK, "the stop tick")
 
 
 func _expected_walk(o: Session.Retirement.Owners, worker: Vector2i, entry: Settlement.UndergroundEntryRuntime) -> int:
@@ -764,24 +781,44 @@ func _tick_until_registered(o: Session.Retirement.Owners, entry: Settlement.Unde
 	"""[tick, location, Transform point, profile] on the tick the crew first becomes a route actor."""
 	var actor: Session.Retirement.Routes.Actor = Session.Retirement.Routes.Actor.new()
 	var pose: Transforms.Pose = Transforms.Pose.new()
+	var row: int = o.residents.directory().get_typed_row(worker)
+	var due: int = o.jobs.stagger_offset_of(row).value
 	for tick: int in range(1, 2000):
 		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
-		if o.routes.read_actor_into(worker, actor) != &"": continue
+		if o.routes.read_actor_into(worker, actor) != &"":
+			assert_equal(o.jobs.job_of(row), Jobs.NULL_REF, "ADR1223: the walking crew is never given work (tick %d)" % tick)
+			if tick % Jobs.REEVALUATION_INTERVAL_TICKS == due:
+				assert_equal(o.jobs.evaluate(row, tick).error, Jobs.REFUSE_AGENT_RESERVED, "reserved crew, tick %d" % tick)
+			continue
 		assert_true(o.transforms.read_into(worker, pose), "placed")
 		return [tick, actor.location, Vector3i(pose.x, pose.y, pose.z), actor.profile_id]
 	assert_true(false, "the crew never arrived: %s" % entry.error())
 	return [-1, Vector2i(-1, 0), Vector3i.ZERO, -1]
 
 
-func _assert_g6_stop(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime, worker: Vector2i) -> void:
-	"""Both units hauled to M; going home, the BUILD Job already has another (surface) resident."""
-	assert_false(entry.is_running(), "stopped at the first remaining gap")
-	assert_equal(entry.error(), &"JOB_HAS_WORKER", "exact refusal")
-	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G6"), "named gap row")
-	assert_equal(entry._foreman._hauler._trips, 2, "both whole units of the first brace hauled through Delivery")
-	assert_equal(o.inventory.lot_container(entry.crew().tool), entry._storage, "the tool was put down at M")
-	var job: int = entry._foreman._job
-	assert_true(o.jobs._worker_slot[job] >= 0 and o.jobs._worker_slot[job] != worker.x, "another resident holds it")
+func _assert_dispatch_held(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime, worker: Vector2i,
+		tick: int) -> int:
+	"""ADR1223 invariant at a tick boundary: every live entry Job is unworked or the crew's, and (1 returned) the
+	crew holds one of them."""
+	for index: int in o.jobs.job_count():
+		var job: int = o.jobs.live_job_at(index).value
+		if entry.owns_job(job):
+			assert_true(o.jobs.worker_of(job) in [Jobs.NULL_REF, worker], "entry Job %d held outside the crew, tick %d" % [job, tick])
+	var held: Vector2i = o.jobs.job_of(o.residents.directory().get_typed_row(worker))
+	return 1 if held != Jobs.NULL_REF and entry.owns_job(o.residents.directory().get_typed_row(held)) else 0
+
+
+func _assert_next_gap_stop(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime, worker: Vector2i) -> void:
+	"""ADR1223: past G6. Both units hauled, the crew walked home under its own BUILD Job, re-equipped, travelled to
+	the first station and entered WORK; the paid BRACE START refuses at the next gap (NEXT_GAP)."""
+	assert_false(entry.is_running(), "stopped at the next remaining gap")
+	assert_equal(entry.error(), NEXT_GAP, "exact refusal")
+	var foreman: RefCounted = entry._foreman
+	assert_equal([foreman._index, foreman._tasks[0].operation, foreman.haul_trips()], [0, Contract.OP_BRACE, 2],
+		"the first BRACE, after both whole units of its inputs were hauled through Delivery")
+	assert_true(o.gear.is_equipped_record(entry.crew().tool) and o.gear.owner_of(entry.crew().tool) == worker,
+		"the crew took its tool back at M")
+	assert_equal(o.jobs.worker_of(foreman._job), worker, "the crew holds the step's own BUILD Job")
 	var actors: int = 0
 	for row: int in Session.Retirement.Routes.RESIDENT_CAPACITY:
 		if o.routes._resident_ref(row) != Session.Retirement.Routes.NULL_REF: actors += 1
@@ -1038,6 +1075,153 @@ func test_surface_active_publication_rejects_whole_world_reset_and_keeps_its_ori
 	assert_true(_host.reset(), "subsequent quiescent reset")
 
 
+func _begin_live_entry(configure: Callable = Callable()) -> Array:
+	"""[owners, runtime, crew worker] of a live chain begun with the G11 tool and G4 staged-stock stand-ins;
+	`configure(owners, worker)` runs after the mole is equipped and before the entry begins."""
+	_generate_and_mount()
+	assert_true(_host.compose_underground_room_owners() and _host.compose_underground_route_owners()
+		and _host.compose_underground_surface_anchor() and _host.compose_underground_entry_owners(), "every owner composed")
+	var near: Vector3i = Vector3i(60 * 2048 + 512, 512, 50 * 2048 + 512)
+	assert_false(_host.begin_underground_entry(near), "G11 first")
+	var o: Session.Retirement.Owners = _host.underground_session()._retirement_owners
+	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
+	var worker: Vector2i = _equip_first_mole(o, entry._output)
+	_stage(o, entry._output, &"wood", 7000)
+	_stage(o, entry._output, &"stone", 2000)
+	if configure.is_valid(): configure.call(o, worker)
+	assert_true(_host.begin_underground_entry(near), "foreman planned and the walk begun: %s" % _host.last_refusal())
+	return [o, entry, worker]
+
+
+func _run_until(entry: Settlement.UndergroundEntryRuntime, from: int, done: Callable) -> int:
+	"""run_tick from `from` until `done.call()` holds or the chain stops; returns the next tick to run."""
+	var tick: int = from
+	while entry.is_running() and not done.call() and tick < 8000:
+		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
+		tick += 1
+	return tick
+
+
+func _first_trip_done(entry: Settlement.UndergroundEntryRuntime) -> bool:
+	"""The foreman's haul has delivered its first whole unit."""
+	return entry._foreman._hauler != null and entry._foreman._hauler.trips() == 1
+
+
+func test_other_residents_are_never_committed_to_the_crews_parked_build_job() -> void:
+	"""ADR1223 negative: mid-haul the step's BUILD Job is queued with no worker. No other resident can be committed to
+	it (the JobSelector never nominates it; a direct commitment refuses), and the crew carries it home itself."""
+	var live: Array = _begin_live_entry()
+	var o: Session.Retirement.Owners = live[0]
+	var entry: Settlement.UndergroundEntryRuntime = live[1]
+	var tick: int = _run_until(entry, 1, _first_trip_done.bind(entry))
+	var job: int = entry._foreman._job
+	assert_true(entry.is_running() and o.jobs.worker_of(job) == Jobs.NULL_REF, "the BUILD Job is parked, unworked")
+	assert_true(entry.owns_job(job), "and it is the entry's")
+	var crew: int = o.residents.directory().get_typed_row(live[2])
+	var dispatched: int = 0
+	for row: int in o.residents._present.size():
+		if row == crew or not o.residents.is_present(row) or not o.jobs.is_agent_present(row): continue
+		var refused: Jobs.OpResult = o.jobs.assign_worker(row, job)
+		assert_false(refused.ok, "resident %d is never committed to the crew's Job" % row)
+		if refused.error == Jobs.REFUSE_DISPATCHED_JOB: dispatched += 1
+	assert_true(dispatched > 0, "idle residents free to work are refused by the dispatch rule itself")
+	_run_until(entry, tick, func() -> bool: return entry._foreman._hauler == null)
+	assert_equal(o.jobs.worker_of(job), live[2], "the crew, and only the crew, took its BUILD Job home")
+
+
+func _sleep_at_six(o: Session.Retirement.Owners, worker: Vector2i) -> void:
+	"""The crew's 06:00 hour (day 1 opens at 06:00) becomes SLEEP."""
+	var row: int = o.residents.directory().get_typed_row(worker)
+	assert_true(o.jobs.schedule().set_hour_activity(row, 6, Schedule.ACTIVITY_SLEEP).ok, "06:00 is SLEEP")
+
+
+func test_the_crew_waits_reserved_through_a_non_work_hour_at_arrival() -> void:
+	"""ADR1223 schedule: with the crew's arrival hour (06:00) set to SLEEP, it arrives on H and waits there idle,
+	reserved and unregistered, with no refusal, until its 07:00 WORK hour is resolved; then the foreman takes it."""
+	var live: Array = _begin_live_entry(_sleep_at_six)
+	var o: Session.Retirement.Owners = live[0]
+	var entry: Settlement.UndergroundEntryRuntime = live[1]
+	var row: int = o.residents.directory().get_typed_row(live[2])
+	var tick: int = _run_until(entry, 1, func() -> bool: return entry.walk_ticks_left() == 0)
+	assert_true(tick - 1 < SimClock.TICKS_PER_HOUR, "it arrived on H in the 06:00 hour (tick %d)" % (tick - 1))
+	tick = _run_until(entry, tick, func() -> bool: return o.routes._resident_ref(row) != Jobs.NULL_REF)
+	assert_true(entry.is_running(), "no refusal while it waited: %s" % entry._foreman.error())
+	assert_true(tick - 1 >= SimClock.TICKS_PER_HOUR, "registered only in the 07:00 hour (tick %d)" % (tick - 1))
+	assert_true(entry.reserves_resident(row), "reserved throughout")
+
+
+func test_crew_death_mid_haul_stops_the_chain_and_no_other_resident_takes_its_jobs() -> void:
+	"""ADR1223 crew loss: the crew dies after its first trip. The next tick stops the chain with STEP1_RESIDENT_DEAD
+	(G6 alert). The entry's Jobs stay the dispatcher's: through three more selection windows, after a capture and a
+	restore of the runtime, no other resident is committed to one."""
+	var live: Array = _begin_live_entry()
+	var o: Session.Retirement.Owners = live[0]
+	var entry: Settlement.UndergroundEntryRuntime = live[1]
+	var tick: int = _run_until(entry, 1, _first_trip_done.bind(entry))
+	var row: int = o.residents.directory().get_typed_row(live[2])
+	assert_true(o.residents.needs().apply_health_event(row, -100).ok, "the crew dies")
+	tick = _run_until(entry, tick, func() -> bool: return false)
+	assert_equal(entry.error(), Jobs.REFUSE_RESIDENT_DEAD, "exact refusal")
+	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G6"), "named gap row")
+	assert_equal(entry._foreman.error(), Jobs.REFUSE_RESIDENT_DEAD, "the foreman failed with it; the record carries it")
+	var bytes: PackedByteArray = PackedByteArray()
+	assert_equal(entry.capture(bytes), &"", "a stopped chain still saves")
+	var fresh: Settlement.UndergroundEntryRuntime = Settlement.UndergroundEntryRuntime.new()
+	assert_equal(fresh.restore(bytes, _host.underground_session()), &"", "and restores")
+	_host._underground_entry = fresh
+	var owned: int = 0
+	for at: int in range(tick, tick + 3 * Jobs.REEVALUATION_INTERVAL_TICKS):
+		assert_true(_host.run_tick(at), "the settlement keeps ticking")
+		owned = _assert_entry_jobs_unclaimed(o, fresh, live[2], at)
+	assert_equal(owned, 2, "the parked BUILD Job and the in-flight HAUL Job stay the dispatcher's")
+
+
+func _assert_entry_jobs_unclaimed(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime,
+		worker: Vector2i, tick: int) -> int:
+	"""Every entry Job is unworked or the (lost) crew's; returns how many there are."""
+	var owned: int = 0
+	for index: int in o.jobs.job_count():
+		var job: int = o.jobs.live_job_at(index).value
+		if not entry.owns_job(job): continue
+		owned += 1
+		assert_true(o.jobs.worker_of(job) in [Jobs.NULL_REF, worker], "no other resident takes entry Job %d (tick %d)" % [job, tick])
+	return owned
+
+
+func test_a_crew_that_leaves_on_its_walk_stops_the_chain_and_is_released() -> void:
+	"""ADR1223 crew loss: a crew row that no longer names the crew (it left) stops the chain with ENTRY_CREW_LOST; a
+	chain stopped before registration reserves nobody."""
+	var live: Array = _begin_live_entry()
+	var o: Session.Retirement.Owners = live[0]
+	var entry: Settlement.UndergroundEntryRuntime = live[1]
+	var row: int = o.residents.directory().get_typed_row(live[2])
+	assert_true(entry.advance(1) == &"" and entry.walk_ticks_left() > 0 and entry.reserves_resident(row), "walking, reserved")
+	assert_true(o.jobs.despawn_agent(row).ok and o.residents.despawn(live[2]).ok, "the crew leaves")
+	assert_equal(entry.advance(2), Settlement.UndergroundEntryRuntime.REFUSE_CREW_LOST, "exact refusal")
+	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G6"), "named gap row")
+	assert_false(entry.is_running() or entry.reserves_resident(row), "stopped, and its row is reserved by nobody")
+
+
+func test_a_busy_tooled_mole_is_not_taken_as_the_crew() -> void:
+	"""ADR1223: crew selection passes over a mole holding another Job and never takes that Job from it."""
+	_generate_and_mount()
+	assert_true(_host.compose_underground_room_owners() and _host.compose_underground_route_owners()
+		and _host.compose_underground_surface_anchor() and _host.compose_underground_entry_owners(), "every owner composed")
+	var near: Vector3i = Vector3i(60 * 2048 + 512, 512, 50 * 2048 + 512)
+	assert_false(_host.begin_underground_entry(near), "G11 first")
+	var o: Session.Retirement.Owners = _host.underground_session()._retirement_owners
+	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
+	var worker: Vector2i = _equip_first_mole(o, entry._output)
+	var row: int = o.residents.directory().get_typed_row(worker)
+	var job: int = o.jobs.create_job(Jobs.JOB_KIND_KEEP, 0, 0, 0, 0).value
+	assert_true(o.jobs.schedule().resolve_into(row, 8, false, IntMath.IntResult.new()), "a work hour is resolved")
+	assert_true(o.jobs.assign_worker(row, job).ok, "the only tooled mole takes ordinary work")
+	assert_false(_host.begin_underground_entry(near), "no idle tooled mole")
+	assert_equal(entry.error(), Jobs.REFUSE_AGENT_BUSY, "exact refusal")
+	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G6"), "named gap row")
+	assert_equal(o.jobs.job_of(row), o.jobs.ref_of(job), "its own Job is untouched")
+
+
 func test_entry_runtime_progress_round_trips_at_a_stopped_step_and_resumes() -> void:
 	"""ADR1218 (G10): the runtime stopped at G11 is captured, restored exactly into a fresh runtime from the
 	Session's owners, refuses damaged or stale records with exact codes, and the restored runtime resumes."""
@@ -1099,9 +1283,10 @@ func _expect_runtime_refusal(session: Session, bytes: PackedByteArray, code: Str
 
 func test_fixed_ticks_with_the_entry_restored_every_tick_end_byte_identical() -> void:
 	"""ADR1218/1219: the live run_tick chain from the surface walk, through arrival and registration on H, the
-	retreat and both hauls, to the G6 stop runs uninterrupted, then again with the whole entry runtime captured and
-	replaced by its restored record before every tick and (ADR1221) Routes and WorldRoutes cold-restored into blanked
-	banks every ROUTE_RESTORE_EVERY ticks; the stop, every owner image and both route images are byte-identical."""
+	retreat, both hauls and (ADR1223) the walk home under the crew's reserved BUILD Job to the next stop runs
+	uninterrupted, then again with the whole entry runtime captured and replaced by its restored record (which rebinds
+	the Jobs dispatcher) before every tick and (ADR1221) Routes and WorldRoutes cold-restored into blanked banks every
+	ROUTE_RESTORE_EVERY ticks; the stop, every owner image and both route images are byte-identical."""
 	var plain: Array = _live_chain(false)
 	if plain.is_empty(): return
 	after_each()
@@ -1136,7 +1321,10 @@ func _live_chain(restoring: bool) -> Array:
 			if tick % ROUTE_RESTORE_EVERY == 0 and not _cold_restore_routes(o, tick): return []
 		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
 		tick += 1
-	_assert_g6_stop(o, _host.underground_entry(), worker)
+	_assert_next_gap_stop(o, _host.underground_entry(), worker)
+	assert_equal(tick - 1, NEXT_GAP_TICK, "the stop tick")
+	if restoring:
+		assert_true(o.jobs._dispatch_owns.get_object() == _host.underground_entry(), "the restored runtime dispatches")
 	var record: PackedByteArray = PackedByteArray()
 	assert_equal(_host.underground_entry().capture(record), &"", "final record")
 	return [counts[0], counts[1], tick, _host.underground_entry().error()] + _snapshot() + [record] \

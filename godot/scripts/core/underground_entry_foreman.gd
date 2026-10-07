@@ -535,6 +535,11 @@ func _fail(code: StringName) -> StringName:
 	return code
 
 
+func halt(code: StringName) -> StringName:
+	"""ADR1223: the runtime stops the chain for a reason outside the dispatch (crew loss, arrival); same as a refusal."""
+	return _fail(code) if not _terminal() else _error
+
+
 func is_done() -> bool:
 	"""True once all planned phases have settled."""
 	return _stage == STAGE_DONE

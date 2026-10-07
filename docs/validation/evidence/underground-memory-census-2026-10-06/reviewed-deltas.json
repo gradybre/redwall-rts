@@ -1273,6 +1273,31 @@
      ]
     ]
    }
+  },
+  "godot/scripts/core/jobs.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "ADR 1223: the bound dispatcher's two method Callables (object id plus method name, native Variant overhead, unmeasured as in every row) and one bool of per-pass scratch; no packed column, no saved state"
+    }
+   ],
+   "delta": {
+    "members_added": [
+     [
+      "_dispatch_owns",
+      "Callable"
+     ],
+     [
+      "_dispatch_reserves",
+      "Callable"
+     ],
+     [
+      "_scratch_reserved",
+      "bool"
+     ]
+    ]
+   }
   }
  },
  "scope": "ADR 1212 reviewed storage deltas between manifest-3 reviewed bytes and the current source."

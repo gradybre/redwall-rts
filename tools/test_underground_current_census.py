@@ -37,7 +37,7 @@ class CurrentCensusTests(unittest.TestCase):
     def test_current_counts(self):
         result = census.build(self.index, self.projected, self.motion)
         self.assertEqual(result["new_retained_bytes"], {"geometry_journals": 4322,
-                         "locations_carry_and_retirement_controls": 161, "first_entry_runtime_chain": 8338, "cold_load_images": 196694})
+                         "locations_carry_and_retirement_controls": 161, "first_entry_runtime_chain": 8347, "cold_load_images": 196694})
         self.assertEqual(result["room_publication_controls"]["controls"], 8970)
         self.assertEqual(result["location_air_pool"]["remaining_bytes"], 1472)
         self.assertEqual(result["world_routes_cold"]["world_routes_cold_bytes"], 379648)
@@ -98,7 +98,7 @@ class CurrentCensusTests(unittest.TestCase):
     def test_joint_pack_fits_the_raised_gate(self):
         result = memory.build()
         self.assertEqual((result["live_with_reserve_bytes"], result["gate_bytes"], result["headroom_bytes"]),
-                         (100209892, 150000000, 49790108))
+                         (100209901, 150000000, 49790099))
 
     def test_publication_controls_refuse_above_their_ceiling(self):
         text = self.index["underground_room_frontier_publication"].text.replace(

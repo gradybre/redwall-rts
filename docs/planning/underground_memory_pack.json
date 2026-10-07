@@ -41227,6 +41227,7 @@
       "godot/data/underground/mole-worker/qualified-step-v4/catalog_source.gd",
       "godot/data/underground/mole-worker/qualified-step-v4/manifest.json",
       "godot/data/underground/mole-worker/work-step-v1/source_program.gd",
+      "godot/scripts/core/jobs.gd",
       "godot/scripts/core/modular_projects.gd",
       "godot/scripts/core/underground_budget.gd",
       "godot/scripts/core/underground_connector_catalog.gd",
@@ -42848,6 +42849,31 @@
             ]
           ]
         }
+      },
+      "godot/scripts/core/jobs.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1223: the bound dispatcher's two method Callables (object id plus method name, native Variant overhead, unmeasured as in every row) and one bool of per-pass scratch; no packed column, no saved state"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_dispatch_owns",
+              "Callable"
+            ],
+            [
+              "_dispatch_reserves",
+              "Callable"
+            ],
+            [
+              "_scratch_reserved",
+              "bool"
+            ]
+          ]
+        }
       }
     },
     "charged_by_carrier": {
@@ -42880,7 +42906,7 @@
     },
     "first_entry_runtime": {
       "rows": {
-        "runtime_numeric": 72,
+        "runtime_numeric": 81,
         "work_area_published": 96,
         "crew": 40,
         "foreman_numeric": 365,
@@ -42891,7 +42917,7 @@
         "haulers": 664,
         "progress_record": 5128
       },
-      "bytes": 8338,
+      "bytes": 8347,
       "frontier_counts": {
         "INSTALL": 2,
         "STATION": 8,
@@ -42959,10 +42985,10 @@
     "new_retained_bytes": {
       "geometry_journals": 4322,
       "locations_carry_and_retirement_controls": 161,
-      "first_entry_runtime_chain": 8338,
+      "first_entry_runtime_chain": 8347,
       "cold_load_images": 196694
     },
-    "new_contribution_bytes": 209515,
+    "new_contribution_bytes": 209524,
     "runtime_qualified": false,
     "native_measured": false
   },
@@ -42974,7 +43000,7 @@
     "connector_workpieces": 29928,
     "guarded_haul_transfers": 3072,
     "connector_delivery": 4096,
-    "current_census_new_retained": 209515,
+    "current_census_new_retained": 209524,
     "space_banks_and_indexes": 1104160,
     "phase_proof_cache_and_candidate": 17724,
     "shared_geometry_cold_peak": 1048960,
@@ -42989,12 +43015,12 @@
     "LAYOUT_COLD_BYTES": 262144,
     "BINDINGS_AND_GROWTH_BYTES": 524544
   },
-  "new_mutable_and_reserved_bytes": 5216812,
+  "new_mutable_and_reserved_bytes": 5216821,
   "declaration_bytes": 23888,
   "declaration_delta_bytes": 2703,
-  "live_with_reserve_bytes": 100209892,
+  "live_with_reserve_bytes": 100209901,
   "gate_bytes": 150000000,
-  "headroom_bytes": 49790108,
+  "headroom_bytes": 49790099,
   "source_sha256": {
     "godot/scripts/core/construction.gd": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a",
     "godot/scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",

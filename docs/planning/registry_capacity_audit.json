@@ -25,7 +25,7 @@
       "injury": "e881a967099df59cadb9440f4d69632ca19c1ea2b3c8eddfe79dde3857603447",
       "inventory": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
       "job_planner": "bc024854f95b7b31f7ed580252a84e85fba565f4adec7b354df776c3a4870591",
-      "jobs": "d8cd5fc96ab00748f16fe0b5b29f2a4ae943ed53f6fa48fbd1790ae98d4b171b",
+      "jobs": "31407a15f7a4ea3bb48c7aa641b5e3effe3b6cacd08c6a56d5ff5dcf8b7117b5",
       "modular_projects": "b1254a5040614a2151d6bb30a6789f92afc20da3d54a5c7a500b64e1e5b03e50",
       "movement": "4121be883c9fab58ec98d274a7e712703b61c2b5d2e46d34d0f0258c6287eb69",
       "navigation": "ae078227fb79879b3357e1ba174c58f1b209ac346a9b6cc6ded70e1080cd7255",
@@ -5790,7 +5790,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -5802,7 +5802,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 670,
+      "source_resize_line": 691,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -5813,7 +5813,7 @@
       "owner_key": "jobs",
       "parsed_expression": "AGENT_CAPACITY",
       "proof_chain": [
-        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:290 `const AGENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -5825,7 +5825,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "AGENT_CAPACITY",
-      "source_resize_line": 688,
+      "source_resize_line": 709,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -5836,7 +5836,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -5848,7 +5848,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 662,
+      "source_resize_line": 683,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -5859,7 +5859,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -5871,7 +5871,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 662,
+      "source_resize_line": 683,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -5882,7 +5882,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -5894,7 +5894,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 662,
+      "source_resize_line": 683,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -5905,7 +5905,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -5917,7 +5917,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 662,
+      "source_resize_line": 683,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -5928,7 +5928,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -5940,7 +5940,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 662,
+      "source_resize_line": 683,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -5951,7 +5951,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -5963,7 +5963,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 662,
+      "source_resize_line": 683,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -5974,7 +5974,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -5986,7 +5986,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 662,
+      "source_resize_line": 683,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -5997,7 +5997,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6009,7 +6009,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 662,
+      "source_resize_line": 683,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -6020,7 +6020,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6032,7 +6032,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 662,
+      "source_resize_line": 683,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -6043,7 +6043,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6055,7 +6055,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 662,
+      "source_resize_line": 683,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -6066,7 +6066,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6078,7 +6078,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 662,
+      "source_resize_line": 683,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -6089,7 +6089,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6101,7 +6101,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 662,
+      "source_resize_line": 683,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -6112,7 +6112,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6124,7 +6124,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 668,
+      "source_resize_line": 689,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -6135,7 +6135,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6147,7 +6147,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 668,
+      "source_resize_line": 689,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -6158,7 +6158,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6170,7 +6170,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 662,
+      "source_resize_line": 683,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -6181,7 +6181,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6193,7 +6193,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 662,
+      "source_resize_line": 683,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -6204,7 +6204,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6216,7 +6216,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 670,
+      "source_resize_line": 691,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -6227,7 +6227,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6239,7 +6239,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 670,
+      "source_resize_line": 691,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -6250,7 +6250,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6262,7 +6262,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 670,
+      "source_resize_line": 691,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -6273,7 +6273,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6285,7 +6285,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 670,
+      "source_resize_line": 691,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -6296,7 +6296,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6308,7 +6308,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 670,
+      "source_resize_line": 691,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -6319,7 +6319,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6331,7 +6331,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 670,
+      "source_resize_line": 691,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -6342,7 +6342,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6354,7 +6354,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 670,
+      "source_resize_line": 691,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -6365,7 +6365,7 @@
       "owner_key": "jobs",
       "parsed_expression": "AGENT_CAPACITY",
       "proof_chain": [
-        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:290 `const AGENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6377,7 +6377,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "AGENT_CAPACITY",
-      "source_resize_line": 681,
+      "source_resize_line": 702,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6388,7 +6388,7 @@
       "owner_key": "jobs",
       "parsed_expression": "AGENT_CAPACITY",
       "proof_chain": [
-        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:290 `const AGENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6400,7 +6400,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "AGENT_CAPACITY",
-      "source_resize_line": 681,
+      "source_resize_line": 702,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6411,7 +6411,7 @@
       "owner_key": "jobs",
       "parsed_expression": "AGENT_CAPACITY",
       "proof_chain": [
-        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:290 `const AGENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6423,7 +6423,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "AGENT_CAPACITY",
-      "source_resize_line": 681,
+      "source_resize_line": 702,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6434,7 +6434,7 @@
       "owner_key": "jobs",
       "parsed_expression": "AGENT_CAPACITY",
       "proof_chain": [
-        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:290 `const AGENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6446,7 +6446,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "AGENT_CAPACITY",
-      "source_resize_line": 681,
+      "source_resize_line": 702,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6457,7 +6457,7 @@
       "owner_key": "jobs",
       "parsed_expression": "AGENT_CAPACITY",
       "proof_chain": [
-        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:290 `const AGENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6469,7 +6469,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "AGENT_CAPACITY",
-      "source_resize_line": 681,
+      "source_resize_line": 702,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6480,7 +6480,7 @@
       "owner_key": "jobs",
       "parsed_expression": "AGENT_CAPACITY",
       "proof_chain": [
-        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:290 `const AGENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6492,7 +6492,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "AGENT_CAPACITY",
-      "source_resize_line": 681,
+      "source_resize_line": 702,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6503,7 +6503,7 @@
       "owner_key": "jobs",
       "parsed_expression": "AGENT_CAPACITY",
       "proof_chain": [
-        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:290 `const AGENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6515,7 +6515,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "AGENT_CAPACITY",
-      "source_resize_line": 681,
+      "source_resize_line": 702,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6526,7 +6526,7 @@
       "owner_key": "jobs",
       "parsed_expression": "AGENT_CAPACITY",
       "proof_chain": [
-        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:290 `const AGENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6538,7 +6538,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "AGENT_CAPACITY",
-      "source_resize_line": 685,
+      "source_resize_line": 706,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6549,7 +6549,7 @@
       "owner_key": "jobs",
       "parsed_expression": "AGENT_CAPACITY",
       "proof_chain": [
-        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:290 `const AGENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6561,7 +6561,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "AGENT_CAPACITY",
-      "source_resize_line": 685,
+      "source_resize_line": 706,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6572,7 +6572,7 @@
       "owner_key": "jobs",
       "parsed_expression": "AGENT_CAPACITY",
       "proof_chain": [
-        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:290 `const AGENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6584,7 +6584,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "AGENT_CAPACITY",
-      "source_resize_line": 685,
+      "source_resize_line": 706,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6595,7 +6595,7 @@
       "owner_key": "jobs",
       "parsed_expression": "AGENT_CAPACITY",
       "proof_chain": [
-        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:290 `const AGENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6607,7 +6607,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "AGENT_CAPACITY",
-      "source_resize_line": 688,
+      "source_resize_line": 709,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6618,7 +6618,7 @@
       "owner_key": "jobs",
       "parsed_expression": "AGENT_CAPACITY",
       "proof_chain": [
-        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:290 `const AGENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6630,7 +6630,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "AGENT_CAPACITY",
-      "source_resize_line": 681,
+      "source_resize_line": 702,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6641,7 +6641,7 @@
       "owner_key": "jobs",
       "parsed_expression": "AGENT_CAPACITY",
       "proof_chain": [
-        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+        "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:290 `const AGENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6653,7 +6653,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "AGENT_CAPACITY",
-      "source_resize_line": 688,
+      "source_resize_line": 709,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -10149,7 +10149,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -10161,7 +10161,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 662,
+      "source_resize_line": 683,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -10172,7 +10172,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -10184,7 +10184,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 662,
+      "source_resize_line": 683,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -10195,7 +10195,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -10207,7 +10207,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 662,
+      "source_resize_line": 683,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -10218,7 +10218,7 @@
       "owner_key": "jobs",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+        "JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -10230,7 +10230,7 @@
       "source_module": "jobs",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 662,
+      "source_resize_line": 683,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -11404,7 +11404,7 @@
       "owner_key": "modular_projects",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "Jobs.JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192",
+        "Jobs.JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192",
         "JOB_CAPACITY -> godot/scripts/core/modular_projects.gd:17 `const JOB_CAPACITY = Jobs.JOB_CAPACITY` = 8192"
       ],
       "proof_kind": "compiled_constant",
@@ -11428,7 +11428,7 @@
       "owner_key": "modular_projects",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "Jobs.JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192",
+        "Jobs.JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192",
         "JOB_CAPACITY -> godot/scripts/core/modular_projects.gd:17 `const JOB_CAPACITY = Jobs.JOB_CAPACITY` = 8192"
       ],
       "proof_kind": "compiled_constant",
@@ -11452,7 +11452,7 @@
       "owner_key": "modular_projects",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "Jobs.JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192",
+        "Jobs.JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192",
         "JOB_CAPACITY -> godot/scripts/core/modular_projects.gd:17 `const JOB_CAPACITY = Jobs.JOB_CAPACITY` = 8192"
       ],
       "proof_kind": "compiled_constant",
@@ -11476,7 +11476,7 @@
       "owner_key": "modular_projects",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "Jobs.JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192",
+        "Jobs.JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192",
         "JOB_CAPACITY -> godot/scripts/core/modular_projects.gd:17 `const JOB_CAPACITY = Jobs.JOB_CAPACITY` = 8192"
       ],
       "proof_kind": "compiled_constant",
@@ -11993,7 +11993,7 @@
       "owner_key": "room_projects",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "Jobs.JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192",
+        "Jobs.JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192",
         "JOB_CAPACITY -> godot/scripts/core/room_projects.gd:26 `const JOB_CAPACITY = Jobs.JOB_CAPACITY` = 8192"
       ],
       "proof_kind": "compiled_constant",
@@ -12017,7 +12017,7 @@
       "owner_key": "room_projects",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "Jobs.JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192",
+        "Jobs.JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192",
         "JOB_CAPACITY -> godot/scripts/core/room_projects.gd:26 `const JOB_CAPACITY = Jobs.JOB_CAPACITY` = 8192"
       ],
       "proof_kind": "compiled_constant",
@@ -12041,7 +12041,7 @@
       "owner_key": "room_projects",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "Jobs.JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192",
+        "Jobs.JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192",
         "JOB_CAPACITY -> godot/scripts/core/room_projects.gd:26 `const JOB_CAPACITY = Jobs.JOB_CAPACITY` = 8192"
       ],
       "proof_kind": "compiled_constant",
@@ -12065,7 +12065,7 @@
       "owner_key": "room_projects",
       "parsed_expression": "JOB_CAPACITY",
       "proof_chain": [
-        "Jobs.JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192",
+        "Jobs.JOB_CAPACITY -> godot/scripts/core/jobs.gd:288 `const JOB_CAPACITY = 8192` = 8192",
         "JOB_CAPACITY -> godot/scripts/core/room_projects.gd:26 `const JOB_CAPACITY = Jobs.JOB_CAPACITY` = 8192"
       ],
       "proof_kind": "compiled_constant",

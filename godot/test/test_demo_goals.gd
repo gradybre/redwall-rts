@@ -140,7 +140,7 @@ func test_a_goal_is_reached_once_and_stays_reached() -> void:
 	stands); later hours say nothing more."""
 	var book := BookScript.new()
 	var said: Array[StringName] = []
-	book.reached = func(goal: BookScript.Goal) -> void: said.append(goal.id)
+	book.reached = func(reached_goal: BookScript.Goal) -> void: said.append(reached_goal.id)
 	book.register(&"a", "A", "", _one(&"x", 5, _measure))
 	_level = 4
 	book.update(1)
@@ -304,7 +304,7 @@ func test_first_crossing_is_reached_on_the_ferrys_own_count() -> void:
 	var ferry := FerryScript.new()
 	village.ferry = ferry
 	var said: Array[StringName] = []
-	book.reached = func(goal: BookScript.Goal) -> void: said.append(goal.id)
+	book.reached = func(reached_goal: BookScript.Goal) -> void: said.append(reached_goal.id)
 	book.update(0)
 	var goal: BookScript.Goal = book.goal(&"first_crossing")
 	assert_equal([goal.group, goal.parts[0].target, goal.parts[0].value, goal.done], [BookScript.GROUP_VILLAGE, 1, 0,

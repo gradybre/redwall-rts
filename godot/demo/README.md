@@ -2611,6 +2611,57 @@ ruled). No illness is modelled: the family illnesses (CHILL) are a draft.
   so a hurt, Chilled resident works at 68% (decision 0902). HEAL work reads it, and the winter writes it into each
   resident's `work_permille`, which the outdoor crews credit their work by -- once, never twice.
 
+## Wildlife (decision 1631; feature #11)
+
+Robins hop and peck about the lawn and paths and fly from spot to spot; peacock butterflies flutter over the beds and
+settle on the plants; common frogs sit on the pond's bank and hop along it; brown trout leap in the pond and the
+stream's run (`wildlife/`). They are the rigged art pass 2 models (decision 0951) at DEC-047's sizes: robin 0.45 m,
+butterfly 0.36 m across, frog 0.40 m, trout 0.80 m. **Ambient, never simulated**: what shows is a function of the
+season, the hour and the weather (`wildlife_rules.gd`), and nothing is written anywhere (REQ-SET-059/065, the fauna
+contract's "no active fauna"). Nobody can select, feed or hunt them (REQ-ADM-001).
+
+| | When | Does |
+|---|---|---|
+| Robin | all year (fewer in winter), in daylight; half in rain or snow | rests, pecks, hops, flies to another spot; **takes wing when a resident on the surface comes within 1.6 m** (not in rain or snow) |
+| Butterfly | spring to autumn, dry daylight at 10 °C or more | flutters round its spot, settles on a plant top, rises again |
+| Frog | spring to autumn, day and night, above freezing | sits facing the water, hops along the bank and back |
+| Trout | spring to autumn, in daylight | leaps every 6-16 s, along the run's flow or round the pond |
+
+- **Reduced motion** stills them: no hops, flights, flutters or leaps; each still breathes in its idle clip.
+- **Paused**, they hold, clips and all; at 2x and 4x they run faster.
+- **Pooled**: 14 animals and 4 robin flight bodies are built once; a hidden body's AnimationPlayer is off; every mesh is
+  culled past 55 m. The boot prewarm draws them all once.
+- **Not staged** (CI), each is a rounded stand-in of its size and colour, so the suites test the same logic.
+- The live harness: `godot --path godot --script res://test/live/demo_wildlife_live.gd -- --size 1920x1080 --capture <dir>`.
+
+## Livelier weather (decision 1632; feature #34)
+
+Each of GDD §5.10's seven events is shown and felt by its numbers (`weather/weather_fx.gd`, `event_look.gd`,
+`weather_events.gd`, `storm_pace.gd`). The forecast says the event, its first day, its length and what it does
+(REQ-SET-142); the village is told when it begins and when it is over.
+
+| Event | Applied | Shown |
+|---|---|---|
+| Storm (heavy rain) | rain +2000, 3 °C colder; boats stay at the jetty; **outdoor work at 80%** | driven rain, a dark sky, **lightning** over the trees and open ground |
+| Drought | 30 °C, no rain, beds dry faster; orchards want water | the grass parched straw-brown, a heat haze |
+| Blight | crops lose 400 health a day | the farm's blighted beds |
+| Early frost | -3 °C, frost on the beds | a rime lying all its days |
+| Hard freeze | -12 °C; outdoor cold twice as fast; no boat leaves | a heavy hoar frost, a freezing mist, a low cold sun |
+| Calm days | nothing (an announced safe interval) | the notice |
+| Ideal spell | 18 °C, crops grow 20% faster, gentle rain | a little brighter |
+
+- **The storm's 80%** is one factor, "storm", on the village's work pace: residents outdoors on a storm day, not those
+  inside a building or below ground. The woods' and the bridge builders' own storm slowdowns are gone (they counted it
+  for themselves only).
+- **Lightning** strikes a standing tree or open ground near where the camera looks -- never a building (the village's,
+  the mill, the boathouse, the shelter, the weir, anything the player has built), the water or within 6 m of a resident
+  -- every 5-12 demo seconds while a storm day rains. A struck tree's foot smoulders briefly and the rain puts
+  it out; nothing burns down (GDD §5.9: no structure fire in release 1).
+- **Photosensitivity**: the flash runs in real time at any game speed, strikes are at least 3 real seconds apart, and
+  with **reduced motion** each strike is one soft swell.
+- **Paused**, a strike holds still and nothing new strikes.
+- The live harness: `godot --path godot --script res://test/live/demo_weather_live.gd -- --size 1920x1080 --capture <dir>`.
+
 ## Layout
 
 | Folder | Owns |

@@ -47,6 +47,8 @@ const SimClock := preload("res://scripts/core/sim_clock.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const CoreWeather := preload("res://scripts/core/weather.gd")
+const WeatherEvents := preload("res://demo/weather/weather_events.gd")
 
 const LOW_FERTILITY: int = 4000
 const GRACE_HOURS: int = 48
@@ -191,7 +193,8 @@ static func frost_text(season: int, season_day: int) -> String:
 
 
 func _forecast_line(sim: SimScript, out: PackedStringArray) -> void:
-	"""The real weather's disclosed forecast, once per event."""
+	"""The real weather's disclosed forecast, once per event: REQ-SET-142's start, duration and what it does
+	(demo/weather/weather_events.gd, decision 1632)."""
 	var event: int = sim.forecast_event()
 	if event < 0 or event >= EVENT_NAMES.size():
 		return
@@ -203,7 +206,10 @@ func _forecast_line(sim: SimScript, out: PackedStringArray) -> void:
 	if _forecasts.has(event):
 		return
 	_forecasts[event] = true
-	_say(out, "Forecast: %s coming in the next days" % EVENT_NAMES[event].to_lower(), NOTE, -1)
+	var row: CoreWeather = sim.crop_weather().weather()
+	var forecast_season: int = CoreWeather.season_of_absolute_season(row.forecast_absolute_season())
+	_say(out, WeatherEvents.forecast_text(event, forecast_season, row.forecast_start_day(),
+		row.forecast_duration_days()), NOTE, -1)
 
 
 func _bed_lines(sim: SimScript, bed: int, day: int, out: PackedStringArray) -> void:

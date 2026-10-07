@@ -1491,8 +1491,8 @@ Review group X (ECO-001, ECO-003, ECO-004 with feature #48, ECO-006, ECO-007). E
 
 - **Crop roles** (0881, `farm/farm_crop_roles.gd`): a crop's role is its §5.6 row's -- Keeping root (keeps 10 days,
   ripens in 5), Fresh greens (sown summer and autumn, keeps 6 days), Soil restorer (gives the soil 800 fertility, keeps
-  20 days), Flour crop (10 U a bed, ripens in 8 days) -- with its uses read from the kitchen's dishes, the mill and the
-  raw-emergency table. Siblings of one row stay equal. Shown in the crop picker and the harvest plan.
+  20 days), Flour crop (10 U a bed, ripens in 8 days) -- with its uses read from the kitchen's dishes, the mill, the
+  stations' recipe rows (decision 1625: roots → pickles, barley → ale) and the raw-emergency table. Siblings of one row stay equal. Shown in the crop picker and the harvest plan.
 - **Twelve field beds** (0886, Brendan's balance ruling E5): the six world beds and the **south field**'s six 2 m tiles,
   one 6 m x 4 m field on the grass south of the covered store, laid from the start, loam and clay.
 - **Sowing in season** (0886): the live village starts with the tending policy **Sow empty beds in season** on for the
@@ -2123,6 +2123,11 @@ Brendan's "Approve and build Q-d5 and dec-007" (2026-10-07): four content-librar
 - **Make pickles** at the preserving table: roots 3 + vinegar 1 → **pickles** 3 (800 NP a unit, eaten as they are),
   12 WU, then 24 h in a crock, keeps 720 h -- **no salt**: a pickle beyond the library's formulas, by Brendan's
   approval ("both vinegar and salt", 2026-10-07).
+- **Every ingredient says what the stations make of it**, read from the recipe rows (`preserve_rules.gd`
+  `rows_taking`), so a new row shows without an edit: the crop picker's Uses (roots: the preserving table's pickles;
+  barley: the brewery's ale) and the field guide's Uses (apples: dried fruit, cider, apple vinegar; pears: dried
+  fruit; honey: mead, cordial, berry jam; nuts: rations, nut cheese; berries: cordial, berry jam; flour and dried
+  fish: rations; vinegar: pickles), each linked to the good it makes.
 - **The salted pickle waits on salt**: approved, but the village has no salt path (no coast, no trader), so it is not
   built; it becomes one more row when salt exists.
 

@@ -231,13 +231,15 @@ static func fruit_words(species: int) -> String:
 		Hive.SPECIES_HARVEST_FIRST_DAY[species], Hive.SPECIES_HARVEST_LAST_DAY[species]]
 
 
-static func guide_fields(item: int) -> Array:
-	"""The field guide's entry for an orchard item (demo/guide/field_guide.gd's goods): [summary, fields]."""
+static func guide_fields(item: int, made_into: String = "") -> Array:
+	"""The field guide's entry for an orchard item (demo/guide/field_guide.gd's goods): [summary, fields]; `made_into`
+	is what the stations make of it (preserve_text.gd made_into_text), said instead of "no demo dish cooks it yet"."""
 	var shelf: int = Catalog.shelf_hours_of(item)
 	if Catalog.category_of(item) == Catalog.CAT_FRUIT:
 		var species: int = Catalog.ORCHARD_SPECIES_ITEM.find(item)
 		return ["Picked from the orchard's trees", PackedStringArray([
-			"Fruit (§5.7): eaten raw by a hungry resident when a meal is missed (900 NP a unit); no demo dish cooks it yet.",
+			"Fruit (§5.7): eaten raw by a hungry resident when a meal is missed (900 NP a unit). %s" % (made_into
+				if not made_into.is_empty() else "No demo dish cooks it yet."),
 			cap(fruit_words(species)) + "; a young tree gives a fifth of that from its first full year.",
 			"The nursery turns 4 U into a sapling (with compost 2 and water 2).",
 			"Keeps %d game hours in store; the Pantry (K) lists it." % shelf])]

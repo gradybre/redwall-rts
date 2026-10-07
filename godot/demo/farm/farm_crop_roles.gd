@@ -29,11 +29,14 @@ extends RefCounted
 ##   * every kitchen dish whose input or second input is the ingredient's category (meal_rules.gd DISH_COUNT,
 ##     `is_input` -- the kitchen's own test);
 ##   * the mill, for the grain row (MILL_CROP);
+##   * every station row with an input that takes it -- the preserving table's, the brewery's (preserve_rules.gd
+##     `rows_taking`, decision 1625): roots to pickles, barley to ale;
 ##   * eaten raw in a pinch, when the kitchen's raw-emergency table lists the category (meal_rules.gd `raw_np_per_u`).
 
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const MealRules := preload("res://demo/kitchen/meal_rules.gd")
+const PreserveText := preload("res://demo/preserve/preserve_text.gd")
 const Text := preload("res://demo/farm/farm_text.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 
@@ -110,7 +113,8 @@ static func traits_text(item: int) -> String:
 
 
 static func uses_of(item: int) -> PackedStringArray:
-	"""What the village does with the ingredient, read from the kitchen's and the mill's own tables (see THE USES)."""
+	"""What the village does with the ingredient, read from the kitchen's, the mill's and the stations' own tables (see
+	THE USES)."""
 	var out := PackedStringArray()
 	if not Catalog.is_item(item):
 		return out
@@ -119,6 +123,7 @@ static func uses_of(item: int) -> PackedStringArray:
 			out.append(MealRules.DISH_NAMES[dish])
 	if Catalog.crop_of(item) == MILL_CROP:
 		out.append(MILL_USE)
+	out.append_array(PreserveText.station_uses(item))
 	if MealRules.raw_np_per_u(item) > 0:
 		out.append(RAW_USE)
 	return out

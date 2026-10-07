@@ -2,7 +2,7 @@ extends SceneTree
 ## The food lanes on the REAL scene with REAL Viewport input (decision 1601 onward): the apiary's skep and bees beside the
 ## old orchard, a left click on the skep bringing the Orchard panel with the apiary's readout and verbs; the preserving
 ## table by the kitchen and the Water panel's Preserves (decision 1611); the brewery and its Brewing section (decision
-## 1621); the new recipes' buttons (decision 1625). Not discovered by
+## 1621); the new recipes' buttons (decision 1625), and the crop picker's Uses naming the stations' rows. Not discovered by
 ## the runner: test/test_demo_food_live.gd runs it in its own process.
 ##
 ##     godot --headless --path godot --script res://test/live/demo_food_live.gd [-- --size 1920x1080]
@@ -46,7 +46,7 @@ func _initialize() -> void:
 	current_scene = _village
 	_steps = [_pause, _the_apiary_is_wired, _look_at_the_apiary, _click_the_skep, _its_readout_and_verbs,
 		_close_on_the_bees, _look_at_the_preserving_table, _open_the_preserves, _look_at_the_brewery, _open_the_brewing,
-		_the_new_recipes]
+		_the_new_recipes, _select_a_bed, _open_the_crop_picker, _the_picker_lists_the_stations]
 
 
 func _process(_delta: float) -> bool:
@@ -272,3 +272,23 @@ func _the_new_recipes() -> void:
 	_check("the vinegar card keeps it for pickling", vinegar_card.contains("pickling") and not vinegar_card.contains("feasts"), vinegar_card.replace("\n", " / "))
 	_check("the preserves line counts vinegar and pickles", String(panel.call(&"line", &"preserves")).contains("pickles"))
 	_capture("new_recipes_panel")
+
+
+func _select_a_bed() -> void:
+	"""Select bed 1, as a player would before Plant… (decision 1625's Uses, read from the recipe rows)."""
+	_village.get("_farm").call(&"select_bed", 0)
+
+
+func _open_the_crop_picker() -> void:
+	"""Open bed 1's crop picker."""
+	(_village.get("_farm").get("bed_panel") as CanvasLayer).call(&"open_picker")
+
+
+func _the_picker_lists_the_stations() -> void:
+	"""The roots' role line names the pickles, barley's the ale: the picker reads the stations' rows."""
+	var bed: CanvasLayer = _village.get("_farm").get("bed_panel")
+	var radish: String = bed.call(&"picker_role", 0)
+	var barley: String = bed.call(&"picker_role", 14)
+	_check("the radish's Uses name the pickles", radish.contains("the preserving table (pickles)"), radish)
+	_check("barley's Uses name the ale", barley.contains("the brewery (ale)"), barley)
+	_capture("crop_picker")

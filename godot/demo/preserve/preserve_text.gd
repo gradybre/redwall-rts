@@ -73,6 +73,27 @@ static func made_words(recipe: int) -> String:
 		work_wu, wait]
 
 
+static func station_uses(item: int) -> PackedStringArray:
+	"""The stations' rows that take `item`, short, for a crop card: 'the brewery (ale)' (preserve_rules.gd rows_taking)."""
+	var out := PackedStringArray()
+	for recipe: int in Recipes.rows_taking(item):
+		out.append("%s (%s)" % [Recipes.STATION_NAMES[Recipes.STATION[recipe]], good_words(recipe)])
+	return out
+
+
+static func made_into_text(item: int) -> String:
+	"""The stations' rows that take `item`, for the guide: 'Made into: cider at the brewery; ...' ('' for none)."""
+	var parts := PackedStringArray()
+	for recipe: int in Recipes.rows_taking(item):
+		parts.append("%s at %s" % [good_words(recipe), Recipes.STATION_NAMES[Recipes.STATION[recipe]]])
+	return "Made into: %s." % "; ".join(parts) if not parts.is_empty() else ""
+
+
+static func good_words(recipe: int) -> String:
+	"""A row's output in words: 'apple vinegar'."""
+	return Catalog.ITEM_LABELS[Recipes.OUT_ITEM[recipe]].to_lower()
+
+
 static func _alternative(item: int) -> String:
 	"""What else does a preserve's work."""
 	if item == Catalog.ITEM_JAM:

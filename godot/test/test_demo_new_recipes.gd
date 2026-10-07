@@ -18,6 +18,7 @@ const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
 const TakesScript := preload("res://demo/kitchen/ingredient_takes.gd")
 const MealRules := preload("res://demo/kitchen/meal_rules.gd")
+const CropRoles := preload("res://demo/farm/farm_crop_roles.gd")
 const KitchenScript := preload("res://demo/kitchen/kitchen.gd")
 const MenuScript := preload("res://demo/regatta/regatta_menu.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
@@ -414,3 +415,66 @@ func test_the_recipe_card_says_what_each_good_is_for() -> void:
 	assert_equal([PreserveText.card_use(Recipes.R_VINEGAR), PreserveText.card_use(Recipes.R_PICKLES),
 		PreserveText.card_use(Recipes.R_ALE), PreserveText.card_use(Recipes.R_JAM)],
 		["kept for pickling", "eaten as it is", "kept for feasts", "eaten as it is"], "uses")
+
+
+# --- every ingredient's uses come from the recipe rows (Brendan, 2026-10-07: "fix the crop card Uses: gaps") --------------
+
+const ROWS_TAKING: Dictionary = {
+	Catalog.ITEM_APPLE: [Recipes.R_DRY_FRUIT, Recipes.R_CIDER, Recipes.R_VINEGAR],
+	Catalog.ITEM_PEAR: [Recipes.R_DRY_FRUIT],
+	Catalog.ITEM_HONEY: [Recipes.R_MEAD, Recipes.R_CORDIAL, Recipes.R_JAM],
+	Catalog.ITEM_NUTS: [Recipes.R_RATION, Recipes.R_CHEESE],
+	Catalog.ITEM_BERRIES: [Recipes.R_CORDIAL, Recipes.R_JAM],
+	Catalog.ITEM_BARLEY: [Recipes.R_ALE],
+	Catalog.ITEM_FLOUR: [Recipes.R_RATION],
+	Catalog.ITEM_DRIED_FISH: [Recipes.R_RATION],
+	Catalog.ITEM_VINEGAR: [Recipes.R_PICKLES],
+	0: [Recipes.R_PICKLES],
+	5: [Recipes.R_PICKLES],
+}
+
+
+func test_each_ingredient_feeds_the_rows_that_take_it() -> void:
+	"""Apples: dried fruit, cider, vinegar; pears: dried fruit; honey: mead, cordial, jam; nuts: rations, cheese; berries:
+	cordial, jam; barley: ale (oats and wheat not); roots (radish, onion): pickles; the catch: none (the fish row's text
+	is its own)."""
+	for item: int in ROWS_TAKING:
+		assert_equal(Array(Recipes.rows_taking(item)), ROWS_TAKING[item], Catalog.ITEM_KEYS[item])
+	for item: int in [13, 15, Catalog.FIRST_CATCH, Catalog.ITEM_MEAD]:
+		assert_true(Recipes.rows_taking(item).is_empty(), "%s feeds no row" % Catalog.ITEM_KEYS[item])
+
+
+func test_the_crop_cards_list_the_stations() -> void:
+	"""The bed picker's Uses: roots list the preserving table's pickles, barley the brewery's ale; oats neither; raw
+	stays last."""
+	var radish: PackedStringArray = CropRoles.uses_of(0)
+	assert_true(radish.has("the preserving table (pickles)"), ", ".join(radish))
+	assert_equal(radish[radish.size() - 1], CropRoles.RAW_USE, "raw last")
+	assert_true(CropRoles.uses_of(Catalog.ITEM_BARLEY).has("the brewery (ale)"), CropRoles.uses_text(Catalog.ITEM_BARLEY))
+	assert_false(CropRoles.uses_text(15).contains("ale"), "oats make no ale")
+
+
+func test_no_use_can_drift_from_the_rows() -> void:
+	"""Every pantry item a row takes says so: a crop's card and guide entry, every other good's guide entry, naming
+	each row's output and linking to it."""
+	var guide := FieldGuideScript.new()
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
+		var entry: FieldGuideScript.Entry = guide.entry(guide.index_of(FieldGuideScript.item_id(item)))
+		for recipe: int in Recipes.rows_taking(item):
+			var good: String = PreserveText.good_words(recipe)
+			assert_true(entry.uses.contains(good), "%s's guide names %s: %s" % [Catalog.ITEM_KEYS[item], good, entry.uses])
+			assert_true(entry.links.has(FieldGuideScript.item_id(Recipes.OUT_ITEM[recipe])), "and links it")
+			if Catalog.is_item(item):
+				assert_true(CropRoles.uses_text(item).contains("(%s)" % good), "%s's card" % Catalog.ITEM_KEYS[item])
+
+
+func test_the_guide_says_what_the_apple_and_honey_make() -> void:
+	"""The apple's entry no longer says no dish cooks it; honey's names the jam."""
+	var guide := FieldGuideScript.new()
+	var apple: String = guide.entry(guide.index_of(FieldGuideScript.item_id(Catalog.ITEM_APPLE))).uses
+	assert_true(apple.contains("Made into: dried fruit at the rack; cider at the brewery; apple vinegar at the brewery."), apple)
+	assert_false(apple.contains("No demo dish"), "not 'no dish'")
+	var honey: String = guide.entry(guide.index_of(FieldGuideScript.item_id(Catalog.ITEM_HONEY))).uses
+	assert_true(honey.contains("berry jam at the preserving table"), honey)
+	var onion: String = guide.entry(guide.index_of(FieldGuideScript.crop_id(5))).uses
+	assert_true(onion.contains("made into pickles at the preserving table"), onion)

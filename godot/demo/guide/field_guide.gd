@@ -151,13 +151,17 @@ func _crop(item: int) -> Entry:
 
 
 func _crop_uses(item: int, links: Array[StringName]) -> String:
-	"""What the item is for: the dish that cooks it, and raw food for the hungry."""
+	"""What the item is for: the dish that cooks it, the stations' rows that take it, and raw food for the hungry."""
 	var parts := PackedStringArray()
 	for dish: int in Rules.DISH_COUNT:
 		if Rules.is_input(dish, item):
 			parts.append("%s (%s): %s makes %d portions" % [Rules.DISH_NAMES[dish], Rules.DISH_MEAL_WORDS[meal_of(dish)],
 				FarmText.units_text(input_milli(dish, item)), Rules.PORTIONS_PER_BATCH[dish]])
 			links.append(DISH_IDS[dish])
+	for recipe: int in PreserveText.Recipes.rows_taking(item):
+		parts.append("made into %s at %s" % [PreserveText.good_words(recipe),
+			PreserveText.Recipes.STATION_NAMES[PreserveText.Recipes.STATION[recipe]]])
+	_link_rows(item, links)
 	if Rules.raw_np_per_u(item) > 0:
 		parts.append("eaten raw by a hungry resident when a meal is missed (%d NP a unit)" % Rules.raw_np_per_u(item))
 	if parts.is_empty():
@@ -339,13 +343,29 @@ static func _pending_note(item: int) -> String:
 
 
 static func _dishes_taking(item: int, links: Array[StringName]) -> String:
-	"""The dishes that take `item`, cookable or waiting ("Cooked in: hardtack, vegetable pasty (waiting)."); each linked."""
+	"""The dishes that take `item`, cookable or waiting ("Cooked in: hardtack, vegetable pasty (waiting)."), then the
+	stations' rows that take it ("Made into: jam at the preserving table."); each linked."""
 	var names := PackedStringArray()
 	for dish: int in Rules.DISH_COUNT:
 		if Rules.is_input(dish, item):
 			names.append(Rules.DISH_NAMES[dish] + (" (waiting)" if Rules.waits(dish) else ""))
 			links.append(DISH_IDS[dish])
-	return "Cooked in: %s." % "; ".join(names) if not names.is_empty() else "No dish of the demo cooks it yet."
+	var made_into: String = _made_into(item, links)
+	if names.is_empty():
+		return made_into if not made_into.is_empty() else "No dish of the demo cooks it yet."
+	return "Cooked in: %s.%s" % ["; ".join(names), "" if made_into.is_empty() else " " + made_into]
+
+
+static func _made_into(item: int, links: Array[StringName]) -> String:
+	"""The stations' rows that take `item` (preserve_text.gd made_into_text), each output linked."""
+	_link_rows(item, links)
+	return PreserveText.made_into_text(item)
+
+
+static func _link_rows(item: int, links: Array[StringName]) -> void:
+	"""Link the output of every station row that takes `item` (preserve_rules.gd rows_taking)."""
+	for recipe: int in PreserveText.Recipes.rows_taking(item):
+		links.append(item_id(PreserveText.Recipes.OUT_ITEM[recipe]))
 
 
 func _forage_goods(item: int) -> Entry:
@@ -397,6 +417,7 @@ func _preserve_goods(item: int) -> Entry:
 	"""Dried fruit, rations (decision 1611), mead or the cordial (decision 1621): the stations' own words."""
 	var at_rack: bool = item == Catalog.ITEM_DRIED_FRUIT
 	var links: Array[StringName] = [&"station_rack_mill" if at_rack else &"station_kitchen", &"station_store"]
+	_link_rows(item, links)
 	var made: Entry = make(item_id(item), KIND_GOODS, Catalog.ITEM_LABELS[item], PreserveText.summary(item),
 		PreserveText.guide_fields(item, Rules.raw_np_per_u(item)), links)
 	made.item = item
@@ -405,8 +426,8 @@ func _preserve_goods(item: int) -> Entry:
 
 func _orchard_goods(item: int) -> Entry:
 	"""The orchard's apple or pear (decision 0671): its summary and fields are the orchard's own text."""
-	var orchard: Array = OrchardText.guide_fields(item)
 	var links: Array[StringName] = [&"station_store"]
+	var orchard: Array = OrchardText.guide_fields(item, _made_into(item, links))
 	var made: Entry = make(item_id(item), KIND_GOODS, Catalog.ITEM_LABELS[item], orchard[0], orchard[1], links)
 	made.item = item
 	return made

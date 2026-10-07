@@ -179,6 +179,18 @@ static func is_recipe(recipe: int) -> bool:
 	return recipe >= 0 and recipe < RECIPE_COUNT
 
 
+static func rows_taking(item: int) -> PackedInt32Array:
+	"""The station rows (after the fish row, which the catch's own text describes) with an input that takes pantry
+	`item` -- read from the input columns, so every crop's and ingredient's uses follow the table (decision 1625)."""
+	var rows := PackedInt32Array()
+	for recipe: int in range(R_DRY_FRUIT, RECIPE_COUNT):
+		for k: int in IN_COUNT[recipe]:
+			if TakesScript.matches(IN_CATEGORY[IN_FIRST[recipe] + k], item):
+				rows.append(recipe)
+				break
+	return rows
+
+
 static func is_passive(recipe: int) -> bool:
 	"""Whether a batch of `recipe` waits in a slot after its work (the Dryer's rows)."""
 	return PASSIVE_HOURS[recipe] > 0

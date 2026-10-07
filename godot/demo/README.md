@@ -2511,6 +2511,29 @@ ruled). No illness is modelled: the family illnesses (CHILL) are a draft.
   so a hurt, Chilled resident works at 68% (decision 0902). HEAL work reads it, and the winter writes it into each
   resident's `work_permille`, which the outdoor crews credit their work by -- once, never twice.
 
+## Wildlife (decision 1631; feature #11)
+
+Robins hop and peck about the lawn and paths and fly from spot to spot; peacock butterflies flutter over the beds and
+settle on the plants; common frogs sit on the pond's bank and hop along it; brown trout leap in the pond and the
+stream's run (`wildlife/`). They are the rigged art pass 2 models (decision 0951) at DEC-047's sizes: robin 0.45 m,
+butterfly 0.36 m across, frog 0.40 m, trout 0.80 m. **Ambient, never simulated**: what shows is a function of the
+season, the hour and the weather (`wildlife_rules.gd`), and nothing is written anywhere (REQ-SET-059/065, the fauna
+contract's "no active fauna"). Nobody can select, feed or hunt them (REQ-ADM-001).
+
+| | When | Does |
+|---|---|---|
+| Robin | all year (fewer in winter), in daylight; half in rain or snow | rests, pecks, hops, flies to another spot; **takes wing when a resident on the surface comes within 1.6 m** (not in rain or snow) |
+| Butterfly | spring to autumn, dry daylight at 10 °C or more | flutters round its spot, settles on a plant top, rises again |
+| Frog | spring to autumn, day and night, above freezing | sits facing the water, hops along the bank and back |
+| Trout | spring to autumn, in daylight | leaps every 6-16 s, along the run's flow or round the pond |
+
+- **Reduced motion** stills them: no hops, flights, flutters or leaps; each still breathes in its idle clip.
+- **Paused**, they hold, clips and all; at 2x and 4x they run faster.
+- **Pooled**: 14 animals and 4 robin flight bodies are built once; a hidden body's AnimationPlayer is off; every mesh is
+  culled past 55 m. The boot prewarm draws them all once.
+- **Not staged** (CI), each is a rounded stand-in of its size and colour, so the suites test the same logic.
+- The live harness: `godot --path godot --script res://test/live/demo_wildlife_live.gd -- --size 1920x1080 --capture <dir>`.
+
 ## Layout
 
 | Folder | Owns |

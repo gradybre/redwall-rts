@@ -14,6 +14,7 @@ const Owner := preload("res://scripts/core/underground_space_owner.gd")
 const World := preload("res://scripts/core/world_init.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
 const Economy := preload("res://scripts/systems/economy_system.gd")
+const Transforms := preload("res://scripts/core/transforms.gd")
 
 class ObservedGear extends Gear:
 	var observer: Callable = Callable()
@@ -696,18 +697,21 @@ func test_live_entry_chain_publishes_confirms_then_alerts_each_missing_capabilit
 	assert_equal(entry.step(), Settlement.UndergroundEntryRuntime.STEP_CONTAINERS, "site, work area, entry and containers are real")
 	var o: Session.Retirement.Owners = session._retirement_owners
 	assert_equal(o.locations._live.count, EntryWorkArea.ENDPOINTS, "published work area retained")
-	_equip_first_mole(o, entry._output)
-	assert_false(_host.begin_underground_entry(near), "retry resumes and meets the next gap")
-	assert_equal(entry.error(), Settlement.UndergroundEntryRuntime.REFUSE_SURFACE_ARRIVAL, "mole is not on the station")
-	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G5"), "surface arrival gap row")
-	assert_equal(entry.step(), Settlement.UndergroundEntryRuntime.STEP_CREW, "crew chosen; nothing republished")
+	var worker: Vector2i = _equip_first_mole(o, entry._output)
+	assert_true(_host.begin_underground_entry(near), "retry resumes; the crew sets off for H: %s" % _host.last_refusal())
+	assert_equal(entry.step(), Settlement.UndergroundEntryRuntime.STEP_RUNNING, "crew chosen and the foreman planned")
+	assert_true(entry.walk_ticks_left() > 0, "ADR1219: the crew is on its timed surface walk to H")
+	assert_equal(entry.crew().arrival, entry._published.endpoints[0], "it will be registered at H")
+	assert_true(o.routes.read_actor_into(worker, Session.Retirement.Routes.Actor.new()) != &"", "not registered yet")
 	assert_equal(o.locations._live.count, EntryWorkArea.ENDPOINTS, "no second work area")
 
 
 func test_fixed_ticks_drive_the_live_foreman_until_the_first_gap() -> void:
-	"""ADR1210 G7/G4: run_tick alone advances the planned foreman on the real settlement. The mole walks tooled to M,
-	puts the tool down and switches at rest to the tool-free rows; Delivery's admission then refuses, because the
-	surface residents are not route actors and no occupancy proof can cover them (a G5 gap)."""
+	"""ADR1219: run_tick alone walks the crew mole from its surface pose to H over BAL-WORK-003's straight-leg ticks,
+	places it exactly on H, registers it there on H's authored approach row and drives the foreman on; no stand-in
+	places it. Only the crew is a route actor; the other surface residents pass every occupancy proof by their reach
+	cubes. It retreats to R, walks tooled to M, puts the tool down and hauls both units, then the step's BUILD Job
+	has already been given to another resident by the JobSelector (a G6 gap)."""
 	var session: Session = _generate_and_mount()
 	assert_true(_host.compose_underground_room_owners() and _host.compose_underground_route_owners()
 		and _host.compose_underground_surface_anchor() and _host.compose_underground_entry_owners(), "every owner composed")
@@ -716,24 +720,64 @@ func test_fixed_ticks_drive_the_live_foreman_until_the_first_gap() -> void:
 	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
 	var o: Session.Retirement.Owners = session._retirement_owners
 	var worker: Vector2i = _equip_first_mole(o, entry._output)
-	var wood: Vector2i = _stage(o, entry._output, &"wood", 7000)
+	_stage(o, entry._output, &"wood", 7000)
 	_stage(o, entry._output, &"stone", 2000)
-	assert_false(_host.begin_underground_entry(near), "G5 next")
-	_stand_on_first_station(o, entry, worker)
-	assert_true(_host.begin_underground_entry(near), "foreman planned: %s" % _host.last_refusal())
-	var tick: int = 1
-	while entry.is_running() and tick < 6000:
+	assert_true(_host.begin_underground_entry(near), "foreman planned and the walk begun: %s" % _host.last_refusal())
+	var walk: int = _expected_walk(o, worker, entry)
+	assert_equal(entry.walk_ticks_left(), walk, "BAL-WORK-003 ticks from its own pose")
+	var arrived: Array = _tick_until_registered(o, entry, worker)
+	assert_equal(arrived[0], walk, "registered on the walk's last tick, by ticks alone")
+	assert_equal(arrived[1], entry._published.endpoints[0], "registered on H, endpoint 0")
+	assert_equal(arrived[2], EntryWorkArea.point(entry.origin(), 0), "its Transform exactly on H's point")
+	assert_equal(arrived[3], entry._foreman._arrival_retreat_profile,
+		"admitted on H's own approach row, then at once on the authored retreat row toward R")
+	var tick: int = arrived[0] + 1
+	while entry.is_running() and tick < 8000:
 		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
 		tick += 1
-	assert_false(entry.is_running(), "stopped at the first remaining gap")
-	assert_equal(entry.error(), &"ROUTE_TURN_ACTOR_UNBOUND", "exact refusal")
-	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G5"), "named gap row")
-	assert_equal(o.inventory.lot_container(entry.crew().tool), entry._storage, "the tool was put down at M")
+	_assert_g6_stop(o, entry, worker)
+
+
+func _expected_walk(o: Session.Retirement.Owners, worker: Vector2i, entry: Settlement.UndergroundEntryRuntime) -> int:
+	"""ceil_div(ceil(|H - pose|) * 30, v) for the mole's own GDD 5.2 ground cap, recomputed independently."""
+	var pose: Transforms.Pose = Transforms.Pose.new()
+	assert_true(o.transforms.read_into(worker, pose), "the crew has a surface pose")
+	var delta: Vector3i = EntryWorkArea.point(entry.origin(), 0) - Vector3i(pose.x, pose.y, pose.z)
+	var length: int = ceili(sqrt(float(delta.x * delta.x + delta.y * delta.y + delta.z * delta.z)))
+	assert_equal(Settlement.UndergroundEntryRuntime.ceil_length(delta), length, "exact integer length, rounded up")
+	var row: int = o.residents.directory().get_typed_row(worker)
+	var speed: int = o.residents.size_movement_u_per_s(o.residents.size_class_of(row).value).value
+	@warning_ignore("integer_division") var ticks: int = (length * 30 + speed - 1) / speed
+	return ticks
+
+
+func _tick_until_registered(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime,
+		worker: Vector2i) -> Array:
+	"""[tick, location, Transform point, profile] on the tick the crew first becomes a route actor."""
 	var actor: Session.Retirement.Routes.Actor = Session.Retirement.Routes.Actor.new()
-	assert_equal(o.routes.read_actor_into(worker, actor), &"", "a real route actor")
-	assert_equal(actor.location, o.inventory.spatial_location_of(entry._storage), "it walked tooled to M")
-	assert_equal(actor.profile_id, 31, "and switched at rest to the tool-free walk row")
-	assert_equal(o.inventory.lot_reserved_milli(wood), 0, "Delivery's occupancy proof refused before any claim")
+	var pose: Transforms.Pose = Transforms.Pose.new()
+	for tick: int in range(1, 2000):
+		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
+		if o.routes.read_actor_into(worker, actor) != &"": continue
+		assert_true(o.transforms.read_into(worker, pose), "placed")
+		return [tick, actor.location, Vector3i(pose.x, pose.y, pose.z), actor.profile_id]
+	assert_true(false, "the crew never arrived: %s" % entry.error())
+	return [-1, Vector2i(-1, 0), Vector3i.ZERO, -1]
+
+
+func _assert_g6_stop(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime, worker: Vector2i) -> void:
+	"""Both units hauled to M; going home, the BUILD Job already has another (surface) resident."""
+	assert_false(entry.is_running(), "stopped at the first remaining gap")
+	assert_equal(entry.error(), &"JOB_HAS_WORKER", "exact refusal")
+	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G6"), "named gap row")
+	assert_equal(entry._foreman._hauler._trips, 2, "both whole units of the first brace hauled through Delivery")
+	assert_equal(o.inventory.lot_container(entry.crew().tool), entry._storage, "the tool was put down at M")
+	var job: int = entry._foreman._job
+	assert_true(o.jobs._worker_slot[job] >= 0 and o.jobs._worker_slot[job] != worker.x, "another resident holds it")
+	var actors: int = 0
+	for row: int in Session.Retirement.Routes.RESIDENT_CAPACITY:
+		if o.routes._resident_ref(row) != Session.Retirement.Routes.NULL_REF: actors += 1
+	assert_equal(actors, 1, "only the crew mole is registered; every other resident stayed on the surface")
 
 
 func _stage(o: Session.Retirement.Owners, container: Vector2i, key: StringName, milli: int) -> Vector2i:
@@ -741,18 +785,6 @@ func _stage(o: Session.Retirement.Owners, container: Vector2i, key: StringName, 
 	var lot: RefCounted = o.inventory.create_lot(container, o.items.compiled_id(key), milli, 1, 0, -1, 0, 0)
 	assert_true(lot.ok, "staged %s: %s" % [key, lot.error])
 	return lot.ref
-
-
-func _stand_on_first_station(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime,
-		worker: Vector2i) -> void:
-	"""Test stand-in for G5 surface arrival: the crew mole is placed exactly on the first planned station."""
-	var foreman: Settlement.UndergroundEntryRuntime.Foreman = Settlement.UndergroundEntryRuntime.Foreman.new()
-	assert_equal(foreman.configure(entry._foreman_owners(o), entry._crew, entry._entry_placement(o)), &"", "plan read")
-	var record: Session.Retirement.Locations.Record = Session.Retirement.Locations.Record.new()
-	record.envelope.resize(6); record.support.resize(6)
-	assert_equal(o.locations.read_location_into(foreman.first_station(), record), &"", "first station")
-	assert_true(o.transforms.place(worker, record.point.x, record.point.y, record.point.z, foreman._tasks[0].yaw),
-		"mole placed on the station")
 
 
 func _equip_first_mole(o: Session.Retirement.Owners, container: Vector2i) -> Vector2i:

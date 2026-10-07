@@ -92,7 +92,7 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "c247ff7716a330d1ea6c98186266b688175ceec903fe6edd27c164c791f3572b"
+REVIEWED_SHA = "04e5de0f772bce181a52d23336edc46bec9fd1643f2838b902a3fc5207036471"
 FRONTIER = Path("godot/data/underground/first-entry-prefix-v1/qualified-stone-v5/frontier.ugfront")
 FRONTIER_SHA = "2d5c36163ed5e5f8e96a3f1b0611d85937c075abcb8b02c7d7f01f7cf0738660"
 CORE = "godot/scripts/core/"
@@ -205,7 +205,8 @@ def exact_members(memory, index: dict, relative: str, expected: dict) -> str:
 
 ENTRY_RUNTIME = {"_step": "int", "_error": "StringName", "_origin": "Vector3i", "_published": "WorkArea.Published",
                  "_storage": "Vector2i", "_output": "Vector2i", "_crew": "Foreman.Crew", "_foreman": "Foreman",
-                 "_jobs": "RefCounted", "_worker_row": "int"}
+                 "_jobs": "RefCounted", "_worker_row": "int", "_transforms": "Transforms", "_anchor": "Vector3i",
+                 "_walk_left": "int", "_arrival_yaw": "int"}
 ENTRY_FOREMAN = {"_owners": "Owners", "_crew": "Crew", "_tasks": "Array", "_index": "int", "_stage": "int",
                  "_stage_ticks": "int", "_job": "int", "_error": "StringName", "_content": "int",
                  "_accepted_mwu": "int", "_math": "IntMath.IntResult", "_actor": "Routes.Actor",
@@ -213,7 +214,9 @@ ENTRY_FOREMAN = {"_owners": "Owners", "_crew": "Crew", "_tasks": "Array", "_inde
                  "_last_install_stage": "int", "_placement": "Vector2i", "_leg_target": "Vector2i",
                  "_leg_profile": "int", "_leg_revision": "int", "_retreat": "Vector2i", "_retreat_profile": "int",
                  "_retreat_revision": "int", "_pending_retreat": "Vector2i", "_hauler": "Hauler",
-                 "_haul_mwu": "int", "_haul_trips": "int", "_haul_marker": "int"}
+                 "_haul_mwu": "int", "_haul_trips": "int", "_haul_marker": "int", "_arrival_profile": "int",
+                 "_arrival_revision": "int", "_arrival_retreat": "Vector2i", "_arrival_retreat_profile": "int",
+                 "_arrival_retreat_revision": "int"}
 ENTRY_HAULER = {"_o": "RefCounted", "_crew": "RefCounted", "_project": "Vector2i", "_home": "int",
                 "_queue": "PackedInt32Array", "_legs": "Array", "_leg": "int", "_trip": "int", "_job": "int",
                 "_stage": "int", "_content": "int", "_store": "Vector2i", "_stand_source": "Vector2i",
@@ -237,7 +240,8 @@ def entry_chain(memory, index: dict) -> dict:
     contract = module(index, CORE + "excavation_contract.gd").text
     require("const BRACE_WOOD_MILLI: int = 250" in contract and "const BRACE_STONE_MILLI: int = 250" in contract
             and "Grip.QUANTITY_MILLI" in hauler, "haul queue bound: one whole unit per BRACE input line")
-    queue, legs = 2, 2 # ADR1210: ceil(250/1000) wood + stone units; the retreat leg and the storage leg.
+    # ADR1210: ceil(250/1000) wood + stone units; ADR1219 adds the arrival leg before the retreat and storage legs.
+    queue, legs = 2, 3
     counts = frontier_counts()
     endpoints = memory.resolve(index, "underground_entry_work_area", "ENDPOINTS")
     tasks = 3 * counts["EPISODE"] + counts["INSTALL"]

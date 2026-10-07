@@ -985,14 +985,15 @@ static func _body_contained(a: RefCounted) -> bool:
 
 
 static func _occupants_leaf(a: RefCounted) -> StringName:
-	"""Every other living Resident needs a current actual physical registration; unregistered bodies are never empty air."""
+	"""Every other living Resident is a registered body or, unregistered, its ADR1219 reach cube; never empty air."""
 	var graph: Routes = a._placements._routes
 	if not _spend(a, 16 * Routes.RESIDENT_CAPACITY): return REFUSE_BUDGET
 	var worker_row: int = _full_row(a._placements._ids, a._worker, Directory.KIND_RESIDENT)
 	for row: int in Routes.RESIDENT_CAPACITY:
 		if row == worker_row: continue
 		if graph._resident_ref(row) == NULL_REF:
-			var missing: StringName = WorldRoutes._turn_unregistered_refusal(graph, row)
+			var missing: StringName = Routes.unregistered_body_refusal(graph, row,
+				Vector3i(a._selection.x, a._selection.y, a._selection.z))
 			if missing != &"": return missing
 			continue
 		if not _spend(a, 512): return REFUSE_BUDGET

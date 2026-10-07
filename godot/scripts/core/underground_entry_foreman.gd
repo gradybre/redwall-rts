@@ -64,6 +64,9 @@ class Crew extends RefCounted:
 	var tool: Vector2i = NULL_REF
 	var storage: Vector2i = NULL_REF
 	var output: Vector2i = NULL_REF
+	## ADR1219: the endpoint the worker stands on when it is first registered with Routes (the stair-top anchor H
+	## after its surface walk). NULL_REF admits it on the first station instead (fixtures that place it there).
+	var arrival: Vector2i = NULL_REF
 
 
 class Task extends RefCounted:
@@ -105,6 +108,11 @@ var _retreat_profile: int = -1
 var _retreat_revision: int = 0
 var _pending_retreat: Vector2i = NULL_REF
 var _hauler: Hauler = null
+var _arrival_profile: int = -1 # ADR1219: H's own authored travel profile, the one it registers the worker on.
+var _arrival_revision: int = 0
+var _arrival_retreat: Vector2i = NULL_REF
+var _arrival_retreat_profile: int = -1
+var _arrival_retreat_revision: int = 0
 var _haul_mwu: int = 0
 var _haul_trips: int = 0
 var _haul_marker: int = -1
@@ -257,14 +265,20 @@ func _phase_units(task: Task, out: PackedInt32Array) -> StringName:
 
 
 func _begin_haul(task: Task, project: Vector2i, queue: PackedInt32Array, tick: int) -> StringName:
-	"""Any pending retreat leg first, then the station's travel profile to M; the BUILD Job brings the worker home."""
+	"""Any pending retreat leg first, then the station's travel profile to M; the BUILD Job brings the worker home.
+	ADR1219: an unregistered worker is admitted at its arrival on the arrival's own profile (the first leg)."""
 	var legs: Array[Hauler.Leg] = []
+	var start: Vector2i = task.station
+	if _arriving():
+		start = _crew.arrival
+		legs.append(_haul_leg(_crew.arrival, _arrival_profile, _arrival_revision))
+		_take_arrival_retreat()
 	if _retreat != NULL_REF: legs.append(_haul_leg(_retreat, _retreat_profile, _retreat_revision))
 	_retreat = NULL_REF
 	legs.append(_haul_leg(_owners.inventory.spatial_location_of(_crew.storage), task.travel_profile, task.travel_revision))
 	_hauler = Hauler.new()
 	_haul_marker = -1
-	var code: StringName = _hauler.begin(_owners, _crew, project, _job, queue, legs, task.station, tick)
+	var code: StringName = _hauler.begin(_owners, _crew, project, _job, queue, legs, start, tick)
 	if code == &"": _set_stage(STAGE_HAUL)
 	return code
 
@@ -299,6 +313,8 @@ func _haul(tick: int) -> StringName:
 func _place_actor(task: Task, job: Vector2i, tick: int) -> StringName:
 	"""First arrival admits the worker where it physically stands; later phases travel or reuse the station."""
 	var worker: int = _owners.residents.directory().get_typed_row(_crew.worker)
+	if _arriving() and _crew.arrival != task.station:
+		return _admit_at_arrival(task, job, tick)
 	if _owners.routes._resident_ref(worker) == NULL_REF:
 		_set_stage(STAGE_ENTER)
 		return _owners.routes.admit_work_actor(_crew.worker, job, task.station, task.work_profile,
@@ -308,6 +324,63 @@ func _place_actor(task: Task, job: Vector2i, tick: int) -> StringName:
 		return _refresh_work(task, job)
 	_set_stage(STAGE_TRAVEL)
 	return _begin_travel(task, job, tick)
+
+
+func _admit_at_arrival(task: Task, job: Vector2i, tick: int) -> StringName:
+	"""ADR1219: register the worker where its surface walk ended, on the arrival's own profile; it leaves by the
+	arrival's authored retreat, then travels to the station."""
+	_set_stage(STAGE_TRAVEL)
+	var code: StringName = _owners.routes.admit_travel_actor(_crew.worker, job, _crew.arrival, _arrival_profile,
+		_arrival_revision, _content, 0, -1, _crew.tool)
+	if code != &"": return code
+	_take_arrival_retreat()
+	return _begin_travel(task, job, tick)
+
+
+func _arriving() -> bool:
+	"""ADR1219: the worker is not yet a route actor and has a planned arrival endpoint to be registered on."""
+	return _crew.arrival != NULL_REF and _arrival_profile >= 0 \
+		and _owners.routes._resident_ref(_owners.residents.directory().get_typed_row(_crew.worker)) == NULL_REF
+
+
+func _take_arrival_retreat() -> void:
+	"""The arrival's authored way out becomes the pending retreat leg (none when it retreats onto itself)."""
+	if _arrival_retreat == NULL_REF: return
+	_retreat = _arrival_retreat
+	_retreat_profile = _arrival_retreat_profile
+	_retreat_revision = _arrival_retreat_revision
+
+
+func plan_arrival(arrival: Vector2i) -> StringName:
+	"""ADR1219: the surface arrival must be the first installation's authored handling station (H). The worker is
+	registered there on H's own authored travel profile and leaves by that installation's authored retreat."""
+	var install: PackedInt32Array = PackedInt32Array()
+	install.resize(Frontier.row_fields(Frontier.INSTALL))
+	var station: PackedInt32Array = PackedInt32Array()
+	station.resize(Frontier.row_fields(Frontier.STATION))
+	var profile: IntMath.IntResult = IntMath.IntResult.new()
+	var revision: IntMath.IntResult = IntMath.IntResult.new()
+	if _crew == null or _owners.frontier.installation_into(0, install) != &"" \
+			or _owners.frontier.station_into(install[1], station, revision) != &"" \
+			or _resolve_endpoint(_placement.x, station[0]) != arrival \
+			or _owners.frontier.endpoint_travel_into(station[0], profile, revision) != &"": return REFUSE_PLAN
+	_arrival_profile = profile.value
+	_arrival_revision = revision.value
+	_arrival_retreat = _resolve_endpoint(_placement.x, install[8])
+	if _arrival_retreat == NULL_REF or _owners.frontier.endpoint_travel_into(install[8], profile, revision) != &"":
+		return REFUSE_PLAN
+	_arrival_retreat = NULL_REF if _arrival_retreat == arrival else _arrival_retreat
+	_arrival_retreat_profile = profile.value
+	_arrival_retreat_revision = revision.value
+	_crew.arrival = arrival
+	return &""
+
+
+func arrival_yaw() -> int:
+	"""The heading the arrival profile is authored at, or -1 when it admits every heading (none is derived)."""
+	var descriptor: Profiles.Descriptor = Profiles.Descriptor.new()
+	if _arrival_profile < 0 or _owners.profiles.descriptor_into(_arrival_profile, _content, descriptor) != &"": return -1
+	return descriptor.yaw if descriptor.yaw_kind == Profiles.YAW_EXACT else -1
 
 
 func _bind_phase_job(task: Task, project: Vector2i, job: Vector2i) -> StringName:

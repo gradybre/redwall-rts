@@ -5,9 +5,10 @@ extends Node3D
 ## first-entry runtime of the settlement host:
 ##   - no crew yet: nothing is drawn (the runtime's own G11/G4 alerts stand);
 ##   - crew chosen, but its resident has no Routes actor: the demo's existing surface walk brings a cast mole (the
-##     mole_digger body every source image was compiled from) to the stair-top anchor H (work-area endpoint 0). On
-##     arrival the G5 alert ENTRY_SURFACE_HANDOFF_UNBUILT is raised: the simulation half (the resident's Transform
-##     placed exactly on H, then Routes admission) does not exist, and nothing here fakes it;
+##     mole_digger body every source image was compiled from) to the stair-top anchor H (work-area endpoint 0) and
+##     holds it there. The simulation half is the entry runtime's own timed walk (ADR 1219): it places the resident
+##     exactly on H and the foreman registers it, and only that switches this view to drawing. A refusal on the way
+##     is the runtime's alert, not this view's;
 ##   - the resident has a Routes actor: MolePresentation.present_row draws its actual selected row on the settlement's
 ##     fixed tick and the shown Actor is placed on the actor's integer point and 16-bit heading.
 ## Presentation only: it reads owners, never writes the simulation, and never grants work or movement.
@@ -20,11 +21,9 @@ const Driver := preload("res://data/underground/mole-worker/mole_profile_driver.
 const Routes := preload("res://scripts/core/underground_routes.gd")
 const WorkArea := preload("res://scripts/core/underground_entry_work_area.gd")
 const EntryRuntime := preload("res://scripts/core/underground_entry_runtime.gd")
-const ALERT_HANDOFF: StringName = &"ENTRY_SURFACE_HANDOFF_UNBUILT"
 const ALERT_NO_CAST_MOLE: StringName = &"ENTRY_WORKER_NO_CAST_MOLE"
 ## ADR1197 gap rows for the alerts this view raises (the entry runtime's own table is not this file's to extend).
 const GAPS: Dictionary = {
-	&"ENTRY_SURFACE_HANDOFF_UNBUILT": "G5 surface arrival: the resident's Transform is not placed on the stair-top anchor and no Routes actor is admitted",
 	&"ENTRY_WORKER_NO_CAST_MOLE": "G5 no cast mole can present the crew's surface walk",
 }
 const RENDERER_UNAVAILABLE: StringName = &"UNDERGROUND_RENDERER_UNAVAILABLE"
@@ -130,7 +129,7 @@ func _routes_of() -> Routes:
 
 
 func _surface_walk(origin: Vector3i) -> StringName:
-	"""Presentation half of G5: the cast walk to H; arrival raises the hand-off alert, nothing is placed or admitted."""
+	"""Presentation half of G5: the cast walk to H, held there until the simulation registers the resident."""
 	if _member < 0:
 		_member = _cast_mole()
 		if _member < 0:
@@ -141,7 +140,7 @@ func _surface_walk(origin: Vector3i) -> StringName:
 		_stage = STAGE_WALKING if bool(_cast.order_move(_members, _anchor).get("ok", false)) else STAGE_NONE
 	if _stage == STAGE_WALKING and _arrived():
 		_stage = STAGE_AT_ANCHOR
-	return _raise(ALERT_HANDOFF) if _stage == STAGE_AT_ANCHOR else &""
+	return &""
 
 
 static func anchor_m(origin: Vector3i) -> Vector3:

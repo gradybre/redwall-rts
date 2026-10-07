@@ -31,6 +31,12 @@ const NULL_REF: Vector2i = Vector2i(-1, 0)
 const I32_MAX: int = 2147483647
 const I64_MAX: int = 9223372036854775807
 const RESIDENT_CAPACITY: int = Residents.RESIDENT_CAPACITY
+## ADR1219 (registration on arrival): a living Resident that is not a route actor -- every surface resident -- has
+## no authored body, so occupancy proofs bound it by a cube of this half-width around its Transform root. DEC-039's
+## tallest approved body is 2611 u (badger) and its longest tail 950 per mille of height (squirrel), so no approved
+## body reaches past height plus tail, which is under twice the tallest height. Conservative: it can only over-refuse.
+const UNREGISTERED_REACH_U: int = 2 * 2611
+const REFUSE_UNREGISTERED_NEAR: StringName = &"ROUTE_UNREGISTERED_RESIDENT_NEAR"
 const MAX_EDGES: int = 1536
 const MAX_VERTICES: int = 4096
 const MAX_LINKS: int = 4096
@@ -3601,8 +3607,56 @@ func occupancy_refusal(bounds: PackedInt32Array, except_worker: Vector2i = NULL_
 		_occupancy_epoch = 0
 	_occupancy_epoch += 1
 	code = _query_occupants(bounds, except_worker)
+	if code == &"": code = _unregistered_occupants(bounds, except_worker)
 	_occupancy_reading = false
 	return _occupancy_context_refusal() if code == &"" else code
+
+
+func _unregistered_occupants(bounds: PackedInt32Array, except_worker: Vector2i) -> StringName:
+	"""ADR1219: a living Resident with no route row is checked by its reach cube, never treated as empty air."""
+	_occupancy_remaining -= 16 * RESIDENT_CAPACITY
+	if _occupancy_remaining < 0:
+		return &"ROUTE_OCCUPANCY_QUERY_BUDGET"
+	var low: Vector3i = Vector3i(bounds[0], bounds[1], bounds[2])
+	var high: Vector3i = Vector3i(bounds[3], bounds[4], bounds[5])
+	for row: int in RESIDENT_CAPACITY:
+		if _resident_ref(row) != NULL_REF or (except_worker.x == _residents._ref_slot[row]
+				and except_worker.y == _residents._ref_generation[row] and _residents._present[row] == 1):
+			continue
+		var code: StringName = unregistered_occupant_refusal(self, row, low, high)
+		if code != &"":
+			return code
+	return &""
+
+
+static func unregistered_occupant_refusal(actual: RefCounted, row: int, low: Vector3i, high: Vector3i) -> StringName:
+	"""ADR1219: an absent or dead row occupies nothing; a living unregistered Resident occupies the half-open cube
+	of half-width UNREGISTERED_REACH_U around its own Transform root. A Resident never placed has no known position,
+	so it can never be proved clear. Direct column reads only: no Directory or Transforms observer is dispatched."""
+	var residents: Residents = actual._residents
+	if residents._present[row] != 1: return &""
+	if residents._needs._present[row] != 1: return &"ROUTE_TURN_ACTOR_STALE"
+	if residents._needs._health[row] <= 0: return &""
+	var worker: Vector2i = Vector2i(residents._ref_slot[row], residents._ref_generation[row])
+	if _turn_directory_row(actual, worker, Directory.KIND_RESIDENT) != row or actual._ids._persistent_id[worker.x] <= 0:
+		return &"ROUTE_TURN_ACTOR_STALE"
+	var transforms: Transforms = actual._transforms
+	var at: int = Transforms.POSITIONED_BASE[Directory.KIND_RESIDENT] + row
+	if transforms._bound_persistent_id[at] != actual._ids._persistent_id[worker.x]: return &"ROUTE_TURN_ACTOR_UNBOUND"
+	var root: Vector3i = Vector3i(transforms._x[at], transforms._y[at], transforms._z[at])
+	for axis: int in 3:
+		if int(root[axis]) - UNREGISTERED_REACH_U >= high[axis] or int(root[axis]) + UNREGISTERED_REACH_U <= low[axis]:
+			return &""
+	return REFUSE_UNREGISTERED_NEAR
+
+
+static func unregistered_body_refusal(actual: RefCounted, row: int, point: Vector3i) -> StringName:
+	"""ADR1219: the same reach test against a registered body at `point` bounded by the whole current catalog extent."""
+	if actual._extent_revision <= 0 or actual._extent_revision != actual._profiles.content_revision():
+		return &"ROUTE_OCCUPANCY_STALE"
+	var extent: PackedInt32Array = actual._catalog_extent
+	return unregistered_occupant_refusal(actual, row, point + Vector3i(extent[0], extent[1], extent[2]),
+		point + Vector3i(extent[3], extent[4], extent[5]))
 
 
 func _query_occupants(bounds: PackedInt32Array, except_worker: Vector2i) -> StringName:

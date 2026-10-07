@@ -1348,11 +1348,11 @@ func test_stationary_turn_refuses_actual_unregistered_living_occupant_then_retri
 	assert_true(_transforms.place(other, X + 512, 512, Z + 512, 0), "actual unregistered occupant at the turning root")
 	var pose: PackedByteArray = _transforms.state_bytes()
 	var route: PackedByteArray = _turn_route_image()
-	assert_equal(_turn(16384), &"ROUTE_TURN_ACTOR_UNBOUND", "missing actor registration cannot grant free turn space")
+	assert_equal(_turn(16384), &"ROUTE_UNREGISTERED_RESIDENT_NEAR", "ADR1219: its reach cube cannot be free turn space")
 	assert_equal(_transforms.state_bytes(), pose, "refusal keeps the entire actual Transform image")
 	assert_equal(_turn_route_image(), route, "refusal creates no actor or route authority")
-	assert_true(_residents.despawn(other).ok, "remove actual unregistered resident")
-	assert_equal(_turn(16384), &"", "current actual removal permits a fresh turn proof")
+	assert_true(_transforms.place(other, X + 512 + 4 * Routes.UNREGISTERED_REACH_U, 512, Z + 512, 0), "walks far away")
+	assert_equal(_turn(16384), &"", "an unregistered resident beyond its reach cube is provably clear, unregistered")
 
 
 func test_stationary_turn_uses_complete_recovery_union_against_another_actual_actor() -> void:

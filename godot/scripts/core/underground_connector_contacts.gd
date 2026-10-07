@@ -2120,8 +2120,9 @@ func _occupancy_leaf(worker: Vector2i, source_profile: int = -1) -> StringName:
 	for row: int in Routes.RESIDENT_CAPACITY:
 		var other: Vector2i = graph._resident_ref(row)
 		if other == NULL_REF:
-			if graph._residents.is_alive(row):
-				return &"CONNECTOR_CONTACT_ACTOR_UNBOUND"
+			var missing: StringName = Routes.unregistered_body_refusal(graph, row, _location.point) # ADR1219
+			if missing != &"":
+				return missing
 			continue
 		if other == worker:
 			continue

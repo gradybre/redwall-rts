@@ -537,7 +537,8 @@ static func workpiece_occupancy_refusal(actual: RefCounted, bounds: PackedInt32A
 	if workpiece_occupancy_checks(actual) > checks: return REFUSE_BUDGET
 	for row: int in Routes.RESIDENT_CAPACITY:
 		if graph._resident_ref(row) == Routes.NULL_REF:
-			code = _turn_unregistered_refusal(graph, row)
+			code = Routes.unregistered_occupant_refusal(graph, row, Vector3i(bounds[0], bounds[1], bounds[2]),
+				Vector3i(bounds[3], bounds[4], bounds[5]))
 		else:
 			code = Routes.physical_selection_into(graph, row, graph._occupant_selection)
 			if code == &"": code = _workpiece_occupant_boxes(actual, graph, bounds)
@@ -2328,7 +2329,8 @@ static func _turn_occupants(actual: RefCounted, graph: Routes, owner: Owner, loc
 	for row: int in Routes.RESIDENT_CAPACITY:
 		if row == except_row: continue
 		if graph._resident_ref(row) == NULL_REF:
-			var missing: StringName = _turn_unregistered_refusal(graph, row)
+			var missing: StringName = Routes.unregistered_body_refusal(graph, row, Vector3i(graph._checked_selection.x,
+				graph._checked_selection.y, graph._checked_selection.z))
 			if missing != &"": return missing
 			continue
 		if not graph._spend(512):
@@ -2338,19 +2340,6 @@ static func _turn_occupants(actual: RefCounted, graph: Routes, owner: Owner, loc
 		if code == &"": code = _turn_occupant_boxes(actual, graph)
 		if code != &"": return code
 	return &""
-
-
-static func _turn_unregistered_refusal(graph: Routes, row: int) -> StringName:
-	"""An actual living row needs a current body proof; direct full identity never turns missing registration into air."""
-	var residents: Residents = graph._residents
-	if residents._present[row] != 1: return &""
-	if residents._needs._present[row] != 1: return &"ROUTE_TURN_ACTOR_STALE"
-	if residents._needs._health[row] <= 0: return &""
-	var worker: Vector2i = Vector2i(residents._ref_slot[row], residents._ref_generation[row])
-	if Routes._turn_directory_row(graph, worker, Routes.Directory.KIND_RESIDENT) != row \
-			or graph._ids._persistent_id[worker.x] <= 0:
-		return &"ROUTE_TURN_ACTOR_STALE"
-	return &"ROUTE_TURN_ACTOR_UNBOUND"
 
 
 static func _turn_occupant_boxes(actual: RefCounted, graph: Routes) -> StringName:

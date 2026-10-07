@@ -50,9 +50,14 @@ func test_unregistered_actual_living_resident_never_becomes_empty_set_down_space
 	var other: Vector2i = _world._residents.ref_of(_world._residents.spawn(&"mouse").value)
 	assert_true(_world._transforms.place(other, WorldTests.X + 1500, 512, WorldTests.Z + 512, 0), "real extra resident")
 	var pose: PackedByteArray = _world._transforms.state_bytes()
-	assert_equal(_occupancy(_box(181)), &"ROUTE_TURN_ACTOR_UNBOUND", "no registration cannot certify empty air")
+	assert_equal(_occupancy(_box(181)), &"ROUTE_UNREGISTERED_RESIDENT_NEAR", "ADR1219: its reach cube is never empty air")
 	assert_equal(_world._transforms.state_bytes(), pose, "refused scan changes no pose")
-	assert_true(_world._residents.despawn(other).ok, "actual removal")
+	assert_true(_world._transforms.place(other, WorldTests.X + 1500 + 4 * Routes.UNREGISTERED_REACH_U, 512,
+		WorldTests.Z + 512, 0), "it walks far away")
+	assert_equal(_occupancy(_box(181)), &"", "beyond its reach cube it is provably clear without registration")
+	var unplaced: Vector2i = _world._residents.ref_of(_world._residents.spawn(&"mouse").value)
+	assert_equal(_occupancy(_box(181)), &"ROUTE_TURN_ACTOR_UNBOUND", "a resident never placed can never be proved clear")
+	assert_true(_world._residents.despawn(unplaced).ok and _world._residents.despawn(other).ok, "actual removal")
 	assert_equal(_occupancy(_box(181)), &"", "current removal permits fresh scan")
 
 

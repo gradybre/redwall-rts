@@ -2,11 +2,16 @@ extends RefCounted
 ## ADR1197: drive the first entry in the real settlement, step by step, and stop at the first missing capability
 ## with its exact refusal code and gap row. Completed steps stay published; nothing is faked or rolled back.
 ## ADR1210 (G7): once the crew is chosen the foreman is planned here and advanced by SettlementSystem.run_tick.
+## ADR1219 (G5, registration on arrival): the crew mole then walks from its surface pose to the stair-top anchor H
+## over BAL-WORK-003's straight-leg tick count; on arrival its Transform is placed exactly on H and the foreman
+## registers it with Routes there. No other surface resident is registered.
 
 const Site := preload("res://scripts/core/underground_entry_site.gd")
 const WorkArea := preload("res://scripts/core/underground_entry_work_area.gd")
 const Foreman := preload("res://scripts/core/underground_entry_foreman.gd")
 const Transforms := preload("res://scripts/core/transforms.gd")
+const Haul := preload("res://scripts/core/haul_planner.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const SEARCH_RINGS: int = 8
 const REFUSE_SCOPE: StringName = &"ENTRY_RUNTIME_SCOPE"
@@ -25,8 +30,9 @@ const STEP_DONE: int = 7
 const GAPS: Dictionary = {
 	&"ENTRY_SITE_NONE_FOUND": "G1/G2 no surveyed entry site near the settlement",
 	&"ENTRY_CREW_NO_TOOLED_MOLE": "G11 no adult mole with an equipped basic tool (tool equipping is not gameplay yet)",
-	&"ROUTE_TURN_ACTOR_UNBOUND": "G5 surface residents are not route actors, so no turn or Delivery occupancy proof can cover them (surface Movement is not composed)",
-	&"ENTRY_SURFACE_ARRIVAL_MISSING": "G5 the crew mole must stand on the first cut station (surface walking into the work area is not simulated yet)",
+	&"ROUTE_UNREGISTERED_RESIDENT_NEAR": "G5 a resident outside the entry crew stands within reach of the work area (surface Movement does not route residents around it yet; ADR 1219)",
+	&"ENTRY_SURFACE_ARRIVAL_MISSING": "G5 the crew mole has no surface pose to walk from, or could not be placed on the stair-top anchor (ADR 1219)",
+	&"JOB_HAS_WORKER": "G6 the JobSelector gave the foreman's unassigned BUILD Job to another resident while the crew hauled (reserving the crew's Jobs is not built; ADR 1219)",
 	&"JOB_AGENT_BUSY": "G6 the crew mole already holds another Job (reserving the crew from the JobSelector is not built)",
 	&"STEP2_ACTIVITY_FORBIDS_WORK": "G6 the crew mole's schedule forbids work this hour (the foreman does not wait for a work hour yet)",
 	&"ENTRY_FOREMAN_INPUT_LOT": "G4 inputs missing at M and no Delivery is composed to haul them from R's staging (ADR 1210)",
@@ -43,6 +49,10 @@ var _crew: Foreman.Crew = null
 var _foreman: Foreman = null
 var _jobs: RefCounted = null
 var _worker_row: int = -1
+var _transforms: Transforms = null
+var _anchor: Vector3i = Vector3i.ZERO
+var _walk_left: int = 0 # ADR1219: fixed ticks of the crew's surface walk still to run before arrival at H.
+var _arrival_yaw: int = -1 # H's authored arrival heading, or -1 to keep the resident's own.
 
 
 static func gap_of(code: StringName) -> String:
@@ -89,9 +99,20 @@ func start(session: RefCounted, near: Vector3i) -> StringName:
 	return _stop(code) if code != &"" else &""
 
 
+func walk_ticks_left() -> int:
+	"""ADR1219: fixed ticks of the crew's surface walk to H still to run; zero once it has arrived."""
+	return _walk_left
+
+
 func advance(tick: int) -> StringName:
-	"""ADR1210 G7: one fixed tick of the planned foreman; its first refusal stops the chain for alerting."""
-	if not is_running() or not _crew_resolved(): return &""
+	"""ADR1210 G7: one fixed tick of the planned foreman; its first refusal stops the chain for alerting.
+	ADR1219: while the crew walks to H the tick is the walk's; arrival places it on H the same tick."""
+	if not is_running(): return &""
+	if _walk_left > 0:
+		_walk_left -= 1
+		if _walk_left > 0: return &""
+		if not _place_on_anchor(): return _stop(REFUSE_SURFACE_ARRIVAL)
+	if not _crew_resolved(): return &""
 	var code: StringName = _foreman.advance(tick)
 	if code != &"": return _stop(code)
 	if _foreman.is_done(): _step = STEP_DONE
@@ -180,7 +201,8 @@ func _plan_foreman(o: RefCounted) -> StringName:
 	paid.router = o.router; paid.connector = o.connector; paid.contacts = o.contacts; paid.budget = o.budget
 	for ordinal: int in INSTALLATIONS:
 		if code == &"": code = foreman.configure_installation(paid, ordinal)
-	if code == &"": code = _arrival_refusal(o, foreman.first_station())
+	if code == &"": code = foreman.plan_arrival(_published.endpoints[0])
+	if code == &"": code = _begin_walk(o, foreman.arrival_yaw())
 	if code != &"": return code
 	_foreman = foreman
 	_jobs = o.jobs
@@ -210,12 +232,47 @@ func _entry_placement(o: RefCounted) -> Vector2i:
 	return found
 
 
-func _arrival_refusal(o: RefCounted, station: Vector2i) -> StringName:
-	"""G5: the simulation never walks a resident from the surface, so the mole must already stand on the station."""
+func _begin_walk(o: RefCounted, yaw: int) -> StringName:
+	"""ADR1219: the crew walks from its surface pose to H (endpoint 0) over BAL-WORK-003's straight-leg lower bound
+	ceil_div(D*30, v), D the exact integer length rounded up and v its size class's ground cap. No path, obstacle or
+	clearance is modelled (no surface Navigation is composed); the Transform stays put until arrival places it."""
 	var record: Foreman.Locations.Record = Foreman.Locations.Record.new()
 	var pose: Transforms.Pose = Transforms.Pose.new()
+	var ticks: IntMath.IntResult = IntMath.IntResult.new()
 	record.envelope.resize(6)
 	record.support.resize(6)
-	if station == NULL_REF or o.locations.read_location_into(station, record) != &"": return REFUSE_SCOPE
+	if o.locations.read_location_into(_published.endpoints[0], record) != &"": return REFUSE_SCOPE
 	if not o.transforms.read_into(_crew.worker, pose): return REFUSE_SURFACE_ARRIVAL
-	return &"" if Vector3i(pose.x, pose.y, pose.z) == record.point else REFUSE_SURFACE_ARRIVAL
+	var size: IntMath.IntResult = o.residents.size_class_of(o.residents.directory().get_typed_row(_crew.worker))
+	var speed: IntMath.IntResult = o.residents.size_movement_u_per_s(size.value) if size.ok else size
+	if not speed.ok: return REFUSE_SURFACE_ARRIVAL
+	var length: int = ceil_length(record.point - Vector3i(pose.x, pose.y, pose.z))
+	if not Haul.travel_ticks_into(length, speed.value, ticks): return REFUSE_SURFACE_ARRIVAL
+	_anchor = record.point
+	_arrival_yaw = yaw
+	_transforms = o.transforms
+	_walk_left = ticks.value
+	return &"" if ticks.value > 0 or _place_on_anchor() else REFUSE_SURFACE_ARRIVAL
+
+
+func _place_on_anchor() -> bool:
+	"""Arrival: the Transform is placed exactly on H's integer point, facing H's authored arrival heading (the
+	resident keeps its own heading when the arrival profile admits every heading; nothing is derived from motion)."""
+	var pose: Transforms.Pose = Transforms.Pose.new()
+	if not _transforms.read_into(_crew.worker, pose): return false
+	var yaw: int = _arrival_yaw if _arrival_yaw >= 0 else pose.yaw
+	return _transforms.place(_crew.worker, _anchor.x, _anchor.y, _anchor.z, yaw)
+
+
+static func ceil_length(delta: Vector3i) -> int:
+	"""The exact Euclidean length of an integer offset, rounded up; int32 components keep the square in int64."""
+	var square: int = int(delta.x) * delta.x + int(delta.y) * delta.y + int(delta.z) * delta.z
+	var low: int = 0
+	var high: int = 3037000499 # floor(sqrt(2^63 - 1)): every int64 square's root lies at or below it.
+	while low < high:
+		@warning_ignore("integer_division") var mid: int = (low + high) / 2
+		if mid * mid >= square:
+			high = mid
+		else:
+			low = mid + 1
+	return low

@@ -180,6 +180,14 @@ draws instead.
 both are metres with −Z forward. If the generated settlement is ever offset from the village ground, the anchor
 conversion is the one place to change.
 
+### G5 simulation half built (ADR 1219)
+
+Items 1–4 above are now built as ADR 1219 records, with two corrections to this list: the walk is a timed BAL-WORK-003
+hand-off rather than composed surface Movement, and admission at H uses H's own authored approach row (the station
+travel row does not fit H), then the authored retreat. Item 5 was already built (`crew()`). The view no longer raises
+`ENTRY_SURFACE_HANDOFF_UNBUILT`: on presentation arrival it holds the cast walker at H until the simulation registers
+the resident.
+
 ### Remaining (not in this ADR)
 
 - **Source-0 rows in the live demo.** These are the tooled cut rows 0–28 other than 29. They are drawn by the pinned

@@ -868,10 +868,17 @@
     {
      "bytes": 0,
      "carried_by": "none",
-     "store": "no retained-storage change"
+     "store": "ADR 1219: UNREGISTERED_REACH_U is a compile-time constant of the unregistered-resident occupancy rule; no retained storage"
     }
    ],
-   "delta": {}
+   "delta": {
+    "int_constants_added": [
+     [
+      "UNREGISTERED_REACH_U",
+      "2 * 2611"
+     ]
+    ]
+   }
   },
   "godot/scripts/core/underground_session.gd": {
    "charges": [

@@ -141,7 +141,8 @@ func _view(host: Node, cast: Cast, include_stone: bool = true) -> View:
 
 
 func _crew_host() -> HostSuite:
-	"""The real ADR1197 chain on a generated settlement, stopped at G4 with its crew chosen (G11 stand-in tool)."""
+	"""The real ADR1197 chain on a generated settlement with its crew chosen (G11 stand-in tool) and, ADR1219,
+	set off on its timed surface walk to H: not yet a Routes actor."""
 	_host_suite = HostSuite.new()
 	_host_suite.before_each()
 	var session: RefCounted = _host_suite._generate_and_mount()
@@ -150,20 +151,22 @@ func _crew_host() -> HostSuite:
 		and host.compose_underground_surface_anchor() and host.compose_underground_entry_owners(), "owners composed")
 	assert_false(host.begin_underground_entry(NEAR), "G11 first")
 	_host_suite._equip_first_mole(session._retirement_owners, host.underground_entry()._output)
-	assert_false(host.begin_underground_entry(NEAR), "then G4")
-	assert_equal(host.underground_entry().step(), EntryRuntime.STEP_CREW, "crew chosen")
+	assert_true(host.begin_underground_entry(NEAR), "the crew sets off for H: %s" % host.last_refusal())
+	assert_equal(host.underground_entry().step(), EntryRuntime.STEP_RUNNING, "crew chosen and planned")
+	assert_true(host.underground_entry().walk_ticks_left() > 0, "still on its surface walk")
 	return _host_suite
 
 
-func test_surface_walk_brings_a_cast_mole_to_the_anchor_then_raises_the_g5_alert_once() -> void:
-	"""The resident has no Routes actor: the walk is ordered to H, and only arrival raises the exact G5 alert."""
+func test_surface_walk_brings_a_cast_mole_to_the_anchor_and_holds_it_for_the_simulation() -> void:
+	"""The resident has no Routes actor yet: the walk is ordered once to H and arrival raises nothing (ADR1219: the
+	simulation's own timed walk registers the resident, which alone switches the view to drawing)."""
 	var host: Node = _crew_host()._host
 	var cast: Cast = _cast([&"otter_fisher", Meshes.CAST_KEY])
 	var view: View = _view(host, cast)
 	var runtime: EntryRuntime = host.underground_entry()
 	var actor: Routes.Actor = Routes.Actor.new()
 	assert_true(host.underground_session()._retirement_owners.routes.read_actor_into(runtime._crew.worker, actor) != &"",
-		"the simulation half is missing: the crew's resident is not a Routes actor")
+		"the simulation's walk has not arrived: the crew's resident is not a Routes actor yet")
 	assert_equal(view.advance(1), &"", "walking: no alert yet")
 	assert_equal(view.stage(), View.STAGE_WALKING, "the walk is ordered")
 	assert_equal(cast.orders, [View.anchor_m(runtime.origin())] as Array[Vector3], "one order, to H in metres")
@@ -172,11 +175,12 @@ func test_surface_walk_brings_a_cast_mole_to_the_anchor_then_raises_the_g5_alert
 	cast.members[1].position = View.anchor_m(runtime.origin()) + Vector3(1.0, 0.0, 0.0)
 	assert_equal(view.advance(2), &"", "a metre short is not arrival")
 	cast.members[1].position = View.anchor_m(runtime.origin()) + Vector3(0.5, 0.0, 0.5)
-	assert_equal(view.advance(3), View.ALERT_HANDOFF, "arrival at H meets the missing hand-off")
-	assert_equal(view.advance(4), View.ALERT_HANDOFF, "it stands")
-	assert_equal(_alerts, [View.ALERT_HANDOFF] as Array[StringName], "raised exactly once")
+	assert_equal(view.advance(3), &"", "arrival at H raises nothing: the hand-off is the simulation's")
+	assert_equal(view.stage(), View.STAGE_AT_ANCHOR, "held at the anchor")
+	assert_equal(view.advance(4), &"", "it waits")
+	assert_equal(_alerts, [] as Array[StringName], "no alert")
 	assert_equal(cast.orders.size(), 1, "never re-ordered")
-	assert_true(View.gap_of(View.ALERT_HANDOFF).begins_with("G5"), "G5 gap row")
+	assert_true(View.gap_of(&"ROUTE_UNREGISTERED_RESIDENT_NEAR").begins_with("G5"), "the runtime's G5 row maps")
 	assert_true(View.gap_of(&"ENTRY_FOREMAN_INPUT_LOT").begins_with("G4"), "the runtime's own rows still map")
 
 

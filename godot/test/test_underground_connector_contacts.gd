@@ -1228,7 +1228,8 @@ func test_unknown_actual_actor_cannot_be_omitted_from_productive_clearance() -> 
 	var other: Vector2i = _fixture._f._residents.spawn(&"mouse").ref
 	assert_true(_fixture._f._transforms.place(other, WorldTests.X + 512, 512, WorldTests.Z + 512, 0), "real overlapping actor")
 	var before: Array[PackedByteArray] = _payment_image()
-	assert_equal(_fixture.start().error, &"CONNECTOR_CONTACT_ACTOR_UNBOUND", "unknown complete actor shape refuses")
+	assert_equal(_fixture.start().error, &"ROUTE_UNREGISTERED_RESIDENT_NEAR",
+		"ADR1219: an unregistered resident within its reach cube of the station refuses")
 	_assert_payment_unchanged(before)
 	_bind_other_actor(other)
 	assert_true(_fixture.start().ok, "both actual actors now have complete committed profiles and separated poses")

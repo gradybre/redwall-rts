@@ -4224,8 +4224,8 @@
         "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
         "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
         "godot/scripts/core/underground_profiles.gd": "64325eed6772207817a043220fe4db371fe5aa68a89fec60a287099ea589dfaf",
-        "godot/scripts/core/underground_routes.gd": "7cca094843626e3a6b730041ca809d4b798b3bd72ced7da9ba425acb1e35e659",
-        "godot/scripts/core/underground_world_routes.gd": "71a1bbc47b49eeedb71ffd6ce2d9e9c10ed5084381f87282353f9b4e8332d53e"
+        "godot/scripts/core/underground_routes.gd": "c91f28dd5e9e755d7b235685fd338d05876fc389f71a9d7968c2e316d7f5c2b2",
+        "godot/scripts/core/underground_world_routes.gd": "3c26a79f9ddf6278ba923820939f201f8207cad07fa8bbe67c16ece5f2ab6b62"
       }
     },
     "current_profile_control": {
@@ -42441,10 +42441,17 @@
           {
             "bytes": 0,
             "carried_by": "none",
-            "store": "no retained-storage change"
+            "store": "ADR 1219: UNREGISTERED_REACH_U is a compile-time constant of the unregistered-resident occupancy rule; no retained storage"
           }
         ],
-        "delta": {}
+        "delta": {
+          "int_constants_added": [
+            [
+              "UNREGISTERED_REACH_U",
+              "2 * 2611"
+            ]
+          ]
+        }
       },
       "godot/scripts/core/underground_session.gd": {
         "charges": [
@@ -42776,17 +42783,17 @@
     },
     "first_entry_runtime": {
       "rows": {
-        "runtime_numeric": 44,
+        "runtime_numeric": 72,
         "work_area_published": 96,
-        "crew": 32,
-        "foreman_numeric": 325,
+        "crew": 40,
+        "foreman_numeric": 365,
         "foreman_tasks": 1440,
         "installer_numeric": 221,
         "installer_plan": 128,
         "installer_quote": 184,
-        "haulers": 616
+        "haulers": 664
       },
-      "bytes": 3086,
+      "bytes": 3210,
       "frontier_counts": {
         "INSTALL": 2,
         "STATION": 8,
@@ -42847,9 +42854,9 @@
     "new_retained_bytes": {
       "geometry_journals": 4322,
       "locations_carry_and_retirement_controls": 161,
-      "first_entry_runtime_chain": 3086
+      "first_entry_runtime_chain": 3210
     },
-    "new_contribution_bytes": 7569,
+    "new_contribution_bytes": 7693,
     "runtime_qualified": false,
     "native_measured": false
   },
@@ -42861,7 +42868,7 @@
     "connector_workpieces": 29928,
     "guarded_haul_transfers": 3072,
     "connector_delivery": 4096,
-    "current_census_new_retained": 7569,
+    "current_census_new_retained": 7693,
     "space_banks_and_indexes": 1104160,
     "phase_proof_cache_and_candidate": 17724,
     "shared_geometry_cold_peak": 1048960,
@@ -42876,12 +42883,12 @@
     "LAYOUT_COLD_BYTES": 262144,
     "BINDINGS_AND_GROWTH_BYTES": 524544
   },
-  "new_mutable_and_reserved_bytes": 5014866,
+  "new_mutable_and_reserved_bytes": 5014990,
   "declaration_bytes": 23573,
   "declaration_delta_bytes": 2388,
-  "live_with_reserve_bytes": 100007631,
+  "live_with_reserve_bytes": 100007755,
   "gate_bytes": 150000000,
-  "headroom_bytes": 49992369,
+  "headroom_bytes": 49992245,
   "source_sha256": {
     "godot/scripts/core/construction.gd": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a",
     "godot/scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
@@ -42906,8 +42913,8 @@
     "godot/scripts/core/underground_budget.gd": "fc8e43428787784f1ada4b8f26348ebfd8f7c4c907f5169a9658dcc5d71713f8",
     "godot/scripts/core/underground_connector_assemblies.gd": "3199049decf5b6ca95da09bb416196d82a96e89af194166b196df29f1cf7b73c",
     "godot/scripts/core/underground_connector_catalog.gd": "bab9c370eb6253d65c12cb330ee90e06f4fb7f02493a47ef27784ad2fdd1cbdb",
-    "godot/scripts/core/underground_connector_contacts.gd": "2e78aa88633e02ddceb66499e65460a9fff8e96c56a0edc42fe9ef22335022f2",
-    "godot/scripts/core/underground_connector_delivery.gd": "694915bb003b8c75f659a7d092acb5712b8e9e42af0b2c401e357fd7da6c1d5b",
+    "godot/scripts/core/underground_connector_contacts.gd": "c4d9805e3d2997d7f6a97cd461ed9054301afcb6c0a22f49fc337dd3717c244b",
+    "godot/scripts/core/underground_connector_delivery.gd": "668907c8c2f16ef2dd00103df1265e790108acd324de543343b31a781bb2f81e",
     "godot/scripts/core/underground_connector_placements.gd": "173e0fcad1bf2da32dd6e12a9679d75bd066a6321575a5f305eef3ab72ff8d03",
     "godot/scripts/core/underground_connector_recipes.gd": "a23c0f6087597b1c3bee978f9008824af86856dca6ddaba1b6bc41d1d03cba1a",
     "godot/scripts/core/underground_connector_work.gd": "3efb1b9faf15585ed732682433aa0b5df0e77e5fb4666ea88466fde17b6bf602",
@@ -42925,7 +42932,7 @@
     "godot/scripts/core/underground_profiles.gd": "64325eed6772207817a043220fe4db371fe5aa68a89fec60a287099ea589dfaf",
     "godot/scripts/core/underground_room_world_bindings.gd": "d012c526a267fc7aecb365e7a6afa40d00d931f2b710b1122fc19705f556f8b1",
     "godot/scripts/core/underground_route_composition.gd": "7ea85ba19ce0aaf91eb0bbaed74860a02f1e0290251b8e1616ce11a0e5f28497",
-    "godot/scripts/core/underground_routes.gd": "7cca094843626e3a6b730041ca809d4b798b3bd72ced7da9ba425acb1e35e659",
+    "godot/scripts/core/underground_routes.gd": "c91f28dd5e9e755d7b235685fd338d05876fc389f71a9d7968c2e316d7f5c2b2",
     "godot/scripts/core/underground_session.gd": "3fcd2db0da172e162df5c3d0bd6cffd1c1b63684a5bc4fbdbedabecfc2d1f3a6",
     "godot/scripts/core/underground_space_authority.gd": "3377e00f509e833e618330237c65fa7a18aaf20a4876b5b16322bbdab7d4ec5b",
     "godot/scripts/core/underground_space_owner.gd": "c5aea1c3904c621552f67537f303799d51c7ab1adbe2478cef2fbdfd81e955d5",
@@ -42933,7 +42940,7 @@
     "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
     "godot/scripts/core/underground_work_face.gd": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
     "godot/scripts/core/underground_world_retirement.gd": "7f509aed2c5710e6b148806baa90d178ba0857502d257cfc4dd42f26791134de",
-    "godot/scripts/core/underground_world_routes.gd": "71a1bbc47b49eeedb71ffd6ce2d9e9c10ed5084381f87282353f9b4e8332d53e",
+    "godot/scripts/core/underground_world_routes.gd": "3c26a79f9ddf6278ba923820939f201f8207cad07fa8bbe67c16ece5f2ab6b62",
     "godot/scripts/core/work.gd": "a79363ab3e6a116e89b32fc89ded50aa32a0849a81e34b6737043a3362255338"
   },
   "registry_sha256": "ba12eff2b55cad43d90b42e6e262665d16d60b9720566483328031053f614f03",

@@ -500,3 +500,29 @@ Until one is chosen, no Frontier successor is published.
 - **Unchanged:**
   - every ADR 1190 rule (single Frontier source, distinct set-down program);
   - items 2, 3 and 5, which still wait for G10.
+
+## Step 4c — content 8: the split claw and paw-handling sources
+
+This carries out the step 4b decision. Content 7 stays published and unused.
+
+### 4c.1 Two-image native capture (done)
+
+`claw-work-v1/native_claw_split.py` succeeds `native_claw.py`. It reuses the accepted step-3b compiler, capture
+script, runner steps and verifier equations unchanged. As `native_haul_v10.py` did, it only selects each image's
+clips and content name. Nothing is re-authored: every clip is step 3b's, pinned by its approval record.
+
+| Image | Source | Clips (keys) | Content | Native rows | Mismatches | Joins | Max vertex error (u) |
+|---|---|---|---|---:|---:|---:|---|
+| claw | 4 | stand 122, walk 45, dig entry/stroke/recovery 31/33/31, tap entry/work/recovery 31/33/31 | `2b58852e…` (413,340 B) | 4,212 | 0 | 24 | 0.0003 |
+| paw handling | 5 | seat entry/work/recovery 31/2/31 | `cbe80b76…` (74,392 B) | 741 | 0 | 12 | 0.0002 |
+
+- Both replays ran on the real non-headless Metal/Forward+ backend, with 0 failures, 0 analyzer warnings and 0
+  diagnostics.
+- The paw image has no stand. Its ready joins (entry start and recovery end) are checked across images against the
+  claw capture's stand key 8, as stone v9 checked its stand join against wood v8. All 36 joins of step 3b hold.
+- Captures: claw `19b93668…`, paw `65564db1…`.
+- The minimum floor gap is 0.0014 u, with the paws excepted only while digging.
+
+Evidence is in `claw-work-v1/evidence/native-claw-split-v1/{claw,paw}/`. The palettes were staged from the frozen
+`redwall-rts-codex-ug-space` worktree (ADR 1192 §6), checked against their pins (`5b368eb3…`, `08de5453…`,
+`de8c3b04…`), and removed after the run.

@@ -137,3 +137,40 @@ pick, front, side and top at one zoom), `paw-alone.png` and `README.md`. `test_c
 Brendan approved the curled paw from `grip.png` and `paw-alone.png`. The planned steps 1–5 now proceed: the
 GDScript port, the per-source paw, the native bake, the grip exclusion and proof, and native capture, then the
 tread install tap.
+
+## Steps 1–5 after approval (done; the tap is stopped for review)
+
+1. **GDScript port.** `godot/data/underground/mole-worker/mole_grip_curl_source.gd` applies the approved
+   deformation to the original mesh, with analytic normals and tangents.
+   - It reuses the accepted `source_refusal`, so the body, hand bind and source pick fit must all be exact.
+   - It pins `DERIVED_DIGEST` `2a8517bb…` and 845 changed vertices.
+   - Natively, on the staged body (`capture_curled_paw.gd`), it matches the Python author to 1.2e-7 m at every
+     vertex.
+   - `godot/test/test_mole_grip_curl_source.gd` holds 5 tests: refusal, continuity, wrap direction, an analytic
+     Jacobian against central differences, and the fit.
+2. **Per-source presentation is not wired, by necessity.** The Content refuses any part whose geometry
+   fingerprint differs. Sources 0 and 1 are images compiled on the closed paw with the accepted fit, so drawing
+   them with the curled paw would refuse them, and the mole would vanish from the demo.
+   - The curled paw enters presentation with the first image compiled on it: the tread install tap, as its own
+     source, with content 7.
+   - That adds one Content reservation (`curl-v1` declares a 6,920,048 B admitted peak, the same as firm-v1) and one
+     derived body mesh.
+   - Sources 0–3 are unchanged today, so the presentation memory figure is unchanged.
+3. **Native bake.** `rebake_curled_grip.py` → `tools/bake_mole_curl_grip_content.gd` (successors of the accepted
+   pair) wrote `mole-grip-v4.ugpal` (`d72d3fd6…`): 7 states, 354 frames, 8,496 native matrix checks, 0 diagnostics
+   and 0 leaks.
+   - The palette and its import archive are committed under LFS in `grip-source-v4/content/`.
+   - The successor closure (`curl_source.py`) is `grip-proof-v3` envelopes, `curl-v1` compiled content
+     (`8ad9d1ad…`) and `topology-curl-v1` (a native census, 0 failures).
+   - It re-holds the accepted compact ready key with the lateral-2 fit. The haul authors keep v3.
+4. **Grip exclusion and grip proof** (`prove_curl_grip.py` → `curl-grip-proof-v1/`). The accepted exclusion rule
+   (hand-weighted, hand-local y > 0.025) selects the same 845 vertices and 448 triangles on the curled mesh,
+   because the curl keeps every moved vertex beyond the shaft line. No successor rule is needed, and the counts
+   are checked. At the re-held ready key:
+   - the accepted self-clearance proof is clear;
+   - the exact test finds palm and claw contact with the shaft (it stops at its 32-pair limit);
+   - the claws cover 105° around the shaft.
+5. **Native capture** (`run_native_curl_grip.py` → `curl-native-v1/`): 731 poses, 0 failures, and 0 analyzer
+   warnings in 4 files.
+
+The tread install tap is re-run on this closure in ADR 1209 step 4, revision 4.

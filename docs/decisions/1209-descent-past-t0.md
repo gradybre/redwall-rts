@@ -359,3 +359,21 @@ The pick grip is shared presentation and proof content, not part of the tread ta
 - **A real wrap** needs new paw art, a palette re-bake, a successor grip exclusion and native capture.
 
 The tread tap waits on Brendan's choice in ADR 1216.
+
+### Revision 4 (2026-10-07): the tap on the curled paw (candidates ready; stopped for review)
+
+`author_tread_install_v4.py` re-runs the tap on ADR 1216's curled-paw closure. The station, fixture, swivel elbow
+with the ready wrist, tap keys and every accepted proof are unchanged. All three candidates stand upright with a
+handle lean of 25–50° and pass every proof.
+
+| Candidate | Strike (x, z) | Lean, azimuth | Shaft angle | Wrist from ready, at contact / maximum | Tool to body |
+|---|---|---|---:|---|---:|
+| **s** | 160, −270 | 35°, 60° | 65.7° | 3.3° / 39.1° | 21.0 u |
+| t | 64, −294 | 35°, 60° | 65.7° | 7.1° / 42.4° | 7.6 u |
+| u | 64, −294 | 30°, 60° | 60.7° | 10.1° / 31.0° | 16.7 u |
+
+**Recommended: s.**
+
+**Review packet:** `tread-install-review-v4/`. For each candidate it holds `grip.png` (the accepted v4 contact on
+the closed paw beside the candidate on the curled paw, front, side and top at one zoom), `overview.png`,
+`hands.png` and `motion.png`. `test_curl_grip_chain.py` holds 5 tests.

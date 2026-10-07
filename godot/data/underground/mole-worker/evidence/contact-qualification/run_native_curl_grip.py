@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+"""ADR 1216: create-only native replay of the curled pick paw (curl-v1); successor of grip-authoring/run_native_grip.py.
+
+Native pictures test source use, not gameplay qualification. Only the content, the replay script and the
+analysed files differ from the accepted runner.
+"""
+from pathlib import Path
+import hashlib
+import json
+import subprocess
+import sys
+
+ROOT = Path(__file__).resolve().parents[6]
+
+
+def digest(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def main():
+    if len(sys.argv) != 2:
+        raise ValueError("usage: run_native.py new-output-directory")
+    out = Path(sys.argv[1])
+    if out.exists() or out.is_symlink():
+        raise ValueError("CONTENT_NATIVE_OUTPUT_EXISTS")
+    out = out.resolve()
+    out.mkdir(parents=True)
+    compilation = ROOT / "godot/data/underground/mole-worker/curl-v1/compilation.json"
+    report = json.loads(compilation.read_text())
+    spec = {"content": "res://data/underground/mole-worker/curl-v1/mole-worker.ugactor",
+            "content_sha256": report["content_sha256"],
+            "reserve_bytes": report["presentation_budget"]["admitted_peak_bytes"],
+            "basis": "res://demo/assets/underground-matrices/world-yaw-v1.ugyaw",
+            "basis_sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+            "basis_producer_sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f",
+            "manifest": "res://demo/assets/manifest.json",
+            "manifest_sha256": "ce3206671b74b1602f23e992b648d4093ea8c51fc259b0e13c1769b8facbbf37"}
+    specfile = out / "spec.json"
+    specfile.write_text(json.dumps(spec, indent=2) + "\n")
+    commands = [
+        ["godot", "--headless", "--path", "godot", "--editor", "--quit"],
+        ["godot", "--path", "godot", "--rendering-method", "gl_compatibility", "--audio-driver", "Dummy",
+         "--fixed-fps", "60", "--script", "res://data/underground/mole-worker/evidence/contact-qualification/native_grip_sequence_curl.gd",
+         "--", str(specfile), str(out)],
+        ["python3", "tools/gdscript_warnings.py", "--port", "6149", "--max", "0",
+         "godot/data/underground/mole-worker/evidence/contact-qualification/native_grip_sequence_curl.gd",
+         "godot/data/underground/mole-worker/mole_grip_curl_source.gd",
+         "godot/data/underground/mole-worker/evidence/contact-qualification/capture_topology_curl.gd",
+         "godot/data/underground/mole-worker/evidence/contact-qualification/capture_curled_paw.gd"],
+    ]
+    paths = [Path(__file__), compilation, ROOT / "godot/data/underground/mole-worker/curl-v1/mole-worker.ugactor",
+             ROOT / "godot/data/underground/mole-worker/evidence/native_sequence.gd",
+             ROOT / "godot/data/underground/mole-worker/evidence/grip-authoring/native_grip_sequence.gd",
+             ROOT / "godot/data/underground/mole-worker/evidence/contact-qualification/native_grip_sequence_curl.gd",
+             ROOT / "godot/data/underground/mole-worker/mole_grip_source.gd",
+             ROOT / "godot/data/underground/mole-worker/mole_grip_curl_source.gd",
+             ROOT / "godot/demo/tunnel/tunnel_ext.gd",
+             ROOT / "godot/demo/cast/underground_actor_content.gd", ROOT / "godot/demo/cast/underground_actor.gd",
+             ROOT / "godot/demo/cast/demo_actor.gd", ROOT / "godot/demo/props/demo_props.gd"]
+    for name in ("basis", "manifest"):
+        paths.append(ROOT / "godot" / spec[name][6:])
+    before = {str(p.relative_to(ROOT)): digest(p) for p in paths}
+    (out / "sources.json").write_text(json.dumps(before, indent=2) + "\n")
+    codes = []
+    diagnostic_failure = False
+    for name, command in zip(("import", "native", "analyzer"), commands):
+        with (out / (name + ".log")).open("x") as log:
+            result = subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, timeout=600)
+        codes.append(result.returncode)
+        print(name, result.returncode, flush=True)
+        text = (out / (name + ".log")).read_text()
+        diagnostic_failure = any(marker in text for marker in
+                ("ERROR:", "WARNING:", "SCRIPT ERROR:", "leaked at exit", "resources still in use"))
+        if result.returncode or diagnostic_failure:
+            break
+    after = {str(p.relative_to(ROOT)): digest(p) if p.is_file() else None for p in paths}
+    source_unchanged = before == after
+    (out / "invocation.json").write_text(json.dumps({"commands": commands, "returncodes": codes,
+                "unexpected_diagnostic": diagnostic_failure, "source_unchanged": source_unchanged}, indent=2) + "\n")
+    (out / "sources-after.json").write_text(json.dumps(after, indent=2) + "\n")
+    if not source_unchanged:
+        raise ValueError("CONTENT_NATIVE_SOURCE_DRIFT; preserve the original and final source pins")
+    if diagnostic_failure or codes != [0, 0, 0]:
+        raise ValueError("CONTENT_NATIVE_REFUSED; preserve this complete diagnostic bundle")
+    result = json.loads((out / "report.json").read_text())
+    if result["failures"] or result["poses"] < 500 or result["production_qualified"]:
+        raise ValueError("CONTENT_NATIVE_CENSUS")
+    print("verified", result["poses"], "poses", result["assertions"], "assertions; production qualified=0")
+
+
+if __name__ == "__main__":
+    main()

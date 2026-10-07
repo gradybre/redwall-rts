@@ -1,0 +1,40 @@
+{
+  "commands": [
+    [
+      "godot",
+      "--headless",
+      "--path",
+      "godot",
+      "--editor",
+      "--quit"
+    ],
+    [
+      "godot",
+      "--path",
+      "godot",
+      "--rendering-method",
+      "gl_compatibility",
+      "--audio-driver",
+      "Dummy",
+      "--fixed-fps",
+      "60",
+      "--script",
+      "/Users/brendan/Developer/redwall-rts/.claude/worktrees/agent-a789696b53683cce3/godot/data/underground/mole-worker/evidence/contact-qualification/capture_topology_curl.gd",
+      "--",
+      "/Users/brendan/Developer/redwall-rts/.claude/worktrees/agent-a789696b53683cce3/godot/data/underground/mole-worker/evidence/contact-qualification/topology-curl-v1/spec.json",
+      "/Users/brendan/Developer/redwall-rts/.claude/worktrees/agent-a789696b53683cce3/godot/data/underground/mole-worker/evidence/contact-qualification/topology-curl-v1"
+    ]
+  ],
+  "returncodes": [
+    0,
+    0
+  ],
+  "source_unchanged": true,
+  "unexpected_diagnostics": false,
+  "production_qualified": false,
+  "validated_report": {
+    "parts": 2,
+    "indices": 34077,
+    "assertions": 34119
+  }
+}

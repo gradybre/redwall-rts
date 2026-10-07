@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "decision": "1216",
+  "clear": true,
+  "no_penetration_beyond_grip_exclusion": {
+    "clear": true,
+    "checks": 160,
+    "pairs": 160,
+    "body_triangles": 9761,
+    "intentional_grip_triangles": 448,
+    "tool_triangles": 1150
+  },
+  "palm_and_claw_contact": {
+    "grip_triangles": 448,
+    "accepted_exclusion_omitted": 448,
+    "unseparated_pairs_found": 32,
+    "stopped_at_limit": true,
+    "witnesses": [
+      {
+        "interval": 0,
+        "next_frame": 1,
+        "body_triangle": 76,
+        "tool_triangle": 643
+      },
+      {
+        "interval": 0,
+        "next_frame": 1,
+        "body_triangle": 77,
+        "tool_triangle": 643
+      },
+      {
+        "interval": 0,
+        "next_frame": 1,
+        "body_triangle": 197,
+        "tool_triangle": 643
+      },
+      {
+        "interval": 0,
+        "next_frame": 1,
+        "body_triangle": 281,
+        "tool_triangle": 643
+      },
+      {
+        "interval": 0,
+        "next_frame": 1,
+        "body_triangle": 74,
+        "tool_triangle": 644
+      },
+      {
+        "interval": 0,
+        "next_frame": 1,
+        "body_triangle": 75,
+        "tool_triangle": 644
+      },
+      {
+        "interval": 0,
+        "next_frame": 1,
+        "body_triangle": 78,
+        "tool_triangle": 644
+      },
+      {
+        "interval": 0,
+        "next_frame": 1,
+        "body_triangle": 126,
+        "tool_triangle": 644
+      }
+    ]
+  },
+  "wrap": {
+    "shaft_radius_u": 28.862426015122743,
+    "grip_vertices_in_shell": 57,
+    "wrap_sectors_covered": 7,
+    "wrap_degrees": 105.0
+  },
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_curl_grip.py": "4f790dc6b13086c15aaf2bfab2381db442bbfea0565ed394292ccbbeb6a3bee1",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/curl_source.py": "3280968de8dadb469564a4ac2ba3340672da9112d42571b001ae6e89f1fc2cb6",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_pick_refit.py": "5ccb78d12f6ddfc0111d4ece412b1fd72de4ba1df6b12b34342944c0c54ae9f7"
+  },
+  "verified_source_files": 612,
+  "historical_source_snapshot": {},
+  "production_qualified": false
+}

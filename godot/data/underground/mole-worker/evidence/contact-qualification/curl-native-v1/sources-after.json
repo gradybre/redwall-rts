@@ -1,0 +1,17 @@
+{
+  "godot/data/underground/mole-worker/evidence/contact-qualification/run_native_curl_grip.py": "000492a69ad1b5f4d9745bbc5e9ae7a4e2e69669adfb7512e055838434795a4d",
+  "godot/data/underground/mole-worker/curl-v1/compilation.json": "23cdd892299660ab244e7a78ee9a3598ca2f95dde895b3a75e81b54a5b7398f9",
+  "godot/data/underground/mole-worker/curl-v1/mole-worker.ugactor": "8ad9d1ad9f14515edac430648d28dc7728ce1bde1debc40191105935134d8457",
+  "godot/data/underground/mole-worker/evidence/native_sequence.gd": "b67a7ef615760a5e9cd5a118badcd6a37a04d624a039a8be33b82e6b2da5849e",
+  "godot/data/underground/mole-worker/evidence/grip-authoring/native_grip_sequence.gd": "f101fb26cacef38c1182f5613ef27da22a939c2a94ab93c25c3ab1a30c13cccc",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/native_grip_sequence_curl.gd": "b3d80daaf48a8b08911b0ca6c646d8ec1e189d26297bd142bbf612b60e062bf7",
+  "godot/data/underground/mole-worker/mole_grip_source.gd": "d7c10a0c828f168fb8842e58fa07aa781fce0036769cd8585723ed1f7acb0b19",
+  "godot/data/underground/mole-worker/mole_grip_curl_source.gd": "932de4860464d5852ee06a86926291029eaf0978b85d1af513cc6b7df7fe8558",
+  "godot/demo/tunnel/tunnel_ext.gd": "286d386c02ed4e4193965bc0fc196f5054369dd8842656e78b0f27b4594b9492",
+  "godot/demo/cast/underground_actor_content.gd": "388374964d20879b6b896021ebde7927e472634ea8a32b6834ec7b1b5042157f",
+  "godot/demo/cast/underground_actor.gd": "b0ef7640d2b5626eb95c162d19318d9b3985a51479d19dfdf9a38e0176a06e91",
+  "godot/demo/cast/demo_actor.gd": "1dd127464e7a9853b307af20d8f34bdd2606e7dad64910b685a810eaa93b5fb0",
+  "godot/demo/props/demo_props.gd": "28eebe56851286d2718a89c8c5085ed3ee6e8a817bd5cf821a5dd9e76c2568da",
+  "godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+  "godot/demo/assets/manifest.json": "ce3206671b74b1602f23e992b648d4093ea8c51fc259b0e13c1769b8facbbf37"
+}

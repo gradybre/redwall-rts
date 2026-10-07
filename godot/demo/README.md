@@ -188,6 +188,14 @@ Review UX-022 (`session/`). **Every pause says why, and there is one Resume.**
   capped, `demo_clock.gd limit_usec`): from 05:40 at 4x, Run until dawn stops at 06:00:00. Any pause or critical event
   first cancels the run, and the card says so ("Run until dawn cancelled: paused (you paused)"); the button reads
   "■ Dawn" while it runs, and the menu has **Stop the run**.
+- **Skip to next season** (decision 1653; Brendan's winter ruling 4, decision 0571, placed in the speed area): the
+  Run until… menu's last line, "Skip to next season: Y1 Summer 1, 06:00…". A click **asks first** (Skip / Cancel); Skip
+  calls the same `demo_village.gd skip_to_next_season` as the Demo Lab's trigger (F8, kept), so its effects are the
+  Lab's: the crops, the stores, the weather and the hearths run hour by hour to 06:00 on the next season's first day;
+  the residents' walking and work, the kitchen's meals and the cold they would have felt are not lived (its tooltip and
+  question say so, and the news after it). Not offered while a run is under way.
+- **F1 / F2 / F3** request 1x / 2x / 4x (UI §5's `time_speed_1/2/4`; decision 1653), as the HUD's speed toggles do:
+  the speed only, never clearing a pause.
 
 ## One village: one calendar, one weather, one water, one feed
 
@@ -396,7 +404,8 @@ into view in its own pixels at any interface scale (`ui/demo_scroll.gd`; decisio
 | Enter / Space | Press the focused button. Only the keyboard's focus takes them: after a click, Enter still digs the piece the Dig tool has laid, Space still pauses and the arrows still pan the camera |
 | Esc | With focus in a panel: back to the world. Otherwise the pop-up, tool or selection ladder below, then the game menu |
 | Space | Pause; paused, Resume (your pause, a planning pause, a critical pause; never the menu's or a stall's) |
-| G | "Run until…" (decision 0471): Tab and the arrows move through it, Enter chooses, G or Esc close it |
+| G | "Run until…" (decision 0471): Tab and the arrows move through it, Enter chooses, G or Esc close it; it also holds Skip to next season, which asks first (decision 1653) |
+| F1 / F2 / F3 | Speed 1x / 2x / 4x (UI §5; decision 1653). A pause stays a pause |
 | F6 | The object list (decision 0471): every resident, crop bed, tree, bridge, tunnel mouth and room; Enter on a row selects it and centres the view on it |
 
 **Accessibility** (decision 0471, review UX-023, `access/`): the game menu's Settings holds four **presets** -- pointing at

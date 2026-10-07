@@ -13,11 +13,19 @@ extends CanvasLayer
 ## 3 h 20 min (about 50 s at 4x)" -- or, disabled, why it cannot ("Project done: Select a tunnel, room or bridge being
 ## built first"); "Stop the run" while one is under way; and Close. Choosing a target starts the run and closes the
 ## menu. The host decides everything (`on_start`, `on_stop`, `on_speed`); the menu only shows run_until.gd.
+##
+## SKIP TO NEXT SEASON (decision 1653; Brendan's winter ruling 4, decision 0571, "a Skip-to-next-season control", placed
+## in the speed area): below the targets, "Skip to next season: Y1 Summer 1, 06:00…" -- its tooltip saying what the
+## jump runs and what it does not live (season_skip.gd WHAT IS SKIPPED). A click asks first: the question and Skip /
+## Cancel. Skip calls the host's `on_skip` (the same `demo_village.gd skip_to_next_season` the Demo Lab's trigger
+## calls, so its effects are the Lab's) and closes the menu. Not while a run is under way (stop it first).
 
 const FarmUi := preload("res://demo/farm/farm_ui.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const RunScript := preload("res://demo/session/run_until.gd")
+const SkipScript := preload("res://demo/winter/season_skip.gd")
+const CalendarScript := preload("res://demo/demo_calendar.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 
 const LAYER: int = 2
@@ -35,6 +43,12 @@ const NOTE: String = "The village runs at the speed below, then pauses and says 
 const SPEED_TITLE: String = "Speed"
 const STOP_TEXT: String = "Stop the run (until %s)"
 const CLOSE_TEXT: String = "Close (G or Esc)"
+const SKIP_TEXT: String = "Skip to next season: %s…"
+const SKIP_TIP: String = "Jump to 06:00 on day 1 of the next season. The crops, the stores, the weather and the hearths run hour by hour; the residents' walking and work, the kitchen's meals and the cold they would have felt are not lived. Asks first."
+const SKIP_ASK: String = "Skip to %s? Crops, stores, weather and hearths run; walking, work, meals and the cold are not lived."
+const SKIP_YES: String = "Skip"
+const SKIP_NO: String = "Cancel"
+const SKIP_RUNNING: String = "Stop the run first"
 ## The key that opens and closes the menu.
 const KEY: Key = KEY_G
 
@@ -45,6 +59,9 @@ var on_stop: Callable = Callable()
 var on_speed: Callable = Callable()
 var speed: Callable = Callable()
 var before_open: Callable = Callable()
+## `() -> int`: skip to the next season (the hours stepped); and the calendar its landing is read from. Unset: no skip.
+var on_skip: Callable = Callable()
+var calendar: CalendarScript = null
 
 var _run: RunScript = null
 var _button_layer: CanvasLayer = null
@@ -54,6 +71,12 @@ var _speeds: Array[Button] = []
 var _targets: Array[Button] = []
 var _stop: Button = null
 var _close: Button = null
+var _skip: Button = null
+var _ask: VBoxContainer = null
+var _ask_label: Label = null
+var _skip_yes: Button = null
+var _skip_no: Button = null
+var _armed: bool = false
 var _cluster: Callable = Callable()
 var _last_speed: Callable = Callable()
 var _layout: UiLayout = UiLayout.new()
@@ -84,6 +107,7 @@ func _init() -> void:
 	column.add_child(note)
 	column.add_child(_build_speeds())
 	_build_targets(column)
+	_build_skip(column)
 	_stop = FarmUi.button("", FarmUi.SMALL_PX)
 	_stop.pressed.connect(stop)
 	column.add_child(_stop)
@@ -102,6 +126,30 @@ func _build_targets(column: VBoxContainer) -> void:
 		made.pressed.connect(choose.bind(target))
 		column.add_child(made)
 		_targets.append(made)
+
+
+func _build_skip(column: VBoxContainer) -> void:
+	"""The skip's button and its question (see SKIP TO NEXT SEASON), the question hidden until asked."""
+	var inner: float = WIDTH - FarmUi.CONTENT_MARGINS[0] - FarmUi.CONTENT_MARGINS[2]
+	_skip = FarmUi.button("", FarmUi.SMALL_PX)
+	_skip.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_skip.custom_minimum_size.x = inner
+	_skip.pressed.connect(arm_skip)
+	column.add_child(_skip)
+	_ask = VBoxContainer.new()
+	_ask_label = FarmUi.label("", FarmUi.SMALL_PX, Palette.INK)
+	_ask_label.custom_minimum_size.x = inner
+	_ask.add_child(_ask_label)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override(&"separation", 8)
+	_skip_yes = FarmUi.button(SKIP_YES, FarmUi.SMALL_PX)
+	_skip_yes.pressed.connect(confirm_skip)
+	_skip_no = FarmUi.button(SKIP_NO, FarmUi.SMALL_PX)
+	_skip_no.pressed.connect(cancel_skip)
+	row.add_child(_skip_yes)
+	row.add_child(_skip_no)
+	_ask.add_child(row)
+	column.add_child(_ask)
 
 
 func _build_speeds() -> HBoxContainer:
@@ -173,6 +221,7 @@ func open() -> void:
 		return
 	if before_open.is_valid():
 		before_open.call()
+	_armed = false
 	refresh()
 	visible = true
 	_place.call_deferred()
@@ -209,7 +258,46 @@ func refresh() -> void:
 	_stop.visible = running
 	if running:
 		_stop.text = STOP_TEXT % _run.words(_run.target)
+	_refresh_skip(running)
 	_paint_button()
+
+
+func _refresh_skip(running: bool) -> void:
+	"""The skip's line (shown only with a host and a calendar), disabled while a run is under way; its question while
+	asked."""
+	var offered: bool = on_skip.is_valid() and calendar != null
+	_skip.visible = offered
+	_armed = _armed and offered and not running
+	_ask.visible = _armed
+	if not offered:
+		return
+	var landing: String = SkipScript.target_words(calendar)
+	_skip.text = SKIP_TEXT % landing
+	FarmUi.set_enabled(_skip, not running and not _armed, SKIP_RUNNING if running else "")
+	_skip.tooltip_text = SKIP_RUNNING if running else SKIP_TIP
+	_ask_label.text = SKIP_ASK % landing
+
+
+func arm_skip() -> void:
+	"""The skip clicked: ask first (see SKIP TO NEXT SEASON)."""
+	_armed = true
+	refresh()
+	_skip_no.grab_focus.call_deferred()
+
+
+func cancel_skip() -> void:
+	"""The question answered Cancel: nothing happens."""
+	_armed = false
+	refresh()
+
+
+func confirm_skip() -> void:
+	"""The question answered Skip: the host's skip, and the menu closed."""
+	if not _armed or not on_skip.is_valid():
+		return
+	_armed = false
+	on_skip.call()
+	close()
 
 
 func choose(target: int) -> void:
@@ -254,6 +342,31 @@ func target_button(target: int) -> Button:
 func speed_button(k: int) -> Button:
 	"""The speed toggle for SimClock.SELECTABLE_SPEEDS[k]."""
 	return _speeds[k]
+
+
+func skip_button() -> Button:
+	"""Skip to next season."""
+	return _skip
+
+
+func skip_yes_button() -> Button:
+	"""The skip's question: Skip."""
+	return _skip_yes
+
+
+func skip_no_button() -> Button:
+	"""The skip's question: Cancel."""
+	return _skip_no
+
+
+func skip_asked() -> bool:
+	"""Whether the skip's question is shown."""
+	return _ask.visible
+
+
+func skip_question() -> String:
+	"""The skip's question as shown."""
+	return _ask_label.text
 
 
 func stop_button() -> Button:

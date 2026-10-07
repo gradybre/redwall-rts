@@ -1,5 +1,6 @@
 extends RefCounted
-## "SKIP TO NEXT SEASON" (Brendan's ruling 4): the Demo Lab's trigger (F8). Decision 0571. It advances the ONE calendar
+## "SKIP TO NEXT SEASON" (Brendan's ruling 4): in the time controls' "Run until…" menu (G; decision 1653), with a
+## confirmation, and still the Demo Lab's trigger (F8). Decision 0571. It advances the ONE calendar
 ## (demo_calendar.gd) to LAND_HOUR -- 06:00, the hour the demo opens at -- on day 1 of the next season, exactly on the
 ## tick, an hour at a time, and lets the systems catch up deterministically. The spring opening is untouched.
 ##
@@ -57,6 +58,14 @@ static func run(calendar: CalendarScript, advance: Callable, each_hour: Callable
 			each_hour.call()
 		steps += 1
 	return steps
+
+
+static func target_words(calendar: CalendarScript) -> String:
+	"""Where a skip would land, as the demo prints a date: "Y1 Summer 1, 06:00" (allocates: words, on a click)."""
+	var hour: int = target_hour(calendar)
+	var year: int = Rules.div(Rules.day_of_hour(hour), SimClock.DAYS_PER_SEASON * SimClock.SEASONS_PER_YEAR) + 1
+	return "Y%d %s, %02d:00" % [year, CalendarScript.day_text(Rules.hour_season(hour), Rules.hour_season_day(hour)),
+		Rules.hour_of_day(hour)]
 
 
 static func skipped_line(calendar: CalendarScript, hours: int) -> String:

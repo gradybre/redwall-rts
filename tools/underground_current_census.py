@@ -226,7 +226,26 @@ ENTRY_INSTALLER = {"_o": "RefCounted", "_crew": "RefCounted", "_paid": "Paid", "
                    "_math": "IntMath.IntResult", "_actor": "Routes.Actor", "_quote": "Modular.Quote",
                    "_hauler": "Hauler", "_haul_mwu": "int", "_haul_trips": "int"}
 STATELESS = ("underground_entry_composition", "underground_entry_site", "underground_entry_contact_path",
-             "underground_entry_contact_retirement", "underground_entry_work_area")
+             "underground_entry_contact_retirement", "underground_entry_work_area", "underground_entry_progress")
+PROGRESS_TERMS = ("HEADER_BYTES", "RUNTIME_FIXED_BYTES", "CREW_BYTES", "FOREMAN_FIXED_BYTES", "INSTALLER_FIXED_BYTES",
+                  "HAULER_FIXED_BYTES")
+
+
+def entry_progress(memory, index: dict) -> dict:
+    """ADR 1218: the saved entry progress record exists only during one capture or restore. Its bound is
+    recomputed from the codec's own block constants, and two whole images (the writer's and its returned copy,
+    or the caller's input and the canonical re-encode) are charged as retained, conservatively."""
+    source = module(index, CORE + "underground_entry_progress.gd").text
+    formula = ("const MAX_WIRE_BYTES: int = HEADER_BYTES + RUNTIME_FIXED_BYTES + 11 * 8 + CREW_BYTES + FOREMAN_FIXED_BYTES \\\n"
+               "\t+ MAX_TASKS * TASK_BYTES + INSTALLER_FIXED_BYTES + MAX_QUOTE_LINES * QUOTE_LINE_BYTES \\\n"
+               "\t+ HAULER_FIXED_BYTES + MAX_QUEUE * 4 + MAX_LEGS * LEG_BYTES\n")
+    require(formula in source, "entry progress wire bound formula")
+    const = lambda name: int(re.search(r"^const " + name + r": int = (\d+)\b", source, re.M).group(1))
+    wire = sum(const(name) for name in PROGRESS_TERMS) + 11 * 8 + const("MAX_TASKS") * const("TASK_BYTES") \
+        + const("MAX_QUOTE_LINES") * const("QUOTE_LINE_BYTES") + 4 * const("MAX_QUEUE") + const("MAX_LEGS") * const("LEG_BYTES")
+    packets = packet(memory, index, CORE + "underground_entry_progress.gd", "Writer") \
+        + packet(memory, index, CORE + "underground_entry_progress.gd", "Reader")
+    return {"max_wire_bytes": wire, "images": 2, "packet_numeric_bytes": packets, "bytes": 2 * wire + packets}
 
 
 def entry_chain(memory, index: dict) -> dict:
@@ -260,6 +279,7 @@ def entry_chain(memory, index: dict) -> dict:
         # The foreman and the installer each retain one Hauler; both are charged.
         "haulers": 2 * (memory.numeric_fields(hauler, "") + actor + 4 * queue)
             + 2 * legs * packet(memory, index, CORE + "underground_entry_hauler.gd", "Leg"),
+        "progress_record": entry_progress(memory, index)["bytes"],
     }
     return {"rows": rows, "bytes": sum(rows.values()), "frontier_counts": counts, "planned_task_bound": tasks,
             "work_area_endpoints": endpoints,

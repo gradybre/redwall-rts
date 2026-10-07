@@ -15,6 +15,7 @@ const Assembly := preload("res://data/underground/mole-worker/qualified-assembly
 const IntMath := preload("res://scripts/core/int_math.gd")
 const Space := preload("res://scripts/core/room_space.gd")
 const Hauler := preload("res://scripts/core/underground_entry_hauler.gd")
+const Progress := preload("res://scripts/core/underground_entry_progress.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const STAGE_OPEN: int = 0
 const STAGE_LEG_MATERIAL: int = 1
@@ -397,4 +398,125 @@ func _recover(tick: int) -> StringName:
 	var completed: RefCounted = _paid.router.complete_order(_project)
 	if not completed.ok: return completed.error
 	_stage = STAGE_DONE
+	return &""
+
+
+func write_state(w: Progress.Writer) -> void:
+	"""ADR1218: the plan derived at the installation's start, then its cursor, quoted inputs and any haul."""
+	_write_plan(w)
+	w.i64(_content)
+	w.i32(_stage)
+	w.ref(_project)
+	w.i32(_job)
+	w.ref(Progress.job_ref(_o.jobs, _job, _stage != STAGE_OPEN))
+	w.i64(_accepted_mwu)
+	w.i64(_haul_mwu)
+	w.i32(_haul_trips)
+	var lines: int = _quote.input_count if _project != NULL_REF else 0
+	w.i32(lines)
+	for line: int in lines:
+		w.i32(_o.items.compiled_id(_quote.input_keys[line]))
+		w.i64(_quote.input_milli[line])
+	w.flag(_hauler != null)
+	if _hauler != null: _hauler.write_state(w)
+
+
+func _write_plan(w: Progress.Writer) -> void:
+	"""Every Plan field: the Locations it was resolved to may since have retired, so none is re-derived."""
+	w.i32(_plan.ordinal)
+	for at: Vector2i in [_plan.placement, _plan.station, _plan.material]:
+		w.ref(at)
+	w.i32(_plan.walk_profile)
+	w.i64(_plan.walk_revision)
+	w.i32(_plan.approach_profile)
+	w.i64(_plan.approach_revision)
+	w.ref(_plan.arrival)
+	w.i32(_plan.material_profile)
+	w.i64(_plan.material_revision)
+	w.i32(_plan.install_profile)
+	w.i64(_plan.install_revision)
+	w.i64(_plan.handling_revision)
+	w.ref(_plan.retired_first)
+	w.ref(_plan.retired_second)
+
+
+func read_state(r: Progress.Reader, owners: RefCounted, crew: RefCounted, paid: Paid) -> StringName:
+	"""ADR1218: decode a saved installation under the foreman's owners, then re-prove every handle."""
+	_o = owners
+	_crew = crew
+	_paid = paid
+	_plan = _read_plan(r)
+	_content = r.i64()
+	_stage = r.ranged(STAGE_OPEN, STAGE_HAUL)
+	_project = r.ref()
+	_job = r.i32()
+	var job: Vector2i = r.ref()
+	_accepted_mwu = r.i64()
+	_haul_mwu = r.i64()
+	_haul_trips = r.i32()
+	var lines: PackedInt64Array = PackedInt64Array()
+	for line: int in r.ranged(0, Progress.MAX_QUOTE_LINES):
+		lines.append_array(PackedInt64Array([r.i32(), r.i64()]))
+	var code: StringName = _read_haul(r, r.flag())
+	if code != &"": return code
+	if _stage == STAGE_DONE or (_stage == STAGE_HAUL) != (_hauler != null) \
+			or (_stage == STAGE_OPEN) != (_project == NULL_REF) or (_stage == STAGE_OPEN) != lines.is_empty():
+		return Progress.REFUSE_SHAPE
+	return _restored_refusal(job, lines)
+
+
+func _read_plan(r: Progress.Reader) -> Plan:
+	"""The Plan fields in wire order."""
+	var plan: Plan = Plan.new()
+	plan.ordinal = r.i32()
+	plan.placement = r.ref()
+	plan.station = r.ref()
+	plan.material = r.ref()
+	plan.walk_profile = r.i32()
+	plan.walk_revision = r.i64()
+	plan.approach_profile = r.i32()
+	plan.approach_revision = r.i64()
+	plan.arrival = r.ref()
+	plan.material_profile = r.i32()
+	plan.material_revision = r.i64()
+	plan.install_profile = r.i32()
+	plan.install_revision = r.i64()
+	plan.handling_revision = r.i64()
+	plan.retired_first = r.ref()
+	plan.retired_second = r.ref()
+	return plan
+
+
+func _read_haul(r: Progress.Reader, present: bool) -> StringName:
+	"""A saved haul belongs to this installation's own BUILD Job."""
+	if r.bad: return Progress.REFUSE_SHAPE
+	if not present: return &""
+	_hauler = Hauler.new()
+	return _hauler.read_state(r, _o, _crew, _job)
+
+
+func _restored_refusal(job: Vector2i, lines: PackedInt64Array) -> StringName:
+	"""The paid order must still quote the saved bill; every Location the plan will still read must be live."""
+	if _paid == null or _paid.router == null or _paid.connector == null: return Progress.REFUSE_OWNERS
+	if _content != _o.profiles.content_revision(): return Progress.REFUSE_CONTENT
+	var code: StringName = Progress.job_refusal(_o.jobs, _job, job, _stage != STAGE_OPEN)
+	if code == &"" and _stage != STAGE_OPEN: code = _quote_refusal(lines)
+	var retiring: bool = _stage in [STAGE_OPEN, STAGE_LEG_MATERIAL, STAGE_LEG_ARRIVAL, STAGE_LEG_STATION, STAGE_HAUL,
+		STAGE_FUND]
+	for at: Vector2i in [_plan.station, _plan.material]:
+		if code == &"": code = Progress.location_refusal(_o.locations, at, false)
+	if code == &"": code = Progress.location_refusal(_o.locations, _plan.arrival, true)
+	for at: Vector2i in [_plan.retired_first, _plan.retired_second]:
+		if code == &"" and retiring: code = Progress.location_refusal(_o.locations, at, true)
+	if code == &"" and _stage != STAGE_OPEN and _hauler == null: code = Progress.actor_refusal(_o, _crew.worker, job)
+	return code
+
+
+func _quote_refusal(lines: PackedInt64Array) -> StringName:
+	"""Re-read the restored order's immutable bill; it must be the very bill that was saved."""
+	if _paid.router.project_facts_into(_project, _quote) != &"": return Progress.REFUSE_PROJECT
+	if lines.size() != 2 * _quote.input_count: return Progress.REFUSE_PROJECT
+	for line: int in _quote.input_count:
+		if lines[2 * line] != _o.items.compiled_id(_quote.input_keys[line]) or lines[2 * line + 1] != _quote.input_milli[line]:
+			return Progress.REFUSE_PROJECT
 	return &""

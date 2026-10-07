@@ -59,7 +59,8 @@ def validate_registry(data):
     # Decision1066 adds36 excavation packed fields and22 scalar/domain records.
     # Decision1071 adds exactly two mandatory Buildings extension flags.
     # Decision1072 adds67 packed and14 scalar records across five explicit owners.
-    assert records == data['record_count'] == 756
+    # Decision1218 adds the entry progress owner: two hash records (length, bounded record).
+    assert records == data['record_count'] == 758
     directory = next(o for o in owners if (o['section_id'],o['owner_key']) == (3,'entity_directory'))
     assert [f['field_key'] for f in directory['fields']] == ['_active','_generation','_retired','_persistent_id','_kind','_typed_row']
     allocator = next(o for o in owners if (o['section_id'],o['owner_key']) == (1,'entity_directory'))
@@ -111,7 +112,8 @@ def validate_source(data, source):
     # DEMO-CONTAIN-R01 (decision 0531) adds inventory.gd's category-1 `_c_anchor_tile`: 555.
     # Eleven new RoomProjects packed fields; decision1066 adds36 physical/WIP fields.
     # Derived indexes stay category2; no persistent field is reclassified or omitted.
-    assert len(actual)==data['packed_source_field_count']==671
+    # Decision1218 declares the hauler's category-1 `_queue`, carried inside the progress record.
+    assert len(actual)==data['packed_source_field_count']==672
     print(f"PASS source membership/types: {len(actual)} persisted packed fields (not semantic adapter validation)")
 
 def valid_name(present, named, raw):

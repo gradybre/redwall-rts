@@ -4,9 +4,9 @@
   "audit_schema_version": 2,
   "audited_registry": {
     "path": "docs/planning/canonical_state_registry.json",
-    "registry_canonical_json_sha256": "4ad3ce3740d733432de6bd987087cae1634397041aaf847d2743a22325ca7354",
-    "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-03-UG4",
-    "registry_version": 11
+    "registry_canonical_json_sha256": "7634311c83edf32eaa93046f1ddbd815a07e1e62009286278101551994ae2efe",
+    "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-07-EP1",
+    "registry_version": 12
   },
   "audited_source": {
     "module_sha256": {
@@ -63,27 +63,27 @@
     "astra_cycle_03_taken_at": "388f4f4",
     "disagreements": [],
     "explained_since_census": [
-      "canonical_records: this audit 756, Astra Cycle 3 599 (+157) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071 and 1072: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records",
-      "distinct_expressions: this audit 65, Astra Cycle 3 56 (+9) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071 and 1072: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records",
-      "equality: this audit 501, Astra Cycle 3 473 (+28) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071 and 1072: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records",
-      "other_canonical_shapes: this audit 169, Astra Cycle 3 80 (+89) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071 and 1072: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records",
-      "owners: this audit 61, Astra Cycle 3 52 (+9) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071 and 1072: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records",
-      "packed_source_fields: this audit 671, Astra Cycle 3 553 (+118) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071 and 1072: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records",
-      "prose_records: this audit 587, Astra Cycle 3 519 (+68) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071 and 1072: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records",
-      "upper_bound: this audit 86, Astra Cycle 3 46 (+40) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071 and 1072: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records"
+      "canonical_records: this audit 758, Astra Cycle 3 599 (+159) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072 and 1218: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record",
+      "distinct_expressions: this audit 65, Astra Cycle 3 56 (+9) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072 and 1218: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record",
+      "equality: this audit 501, Astra Cycle 3 473 (+28) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072 and 1218: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record",
+      "other_canonical_shapes: this audit 171, Astra Cycle 3 80 (+91) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072 and 1218: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record",
+      "owners: this audit 62, Astra Cycle 3 52 (+10) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072 and 1218: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record",
+      "packed_source_fields: this audit 672, Astra Cycle 3 553 (+119) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072 and 1218: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record",
+      "prose_records: this audit 587, Astra Cycle 3 519 (+68) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072 and 1218: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record",
+      "upper_bound: this audit 86, Astra Cycle 3 46 (+40) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072 and 1218: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record"
     ],
     "observed": {
-      "canonical_records": 756,
+      "canonical_records": 758,
       "distinct_expressions": 65,
       "equality": 501,
-      "non_hash_fields": 8,
+      "non_hash_fields": 10,
       "non_hash_fields_admitted_to_audit": 0,
       "non_hash_fields_carrying_declared_capacity": 0,
-      "other_canonical_shapes": 169,
-      "owners": 61,
-      "packed_source_fields": 671,
+      "other_canonical_shapes": 171,
+      "owners": 62,
+      "packed_source_fields": 672,
       "prose_records": 587,
-      "registry_listed_fields": 764,
+      "registry_listed_fields": 768,
       "upper_bound": 86
     }
   },
@@ -1091,6 +1091,27 @@
         "count_field",
         "order",
         "stride"
+      ]
+    },
+    {
+      "field_key": "progress_length",
+      "ordinal": 0,
+      "owner_key": "underground_entry_progress",
+      "section_id": 6,
+      "shape_keys": [
+        "count",
+        "order"
+      ]
+    },
+    {
+      "field_key": "progress_record",
+      "ordinal": 1,
+      "owner_key": "underground_entry_progress",
+      "section_id": 6,
+      "shape_keys": [
+        "count_field",
+        "max_count",
+        "order"
       ]
     },
     {

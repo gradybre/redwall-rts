@@ -12,6 +12,7 @@ const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Planner := preload("res://scripts/core/haul_planner.gd")
 const Space := preload("res://scripts/core/room_space.gd")
 const Grip := preload("res://data/underground/mole-worker/qualified-stone-v7/grip_certificate.gd")
+const Progress := preload("res://scripts/core/underground_entry_progress.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const STAGE_APPROACH: int = 0
 const STAGE_TO_SOURCE: int = 1
@@ -326,3 +327,78 @@ static func _point(bank: Locations.Bank, capacity: int, row: int) -> Vector3i:
 	"""Exact packed endpoint point."""
 	return Vector3i(bank.i32[Locations.X * capacity + row], bank.i32[Locations.Y * capacity + row],
 		bank.i32[Locations.Z * capacity + row])
+
+
+func write_state(w: Progress.Writer) -> void:
+	"""ADR1218: the haul cursor, its trip queue and its approach legs, in wire order."""
+	w.ref(_project)
+	w.i32(_home)
+	w.i32(_queue.size())
+	for item: int in _queue:
+		w.i32(item)
+	w.i32(_legs.size())
+	for leg: Leg in _legs:
+		w.ref(leg.target)
+		w.i32(leg.profile)
+		w.i64(leg.revision)
+	w.i32(_leg)
+	w.i32(_trip)
+	w.i32(_job)
+	w.ref(Progress.job_ref(_o.jobs, _job, true))
+	w.i32(_stage)
+	w.i64(_content)
+	w.ref(_store)
+	w.ref(_stand_source)
+	w.ref(_stand_store)
+	w.i64(_haul_mwu)
+	w.i32(_trips)
+
+
+func read_state(r: Progress.Reader, owners: RefCounted, crew: RefCounted, home: int) -> StringName:
+	"""ADR1218: decode a saved haul under the parent's owners and BUILD Job, then re-prove its handles."""
+	_o = owners
+	_crew = crew
+	_project = r.ref()
+	_home = r.i32()
+	for index: int in r.ranged(1, Progress.MAX_QUEUE):
+		_queue.append(r.i32())
+	for index: int in r.ranged(1, Progress.MAX_LEGS):
+		var leg: Leg = Leg.new()
+		leg.target = r.ref()
+		leg.profile = r.i32()
+		leg.revision = r.i64()
+		_legs.append(leg)
+	_leg = r.ranged(0, _legs.size())
+	_trip = r.ranged(0, _queue.size())
+	_job = r.i32()
+	var job: Vector2i = r.ref()
+	_stage = r.ranged(STAGE_APPROACH, STAGE_HOME)
+	_read_tail(r)
+	if r.bad or _home != home or _trips != _trip or _legs[_legs.size() - 1].target != _store: return Progress.REFUSE_SHAPE
+	return _restored_refusal(job)
+
+
+func _read_tail(r: Progress.Reader) -> void:
+	"""The content pin, the three storage and stand endpoints and the ledgers."""
+	_content = r.i64()
+	_store = r.ref()
+	_stand_source = r.ref()
+	_stand_store = r.ref()
+	_haul_mwu = r.i64()
+	_trips = r.i32()
+
+
+func _restored_refusal(job: Vector2i) -> StringName:
+	"""Every handle the haul will still read must exist in the restored owners exactly as saved."""
+	if _o.delivery == null or _o.gear == null: return Progress.REFUSE_OWNERS
+	if _content != _o.profiles.content_revision(): return Progress.REFUSE_CONTENT
+	for item: int in _queue:
+		if Grip.carry_row_for(item) < 0: return Progress.REFUSE_SHAPE
+	var code: StringName = Progress.job_refusal(_o.jobs, _job, job, true)
+	if code == &"" and not _o.construction.is_live_project(_project): code = Progress.REFUSE_PROJECT
+	if code == &"" and _store != _o.inventory.spatial_location_of(_crew.storage): code = Progress.REFUSE_LOCATION
+	for at: Vector2i in [_store, _stand_source, _stand_store]:
+		if code == &"": code = Progress.location_refusal(_o.locations, at, false)
+	for index: int in range(_leg, _legs.size()):
+		if code == &"": code = Progress.location_refusal(_o.locations, _legs[index].target, false)
+	return Progress.actor_refusal(_o, _crew.worker, job) if code == &"" else code

@@ -18,6 +18,7 @@ const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Assembly := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
 const ContactPath := preload("res://scripts/core/underground_entry_contact_path.gd")
 const Hauler := preload("res://scripts/core/underground_entry_hauler.gd")
+const Progress := preload("res://scripts/core/underground_entry_progress.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const OPERATIONS: Array[int] = [Contract.OP_BRACE, Contract.OP_CUT, Contract.OP_FINISH]
 const STAGE_OPEN: int = 0
@@ -709,3 +710,278 @@ func haul_trips() -> int:
 func install_mwu() -> int:
 	"""Fastening work accepted across completed and current installations, or zero."""
 	return _install_mwu + (_installer.accepted_mwu() if _installer != null else 0)
+
+
+func capture(out: PackedByteArray) -> StringName:
+	"""ADR1218 (G10): write this foreman's whole progress record at a quiescent tick boundary, in flight or not."""
+	out.clear()
+	if _owners == null: return Progress.REFUSE_TARGET
+	var code: StringName = Progress.busy_refusal(_owners)
+	if code != &"": return code
+	var w: Progress.Writer = Progress.begin(Progress.KIND_FOREMAN)
+	write_state(w)
+	out.append_array(Progress.finish(w))
+	return &"" if not out.is_empty() else Progress.REFUSE_SHAPE
+
+
+func restore(bytes: PackedByteArray, owners: Owners, paid: Installer.Paid) -> StringName:
+	"""ADR1218: rebuild a fresh foreman exactly from its record against the restored owners. A refused record
+	leaves this foreman failed with the refusal as its error; it never touches an owner."""
+	if _owners != null or not _tasks.is_empty(): return Progress.REFUSE_TARGET
+	var r: Progress.Reader = Progress.Reader.new()
+	var code: StringName = Progress.open(bytes, Progress.KIND_FOREMAN, r)
+	if code == &"": code = read_state(r, owners, paid)
+	if code == &"": code = Progress.close(r)
+	if code == &"": code = canonical_refusal(bytes, Progress.KIND_FOREMAN)
+	if code != &"": refuse_restore(code)
+	return code
+
+
+func canonical_refusal(bytes: PackedByteArray, kind: int) -> StringName:
+	"""A restored foreman must write back exactly the record it was read from."""
+	var w: Progress.Writer = Progress.begin(kind)
+	write_state(w)
+	return &"" if Progress.finish(w) == bytes else Progress.REFUSE_NONCANONICAL
+
+
+func refuse_restore(code: StringName) -> void:
+	"""Drop everything a refused record decoded; the foreman stays failed with that refusal."""
+	_owners = null
+	_crew = null
+	_paid = null
+	_tasks.clear()
+	_installer = null
+	_hauler = null
+	_stage = STAGE_FAILED
+	_error = code
+
+
+static func write_crew(w: Progress.Writer, crew: Crew) -> void:
+	"""The crew's five handles; ADR1219's arrival endpoint is null until the arrival is planned."""
+	for at: Vector2i in [crew.worker, crew.tool, crew.storage, crew.output, crew.arrival]:
+		w.ref(at)
+
+
+static func read_crew(r: Progress.Reader) -> Crew:
+	"""The crew's five handles in wire order."""
+	var crew: Crew = Crew.new()
+	crew.worker = r.ref()
+	crew.tool = r.ref()
+	crew.storage = r.ref()
+	crew.output = r.ref()
+	crew.arrival = r.ref()
+	return crew
+
+
+func _terminal() -> bool:
+	"""Done or failed: nothing further reads the world, so sub-dispatchers are folded into the ledgers."""
+	return _stage == STAGE_DONE or _stage == STAGE_FAILED
+
+
+func _job_in_use() -> bool:
+	"""Stages that still read the current phase's BUILD Job."""
+	return _stage in [STAGE_TRAVEL, STAGE_ENTER, STAGE_START, STAGE_EARN, STAGE_RECOVER, STAGE_HAUL]
+
+
+func write_state(w: Progress.Writer) -> void:
+	"""ADR1218 wire order: crew, wiring flags, plan, cursor, ledgers, then the live installation and haul."""
+	write_crew(w, _crew)
+	w.flag(_owners.delivery != null)
+	w.flag(_paid != null)
+	w.i64(_content)
+	w.ref(_placement)
+	w.i32(_tasks.size())
+	for task: Task in _tasks:
+		_write_task(w, task)
+	w.i32(_index)
+	w.i32(_stage)
+	w.i32(_stage_ticks)
+	w.i32(_job)
+	w.ref(Progress.job_ref(_owners.jobs, _job, _job_in_use()))
+	w.code(_error if _stage == STAGE_FAILED else &"")
+	_write_ledgers(w)
+	_write_arrival(w)
+	w.flag(_installer != null and not _terminal())
+	if _installer != null and not _terminal(): _installer.write_state(w)
+	w.flag(_hauler != null and not _terminal())
+	if _hauler != null and not _terminal(): _hauler.write_state(w)
+
+
+static func _write_task(w: Progress.Writer, task: Task) -> void:
+	"""One planned step, exactly as configured; its station may since have retired."""
+	w.i32(task.install_ordinal)
+	w.ref(task.site)
+	w.i32(task.operation)
+	w.ref(task.station)
+	w.i32(task.yaw)
+	w.i32(task.work_profile)
+	w.i64(task.work_revision)
+	w.i32(task.travel_profile)
+	w.i64(task.travel_revision)
+
+
+func _write_arrival(w: Progress.Writer) -> void:
+	"""ADR1219: H's own registration row and the authored retreat the worker leaves H by."""
+	w.i32(_arrival_profile)
+	w.i64(_arrival_revision)
+	w.ref(_arrival_retreat)
+	w.i32(_arrival_retreat_profile)
+	w.i64(_arrival_retreat_revision)
+
+
+func _read_arrival(r: Progress.Reader) -> void:
+	"""ADR1219 arrival plan in wire order."""
+	_arrival_profile = r.i32()
+	_arrival_revision = r.i64()
+	_arrival_retreat = r.ref()
+	_arrival_retreat_profile = r.i32()
+	_arrival_retreat_revision = r.i64()
+
+
+func _write_ledgers(w: Progress.Writer) -> void:
+	"""Work ledgers and leg/retreat cursors; a terminal foreman writes its getters' folded totals."""
+	w.i64(_accepted_mwu)
+	w.i32(_install_count)
+	w.i64(install_mwu() if _terminal() else _install_mwu)
+	w.i32(_last_install_stage)
+	w.ref(_leg_target)
+	w.i32(_leg_profile)
+	w.i64(_leg_revision)
+	w.ref(_retreat)
+	w.i32(_retreat_profile)
+	w.i64(_retreat_revision)
+	w.ref(_pending_retreat)
+	w.i64(haul_mwu() if _terminal() else _haul_mwu)
+	w.i32(haul_trips() if _terminal() else _haul_trips)
+	w.i32(_haul_marker)
+
+
+func read_state(r: Progress.Reader, owners: Owners, paid: Installer.Paid) -> StringName:
+	"""ADR1218: decode a saved foreman under the restored owners, then re-prove every handle it will still read."""
+	if owners == null or owners.frontier == null or owners.placements == null or owners.items == null \
+			or owners.profiles == null or owners.jobs == null:
+		return Progress.REFUSE_OWNERS
+	_owners = owners
+	_crew = read_crew(r)
+	var delivery: bool = r.flag()
+	var paid_bound: bool = r.flag()
+	_paid = paid
+	_content = r.i64()
+	_placement = r.ref()
+	for index: int in r.ranged(1, Progress.MAX_TASKS):
+		_tasks.append(_read_task(r))
+	_index = r.ranged(0, _tasks.size())
+	_stage = r.ranged(STAGE_OPEN, STAGE_HAUL)
+	_stage_ticks = r.ranged(0, STAGE_TICK_LIMIT + 1)
+	_job = r.i32()
+	var job: Vector2i = r.ref()
+	_error = r.code()
+	_read_ledgers(r)
+	_read_arrival(r)
+	if (_stage == STAGE_FAILED) == (_error == &""): return Progress.REFUSE_SHAPE
+	var code: StringName = _read_children(r)
+	if code == &"" and (delivery != (owners.delivery != null) or paid_bound != (paid != null)):
+		code = Progress.REFUSE_OWNERS
+	if code != &"" or _terminal(): return code
+	code = Progress.job_refusal(owners.jobs, _job, job, _job_in_use())
+	return _restored_refusal(job) if code == &"" else code
+
+
+static func _read_task(r: Progress.Reader) -> Task:
+	"""One planned step in wire order."""
+	var task: Task = Task.new()
+	task.install_ordinal = r.i32()
+	task.site = r.ref()
+	task.operation = r.i32()
+	task.station = r.ref()
+	task.yaw = r.i32()
+	task.work_profile = r.i32()
+	task.work_revision = r.i64()
+	task.travel_profile = r.i32()
+	task.travel_revision = r.i64()
+	return task
+
+
+func _read_ledgers(r: Progress.Reader) -> void:
+	"""Work ledgers and leg/retreat cursors in wire order."""
+	_accepted_mwu = r.i64()
+	_install_count = r.ranged(0, _tasks.size())
+	_install_mwu = r.i64()
+	_last_install_stage = r.i32()
+	_leg_target = r.ref()
+	_leg_profile = r.i32()
+	_leg_revision = r.i64()
+	_retreat = r.ref()
+	_retreat_profile = r.i32()
+	_retreat_revision = r.i64()
+	_pending_retreat = r.ref()
+	_haul_mwu = r.i64()
+	_haul_trips = r.i32()
+	_haul_marker = r.i32()
+
+
+func _read_children(r: Progress.Reader) -> StringName:
+	"""The installation exists exactly in STAGE_INSTALL and the haul exactly in STAGE_HAUL."""
+	if r.bad or not _cursor_shape_ok(): return Progress.REFUSE_SHAPE
+	var code: StringName = &""
+	if r.flag() != (_stage == STAGE_INSTALL): return Progress.REFUSE_SHAPE
+	if _stage == STAGE_INSTALL:
+		if _paid == null: return Progress.REFUSE_OWNERS
+		_installer = Installer.new()
+		code = _installer.read_state(r, _owners, _crew, _paid)
+		if code == &"" and _installer._plan.placement != _placement: code = Progress.REFUSE_SHAPE
+	if code == &"" and r.flag() != (_stage == STAGE_HAUL): code = Progress.REFUSE_SHAPE
+	if code == &"" and _stage == STAGE_HAUL:
+		_hauler = Hauler.new()
+		code = _hauler.read_state(r, _owners, _crew, _job)
+	return code if not r.bad else Progress.REFUSE_SHAPE
+
+
+func _cursor_shape_ok() -> bool:
+	"""The cursor points at a step of the kind its stage runs; DONE is exactly past the last step."""
+	if _stage == STAGE_DONE: return _index == _tasks.size()
+	if _index >= _tasks.size() or _tasks.size() <= OPERATIONS.size() or _stage == STAGE_FAILED:
+		return _stage == STAGE_FAILED and _index <= _tasks.size()
+	return (_stage == STAGE_INSTALL) == (_tasks[_index].install_ordinal >= 0)
+
+
+func _restored_refusal(job: Vector2i) -> StringName:
+	"""Content, crew, Placement, every future task and every pending leg must exist in the restored owners."""
+	if _content != _owners.profiles.content_revision(): return Progress.REFUSE_CONTENT
+	var code: StringName = _crew_refusal(_owners, _crew)
+	var placements: RefCounted = _owners.placements
+	if code == &"" and not placements._is_live(placements._live, _placement): code = Progress.REFUSE_PLACEMENT
+	if code == &"": code = _task_refusal()
+	if code == &"" and _stage == STAGE_TRAVEL: code = Progress.location_refusal(_owners.locations, _leg_target, false)
+	for at: Vector2i in [_retreat, _pending_retreat]:
+		if code == &"": code = Progress.location_refusal(_owners.locations, at, true)
+	if code == &"" and _arriving(): # ADR1219: still to be registered on H, then to leave by its retreat.
+		code = Progress.location_refusal(_owners.locations, _crew.arrival, false)
+		if code == &"": code = Progress.location_refusal(_owners.locations, _arrival_retreat, true)
+	if code == &"" and _stage in [STAGE_TRAVEL, STAGE_ENTER, STAGE_START, STAGE_EARN, STAGE_RECOVER]:
+		code = Progress.actor_refusal(_owners, _crew.worker, job)
+	return code
+
+
+static func _crew_refusal(owners: RefCounted, crew: Crew) -> StringName:
+	"""A live resident worker, a live tool lot and two live spatial containers."""
+	if owners.residents.directory().get_typed_row(crew.worker) < 0 or not owners.inventory.is_lot_valid(crew.tool):
+		return Progress.REFUSE_CREW
+	for container: Vector2i in [crew.storage, crew.output]:
+		if owners.inventory.spatial_location_of(container) == NULL_REF: return Progress.REFUSE_CREW
+	return &""
+
+
+func _task_refusal() -> StringName:
+	"""Every step not yet settled needs its Site and station; an unstarted L0 still retires tasks 0 and 3."""
+	for index: int in range(_index, _tasks.size()):
+		var task: Task = _tasks[index]
+		if task.install_ordinal >= 0:
+			if task.install_ordinal == 0 and (index > _index or _stage != STAGE_INSTALL) \
+					and (Progress.location_refusal(_owners.locations, _tasks[0].station, false) != &""
+					or Progress.location_refusal(_owners.locations, _tasks[OPERATIONS.size()].station, false) != &""):
+				return Progress.REFUSE_LOCATION
+			continue
+		if not _owners.sites.is_live_site(task.site): return Progress.REFUSE_SITE
+		if Progress.location_refusal(_owners.locations, task.station, false) != &"": return Progress.REFUSE_LOCATION
+	return &""

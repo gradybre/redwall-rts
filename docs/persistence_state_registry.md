@@ -2088,20 +2088,26 @@ as source-qualified motion. No composed save adapter is claimed here.
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Entry dispatch cursor | -- | -- | -- | No packed columns; Task list derived from the immutable Frontier | UNRESOLVED | §6 AUXILIARY_STATE | ADR1196. Current task index, stage, Job slot and stage tick count are future-affecting while a phase is in flight. Open question: is the cursor re-derived on load from Sites/Jobs/Routes state (category 2), or saved with the dispatcher (category 1)? No save adapter exists yet. |
+| Entry dispatch cursor | -- | -- | -- | No packed columns; an unconfigured foreman has no record (`ENTRY_SAVE_TARGET`) | 1 | §6 AUXILIARY_STATE | ADR1196; **ADR1218 (G10, Brendan 2026-10-07: saved explicitly)**. `write_state`/`read_state` carry the crew, the Delivery/paid wiring flags, the content pin, the Placement, every planned Task (stations may since have retired, so none is re-derived), index, stage, stage ticks, Job slot with its Directory handle while a stage reads it, the refusal code, the work/haul ledgers, the leg/retreat cursors and ADR1219's five `_arrival_*` fields in the progress record (`underground_entry_progress.gd`). `restore` refuses with exact `ENTRY_SAVE_*` codes: content, crew, Placement, every unsettled Task's Site and station, an unstarted L0's retired pair, the travel leg and retreats, an unregistered crew's arrival (H) and arrival retreat, the Job and the route actor's Job are re-proved against the restored owners. A terminal foreman folds its sub-dispatchers into its ledgers. `_math`/`_actor` are per-call scratch. Canonical declaration: section 6 owner `underground_entry_progress`. |
 
 ### `godot/scripts/core/underground_entry_installer.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Installation dispatch cursor | -- | -- | -- | No packed columns; Plan derived from the Frontier install row | UNRESOLVED | §6 AUXILIARY_STATE | ADR1196 increment 2. Stage, Project ref and Job slot are future-affecting while an installation is in flight. QUESTION: are they re-derived on load from Router/Workpieces/Routes state, or saved with the foreman? |
+| Installation dispatch cursor | -- | -- | -- | No packed columns; absent outside the foreman's STAGE_INSTALL | 1 | §6 AUXILIARY_STATE | ADR1196 increment 2; **ADR1218: saved with the foreman.** The whole Plan (resolved at the installation's start), content pin, stage, Project, Job with handle, ledgers and the quoted input lines (compiled item, milli) are written. Restore re-reads the order's immutable bill through `Router.project_facts_into` and refuses `ENTRY_SAVE_PROJECT` unless it is the saved bill; station, material, arrival and (before START) the retired pair must be live; the route actor must be under the installation Job. `_quote` is refilled from the restored Router; `_math`/`_actor` are scratch. |
 
 ### `godot/scripts/core/underground_entry_hauler.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Haul trip queue | `_queue` | 4 | never allocated | Borrowed caller array; empty when no haul is planned | UNRESOLVED | §6 AUXILIARY_STATE | ADR1210. One compiled item id per remaining 1000-milli trip, built by units_into and held by reference (no resize()); at most 4 in the first-entry prefix (the L0 wood bill). QUESTION: re-derive on load from the bills and M's free stock, or save with the dispatcher? |
-| Haul dispatch cursor | -- | -- | -- | No packed columns | UNRESOLVED | §6 AUXILIARY_STATE | ADR1210. Stage, leg, trip index, current HAUL Job slot and the worker's unequipped tool are future-affecting while a haul is in flight; the goods themselves live in Inventory and Planner claims. QUESTION: re-derive on load, or save with the foreman cursor? |
+| Haul trip queue | `_queue` | 4 | never allocated | Borrowed caller array; empty when no haul is planned | 1 | §6 AUXILIARY_STATE | ADR1210; **ADR1218: saved with the haul cursor**, count-prefixed, at most `Progress.MAX_QUEUE` = 8 (the prefix needs at most 4). Re-deriving from M's free stock mid-haul would count trips already delivered twice. Each item must still have a certified carry row on restore. Canonical declaration: `underground_entry_progress._queue`, carried inside `progress_record`. |
+| Haul dispatch cursor | -- | -- | -- | No packed columns; absent outside a STAGE_HAUL | 1 | §6 AUXILIARY_STATE | ADR1210; **ADR1218: saved with the foreman cursor.** Project, home Job, legs, leg and trip indexes, HAUL Job with handle, stage, content pin, M and both stands, ledgers. The unequipped tool and the carried goods are Gear/Inventory/Delivery state, not the cursor's. Restore re-proves the Job, the Project, M as the storage container's own endpoint, both stands, every remaining leg target and the route actor's Job. Delivery's admitted-haul binding is haul_planner's own UNRESOLVED row and is restored by its owner. |
+
+### `godot/scripts/core/underground_entry_progress.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless entry-progress wire codec | -- | -- | -- | No members; Writer/Reader packets live only for one capture or restore | 3 | -- | ADR1218. Framing (magic, version, kind) and the fixed-width little-endian scalar codec of the entry progress record; the record's fields are the foreman, installer, hauler and runtime rows, which their owners write and validate. Bounded by `MAX_WIRE_BYTES`. |
 
 ### `godot/scripts/core/underground_entry_work_area.gd`
 
@@ -2125,4 +2131,4 @@ as source-qualified motion. No composed save adapter is claimed here.
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Live entry chain progress | -- | -- | -- | No packed columns | UNRESOLVED | §6 AUXILIARY_STATE | ADR1197. Step, origin, published handles, containers and crew are future-affecting while the entry is in progress. ADR1210: also the planned foreman (its cursor is the foreman row above), and the borrowed Jobs owner and crew row used to wait for the crew mole's resolved activity. QUESTION: re-derive on load from the published Locations/Placement/containers, or save with the Host? Cleared with the Session. |
+| Live entry chain progress | -- | -- | -- | No packed columns; STEP_NONE is the empty record | 1 | §6 AUXILIARY_STATE | ADR1197/1210; **ADR1218: saved by the runtime's own `capture`, restored by `restore(bytes, session)`.** Step, retained refusal, origin, the published section and eleven endpoints, both containers, ADR1219's walk ticks left, arrival heading and H anchor point, then the crew (with `arrival`) or the whole foreman record. The borrowed Jobs owner, the crew row and `_transforms` are handles re-derived from the Session. A walk under way must end on the live H at its own point and face the foreman's `arrival_yaw()`. Endpoints are re-proved while a later step still reads them; containers and crew always. Wiring into a whole-save orchestrator waits for a section 6 body, which no underground owner has yet (ADR1218). Cleared with the Session. |

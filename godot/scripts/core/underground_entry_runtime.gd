@@ -12,6 +12,7 @@ const Foreman := preload("res://scripts/core/underground_entry_foreman.gd")
 const Transforms := preload("res://scripts/core/transforms.gd")
 const Haul := preload("res://scripts/core/haul_planner.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const Progress := preload("res://scripts/core/underground_entry_progress.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const SEARCH_RINGS: int = 8
 const REFUSE_SCOPE: StringName = &"ENTRY_RUNTIME_SCOPE"
@@ -276,3 +277,141 @@ static func ceil_length(delta: Vector3i) -> int:
 		else:
 			low = mid + 1
 	return low
+
+
+func capture(out: PackedByteArray) -> StringName:
+	"""ADR1218 (G10): the whole entry progress record at a quiescent tick boundary, dispatch in flight or not."""
+	out.clear()
+	var code: StringName = Progress.busy_refusal(_foreman._owners) if _foreman != null and _foreman._owners != null else &""
+	if code != &"": return code
+	var w: Progress.Writer = Progress.begin(Progress.KIND_RUNTIME)
+	_write_state(w)
+	out.append_array(Progress.finish(w))
+	return &"" if not out.is_empty() else Progress.REFUSE_SHAPE
+
+
+func restore(bytes: PackedByteArray, session: RefCounted) -> StringName:
+	"""ADR1218: rebuild a fresh runtime exactly from its record against the restored Session's owners. A refused
+	record leaves this runtime at STEP_NONE holding the refusal; no owner is touched."""
+	if _step != STEP_NONE or _error != &"" or _crew != null or _foreman != null: return Progress.REFUSE_TARGET
+	if session == null or session._operations_prefix != 17 or session._operations_state != 2: return REFUSE_SCOPE
+	var r: Progress.Reader = Progress.Reader.new()
+	var code: StringName = Progress.open(bytes, Progress.KIND_RUNTIME, r)
+	if code == &"": code = _read_state(r, session._retirement_owners)
+	if code == &"": code = Progress.close(r)
+	if code == &"":
+		var w: Progress.Writer = Progress.begin(Progress.KIND_RUNTIME)
+		_write_state(w)
+		code = &"" if Progress.finish(w) == bytes else Progress.REFUSE_NONCANONICAL
+	if code != &"": _refuse_restore(code)
+	return code
+
+
+func _write_state(w: Progress.Writer) -> void:
+	"""Step, retained refusal, origin, the published handles, containers, then the crew or the whole foreman."""
+	w.i32(_step)
+	w.code(_error)
+	for axis: int in 3:
+		w.i32(_origin[axis])
+	w.ref(_published.section)
+	w.i32(_published.endpoints.size())
+	for at: Vector2i in _published.endpoints:
+		w.ref(at)
+	w.ref(_storage)
+	w.ref(_output)
+	w.i32(_walk_left)
+	w.i32(_arrival_yaw)
+	for axis: int in 3:
+		w.i32(_anchor[axis])
+	w.flag(_crew != null)
+	w.flag(_foreman != null)
+	if _foreman != null: _foreman.write_state(w)
+	elif _crew != null: Foreman.write_crew(w, _crew)
+
+
+func _read_state(r: Progress.Reader, o: RefCounted) -> StringName:
+	"""Decode in wire order; each step's products exist exactly from that step on."""
+	_step = r.ranged(STEP_NONE, STEP_DONE)
+	_error = r.code()
+	_origin = Vector3i(r.i32(), r.i32(), r.i32())
+	_published.section = r.ref()
+	var endpoints: int = r.ranged(0, WorkArea.ENDPOINTS)
+	for index: int in endpoints:
+		_published.endpoints.append(r.ref())
+	_storage = r.ref()
+	_output = r.ref()
+	_walk_left = r.ranged(0, 2147483647)
+	_arrival_yaw = r.ranged(-1, 2147483647)
+	_anchor = Vector3i(r.i32(), r.i32(), r.i32())
+	var has_crew: bool = r.flag()
+	var has_foreman: bool = r.flag()
+	if r.bad or has_crew != (_step >= STEP_CREW) or has_foreman != (_step >= STEP_RUNNING) \
+			or (endpoints == WorkArea.ENDPOINTS) != (_step >= STEP_PUBLISHED) or (endpoints != 0 and endpoints != WorkArea.ENDPOINTS) \
+			or (_storage != NULL_REF) != (_step >= STEP_CONTAINERS) or (_output != NULL_REF) != (_step >= STEP_CONTAINERS):
+		return Progress.REFUSE_SHAPE
+	if has_foreman: return _read_foreman(r, o)
+	if _walk_left != 0 or _arrival_yaw != -1 or _anchor != Vector3i.ZERO: return Progress.REFUSE_SHAPE
+	if has_crew: _crew = Foreman.read_crew(r)
+	if r.bad: return Progress.REFUSE_SHAPE
+	return _restored_refusal(o)
+
+
+func _read_foreman(r: Progress.Reader, o: RefCounted) -> StringName:
+	"""The planned foreman under the Session's own owners and paid-order owners, exactly as _plan_foreman wires it."""
+	var paid: Foreman.Installer.Paid = Foreman.Installer.Paid.new()
+	paid.router = o.router; paid.connector = o.connector; paid.contacts = o.contacts; paid.budget = o.budget
+	_foreman = Foreman.new()
+	var code: StringName = _foreman.read_state(r, _foreman_owners(o), paid)
+	if code != &"": return code
+	if (_step == STEP_DONE) != _foreman.is_done(): return Progress.REFUSE_SHAPE
+	_crew = _foreman._crew
+	if _crew.storage != _storage or _crew.output != _output: return Progress.REFUSE_SHAPE
+	_jobs = o.jobs
+	_worker_row = o.residents.directory().get_typed_row(_crew.worker)
+	_transforms = o.transforms
+	return _walk_refusal(o)
+
+
+func _walk_refusal(o: RefCounted) -> StringName:
+	"""ADR1219: a walk still under way must end on the live H at H's own point, facing the foreman's arrival
+	heading; the Transforms handle is the Session's own (re-derived, never written)."""
+	if _walk_left == 0: return &""
+	if _step != STEP_RUNNING or _arrival_yaw != _foreman.arrival_yaw(): return Progress.REFUSE_SHAPE
+	var record: Foreman.Locations.Record = Foreman.Locations.Record.new()
+	record.envelope.resize(6)
+	record.support.resize(6)
+	if o.locations.read_location_into(_published.endpoints[0], record) != &"" or record.point != _anchor:
+		return Progress.REFUSE_LOCATION
+	return &""
+
+
+func _restored_refusal(o: RefCounted) -> StringName:
+	"""Before the foreman exists, the runtime still reads M/R's endpoints (to make containers) or its crew."""
+	if _step >= STEP_PUBLISHED and _step < STEP_CONTAINERS:
+		for index: int in 3:
+			if Progress.location_refusal(o.locations, _published.endpoints[index], false) != &"":
+				return Progress.REFUSE_LOCATION
+	if _step >= STEP_CONTAINERS:
+		for container: Vector2i in [_storage, _output]:
+			if o.inventory.spatial_location_of(container) == NULL_REF: return Progress.REFUSE_CREW
+	if _crew == null: return &""
+	var owners: Foreman.Owners = _foreman_owners(o)
+	return Foreman._crew_refusal(owners, _crew)
+
+
+func _refuse_restore(code: StringName) -> void:
+	"""Back to a fresh, unstarted runtime that holds only the refusal."""
+	_step = STEP_NONE
+	_origin = Vector3i.ZERO
+	_published = WorkArea.Published.new()
+	_storage = NULL_REF
+	_output = NULL_REF
+	_crew = null
+	_foreman = null
+	_jobs = null
+	_worker_row = -1
+	_transforms = null
+	_anchor = Vector3i.ZERO
+	_walk_left = 0
+	_arrival_yaw = -1
+	_error = code

@@ -15,6 +15,11 @@ const World := preload("res://scripts/core/world_init.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
 const Economy := preload("res://scripts/systems/economy_system.gd")
 const Transforms := preload("res://scripts/core/transforms.gd")
+const Progress := preload("res://scripts/core/underground_entry_progress.gd")
+## ADR1218 runtime wire: header, step, code, origin, section, endpoint count and eleven endpoints, then M's container.
+const AT_RUNTIME_STORAGE: int = 12 + 4 + Progress.CODE_BYTES + 12 + 8 + 4 + 11 * 8
+## ADR1219 walk ticks left, arrival yaw and H's anchor point follow M's and R's containers.
+const AT_RUNTIME_WALK: int = AT_RUNTIME_STORAGE + 16
 
 class ObservedGear extends Gear:
 	var observer: Callable = Callable()
@@ -1028,3 +1033,118 @@ func test_surface_active_publication_rejects_whole_world_reset_and_keeps_its_ori
 	assert_equal(session.location_owner()._live.count, 1, "one genuine endpoint")
 	assert_true(session._budget.is_quiescent(), "original cold lease released")
 	assert_true(_host.reset(), "subsequent quiescent reset")
+
+
+func test_entry_runtime_progress_round_trips_at_a_stopped_step_and_resumes() -> void:
+	"""ADR1218 (G10): the runtime stopped at G11 is captured, restored exactly into a fresh runtime from the
+	Session's owners, refuses damaged or stale records with exact codes, and the restored runtime resumes."""
+	var session: Session = _generate_and_mount()
+	assert_true(_host.compose_underground_room_owners() and _host.compose_underground_route_owners()
+		and _host.compose_underground_surface_anchor() and _host.compose_underground_entry_owners(), "every owner composed")
+	var near: Vector3i = Vector3i(60 * 2048 + 512, 512, 50 * 2048 + 512)
+	assert_false(_host.begin_underground_entry(near), "G11 first")
+	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
+	var bytes: PackedByteArray = PackedByteArray()
+	assert_equal(entry.capture(bytes), &"", "capture at STEP_CONTAINERS")
+	var fresh: Settlement.UndergroundEntryRuntime = Settlement.UndergroundEntryRuntime.new()
+	assert_equal(fresh.restore(bytes, session), &"", "exact restore")
+	var again: PackedByteArray = PackedByteArray()
+	assert_equal(fresh.capture(again), &"", "recapture")
+	assert_equal(again, bytes, "the restored runtime writes back its record")
+	assert_equal([fresh.step(), fresh.error(), fresh.origin()], [entry.step(), entry.error(), entry.origin()], "same step")
+	assert_equal(entry.restore(bytes, session), Progress.REFUSE_TARGET, "never over a started runtime")
+	_expect_runtime_refusal(null, bytes, Settlement.UndergroundEntryRuntime.REFUSE_SCOPE)
+	var kind: PackedByteArray = bytes.duplicate()
+	kind.encode_s32(8, Progress.KIND_FOREMAN)
+	_expect_runtime_refusal(session, kind, Progress.REFUSE_VERSION)
+	var stale: PackedByteArray = bytes.duplicate()
+	stale.encode_s32(AT_RUNTIME_STORAGE + 4, bytes.decode_s32(AT_RUNTIME_STORAGE + 4) + 1)
+	_expect_runtime_refusal(session, stale, Progress.REFUSE_CREW)
+	_host._underground_entry = fresh
+	_equip_first_mole(session._retirement_owners, fresh._output)
+	assert_true(_host.begin_underground_entry(near), "the restored runtime resumes: %s" % _host.last_refusal())
+	assert_equal(fresh.step(), Settlement.UndergroundEntryRuntime.STEP_RUNNING, "foreman planned; nothing republished")
+	_assert_mid_walk_record(session, fresh)
+
+
+func _assert_mid_walk_record(session: Session, entry: Settlement.UndergroundEntryRuntime) -> void:
+	"""ADR1219 state in the record: a walk under way round-trips, and an anchor that is not H's point refuses."""
+	assert_true(entry.walk_ticks_left() > 0, "the crew is walking to H")
+	var bytes: PackedByteArray = PackedByteArray()
+	assert_equal(entry.capture(bytes), &"", "capture mid-walk")
+	assert_equal(bytes.decode_s32(AT_RUNTIME_WALK), entry.walk_ticks_left(), "walk offset")
+	var fresh: Settlement.UndergroundEntryRuntime = Settlement.UndergroundEntryRuntime.new()
+	assert_equal(fresh.restore(bytes, session), &"", "exact mid-walk restore")
+	assert_equal([fresh.walk_ticks_left(), fresh._anchor, fresh._arrival_yaw, fresh.crew().arrival],
+		[entry.walk_ticks_left(), entry._anchor, entry._arrival_yaw, entry.crew().arrival], "walk and arrival restored")
+	assert_true(fresh._transforms == session._retirement_owners.transforms, "Transforms re-derived from the Session")
+	var moved: PackedByteArray = bytes.duplicate()
+	moved.encode_s32(AT_RUNTIME_WALK + 8, bytes.decode_s32(AT_RUNTIME_WALK + 8) + 1)
+	_expect_runtime_refusal(session, moved, Progress.REFUSE_LOCATION)
+	var yaw: PackedByteArray = bytes.duplicate()
+	yaw.encode_s32(AT_RUNTIME_WALK + 4, bytes.decode_s32(AT_RUNTIME_WALK + 4) + 1)
+	_expect_runtime_refusal(session, yaw, Progress.REFUSE_SHAPE)
+
+
+func _expect_runtime_refusal(session: Session, bytes: PackedByteArray, code: StringName) -> void:
+	"""A fresh runtime refuses the record with exactly `code` and holds it, still unstarted."""
+	var fresh: Settlement.UndergroundEntryRuntime = Settlement.UndergroundEntryRuntime.new()
+	assert_equal(fresh.restore(bytes, session), code, "exact refusal %s" % code)
+	if code != Settlement.UndergroundEntryRuntime.REFUSE_SCOPE: assert_equal(fresh.error(), code, "held refusal")
+	assert_equal(fresh.step(), Settlement.UndergroundEntryRuntime.STEP_NONE, "still unstarted")
+
+
+func test_fixed_ticks_with_the_entry_restored_every_tick_end_byte_identical() -> void:
+	"""ADR1218/1219: the live run_tick chain from the surface walk, through arrival and registration on H, the
+	retreat and both hauls, to the G6 stop runs uninterrupted, then again with the whole entry runtime captured and
+	replaced by its restored record before every tick; the stop and every owner image are byte-identical."""
+	var plain: Array = _live_chain(false)
+	if plain.is_empty(): return
+	after_each()
+	before_each()
+	var restored: Array = _live_chain(true)
+	if restored.is_empty(): return
+	print("LIVE-ENTRY-PROGRESS walk_restores=%d registered_restores=%d stop_tick=%d" % restored.slice(0, 3))
+	assert_true(restored[0] > 0 and restored[1] > 0, "restored mid-walk (%d) and after registration (%d)" % restored.slice(0, 2))
+	for index: int in range(2, plain.size()):
+		assert_equal(restored[index], plain[index], "live image %d is byte-identical after restores" % index)
+
+
+func _live_chain(restoring: bool) -> Array:
+	"""[walk restores, registered restores, stop tick, error, owner images..., final record] of one live chain."""
+	var session: Session = _generate_and_mount()
+	assert_true(_host.compose_underground_room_owners() and _host.compose_underground_route_owners()
+		and _host.compose_underground_surface_anchor() and _host.compose_underground_entry_owners(), "every owner composed")
+	var near: Vector3i = Vector3i(60 * 2048 + 512, 512, 50 * 2048 + 512)
+	assert_false(_host.begin_underground_entry(near), "G11 first")
+	var o: Session.Retirement.Owners = session._retirement_owners
+	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
+	var worker: Vector2i = _equip_first_mole(o, entry._output)
+	_stage(o, entry._output, &"wood", 7000)
+	_stage(o, entry._output, &"stone", 2000)
+	assert_true(_host.begin_underground_entry(near), "foreman planned and the walk begun: %s" % _host.last_refusal())
+	var counts: PackedInt64Array = PackedInt64Array([0, 0])
+	var tick: int = 1
+	while _host.underground_entry().is_running() and tick < 8000:
+		if restoring:
+			counts[0 if _host.underground_entry().walk_ticks_left() > 0 else 1] += 1
+			if not _replace_entry_with_its_record(session, tick): return []
+		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
+		tick += 1
+	_assert_g6_stop(o, _host.underground_entry(), worker)
+	var record: PackedByteArray = PackedByteArray()
+	assert_equal(_host.underground_entry().capture(record), &"", "final record")
+	return [counts[0], counts[1], tick, _host.underground_entry().error()] + _snapshot() + [record]
+
+
+func _replace_entry_with_its_record(session: Session, tick: int) -> bool:
+	"""Capture the host's entry runtime and swap in a fresh runtime restored from that record."""
+	var bytes: PackedByteArray = PackedByteArray()
+	var fresh: Settlement.UndergroundEntryRuntime = Settlement.UndergroundEntryRuntime.new()
+	var code: StringName = _host.underground_entry().capture(bytes)
+	if code == &"": code = fresh.restore(bytes, session)
+	if code != &"":
+		assert_equal(code, &"", "round trip before tick %d" % tick)
+		return false
+	_host._underground_entry = fresh
+	return true

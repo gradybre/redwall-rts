@@ -20,6 +20,10 @@ const HaulPlanner := preload("res://scripts/core/haul_planner.gd")
 const StorePolicy := preload("res://scripts/core/store_policy.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const Hauler := preload("res://scripts/core/underground_entry_hauler.gd")
+const Progress := preload("res://scripts/core/underground_entry_progress.gd")
+const Installer := preload("res://scripts/core/underground_entry_installer.gd")
+## ADR1218: the hauled prefix is captured and restored into a fresh foreman this often (ticks).
+const RESTORE_EVERY: int = 1
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 
 
@@ -863,3 +867,208 @@ func _installed_l0_arrival() -> Vector2i:
 		found = ref
 	assert_true(found != NULL_REF, "the installed arrival exists")
 	return found
+
+
+func test_entry_progress_restores_exactly_through_the_hauled_prefix() -> void:
+	"""ADR1218 (G10): the hauled prefix runs uninterrupted, then again with the foreman captured and replaced by a
+	fresh restore every RESTORE_EVERY ticks. Every stage of the foreman, installer and hauler is crossed, and the
+	final owner ledgers, the finishing tick and the terminal record are byte-identical to the uninterrupted run."""
+	var started: int = Time.get_ticks_usec()
+	var plain: Array[PackedByteArray] = _hauled_run(0, PackedInt64Array([0, 0, 0, 0]))
+	if plain.is_empty(): return
+	after_each()
+	var middle: int = Time.get_ticks_usec()
+	var seen: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
+	var restored: Array[PackedByteArray] = _hauled_run(RESTORE_EVERY, seen)
+	if restored.is_empty(): return
+	var spans: PackedInt64Array = PackedInt64Array([middle - started, Time.get_ticks_usec() - middle])
+	print("ENTRY-PROGRESS restores=%d foreman_stages=%x installer_stages=%x hauler_stages=%x plain_us=%d restored_us=%d"
+		% [seen[3], seen[0], seen[1], seen[2], spans[0], spans[1]])
+	for index: int in plain.size():
+		assert_equal(restored[index], plain[index], "ledger image %d is byte-identical after restores" % index)
+	_assert_stages_seen(seen)
+
+
+func _assert_stages_seen(seen: PackedInt64Array) -> void:
+	"""Every resting stage of each dispatcher was captured and restored at least once."""
+	var expected: Array = [
+		[Foreman.STAGE_OPEN, Foreman.STAGE_TRAVEL, Foreman.STAGE_ENTER, Foreman.STAGE_EARN, Foreman.STAGE_RECOVER,
+			Foreman.STAGE_INSTALL, Foreman.STAGE_HAUL],
+		# Every hauled installation walks to M inside its haul, so LEG_MATERIAL never rests at a tick boundary here.
+		[Installer.STAGE_HAUL, Installer.STAGE_LEG_ARRIVAL, Installer.STAGE_LEG_STATION, Installer.STAGE_HANDLE,
+			Installer.STAGE_INSTALL_ENTER, Installer.STAGE_EARN, Installer.STAGE_RECOVER],
+		[Hauler.STAGE_APPROACH, Hauler.STAGE_TO_SOURCE, Hauler.STAGE_LIFT, Hauler.STAGE_CARRY, Hauler.STAGE_SET_DOWN,
+			Hauler.STAGE_HOME]]
+	for level: int in 3:
+		var mask: int = 0
+		for stage: int in expected[level]:
+			mask |= 1 << stage
+		assert_equal(seen[level] & mask, mask, "restored in every resting stage of dispatcher level %d" % level)
+
+
+func _hauled_run(every: int, seen: PackedInt64Array) -> Array[PackedByteArray]:
+	"""One hauled prefix; with `every` > 0 the foreman is replaced by its own restored record on that period."""
+	_probe = PaidProbe.new()
+	_probe.before_each()
+	var foreman: Foreman = _complete_prefix_foreman(true)
+	if foreman == null: return []
+	var tick: int = _probe._tick
+	while foreman != null and not foreman.is_done() and foreman.error() == &"" and tick < _probe._tick + 200000:
+		if every > 0 and (tick - _probe._tick) % every == 0: foreman = _round_trip(foreman, seen)
+		if foreman != null: foreman.advance(tick)
+		tick += 1
+	if foreman == null: return []
+	assert_equal(foreman.error(), &"", "no refusal on the hauled prefix")
+	assert_true(foreman.is_done(), "every planned task finished")
+	_assert_hauled_ledger(foreman)
+	return _ledger_image(foreman, tick - _probe._tick)
+
+
+func _round_trip(foreman: Foreman, seen: PackedInt64Array) -> Foreman:
+	"""Capture, restore into a fresh foreman over the same restored owners, and re-capture the same bytes."""
+	var bytes: PackedByteArray = PackedByteArray()
+	var fresh: Foreman = Foreman.new()
+	var code: StringName = foreman.capture(bytes)
+	if code == &"": code = fresh.restore(bytes, foreman._owners, foreman._paid)
+	var again: PackedByteArray = PackedByteArray()
+	if code == &"": code = fresh.capture(again)
+	if code != &"" or again != bytes:
+		assert_equal(code, &"", "round trip at foreman stage %d" % foreman._stage)
+		assert_equal(again, bytes, "a restored foreman writes back its record")
+		return null
+	seen[0] |= 1 << fresh._stage
+	if fresh._installer != null: seen[1] |= 1 << fresh._installer._stage
+	var hauler: Hauler = fresh._hauler if fresh._hauler != null else (fresh._installer._hauler if fresh._installer != null else null)
+	if hauler != null: seen[2] |= 1 << hauler._stage
+	seen[3] += 1
+	return fresh
+
+
+func _ledger_image(foreman: Foreman, ticks: int) -> Array[PackedByteArray]:
+	"""Every owner ledger the prefix writes, the Placement bank, the terminal record and the finishing tick."""
+	var world: RefCounted = _probe._world
+	var record: PackedByteArray = PackedByteArray()
+	assert_equal(foreman.capture(record), &"", "terminal record")
+	return [world._inventory.state_bytes(), world._pool.state_bytes(), world._construction.state_bytes(),
+		world._jobs.state_bytes(), world._work.state_bytes(), world._gear.state_bytes(), world._transforms.state_bytes(),
+		_probe._sites.state_bytes(), _probe._router.state_bytes(), world._owner.state_bytes(),
+		var_to_bytes(_probe._placements._live.i32), record,
+		var_to_bytes(PackedInt64Array([ticks, foreman.accepted_mwu(), foreman.install_mwu(), foreman.haul_mwu(),
+			foreman.haul_trips()]))]
+
+
+## ADR1218 wire offsets of a 20-task foreman record (header 12, crew 40, two flags, content, Placement, count).
+const AT_DELIVERY_FLAG: int = 52
+const AT_CONTENT: int = 54
+const AT_TASKS: int = 74
+const AT_CURSOR: int = AT_TASKS + 20 * Progress.TASK_BYTES # index, stage, stage ticks, Job slot, Job ref, code
+const AT_INSTALLER: int = AT_CURSOR + 24 + Progress.CODE_BYTES + 88 + 32 + 1 # ledgers, ADR1219 arrival, presence flag
+const AT_INSTALLER_PROJECT: int = AT_INSTALLER + 108 + 8 + 4
+const AT_INSTALLER_JOB_REF: int = AT_INSTALLER_PROJECT + 8 + 4
+
+
+func test_entry_progress_refuses_every_corrupt_or_stale_record_exactly() -> void:
+	"""ADR1218: a record captured mid-haul inside the L0 installation restores; every corruption or stale handle is
+	refused with its exact code, the refused foreman holds that code, and no owner changes."""
+	_probe = PaidProbe.new()
+	_probe.before_each()
+	var foreman: Foreman = _complete_prefix_foreman(true)
+	if foreman == null: return
+	var tick: int = _probe._tick
+	while foreman.error() == &"" and tick < _probe._tick + 20000 and not (foreman._stage == Foreman.STAGE_INSTALL
+			and foreman._installer._hauler != null and foreman._installer._hauler._stage == Hauler.STAGE_CARRY):
+		foreman.advance(tick)
+		tick += 1
+	assert_equal(foreman._stage, Foreman.STAGE_INSTALL, "paused inside an installation's haul")
+	var bytes: PackedByteArray = PackedByteArray()
+	assert_equal(foreman.capture(bytes), &"", "mid-haul capture")
+	_assert_record_layout(foreman, bytes)
+	var world: RefCounted = _probe._world
+	var before: Array[PackedByteArray] = [world._inventory.state_bytes(), world._jobs.state_bytes(),
+		world._construction.state_bytes(), world._pool.state_bytes()]
+	for case: Array in _corruptions(bytes):
+		_expect_refusal(foreman, case[0], case[1], case[2])
+	_expect_owner_refusals(foreman, bytes)
+	assert_equal([world._inventory.state_bytes(), world._jobs.state_bytes(), world._construction.state_bytes(),
+		world._pool.state_bytes()], before, "no refused restore touched an owner")
+	var fresh: Foreman = Foreman.new()
+	assert_equal(fresh.restore(bytes, foreman._owners, foreman._paid), &"", "the intact record still restores")
+	assert_equal(fresh.restore(bytes, foreman._owners, foreman._paid), Progress.REFUSE_TARGET, "only into a fresh foreman")
+
+
+func _assert_record_layout(foreman: Foreman, bytes: PackedByteArray) -> void:
+	"""The test's offsets and the codec's declared block sizes are the encoder's own."""
+	assert_equal(bytes.decode_s32(AT_CURSOR + 4), Foreman.STAGE_INSTALL, "cursor offset")
+	assert_equal(bytes.decode_s32(AT_INSTALLER_PROJECT), foreman._installer._project.x, "installer Project offset")
+	assert_equal(bytes.decode_s32(AT_INSTALLER_JOB_REF - 4), foreman._installer._job, "installer Job offset")
+	var haul: Hauler = foreman._installer._hauler
+	assert_equal(bytes.size(), Progress.HEADER_BYTES + Progress.CREW_BYTES + Progress.FOREMAN_FIXED_BYTES
+		+ 20 * Progress.TASK_BYTES + Progress.INSTALLER_FIXED_BYTES + foreman._installer._quote.input_count
+		* Progress.QUOTE_LINE_BYTES + Progress.HAULER_FIXED_BYTES + 4 * haul._queue.size() + Progress.LEG_BYTES
+		* haul._legs.size(), "the declared block sizes are the encoder's")
+	assert_true(bytes.size() <= Progress.MAX_WIRE_BYTES, "inside the charged bound")
+
+
+func _corruptions(bytes: PackedByteArray) -> Array:
+	"""(label, corrupted record, exact refusal) for each kind of damage."""
+	var cases: Array = []
+	cases.append(["truncated", bytes.slice(0, bytes.size() - 1), Progress.REFUSE_SHAPE])
+	var longer: PackedByteArray = bytes.duplicate()
+	longer.append(0)
+	cases.append(["trailing byte", longer, Progress.REFUSE_SHAPE])
+	cases.append(["magic", _with_i32(bytes, 0, 0x50544E46), Progress.REFUSE_VERSION])
+	cases.append(["version", _with_i32(bytes, 4, Progress.VERSION + 1), Progress.REFUSE_VERSION])
+	cases.append(["runtime kind", _with_i32(bytes, 8, Progress.KIND_RUNTIME), Progress.REFUSE_VERSION])
+	var flag: PackedByteArray = bytes.duplicate()
+	flag[AT_DELIVERY_FLAG] = 2
+	cases.append(["flag byte 2", flag, Progress.REFUSE_SHAPE])
+	var padding: PackedByteArray = bytes.duplicate()
+	padding[AT_CURSOR + 24 + 5] = 0x41
+	cases.append(["code padding", padding, Progress.REFUSE_SHAPE])
+	cases.append(["null spelling", _with_i32(bytes, AT_TASKS + 12 * Progress.TASK_BYTES + 8, 7), Progress.REFUSE_SHAPE])
+	cases.append(["stage out of range", _with_i32(bytes, AT_CURSOR + 4, 99), Progress.REFUSE_SHAPE])
+	cases.append(["content pin", _with_i64(bytes, AT_CONTENT, bytes.decode_s64(AT_CONTENT) + 1), Progress.REFUSE_CONTENT])
+	var station: int = AT_TASKS + 18 * Progress.TASK_BYTES + 20
+	cases.append(["stale future station", _with_i32(bytes, station, bytes.decode_s32(station) + 1), Progress.REFUSE_LOCATION])
+	cases.append(["stale Job", _with_i32(bytes, AT_INSTALLER_JOB_REF + 4, bytes.decode_s32(AT_INSTALLER_JOB_REF + 4) + 1),
+		Progress.REFUSE_JOB])
+	cases.append(["stale Project", _with_i32(bytes, AT_INSTALLER_PROJECT + 4, bytes.decode_s32(AT_INSTALLER_PROJECT + 4) + 1),
+		Progress.REFUSE_PROJECT])
+	return cases
+
+
+func _expect_owner_refusals(foreman: Foreman, bytes: PackedByteArray) -> void:
+	"""Wiring that disagrees with the record, and a capture during an open route operation."""
+	var owners: Foreman.Owners = foreman._owners
+	var delivery: RefCounted = owners.delivery
+	owners.delivery = null
+	_expect_refusal(foreman, "no Delivery bound", bytes, Progress.REFUSE_OWNERS)
+	owners.delivery = delivery
+	var fresh: Foreman = Foreman.new()
+	assert_equal(fresh.restore(bytes, owners, null), Progress.REFUSE_OWNERS, "no paid owners bound")
+	owners.routes._token = 1
+	var out: PackedByteArray = PackedByteArray([1])
+	assert_equal(foreman.capture(out), Progress.REFUSE_BUSY, "no capture inside a synchronous route operation")
+	assert_true(out.is_empty(), "a refused capture writes nothing")
+	owners.routes._token = 0
+
+
+func _expect_refusal(foreman: Foreman, label: String, bytes: PackedByteArray, code: StringName) -> void:
+	"""A fresh foreman refuses the record with exactly `code` and holds it as its error."""
+	var fresh: Foreman = Foreman.new()
+	assert_equal(fresh.restore(bytes, foreman._owners, foreman._paid), code, label)
+	assert_equal(fresh.error(), code, "%s: the refused foreman holds its refusal" % label)
+
+
+static func _with_i32(bytes: PackedByteArray, at: int, value: int) -> PackedByteArray:
+	"""A copy with one 32-bit field replaced."""
+	var out: PackedByteArray = bytes.duplicate()
+	out.encode_s32(at, value)
+	return out
+
+
+static func _with_i64(bytes: PackedByteArray, at: int, value: int) -> PackedByteArray:
+	"""A copy with one 64-bit field replaced."""
+	var out: PackedByteArray = bytes.duplicate()
+	out.encode_s64(at, value)
+	return out

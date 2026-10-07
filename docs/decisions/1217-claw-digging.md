@@ -485,3 +485,18 @@ Options:
    There is less data churn, but this weakens two deliberate invariants (ADR 1190), and it must wait for G10.
 
 Until one is chosen, no Frontier successor is published.
+
+### Decision (coordinator, engineering, 2026-10-07): option 1, split the sources as content 8
+
+- Content 7 (`qualified-claw-v8`, f46407f2) is pushed, so it stays published and unused.
+- The split is published as **content 8**, a create-only successor:
+  - **Source 4:** a claw image with the stand, walk, dig and tap clips. Its tool-free STAND/WALK rows are derived
+    from its own stand and walk clips and get ground pace caps.
+  - **Source 5:** a paw-handling image with the seat clips.
+  - Both images come from one new two-image native capture of the already-approved clips. Nothing is re-authored.
+- **Frontier successor at ±1,430:** binds source 4. Dig and tap stations use source-4 rows, and travel uses source
+  4's walk row.
+- **Workpieces:** bind source 5, the paw handling row.
+- **Unchanged:**
+  - every ADR 1190 rule (single Frontier source, distinct set-down program);
+  - items 2, 3 and 5, which still wait for G10.

@@ -42880,8 +42880,8 @@
   "declaration_bytes": 23573,
   "declaration_delta_bytes": 2388,
   "live_with_reserve_bytes": 100007631,
-  "gate_bytes": 100100000,
-  "headroom_bytes": 92369,
+  "gate_bytes": 150000000,
+  "headroom_bytes": 49992369,
   "source_sha256": {
     "godot/scripts/core/construction.gd": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a",
     "godot/scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",

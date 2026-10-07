@@ -141,7 +141,7 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(result["contributions"]["room_world_bindings"], 1024)
         self.assertEqual(result["room_world_reservation"]["logical_helper_and_included_native_bytes"], 986)
         self.assertEqual(result["room_world_reservation"]["maximum_shared_phase_bytes"], 1048912)
-        self.assertEqual(result["headroom_bytes"], 92369) # ADR1212: DEC-051 gate 100,100,000
+        self.assertEqual(result["headroom_bytes"], 49992369) # ADR1212 §7: DEC-053 gate 150,000,000
 
     def test_ordinary_provider_extra_allocation_requires_a_new_census(self) -> None:
         self.refuses("underground_room_world_bindings", "_ordinary_checks.resize(1)", "_ordinary_checks.resize(2)")
@@ -526,7 +526,7 @@ class JointPackTests(unittest.TestCase):
 
     def test_negative_joint_limit_even_when_individual_formulas_agree(self) -> None:
         self.refuses("underground_budget", "BINDINGS_AND_GROWTH_BYTES: int = 524544",
-                     "BINDINGS_AND_GROWTH_BYTES: int = 624288")
+                     "BINDINGS_AND_GROWTH_BYTES: int = 50524544") # exceeds the DEC-053 gate
 
     def test_negative_inadequate_endpoint_reserve(self) -> None:
         self.refuses("underground_budget", "INVENTORY_EXTENSION_BYTES: int = 131072",
@@ -545,7 +545,7 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(result["new_mutable_and_reserved_bytes"], 5014866)
         self.assertEqual(result["declaration_bytes"], 23573)
         self.assertEqual(result["live_with_reserve_bytes"], 100007631)
-        self.assertEqual(result["headroom_bytes"], 92369) # ADR1212: DEC-051 gate 100,100,000
+        self.assertEqual(result["headroom_bytes"], 49992369) # ADR1212 §7: DEC-053 gate 150,000,000
         self.assertFalse(result["runtime_qualified"])
         workpieces = result["connector_workpieces_reservation"]
         self.assertEqual(workpieces["two_bank_bytes"], 10752)

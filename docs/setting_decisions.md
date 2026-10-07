@@ -1327,6 +1327,8 @@ alternatives and implementation constraints are retained in
 
 ### DEC-051 — Simulation-owned memory gate raised to 100.1 MB
 
+**Superseded by [DEC-053](#dec-053--simulation-owned-memory-gate-150-mb) the same day.**
+
 On 2026-10-07, Brendan chose to **raise the limit**: REQ-SET-163's simulation-owned memory budget is
 **100,100,000 bytes (100.1 MB, decimal)**, up from 100,000,000. He first chose to shrink the geometry
 journals; the joint census then showed that even with no journal at all the first-entry runtime and
@@ -1371,3 +1373,18 @@ Engineering record, impact map and the motion plan: [decision1217](decisions/121
 3. **The paw may change shape** between hauling (the closed paw) and digging (the open paw).
 4. **Claws for all earth work.** Backfill, spoil-tip preparation, compaction, reclaim and tip closure use the claws
    too, so every row of SET-MOVE-ECON-001's table needs no tool and accrues no wear. Inputs and work are unchanged.
+
+
+### DEC-053 — Simulation-owned memory gate 150 MB
+
+On 2026-10-07, Brendan raised REQ-SET-163's simulation-owned memory budget to **150,000,000 bytes
+(150 MB, decimal)**, superseding DEC-051's 100.1 MB. His reasoning:
+
+- 100 MB was an unmeasured figure from the original specification.
+- The full-process budget is 4 GB on a 16 GB qualification floor.
+- Per-tick performance is governed by the separate CPU budgets, not by this figure.
+
+**Unchanged:** the source-derived joint census, every declared store and reserve, and the rule against
+unbounded growth. The headroom (49,992,369 B at the 100,007,631 B joint pack) is not an allowance. Every
+new store is still declared, counted and admitted, and the geometry journals stay at 64 entries.
+Engineering record: [decision1212](decisions/1212-memory-census-and-budget-tool.md) §7.

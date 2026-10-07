@@ -1,6 +1,6 @@
 # 1212 — Joint memory census after content 6, and the memory budget tool
 
-Date: 2026-10-06, amended 2026-10-07 · Status: Accepted. Brendan raised the REQ-SET-163 gate to **100.1 MB** (DEC-051) after the journals were shrunk; see §6.
+Date: 2026-10-06, amended 2026-10-07 · Status: Accepted. The REQ-SET-163 gate is **150 MB** (DEC-053, §7), superseding 100.1 MB (DEC-051, §6).
 
 ## 1. Why `underground_memory_budget.py --check` failed
 
@@ -232,6 +232,32 @@ step, 101 MB, would hide about 1 MB of unreviewed growth.
 - The §2.3 ledger has a decision 1212 row of 7,825 B. Payload is 91,619,023; live is 100,007,631;
   headroom 92,369.
 - `ready07_arithmetic.py` reads the gate from the pack.
+
+## 7. Amendment (2026-10-07): the gate is 150 MB (DEC-053)
+
+Brendan raised the gate again, to **150,000,000 B**. DEC-053 supersedes DEC-051. His reasons:
+
+- 100 MB was an unmeasured figure from the original specification.
+- The process budget is 4 GB on a 16 GB floor.
+- The per-tick CPU budgets govern performance.
+
+**Not changed:**
+
+- the joint census and its reviewed-delta discipline;
+- every declared store and reserve, and the no-unbounded-growth rule;
+- the 64-entry journals. There is no evidence for growing them back.
+
+The joint pack is still **100,007,631 B**, so headroom is **49,992,369 B** (transactional headroom
+−35,376,961). The headroom is not an allowance: every new store must still be counted before it is
+admitted.
+
+**Updated:**
+
+- `GATE_BYTES` in `tools/underground_memory_budget.py`; the pack is regenerated.
+- `ready07_arithmetic.py`, which reads the gate from the pack.
+- The ledger metrics and ARCH-PERF-001 in `systems_architecture.md`.
+- REQ-SET-163's paragraph in the GDD.
+- The tests' expected headroom. The joint-limit refusal test now pushes the bindings reserve past 150 MB.
 
 ## Tests
 

@@ -467,8 +467,8 @@ assert len(allocations)==54 and sum(allocations)==DECISION_1212_MUTABLE+DECISION
 payload=sum(allocations);reserve=8388608;candidate=payload-(3670016+2097152+262144+131072+55200+DECISION_0127_ADDED+DECISION_0169_ADDED);live=payload+reserve
 assert payload==91619023
 assert live==100007631 and candidate==85369330 and live+candidate==185376961
-GATE=underground_pack['gate_bytes'] # REQ-SET-163 as amended by DEC-051: 100.1 MB.
-assert GATE==100100000
+GATE=underground_pack['gate_bytes'] # REQ-SET-163 as amended by DEC-053 (supersedes DEC-051): 150 MB.
+assert GATE==150000000
 assert live==underground_pack['live_with_reserve_bytes']
 assert f'Auxiliary payload sum = **{auxiliary} bytes**' in s
 # A valid internal trail can still omit its final step. Require its endpoint to reach the
@@ -479,7 +479,7 @@ assert tuple(int(cell.strip()) for cell in trail_rows[-1][-3:-1])==(payload,live
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s
-for label,value in [('Planned allocated payload',payload),('One live world plus reserve',live),('Headroom below the 100.1 MB gate (DEC-051)',GATE-live),('Additional candidate mutable state',candidate),('Transactional peak plus same reserve',live+candidate),('Transactional headroom',GATE-live-candidate)]:
+for label,value in [('Planned allocated payload',payload),('One live world plus reserve',live),('Headroom below the 150 MB gate (DEC-053)',GATE-live),('Additional candidate mutable state',candidate),('Transactional peak plus same reserve',live+candidate),('Transactional headroom',GATE-live-candidate)]:
  assert f'| {label} | {value} |' in s,label
 catalog=json.loads((r/'godot/data/catalog_ids.json').read_text())['domains']['ItemDefinition']
 bindings={'resource': ['wood','stone','iron'],'forage':['berries','nuts','mushrooms','herb','roots'],'fish':['trout','dace','salmon','perch','carp','whitefish','herring','mackerel','mussel']}

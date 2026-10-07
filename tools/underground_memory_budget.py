@@ -20,8 +20,8 @@ import underground_current_census as current_census
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "docs/planning/underground_memory_pack.json"
-# REQ-SET-163 simulation-owned memory gate, raised from 100,000,000 by DEC-051 (ADR 1212).
-GATE_BYTES = 100100000
+# REQ-SET-163 simulation-owned memory gate: DEC-053 (150 MB) supersedes DEC-051 (100.1 MB); ADR 1212 §7.
+GATE_BYTES = 150000000
 WIDTHS = {"PackedByteArray": 1, "PackedInt32Array": 4, "PackedInt64Array": 8}
 
 

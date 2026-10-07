@@ -32,6 +32,7 @@ const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 const FieldGuideScript := preload("res://demo/guide/field_guide.gd")
+const DemoFisheryScript := preload("res://demo/fishery/demo_fishery.gd")
 
 const DT: float = 0.1
 const MAX_FRAMES: int = 6000
@@ -158,13 +159,13 @@ func test_the_four_rows_are_the_drafted_ones() -> void:
 
 func test_the_items_are_appended_with_their_provisional_rows() -> void:
 	"""Jam 36, cheese 37, ale 38, cider 39 appended; jam and cheese eaten as they are (850, 1600 NP), ale and cider never
-	(the mead rule); keeping 720, 480, 1440, 1440 h; the index carries them."""
+	(the mead rule); keeping 720, 1440, 1440, 1440 h; the index carries them."""
 	assert_equal(Catalog.ITEM_KEYS.slice(36, 40), [&"jam", &"cheese", &"ale", &"cider"], "appended")
 	assert_equal(Catalog.PANTRY_ITEM_COUNT, 40, "40 items")
 	assert_equal([MealRules.raw_np_per_u(36), MealRules.raw_np_per_u(37), MealRules.raw_np_per_u(38),
 		MealRules.raw_np_per_u(39)], [850, 1600, 0, 0], "raw NP")
 	assert_equal([Catalog.shelf_hours_of(36), Catalog.shelf_hours_of(37), Catalog.shelf_hours_of(38), Catalog.shelf_hours_of(39)],
-		[720, 480, 1440, 1440], "shelf")
+		[720, 1440, 1440, 1440], "shelf")
 	for item: int in range(36, 40):
 		var n: int = 0
 		for other: int in Catalog.PANTRY_ITEM_COUNT:
@@ -204,12 +205,17 @@ func test_a_cheese_sets_in_a_crock() -> void:
 	rig.pantry.add_into(Catalog.ITEM_NUTS, 3000, 0, _read)
 	assert_equal(f.order_batch(Recipes.R_CHEESE, PackedInt32Array([1])), "", "ordered")
 	assert_equal(f.tables.s_recipe[FIRST_CROCK], Recipes.R_CHEESE, "the first crock")
+	var j: int = f.tables.j_live.find(1)
+	assert_true(_run(rig, func() -> bool: return f.tables.j_at[j] == 1 and f.step_of(j) == FisheryScript.S_STATION), "at work")
+	assert_true(f.packing(), "the table in use")
 	assert_true(_run(rig, func() -> bool: return f.tables.s_state[FIRST_CROCK] == Tables.SLOT_CURING), "setting")
 	assert_equal(f.slots_in_use(Recipes.STATION_TABLE), 1, "one crock in use")
 	assert_equal(rig.pantry.milli_of(Catalog.ITEM_NUTS), 1000, "2 U of nuts")
 	rig.calendar.tick += 24 * SimClock.TICKS_PER_HOUR
 	assert_true(_run(rig, func() -> bool: return rig.pantry.milli_of(Catalog.ITEM_CHEESE) == 2000), "2 U of cheese")
 	assert_equal(f.tables.s_state[FIRST_CROCK], Tables.SLOT_EMPTY, "the crock free")
+	assert_equal(f.preserves_stored_milli, 2000, "booked as a preserve stored")
+	assert_equal(Recipes.TAKE_DOWN_WORDS[Recipes.R_CHEESE], "Turn out the cheese", "its take-down's words")
 
 
 func test_the_crocks_are_two() -> void:
@@ -219,7 +225,7 @@ func test_the_crocks_are_two() -> void:
 	rig.pantry.add_into(Catalog.ITEM_NUTS, 8000, 0, _read)
 	for k: int in Recipes.CROCK_SLOTS:
 		assert_equal(f.order_batch(Recipes.R_CHEESE, PackedInt32Array()), "", "crock %d" % k)
-	assert_equal(f.batch_refusal(Recipes.R_CHEESE), "both crocks hold a cheese", "full")
+	assert_equal(f.batch_refusal(Recipes.R_CHEESE), "all 2 crocks hold a cheese", "full")
 	assert_equal(f.refused_code, "CROCKS_FULL", "its code")
 	assert_equal([f.free_slot(Recipes.STATION_RACK), f.free_slot(Recipes.STATION_BREWERY)], [0, FIRST_VAT], "the others free")
 
@@ -249,7 +255,10 @@ func test_cider_is_pressed_from_apples_alone() -> void:
 	rig.pantry.add_into(Catalog.ITEM_PEAR, 6000, 0, _read)
 	assert_equal(f.batch_refusal(Recipes.R_CIDER), "the stores hold 0 U of apple nobody has set aside; a batch takes 4.0 U", "pears are no apples")
 	rig.pantry.add_into(Catalog.ITEM_APPLE, 4000, 0, _read)
-	assert_equal(f.order_batch(Recipes.R_CIDER, PackedInt32Array([1])), "", "ordered")
+	assert_equal(f.order_batch(Recipes.R_CIDER, PackedInt32Array()), "", "ordered")
+	var j: int = f.tables.j_live.find(1)
+	assert_equal(f.tables.j_goal[j], rig.pantry.storage.position_of(0), "the fetch walks to the apples' store")
+	assert_true(f.claim(j, 1), "a brewer takes it")
 	assert_true(_run(rig, func() -> bool: return f.tables.s_state[FIRST_VAT] == Tables.SLOT_CURING), "brewing")
 	assert_equal([rig.pantry.milli_of(Catalog.ITEM_APPLE), rig.pantry.milli_of(Catalog.ITEM_PEAR)], [0, 6000], "apples only")
 	rig.calendar.tick += 72 * SimClock.TICKS_PER_HOUR
@@ -263,19 +272,22 @@ func test_ale_and_cider_follow_the_mead_rule_at_the_feast() -> void:
 	"""Brendan's DEC-007 ruling (2026-10-07): ale and cider poured at the feast like mead, a unit for every four guests,
 	for those who came; Shared Warmth decided by the courses alone."""
 	var pantry := PantryScript.new(StorageScript.new(Vector2.ZERO))
+	pantry.add_into(Catalog.ITEM_MEAD, 3000, 0, _read)
 	pantry.add_into(Catalog.ITEM_ALE, 3000, 0, _read)
-	pantry.add_into(Catalog.ITEM_CIDER, 3000, 0, _read)
+	pantry.add_into(Catalog.ITEM_CIDER, 5000, 0, _read)
 	var kitchen := KitchenScript.new()
 	kitchen.pantry = pantry
 	kitchen.stores = _services.stores
 	var menu := MenuScript.new()
 	menu.configure(kitchen, _services.stores)
 	menu.reserve(kitchen.takes.new_take(), 9, 0)
-	assert_equal(Array(menu.drinks_planned), [0, 0, 3000, 3000], "ale and cider set aside")
+	assert_true(menu.drinks_words(9).contains("ale 3.0 U (free 0.0 U)") and menu.drinks_words(9).contains("cider 3.0 U (free 2.0 U)"),
+		"each drink by its own name, its 3 U set aside: %s" % menu.drinks_words(9))
+	assert_equal(Array(menu.drinks_planned), [3000, 0, 3000, 3000], "mead, ale and cider set aside")
 	menu.second_planned = true
 	menu.infusion_planned = true
 	var warmth: String = menu.settle(9, 9, 9, 1000, 0)
-	assert_equal(Array(menu.drinks_poured_milli), [0, 0, 3000, 3000], "poured for all nine")
+	assert_equal(Array(menu.drinks_poured_milli), [3000, 0, 3000, 3000], "poured for all nine")
 	var dry := MenuScript.new()
 	var bare := KitchenScript.new()
 	bare.pantry = PantryScript.new(StorageScript.new(Vector2.ZERO))
@@ -284,7 +296,7 @@ func test_ale_and_cider_follow_the_mead_rule_at_the_feast() -> void:
 	dry.second_planned = true
 	dry.infusion_planned = true
 	assert_equal(warmth, dry.settle(9, 9, 9, 1000, 0), "the warmth's answer is the same with no drink at all")
-	assert_true(menu.drinks_words(9).contains("ale 3.0 U") and menu.drinks_words(9).contains("no one is made drunk"), "said")
+	assert_true(menu.drinks_words(9).contains("no one is made drunk"), "said")
 
 
 func test_the_guide_has_the_new_recipes() -> void:
@@ -297,3 +309,40 @@ func test_the_guide_has_the_new_recipes() -> void:
 	assert_true(PreserveText.guide_fields(Catalog.ITEM_CHEESE, 1600)[1].contains("nuts 2.0 U, water 1.0 U make 2.0 U, 16 WU and 24 hours at the preserving table"),
 		PreserveText.guide_fields(Catalog.ITEM_CHEESE, 1600)[1])
 	assert_true(PreserveText.guide_fields(Catalog.ITEM_JAM, 850)[2].contains("Fresh berries"), "jam's alternative")
+
+
+func test_the_new_recipes_say_what_is_missing() -> void:
+	"""Each input checked with its own code and fix: the jam's berries and honey, the cheese's nuts."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	f.batch_refusal(Recipes.R_JAM)
+	assert_equal([f.refused_code, f.refused_fix], ["NO_BERRIES", Recipes.IN_FIX[8]], "the jam's berries")
+	rig.pantry.add_into(Catalog.ITEM_BERRIES, 2000, 0, _read)
+	f.batch_refusal(Recipes.R_JAM)
+	assert_equal([f.refused_code, f.refused_fix], ["NO_HONEY", Recipes.IN_FIX[9]], "its honey")
+	f.batch_refusal(Recipes.R_CHEESE)
+	assert_equal([f.refused_code, f.refused_fix], ["NO_NUTS", Recipes.IN_FIX[10]], "the cheese's nuts")
+	f.batch_refusal(Recipes.R_ALE)
+	assert_equal(f.refused_fix, Recipes.IN_FIX[11], "the barley's fix")
+
+
+func test_a_cheese_cancelled_after_it_started_spoils_half_its_nuts() -> void:
+	"""REQ-SET-094 for a crock row: half of its 2 U of nuts spoiled; the crock freed."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	rig.pantry.add_into(Catalog.ITEM_NUTS, 2000, 0, _read)
+	f.order_batch(Recipes.R_CHEESE, PackedInt32Array([1]))
+	var j: int = f.tables.j_live.find(1)
+	assert_true(_run(rig, func() -> bool: return f.tables.j_started[j] == 1), "started")
+	assert_equal(f.cancel_job(j), "", "cancelled")
+	assert_equal(rig.pantry.spoiled_milli, 1000, "half the 2 U")
+	assert_equal(f.tables.s_state[FIRST_CROCK], Tables.SLOT_EMPTY, "the crock free")
+
+
+func test_every_recipe_button_has_its_row() -> void:
+	"""The Water panel's recipe buttons (demo_fishery.gd ACTION_RECIPES): one a row from dry fish to cider."""
+	var rows: Array = DemoFisheryScript.ACTION_RECIPES.values()
+	rows.sort()
+	assert_equal(rows, range(Recipes.RECIPE_COUNT), "every row has its button")
+	assert_equal(DemoFisheryScript.ACTION_RECIPES[&"make_jam"], Recipes.R_JAM, "Make jam")
+	assert_equal(PreserveText.guide_fields(Catalog.ITEM_CHEESE, 1600)[2], "Nuts eaten as they are keep 720 game hours; set as a cheese they keep twice as long.", "the cheese's alternative")

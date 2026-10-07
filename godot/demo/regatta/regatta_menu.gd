@@ -29,7 +29,8 @@ extends RefCounted
 ## proportionally to attended/E (§5.7's rounding at the last attendee), the rest given back. A drink is never required:
 ## it neither earns nor blocks Shared Warmth (the Hearth row's courses do), and nothing models what drink does. Ale and
 ## cider (decision 1625) are poured the same way: Brendan's ruling on DEC-007's drink depiction (2026-10-07) is that they
-## follow the mead rule -- a feast or table drink only, no intoxication, no effect on Shared Warmth.
+## follow the mead rule -- a feast or table drink only, no intoxication, no effect on Shared Warmth. Their pour,
+## ceil(E/4) U each like mead's, is PROVISIONAL (decision 1625).
 
 const Rules := preload("res://demo/regatta/regatta_rules.gd")
 const MealRules := preload("res://demo/kitchen/meal_rules.gd")

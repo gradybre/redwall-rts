@@ -24,7 +24,8 @@ static func recipe_of(item: int) -> int:
 
 
 static func is_station_good(item: int) -> bool:
-	"""Whether `item` is one of the stations' goods this file describes (dried fruit, rations, mead, cordial)."""
+	"""Whether `item` is one of the stations' goods this file describes (dried fruit, rations, mead, cordial, jam,
+	cheese, ale, cider)."""
 	return recipe_of(item) >= 0
 
 
@@ -65,7 +66,7 @@ static func _alternative(item: int) -> String:
 	if item == Catalog.ITEM_JAM:
 		return "Fresh berries while they keep (%d game hours); honey sweetens as it is." % Catalog.shelf_hours_of(Catalog.ITEM_BERRIES)
 	if item == Catalog.ITEM_CHEESE:
-		return "Nuts eaten as they are; the cheese keeps them as a richer reserve."
+		return "Nuts eaten as they are keep 720 game hours; set as a cheese they keep twice as long."
 	if item == Catalog.ITEM_DRIED_FRUIT:
 		return "Fresh fruit for the table while it keeps (%d game hours); the kitchen cooks fresh food first." % \
 			Catalog.shelf_hours_of(Catalog.ITEM_APPLE)

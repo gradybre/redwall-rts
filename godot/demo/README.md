@@ -2095,7 +2095,7 @@ Brendan's "Approve and build Q-d5 and dec-007" (2026-10-07): four content-librar
 - **Make jam** at the preserving table: berries 2 + honey 1 + water 1 → **berry jam** 3 (850 NP a unit, eaten as it
   is), 16 WU, keeps 720 h -- the library's honey-sweetened fruit jams.
 - **Make cheese** at the preserving table: nuts 2 + water 1 → **nut cheese** 2 (1600 NP a unit), 16 WU, then 24 h
-  setting in one of the table's **two crocks**, keeps 480 h -- the library's one salt-free plant cheese.
+  setting in one of the table's **two crocks**, keeps 1440 h -- the library's one salt-free plant cheese.
 - **Brew ale** at the brewery: barley 3 (barley only) + water 3 → **ale** 4, 20 WU + 72 h in a vat, keeps 1440 h.
 - **Make cider** at the brewery: apples 4 (apples only) + water 1 → **cider** 4, 16 WU + 72 h in a vat, keeps 1440 h.
 - **How drink is depicted** (Brendan's ruling on DEC-007's open point): ale and cider follow the mead rule -- a feast

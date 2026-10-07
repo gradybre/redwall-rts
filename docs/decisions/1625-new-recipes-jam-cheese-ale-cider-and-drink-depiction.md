@@ -31,15 +31,16 @@ Brew ale / Make cider (Brewing).
 | Row | Inputs → output | Work, wait, station | Shelf | Eaten raw | Source (content library, `shared/recipes.json` / `pantry.json`) |
 |---|---|---|---|---|---|
 | `jam` | berries 2 + honey 1 + water 1 → **berry jam 3** | 16 WU, none, preserving table | 720 h | 850 NP | The library's honey fruit jams: `COMPONENT_shared_blackberry_jam` / `strawberry_jam` (fruit, honey, water, apple pectin), `marlfox::MF_RECIPE_damson_jam`, `taggerung::TAG_recipe_quince_jam` (fruit, honey, water). The demo's `berries` stands for the hedge's blackberries and strawberries; the apple pectin is folded into the cooking (no pectin item). |
-| `cheese` | nuts 2 + water 1 → **nut cheese 2** | 16 WU + 24 h in a crock, preserving table | 480 h | 1600 NP | `taggerung::TAG_recipe_nut_cheese` -- hazelnut, chestnut, water, a cultured food starter: **the library's only plant cheese without salt** (every cultured oat, hazelnut, almond or seed cheese component takes `LEAF_salt`). The demo's `nuts` are the woods' hazelnuts and chestnuts; the starter is the crock's culture stage, not an input. Dairy stays excluded (DEC-006, SET-AMEND-001). |
+| `cheese` | nuts 2 + water 1 → **nut cheese 2** | 16 WU + 24 h in a crock, preserving table | 1440 h | 1600 NP | `taggerung::TAG_recipe_nut_cheese` -- hazelnut, chestnut, water, a cultured food starter: **a salt-free plant cheese the demo's nuts can make.** The cultured oat, hazelnut, almond and seed *cheese* components take `LEAF_salt`; the library's other salt-free bases (`COMPONENT_shared_cultured_hazelnut_cream`, `cultured_oat_curd`, `oat_and_seed_curd`) need an oat drink the demo does not make. The demo's `nuts` are the woods' hazelnuts and chestnuts; the starter is the crock's culture stage, not an input. Dairy stays excluded (DEC-006, SET-AMEND-001). |
 | `ale` | barley 3 + water 3 → **ale 4** | 20 WU + 72 h in a vat, brewery | 1440 h | no | `COMPONENT_shared_october_ale` / `shared_ale` (malted barley, water, fermentation culture); `salamandastron::SAL_recipe_october_ale`. Malting and the culture are folded into the brew; the October ale's "ten seasons" of cellaring is not imported as a wait (the library itself says so). Units, work and wait follow §5.7 `mead`. |
 | `cider` | apples 4 + water 1 → **cider 4** | 16 WU + 72 h in a vat, brewery | 1440 h | no | `taggerung::TAG_recipe_pale_cider` (apple, water, cultured yeast), `mossflower::MF_recipe_cider`, `COMPONENT_shared_pale_cider`. Apples only (pears are not cider); the wait follows mead's. |
 
 Why these numbers: the units sit between §5.7's preserving rows (fruit 4 → 3) and mead (honey 3 + water 3 → 4); the
 work matches the nearest §5.7 rows (16 WU for a cooked preserve, mead's 20 WU for a brew); the raw NP spread a batch's
 input NP over its output (jam: 2 berries × 700 + 1 honey × 1200 ≈ 3 × 850; cheese: 2 nuts × 1600 = 2 × 1600); the
-shelves are dried fruit's 720 h for jam, mead's 1440 h for both drinks, and 480 h (herb's) for a cultured cheese. None
-is a GDD number.
+shelves are dried fruit's 720 h for jam and mead's 1440 h for both drinks and the cheese (the cheese keeps its nuts
+twice as long as the nuts' own 720 h -- its purpose, since its NP equals theirs). The feast pours ale and cider ceil(E/4)
+U each, mead's quantity. None is a GDD number.
 
 ### Pickles: BLOCKED
 
@@ -68,7 +69,9 @@ source is invented and pickles are not built.
 
 ## PROPOSALS (for Brendan)
 
-1. **The four rows' numbers** in the table above. *Recommendation: approve as provisional; tune after a balance run.*
+1. **The four rows' numbers** in the table above, and the feast's ceil(E/4) U pour of ale and of cider (with mead and
+   cordial, a fully stocked feast now pours four drinks). *Recommendation: approve as provisional; tune after a balance
+   run.*
 2. **Cheese as nut cheese** (the salt-free taggerung row), set in two crocks at the preserving table for 24 h.
    *Options:* (a) as built; (b) a salted oat cheese once salt exists. *Recommendation: (a).*
 3. **Ale from barley alone, cider from apples alone**, both in the brewery's vats, poured at the feast like mead.

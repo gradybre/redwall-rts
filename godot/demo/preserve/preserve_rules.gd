@@ -23,9 +23,9 @@ extends RefCounted
 ## library dishes drafted as rows -- EVERY NUMBER PROVISIONAL (decision 1625 names each one's source):
 ##   jam        berries 2, honey 1, water 1             -> jam 3, 16 WU, the preserving table, keeps 720 h
 ##              (the library's honey jams: shared blackberry/strawberry jam, MF damson jam, TAG quince jam)
-##   cheese     nuts 2, water 1                         -> cheese 2, 16 WU + 24 h in a crock, the table, keeps 480 h
-##              (taggerung TAG_recipe_nut_cheese: hazelnut, chestnut, water, a cultured starter -- the one salt-free
-##              plant cheese; the starter is the crock's culture stage, not an input)
+##   cheese     nuts 2, water 1                         -> cheese 2, 16 WU + 24 h in a crock, the table, keeps 1440 h
+##              (taggerung TAG_recipe_nut_cheese: hazelnut, chestnut, water, a cultured starter -- a salt-free plant
+##              cheese the demo's nuts can make; the starter is the crock's culture stage, not an input)
 ##   ale        barley 3, water 3                       -> ale 4, 20 WU + 72 h in a vat, the brewery, keeps 1440 h
 ##              (shared October ale / ale: malted barley, water, a fermentation culture)
 ##   cider      apple 4, water 1                        -> cider 4, 16 WU + 72 h in a vat, the brewery, keeps 1440 h
@@ -34,7 +34,7 @@ extends RefCounted
 ## only, no intoxication, no effect on Shared Warmth. Pickles are not built: every library pickle takes salt.
 ## An input is a §5.7 CATEGORY or, where a recipe names one item (ale's barley, cider's apple), an ITEM selector
 ## (ingredient_takes.gd SELECT_ITEMS).
-## A row's inputs are §5.7 CATEGORIES (farm_catalog.gd category_of), reserved from real lots when it is ordered and
+## A row's inputs are §5.7 CATEGORIES (or, for the new recipes' ale and cider, item selectors: above) (farm_catalog.gd category_of), reserved from real lots when it is ordered and
 ## withdrawn when its work starts (decision 0434's REQ-SET-112/118 flow); water is the stores' butt.
 
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
@@ -61,7 +61,7 @@ const STATION_TABLE: int = 1
 const STATION_BREWERY: int = 2
 const STATION_NAMES: Array[String] = ["the rack", "the preserving table", "the brewery"]
 ## Each station's passive slots in the fishery's one slot table: the rack's four first (fishery_rules.gd RACK_SLOTS), then
-## the brewery's four vats (§5.9's Brewery: "4 passive batch slots"); the table has none.
+## the brewery's four vats (§5.9's Brewery: "4 passive batch slots"), then the preserving table's crocks (decision 1625).
 const VAT_SLOTS: int = 4
 ## The preserving table's crocks, where a nut cheese takes its culture (decision 1625, PROVISIONAL: two).
 const CROCK_SLOTS: int = 2
@@ -144,7 +144,7 @@ static func land_obstacles() -> Array[Vector3]:
 
 
 static func station_of_slot(slot: int) -> int:
-	"""The station passive slot `slot` belongs to (the rack's first, then the brewery's vats; -1 for none)."""
+	"""The station passive slot `slot` belongs to (the rack's, the brewery's vats, the table's crocks; -1 for none)."""
 	for station: int in STATION_SLOTS.size():
 		if slot >= STATION_FIRST_SLOT[station] and slot < STATION_FIRST_SLOT[station] + STATION_SLOTS[station]:
 			return station

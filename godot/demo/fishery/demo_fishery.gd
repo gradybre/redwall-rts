@@ -17,6 +17,8 @@ extends Node3D
 ##   Pack rations                   flour 2, dried fish 1, nuts 1, water 1 at the preserving table: 3 U of rations
 ##   Brew mead                      honey 3, water 3 into a vat at the brewery: 4 U of mead after 72 h (decision 1621)
 ##   Make cordial                   berries 2, honey 0.5, water 2 at the brewery's bench: 4 U of the raspberry cordial
+##   Make jam / Make cheese         the preserving table's berry jam and nut cheese (decision 1625, provisional)
+##   Brew ale / Make cider          the brewery's ale and cider (decision 1625, provisional)
 ##
 ## TIME. The fishery runs on this frame's demo time (paused, nothing moves or cures; at 4x everything four times as
 ## fast); the panel and the incidents follow on real time (they work paused), the panel only while shown.

@@ -83,10 +83,11 @@ GRAIN_LEAVES = {"LEAF_wheat", "LEAF_barley", "LEAF_oats"}
 ## The orchard's fruit (decision 0671): dried fruit (decision 1611) is the library's dried forms of them.
 FRUIT_LEAVES = {"LEAF_apple", "LEAF_pear"}
 ## The new recipes (decision 1625): each the library components it is drafted from -- the honey berry jams, the
-## salt-free nut cheese's base (the library's cultured hazelnut cheese is its nearest component), the ale and the ciders.
+## ale and the ciders. The salt-free nut cheese has no library component of its own (the cultured hazelnut cheese takes
+## salt), so it lists no dishes.
 NEW_RECIPE_TARGETS = {
-    "jam": ["COMPONENT_shared_blackberry_jam", "COMPONENT_shared_strawberry_jam", "COMPONENT_shared_elderberry_jam"],
-    "cheese": ["COMPONENT_shared_cultured_hazelnut_cheese"],
+    "jam": ["COMPONENT_shared_blackberry_jam", "COMPONENT_shared_strawberry_jam"],
+    "cheese": [],
     "ale": ["COMPONENT_shared_ale", "COMPONENT_shared_october_ale"],
     "cider": ["COMPONENT_shared_pale_cider", "COMPONENT_shared_old_cider"],
 }

@@ -4553,8 +4553,7 @@
    "leaf_id": "",
    "targets": [
     "COMPONENT_shared_blackberry_jam",
-    "COMPONENT_shared_strawberry_jam",
-    "COMPONENT_shared_elderberry_jam"
+    "COMPONENT_shared_strawberry_jam"
    ],
    "direct_count": 1,
    "component_count": 0,
@@ -4569,118 +4568,10 @@
   {
    "item_key": "cheese",
    "leaf_id": "",
-   "targets": [
-    "COMPONENT_shared_cultured_hazelnut_cheese"
-   ],
-   "direct_count": 18,
-   "component_count": 3,
-   "dishes": [
-    {
-     "label": "Carrot-mushroom bake with cultured hazelnut cheese",
-     "id": "triss::TRI_recipe_carrot_mushroom_bake_with_cheese",
-     "use": "direct"
-    },
-    {
-     "label": "Cultured hazelnut cheese-celery pasty",
-     "id": "triss::TRI_recipe_cheese_celery_pasty",
-     "use": "direct"
-    },
-    {
-     "label": "Cultured hazelnut cheese-crusted hazelnut-mushroom loaf",
-     "id": "rakkety_tam::RAK_recipe_cheese_crusted_hazelnut_mushroom_loaf",
-     "use": "direct"
-    },
-    {
-     "label": "Cultured hazelnut cheese-onion farl",
-     "id": "rakkety_tam::RAK_recipe_cheese_onion_farl",
-     "use": "direct"
-    },
-    {
-     "label": "Feast cultured hazelnut cheese",
-     "id": "triss::TRI_recipe_feast_cheese",
-     "use": "direct"
-    },
-    {
-     "label": "Filboonimgun cultured hazelnut wheel",
-     "id": "taggerung::TAG_recipe_filboonimgun_cheese",
-     "use": "direct"
-    },
-    {
-     "label": "Grilled chestnuts in cultured hazelnut cheese dip",
-     "id": "rakkety_tam::RAK_recipe_grilled_chestnuts_in_cheese_dip",
-     "use": "direct"
-    },
-    {
-     "label": "Guosim cultured hazelnut cheese",
-     "id": "rakkety_tam::RAK_recipe_guosim_cheese",
-     "use": "direct"
-    },
-    {
-     "label": "Leek-carrot bake with yellow cultured hazelnut cheese",
-     "id": "rakkety_tam::RAK_recipe_leek_carrot_bake_with_yellow_cheese",
-     "use": "direct"
-    },
-    {
-     "label": "Maple wafer with white cheese — plant/approved-fish game adaptation",
-     "id": "taggerung::TAG_recipe_maple_wafer_with_white_cheese",
-     "use": "direct"
-    },
-    {
-     "label": "Mature cultured hazelnut cheese",
-     "id": "rakkety_tam::RAK_recipe_mature_cheese",
-     "use": "direct"
-    },
-    {
-     "label": "Mellow cheese — plant/approved-fish game adaptation",
-     "id": "taggerung::TAG_recipe_mellow_cheese",
-     "use": "direct"
-    },
-    {
-     "label": "Savory stuffed wheaten bread — plant or approved-aquatic adaptation",
-     "id": "rakkety_tam::RAK_recipe_savory_stuffed_wheaten_bread",
-     "use": "direct"
-    },
-    {
-     "label": "Toasted apples and cultured hazelnut cheese",
-     "id": "rakkety_tam::RAK_recipe_toasted_apples_and_cheese",
-     "use": "direct"
-    },
-    {
-     "label": "White cheese with celery and hazelnuts — plant/approved-fish game adaptation",
-     "id": "taggerung::TAG_recipe_white_cheese_with_celery_and_hazelnuts",
-     "use": "direct"
-    },
-    {
-     "label": "White cheese with hazelnuts — plant/approved-fish game adaptation",
-     "id": "taggerung::TAG_recipe_white_cheese_with_hazelnuts",
-     "use": "direct"
-    },
-    {
-     "label": "Yellow cultured hazelnut cheese",
-     "id": "triss::TRI_recipe_yellow_cheese",
-     "use": "direct"
-    },
-    {
-     "label": "Yellow cultured hazelnut cheese ration",
-     "id": "rakkety_tam::RAK_recipe_yellow_cheese_ration",
-     "use": "direct"
-    },
-    {
-     "label": "Woodland assembly with bread, cultured hazelnut spread, celery",
-     "id": "mossflower::MF_recipe_hot_oven_bread_with_cheese_and_celery",
-     "use": "component"
-    },
-    {
-     "label": "Woodland assembly with celery, parsley, thyme",
-     "id": "mossflower::MF_recipe_celery_and_herb_cheese_on_acorn_bread_with_radishes",
-     "use": "component"
-    },
-    {
-     "label": "Woodland salad with cultured hazelnut spread, apple, apple vinegar",
-     "id": "mossflower::MF_recipe_cheese_and_apple_salad",
-     "use": "component"
-    }
-   ]
+   "targets": [],
+   "direct_count": 0,
+   "component_count": 0,
+   "dishes": []
   },
   {
    "item_key": "ale",

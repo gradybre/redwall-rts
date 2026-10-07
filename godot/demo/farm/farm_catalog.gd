@@ -206,7 +206,7 @@ const GOODS_CATEGORY: Array[int] = [CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_
 	FarmingScript.CROP_ROOTS, CAT_HONEY, CAT_NUTS, CAT_MUSHROOMS, CAT_HERB, CAT_BERRIES, CAT_FRUIT, CAT_FRUIT,
 	CAT_DRIED_FRUIT, CAT_RATION, CAT_MEAD, CAT_CORDIAL, CAT_JAM, CAT_CHEESE, CAT_ALE, CAT_CIDER]
 const GOODS_SHELF_HOURS: Array[int] = [48, 48, 48, 48, 48, 48, 720, 240, 240, 1440, 720, 72, 480, 48, 144, 144, 720,
-	1440, 1440, 72, 720, 480, 1440, 1440]
+	1440, 1440, 72, 720, 1440, 1440, 1440]
 ## scripts/core/forage.gd PATCH_KEYS row (berries, nuts, mushrooms, herb, roots) -> pantry item (NO_ITEM: not gathered).
 const PATCH_ITEM: Array[int] = [ITEM_BERRIES, ITEM_NUTS, ITEM_MUSHROOMS, ITEM_HERB, NO_ITEM]
 ## scripts/core/orchard_hive.gd SPECIES_KEYS row (apple, pear) -> pantry item.

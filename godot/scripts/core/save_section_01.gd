@@ -1275,6 +1275,11 @@ static func _adopt(staged: State, out: State) -> void:
 	out.published = staged.published
 	out.published_seed = staged.published_seed
 	out.world_map = staged.world_map
+	_adopt_space(staged, out)
+
+
+static func _adopt_space(staged: State, out: State) -> void:
+	"""Move the validated space block's layout and raw values into `out`, by reference."""
 	out.space_layout = staged.space_layout
 	out.space_values = staged.space_values
 

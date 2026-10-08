@@ -164,11 +164,12 @@ P4 (a), P5 (a), P6 (b), P7 (a), P8 (b), P9 (a). What they required:
   `test_demo_feast_live.gd` (the live harness at both sizes); `test_demo_dishes.gd` (24 rows, 20 distinct, the four new
   §5.7 rows exact, GDD_OWN); `test_demo_crop_roles.gd` (peas now feed the nut roast too).
 - **The full suite, CI-style** (assets moved aside, `godot/.godot` deleted, re-imported, `./tools/run_tests.sh`), on
-  the final tree (after merging #235 and building P6 (b)):
-  `ok: 9344 tests, 650624 assertions, 0 failures.` ·
-  `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 371 tolerated; leaked at exit: 0 object(s), 0 resource(s)` ·
+  the final tree (P6 (b) built, then `origin/master` merged again with #236 fishing and #237 orchard outings, at
+  41af65cb):
+  `ok: 9429 tests, 653249 assertions, 0 failures.` ·
+  `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 373 tolerated; leaked at exit: 0 object(s), 0 resource(s)` ·
   `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).`
-- **Analyzer**: `python3 tools/gdscript_warnings.py --max 0`: `0 GDScript warning(s) in 0 of 1065 file(s)` (its own `--port 6117`).
+- **Analyzer**: `python3 tools/gdscript_warnings.py --max 0`: `0 GDScript warning(s) in 0 of 1073 file(s)` (its own `--port 6117`), on 41af65cb.
 - **Contracts**: every check in CI's contracts group passes (decision_numbers 338 records, ready07_arithmetic,
   merge_gate, setting_contract, dispatch_plan, astra_inbox, the save registry handoff, the canonical state table, the
   cycle 1–3 handoffs, the registry capacity audit, the component columns schema, lane_notes, the movement checks,

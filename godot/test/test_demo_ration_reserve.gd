@@ -133,3 +133,40 @@ func test_give_lets_the_held_food_go_for_its_batch() -> void:
 	assert_equal(reserve.give(Catalog.CAT_FLOUR, 500, 0), 500, "0.5 U given")
 	assert_equal(reserve.give(Catalog.CAT_FLOUR, 9000, 0), 1500, "the rest, no more")
 	assert_equal(reserve.takes.free_milli_of_crop(reserve.pantry, Catalog.CAT_FLOUR), 5000, "all free again")
+
+
+func _lots_of(reserve: ReserveScript, item: int) -> PackedInt32Array:
+	"""The pantry's lot rows holding `item`, in row order."""
+	var rows := PackedInt32Array()
+	for lot: int in PantryScript.MAX_LOTS:
+		if reserve.pantry.lot_item(lot) == item:
+			rows.append(lot)
+	return rows
+
+
+func test_it_holds_the_lots_that_spoil_last() -> void:
+	"""The review of c9f67f16 (MEDIUM): the reserve holds the flour that spoils last, so the kitchen still cooks what
+	spoils first, and the reserve's own flour keeps longest."""
+	var reserve := _reserve(6000)
+	_stock(reserve, Catalog.ITEM_FLOUR, 2000)
+	_stock(reserve, Catalog.ITEM_FLOUR, 2000)
+	var lots: PackedInt32Array = _lots_of(reserve, Catalog.ITEM_FLOUR)
+	assert_equal(lots.size(), 2, "two lots")
+	reserve.pantry._lot_age[lots[1]] += 200 * PantryScript.FACTOR_DENOMINATOR
+	assert_true(reserve.pantry.lot_spoil_hours(lots[1], 0) < reserve.pantry.lot_spoil_hours(lots[0], 0),
+		"the second is older")
+	reserve.top_up(0, 0)
+	assert_equal([reserve.takes.free_milli(reserve.pantry, lots[0]), reserve.takes.free_milli(reserve.pantry, lots[1])],
+		[0, 2000], "the fresher lot held, the older left to the kitchen")
+
+
+func test_no_grain_is_gathered_while_a_mill_batch_grinds() -> void:
+	"""The review of c9f67f16 (MEDIUM): with a mill batch grinding, its flour is on the way -- the grain is let go, not
+	gathered again for a second batch."""
+	var reserve := _reserve(6000)
+	_stock(reserve, WHEAT, 6000)
+	reserve.top_up(0, 0)
+	assert_equal(reserve.held_milli(GRAIN), FisheryRules.MILL_IN_MILLI, "a mill batch's grain")
+	reserve.top_up(0, 0, true)
+	assert_equal(reserve.held_milli(GRAIN), 0, "milling: let go")
+	assert_equal(reserve.wanted_milli(GRAIN, 0, true), 0, "and not wanted")

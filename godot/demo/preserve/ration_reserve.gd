@@ -20,8 +20,10 @@ extends RefCounted
 ## (`give`). The Ready-food estimate still counts it in store (a limit 1742 records).
 ##
 ## HOW IT IS GATHERED (`top_up`, each game hour and whenever flour or dried fish is stored): food nobody has set aside
-## first, then what the kitchen planned for meals beyond its next one (`kitchen_give`: the rack's and the mill's rule,
-## decisions 1739 and 1741 -- never the next meal's, never what the cook has in hand). Food no longer wanted goes back.
+## first -- the lots that spoil LAST, so the kitchen still cooks what spoils first -- then what the kitchen planned for
+## meals beyond its next one (`kitchen_give`: the rack's and the mill's rule, decisions 1739 and 1741 -- never the next
+## meal's, never what the cook has in hand). Food no longer wanted goes back. No grain is gathered while a mill batch
+## grinds: its flour is on the way.
 
 const Recipes := preload("res://demo/preserve/preserve_rules.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
@@ -62,22 +64,24 @@ func held_milli(category: int) -> int:
 	return takes.live_milli(pantry, take, -1, category) if take != 0 else 0
 
 
-func wanted_milli(category: int, rations_milli: int) -> int:
-	"""What it should hold of `category` with `rations_milli` of rations owned or being packed (see WHAT IS HELD)."""
+func wanted_milli(category: int, rations_milli: int, milling: bool = false) -> int:
+	"""What it should hold of `category` with `rations_milli` of rations owned or being packed (see WHAT IS HELD) --
+	no grain while a mill batch is `milling` (its flour is on the way: the review of c9f67f16)."""
 	if released or take == 0 or rations_milli >= target_milli:
 		return 0
 	if category == FarmingScript.CROP_GRAIN:
 		var short: bool = held_milli(Catalog.CAT_FLOUR) < Recipes.input_milli(Recipes.R_RATION, Catalog.CAT_FLOUR)
-		return FisheryRules.MILL_IN_MILLI if short else 0
+		return FisheryRules.MILL_IN_MILLI if short and not milling else 0
 	return Recipes.input_milli(Recipes.R_RATION, category)
 
 
-func top_up(rations_milli: int, hour_index: int) -> void:
-	"""Hold what is wanted of each category, flour before grain (held flour ends the grain's need); let go the rest."""
+func top_up(rations_milli: int, hour_index: int, milling: bool = false) -> void:
+	"""Hold what is wanted of each category, flour before grain (held flour ends the grain's need; a mill batch
+	`milling` too); let go the rest."""
 	if take == 0:
 		return
 	for category: int in HELD:
-		var want: int = wanted_milli(category, rations_milli)
+		var want: int = wanted_milli(category, rations_milli, milling)
 		var held: int = held_milli(category)
 		if held > want:
 			takes.release_milli(pantry, take, held - want, hour_index, category)
@@ -90,7 +94,7 @@ func _gather(category: int, milli: int, hour_index: int) -> void:
 	var free: int = takes.free_milli_of_crop(pantry, category)
 	if free < milli and kitchen_give.is_valid():
 		kitchen_give.call(milli - free, category)
-	takes.reserve_into(pantry, take, category, milli, hour_index, _read)
+	takes.reserve_into(pantry, take, category, milli, hour_index, _read, true)
 
 
 func give(category: int, milli: int, hour_index: int) -> int:

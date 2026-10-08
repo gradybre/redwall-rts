@@ -1920,7 +1920,7 @@ func top_up_ration_reserve() -> void:
 	"""THE RATION RESERVE gathers or lets go (preserve/ration_reserve.gd `top_up`): each game hour, and whenever flour
 	or dried fish is stored, so that the kitchen's next hour does not plan it first."""
 	if pantry != null:
-		ration_reserve.top_up(rations_owned_milli(), _hour_seen)
+		ration_reserve.top_up(rations_owned_milli(), _hour_seen, _jobs_of_kind(Tables.KIND_MILL) > 0)
 
 
 func rations_owned_milli() -> int:
@@ -1953,8 +1953,10 @@ func ration_keep_milli(category: int) -> int:
 	"""THE RATIONS' DRIED FISH (decision 1740; Brendan's ruling of 2026-10-08 on 1739's F5 (a)): what raw eaters must
 	leave of `category` -- for dried fish, the dried fish one batch of rations takes (§5.7 `ration`), and only while a
 	batch lacks nothing else it can get (`rations_wait_on_dried_fish`: a PROPOSAL, 1740); 0 for every other category
-	(kitchen.gd FOOD KEPT FROM RAW EATING)."""
-	if category != Catalog.CAT_DRIED_FISH or not rations_wait_on_dried_fish():
+	(kitchen.gd FOOD KEPT FROM RAW EATING). 0 too while a ration reserve has a target (it holds the dried fish itself:
+	decision 1742) or is released (§5.10's release frees this keep with it)."""
+	if category != Catalog.CAT_DRIED_FISH or ration_reserve.target_milli > 0 or ration_reserve.released \
+			or not rations_wait_on_dried_fish():
 		return 0
 	return Recipes.input_milli(Recipes.R_RATION, category)
 

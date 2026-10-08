@@ -662,3 +662,42 @@ func test_the_reserve_gathers_each_hour_and_when_dried_fish_is_stored() -> void:
 	assert_true(rig.pantry.add_into(Catalog.ITEM_DRIED_FISH, 3000, 0, _read), "dried fish off the rack")
 	f._book_stored(Catalog.ITEM_DRIED_FISH, 3000)
 	assert_equal(f.ration_reserve.held_milli(Catalog.CAT_DRIED_FISH), 1000, "held as it is stored")
+
+
+func test_the_reserve_counts_the_rations_in_store_and_only_ration_batches() -> void:
+	"""Rations in store at the target: nothing held. Another recipe's batch on the board (a Dry fish batch) is not
+	rations: the reserve still holds (the review of c9f67f16)."""
+	var full := _reserve_rig([[Catalog.ITEM_RATION, 6000], [Catalog.ITEM_DRIED_FISH, 3000]])
+	assert_equal(full.fishery.rations_owned_milli(), 6000, "6 U in store")
+	assert_equal(full.fishery.ration_reserve.held_milli(Catalog.CAT_DRIED_FISH), 0, "at the target: nothing held")
+	var rig := _reserve_rig([[Catalog.ITEM_DRIED_FISH, 1000], [Catalog.FIRST_CATCH, 4000]])
+	assert_equal(rig.fishery.order_batch(Recipes.R_DRY_FISH, PackedInt32Array()), "", "a Dry fish batch on the board")
+	assert_equal(rig.fishery.rations_owned_milli(), 0, "not rations")
+	rig.fishery.top_up_ration_reserve()
+	assert_equal(rig.fishery.ration_reserve.held_milli(Catalog.CAT_DRIED_FISH), 1000, "still held")
+
+
+func test_the_reserve_replaces_the_keep_and_its_release_frees_both() -> void:
+	"""1740's keep yields to the reserve (decision 1742): with a target, the keep keeps nothing -- the reserve holds the
+	dried fish; released (§5.10), nothing is withheld at all; with no target the keep is as 1740 built it."""
+	var rig := _reserve_rig([[Catalog.ITEM_DRIED_FISH, 3000], [Catalog.ITEM_NUTS, 2000], [Catalog.ITEM_FLOUR, 4000]])
+	var f: FisheryScript = rig.fishery
+	assert_equal(f.ration_reserve.held_milli(Catalog.CAT_DRIED_FISH), 1000, "the reserve holds a batch's dried fish")
+	assert_equal(f.ration_keep_milli(Catalog.CAT_DRIED_FISH), 0, "the keep keeps none more")
+	f.release_ration_reserve(true)
+	assert_equal(f.ration_keep_milli(Catalog.CAT_DRIED_FISH), 0, "released: the keep too")
+	assert_equal(rig.takes.free_milli_of_crop(rig.pantry, Catalog.CAT_DRIED_FISH), 3000, "all free")
+	f.release_ration_reserve(false)
+	f.ration_reserve.target_milli = 0
+	f.top_up_ration_reserve()
+	assert_equal(f.ration_keep_milli(Catalog.CAT_DRIED_FISH), 1000, "no target: 1740's keep")
+
+
+func test_the_reserve_lets_its_grain_go_while_its_mill_batch_grinds() -> void:
+	"""The review's repro: 6 U of grain, a mill batch ordered; at the next top-up the reserve does not hold another 3 U
+	for a second batch."""
+	var rig := _reserve_rig([[WHEAT, 6000]])
+	var f: FisheryScript = rig.fishery
+	assert_equal(f.order_mill(PackedInt32Array()), "", "ordered")
+	f.top_up_ration_reserve()
+	assert_equal(f.ration_reserve.held_milli(FarmingScript.CROP_GRAIN), 0, "no grain held while it grinds")

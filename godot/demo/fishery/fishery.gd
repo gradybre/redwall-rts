@@ -1208,7 +1208,7 @@ func _book_stored(item: int, milli: int) -> void:
 			dried_stored_milli += milli
 		Catalog.CAT_FLOUR:
 			milled_stored_milli += milli
-		Catalog.CAT_DRIED_FRUIT, Catalog.CAT_RATION:
+		Catalog.CAT_DRIED_FRUIT, Catalog.CAT_RATION, Catalog.CAT_JAM, Catalog.CAT_CHEESE, Catalog.CAT_PICKLES:
 			preserves_stored_milli += milli
 	revision += 1
 
@@ -1703,7 +1703,8 @@ func batch_refusal(recipe: int) -> String:
 
 
 func free_slot(station: int) -> int:
-	"""The first empty passive slot of `station` (the rack's or the brewery's vats), NONE when every one is taken."""
+	"""The first empty passive slot of `station` (the rack's, the brewery's vats or the preserving table's crocks), NONE
+	when every one is taken."""
 	var first: int = Recipes.STATION_FIRST_SLOT[station]
 	for slot: int in range(first, first + Recipes.STATION_SLOTS[station]):
 		if tables.s_state[slot] == Tables.SLOT_EMPTY:
@@ -1715,6 +1716,8 @@ func _slots_full(station: int) -> String:
 	"""Every passive slot of `station` taken, in words."""
 	if station == Recipes.STATION_BREWERY:
 		return _refuse("VATS_FULL", "all %d vats are brewing" % Recipes.VAT_SLOTS, "wait for a batch to be drawn off")
+	if station == Recipes.STATION_TABLE:
+		return _refuse("CROCKS_FULL", "all %d crocks are in use" % Recipes.CROCK_SLOTS, "wait for one to be emptied")
 	return _refuse("RACK_FULL", "all %d rack slots are taken" % Rules.RACK_SLOTS, "wait for a batch to cure")
 
 
@@ -1773,11 +1776,12 @@ func order_batch(recipe: int, members: PackedInt32Array) -> String:
 
 
 func _pickup_point(category: int) -> Vector2:
-	"""Where the unreserved food of `category` that spoils first is kept (the store a fetch walks to)."""
+	"""Where the unreserved food of selector `category` (a category, or an item mask) that spoils first is kept (the store
+	a fetch walks to)."""
 	var best: int = NONE
 	for lot: int in PantryScript.MAX_LOTS:
 		var item: int = pantry.lot_item(lot)
-		if item == PantryScript.FREE or Catalog.category_of(item) != category or takes.free_milli(pantry, lot) <= 0:
+		if item == PantryScript.FREE or not TakesScript.matches(category, item) or takes.free_milli(pantry, lot) <= 0:
 			continue
 		if best == NONE or pantry.lot_spoil_hours(lot, _hour_seen) < pantry.lot_spoil_hours(best, _hour_seen):
 			best = lot
@@ -2335,18 +2339,23 @@ func ice_trip_out() -> bool:
 
 func brewing() -> int:
 	"""How many of the brewery's vats hold a batch (loading, brewing or ready to draw off)."""
+	return slots_in_use(Recipes.STATION_BREWERY)
+
+
+func slots_in_use(station: int) -> int:
+	"""How many of `station`'s passive slots hold a batch (loading, waiting or ready to take down)."""
 	var n: int = 0
-	var first: int = Recipes.STATION_FIRST_SLOT[Recipes.STATION_BREWERY]
-	for slot: int in range(first, first + Recipes.VAT_SLOTS):
+	var first: int = Recipes.STATION_FIRST_SLOT[station]
+	for slot: int in range(first, first + Recipes.STATION_SLOTS[station]):
 		n += 0 if tables.s_state[slot] == Tables.SLOT_EMPTY else 1
 	return n
 
 
 func packing() -> bool:
-	"""Whether a batch is being worked at the preserving table now (its worker at the table)."""
+	"""Whether a batch is being worked at the preserving table now (its worker at the table: rations, jam, a cheese, pickles)."""
 	for j: int in Tables.MAX_JOBS:
-		if tables.j_live[j] == 1 and tables.j_kind[j] == Tables.KIND_BATCH and tables.j_at[j] == 1 \
-				and _station_of_job(j) == Recipes.STATION_TABLE:
+		var batch: bool = tables.j_kind[j] == Tables.KIND_BATCH or tables.j_kind[j] == Tables.KIND_DRY
+		if tables.j_live[j] == 1 and batch and tables.j_at[j] == 1 and _station_of_job(j) == Recipes.STATION_TABLE:
 			return true
 	return false
 

@@ -1491,8 +1491,8 @@ Review group X (ECO-001, ECO-003, ECO-004 with feature #48, ECO-006, ECO-007). E
 
 - **Crop roles** (0881, `farm/farm_crop_roles.gd`): a crop's role is its §5.6 row's -- Keeping root (keeps 10 days,
   ripens in 5), Fresh greens (sown summer and autumn, keeps 6 days), Soil restorer (gives the soil 800 fertility, keeps
-  20 days), Flour crop (10 U a bed, ripens in 8 days) -- with its uses read from the kitchen's dishes, the mill and the
-  raw-emergency table. Siblings of one row stay equal. Shown in the crop picker and the harvest plan.
+  20 days), Flour crop (10 U a bed, ripens in 8 days) -- with its uses read from the kitchen's dishes, the mill, the
+  stations' recipe rows (decision 1625: roots → pickles, barley → ale) and the raw-emergency table. Siblings of one row grow and keep alike; their uses can differ by item (barley alone makes ale). Shown in the crop picker and the harvest plan.
 - **Twelve field beds** (0886, Brendan's balance ruling E5): the six world beds and the **south field**'s six 2 m tiles,
   one 6 m x 4 m field on the grass south of the covered store, laid from the start, loam and clay.
 - **Sowing in season** (0886): the live village starts with the tending policy **Sow empty beds in season** on for the
@@ -2074,8 +2074,8 @@ can make; every number not the GDD's is named in `preserve/preserve_rules.gd`.
   the village's reserve; the kitchen still cooks fresh food first (ECO-028).
 - The inputs that spoil first are set aside when a batch is ordered and taken only when its work starts; cancelled
   after that, half its food is spoiled (REQ-SET-094). Each button's card says what is short and where to get it.
-- **Not built**: salt fish (salt is coastal brine only, and the village has no coast); jam, pickles and a plant-milk
-  cheese have no GDD row and wait on Brendan's recipe approval (open question Q-D5).
+- **Not built**: salt fish (salt is coastal brine only, and the village has no coast). Jam, nut cheese and the
+  vinegar pickle came later (decision 1625; "New recipes" below); the salted pickle waits on salt.
 
 | Input | Does |
 |---|---|
@@ -2096,13 +2096,46 @@ fishery's station jobs). Nothing models what drink does: mead is "a feast ingred
 - **At the feast**: the regatta's supper pours what the brewery has made -- mead and the cordial, a unit each for
   every four guests, for those who came -- beside the Hearth feast's warm infusion. A drink never decides Shared
   Warmth, and the preview says which will be poured.
-- **Not built**: ale and cider (icons exist; no GDD row) wait on Brendan's ruling on how drink is depicted (DEC-007)
-  and new drink recipes (open question Q-D5).
+- **Later**: ale and cider were built by decision 1625 (Brendan's DEC-007 ruling: they follow the mead rule); see
+  "New recipes" below.
 
 | Input | Does |
 |---|---|
 | Water panel ▸ Brewing ▸ **Brew mead** | A batch of mead into a free vat (selected residents first, else the board) |
 | Water panel ▸ Brewing ▸ **Make cordial** | A batch of the raspberry cordial at the brewery's bench |
+
+## New recipes: jam, nut cheese, ale, cider, vinegar and pickles (decision 1625)
+
+Brendan's "Approve and build Q-d5 and dec-007" (2026-10-07): four content-library dishes drafted as station rows in
+`preserve/preserve_rules.gd`, **every number provisional** (decision 1625 names each one's source).
+
+- **Make jam** at the preserving table: berries 2 + honey 1 + water 1 → **berry jam** 3 (850 NP a unit, eaten as it
+  is), 16 WU, keeps 720 h -- the library's honey-sweetened fruit jams.
+- **Make cheese** at the preserving table: nuts 2 + water 1 → **nut cheese** 2 (1600 NP a unit), 16 WU, then 24 h
+  setting in one of the table's **two crocks**, keeps 1440 h -- the library's one salt-free plant cheese.
+- **Brew ale** at the brewery: barley 3 (barley only) + water 3 → **ale** 4, 20 WU + 72 h in a vat, keeps 1440 h.
+- **Make cider** at the brewery: apples 4 (apples only) + water 1 → **cider** 4, 16 WU + 72 h in a vat, keeps 1440 h.
+- **How drink is depicted** (Brendan's ruling on DEC-007's open point): ale and cider follow the mead rule -- a feast
+  or table drink only, never eaten, no intoxication, no effect on Shared Warmth. The regatta's supper pours them with
+  the mead and the cordial, a unit for every four guests.
+- **Make vinegar** at the brewery: apples 4 + water 1 → **apple vinegar** 4, 16 WU + 96 h in a vat, keeps 1440 h --
+  the library's apple vinegar. An ingredient only: never eaten, never poured.
+- **Make pickles** at the preserving table: roots 3 (onions or any farmed root, never potato: Brendan's ruling)
+  + vinegar 1 → **pickles** 3 (800 NP a unit, eaten as they are), 12 WU, then 24 h in a crock, keeps 720 h -- **no salt**: a pickle beyond the library's formulas, by Brendan's
+  approval ("both vinegar and salt", 2026-10-07).
+- **Every ingredient says what the stations make of it**, read from the recipe rows (`preserve_rules.gd`
+  `rows_taking`), so a new row shows without an edit: the crop picker's Uses (roots: the preserving table's pickles;
+  barley: the brewery's ale) and the field guide's Uses (apples: dried fruit, cider, apple vinegar; pears: dried
+  fruit; honey: mead, cordial, berry jam; nuts: rations, nut cheese; berries: cordial, berry jam; flour and dried
+  fish: rations; vinegar: pickles), each linked to the good it makes.
+- **The salted pickle waits on salt**: approved, but the village has no salt path (no coast, no trader), so it is not
+  built; it becomes one more row when salt exists.
+
+| Input | Does |
+|---|---|
+| Water panel ▸ Preserves ▸ **Make jam** / **Make cheese** | A batch at the preserving table (the cheese then sets in a crock) |
+| Water panel ▸ Preserves ▸ **Make vinegar** / **Make pickles** | Vinegar into a free vat at the brewery; pickles packed into a crock at the preserving table |
+| Water panel ▸ Brewing ▸ **Brew ale** / **Make cider** | A batch into a free vat |
 
 ## Water
 

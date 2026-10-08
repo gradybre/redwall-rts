@@ -169,7 +169,7 @@ func test_mead_is_the_gdds_row_and_the_cordial_is_dec_045s() -> void:
 func test_the_drinks_are_appended_and_never_eaten() -> void:
 	"""Mead (34) and the cordial (35) appended; neither is a meal or raw food (§5.7 mead: "No"; the cordial a drink)."""
 	assert_equal([Catalog.ITEM_KEYS[34], Catalog.ITEM_KEYS[35]], [&"mead", &"cordial"], "appended")
-	assert_equal(Catalog.PANTRY_ITEM_COUNT, 36, "36 items")
+	assert_equal(Catalog.ITEM_KEYS.size(), Catalog.PANTRY_ITEM_COUNT, "every item keyed")
 	assert_equal([Catalog.category_of(34), Catalog.category_of(35)], [Catalog.CAT_MEAD, Catalog.CAT_CORDIAL], "categories")
 	assert_equal([MealRules.raw_np_per_u(34), MealRules.raw_np_per_u(35)], [0, 0], "never eaten raw")
 	assert_equal([MealRules.CATEGORY_WORDS[16], MealRules.CATEGORY_WORDS[17]], ["mead", "cordial"], "words")
@@ -179,14 +179,14 @@ func test_the_drinks_are_appended_and_never_eaten() -> void:
 
 func test_the_vats_follow_the_racks_slots() -> void:
 	"""§5.9's Brewery: four vats, after the rack's four slots in the one slot table."""
-	assert_equal(Recipes.SLOT_COUNT, 8, "eight passive slots")
+	assert_equal(Recipes.SLOT_COUNT, 10, "the rack's four, the vats' four, the crocks' two (decision 1625)")
 	assert_equal([Recipes.station_of_slot(0), Recipes.station_of_slot(3), Recipes.station_of_slot(FIRST_VAT),
 		Recipes.station_of_slot(7)], [Recipes.STATION_RACK, Recipes.STATION_RACK, Recipes.STATION_BREWERY,
 		Recipes.STATION_BREWERY], "the rack's, then the vats")
 	var rig := _rig()
 	assert_equal(rig.fishery.tables.s_state.size(), Recipes.SLOT_COUNT, "the table sized for both")
 	assert_equal([rig.fishery.free_slot(Recipes.STATION_RACK), rig.fishery.free_slot(Recipes.STATION_BREWERY),
-		rig.fishery.free_slot(Recipes.STATION_TABLE)], [0, FIRST_VAT, -1], "each station's first free slot")
+		rig.fishery.free_slot(Recipes.STATION_TABLE)], [0, FIRST_VAT, 8], "each station's first free slot")
 
 
 # --- brewing ---------------------------------------------------------------------------------------------------------------------
@@ -279,7 +279,7 @@ func test_the_feast_pours_the_drinks_it_holds() -> void:
 	assert_true(menu.drinks_words(9).contains("mead 3.0 U (free 5.0 U)"), menu.drinks_words(9))
 	assert_true(menu.drinks_words(9).contains("cordial 3.0 U (free 0.0 U) — not poured"), "the cordial short")
 	menu.reserve(menu.kitchen.takes.new_take(), 9, 0)
-	assert_equal(Array(menu.drinks_planned), [3000, 0], "mead set aside, no cordial")
+	assert_equal(Array(menu.drinks_planned), [3000, 0, 0, 0], "mead set aside, no cordial, ale or cider")
 	assert_equal(menu.free_drink(0), 2000, "3 U of mead reserved")
 	menu.settle(9, 6, 6, 1000, 0)
 	assert_equal(menu.drinks_poured_milli[0], 2000, "two-thirds of it, for 6 of 9")
@@ -294,7 +294,7 @@ func test_drinks_never_decide_shared_warmth() -> void:
 	menu.second_planned = true
 	menu.infusion_planned = true
 	assert_true(menu.settle(9, 0, 8, 1000, 0).contains("48 h"), "granted")
-	assert_equal(Array(menu.drinks_poured_milli), [0, 0], "nothing poured")
+	assert_equal(Array(menu.drinks_poured_milli), [0, 0, 0, 0], "nothing poured")
 
 
 func test_the_guide_has_the_drinks() -> void:
@@ -388,15 +388,15 @@ func test_both_drinks_pour_for_those_who_came_and_holding_again_resets() -> void
 	menu.second_planned = true
 	menu.infusion_planned = true
 	var warmth: String = menu.settle(9, 6, 6, 1000, 0)
-	assert_equal(Array(menu.drinks_poured_milli), [2000, 2000], "both, for 6 of 9")
+	assert_equal(Array(menu.drinks_poured_milli), [2000, 2000, 0, 0], "both, for 6 of 9")
 	var dry := _menu_over(PantryScript.new(StorageScript.new(Vector2.ZERO)))
 	dry.second_planned = true
 	dry.infusion_planned = true
 	assert_equal(warmth, dry.settle(9, 6, 6, 1000, 0), "the same answer with no drink at all")
 	menu.reserve(menu.kitchen.takes.new_take(), 9, 0)
-	assert_equal(Array(menu.drinks_planned), [0, 0], "too little left: nothing planned")
+	assert_equal(Array(menu.drinks_planned), [0, 0, 0, 0], "too little left: nothing planned")
 	menu.settle(9, 9, 9, 2000, 0)
-	assert_equal(Array(menu.drinks_poured_milli), [2000, 2000], "nothing more poured")
+	assert_equal(Array(menu.drinks_poured_milli), [2000, 2000, 0, 0], "nothing more poured")
 
 
 func test_a_drink_partly_spoiled_since_the_hold_pours_what_is_left() -> void:

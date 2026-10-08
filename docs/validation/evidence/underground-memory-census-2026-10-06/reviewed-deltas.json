@@ -137,6 +137,26 @@
    ],
    "delta": {}
   },
+  "godot/scripts/core/movement.gd": {
+   "charges": [
+    {
+     "bytes": 65536,
+     "carried_by": "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+     "store": "section-4 capture/apply: one Columns image plus one FramedOwner of 32,768 value bytes each"
+    }
+   ],
+   "delta": {
+    "members_added": [
+     [
+      "_last_column_refusal",
+      "StringName"
+     ]
+    ],
+    "allocation_sites": {
+     ".duplicate(": 16
+    }
+   }
+  },
   "godot/scripts/core/resource_nodes.gd": {
    "charges": [
     {

@@ -102,8 +102,9 @@ class RoomMemoryWitnessTests(unittest.TestCase):
         body = old.text.index("\n", old.text.index("-> bool:", start)) + 1
         text = old.text[:body] + "\tvar uncounted: PackedByteArray = PackedByteArray()\n\tuncounted.resize(4096)\n" + old.text[body:]
         changed = audit.parse_module(old.name, old.relative_path, text)
-        with self.assertRaisesRegex(ValueError, "current reviewed source changed: movement"):
-            room.build(dict(self.index, movement=changed))
+        # ADR 1222 step 2 projects movement (its section-4 bulk pair), so the uncounted scratch is
+        # refused by the current census's recount rather than by the replay's witness check.
+        self.refuses_current_change("movement", changed, "current reviewed source changed: movement")
 
     def test_injected_module_path_must_identify_original_owner(self):
         name = "underground_locations"

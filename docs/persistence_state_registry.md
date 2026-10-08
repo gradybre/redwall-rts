@@ -923,7 +923,7 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---|---|---|:-:|---|---|
-| Movement validation bridge | -- | -- | -- | -- | 3 | -- | Pure owner8 bridge, MOVEMENT-S4-VALIDATE-R01v1/ADR0182. No mutable authoritative state or live owner construction. Caller32768 + cold Columns defaults32768 =65536 conservative logical packed bytes, within6417408 stream allowance; native/transitive preload costs unmeasured. ARRIVED final velocity and zero one-cell targets are retained. Same-file cursor/Residents/navigation/Transforms/clock joins and bulk restoration remain MOVEMENT-SAVED-BINDINGS. |
+| Movement validation bridge | -- | -- | -- | -- | 3 | -- | Pure owner8 bridge, MOVEMENT-S4-VALIDATE-R01v1/ADR0182. No mutable authoritative state or live owner construction. Caller32768 + cold Columns defaults32768 =65536 conservative logical packed bytes, within6417408 stream allowance; native/transitive preload costs unmeasured. ARRIVED final velocity and zero one-cell targets are retained. Same-file cursor/Residents/navigation/Transforms/clock joins remain MOVEMENT-SAVED-BINDINGS. Bulk capture/apply exist (ADR 1222 step 2): `Movement.copy_columns_into()`/`restore_columns()` over the sixteen columns, judged by the same `columns_refusal()`, nothing written on refusal, `_travelling_count` recounted from the installed phases; the bridge's `capture_into()`/`apply()`. `_last_column_refusal` is a category-3 diagnostic. |
 
 ### `godot/scripts/core/save_owner_fishing.gd`
 

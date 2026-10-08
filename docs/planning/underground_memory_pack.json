@@ -41229,6 +41229,7 @@
       "godot/data/underground/mole-worker/work-step-v1/source_program.gd",
       "godot/scripts/core/jobs.gd",
       "godot/scripts/core/modular_projects.gd",
+      "godot/scripts/core/movement.gd",
       "godot/scripts/core/resource_nodes.gd",
       "godot/scripts/core/transforms.gd",
       "godot/scripts/core/underground_budget.gd",
@@ -41717,6 +41718,26 @@
           }
         ],
         "delta": {}
+      },
+      "godot/scripts/core/movement.gd": {
+        "charges": [
+          {
+            "bytes": 65536,
+            "carried_by": "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "section-4 capture/apply: one Columns image plus one FramedOwner of 32,768 value bytes each"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_last_column_refusal",
+              "StringName"
+            ]
+          ],
+          "allocation_sites": {
+            ".duplicate(": 16
+          }
+        }
       },
       "godot/scripts/core/resource_nodes.gd": {
         "charges": [
@@ -43553,7 +43574,7 @@
       "PROFILE_BYTES joint (motion census, 257,308 of 262,144)": 8676,
       "Profiles CONTROL_RESERVE (load-time, released)": 432,
       "none": 0,
-      "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)": 6757376,
+      "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)": 6822912,
       "joint pack (the reserve is a pack contribution)": 256,
       "BINDINGS_AND_GROWTH_BYTES (fully assigned, 524,544)": 256,
       "none (new)": 74,

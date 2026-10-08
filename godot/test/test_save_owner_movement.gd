@@ -287,3 +287,123 @@ func test_row_priority_and_target_before_state() -> void:
 	c.remainder_x[0] = 420
 	c.correction_z[511] = 1
 	_expect(c,&"COLUMN_REMAINDER","earlier row before later reserved")
+
+
+# --- ADR 1222 step 2: bulk capture and apply -----------------------------------------------------
+#
+# Section 9's navigation-request and route-generation fields (`save_section_navigation.gd`) are
+# NOT this owner's section 4 columns and are not touched, read or restored anywhere below; that
+# work is restored separately, after this section 4 slice lands.
+
+const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
+const ResidentsScript := preload("res://scripts/core/residents.gd")
+const NavigationScript := preload("res://scripts/core/navigation.gd")
+const TransformsScript := preload("res://scripts/core/transforms.gd")
+const SpatialWorldScript := preload("res://scripts/core/spatial_world.gd")
+const SyntheticMovementScript := preload("res://test/fixtures/synthetic_ground_movement.gd")
+const IntMathScript := preload("res://scripts/core/int_math.gd")
+
+var _b_world: SpatialWorldScript = null
+var _b_directory: EntityDirectoryScript = null
+var _b_residents: ResidentsScript = null
+var _b_navigation: NavigationScript = null
+var _b_transforms: TransformsScript = null
+var _b_movement: SyntheticMovementScript = null
+var _b_result: IntMathScript.IntResult = null
+
+
+func _b_build() -> void:
+	"""Wire one full movement stack through public constructors, owned by this test alone."""
+	_b_world = SpatialWorldScript.new()
+	_b_directory = EntityDirectoryScript.new()
+	_b_residents = ResidentsScript.new(_b_directory, null)
+	_b_navigation = NavigationScript.new(_b_directory, _b_world)
+	_b_transforms = TransformsScript.new(_b_directory)
+	_b_movement = SyntheticMovementScript.new(
+		_b_directory, _b_world, _b_navigation, _b_transforms, _b_residents)
+	_b_result = IntMathScript.IntResult.new()
+
+
+func _b_cell(x: int, z: int) -> int:
+	"""The cell index of a grid coordinate, on the synthetic fixture's shared ground map."""
+	return z * SpatialWorldScript.CELLS_X + x
+
+
+func _b_spawn(species: StringName, cell: int) -> Vector2i:
+	"""Spawn one resident through the public Residents API and place it on a cell centre."""
+	var spawned: Variant = _b_residents.spawn(species)
+	assert_true(spawned.ok, "spawn %s" % species)
+	assert_true(_b_transforms.place(spawned.ref, SpatialWorldScript.cell_centre_x_units(cell),
+		SpatialWorldScript.LAYER_SURFACE, SpatialWorldScript.cell_centre_z_units(cell), 0),
+		"placement")
+	return spawned.ref
+
+
+func _b_live_store() -> Owner:
+	"""A store with live, freed and reused rows, built through the public Residents API only.
+
+	Travel admission needs a fully bound Navigation/SpatialWorld contact graph that is out of
+	this bridge test's scope to stand up; every row here is therefore a legal IDLE motion row
+	(default per `_allocate_cursors()`), which is exactly what a parked or freshly spawned
+	resident's row reads in production, exercised through real spawn/despawn/reuse.
+	"""
+	_b_build()
+	var first: Vector2i = _b_spawn(&"mouse", _b_cell(10, 10))
+	var row: int = _b_directory.get_typed_row(first)
+	assert_true(_b_residents.despawn(first).ok, "despawn the first resident")
+	var heir: Variant = _b_residents.spawn(&"mouse")
+	assert_true(heir.ok, "a successor spawns into the freed row")
+	assert_equal(_b_directory.get_typed_row(heir.ref), row, "into the very same typed row")
+	_b_spawn(&"otter", _b_cell(20, 20))
+	return _b_movement
+
+
+func _b_image(owner: Owner) -> Owner.Columns:
+	"""The owner's sixteen columns through the bulk reader."""
+	var columns: Owner.Columns = Owner.Columns.new()
+	assert_true(owner.copy_columns_into(columns), "bulk copy succeeds")
+	return columns
+
+
+func test_capture_then_apply_into_a_fresh_store_is_exact_and_continues_identically() -> void:
+	"""The restored store holds the same columns and travelling count as the live source."""
+	var source: Owner = _b_live_store()
+	var frame: Section.FramedOwner = Section.FramedOwner.new(8)
+	assert_true(Bridge.capture_into(source, frame).is_ok(), "capture succeeds")
+	var target: Owner = Owner.new(_b_directory, _b_world, _b_navigation, _b_transforms, _b_residents)
+	assert_true(Bridge.apply(frame, target).is_ok(), "apply succeeds")
+	assert_true(_b_image(target).equals(_b_image(source)), "columns are byte-identical")
+	assert_equal(target.travelling_count(), source.travelling_count(), "travelling_count rebuilt")
+
+
+func test_every_column_refusal_leaves_the_target_byte_identical() -> void:
+	"""Each column code refuses through apply with the exact code and writes nothing."""
+	var target: Owner = _b_live_store()
+	var before: Owner.Columns = _b_image(target)
+	var count: int = target.travelling_count()
+	var bad: Owner.Columns = Owner.Columns.new()
+	bad.movement_phase[0] = 6
+	var refusal: Variant = Bridge.apply(_frame(bad), target)
+	assert_equal(refusal.code, &"COLUMN_PHASE", "exact column code is forwarded")
+	assert_true(_b_image(target).equals(before), "no refusal wrote a column")
+	assert_equal(target.travelling_count(), count, "no refusal moved the count")
+
+
+func test_null_and_misshaped_inputs_refuse_without_writing() -> void:
+	"""Null stores, null records, a wrong owner and a short bulk column all refuse."""
+	var target: Owner = _b_live_store()
+	var before: Owner.Columns = _b_image(target)
+	assert_equal(Bridge.apply(_frame(Owner.Columns.new()), null).code, Bridge.REFUSE_NULL_STORE,
+		"null store")
+	assert_equal(Bridge.capture_into(null, Section.FramedOwner.new(8)).code,
+		Bridge.REFUSE_NULL_STORE, "capture from no store")
+	assert_equal(Bridge.capture_into(target, null).code, &"SAVE_COMPONENT_SHAPE", "null record")
+	assert_equal(Bridge.capture_into(target, Section.FramedOwner.new(7)).code,
+		&"SAVE_COMPONENT_OWNER", "wrong owner")
+	var short: Owner.Columns = Owner.Columns.new()
+	short.vx.resize(3)
+	assert_false(target.restore_columns(short), "a short column refuses")
+	assert_equal(target.last_column_refusal(), &"COLUMN_SHAPE", "shape code")
+	assert_false(target.copy_columns_into(short), "a short output buffer refuses")
+	assert_false(target.restore_columns(null), "null columns refuse")
+	assert_true(_b_image(target).equals(before), "nothing was written")

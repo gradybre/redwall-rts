@@ -5,45 +5,30 @@ Every figure is measured on the real demo village; nothing here is a projection.
 
 ## Findings (written by hand; the generated report follows)
 
-The first full rerun of the year matrix since the [2026-10-01 baseline](2026-10-01-first-year-baseline.md), on master
-at `6970830e`. That master has every tuning ruling since the baseline:
-- E1 and E7 (0912);
-- E2–E4 (0603);
-- E5 (0886);
-- batch 8 and the review fixes (0997);
-- the cook serving as he cooks (1005);
-- hives (1601), preserving (1611), brewing (1621), the hall's fuel (1652) and livelier weather (1632).
-
-It runs on the harness of decision 1731, which adds a hearth and apiary watch and a third scripted player,
-**provisioning**: light-touch plus preserving and brewing.
-
-**PR #234's new recipes (1625: jam, nut cheese, ale, cider, vinegar, pickles) are not in this run.** They are covered in
-the follow-up report once #234 has merged.
-
-### Read this first: the runs are of the six-placeholder village
-
-The runs were made on a checkout with **no staged art**, as the brief for this rerun required. With nothing staged,
-the demo's cast is `demo_cast.gd PLACEHOLDER_COUNT` = **6 placeholder residents** ("Placeholder 0–5"). They are generic
-residents with no species and no trade. The baseline ran staged, with the **nine** named residents.
-
-So:
-- **The absolute figures are not comparable with the baseline.** There are 576 meals a year here (6 × 2 × 48), against
-  864 there.
-- **Compare rates instead.** Each figure below is a share: the meals missed, the hours hungry, the share of labour
-  idle.
-- **Production hardly depends on the population, but consumption does.** Beds, the hedge, the hive and the hearths
-  produce or burn much the same however many live there. Six mouths need a third less food than nine.
-- **Every food shortfall here would be larger with nine.**
-- **The harness cannot fix this itself.** Asking for nine placeholders (`--stress-residents`, which the harness refuses
-  anyway) would not give the nine named residents: placeholders have no trades.
-- **The supply-side findings stand** (honey per hive, fuel per hearth, what spoils, what is never made). **Rule on the
-  food-quantity proposals (P1, P6) only after a staged rerun.**
-
-The runs: 3 seeds × 3 policies × 1 year (48 days), and hands-off seed 1 for 2 years. All at 4x on 30 fixed frames a
-second, from the demo's opening (Spring 1, 06:00, with E1's stocked pantry). Each year took about 11 real minutes, ten
-runs at once.
+The first full rerun of the year matrix since the [2026-10-01 baseline](2026-10-01-first-year-baseline.md).
+- **Code.** Master after PR #234 (`2e704b6a`), so every tuning ruling since the baseline is in:
+  - E1 and E7 (0912);
+  - E2–E4 (0603);
+  - E5 (0886);
+  - batch 8 and the review fixes (0997);
+  - the cook serving as he cooks (1005);
+  - hives (1601), preserving (1611), brewing (1621), the hall's fuel (1652) and livelier weather (1632);
+  - **the new recipes (1625): jam, nut cheese, ale, cider, vinegar and pickles.**
+- **Art staged**, so this is the real village of **nine named residents**, as in the baseline. The figures compare
+  directly.
+- **Harness: decision 1731.** It adds a hearth and apiary watch, and a third scripted player, **provisioning**. That
+  player is light-touch plus the preserving and brewing no routine orders, plus the foraging those recipes need.
+- **The appendix.** An earlier run on the unstaged, six-placeholder village before #234 is kept as
+  [the appendix](2026-10-07-year-matrix-rerun/appendix-six-placeholders/report.md). Its findings agree in direction;
+  its numbers are not this village's.
+- **The runs.**
+  - 3 seeds × 3 policies × 1 year (48 days), and hands-off seed 1 for 2 years.
+  - All at 4x on 30 fixed frames a second, from the demo's opening (Spring 1, 06:00, with E1's stocked pantry).
+  - A year took about 10–12 real minutes, ten runs at once.
+  - Every run printed `BALANCE-RUN ok`.
 
 ```
+python3 tools/stage_demo_assets.py              # the art must be staged (docs/ENVIRONMENT.md): unstaged, the cast is 6 placeholders
 python3 tools/run_balance_matrix.py --out-dir <dir> --seeds 1 2 3 --policies hands_off light_touch provisioning --days 48 --jobs 9
 python3 tools/run_balance_matrix.py --out-dir <dir> --seeds 1 --policies hands_off --days 96 --jobs 1
 python3 tools/balance_report.py --out docs/balance/2026-10-07-year-matrix-rerun.md \
@@ -51,119 +36,137 @@ python3 tools/balance_report.py --out docs/balance/2026-10-07-year-matrix-rerun.
     --notes <this section> --title "Year matrix rerun (2026-10-07)" <dir>/*.json
 ```
 
-### What moved since the baseline, and why
+### Headline numbers
 
-| | Baseline (2026-10-01; 9 staged residents) | Now (6 placeholders) | Why |
+| Run | Meals: portion / raw / missed (missed %) | Hungry % of hours | Idle % | Crops stored (U) | Fish (U) | Berries + fruit picked (U) | Honey (U) | Spoiled (U) | Threats |
+|---|---|---|---|---|---|---|---|---|---|
+| hands_off s1 | 129 / 250 / 485 (56%) | 88% | 59% | 105.8 | 0.0 | 548.2 | 60.5 | 42.7 | 5 |
+| hands_off s2 | 128 / 252 / 484 (56%) | 88% | 61% | 114.4 | 0.0 | 563.2 | 60.5 | 30.5 | 5 |
+| hands_off s3 | 129 / 254 / 481 (56%) | 89% | 59% | 114.9 | 0.0 | 543.2 | 60.5 | 32.7 | 5 |
+| light_touch s1 | 378 / 232 / 254 (29%) | 87% | 52% | 151.5 | 250.4 | 518.2 | 60.5 | 111.1 | 5 |
+| light_touch s2 | 379 / 232 / 253 (29%) | 87% | 51% | 151.6 | 247.7 | 528.2 | 60.5 | 128.0 | 5 |
+| light_touch s3 | 388 / 215 / 261 (30%) | 87% | 48% | 151.6 | 247.3 | 513.2 | 60.5 | 138.4 | 5 |
+| provisioning s1 | 387 / 246 / 231 (27%) | 86% | 47% | 151.6 | 253.3 | 538.2 | 60.5 | 268.4 | 5 |
+| provisioning s2 | 386 / 264 / 214 (25%) | 86% | 44% | 151.5 | 252.0 | 518.2 | 60.5 | 189.2 | 5 |
+| provisioning s3 | 376 / 266 / 222 (26%) | 88% | 43% | 151.6 | 242.2 | 488.2 | 60.5 | 177.4 | 5 |
+
+There are 864 meals a year (9 residents × 2 meals × 48 days). "Crops stored" leaves out E1's opening 90 U.
+
+**Meals missed by season** (each season has 216; the three seeds are given as s1 / s2 / s3):
+
+| Season | hands_off | light_touch | provisioning |
 |---|---|---|---|
-| Meals missed, hands-off | 98% | **40–42%** | E5 (0886): 12 beds and the default sowing policy, so hands-off sows (19 sowings, 115 U of crops). Also E1's opening stock, and the orchard, hedge and hive, whose food is eaten raw. |
-| Meals missed, light-touch | 92–94% | **15–18%** | The same, plus the fish dish without roots (E2, 0603): 202–208 U of the 215–227 U of fish caught is now cooked (the baseline cooked a quarter). |
-| Meals eaten raw, light-touch | 9–11 a year | 119–130 | The hedge's berries (≈480 U a year), the orchard's apples and pears, and honey. All are raw-edible. |
-| Hungry share of resident-hours | 97% | **82–83%, every policy** | Barely moved, even where 85% of meals are eaten: two portions are 3600 NP against a 6000 NP day (finding 2). |
-| Idle labour, hands-off / light-touch | 99% / 95% | **58–62% / 43–48%** | Sowing, harvests, the orchard and apiary routines, the woods and fishing now have work to give. |
-| Threats a year | 45 (20 floods, 25 fires) | **5** (3 floods, 2 fires), every seed | E7 (0912): threats on the calendar. |
-| Spoiled in store, light-touch | 76–85 U, all fish | 403–424 U, mostly berries (291–366 U) and pears | Fish now gets eaten. Berries keep **48 h** (`GOODS_SHELF_HOURS`), and the hedge yields far more than anyone eats. |
-| Winter meals missed, light-touch | 216 of 216 | **62–79 of 144** (43–55%) | Winter is still the famine season: no crop and no forage. 36 U of peas sit uneaten (finding 3). |
-| Wood, light-touch year | 40 → 33.5 U | 40 → 26–33 U, never out of fuel | The hearths now burn 52–58 U a year (47.8 U of it in winter, the hall alone). The woods' routine and the light-touch felling keep up. |
+| Spring | 120 / 120 / 120 | 52 / 52 / 52 | 52 / 52 / 52 |
+| Summer | 79 / 75 / 74 | 47 / 38 / 29 | 40 / 33 / 36 |
+| Autumn | 73 / 75 / 77 | 29 / 32 / 31 | 52 / 41 / 49 |
+| Winter | 213 / 214 / 210 | 126 / 131 / 149 | **87 / 88 / 85** |
 
-**Hands-off for two years** (seed 1): year 2's spring misses 114 of 144 meals, because there is no opening stock to
-carry it, against 47 in year 1. Its summer to winter repeat year 1's pattern. Over the two years: 181 portions, 429
-raw meals and 542 of 1152 missed (47%).
+### What moved since the baseline, and why (both runs staged, nine residents)
+
+| | Baseline (2026-10-01) | Now | Why |
+|---|---|---|---|
+| Meals missed, hands-off | 851 of 864 (98%) | **481–485 (56%)** | E5 (0886): 12 beds and the default sowing policy, so hands-off sows (17–19 sowings, 106–115 U of crops). Also E1's opening stock, and the orchard, hedge and hive, whose food is raw-edible. |
+| Meals missed, light-touch | 795–810 (92–94%) | **253–261 (29–30%)** | The same, plus the fish dish that needs no roots (E2, 0603): 236–242 U of the 247–250 U of fish caught is cooked, where the baseline lost three-quarters of its catch. |
+| Meals missed, provisioning | – | **214–231 (25–27%)** | Jam, nut cheese, dried fruit and foraged nuts: winter's missed meals fall from 126–149 to 85–88. |
+| Portions / raw meals, light-touch | 45–59 / 9–11 | 378–388 / 215–232 | The kitchen has food all year; the hedge (≈420 U a year), the orchard and the hive are eaten raw. |
+| Hungry share of resident-hours | 97% | **86–89%, every policy** | Barely moved: two portions are 3600 NP against a 6000 NP day (finding 2). |
+| Idle labour, hands-off / light-touch | 99% / 95% | 59–61% / 48–52% (provisioning 43–47%) | Sowing, harvests, the orchard and apiary routines, the woods, fishing and the stations now have work to give. |
+| Threats a year | 45 (20 floods, 25 fires) | **5** (3 floods, 2 fires), every seed | E7 (0912): threats come on the calendar. |
+| Spoiled in store, light-touch | 76–85 U, mostly fish | 111–138 U: berries 70–84 U, pears 14–40 U, apples 0–27 U, fish 5–13 U | Fish now gets eaten. Berries keep 48 h (`GOODS_SHELF_HOURS`). |
+| Spring meals missed, hands-off | 203 of 216 | 120 | E1's 90 U lasts about four days for nine. |
+| Wood in a light-touch year | 40 → 33.5 U | 40 → 18.6–30.1 U; hands-off 40 → 16.8–22.1 U; never out of fuel | The hearths now burn 52–58 U a year, 47.8 U of it in winter (the hall alone). |
+| Two years hands-off (s1) | 1715 of 1728 missed | **1043 of 1728 (60%)** | Year 2's spring misses 186 of 216, with no opening stock to carry it. Its summer to winter repeat year 1's pattern. |
 
 ### Findings
 
-1. **The new food and fuel, as measured.**
-   - **Honey (1601).**
-     - **Supply.** The one hive makes **70.5 U a year** at §5.6's rows, on every seed and policy, and releases
-       60.5 U of it to the pantry. It goes from 8300 to 10 000 strength in spring and is never short of service.
-     - **Winter.** It puts by exactly a winter's 6 U of feed (P3), eats all 6 U, and ends winter at 10 000. Nothing is
-       ever drawn from the pantry to feed it (P5 never fires).
-     - **Losses.** Wildlife took 2 U a year (one summer visit). The books close exactly (1731's re-review).
-     - **Where it goes.** All 60.5 U released is eaten raw, unless the player brews.
-   - **Preserves (1611).**
-     - **Dried fruit:** 18–27 U a year, all of it eaten. It is the one preserve that runs.
-     - **Rations: never made.** Dried fish was never free on 47–48 of 48 mornings: `Not ordered: Dry fish (NO_FISH)`.
-       The light-touch player fishes only while fresh fish is under 4 U, and the kitchen reserves that fish for its next
-       two days of meals. So rations never had their dried fish.
-       - The harness's rations line reads `NO_FLOUR` only because flour is the first input checked. **The blocker is
-         dried fish.**
-       - No flour was ground and no forager was sent, by design: 1731's chain order takes nothing for a batch that
-         cannot be made.
-   - **Drinks (1621).**
-     - **Mead:** 52–60 U brewed a year, **never poured**. It ends the year in store, because the harness holds no
-       regatta feast, the only place that pours it.
-     - **The cordial:** 36–60 U made, **100% spoiled**. It keeps 72 h and is only poured at a feast.
-   - **The hall's fuel (1652).**
-     - **Burn.** One hearth burns, the hall's (287 heated source-hours in a winter of 288 hours): **47.8 U a winter at
-       tier 1**, 52–58 U a year with the cold spring and autumn days.
-     - **Never out of fuel.** The lowest winter fuel-days are 6.4–10.5.
-     - **Tier 2 is never reached.** Its package needs stone 40, and the village opens with 20 and earns none without
-       digging. The ×0.75 would save **12 U a winter** (47.8 → 35.9).
-   - **Weather (1632).**
-     - **What was drawn.** Summers had ideal_spell or calm_days. Autumns had blight, early_frost or ideal_spell.
-       Winters had ideal_spell, hard_freeze or calm_days. Year 2's spring had heavy_rain.
-     - **Damage.** No crop withered, and no fuel ran out. The storm's work ×0.80 fell on year 2's spring only.
-2. **Hunger cannot fall below about 80% of hours with two meals a day.**
-   - Two portions are 1800 NP each, 3600 NP a day, against `family_rules.gd`'s 6000 NP day for a small adult (7200 in
-     winter).
+1. **The new food and fuel, as measured** (provisioning unless stated; s1 / s2 / s3).
+
+   | Product (record) | Made a year (U) | Where it went | Why it stops there |
+   |---|---|---|---|
+   | Honey (1601) | 70.5 made; 60.5 released | All used: mead 27–33 U, the cordial 6–7 U, jam 7–10 U, the rest eaten raw (in light-touch, all 60.5 U raw) | 6 U put by as winter feed, 2 U lost to wildlife. The hive stands at 10 000 strength from spring to the year's end. |
+   | Nuts (foraged; 1731) | 84 / 72 / 68 (21 / 18 / 17 trips of one forager) | All used: the cheese, nut dishes, eaten raw | – |
+   | Dried fruit (1611) | 24 / 24 / 24 | All eaten | The rack is free for fruit only when the fruit is free (NO_FRUIT on 39–40 mornings). |
+   | **Jam (1625)** | 30 / 24 / 21 | **All eaten** (720 h shelf; 850 NP raw) | Berries or honey short on 34–42 mornings. |
+   | **Nut cheese (1625)** | 30 / 36 / 38 | **All eaten** (1440 h; 1600 NP raw) | Nuts short on 29–33 mornings; the two crocks are shared with pickles. |
+   | Mead (1621) | 36 / 40 / 44 | **Never poured**; all still in store | The harness holds no regatta feast, the only place that pours it. |
+   | **Cider (1625)** | 16 / 4 / 8 | **Never poured** | Apples go first to dried fruit (row 1, before cider's row 8); vats were full on 2–4 mornings. |
+   | The cordial (1621, DEC-045) | 56 / 48 / 48 | **100% spoiled** | It keeps 72 h and is poured only at a feast. |
+   | **Vinegar (1625)** | 4 / 4 / 4 | Held for pickles that never came | Apples are short (NO_APPLES 40–44 mornings). |
+   | **Pickles (1625)** | **never made** | – | No free roots on 38–39 mornings, because the kitchen reserves every root. The crocks were full on 5–6 mornings. |
+   | **Ale (1625)** | **never made** | – | No barley (NO_BARLEY 44–46 mornings). Neither the light-touch player (wheat first) nor E5's rotation sows barley in year 1. Hands-off's year 2 grows 10 U. |
+   | Rations (1611) | **never made** | – | Dried fish is never free (`Not ordered: Dry fish (NO_FISH)` on all 48 mornings): the kitchen reserves every fresh fish for its next two days of meals. The rations line reads `NO_FLOUR` only because flour is the first input checked. |
+   | Hearths (1652) | 52–58 U of wood a year; 47.8 U a winter | **Never out of fuel.** Lowest winter fuel-days: hands-off 4.7–6.0, light-touch 4.7–8.1, provisioning 5.5–8.0 | Only the hall's hearth burns (287 heated source-hours of a winter's 288 hours). Tier 2 is never reached: its package needs stone 40, and the village opens with 20 and earns none without digging. The ×0.75 would save 12 U a winter. |
+   | Weather (1632) | – | No crop withered; no fuel ran out | Summers drew ideal_spell or calm_days; autumns blight, early_frost or ideal_spell; winters ideal_spell, hard_freeze or calm_days; year 2's spring heavy_rain. |
+
+2. **Hunger cannot fall below about 85% of hours with two meals a day.**
+   - Two portions are 1800 NP each, 3600 NP a day, against `family_rules.gd`'s 6000 NP day for a small adult (×1.2
+     medium, ×1.6 large, ×1.2 in winter).
    - Decision 0381 knew this: "Two meals are 3600 NP, 60% of a small resident's 6000. The rest is left to later food
      work."
-   - Measured: **82–83% of resident-hours HUNGRY in every policy**. That includes the light-touch runs, where 82–85% of
-     meals were eaten. The 5% `hungry_max_pct` line cannot be met by any player.
+   - Measured: **86–89% of resident-hours HUNGRY under every policy.** The 5% `hungry_max_pct` line cannot be met.
    - Hunger costs nothing in the demo yet (the baseline's E8), so this shows only on the HUD.
-3. **Peas are harvested and never eaten.**
-   - E5's rotation (0886: grain → beans → roots, the demo's wheat → pea → carrot) sows 43–48 U of peas a year.
-   - The only bean dish, the bean hotpot, needs **beans 2 + greens 2**. Neither the rotation nor the light-touch player
-     ever sows greens.
-   - Peas are not raw-edible, so they sit in store all winter (36 U at year's end) while 43–55% of winter meals are
-     missed.
-   - With greens they would make about 21 hotpots of 3 portions: roughly 64 portions, most of a winter's shortfall at
-     six residents.
-4. **Brewing makes the village hungrier.**
-   - Provisioning brews 13–15 meads a year: 39–45 U of honey that light-touch's residents ate raw at 1200 NP a unit,
-     47 000–54 000 NP, or 26–30 portions' worth.
-   - Meals missed rose from 15–18% (light-touch) to **18–19%** (provisioning), and raw meals fell from 119–130 to
-     110–116.
-   - Mead has no use outside a regatta feast, and the cordial spoils whole, so the honey buys nothing.
-5. **The berry hedge is the biggest food source, and most of it spoils.**
-   - The GDD §5.5 berries patch (300 U capacity, 1601's neighbour 0676) gives 465–490 U a year.
-   - At 48 h it spoils 50–77% in store: 246–366 U a year.
-   - It is the bulk of the summer and autumn raw meals: 47–57 an autumn in light-touch, and 112–123 in hands-off,
-     where autumn has no cooked meal at all.
-   - The numbers are the GDD's (not provisional). The sink is the question. Jam (#234: berries → 720 h) is the
-     obvious one, measured in the follow-up.
-6. **"Ready food" reads 0 almost every season**, so every season is flagged "food ran out".
-   - That happens even with 40–130 U in store. The HUD's figure (`kitchen.gd days_of_meals_milli`) counts only what the
-     kitchen's dishes would cook (grain, roots, fresh fish).
-   - Since the baseline, most food is raw-edible stock it ignores: berries, fruit, honey, dried fruit, peas waiting on
-     greens.
-   - **Read the meals-missed and raw columns, not the reserve flags.** See P7.
+3. **Winter is still the famine season, but preserves now work.**
+   - **Winter meals missed:** hands-off 210–214 of 216 (97–99%), light-touch 126–149 (58–69%), provisioning 85–88
+     (39–41%).
+   - **The preserves are the difference:** jam and nut cheese keep 720–1440 h and are eaten raw in winter (provisioning
+     ate 90–95 raw meals in winter, against 27–45 in light-touch).
+   - **What never reaches the winter table:** peas, rations and pickles.
+4. **Peas are harvested and never eaten.**
+   - E5's rotation (0886: grain → beans → roots, the demo's wheat → pea → carrot) sows 38–47 U of peas a year.
+   - The only bean dish, the bean hotpot, needs beans 2 + greens 2, and nothing ever sows greens.
+   - Peas are not raw-edible: 36 U sit in store at every year's end, under every policy, while winter goes hungry.
+   - With greens they would make about 21 hotpots of 3 portions: roughly 64 portions, a third of the provisioning
+     player's winter shortfall.
+5. **Drinks have no sink.**
+   - Mead (36–44 U) and cider (4–16 U) pile up all year.
+   - The cordial spoils whole (48–56 U).
+   - Mead takes 27–33 U of honey, 32 000–40 000 NP that the residents would otherwise eat raw.
+   - Provisioning still comes out ahead of light-touch, because jam and cheese more than make up for it. But brewing
+     buys nothing until a feast pours.
+6. **The preserving player holds berries from raw eating.**
+   - Berries spoiled 97–190 U under provisioning, against 70–84 U under light-touch.
+   - The cordial's and the jam's batches reserve berries when ordered. Reserved berries are not eaten raw, and at 48 h
+     some spoil before the batch is worked.
+   - The cordial makes it worse: its berries become a product that spoils too.
+7. **"Ready food" reads 0.00 in every season of every run**, so every season is flagged "food ran out".
+   - That happens even in seasons ending with 90–161 U in store (provisioning's autumns). The HUD's figure (`kitchen.gd days_of_meals_milli`) counts only what the
+     kitchen's dishes would cook.
+   - Most of the village's food is now raw-edible stock it ignores: berries, fruit, honey, nuts, jam, cheese, dried
+     fruit.
+   - **Read the meals-missed and raw columns, not the reserve flags.**
 
 ### Tuning proposals (for Brendan; nothing here was changed)
 
-Each one names its number's record and whether the number is PROVISIONAL, and each can be measured with this harness.
+Each one names its number's record, and each can be measured with this harness. Rows P10–P14 are #234's PROVISIONAL
+numbers.
 
-| # | Number (record) | Current | Proposed | Evidence |
+| # | Number (record) | Current | Options (recommended first) | Evidence (staged) |
 |---|---|---|---|---|
-| P1 | Meals a day / NP a portion vs the day's demand (0381; GDD §5.2/§5.7) | 2 × 1800 NP = 3600 of 6000 NP | (a) a third, midday portion (3 × 1800 = 5400); (b) a meal's dish ×1.5 portions per diner; (c) leave it until hunger has a cost (E8). **Recommend (a)** with the day-plan work. | 82–83% hungry hours whatever the player does, even at 85% of meals eaten (finding 2) |
-| P2 | Cordial shelf, and where it is poured (DEC-045 / 1621 P2, P4) | 72 h; poured at the regatta feast only; not eaten | (a) poured at ordinary suppers as well (1621 P2 option (c)); (b) raw-edible at its 500 NP a portion (1621 P4 option (b)); (c) shelf 72 → 240 h (a bottled cordial). **Recommend (a)**: it keeps DEC-007's "a table drink" | 36–60 U made, 100% spoiled, in every provisioning run; 4.5–7.5 U honey and 18–30 U berries a year lost to it |
-| P3 | Mead's sink (1621 P2; §5.7 mead row unchanged) | Poured only at the regatta's Hearth feast, ceil(E/4) U | (a) FEAST's Harvest and Orchard feasts pour it (the GDD's rows; 1621's own plan); (b) the Brew mead order warns, or refuses, above a stock target such as two feasts' worth, ceil(9/4) × 2 = 6 U. **Recommend (a) + (b)** | 52–60 U a year piled up unused; 39–45 U of honey (47 000–54 000 NP) diverted from raw eating; meals missed 15–18% → 18–19% (finding 4) |
-| P4 | Hive winter feed (1601 P3, P5) | 6 U put by first; the pantry tops it up | **No change** | The hive ended every winter at 10 000 with exactly 0 U of feed left; the pantry was never needed |
-| P5 | The default rotation's beans with no greens (0886; dish book `bean_hotpot`) | wheat → pea → carrot; hotpot = beans 2 + greens 2 | (a) the light-touch/default sowing adds a greens bed for every pea bed; (b) the hotpot takes beans 2 + greens **or roots** 2 (as E2 opened fish stew); (c) peas raw-edible. **Recommend (b)**: smallest change, the stores already hold roots | 43–48 U of peas a year, never withdrawn; 36 U still in store at year's end while 43–55% of winter meals are missed (finding 3) |
-| P6 | Fishing for the rack (harness `FISH_STOCK_HIGH`; kitchen plans 2 days ahead, 0421) | No trip while fresh fish ≥ 4 U; the kitchen reserves the next two days' fish | **Measure first:** rerun provisioning with `FISH_STOCK_HIGH` 4 → 12 U, so a surplus reaches the rack. Only then consider (a) Dry fish may take fish planned beyond the next meal, or (b) the kitchen plans one day ahead. | Dry fish refused NO_FISH on 47–48 mornings a year; rations never made; winter 43–55% of meals missed |
-| P7 | Ready food (the HUD figure, `kitchen.gd days_of_meals_milli`; the harness's `reserve_min_days` 2) | Counts grain, roots and fresh fish only | Also count raw-edible stock at its NP (berries, fruit, honey, dried fruit, rations, nuts), or show it beside Ready food as "eaten raw: N days". **Recommend the second** (no rule changes) | Ready food 0.00 in 34 of the 36 seasons of the one-year runs (the other two: 0.17 days), with 40–130 U in store (finding 6) |
-| P8 | The hall's tier-2 package vs the opening stone (`tunnel_stores.gd START_STONE_MILLI_U` 20 U, a demo value; REQ-SET-136 stone 40) | 20 U of stone; 40 needed; no stone income without digging | **No change now.** If tier 2 should be reachable in a first year without digging, open with 40 U of stone. | Fuel never ran out (6.4–10.5 fuel-days lowest), so tier 2 is a comfort, not a need; its saving is 12 U a winter |
-| P9 | `hungry_max_pct` 5 (`tools/balance_thresholds.json`, provisional) | 5% | Keep 5% as the target, but flag it as unattainable while P1 stands; or 40% until P1 is ruled | Every season of every run breaches it (finding 2) |
+| P1 | Meals a day vs the day's demand (0381; GDD §5.2/§5.7) | 2 × 1800 NP = 3600 of 6000 NP | **(a) a third, midday portion** (5400 NP) with the day-plan work; (b) 1.5 portions per diner at each meal; (c) leave it until hunger has a cost (E8) | 86–89% hungry hours under every policy |
+| P2 | The cordial (DEC-045; 1621 P2, P4) | 72 h shelf; poured only at the regatta feast; not eaten | **(a) poured at ordinary suppers** (1621 P2 (c); keeps DEC-007's "table drink"); (b) raw-edible at its 500 NP (1621 P4 (b)); (c) shelf 72 → 240 h | 48–56 U a year, 100% spoiled; its berries held from raw eating (finding 6) |
+| P3 | Mead's and cider's sink (1621 P2; 1625) | Poured only at the regatta's Hearth feast, ceil(E/4) U each | **(a) FEAST's Harvest and Orchard feasts pour them** (1621's own plan), **plus (b) the Brew order warns above a stock of two feasts' worth**, ceil(9/4) × 2 = 6 U a drink | Mead 36–44 U and cider 4–16 U a year unused; 27–33 U of honey diverted |
+| P4 | Hive winter feed (1601 P3, P5) | 6 U put by first; the pantry tops it up | **No change** | Every winter ends at 10 000 strength with exactly 0 U of feed left; the pantry is never drawn on |
+| P5 | The rotation's peas vs the hotpot (0886; dish book `bean_hotpot`) | wheat → pea → carrot; hotpot = beans 2 + greens 2 | **(a) the hotpot takes beans 2 + greens or roots 2** (as E2 opened the fish dish); (b) a greens bed sown for every pea bed; (c) peas raw-edible | 38–47 U of peas a year never withdrawn; about 36 U in store at every year's end |
+| P6 | Fish for the rack, and so rations (harness `FISH_STOCK_HIGH` 4 U; the kitchen plans two days ahead, 0421) | No trip while fresh fish ≥ 4 U; the kitchen reserves the next two days' fish | **Measure first:** rerun provisioning with `FISH_STOCK_HIGH` 12 U. Then (a) Dry fish may take fish planned beyond the next meal; or (b) the kitchen plans one day ahead | Dry fish refused NO_FISH on 48 of 48 mornings; rations never made |
+| P7 | Ready food (the HUD figure; the harness's `reserve_min_days` 2) | Counts grain, roots and fresh fish only | **(a) show raw-edible stock beside it** ("eaten raw: N days"; no rule changes); (b) count it in Ready food at its NP | 0.00 in all 36 one-year seasons, with up to 161 U in store |
+| P8 | Opening stone (`tunnel_stores.gd START_STONE_MILLI_U` 20 U, a demo value) vs the tier-2 package's stone 40 (REQ-SET-136) | 20 U; no stone income without digging | **(a) no change**: fuel never ran out; (b) open with 40 U if tier 2 should be reachable in year 1 | Lowest fuel-days 4.7; tier 2 would save 12 U (2.5 fuel-days) a winter |
+| P9 | `hungry_max_pct` (`tools/balance_thresholds.json`, provisional) | 5% | **(a) keep 5% as the target and mark it unattainable until P1**; (b) 40% until P1 is ruled | Breached in every season |
+| P10 | Jam (1625, PROVISIONAL): berries 2 + honey 1 + water 1 → 3, 16 WU, 720 h, 850 NP | as built | **(a) no change**; (b) honey 1 → 0.5, if honey is wanted for mead | 21–30 U a year, all eaten; the best winter preserve per unit of honey |
+| P11 | Nut cheese (1625, PROVISIONAL): nuts 2 → 2, 16 WU + 24 h, 1440 h, 1600 NP; 2 crocks | as built | **(a) no change**; (b) a third crock, if pickles are to run beside it | 30–38 U a year, all eaten; crocks full on 5–6 mornings |
+| P12 | Ale (1625, PROVISIONAL): barley 3 + water 3 → 4 | as built | **(a) no change; measure** once barley is grown (a light-touch barley bed, or year 2); (b) ale takes any grain | Never made: no barley on 44–46 mornings |
+| P13 | Cider and vinegar (1625, PROVISIONAL): apples 4 + water 1 → 4 (72 h / 96 h in a vat) | as built | **(a) no change to the rows**; cider's sink is P3; (b) cider and vinegar before dried fruit in the recipe order (a player choice, not a number) | Cider 4–16 U unpoured; vinegar 4 U; apples short on 40–44 mornings |
+| P14 | Pickles (1625, PROVISIONAL): roots 3 + vinegar 1 → 3, 12 WU + 24 h, 720 h, 800 NP | as built | **(a) no change**: with nine mouths there is never a root to spare; (b) pickles take roots or greens, so they could use a greens bed (with P5 (b)) | Never made: no free roots on 38–39 mornings |
 
 Also noted, game-side (not a number): `order_batch` checks the butt's water but does not reserve it, so two batches in
-one morning can be ordered against the same water. Seen in review, not in these runs: the butt held 37–40 U all year.
+one morning can be ordered against the same water. Not seen in these runs: the butt held 37–40 U all year.
 
-### Threshold breaches (as the baseline's E1–E7 were: questions, never "fixed" by changing a rule)
+### Threshold breaches (questions for Brendan, never "fixed" by changing a rule)
 
-- **Ready food < 2 days:** every season of every run (finding 6 and P7).
-- **Hungry > 5%:** every season (finding 2, P1 and P9).
+- **Ready food < 2 days:** every season of every run (finding 7, P7).
+- **Hungry > 5%:** every season (finding 2, P1, P9).
 - **Missed meals > 0:** every season.
-- **Spoilage > 10%:** most summer and autumn seasons, all berries (finding 5).
-- **Idle > 50%:** most hands-off seasons (51–79%), and every policy's spring (60–62%, before the first harvests).
+- **Spoilage > 10%:** most summer and autumn seasons: berries, pears, and the cordial (findings 5 and 6).
+- **Idle > 50%:** most hands-off seasons, and every policy's spring before the first harvests.
 
 The full per-season flags follow.
 
@@ -171,76 +174,76 @@ The full per-season flags follow.
 
 | Policy | Seed | Days | Staged assets | FPS x speed | Real seconds |
 |---|---|---|---|---|---|
-| hands_off | 1 | 48 | False | 30 x 4 | 655.8 |
-| hands_off | 1 | 96 | False | 30 x 4 | 1043.0 |
-| hands_off | 2 | 48 | False | 30 x 4 | 654.5 |
-| hands_off | 3 | 48 | False | 30 x 4 | 652.4 |
-| light_touch | 1 | 48 | False | 30 x 4 | 655.8 |
-| light_touch | 2 | 48 | False | 30 x 4 | 658.2 |
-| light_touch | 3 | 48 | False | 30 x 4 | 656.3 |
-| provisioning | 1 | 48 | False | 30 x 4 | 658.7 |
-| provisioning | 2 | 48 | False | 30 x 4 | 663.4 |
-| provisioning | 3 | 48 | False | 30 x 4 | 662.4 |
+| hands_off | 1 | 48 | True | 30 x 4 | 729.1 |
+| hands_off | 1 | 96 | True | 30 x 4 | 1286.8 |
+| hands_off | 2 | 48 | True | 30 x 4 | 720.3 |
+| hands_off | 3 | 48 | True | 30 x 4 | 719.5 |
+| light_touch | 1 | 48 | True | 30 x 4 | 728.9 |
+| light_touch | 2 | 48 | True | 30 x 4 | 729.8 |
+| light_touch | 3 | 48 | True | 30 x 4 | 726.3 |
+| provisioning | 1 | 48 | True | 30 x 4 | 612.2 |
+| provisioning | 2 | 48 | True | 30 x 4 | 607.2 |
+| provisioning | 3 | 48 | True | 30 x 4 | 610.9 |
 
 ## Headlines
 
-- **hands_off seed 1**: first Ready food Y1 Spring 1; food runs out Y1 Spring 7 (39 days with none after that); spoilage worst 27% in Y1 Summer (157.1 of 754.8 U stored over the run); 62% idle labour; 234 meals missed of 576 (41%); hungry 83% of resident-hours.
-- **hands_off seed 1, 96 days**: first Ready food Y1 Spring 1; food runs out Y1 Spring 7 (86 days with none after that); spoilage worst 49% in Y2 Spring (350.8 of 1481.7 U stored over the run); 65% idle labour; 542 meals missed of 1152 (47%); hungry 87% of resident-hours.
-- **hands_off seed 2**: first Ready food Y1 Spring 1; food runs out Y1 Spring 7 (39 days with none after that); spoilage worst 18% in Y1 Autumn (141.4 of 753.6 U stored over the run); 59% idle labour; 232 meals missed of 576 (40%); hungry 83% of resident-hours.
-- **hands_off seed 3**: first Ready food Y1 Spring 1; food runs out Y1 Spring 7 (39 days with none after that); spoilage worst 23% in Y1 Autumn (168.5 of 748.8 U stored over the run); 58% idle labour; 241 meals missed of 576 (42%); hungry 83% of resident-hours.
-- **light_touch seed 1**: first Ready food Y1 Spring 1; food runs out Y1 Spring 12 (30 days with none after that); spoilage worst 45% in Y1 Summer (423.7 of 1030.2 U stored over the run); 48% idle labour; 86 meals missed of 576 (15%); hungry 82% of resident-hours.
-- **light_touch seed 2**: first Ready food Y1 Spring 1; food runs out Y1 Spring 12 (31 days with none after that); spoilage worst 45% in Y1 Summer (419.8 of 1003.9 U stored over the run); 43% idle labour; 101 meals missed of 576 (18%); hungry 82% of resident-hours.
-- **light_touch seed 3**: first Ready food Y1 Spring 1; food runs out Y1 Spring 12 (31 days with none after that); spoilage worst 42% in Y1 Autumn (402.9 of 1014.0 U stored over the run); 43% idle labour; 84 meals missed of 576 (15%); hungry 82% of resident-hours.
-- **provisioning seed 1**: first Ready food Y1 Spring 1; food runs out Y1 Summer 1 (29 days with none after that); spoilage worst 38% in Y1 Summer (414.8 of 1164.1 U stored over the run); 44% idle labour; 110 meals missed of 576 (19%); hungry 83% of resident-hours.
-- **provisioning seed 2**: first Ready food Y1 Spring 1; food runs out Y1 Spring 12 (33 days with none after that); spoilage worst 44% in Y1 Summer (393.9 of 1123.7 U stored over the run); 38% idle labour; 106 meals missed of 576 (18%); hungry 83% of resident-hours.
-- **provisioning seed 3**: first Ready food Y1 Spring 1; food runs out Y1 Summer 1 (32 days with none after that); spoilage worst 33% in Y1 Autumn (381.3 of 1145.1 U stored over the run); 36% idle labour; 110 meals missed of 576 (19%); hungry 83% of resident-hours.
+- **hands_off seed 1**: first Ready food Y1 Spring 1; food runs out Y1 Spring 6 (42 days with none after that); spoilage worst 12% in Y1 Summer (42.7 of 714.5 U stored over the run); 59% idle labour; 485 meals missed of 864 (56%); hungry 88% of resident-hours.
+- **hands_off seed 1, 96 days**: first Ready food Y1 Spring 1; food runs out Y1 Spring 6 (90 days with none after that); spoilage worst 42% in Y2 Spring (87.1 of 1416.5 U stored over the run); 63% idle labour; 1043 meals missed of 1728 (60%); hungry 91% of resident-hours.
+- **hands_off seed 2**: first Ready food Y1 Spring 1; food runs out Y1 Spring 5 (43 days with none after that); spoilage worst 8% in Y1 Summer (30.5 of 738.1 U stored over the run); 61% idle labour; 484 meals missed of 864 (56%); hungry 88% of resident-hours.
+- **hands_off seed 3**: first Ready food Y1 Spring 1; food runs out Y1 Spring 6 (42 days with none after that); spoilage worst 8% in Y1 Summer (32.7 of 718.6 U stored over the run); 59% idle labour; 481 meals missed of 864 (56%); hungry 89% of resident-hours.
+- **light_touch seed 1**: first Ready food Y1 Spring 1; food runs out Y1 Spring 7 (38 days with none after that); spoilage worst 13% in Y1 Autumn (111.1 of 980.6 U stored over the run); 52% idle labour; 254 meals missed of 864 (29%); hungry 87% of resident-hours.
+- **light_touch seed 2**: first Ready food Y1 Spring 1; food runs out Y1 Spring 7 (38 days with none after that); spoilage worst 16% in Y1 Autumn (128.0 of 988.0 U stored over the run); 51% idle labour; 253 meals missed of 864 (29%); hungry 87% of resident-hours.
+- **light_touch seed 3**: first Ready food Y1 Spring 1; food runs out Y1 Spring 7 (37 days with none after that); spoilage worst 19% in Y1 Autumn (138.4 of 972.5 U stored over the run); 48% idle labour; 261 meals missed of 864 (30%); hungry 87% of resident-hours.
+- **provisioning seed 1**: first Ready food Y1 Spring 1; food runs out Y1 Spring 7 (39 days with none after that); spoilage worst 25% in Y1 Autumn (268.4 of 1283.6 U stored over the run); 47% idle labour; 231 meals missed of 864 (27%); hungry 86% of resident-hours.
+- **provisioning seed 2**: first Ready food Y1 Spring 1; food runs out Y1 Spring 7 (39 days with none after that); spoilage worst 18% in Y1 Autumn (189.2 of 1234.1 U stored over the run); 44% idle labour; 214 meals missed of 864 (25%); hungry 86% of resident-hours.
+- **provisioning seed 3**: first Ready food Y1 Spring 1; food runs out Y1 Spring 7 (38 days with none after that); spoilage worst 22% in Y1 Autumn (177.4 of 1197.4 U stored over the run); 43% idle labour; 222 meals missed of 864 (26%); hungry 88% of resident-hours.
 
 ## Flags
 
-- hands_off seed 1, Y1 Spring: food ran out (Y1 Spring 7; 6 day(s) with no Ready food); idle labour 79% (> 50%); meals missed: 47 (33% of diners); hungry 70% of resident-hours (> 5%)
-- hands_off seed 1, Y1 Summer: food ran out (Y1 Summer 1; 9 day(s) with no Ready food); spoilage 26.7% (> 10%); meals missed: 27 (19% of diners); hungry 86% of resident-hours (> 5%)
-- hands_off seed 1, Y1 Autumn: food ran out (Y1 Autumn 1; 12 day(s) with no Ready food); spoilage 12.8% (> 10%); idle labour 60% (> 50%); meals missed: 22 (15% of diners); hungry 79% of resident-hours (> 5%)
-- hands_off seed 1, Y1 Winter: food ran out (Y1 Winter 1; 12 day(s) with no Ready food); idle labour 59% (> 50%); meals missed: 138 (96% of diners); hungry 99% of resident-hours (> 5%)
-- hands_off seed 1, 96 days, Y1 Spring: food ran out (Y1 Spring 7; 6 day(s) with no Ready food); idle labour 79% (> 50%); meals missed: 47 (33% of diners); hungry 70% of resident-hours (> 5%)
-- hands_off seed 1, 96 days, Y1 Summer: food ran out (Y1 Summer 1; 9 day(s) with no Ready food); spoilage 26.7% (> 10%); meals missed: 27 (19% of diners); hungry 86% of resident-hours (> 5%)
-- hands_off seed 1, 96 days, Y1 Autumn: food ran out (Y1 Autumn 1; 12 day(s) with no Ready food); spoilage 12.8% (> 10%); idle labour 60% (> 50%); meals missed: 22 (15% of diners); hungry 79% of resident-hours (> 5%)
-- hands_off seed 1, 96 days, Y1 Winter: food ran out (Y1 Winter 1; 12 day(s) with no Ready food); idle labour 59% (> 50%); meals missed: 138 (96% of diners); hungry 99% of resident-hours (> 5%)
-- hands_off seed 1, 96 days, Y2 Spring: food ran out (Y2 Spring 1; 12 day(s) with no Ready food); spoilage 48.5% (> 10%); idle labour 83% (> 50%); meals missed: 114 (79% of diners); hungry 97% of resident-hours (> 5%)
-- hands_off seed 1, 96 days, Y2 Summer: food ran out (Y2 Summer 1; 11 day(s) with no Ready food); spoilage 31.8% (> 10%); idle labour 55% (> 50%); meals missed: 45 (31% of diners); hungry 89% of resident-hours (> 5%)
-- hands_off seed 1, 96 days, Y2 Autumn: food ran out (Y2 Autumn 1; 12 day(s) with no Ready food); idle labour 68% (> 50%); meals missed: 18 (12% of diners); hungry 76% of resident-hours (> 5%)
-- hands_off seed 1, 96 days, Y2 Winter: food ran out (Y2 Winter 1; 12 day(s) with no Ready food); idle labour 61% (> 50%); meals missed: 131 (91% of diners); hungry 99% of resident-hours (> 5%)
-- hands_off seed 2, Y1 Spring: food ran out (Y1 Spring 7; 6 day(s) with no Ready food); idle labour 79% (> 50%); meals missed: 49 (34% of diners); hungry 70% of resident-hours (> 5%)
-- hands_off seed 2, Y1 Summer: food ran out (Y1 Summer 1; 9 day(s) with no Ready food); spoilage 17.4% (> 10%); idle labour 51% (> 50%); meals missed: 19 (13% of diners); hungry 84% of resident-hours (> 5%)
-- hands_off seed 2, Y1 Autumn: food ran out (Y1 Autumn 1; 12 day(s) with no Ready food); spoilage 17.5% (> 10%); idle labour 61% (> 50%); meals missed: 21 (15% of diners); hungry 78% of resident-hours (> 5%)
-- hands_off seed 2, Y1 Winter: food ran out (Y1 Winter 1; 12 day(s) with no Ready food); meals missed: 143 (99% of diners); hungry 100% of resident-hours (> 5%)
-- hands_off seed 3, Y1 Spring: food ran out (Y1 Spring 7; 6 day(s) with no Ready food); idle labour 78% (> 50%); meals missed: 47 (33% of diners); hungry 68% of resident-hours (> 5%)
-- hands_off seed 3, Y1 Summer: food ran out (Y1 Summer 1; 9 day(s) with no Ready food); spoilage 19.5% (> 10%); idle labour 51% (> 50%); meals missed: 24 (17% of diners); hungry 85% of resident-hours (> 5%)
-- hands_off seed 3, Y1 Autumn: food ran out (Y1 Autumn 1; 12 day(s) with no Ready food); spoilage 22.6% (> 10%); idle labour 52% (> 50%); meals missed: 32 (22% of diners); hungry 79% of resident-hours (> 5%)
-- hands_off seed 3, Y1 Winter: food ran out (Y1 Winter 1; 12 day(s) with no Ready food); meals missed: 138 (96% of diners); hungry 99% of resident-hours (> 5%)
-- light_touch seed 1, Y1 Spring: food ran out (Y1 Spring 12; 1 day(s) with no Ready food); idle labour 62% (> 50%); meals missed: 5 (3% of diners); hungry 64% of resident-hours (> 5%)
-- light_touch seed 1, Y1 Summer: food ran out (Y1 Summer 1; 5 day(s) with no Ready food); spoilage 45.4% (> 10%); meals missed: 15 (10% of diners); hungry 87% of resident-hours (> 5%)
-- light_touch seed 1, Y1 Autumn: food ran out (Y1 Autumn 1; 12 day(s) with no Ready food); spoilage 38.6% (> 10%); meals missed: 4 (3% of diners); hungry 80% of resident-hours (> 5%)
-- light_touch seed 1, Y1 Winter: food ran out (Y1 Winter 1; 12 day(s) with no Ready food); meals missed: 62 (43% of diners); hungry 95% of resident-hours (> 5%)
-- light_touch seed 2, Y1 Spring: food ran out (Y1 Spring 12; 1 day(s) with no Ready food); idle labour 61% (> 50%); meals missed: 5 (3% of diners); hungry 63% of resident-hours (> 5%)
-- light_touch seed 2, Y1 Summer: food ran out (Y1 Summer 7; 6 day(s) with no Ready food); spoilage 44.6% (> 10%); meals missed: 11 (8% of diners); hungry 89% of resident-hours (> 5%)
-- light_touch seed 2, Y1 Autumn: food ran out (Y1 Autumn 1; 12 day(s) with no Ready food); spoilage 40.1% (> 10%); meals missed: 6 (4% of diners); hungry 78% of resident-hours (> 5%)
-- light_touch seed 2, Y1 Winter: food ran out (Y1 Winter 1; 12 day(s) with no Ready food); meals missed: 79 (55% of diners); hungry 96% of resident-hours (> 5%)
-- light_touch seed 3, Y1 Spring: food ran out (Y1 Spring 12; 1 day(s) with no Ready food); idle labour 61% (> 50%); meals missed: 5 (3% of diners); hungry 64% of resident-hours (> 5%)
-- light_touch seed 3, Y1 Summer: food ran out (Y1 Summer 1; 6 day(s) with no Ready food); spoilage 38.5% (> 10%); meals missed: 8 (6% of diners); hungry 87% of resident-hours (> 5%)
-- light_touch seed 3, Y1 Autumn: food ran out (Y1 Autumn 1; 12 day(s) with no Ready food); spoilage 41.5% (> 10%); meals missed: 7 (5% of diners); hungry 83% of resident-hours (> 5%)
-- light_touch seed 3, Y1 Winter: food ran out (Y1 Winter 1; 12 day(s) with no Ready food); meals missed: 64 (44% of diners); hungry 95% of resident-hours (> 5%)
-- provisioning seed 1, Y1 Spring: reserve fell to 0.17 days (< 2); idle labour 62% (> 50%); meals missed: 9 (6% of diners); hungry 65% of resident-hours (> 5%)
-- provisioning seed 1, Y1 Summer: food ran out (Y1 Summer 1; 5 day(s) with no Ready food); spoilage 38.0% (> 10%); meals missed: 12 (8% of diners); hungry 89% of resident-hours (> 5%)
-- provisioning seed 1, Y1 Autumn: food ran out (Y1 Autumn 1; 12 day(s) with no Ready food); spoilage 30.5% (> 10%); meals missed: 9 (6% of diners); hungry 83% of resident-hours (> 5%)
-- provisioning seed 1, Y1 Winter: food ran out (Y1 Winter 1; 12 day(s) with no Ready food); spoilage 12.8% (> 10%); meals missed: 80 (56% of diners); hungry 96% of resident-hours (> 5%)
-- provisioning seed 2, Y1 Spring: food ran out (Y1 Spring 12; 1 day(s) with no Ready food); idle labour 60% (> 50%); meals missed: 4 (3% of diners); hungry 64% of resident-hours (> 5%)
-- provisioning seed 2, Y1 Summer: food ran out (Y1 Summer 1; 8 day(s) with no Ready food); spoilage 44.3% (> 10%); meals missed: 22 (15% of diners); hungry 91% of resident-hours (> 5%)
-- provisioning seed 2, Y1 Autumn: food ran out (Y1 Autumn 1; 12 day(s) with no Ready food); spoilage 25.5% (> 10%); meals missed: 8 (6% of diners); hungry 81% of resident-hours (> 5%)
-- provisioning seed 2, Y1 Winter: food ran out (Y1 Winter 1; 12 day(s) with no Ready food); meals missed: 72 (50% of diners); hungry 95% of resident-hours (> 5%)
-- provisioning seed 3, Y1 Spring: reserve fell to 0.17 days (< 2); idle labour 61% (> 50%); meals missed: 9 (6% of diners); hungry 65% of resident-hours (> 5%)
-- provisioning seed 3, Y1 Summer: food ran out (Y1 Summer 1; 8 day(s) with no Ready food); spoilage 30.4% (> 10%); meals missed: 10 (7% of diners); hungry 87% of resident-hours (> 5%)
-- provisioning seed 3, Y1 Autumn: food ran out (Y1 Autumn 1; 12 day(s) with no Ready food); spoilage 32.7% (> 10%); meals missed: 9 (6% of diners); hungry 82% of resident-hours (> 5%)
-- provisioning seed 3, Y1 Winter: food ran out (Y1 Winter 1; 12 day(s) with no Ready food); spoilage 11.0% (> 10%); meals missed: 82 (57% of diners); hungry 96% of resident-hours (> 5%)
+- hands_off seed 1, Y1 Spring: food ran out (Y1 Spring 6; 7 day(s) with no Ready food); idle labour 83% (> 50%); meals missed: 120 (56% of diners); hungry 77% of resident-hours (> 5%)
+- hands_off seed 1, Y1 Summer: food ran out (Y1 Summer 1; 11 day(s) with no Ready food); spoilage 11.8% (> 10%); idle labour 54% (> 50%); meals missed: 79 (37% of diners); hungry 91% of resident-hours (> 5%)
+- hands_off seed 1, Y1 Autumn: food ran out (Y1 Autumn 1; 12 day(s) with no Ready food); idle labour 58% (> 50%); meals missed: 73 (34% of diners); hungry 86% of resident-hours (> 5%)
+- hands_off seed 1, Y1 Winter: food ran out (Y1 Winter 1; 12 day(s) with no Ready food); meals missed: 213 (99% of diners); hungry 99% of resident-hours (> 5%)
+- hands_off seed 1, 96 days, Y1 Spring: food ran out (Y1 Spring 6; 7 day(s) with no Ready food); idle labour 83% (> 50%); meals missed: 120 (56% of diners); hungry 77% of resident-hours (> 5%)
+- hands_off seed 1, 96 days, Y1 Summer: food ran out (Y1 Summer 1; 11 day(s) with no Ready food); spoilage 11.8% (> 10%); idle labour 54% (> 50%); meals missed: 79 (37% of diners); hungry 91% of resident-hours (> 5%)
+- hands_off seed 1, 96 days, Y1 Autumn: food ran out (Y1 Autumn 1; 12 day(s) with no Ready food); idle labour 58% (> 50%); meals missed: 73 (34% of diners); hungry 86% of resident-hours (> 5%)
+- hands_off seed 1, 96 days, Y1 Winter: food ran out (Y1 Winter 1; 12 day(s) with no Ready food); meals missed: 213 (99% of diners); hungry 99% of resident-hours (> 5%)
+- hands_off seed 1, 96 days, Y2 Spring: food ran out (Y2 Spring 1; 12 day(s) with no Ready food); spoilage 41.8% (> 10%); idle labour 83% (> 50%); meals missed: 186 (86% of diners); hungry 99% of resident-hours (> 5%)
+- hands_off seed 1, 96 days, Y2 Summer: food ran out (Y2 Summer 1; 12 day(s) with no Ready food); idle labour 58% (> 50%); meals missed: 81 (38% of diners); hungry 89% of resident-hours (> 5%)
+- hands_off seed 1, 96 days, Y2 Autumn: food ran out (Y2 Autumn 1; 12 day(s) with no Ready food); idle labour 66% (> 50%); meals missed: 75 (35% of diners); hungry 85% of resident-hours (> 5%)
+- hands_off seed 1, 96 days, Y2 Winter: food ran out (Y2 Winter 1; 12 day(s) with no Ready food); idle labour 60% (> 50%); meals missed: 216 (100% of diners); hungry 100% of resident-hours (> 5%)
+- hands_off seed 2, Y1 Spring: food ran out (Y1 Spring 5; 8 day(s) with no Ready food); idle labour 83% (> 50%); meals missed: 120 (56% of diners); hungry 76% of resident-hours (> 5%)
+- hands_off seed 2, Y1 Summer: food ran out (Y1 Summer 1; 11 day(s) with no Ready food); idle labour 54% (> 50%); meals missed: 75 (35% of diners); hungry 90% of resident-hours (> 5%)
+- hands_off seed 2, Y1 Autumn: food ran out (Y1 Autumn 1; 12 day(s) with no Ready food); idle labour 59% (> 50%); meals missed: 75 (35% of diners); hungry 86% of resident-hours (> 5%)
+- hands_off seed 2, Y1 Winter: food ran out (Y1 Winter 1; 12 day(s) with no Ready food); meals missed: 214 (99% of diners); hungry 100% of resident-hours (> 5%)
+- hands_off seed 3, Y1 Spring: food ran out (Y1 Spring 6; 7 day(s) with no Ready food); idle labour 83% (> 50%); meals missed: 120 (56% of diners); hungry 77% of resident-hours (> 5%)
+- hands_off seed 3, Y1 Summer: food ran out (Y1 Summer 1; 11 day(s) with no Ready food); idle labour 53% (> 50%); meals missed: 74 (34% of diners); hungry 91% of resident-hours (> 5%)
+- hands_off seed 3, Y1 Autumn: food ran out (Y1 Autumn 1; 12 day(s) with no Ready food); meals missed: 77 (36% of diners); hungry 86% of resident-hours (> 5%)
+- hands_off seed 3, Y1 Winter: food ran out (Y1 Winter 1; 12 day(s) with no Ready food); meals missed: 210 (97% of diners); hungry 99% of resident-hours (> 5%)
+- light_touch seed 1, Y1 Spring: food ran out (Y1 Spring 7; 5 day(s) with no Ready food); idle labour 71% (> 50%); meals missed: 52 (24% of diners); hungry 74% of resident-hours (> 5%)
+- light_touch seed 1, Y1 Summer: food ran out (Y1 Summer 1; 9 day(s) with no Ready food); meals missed: 47 (22% of diners); hungry 89% of resident-hours (> 5%)
+- light_touch seed 1, Y1 Autumn: food ran out (Y1 Autumn 1; 12 day(s) with no Ready food); spoilage 12.5% (> 10%); meals missed: 29 (13% of diners); hungry 86% of resident-hours (> 5%)
+- light_touch seed 1, Y1 Winter: food ran out (Y1 Winter 1; 12 day(s) with no Ready food); idle labour 50% (> 50%); meals missed: 126 (58% of diners); hungry 97% of resident-hours (> 5%)
+- light_touch seed 2, Y1 Spring: food ran out (Y1 Spring 7; 5 day(s) with no Ready food); idle labour 71% (> 50%); meals missed: 52 (24% of diners); hungry 74% of resident-hours (> 5%)
+- light_touch seed 2, Y1 Summer: food ran out (Y1 Summer 1; 9 day(s) with no Ready food); spoilage 10.5% (> 10%); meals missed: 38 (18% of diners); hungry 89% of resident-hours (> 5%)
+- light_touch seed 2, Y1 Autumn: food ran out (Y1 Autumn 1; 12 day(s) with no Ready food); spoilage 15.8% (> 10%); meals missed: 32 (15% of diners); hungry 87% of resident-hours (> 5%)
+- light_touch seed 2, Y1 Winter: food ran out (Y1 Winter 1; 12 day(s) with no Ready food); meals missed: 131 (61% of diners); hungry 97% of resident-hours (> 5%)
+- light_touch seed 3, Y1 Spring: food ran out (Y1 Spring 7; 5 day(s) with no Ready food); idle labour 71% (> 50%); meals missed: 52 (24% of diners); hungry 74% of resident-hours (> 5%)
+- light_touch seed 3, Y1 Summer: food ran out (Y1 Summer 1; 8 day(s) with no Ready food); meals missed: 29 (13% of diners); hungry 88% of resident-hours (> 5%)
+- light_touch seed 3, Y1 Autumn: food ran out (Y1 Autumn 1; 12 day(s) with no Ready food); spoilage 19.5% (> 10%); meals missed: 31 (14% of diners); hungry 88% of resident-hours (> 5%)
+- light_touch seed 3, Y1 Winter: food ran out (Y1 Winter 1; 12 day(s) with no Ready food); meals missed: 149 (69% of diners); hungry 97% of resident-hours (> 5%)
+- provisioning seed 1, Y1 Spring: food ran out (Y1 Spring 7; 5 day(s) with no Ready food); idle labour 71% (> 50%); meals missed: 52 (24% of diners); hungry 74% of resident-hours (> 5%)
+- provisioning seed 1, Y1 Summer: food ran out (Y1 Summer 1; 10 day(s) with no Ready food); spoilage 11.7% (> 10%); meals missed: 40 (19% of diners); hungry 89% of resident-hours (> 5%)
+- provisioning seed 1, Y1 Autumn: food ran out (Y1 Autumn 1; 12 day(s) with no Ready food); spoilage 25.3% (> 10%); meals missed: 52 (24% of diners); hungry 89% of resident-hours (> 5%)
+- provisioning seed 1, Y1 Winter: food ran out (Y1 Winter 1; 12 day(s) with no Ready food); spoilage 13.8% (> 10%); meals missed: 87 (40% of diners); hungry 93% of resident-hours (> 5%)
+- provisioning seed 2, Y1 Spring: food ran out (Y1 Spring 7; 5 day(s) with no Ready food); idle labour 71% (> 50%); meals missed: 52 (24% of diners); hungry 74% of resident-hours (> 5%)
+- provisioning seed 2, Y1 Summer: food ran out (Y1 Summer 1; 10 day(s) with no Ready food); spoilage 11.9% (> 10%); meals missed: 33 (15% of diners); hungry 89% of resident-hours (> 5%)
+- provisioning seed 2, Y1 Autumn: food ran out (Y1 Autumn 1; 12 day(s) with no Ready food); spoilage 17.6% (> 10%); meals missed: 41 (19% of diners); hungry 88% of resident-hours (> 5%)
+- provisioning seed 2, Y1 Winter: food ran out (Y1 Winter 1; 12 day(s) with no Ready food); meals missed: 88 (41% of diners); hungry 94% of resident-hours (> 5%)
+- provisioning seed 3, Y1 Spring: food ran out (Y1 Spring 7; 5 day(s) with no Ready food); idle labour 71% (> 50%); meals missed: 52 (24% of diners); hungry 74% of resident-hours (> 5%)
+- provisioning seed 3, Y1 Summer: food ran out (Y1 Summer 1; 9 day(s) with no Ready food); meals missed: 36 (17% of diners); hungry 89% of resident-hours (> 5%)
+- provisioning seed 3, Y1 Autumn: food ran out (Y1 Autumn 1; 12 day(s) with no Ready food); spoilage 22.4% (> 10%); meals missed: 49 (23% of diners); hungry 92% of resident-hours (> 5%)
+- provisioning seed 3, Y1 Winter: food ran out (Y1 Winter 1; 12 day(s) with no Ready food); meals missed: 85 (39% of diners); hungry 94% of resident-hours (> 5%)
 
 ## Thresholds
 
@@ -275,12 +278,12 @@ The full per-season flags follow.
 | Season | seed 1 | seed 1, 96 days | seed 2 | seed 3 |
 |---|---|---|---|---|
 | Y1 Spring | 33.2 | 33.2 | 33.2 | 33.2 |
-| Y1 Summer | 379.4 | 379.4 | 378.2 | 373.4 |
-| Y1 Autumn | 342.2 | 342.2 | 342.2 | 342.2 |
-| Y1 Winter | 0.0 | 0.0 | 0.0 | 0.0 |
-| Y2 Spring | - | 48.4 | - | - |
-| Y2 Summer | - | 348.2 | - | - |
-| Y2 Autumn | - | 330.3 | - | - |
+| Y1 Summer | 339.1 | 339.1 | 362.7 | 353.2 |
+| Y1 Autumn | 342.2 | 342.2 | 342.2 | 327.2 |
+| Y1 Winter | 0.0 | 0.0 | 0.0 | 5.0 |
+| Y2 Spring | - | 49.0 | - | - |
+| Y2 Summer | - | 312.7 | - | - |
+| Y2 Autumn | - | 340.3 | - | - |
 | Y2 Winter | - | 0.0 | - | - |
 
 **Spoilage %**
@@ -288,65 +291,65 @@ The full per-season flags follow.
 | Season | seed 1 | seed 1, 96 days | seed 2 | seed 3 |
 |---|---|---|---|---|
 | Y1 Spring | 0 | 0 | 0 | 0 |
-| Y1 Summer | 27 | 27 | 17 | 19 |
-| Y1 Autumn | 13 | 13 | 18 | 23 |
-| Y1 Winter | 4 | 4 | 5 | 4 |
-| Y2 Spring | - | 49 | - | - |
-| Y2 Summer | - | 32 | - | - |
-| Y2 Autumn | - | 10 | - | - |
+| Y1 Summer | 12 | 12 | 8 | 8 |
+| Y1 Autumn | 0 | 0 | 0 | 0 |
+| Y1 Winter | 6 | 6 | 6 | 5 |
+| Y2 Spring | - | 42 | - | - |
+| Y2 Summer | - | 0 | - | - |
+| Y2 Autumn | - | 2 | - | - |
 | Y2 Winter | - | 0 | - | - |
 
 **Meals missed**
 
 | Season | seed 1 | seed 1, 96 days | seed 2 | seed 3 |
 |---|---|---|---|---|
-| Y1 Spring | 47 | 47 | 49 | 47 |
-| Y1 Summer | 27 | 27 | 19 | 24 |
-| Y1 Autumn | 22 | 22 | 21 | 32 |
-| Y1 Winter | 138 | 138 | 143 | 138 |
-| Y2 Spring | - | 114 | - | - |
-| Y2 Summer | - | 45 | - | - |
-| Y2 Autumn | - | 18 | - | - |
-| Y2 Winter | - | 131 | - | - |
+| Y1 Spring | 120 | 120 | 120 | 120 |
+| Y1 Summer | 79 | 79 | 75 | 74 |
+| Y1 Autumn | 73 | 73 | 75 | 77 |
+| Y1 Winter | 213 | 213 | 214 | 210 |
+| Y2 Spring | - | 186 | - | - |
+| Y2 Summer | - | 81 | - | - |
+| Y2 Autumn | - | 75 | - | - |
+| Y2 Winter | - | 216 | - | - |
 
 **Hungry % of resident-hours**
 
 | Season | seed 1 | seed 1, 96 days | seed 2 | seed 3 |
 |---|---|---|---|---|
-| Y1 Spring | 70 | 70 | 70 | 68 |
-| Y1 Summer | 86 | 86 | 84 | 85 |
-| Y1 Autumn | 79 | 79 | 78 | 79 |
+| Y1 Spring | 77 | 77 | 76 | 77 |
+| Y1 Summer | 91 | 91 | 90 | 91 |
+| Y1 Autumn | 86 | 86 | 86 | 86 |
 | Y1 Winter | 99 | 99 | 100 | 99 |
-| Y2 Spring | - | 97 | - | - |
+| Y2 Spring | - | 99 | - | - |
 | Y2 Summer | - | 89 | - | - |
-| Y2 Autumn | - | 76 | - | - |
-| Y2 Winter | - | 99 | - | - |
+| Y2 Autumn | - | 85 | - | - |
+| Y2 Winter | - | 100 | - | - |
 
 **Idle labour %**
 
 | Season | seed 1 | seed 1, 96 days | seed 2 | seed 3 |
 |---|---|---|---|---|
-| Y1 Spring | 79 | 79 | 79 | 78 |
-| Y1 Summer | 50 | 50 | 51 | 51 |
-| Y1 Autumn | 60 | 60 | 61 | 52 |
-| Y1 Winter | 59 | 59 | 46 | 49 |
+| Y1 Spring | 83 | 83 | 83 | 83 |
+| Y1 Summer | 54 | 54 | 54 | 53 |
+| Y1 Autumn | 58 | 58 | 59 | 50 |
+| Y1 Winter | 40 | 40 | 48 | 50 |
 | Y2 Spring | - | 83 | - | - |
-| Y2 Summer | - | 55 | - | - |
-| Y2 Autumn | - | 68 | - | - |
-| Y2 Winter | - | 61 | - | - |
+| Y2 Summer | - | 58 | - | - |
+| Y2 Autumn | - | 66 | - | - |
+| Y2 Winter | - | 60 | - | - |
 
 **Work h / resident-day**
 
 | Season | seed 1 | seed 1, 96 days | seed 2 | seed 3 |
 |---|---|---|---|---|
-| Y1 Spring | 2.7 | 2.7 | 2.7 | 2.8 |
-| Y1 Summer | 6.3 | 6.3 | 6.0 | 6.0 |
-| Y1 Autumn | 4.9 | 4.9 | 4.9 | 6.0 |
-| Y1 Winter | 5.7 | 5.7 | 7.6 | 7.1 |
-| Y2 Spring | - | 2.2 | - | - |
-| Y2 Summer | - | 5.7 | - | - |
-| Y2 Autumn | - | 4.0 | - | - |
-| Y2 Winter | - | 5.3 | - | - |
+| Y1 Spring | 2.2 | 2.2 | 2.2 | 2.3 |
+| Y1 Summer | 5.8 | 5.8 | 5.9 | 6.0 |
+| Y1 Autumn | 5.3 | 5.3 | 5.3 | 6.5 |
+| Y1 Winter | 8.3 | 8.3 | 7.3 | 7.0 |
+| Y2 Spring | - | 2.3 | - | - |
+| Y2 Summer | - | 5.3 | - | - |
+| Y2 Autumn | - | 4.4 | - | - |
+| Y2 Winter | - | 5.6 | - | - |
 
 
 ## Policy: light_touch
@@ -366,55 +369,55 @@ The full per-season flags follow.
 
 | Season | seed 1 | seed 2 | seed 3 |
 |---|---|---|---|
-| Y1 Spring | 94.8 | 94.8 | 94.8 |
-| Y1 Summer | 467.1 | 447.2 | 448.0 |
-| Y1 Autumn | 422.5 | 427.5 | 424.7 |
-| Y1 Winter | 45.8 | 34.5 | 46.5 |
+| Y1 Spring | 114.9 | 114.3 | 114.3 |
+| Y1 Summer | 374.4 | 390.2 | 406.4 |
+| Y1 Autumn | 442.7 | 438.6 | 410.6 |
+| Y1 Winter | 48.6 | 44.9 | 41.4 |
 
 **Spoilage %**
 
 | Season | seed 1 | seed 2 | seed 3 |
 |---|---|---|---|
-| Y1 Spring | 7 | 5 | 7 |
-| Y1 Summer | 45 | 45 | 38 |
-| Y1 Autumn | 39 | 40 | 42 |
-| Y1 Winter | 5 | 5 | 4 |
+| Y1 Spring | 2 | 2 | 2 |
+| Y1 Summer | 8 | 10 | 9 |
+| Y1 Autumn | 13 | 16 | 19 |
+| Y1 Winter | 8 | 5 | 6 |
 
 **Meals missed**
 
 | Season | seed 1 | seed 2 | seed 3 |
 |---|---|---|---|
-| Y1 Spring | 5 | 5 | 5 |
-| Y1 Summer | 15 | 11 | 8 |
-| Y1 Autumn | 4 | 6 | 7 |
-| Y1 Winter | 62 | 79 | 64 |
+| Y1 Spring | 52 | 52 | 52 |
+| Y1 Summer | 47 | 38 | 29 |
+| Y1 Autumn | 29 | 32 | 31 |
+| Y1 Winter | 126 | 131 | 149 |
 
 **Hungry % of resident-hours**
 
 | Season | seed 1 | seed 2 | seed 3 |
 |---|---|---|---|
-| Y1 Spring | 64 | 63 | 64 |
-| Y1 Summer | 87 | 89 | 87 |
-| Y1 Autumn | 80 | 78 | 83 |
-| Y1 Winter | 95 | 96 | 95 |
+| Y1 Spring | 74 | 74 | 74 |
+| Y1 Summer | 89 | 89 | 88 |
+| Y1 Autumn | 86 | 87 | 88 |
+| Y1 Winter | 97 | 97 | 97 |
 
 **Idle labour %**
 
 | Season | seed 1 | seed 2 | seed 3 |
 |---|---|---|---|
-| Y1 Spring | 62 | 61 | 61 |
-| Y1 Summer | 37 | 38 | 38 |
-| Y1 Autumn | 47 | 45 | 40 |
-| Y1 Winter | 45 | 29 | 31 |
+| Y1 Spring | 71 | 71 | 71 |
+| Y1 Summer | 45 | 46 | 42 |
+| Y1 Autumn | 41 | 50 | 39 |
+| Y1 Winter | 50 | 37 | 39 |
 
 **Work h / resident-day**
 
 | Season | seed 1 | seed 2 | seed 3 |
 |---|---|---|---|
-| Y1 Spring | 4.6 | 4.7 | 4.7 |
-| Y1 Summer | 7.7 | 7.5 | 7.5 |
-| Y1 Autumn | 6.3 | 6.5 | 7.1 |
-| Y1 Winter | 7.1 | 9.2 | 8.8 |
+| Y1 Spring | 3.6 | 3.6 | 3.6 |
+| Y1 Summer | 6.7 | 6.6 | 7.0 |
+| Y1 Autumn | 7.1 | 6.3 | 7.6 |
+| Y1 Winter | 6.5 | 8.2 | 8.0 |
 
 
 ## Policy: provisioning
@@ -425,7 +428,7 @@ The full per-season flags follow.
 
 | Season | seed 1 | seed 2 | seed 3 |
 |---|---|---|---|
-| Y1 Spring | 0.17 | 0.00 | 0.17 |
+| Y1 Spring | 0.00 | 0.00 | 0.00 |
 | Y1 Summer | 0.00 | 0.00 | 0.00 |
 | Y1 Autumn | 0.00 | 0.00 | 0.00 |
 | Y1 Winter | 0.00 | 0.00 | 0.00 |
@@ -434,548 +437,548 @@ The full per-season flags follow.
 
 | Season | seed 1 | seed 2 | seed 3 |
 |---|---|---|---|
-| Y1 Spring | 102.5 | 106.6 | 102.5 |
-| Y1 Summer | 487.1 | 477.1 | 482.1 |
-| Y1 Autumn | 519.8 | 489.5 | 494.8 |
-| Y1 Winter | 54.8 | 50.5 | 65.7 |
+| Y1 Spring | 114.9 | 114.3 | 114.3 |
+| Y1 Summer | 483.4 | 489.4 | 467.3 |
+| Y1 Autumn | 585.0 | 523.6 | 522.1 |
+| Y1 Winter | 100.2 | 106.9 | 93.7 |
 
 **Spoilage %**
 
 | Season | seed 1 | seed 2 | seed 3 |
 |---|---|---|---|
-| Y1 Spring | 7 | 5 | 7 |
-| Y1 Summer | 38 | 44 | 30 |
-| Y1 Autumn | 31 | 26 | 33 |
-| Y1 Winter | 13 | 9 | 11 |
+| Y1 Spring | 2 | 2 | 2 |
+| Y1 Summer | 12 | 12 | 7 |
+| Y1 Autumn | 25 | 18 | 22 |
+| Y1 Winter | 14 | 8 | 3 |
 
 **Meals missed**
 
 | Season | seed 1 | seed 2 | seed 3 |
 |---|---|---|---|
-| Y1 Spring | 9 | 4 | 9 |
-| Y1 Summer | 12 | 22 | 10 |
-| Y1 Autumn | 9 | 8 | 9 |
-| Y1 Winter | 80 | 72 | 82 |
+| Y1 Spring | 52 | 52 | 52 |
+| Y1 Summer | 40 | 33 | 36 |
+| Y1 Autumn | 52 | 41 | 49 |
+| Y1 Winter | 87 | 88 | 85 |
 
 **Hungry % of resident-hours**
 
 | Season | seed 1 | seed 2 | seed 3 |
 |---|---|---|---|
-| Y1 Spring | 65 | 64 | 65 |
-| Y1 Summer | 89 | 91 | 87 |
-| Y1 Autumn | 83 | 81 | 82 |
-| Y1 Winter | 96 | 95 | 96 |
+| Y1 Spring | 74 | 74 | 74 |
+| Y1 Summer | 89 | 89 | 89 |
+| Y1 Autumn | 89 | 88 | 92 |
+| Y1 Winter | 93 | 94 | 94 |
 
 **Idle labour %**
 
 | Season | seed 1 | seed 2 | seed 3 |
 |---|---|---|---|
-| Y1 Spring | 62 | 60 | 61 |
-| Y1 Summer | 34 | 34 | 30 |
-| Y1 Autumn | 33 | 32 | 27 |
-| Y1 Winter | 46 | 28 | 28 |
+| Y1 Spring | 71 | 71 | 71 |
+| Y1 Summer | 39 | 38 | 39 |
+| Y1 Autumn | 36 | 37 | 30 |
+| Y1 Winter | 43 | 30 | 32 |
 
 **Work h / resident-day**
 
 | Season | seed 1 | seed 2 | seed 3 |
 |---|---|---|---|
-| Y1 Spring | 4.6 | 4.9 | 4.7 |
-| Y1 Summer | 8.0 | 8.0 | 8.5 |
-| Y1 Autumn | 7.9 | 8.0 | 8.6 |
-| Y1 Winter | 7.0 | 9.3 | 9.3 |
+| Y1 Spring | 3.6 | 3.6 | 3.6 |
+| Y1 Summer | 7.5 | 7.6 | 7.4 |
+| Y1 Autumn | 8.0 | 7.7 | 8.8 |
+| Y1 Winter | 7.3 | 8.8 | 8.6 |
 
 
 ## Run: hands_off seed 1
 
 | | Y1 Spring | Y1 Summer | Y1 Autumn | Y1 Winter |
 |---|---|---|---|---|
-| Food stored (U) | 33.2 | 379.4 | 342.2 | 0.0 |
+| Food stored (U) | 33.2 | 339.1 | 342.2 | 0.0 |
 | of which fish (U) | 0.0 | 0.0 | 0.0 | 0.0 |
-| Food eaten (U) | 122.7 | 208.2 | 299.2 | 12.0 |
-| Portions eaten | 88 | 46 | 0 | 0 |
-| Spoiled in store (U) | 0.0 | 101.4 | 53.0 | 2.7 |
-| Spoilage % | 0 | 27 | 13 | 4 |
-| Stock at end (U) | 0.5 | 70.2 | 60.2 | 45.6 |
+| Food eaten (U) | 122.7 | 251.0 | 343.7 | 9.3 |
+| Portions eaten | 86 | 43 | 0 | 0 |
+| Spoiled in store (U) | 0.0 | 40.0 | 0.0 | 2.7 |
+| Spoilage % | 0 | 12 | 0 | 6 |
+| Stock at end (U) | 0.5 | 48.7 | 47.2 | 35.3 |
 | Ready food min (days) | 0.00 | 0.00 | 0.00 | 0.00 |
-| Days with no Ready food (opening) | 6 (0) | 9 (0) | 12 (0) | 12 (0) |
-| Meals: ate / raw / missed | 88 / 9 / 47 | 46 / 71 / 27 | 0 / 122 / 22 | 0 / 6 / 138 |
-| Missed % | 33 | 19 | 15 | 96 |
-| Fed / peckish / hungry % of hours | 19 / 11 / 70 | 0 / 14 / 86 | 0 / 21 / 79 | 0 / 1 / 99 |
-| Work h / resident-day | 2.7 | 6.3 | 4.9 | 5.7 |
-| Idle h / resident-day | 10.0 | 6.1 | 7.5 | 8.1 |
-| Idle % | 79 | 50 | 60 | 59 |
-| Board queue avg / max | 2.05 / 10 | 5.00 / 12 | 4.16 / 10 | 0.45 / 8 |
-| Board wait mean / max (game min) | 192 / 661 | 170 / 815 | 160 / 661 | 250 / 673 |
-| Wood in / out / end (U) | 4.5 / 6.4 / 38.1 | 0.0 / 2.4 / 35.7 | 17.2 / 4.2 / 48.8 | 50.2 / 47.8 / 51.2 |
+| Days with no Ready food (opening) | 7 (0) | 11 (0) | 12 (0) | 12 (0) |
+| Meals: ate / raw / missed | 86 / 10 / 120 | 43 / 94 / 79 | 0 / 143 / 73 | 0 / 3 / 213 |
+| Missed % | 56 | 37 | 34 | 99 |
+| Fed / peckish / hungry % of hours | 16 / 7 / 77 | 0 / 9 / 91 | 0 / 14 / 86 | 0 / 1 / 99 |
+| Work h / resident-day | 2.2 | 5.8 | 5.3 | 8.3 |
+| Idle h / resident-day | 10.9 | 6.9 | 7.5 | 5.6 |
+| Idle % | 83 | 54 | 58 | 40 |
+| Board queue avg / max | 0.99 / 8 | 2.50 / 11 | 1.81 / 8 | 0.76 / 9 |
+| Board wait mean / max (game min) | 168 / 601 | 144 / 752 | 124 / 661 | 461 / 1340 |
+| Wood in / out / end (U) | 4.5 / 6.3 / 38.2 | 0.0 / 2.4 / 35.8 | 17.0 / 4.2 / 48.6 | 16.5 / 47.8 / 17.3 |
 | Planks / stone / earth at end (U) | 0.0 / 20.0 / 0.0 | 0.0 / 20.0 / 0.0 | 0.0 / 20.0 / 0.0 | 0.0 / 20.0 / 0.0 |
-| Beds sown / harvested | 11 / 3 | 8 / 19 | 0 / 0 | 0 / 0 |
+| Beds sown / harvested | 11 / 3 | 6 / 17 | 0 / 0 | 0 / 0 |
 | Crops withered (blight/frost/overripe/other) | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 |
 | Weather events | ideal_spell | ideal_spell | blight | ideal_spell |
 | Frost nights / blight outbreaks | 1 / 1 | 0 / 2 | 2 / 1 | 0 / 0 |
-| Incident raises (critical) / rescues | 7 (1) / 0 | 7 (1) / 0 | 3 (1) / 0 | 4 (2) / 0 |
+| Incident raises (critical) / rescues | 9 (1) / 0 | 7 (1) / 0 | 3 (1) / 0 | 4 (2) / 0 |
 
 Daily series (each scaled to its own maximum):
 
 ```
-Ready food (days)        █▇▆▅▄▂▁▁▁▁▁▁▁▂▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 5.1
-Pantry stock (U)         ▄▃▃▂▂▂▁▁▁▁▁▁▂▂▃▃▃▂▂▃▄▄▄▄▅▅███▇▇▆▅▄▄▃▃▃▃▃▃▃▃▃▃▃▃▃  max 185.8
-Food stored (U)          ▁▁▁▁▁▁▁▂▁▁▁▁▃▄▅▃▄▂▃▅▅▄▃▃▇▃█▃▃▃▃▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁  max 83.9
-Portions eaten           ▇▇████▇▅▂▁▁▁▁▅██▇▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 12.0
-Spoiled (U)              ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▅▇▆▂▁▃▂█▃▁▁▁▁▁▂▅▄█▁▁▁▁▁▁▁▁▁▂▁▁▁▁▁  max 24.3
-Meals missed             ▂▂▁▁▁▁▁▃▆▇▇▇▅▂▁▁▁▁▃▂▂▃▅▃▃▂▃▁▂▂▂▃▂▂▂▁▅███████████  max 12.0
-Hungry resident-hours    ▁▁▂▅▇▇▇▇█████▆▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▆▆▆▆▆▆▆▇███████████  max 144.0
-Work h (all residents)   ▄▅▃▃▄▃▃▃▂▂▄▂▅▇█▇▇▆▆▇▇▅▅▅█▇█▆▅▅▄▄▄▄▄▃▇▇█▇▇▃▃▁▆▇█▆  max 50.3
-Idle h (all residents)   ▅▅▆▆▅▆▆▆▇▇▆▇▅▃▃▄▄▃▅▄▄▅▅▅▃▄▄▄▅▅▅▅▅▅▅▆▄▄▄▄▄▇▇█▅▄▄▅  max 84.0
-Wood (U)                 ▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▆▇█▇▇▇▇█  max 54.3
+Ready food (days)        █▆▄▂▁▁▁▁▁▁▁▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 3.4
+Pantry stock (U)         ▆▅▄▂▁▁▁▁▁▁▁▁▂▃▄▄▂▂▂▃▅▄▄▄▇▅█▇▆▄▄▄▄▄▄▄▄▄▄▄▄▄▃▃▃▃▃▃  max 105.9
+Food stored (U)          ▁▁▁▁▂▁▁▂▁▁▁▁▄▃▅▃▃▃▃▄▅▃▃▃▇▃█▃▃▃▃▃▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁  max 78.9
+Portions eaten           ▅███▅▂▁▃▃▁▁▁▁▆▅█▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 18.0
+Spoiled (U)              ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▅█▁▁▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▁▁▁▁▁  max 20.0
+Meals missed             ▄▁▁▁▃▆█▆▆███▆▁▃▁▂▄▄▅▅▃▅▄▄▃▃▃▁▂▄▄▅▄▅▄▇███████████  max 18.0
+Hungry resident-hours    ▁▁▃▇█████████▇▇█▇▇▇▇█▇▇▇▇▇▇▇▆▇▇▇▇▇▇▇████████████  max 216.0
+Work h (all residents)   ▂▃▂▂▃▂▂▂▂▂▃▂▄▅▅▅▅▄▄▄▄▄▄▄▆▄▅▄▃▄▃▄▄▄▄▄█████▄▃▂▅▅▅▇  max 109.9
+Idle h (all residents)   ▇▆▆▇▆▇█▇▇█▇█▆▄▄▄▄▆▆▅▅▅▅▆▄▅▄▅▅▅▆▅▅▆▅▅▂▂▂▂▂▆▇▇▅▅▅▃  max 114.4
+Wood (U)                 ▇▇▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▇▇██████████▇▇▆▆▅▅▅▅▄▄▄▃  max 48.8
 ```
 
-Work hours per resident-day, by resident: Placeholder 0 5.6, Placeholder 1 4.4, Placeholder 2 5.3, Placeholder 3 4.8, Placeholder 4 5.2, Placeholder 5 4.0
+Work hours per resident-day, by resident: Wenna Tallowby 5.6, Jory Whitethorn 4.5, Linnet Whinberry 5.8, Tobit Highbough 5.8, Tegwin Slipstone 6.6, Corra Netley 5.2, Tuppen Clayholm 6.8, Hulda Slatebrook 4.5, Elstan Weirholt 4.0
 
-New incidents by source: farm 8, kitchen 1, threat 1, village 1, water 1, winter 1; threats: fire at the covered store 2, flood at the stream edge 3
+New incidents by source: farm 7, kitchen 1, threat 1, village 1, water 1, winter 1; threats: fire at the covered store 2, flood at the stream edge 3
 
 ## Run: hands_off seed 1, 96 days
 
 | | Y1 Spring | Y1 Summer | Y1 Autumn | Y1 Winter | Y2 Spring | Y2 Summer | Y2 Autumn | Y2 Winter |
 |---|---|---|---|---|---|---|---|---|
-| Food stored (U) | 33.2 | 379.4 | 342.2 | 0.0 | 48.4 | 348.2 | 330.3 | 0.0 |
+| Food stored (U) | 33.2 | 339.1 | 342.2 | 0.0 | 49.0 | 312.7 | 340.3 | 0.0 |
 | of which fish (U) | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
-| Food eaten (U) | 122.7 | 208.2 | 299.2 | 12.0 | 48.4 | 191.4 | 311.6 | 21.0 |
-| Portions eaten | 88 | 46 | 0 | 0 | 18 | 29 | 0 | 0 |
-| Spoiled in store (U) | 0.0 | 101.4 | 53.0 | 2.7 | 45.6 | 110.7 | 37.4 | 0.0 |
-| Spoilage % | 0 | 27 | 13 | 4 | 49 | 32 | 10 | 0 |
-| Stock at end (U) | 0.5 | 70.2 | 60.2 | 45.6 | 0.0 | 46.1 | 27.4 | 6.4 |
+| Food eaten (U) | 122.7 | 251.0 | 343.7 | 9.3 | 49.0 | 290.6 | 346.0 | 0.0 |
+| Portions eaten | 86 | 43 | 0 | 0 | 18 | 18 | 0 | 0 |
+| Spoiled in store (U) | 0.0 | 40.0 | 0.0 | 2.7 | 35.3 | 0.7 | 8.5 | 0.0 |
+| Spoilage % | 0 | 12 | 0 | 6 | 42 | 0 | 2 | 0 |
+| Stock at end (U) | 0.5 | 48.7 | 47.2 | 35.3 | 0.0 | 21.3 | 7.1 | 7.1 |
 | Ready food min (days) | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
-| Days with no Ready food (opening) | 6 (0) | 9 (0) | 12 (0) | 12 (0) | 12 (0) | 11 (0) | 12 (0) | 12 (0) |
-| Meals: ate / raw / missed | 88 / 9 / 47 | 46 / 71 / 27 | 0 / 122 / 22 | 0 / 6 / 138 | 18 / 12 / 114 | 29 / 70 / 45 | 0 / 126 / 18 | 0 / 13 / 131 |
-| Missed % | 33 | 19 | 15 | 96 | 79 | 31 | 12 | 91 |
-| Fed / peckish / hungry % of hours | 19 / 11 / 70 | 0 / 14 / 86 | 0 / 21 / 79 | 0 / 1 / 99 | 0 / 3 / 97 | 0 / 11 / 89 | 0 / 24 / 76 | 0 / 1 / 99 |
-| Work h / resident-day | 2.7 | 6.3 | 4.9 | 5.7 | 2.2 | 5.7 | 4.0 | 5.3 |
-| Idle h / resident-day | 10.0 | 6.1 | 7.5 | 8.1 | 11.3 | 6.9 | 8.5 | 8.5 |
-| Idle % | 79 | 50 | 60 | 59 | 83 | 55 | 68 | 61 |
-| Board queue avg / max | 2.05 / 10 | 5.00 / 12 | 4.16 / 10 | 0.45 / 8 | 1.18 / 8 | 5.46 / 10 | 3.52 / 9 | 0.40 / 9 |
-| Board wait mean / max (game min) | 192 / 661 | 170 / 815 | 160 / 661 | 250 / 673 | 280 / 452 | 165 / 733 | 154 / 661 | 230 / 773 |
-| Wood in / out / end (U) | 4.5 / 6.4 / 38.1 | 0.0 / 2.4 / 35.7 | 17.2 / 4.2 / 48.8 | 50.2 / 47.8 / 51.2 | 24.0 / 6.9 / 68.3 | 0.0 / 1.5 / 66.8 | 0.0 / 4.2 / 62.6 | 31.5 / 47.8 / 46.3 |
+| Days with no Ready food (opening) | 7 (0) | 11 (0) | 12 (0) | 12 (0) | 12 (0) | 12 (0) | 12 (0) | 12 (0) |
+| Meals: ate / raw / missed | 86 / 10 / 120 | 43 / 94 / 79 | 0 / 143 / 73 | 0 / 3 / 213 | 18 / 12 / 186 | 18 / 117 / 81 | 0 / 141 / 75 | 0 / 0 / 216 |
+| Missed % | 56 | 37 | 34 | 99 | 86 | 38 | 35 | 100 |
+| Fed / peckish / hungry % of hours | 16 / 7 / 77 | 0 / 9 / 91 | 0 / 14 / 86 | 0 / 1 / 99 | 0 / 1 / 99 | 0 / 11 / 89 | 0 / 15 / 85 | 0 / 0 / 100 |
+| Work h / resident-day | 2.2 | 5.8 | 5.3 | 8.3 | 2.3 | 5.3 | 4.4 | 5.6 |
+| Idle h / resident-day | 10.9 | 6.9 | 7.5 | 5.6 | 11.3 | 7.4 | 8.4 | 8.4 |
+| Idle % | 83 | 54 | 58 | 40 | 83 | 58 | 66 | 60 |
+| Board queue avg / max | 0.99 / 8 | 2.50 / 11 | 1.81 / 8 | 0.76 / 9 | 1.26 / 9 | 1.98 / 7 | 1.25 / 7 | 0.58 / 9 |
+| Board wait mean / max (game min) | 168 / 601 | 144 / 752 | 124 / 661 | 461 / 1340 | 239 / 1063 | 130 / 601 | 104 / 601 | 281 / 802 |
+| Wood in / out / end (U) | 4.5 / 6.3 / 38.2 | 0.0 / 2.4 / 35.8 | 17.0 / 4.2 / 48.6 | 16.5 / 47.8 / 17.3 | 36.5 / 6.9 / 46.9 | 0.0 / 0.9 / 46.0 | 6.8 / 4.2 / 48.6 | 36.0 / 47.8 / 36.8 |
 | Planks / stone / earth at end (U) | 0.0 / 20.0 / 0.0 | 0.0 / 20.0 / 0.0 | 0.0 / 20.0 / 0.0 | 0.0 / 20.0 / 0.0 | 0.0 / 20.0 / 0.0 | 0.0 / 20.0 / 0.0 | 0.0 / 20.0 / 0.0 | 0.0 / 20.0 / 0.0 |
-| Beds sown / harvested | 11 / 3 | 8 / 19 | 0 / 0 | 0 / 0 | 12 / 6 | 3 / 9 | 0 / 0 | 0 / 0 |
+| Beds sown / harvested | 11 / 3 | 6 / 17 | 0 / 0 | 0 / 0 | 12 / 6 | 3 / 9 | 0 / 0 | 0 / 0 |
 | Crops withered (blight/frost/overripe/other) | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 |
 | Weather events | ideal_spell | ideal_spell | blight | ideal_spell | heavy_rain | ideal_spell | calm_days | ideal_spell |
 | Frost nights / blight outbreaks | 1 / 1 | 0 / 2 | 2 / 1 | 0 / 0 | 1 / 1 | 0 / 2 | 2 / 1 | 0 / 0 |
-| Incident raises (critical) / rescues | 7 (1) / 0 | 7 (1) / 0 | 3 (1) / 0 | 4 (2) / 0 | 12 (1) / 0 | 7 (1) / 0 | 3 (1) / 0 | 2 (1) / 0 |
+| Incident raises (critical) / rescues | 9 (1) / 0 | 7 (1) / 0 | 3 (1) / 0 | 4 (2) / 0 | 10 (1) / 0 | 8 (1) / 0 | 3 (1) / 0 | 2 (1) / 0 |
 
 Daily series (each scaled to its own maximum):
 
 ```
-Ready food (days)        █▇▆▅▄▂▁▁▁▁▁▁▁▂▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 5.1
-Pantry stock (U)         ▄▃▃▂▂▂▁▁▁▁▁▁▂▂▃▃▃▂▂▃▄▄▄▄▅▅███▇▇▆▅▄▄▃▃▃▃▃▃▃▃▃▃▃▃▃▃▂▂▁▁▁▁▁▁▁▁▁▂▂▃▂▂▃▂▂▂▂▂▃▅▄▇▆▆▆▅▄▄▃▂▂▁▁▁▁▁▁▁▁▁▁▁▁  max 185.8
-Food stored (U)          ▁▁▁▁▁▁▁▂▁▁▁▁▃▄▄▃▃▂▃▄▄▃▃▃▆▃▇▃▃▃▃▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▂▂▁▃▃▄▃▃▃▃▃▃▃▃▃▇▃█▂▂▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁  max 98.4
-Portions eaten           ▇▇████▇▅▂▁▁▁▁▅██▇▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▄▅▂▃▁▁▄█▆▁▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 12.0
-Spoiled (U)              ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▄▆▅▂▁▂▂▇▂▁▁▁▁▁▂▄▃▆▁▁▁▁▁▁▁▁▁▂▁▁▁▁▁▁▄▄▆▁▁▁▁▁▁▁▁▁▁▁█▁▄█▂▃▂▃▂▂▂▂▁▁▂▂▁▂▁▃▁▁▁▁▁▁▁▁▁▁▁▁▁  max 30.7
-Meals missed             ▂▂▁▁▁▁▁▃▆▇▇▇▅▂▁▁▁▁▃▂▂▃▅▃▃▂▃▁▂▂▂▃▂▂▂▁▅██████████████▇▇▇▇▇▅▃▅▅▅▂▄▁▁▃▅▂▃▄▅▃▃▁▃▁▂▃▂▂▁▂▂▂▂▆██████████  max 12.0
-Hungry resident-hours    ▁▁▂▅▇▇▇▇█████▆▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▆▆▆▆▆▆▆▇████████████████████▇██▇▇▇▇▇▇▇▇▇▇▇▇▇▆▇▆▆▇▆▆▆▆▆▆▇███████████  max 144.0
-Work h (all residents)   ▄▅▃▃▄▃▃▃▂▂▄▂▅▇█▇▇▆▆▇▇▅▅▅█▇█▆▅▅▄▄▄▄▄▃▇▇█▇▇▃▃▁▆▇█▆▃▃▃▂▂▄▃▂▄▄▄▃▅▆▇▇▆▆▆▆▅▅▅▅▆▅▆▅▄▄▄▄▃▃▃▄▆▆▆▆▇▂▃▃▇▇▇▇  max 50.3
-Idle h (all residents)   ▅▅▆▆▅▆▆▆▇▇▆▇▅▃▃▄▄▃▅▄▄▅▅▅▃▄▄▄▅▅▅▅▅▅▅▆▄▄▄▄▄▇▇█▅▄▄▅▇▇▇▇▇▆▇▇▆▅▆▇▅▄▄▄▄▅▄▄▅▅▅▅▄▄▄▅▆▆▆▅▆▆▆▆▄▅▅▅▄▇▇▇▅▄▄▄  max 84.0
-Wood (U)                 ▅▅▅▅▅▅▅▅▅▄▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▆▆▆▆▆▆▆▆▆▆▅▅▅▅▅▆▆▆▆▆▆▆▆▆▆▆▇████████████████████▇▇▇▇▇▇▇▇▇▇▇▆▆▆▆▆▆▆▅▅▅▆  max 71.2
+Ready food (days)        █▆▄▂▁▁▁▁▁▁▁▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 3.4
+Pantry stock (U)         ▆▅▄▂▁▁▁▁▁▁▁▁▂▃▄▄▂▂▂▃▅▄▄▄▇▅█▇▆▄▄▄▄▄▄▄▄▄▄▄▄▄▃▃▃▃▃▃▃▃▂▁▁▁▁▁▁▁▁▁▁▂▄▃▃▃▂▃▃▂▃▂▆▄█▇▇▆▅▄▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁  max 106.0
+Food stored (U)          ▁▁▁▁▁▁▁▂▁▁▁▁▃▃▄▃▃▃▃▃▄▃▃▃▆▂▇▂▂▂▃▂▃▂▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▂▂▁▃▃▄▃▃▃▃▃▃▃▃▃▇▂█▃▃▃▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁  max 93.4
+Portions eaten           ▅███▅▂▁▃▃▁▁▁▁▆▅█▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▆▂▁▁▁▃▅▁▁▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 18.0
+Spoiled (U)              ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▅█▁▁▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▁▁▁▁▁▁▃▅▇▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▄▁▁▁▁▁▁▁▁▁▁▁▁▁  max 20.0
+Meals missed             ▄▁▁▁▃▆█▆▆███▆▁▃▁▂▄▄▅▅▃▅▄▄▃▃▃▁▂▄▄▅▄▅▄▇███████████████████▆▃▅█▅▅▄▁▃▃▃▄▃▄▅▄▄▁▂▂▅▃▄▃▂▅▅▆████████████  max 18.0
+Hungry resident-hours    ▁▁▃▇█████████▇▇█▇▇▇▇█▇▇▇▇▇▇▇▆▇▇▇▇▇▇▇█████████████████████████▇█▇▇▇▇▇▇▇▇▇▇▇▇▆▇▇▇▇▆▇▇█████████████  max 216.0
+Work h (all residents)   ▂▃▂▂▃▂▂▂▂▂▃▂▄▅▅▅▅▄▄▄▄▄▄▄▆▄▅▄▃▄▃▄▄▄▄▄█████▄▃▂▅▅▅▇▂▂▁▂▂▃▃▂▂▃▃▂▄▄▅▄▄▄▅▄▄▄▄▄▅▄▄▄▄▃▄▃▃▃▃▃▅▅▆▅▅▂▂▂▅▅▅▅  max 109.9
+Idle h (all residents)   ▆▅▆▇▆▇█▇▇█▇▇▅▃▄▄▄▅▅▅▅▅▅▅▄▅▄▅▅▅▆▅▅▅▅▅▂▂▂▂▂▆▇▇▅▅▅▃████▇▆▆▇▇▆▅█▆▅▄▄▅▅▄▄▅▅▆▅▄▅▄▅▅▆▆▆▆▇▆▆▄▅▄▅▅███▅▄▅▅  max 119.1
+Wood (U)                 ▇▇▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▇▇██████████▇▇▆▆▅▅▅▅▄▄▄▃▄▄▄▄▄▅▇██▇███████████████████████████▇▇▇▆▇▇▇▆▆▆▆  max 48.8
 ```
 
-Work hours per resident-day, by resident: Placeholder 0 5.1, Placeholder 1 3.9, Placeholder 2 5.3, Placeholder 3 4.8, Placeholder 4 4.8, Placeholder 5 3.7
+Work hours per resident-day, by resident: Wenna Tallowby 5.2, Jory Whitethorn 4.3, Linnet Whinberry 4.8, Tobit Highbough 5.5, Tegwin Slipstone 6.2, Corra Netley 4.9, Tuppen Clayholm 6.2, Hulda Slatebrook 3.7, Elstan Weirholt 3.4
 
-New incidents by source: farm 14, kitchen 1, threat 1, village 1, water 1, winter 1, woods 2; threats: fire at the covered store 5, flood at the stream edge 4
+New incidents by source: farm 13, kitchen 1, threat 1, village 1, water 1, winter 1, woods 2; threats: fire at the covered store 5, flood at the stream edge 4
 
 ## Run: hands_off seed 2
 
 | | Y1 Spring | Y1 Summer | Y1 Autumn | Y1 Winter |
 |---|---|---|---|---|
-| Food stored (U) | 33.2 | 378.2 | 342.2 | 0.0 |
+| Food stored (U) | 33.2 | 362.7 | 342.2 | 0.0 |
 | of which fish (U) | 0.0 | 0.0 | 0.0 | 0.0 |
-| Food eaten (U) | 122.7 | 239.0 | 294.2 | 2.0 |
-| Portions eaten | 86 | 46 | 0 | 0 |
-| Spoiled in store (U) | 0.0 | 65.7 | 73.0 | 2.7 |
-| Spoilage % | 0 | 17 | 18 | 5 |
-| Stock at end (U) | 0.5 | 74.0 | 49.0 | 44.4 |
+| Food eaten (U) | 122.7 | 278.8 | 350.8 | 1.4 |
+| Portions eaten | 86 | 42 | 0 | 0 |
+| Spoiled in store (U) | 0.0 | 27.9 | 0.0 | 2.7 |
+| Spoilage % | 0 | 8 | 0 | 6 |
+| Stock at end (U) | 0.5 | 56.5 | 48.0 | 43.9 |
 | Ready food min (days) | 0.00 | 0.00 | 0.00 | 0.00 |
-| Days with no Ready food (opening) | 6 (0) | 9 (0) | 12 (0) | 12 (0) |
-| Meals: ate / raw / missed | 86 / 9 / 49 | 46 / 79 / 19 | 0 / 123 / 21 | 0 / 1 / 143 |
-| Missed % | 34 | 13 | 15 | 99 |
-| Fed / peckish / hungry % of hours | 20 / 10 / 70 | 0 / 16 / 84 | 0 / 22 / 78 | 0 / 0 / 100 |
-| Work h / resident-day | 2.7 | 6.0 | 4.9 | 7.6 |
-| Idle h / resident-day | 10.0 | 6.3 | 7.6 | 6.4 |
-| Idle % | 79 | 51 | 61 | 46 |
-| Board queue avg / max | 2.06 / 10 | 4.23 / 13 | 3.28 / 9 | 0.66 / 9 |
-| Board wait mean / max (game min) | 192 / 600 | 189 / 874 | 154 / 661 | 288 / 773 |
-| Wood in / out / end (U) | 4.5 / 6.4 / 38.1 | 0.0 / 2.4 / 35.7 | 15.2 / 2.2 / 48.8 | 29.2 / 47.8 / 30.2 |
+| Days with no Ready food (opening) | 8 (0) | 11 (0) | 12 (0) | 12 (0) |
+| Meals: ate / raw / missed | 86 / 10 / 120 | 42 / 99 / 75 | 0 / 141 / 75 | 0 / 2 / 214 |
+| Missed % | 56 | 35 | 35 | 99 |
+| Fed / peckish / hungry % of hours | 17 / 6 / 76 | 0 / 10 / 90 | 0 / 14 / 86 | 0 / 0 / 100 |
+| Work h / resident-day | 2.2 | 5.9 | 5.3 | 7.3 |
+| Idle h / resident-day | 10.9 | 6.9 | 7.6 | 6.7 |
+| Idle % | 83 | 54 | 59 | 48 |
+| Board queue avg / max | 1.00 / 8 | 2.54 / 11 | 1.76 / 8 | 0.71 / 9 |
+| Board wait mean / max (game min) | 170 / 600 | 151 / 770 | 131 / 601 | 401 / 1154 |
+| Wood in / out / end (U) | 4.5 / 6.3 / 38.2 | 0.0 / 2.4 / 35.8 | 14.8 / 2.2 / 48.4 | 16.2 / 47.8 / 16.8 |
 | Planks / stone / earth at end (U) | 0.0 / 20.0 / 0.0 | 0.0 / 20.0 / 0.0 | 0.0 / 20.0 / 0.0 | 0.0 / 20.0 / 0.0 |
 | Beds sown / harvested | 11 / 3 | 8 / 19 | 0 / 0 | 0 / 0 |
 | Crops withered (blight/frost/overripe/other) | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 |
 | Weather events | ideal_spell | calm_days | ideal_spell | hard_freeze |
 | Frost nights / blight outbreaks | 1 / 1 | 0 / 2 | 2 / 1 | 0 / 0 |
-| Incident raises (critical) / rescues | 7 (1) / 0 | 7 (1) / 0 | 3 (1) / 0 | 4 (2) / 0 |
+| Incident raises (critical) / rescues | 7 (1) / 0 | 10 (1) / 0 | 3 (1) / 0 | 4 (2) / 0 |
 
 Daily series (each scaled to its own maximum):
 
 ```
-Ready food (days)        █▇▆▄▃▂▁▁▁▁▁▁▁▂▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 5.1
-Pantry stock (U)         ▄▃▃▂▂▁▁▁▁▁▁▁▂▃▄▃▃▂▂▂▃▃▄▄▆▆███▇▆▅▄▄▃▃▃▃▃▃▃▃▃▃▃▃▃▃  max 186.9
-Food stored (U)          ▁▁▁▁▁▁▁▂▁▁▁▁▃▅▅▃▃▂▃▃▅▃▄▃▇▃█▃▃▃▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁  max 83.9
-Portions eaten           ▇▇██▇█▆▃▃▁▁▁▁▅██▇▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 12.0
-Spoiled (U)              ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█▇▅▂▁▁▁▁▁▁▁▁▁▁▅▅▇▆▂▁▁▁▁▁▁▁▁▂▁▁▁▁▁  max 25.0
-Meals missed             ▂▂▁▁▁▁▁▅▅▇▇▇▅▁▁▁▁▁▂▂▃▃▂▂▃▃▃▂▂▂▂▂▂▂▁▃▇███████████  max 12.0
-Hungry resident-hours    ▁▁▂▄▇▇▇██████▆▇▇▇▇▇▆▇▇▇▇▇▆▇▇▆▆▆▆▆▇▆▇████████████  max 144.0
-Work h (all residents)   ▃▄▃▃▄▃▃▃▂▂▄▂▅▇▇▆▆▆▅▅▅▅▆▅▇▆▇▆▄▄▄▄▄▄▄▃▆▆▆▆▆███▆▆▆▆  max 55.8
-Idle h (all residents)   ▆▅▆▆▆▆▆▇▇█▇█▆▃▃▄▄▄▅▅▅▅▄▅▄▄▄▅▆▅▆▅▆▆▆▇▅▅▅▅▅▄▄▄▅▅▅▅  max 75.8
-Wood (U)                 ▇▇▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▇▇▇███████████▇▇▇▇▆▆▆▆▅▅  max 49.0
+Ready food (days)        █▆▄▂▁▁▁▂▁▁▁▁▁▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 3.1
+Pantry stock (U)         ▅▄▃▂▁▁▁▁▁▁▁▁▂▃▄▃▂▂▂▁▃▃▄▄▇▆█▇▆▅▅▄▄▄▄▄▄▄▄▄▄▄▄▃▃▃▃▃  max 127.0
+Food stored (U)          ▁▁▁▁▂▁▁▂▁▁▁▁▃▅▅▃▃▃▃▂▆▃▅▃▇▃█▃▃▃▃▃▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁  max 78.9
+Portions eaten           ███▆▅▁▁▂▃▁▁▁▁▄█▇▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 18.0
+Spoiled (U)              ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█▆▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▁▁▁▁  max 15.7
+Meals missed             ▁▁▁▂▃██▇▅███▅▄▁▂▂▂▄▅▅▄▄▄▅▃▂▃▂▂▃▃▅▅▅▅▇███████████  max 18.0
+Hungry resident-hours    ▁▁▃▆█████████▇██▇▇▇▇▇▇▇▇▇▇▆▇▇▆▇▇▇▇▇▇████████████  max 216.0
+Work h (all residents)   ▃▄▃▂▃▂▂▃▂▂▃▂▄▇▇▅▅▄▄▄▅▅▆▅▇▅▅▅▅▅▅▅▄▄▄▄█▆▆▅▆▇▇▇▅▆▆▅  max 89.1
+Idle h (all residents)   ▆▅▇▇▇██▇▇█▇█▆▄▃▄▅▅▅▆▅▅▄▅▄▅▄▅▅▅▅▅▆▆▆▆▃▅▅▅▅▄▄▄▅▅▅▅  max 115.0
+Wood (U)                 ▇▇▆▆▆▆▆▆▆▆▆▇▇▆▆▆▆▆▆▆▆▆▆▆▇▇██████████▇▇▇▇▆▆▆▅▄▄▄▃  max 48.5
 ```
 
-Work hours per resident-day, by resident: Placeholder 0 5.7, Placeholder 1 4.7, Placeholder 2 5.6, Placeholder 3 5.7, Placeholder 4 6.1, Placeholder 5 4.1
+Work hours per resident-day, by resident: Wenna Tallowby 5.5, Jory Whitethorn 4.5, Linnet Whinberry 5.0, Tobit Highbough 5.7, Tegwin Slipstone 6.1, Corra Netley 5.2, Tuppen Clayholm 7.6, Hulda Slatebrook 3.7, Elstan Weirholt 3.2
 
-New incidents by source: farm 8, kitchen 1, threat 1, village 1, water 1, winter 1; threats: fire at the covered store 2, flood at the stream edge 3
+New incidents by source: farm 10, kitchen 1, threat 1, village 1, water 1, winter 1; threats: fire at the covered store 2, flood at the stream edge 3
 
 ## Run: hands_off seed 3
 
 | | Y1 Spring | Y1 Summer | Y1 Autumn | Y1 Winter |
 |---|---|---|---|---|
-| Food stored (U) | 33.2 | 373.4 | 342.2 | 0.0 |
+| Food stored (U) | 33.2 | 353.2 | 327.2 | 5.0 |
 | of which fish (U) | 0.0 | 0.0 | 0.0 | 0.0 |
-| Food eaten (U) | 122.7 | 231.1 | 259.2 | 12.7 |
-| Portions eaten | 88 | 46 | 0 | 0 |
-| Spoiled in store (U) | 0.0 | 72.9 | 93.0 | 2.7 |
-| Spoilage % | 0 | 19 | 23 | 4 |
-| Stock at end (U) | 0.5 | 70.0 | 60.0 | 44.6 |
+| Food eaten (U) | 122.7 | 266.0 | 332.9 | 10.0 |
+| Portions eaten | 86 | 43 | 0 | 0 |
+| Spoiled in store (U) | 0.0 | 30.0 | 0.0 | 2.7 |
+| Spoilage % | 0 | 8 | 0 | 5 |
+| Stock at end (U) | 0.5 | 57.7 | 52.0 | 44.3 |
 | Ready food min (days) | 0.00 | 0.00 | 0.00 | 0.00 |
-| Days with no Ready food (opening) | 6 (0) | 9 (0) | 12 (0) | 12 (0) |
-| Meals: ate / raw / missed | 88 / 9 / 47 | 46 / 74 / 24 | 0 / 112 / 32 | 0 / 6 / 138 |
-| Missed % | 33 | 17 | 22 | 96 |
-| Fed / peckish / hungry % of hours | 21 / 11 / 68 | 0 / 15 / 85 | 0 / 21 / 79 | 0 / 1 / 99 |
-| Work h / resident-day | 2.8 | 6.0 | 6.0 | 7.1 |
-| Idle h / resident-day | 10.0 | 6.3 | 6.6 | 6.8 |
-| Idle % | 78 | 51 | 52 | 49 |
-| Board queue avg / max | 2.06 / 10 | 5.08 / 13 | 4.05 / 9 | 0.73 / 9 |
-| Board wait mean / max (game min) | 192 / 601 | 191 / 813 | 165 / 761 | 340 / 788 |
-| Wood in / out / end (U) | 6.2 / 6.4 / 39.9 | 0.0 / 2.4 / 37.5 | 19.0 / 8.2 / 48.3 | 44.5 / 47.8 / 45.0 |
+| Days with no Ready food (opening) | 7 (0) | 11 (0) | 12 (0) | 12 (0) |
+| Meals: ate / raw / missed | 86 / 10 / 120 | 43 / 99 / 74 | 0 / 139 / 77 | 0 / 6 / 210 |
+| Missed % | 56 | 34 | 36 | 97 |
+| Fed / peckish / hungry % of hours | 16 / 7 / 77 | 0 / 9 / 91 | 0 / 14 / 86 | 0 / 1 / 99 |
+| Work h / resident-day | 2.3 | 6.0 | 6.5 | 7.0 |
+| Idle h / resident-day | 10.9 | 6.8 | 6.4 | 7.0 |
+| Idle % | 83 | 53 | 50 | 50 |
+| Board queue avg / max | 0.97 / 8 | 2.66 / 11 | 2.00 / 8 | 0.71 / 9 |
+| Board wait mean / max (game min) | 170 / 601 | 150 / 757 | 129 / 661 | 327 / 784 |
+| Wood in / out / end (U) | 4.5 / 6.3 / 38.2 | 0.0 / 2.4 / 35.8 | 20.2 / 8.2 / 47.9 | 22.0 / 47.8 / 22.1 |
 | Planks / stone / earth at end (U) | 0.0 / 20.0 / 0.0 | 0.0 / 20.0 / 0.0 | 0.0 / 20.0 / 0.0 | 0.0 / 20.0 / 0.0 |
 | Beds sown / harvested | 11 / 3 | 8 / 19 | 0 / 0 | 0 / 0 |
 | Crops withered (blight/frost/overripe/other) | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 |
 | Weather events | ideal_spell | calm_days | early_frost | calm_days |
 | Frost nights / blight outbreaks | 1 / 1 | 0 / 2 | 2 / 1 | 0 / 0 |
-| Incident raises (critical) / rescues | 7 (1) / 0 | 7 (1) / 0 | 4 (1) / 0 | 4 (2) / 0 |
+| Incident raises (critical) / rescues | 7 (1) / 0 | 9 (1) / 0 | 4 (1) / 0 | 4 (2) / 0 |
 
 Daily series (each scaled to its own maximum):
 
 ```
-Ready food (days)        █▇▆▄▃▂▁▁▁▁▁▁▁▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 5.0
-Pantry stock (U)         ▄▄▃▂▂▂▁▁▁▁▁▁▁▂▃▃▃▃▃▃▃▃▄▄▆▅██▇▆▅▄▄▄▄▃▃▃▃▃▃▃▃▃▃▃▃▃  max 169.5
-Food stored (U)          ▁▁▁▁▁▁▁▂▁▁▁▁▃▄▅▃▄▃▃▃▅▃▅▃▇▃█▃▃▃▃▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁  max 83.9
-Portions eaten           ██████▆▅▂▁▁▁▁▅██▇▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 12.0
-Spoiled (U)              ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▅▇▆▂▂▁▃▁▂▁▁▁▁▄▇█▅▇▁▂▁▁▁▁▁▁▁▂▁▁▁▁▁  max 24.0
-Meals missed             ▁▁▁▁▁▁▁▅▆▇▇▇▅▂▁▁▁▁▃▂▂▃▃▂▂▂▂▁▁▂▂▃▅▄▅▃▅███████████  max 12.0
-Hungry resident-hours    ▁▁▁▄▇▇▇█████▇▇▇▇▇▇▇▇▆▇▇▇▇▆▆▆▆▆▆▆▇▇▇▇▇███████████  max 144.0
-Work h (all residents)   ▃▄▃▃▃▃▃▃▂▂▃▂▄▆▆▆▆▅▄▄▅▄▅▄▆▅▆▅▄▄▄▄▄▆█▃▆▆▆▆▆▆▆▆▆▆▆▆  max 62.7
-Idle h (all residents)   ▆▅▆▇▆▆▆▇▇█▇█▆▄▃▄▄▄▅▅▄▅▄▅▄▄▄▅▅▅▆▆▆▄▂▆▄▅▅▅▅▅▅▅▅▅▅▅  max 75.4
-Wood (U)                 ▇▆▆▆▆▆▆▆▆▆▆▇▇▇▆▆▆▆▆▆▆▆▆▆▇▇██████████▇▇▇▇▇▇▇▆▇▇▇▇  max 49.9
+Ready food (days)        █▆▄▃▁▁▁▂▁▁▁▁▁▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 3.5
+Pantry stock (U)         ▆▄▃▂▁▁▁▁▁▁▁▁▂▃▃▃▂▂▂▃▄▃▅▄▇▅██▇▅▅▅▄▄▅▄▄▄▄▄▄▄▄▄▄▄▄▄  max 116.6
+Food stored (U)          ▁▁▁▁▂▁▁▂▁▁▁▁▃▄▄▃▃▃▃▄▄▃▅▃▇▃█▃▂▃▃▃▃▂▂▃▁▁▁▁▁▁▁▁▁▁▁▁  max 78.9
+Portions eaten           ▅██▇▇▂▁▂▃▁▁▁▁▅█▇▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 18.0
+Spoiled (U)              ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▅█▅▁▄▁▄▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▁▁▁▁  max 10.0
+Meals missed             ▅▁▁▂▁▇█▇▅███▅▄▁▁▃▄▄▃▅▄▄▃▃▃▃▃▂▂▃▂▄▆▆▄▆▇██████████  max 18.0
+Hungry resident-hours    ▁▁▃▇█████████▇██▇▇▇▇█▇▇▇▇▇▇▇▇▆▇▇▇▇█▇████████████  max 216.0
+Work h (all residents)   ▃▃▃▂▃▂▂▃▂▂▃▂▄▅▆▅▅▄▄▅▅▄▅▅▆▅▅▅▅▄▄▄▄██▄▆▅▅▅▅▅▅▅█▅▅▅  max 101.1
+Idle h (all residents)   ▇▆▆▇▆▇█▇▇█▇█▆▄▃▄▄▅▅▅▅▆▄▅▄▄▅▅▅▆▅▅▆▃▂▅▄▅▅▅▅▅▅▅▃▅▅▅  max 114.5
+Wood (U)                 ▇▇▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▇████████████▇▇▇▆▆▆▅▅▅▄▄  max 48.7
 ```
 
-Work hours per resident-day, by resident: Placeholder 0 5.7, Placeholder 1 4.5, Placeholder 2 5.4, Placeholder 3 5.5, Placeholder 4 6.9, Placeholder 5 4.8
+Work hours per resident-day, by resident: Wenna Tallowby 6.2, Jory Whitethorn 4.9, Linnet Whinberry 5.3, Tobit Highbough 5.6, Tegwin Slipstone 5.8, Corra Netley 5.3, Tuppen Clayholm 7.8, Hulda Slatebrook 4.2, Elstan Weirholt 3.8
 
-New incidents by source: farm 8, kitchen 1, threat 1, village 1, water 1, winter 1; threats: fire at the covered store 2, flood at the stream edge 3
+New incidents by source: farm 9, kitchen 1, threat 1, village 1, water 1, winter 1; threats: fire at the covered store 2, flood at the stream edge 3
 
 ## Run: light_touch seed 1
 
 | | Y1 Spring | Y1 Summer | Y1 Autumn | Y1 Winter |
 |---|---|---|---|---|
-| Food stored (U) | 94.8 | 467.1 | 422.5 | 45.8 |
-| of which fish (U) | 42.2 | 48.3 | 90.2 | 45.8 |
-| Food eaten (U) | 174.1 | 171.0 | 214.6 | 95.0 |
-| Portions eaten | 128 | 104 | 88 | 44 |
-| Spoiled in store (U) | 6.5 | 214.0 | 196.6 | 6.7 |
-| Spoilage % | 7 | 45 | 39 | 5 |
-| Stock at end (U) | 4.2 | 86.4 | 97.6 | 41.8 |
+| Food stored (U) | 114.9 | 374.4 | 442.7 | 48.6 |
+| of which fish (U) | 58.1 | 53.3 | 90.4 | 48.6 |
+| Food eaten (U) | 200.3 | 287.7 | 313.6 | 119.0 |
+| Portions eaten | 149 | 94 | 90 | 45 |
+| Spoiled in store (U) | 2.4 | 31.7 | 62.7 | 14.3 |
+| Spoilage % | 2 | 8 | 13 | 8 |
+| Stock at end (U) | 2.2 | 57.3 | 123.6 | 38.9 |
 | Ready food min (days) | 0.00 | 0.00 | 0.00 | 0.00 |
-| Days with no Ready food (opening) | 1 (0) | 5 (0) | 12 (0) | 12 (0) |
-| Meals: ate / raw / missed | 128 / 11 / 5 | 104 / 25 / 15 | 88 / 52 / 4 | 44 / 38 / 62 |
-| Missed % | 3 | 10 | 3 | 43 |
-| Fed / peckish / hungry % of hours | 21 / 15 / 64 | 0 / 13 / 87 | 0 / 20 / 80 | 0 / 5 / 95 |
-| Work h / resident-day | 4.6 | 7.7 | 6.3 | 7.1 |
-| Idle h / resident-day | 7.5 | 4.6 | 5.5 | 5.8 |
-| Idle % | 62 | 37 | 47 | 45 |
-| Board queue avg / max | 2.47 / 16 | 5.41 / 13 | 3.89 / 10 | 0.69 / 9 |
-| Board wait mean / max (game min) | 141 / 660 | 161 / 767 | 108 / 602 | 159 / 780 |
-| Wood in / out / end (U) | 42.2 / 12.2 / 70.0 | 0.0 / 5.3 / 64.8 | 0.0 / 8.6 / 56.2 | 27.0 / 50.0 / 33.1 |
+| Days with no Ready food (opening) | 5 (0) | 9 (0) | 12 (0) | 12 (0) |
+| Meals: ate / raw / missed | 149 / 15 / 52 | 94 / 75 / 47 | 90 / 97 / 29 | 45 / 45 / 126 |
+| Missed % | 24 | 22 | 13 | 58 |
+| Fed / peckish / hungry % of hours | 16 / 10 / 74 | 0 / 11 / 89 | 0 / 14 / 86 | 0 / 3 / 97 |
+| Work h / resident-day | 3.6 | 6.7 | 7.1 | 6.5 |
+| Idle h / resident-day | 8.9 | 5.6 | 5.0 | 6.5 |
+| Idle % | 71 | 45 | 41 | 50 |
+| Board queue avg / max | 0.96 / 15 | 2.35 / 13 | 2.22 / 8 | 0.87 / 9 |
+| Board wait mean / max (game min) | 109 / 601 | 123 / 780 | 104 / 601 | 176 / 797 |
+| Wood in / out / end (U) | 38.8 / 13.3 / 65.5 | 0.0 / 4.9 / 60.5 | 1.0 / 8.7 / 52.9 | 27.5 / 50.2 / 30.1 |
 | Planks / stone / earth at end (U) | 4.0 / 20.0 / 0.0 | 4.0 / 20.0 / 0.0 | 4.0 / 20.0 / 0.0 | 4.0 / 20.0 / 0.0 |
 | Beds sown / harvested | 12 / 8 | 11 / 18 | 0 / 0 | 0 / 0 |
 | Crops withered (blight/frost/overripe/other) | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 |
 | Weather events | ideal_spell | ideal_spell | blight | ideal_spell |
 | Frost nights / blight outbreaks | 1 / 1 | 0 / 2 | 2 / 1 | 0 / 0 |
-| Incident raises (critical) / rescues | 15 (1) / 0 | 16 (1) / 0 | 18 (1) / 0 | 27 (2) / 0 |
+| Incident raises (critical) / rescues | 20 (1) / 0 | 17 (1) / 0 | 21 (1) / 0 | 23 (2) / 0 |
 
 Daily series (each scaled to its own maximum):
 
 ```
-Ready food (days)        █▇▆▅▄▃▂▃▂▂▁▁▄▆▄▂▂▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 5.5
-Pantry stock (U)         ▄▃▃▃▂▂▂▂▂▂▁▁▃▄▄▃▃▃▄▄▄▄▄▄▆▆████▇▇▅▅▄▄▄▃▃▃▃▃▂▂▂▂▂▂  max 206.5
-Food stored (U)          ▂▁▁▂▁▁▂▃▂▂▁▂▆▅▄▃▄▄▅▆▄▄▄▄▇▃█▄▄▃▃▃▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁  max 86.4
-Portions eaten           ▇▇█████▇▆▇▇▆▆▇██▆█▇▅▅▅▅▅▅▅▅▆▆▆▅▆▆▆▅▆▂▃▃▂▄▅▃▃▃▂▃▃  max 12.0
-Spoiled (U)              ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▄▅▂▃▄▂▅▅▂▂▂▂▂▂▃▄▃█▁▄▁▁▁▁▁▁▁▂▁▁▁▁▁  max 59.0
-Meals missed             ▂▂▁▁▁▁▁▁▁▁▁▃▂▁▁▁▁▁▁▁▂▃▄▃▂▁▁▁▁▁▂▁▁▁▂▁▁▁▂▂▃▄▆▆▇█▆▆  max 11.0
-Hungry resident-hours    ▁▁▁▃▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▆▇▇▇▇▇▆▇▇▆▇▆▆▇▆▇▇▇█▇▇███████  max 143.0
-Work h (all residents)   ▅▄▃▃▃▃▃▅▃▅▇▅█▇▆▅▆▆▆▇▅▆▅▅▆▅▆▆▆▅▅▅▅▄▅▄▆▇▇▆▇▃▃▃▇▇▇▇  max 62.8
-Idle h (all residents)   ▆▇█▇▇█▇▅▇▅▃▅▂▃▅▅▄▄▄▂▅▅▅▅▄▅▄▄▄▅▆▅▅▆▅▆▄▄▄▄▄▇██▅▄▄▄  max 60.1
-Wood (U)                 ▅▄▄▄▄▄▄▄▄▄▅████████████▇▇▇▇▇▇▇▇▇▇▇▇▇▆▆▆▆▅▅▅▅▅▅▄▄  max 70.0
+Ready food (days)        █▇▅▃▂▁▁▃▂▁▁▁▄▅▂▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 3.7
+Pantry stock (U)         ▄▄▃▂▂▁▁▂▁▁▁▁▃▃▃▂▂▂▂▃▃▃▃▃▅▅███▇▆▆▆▆▅▆▅▄▃▃▃▃▃▃▃▃▃▃  max 174.1
+Food stored (U)          ▂▁▁▂▁▁▂▄▂▂▂▂▅▄▂▃▃▄▄▅▃▃▃▃▇▃█▄▃▃▃▃▃▃▃▄▁▁▁▁▁▁▁▁▁▁▁▁  max 86.4
+Portions eaten           ▅███▅▅▄▄▇▆▅▃▃██▃▃▃▃▃▃▃▃▃▃▄▄▄▃▄▃▄▄▅▄▄▁▃▂▄▁▄▃▃▃▂▁▃  max 18.0
+Spoiled (U)              ▁▁▁▁▁▁▂▁▁▁▁▁▁▁▆▇▁▁▁▂▂▁▁▁▁▁▁▁▃█▇▁▁▁█▃▄▁▁▁▁▁▄▁▁▁▁▁  max 18.7
+Meals missed             ▄▁▁▁▃▃▅▅▁▂▃▅▅▁▁▂▃▃▁▄▃▃▂▃▃▂▁▂▁▃▁▁▂▂▃▃▂▁▂▃█▅▇▇▇▇█▆  max 17.0
+Hungry resident-hours    ▁▁▃▆█████▇▇████▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▆▇▇▇▇██▇▇█████████  max 216.0
+Work h (all residents)   ▄▄▂▃▃▃▃▅▃▇▅▃█▇▅▅▆▆▆▇▆▅▅▆▅▄▇▆▆▆▇█▇▆▇▇█▇▆▆▇▄▃▃▆▆▇▇  max 84.1
+Idle h (all residents)   ▆▆█▇▇▇▇▆▇▄▅█▄▄▅▅▄▅▃▃▅▅▅▅▅▆▃▄▄▅▃▂▄▅▄▄▃▃▄▄▄▇██▅▅▅▄  max 101.0
+Wood (U)                 ▅▅▅▅▄▄▄▄▄▇████████████▇▇▇▇▇▇▇▇▇▇▇▇▇▇▆▆▆▆▅▅▅▅▅▅▅▄  max 65.8
 ```
 
-Orders given by the policy: Auto-fell off 1, Auto-fell on 1, Cover 8, Drain 5, Fish (net) 38, Gather deadfall 1, Saw planks 2, Sow 14, Water 10
+Orders given by the policy: Auto-fell off 1, Auto-fell on 1, Cover 8, Drain 5, Fish (net) 41, Gather deadfall 1, Saw planks 2, Sow 14, Water 12
 
-Work hours per resident-day, by resident: Placeholder 0 7.2, Placeholder 1 6.0, Placeholder 2 6.2, Placeholder 3 6.7, Placeholder 4 6.7, Placeholder 5 5.7
+Work hours per resident-day, by resident: Wenna Tallowby 7.5, Jory Whitethorn 5.7, Linnet Whinberry 5.6, Tobit Highbough 5.6, Tegwin Slipstone 7.1, Corra Netley 5.8, Tuppen Clayholm 6.8, Hulda Slatebrook 5.1, Elstan Weirholt 4.7
 
-New incidents by source: farm 9, kitchen 1, threat 1, village 1, water 39, winter 1; threats: fire at the covered store 2, flood at the stream edge 3
+New incidents by source: farm 13, kitchen 1, threat 1, village 1, water 33, winter 1; threats: fire at the covered store 2, flood at the stream edge 3
 
 ## Run: light_touch seed 2
 
 | | Y1 Spring | Y1 Summer | Y1 Autumn | Y1 Winter |
 |---|---|---|---|---|
-| Food stored (U) | 94.8 | 447.2 | 427.5 | 34.5 |
-| of which fish (U) | 42.2 | 48.3 | 90.2 | 34.5 |
-| Food eaten (U) | 174.1 | 164.4 | 216.1 | 81.0 |
-| Portions eaten | 127 | 108 | 88 | 33 |
-| Spoiled in store (U) | 5.1 | 201.9 | 206.1 | 6.7 |
-| Spoilage % | 5 | 45 | 40 | 5 |
-| Stock at end (U) | 5.5 | 86.4 | 91.7 | 38.5 |
+| Food stored (U) | 114.3 | 390.2 | 438.6 | 44.9 |
+| of which fish (U) | 57.5 | 53.9 | 91.4 | 44.9 |
+| Food eaten (U) | 200.3 | 294.1 | 316.7 | 100.7 |
+| Portions eaten | 149 | 97 | 90 | 43 |
+| Spoiled in store (U) | 1.8 | 41.0 | 78.5 | 6.7 |
+| Spoilage % | 2 | 10 | 16 | 5 |
+| Stock at end (U) | 2.2 | 57.3 | 100.7 | 38.2 |
 | Ready food min (days) | 0.00 | 0.00 | 0.00 | 0.00 |
-| Days with no Ready food (opening) | 1 (0) | 6 (0) | 12 (0) | 12 (0) |
-| Meals: ate / raw / missed | 127 / 12 / 5 | 108 / 25 / 11 | 88 / 50 / 6 | 33 / 32 / 79 |
-| Missed % | 3 | 8 | 4 | 55 |
-| Fed / peckish / hungry % of hours | 22 / 15 / 63 | 0 / 11 / 89 | 0 / 22 / 78 | 0 / 4 / 96 |
-| Work h / resident-day | 4.7 | 7.5 | 6.5 | 9.2 |
-| Idle h / resident-day | 7.3 | 4.7 | 5.3 | 3.8 |
-| Idle % | 61 | 38 | 45 | 29 |
-| Board queue avg / max | 2.42 / 16 | 5.94 / 15 | 4.74 / 10 | 1.02 / 9 |
-| Board wait mean / max (game min) | 134 / 600 | 172 / 962 | 111 / 602 | 176 / 793 |
-| Wood in / out / end (U) | 42.2 / 12.0 / 70.2 | 0.0 / 5.4 / 64.8 | 0.0 / 6.6 / 58.3 | 22.0 / 49.6 / 30.6 |
+| Days with no Ready food (opening) | 5 (0) | 9 (0) | 12 (0) | 12 (0) |
+| Meals: ate / raw / missed | 149 / 15 / 52 | 97 / 81 / 38 | 90 / 94 / 32 | 43 / 42 / 131 |
+| Missed % | 24 | 18 | 15 | 61 |
+| Fed / peckish / hungry % of hours | 17 / 10 / 74 | 0 / 11 / 89 | 0 / 13 / 87 | 0 / 3 / 97 |
+| Work h / resident-day | 3.6 | 6.6 | 6.3 | 8.2 |
+| Idle h / resident-day | 8.9 | 5.7 | 6.2 | 4.9 |
+| Idle % | 71 | 46 | 50 | 37 |
+| Board queue avg / max | 1.00 / 15 | 2.50 / 12 | 1.66 / 8 | 1.02 / 10 |
+| Board wait mean / max (game min) | 107 / 601 | 124 / 839 | 97 / 602 | 227 / 862 |
+| Wood in / out / end (U) | 37.8 / 13.3 / 64.5 | 0.0 / 5.1 / 59.4 | 0.0 / 6.7 / 52.7 | 15.8 / 50.0 / 18.6 |
 | Planks / stone / earth at end (U) | 4.0 / 20.0 / 0.0 | 4.0 / 20.0 / 0.0 | 4.0 / 20.0 / 0.0 | 4.0 / 20.0 / 0.0 |
 | Beds sown / harvested | 12 / 8 | 11 / 18 | 0 / 0 | 0 / 0 |
 | Crops withered (blight/frost/overripe/other) | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 |
 | Weather events | ideal_spell | calm_days | ideal_spell | hard_freeze |
 | Frost nights / blight outbreaks | 1 / 1 | 0 / 2 | 2 / 1 | 0 / 0 |
-| Incident raises (critical) / rescues | 15 (1) / 0 | 16 (1) / 0 | 18 (1) / 0 | 22 (2) / 0 |
+| Incident raises (critical) / rescues | 19 (1) / 0 | 17 (1) / 0 | 26 (1) / 0 | 20 (2) / 0 |
 
 Daily series (each scaled to its own maximum):
 
 ```
-Ready food (days)        █▇▆▅▄▃▂▃▂▂▁▁▄▆▅▃▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 5.5
-Pantry stock (U)         ▄▄▃▃▂▂▂▂▂▂▁▁▂▄▄▄▄▃▃▄▅▄▄▄▆▆███▇▇▇▆▅▄▄▄▃▃▃▃▃▂▂▂▃▃▂  max 191.5
-Food stored (U)          ▂▁▁▂▁▁▂▃▂▂▁▂▅▅▃▃▄▂▅▅▄▄▄▄▇▃█▄▃▃▄▃▃▃▃▃▁▁▁▁▁▁▁▁▁▁▁▁  max 86.4
-Portions eaten           ▇█████▇▇█▆▅▆▃████▆██▅▅▅▅▅▅▅▆▆▆▅▆▆▆▄▆▂▄▃▂▃▃▁▁▃▂▃▄  max 12.0
-Spoiled (U)              ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▅▅▅▅▂▄▆▅▃▃▂▃▃▃▅▄▃█▃▅▂▁▁▁▁▁▁▂▁▁▁▁▁  max 45.7
-Meals missed             ▂▁▁▁▁▁▁▁▁▁▁▃▂▁▁▁▁▁▁▁▂▂▃▃▃▁▁▁▁▁▂▁▁▁▂▁▁▁▂▃▅▆██▆▇▆▅  max 12.0
-Hungry resident-hours    ▁▁▁▃▇▇▇▇▇▇▇█▇▇▇▇▇▇▇▇▇▇▇▇▇▇▆▆▇▆▆▇▆▆▆▇▇▇█▇████████  max 144.0
-Work h (all residents)   ▄▄▂▃▃▃▃▅▃▄▆▅▇▆▅▅▆▅▆▆▅▅▅▅▆▅▆▆▅▅▅▅▄▄▅▄▆▆▆▆▇███▆▆▇▇  max 68.8
-Idle h (all residents)   ▆▆█▇▇█▇▄█▅▃▅▂▃▅▅▄▅▃▄▅▅▅▅▄▅▃▄▅▅▆▅▅▅▅▆▃▄▄▄▄▃▃▃▅▄▄▄  max 58.9
-Wood (U)                 ▅▄▄▄▄▄▄▄▄▄▅███████████▇▇▇▇▇▇▇▇▇▇▇▇▇▇▆▆▆▆▅▅▅▅▅▄▄▄  max 70.2
+Ready food (days)        █▇▅▃▂▁▁▃▂▁▁▁▄▅▂▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 3.7
+Pantry stock (U)         ▅▄▃▂▂▁▁▂▁▁▁▁▃▄▃▂▂▃▃▃▄▄▄▄▅▅▇██████▇▅▅▅▄▃▃▃▃▃▃▃▃▃▃  max 158.1
+Food stored (U)          ▂▁▁▂▂▁▂▄▂▂▂▂▆▅▂▂▃▄▄▅▄▃▃▃▇▃█▄▃▄▄▄▄▃▄▄▁▁▁▁▁▁▁▁▁▁▁▁  max 81.3
+Portions eaten           ▅███▅▅▄▄▇▆▅▃▃██▃▃▃▄▃▃▃▃▃▃▄▄▄▄▃▄▄▄▄▄▃▃▁▃▃▂▂▃▁▄▁▄▂  max 18.0
+Spoiled (U)              ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▃▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▃▂█▂▁▁▁▁▁▁▂▁▁▁▁▁  max 48.3
+Meals missed             ▄▁▁▁▃▃▅▅▁▂▃▅▅▁▁▂▂▃▂▂▂▃▂▂▂▂▂▃▂▂▂▁▁▁▃▃▂▂▂▄▇▇▆█▅█▅▇  max 18.0
+Hungry resident-hours    ▁▁▃▆█████▇▇████▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇█▇▇███████████  max 216.0
+Work h (all residents)   ▄▃▂▃▃▂▃▅▃▆▄▃▇▆▅▅▅▅▆▅▅▅▄▅▅▄▆▅▄▄▄▅▅▆▇▆▆▆▅▅▆▇▇█▆▆▆▆  max 98.2
+Idle h (all residents)   ▆▇██▇▇▇▆▇▄▆█▄▄▄▅▅▅▃▄▅▅▆▅▅▆▄▆▆▆▆▅▄▄▃▅▄▅▄▅▅▃▄▃▄▅▄▅  max 97.5
+Wood (U)                 ▅▅▅▅▄▄▄▄▄████████████▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▆▆▆▅▅▅▄▄▄▄▃▃  max 64.8
 ```
 
-Orders given by the policy: Auto-fell off 1, Auto-fell on 1, Cover 8, Drain 5, Fish (net) 35, Gather deadfall 1, Saw planks 2, Sow 14, Water 14
+Orders given by the policy: Auto-fell off 1, Auto-fell on 2, Cover 8, Drain 5, Fish (net) 40, Gather deadfall 4, Saw planks 2, Sow 14, Water 14
 
-Work hours per resident-day, by resident: Placeholder 0 7.7, Placeholder 1 6.5, Placeholder 2 7.2, Placeholder 3 6.8, Placeholder 4 7.3, Placeholder 5 6.4
+Work hours per resident-day, by resident: Wenna Tallowby 7.6, Jory Whitethorn 5.4, Linnet Whinberry 5.0, Tobit Highbough 6.3, Tegwin Slipstone 7.0, Corra Netley 6.4, Tuppen Clayholm 7.8, Hulda Slatebrook 5.3, Elstan Weirholt 4.7
 
-New incidents by source: farm 10, kitchen 1, threat 1, village 1, water 36, winter 1; threats: fire at the covered store 2, flood at the stream edge 3
+New incidents by source: farm 11, kitchen 1, threat 1, village 1, water 35, winter 1; threats: fire at the covered store 2, flood at the stream edge 3
 
 ## Run: light_touch seed 3
 
 | | Y1 Spring | Y1 Summer | Y1 Autumn | Y1 Winter |
 |---|---|---|---|---|
-| Food stored (U) | 94.8 | 448.0 | 424.7 | 46.5 |
-| of which fish (U) | 42.2 | 54.2 | 82.5 | 46.5 |
-| Food eaten (U) | 174.1 | 183.0 | 201.4 | 100.0 |
-| Portions eaten | 128 | 110 | 80 | 44 |
-| Spoiled in store (U) | 6.5 | 173.9 | 215.8 | 6.7 |
-| Spoilage % | 7 | 38 | 42 | 4 |
-| Stock at end (U) | 4.2 | 95.3 | 102.8 | 42.6 |
+| Food stored (U) | 114.3 | 406.4 | 410.6 | 41.4 |
+| of which fish (U) | 57.5 | 65.1 | 83.3 | 41.4 |
+| Food eaten (U) | 200.3 | 301.7 | 307.5 | 76.7 |
+| Portions eaten | 149 | 115 | 84 | 40 |
+| Spoiled in store (U) | 1.8 | 36.2 | 93.7 | 6.7 |
+| Spoilage % | 2 | 9 | 19 | 6 |
+| Stock at end (U) | 2.2 | 70.7 | 80.0 | 37.9 |
 | Ready food min (days) | 0.00 | 0.00 | 0.00 | 0.00 |
-| Days with no Ready food (opening) | 1 (0) | 6 (0) | 12 (0) | 12 (0) |
-| Meals: ate / raw / missed | 128 / 11 / 5 | 110 / 26 / 8 | 80 / 57 / 7 | 44 / 36 / 64 |
-| Missed % | 3 | 6 | 5 | 44 |
-| Fed / peckish / hungry % of hours | 21 / 15 / 64 | 0 / 13 / 87 | 0 / 17 / 83 | 0 / 5 / 95 |
-| Work h / resident-day | 4.7 | 7.5 | 7.1 | 8.8 |
-| Idle h / resident-day | 7.4 | 4.7 | 4.8 | 3.9 |
-| Idle % | 61 | 38 | 40 | 31 |
-| Board queue avg / max | 2.46 / 16 | 4.85 / 13 | 4.66 / 10 | 1.20 / 10 |
-| Board wait mean / max (game min) | 141 / 661 | 167 / 862 | 128 / 705 | 179 / 804 |
-| Wood in / out / end (U) | 42.2 / 12.2 / 70.0 | 0.0 / 5.6 / 64.5 | 0.0 / 12.2 / 52.3 | 24.0 / 50.0 / 26.2 |
+| Days with no Ready food (opening) | 5 (0) | 8 (0) | 12 (0) | 12 (0) |
+| Meals: ate / raw / missed | 149 / 15 / 52 | 115 / 72 / 29 | 84 / 101 / 31 | 40 / 27 / 149 |
+| Missed % | 24 | 13 | 14 | 69 |
+| Fed / peckish / hungry % of hours | 16 / 10 / 74 | 0 / 12 / 88 | 0 / 12 / 88 | 0 / 3 / 97 |
+| Work h / resident-day | 3.6 | 7.0 | 7.6 | 8.0 |
+| Idle h / resident-day | 8.8 | 5.1 | 4.9 | 5.2 |
+| Idle % | 71 | 42 | 39 | 39 |
+| Board queue avg / max | 1.00 / 15 | 2.61 / 12 | 2.29 / 9 | 0.86 / 10 |
+| Board wait mean / max (game min) | 111 / 601 | 112 / 690 | 116 / 686 | 216 / 1200 |
+| Wood in / out / end (U) | 37.8 / 13.3 / 64.5 | 0.0 / 6.0 / 58.5 | 6.5 / 12.4 / 52.6 | 25.0 / 49.9 / 27.6 |
 | Planks / stone / earth at end (U) | 4.0 / 20.0 / 0.0 | 4.0 / 20.0 / 0.0 | 4.0 / 20.0 / 0.0 | 4.0 / 20.0 / 0.0 |
 | Beds sown / harvested | 12 / 8 | 11 / 18 | 0 / 0 | 0 / 0 |
 | Crops withered (blight/frost/overripe/other) | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 |
 | Weather events | ideal_spell | calm_days | early_frost | calm_days |
 | Frost nights / blight outbreaks | 1 / 1 | 0 / 2 | 2 / 1 | 0 / 0 |
-| Incident raises (critical) / rescues | 15 (1) / 0 | 17 (1) / 0 | 20 (1) / 0 | 28 (2) / 0 |
+| Incident raises (critical) / rescues | 20 (1) / 0 | 17 (1) / 0 | 27 (1) / 0 | 20 (2) / 0 |
 
 Daily series (each scaled to its own maximum):
 
 ```
-Ready food (days)        █▇▆▅▄▃▂▃▂▂▁▁▄▆▄▃▂▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 5.5
-Pantry stock (U)         ▄▃▃▃▂▂▂▂▂▂▁▁▂▃▄▃▃▃▃▄▄▄▄▄▆▆██████▅▅▄▄▄▃▃▃▃▂▂▂▂▂▂▂  max 218.7
-Food stored (U)          ▁▁▁▁▁▁▂▃▂▂▁▂▄▅▃▃▄▃▄▅▄▃▃▃▇▃█▃▃▃▄▃▂▂▂▄▁▁▁▁▁▁▁▁▁▁▁▁  max 96.4
-Portions eaten           ▇▇█████▇▆▇▇▆▆▇█▆███▇▅▅▅▅▅▆▅▆▅▆▅▆▆▁▆▅▂▃▃▃▂▃▃▄▃▃▃▃  max 12.0
-Spoiled (U)              ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▃▂▃▃▃▂▂▂▃▂▁▃▁▃▂▂▂█▁▂▁▁▁▁▁▁▁▂▁▁▁▁▁  max 91.9
-Meals missed             ▂▂▁▁▁▁▁▁▁▁▁▃▃▁▁▁▁▁▁▁▃▃▂▂▃▁▃▁▁▁▂▁▁▂▁▂▂▁▁▂▆▇▇▆█▇▇▇  max 9.0
-Hungry resident-hours    ▁▁▁▃█▇██▇▇█▇█▇█▇▇██▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇██▇████████  max 141.0
-Work h (all residents)   ▅▄▂▃▄▃▃▆▃▅▇▅█▇▅▅▆▆▇▇▆▅▆▆▇▆▆▆▆▅▅▅▅▇█▅▇▇▇▇▇▇▇▇▇▇█▇  max 61.0
-Idle h (all residents)   ▆▆█▇▇▇▇▄▇▅▃▅▃▄▅▅▄▄▄▃▅▅▅▅▄▄▄▄▄▅▅▅▅▃▂▅▃▃▄▄▄▄▄▄▄▄▃▄  max 61.4
-Wood (U)                 ▅▄▄▄▄▄▄▄▄▄▅███████████▇▇▇▇▇▇▇▇▇▇▇▇▆▆▆▆▅▅▅▅▅▄▄▄▄▄  max 70.0
+Ready food (days)        █▇▅▃▂▁▁▃▂▁▁▁▄▅▃▁▁▁▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁  max 3.7
+Pantry stock (U)         ▄▄▃▂▂▁▁▂▁▁▁▁▃▃▃▃▃▂▃▃▄▃▃▄▅▅▇███▇▇▆▅▄▄▃▃▃▃▃▃▃▂▃▂▂▂  max 190.3
+Food stored (U)          ▂▁▁▂▁▁▂▄▂▂▂▂▆▄▃▃▃▄▅▃▄▃▃▃▆▃█▃▃▄▃▃▃▃▂▃▁▁▁▁▁▁▁▁▁▁▁▁  max 86.3
+Portions eaten           ▅███▆▅▄▄▇▆▅▃▃█▆▇▆▃▅▃▆▃▃▃▄▄▃▄▄▄▄▄▄▁▃▄▁▃▂▃▃▁▂▃▂▄▃▃  max 18.0
+Spoiled (U)              ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▄▁▃▂▁▁▁▁▁▁▁▁▁▁▁▂▄▂█▂▄▁▁▁▁▁▁▁▁▂▁▁▁▁  max 41.1
+Meals missed             ▄▁▁▁▃▃▅▅▁▂▃▅▅▁▁▁▂▂▁▁▁▂▃▃▂▂▁▃▁▂▁▂▂▃▃▂▂▂▆▆▆█▇▆▇▅▆▆  max 18.0
+Hungry resident-hours    ▁▁▃▆█████▇▇███▇█▇▇▇▇▇▇▇▇▇▇▇▇▇▇▆▇▇▇▇▇█▇██████████  max 216.0
+Work h (all residents)   ▃▃▂▃▃▂▃▅▃▆▄▃▆▆▅▅▅▅▆▅▅▄▄▅▆▅▅▆▅▄▄▅▆██▅▆▅▆▅▅█▆▅▅▇▆▆  max 104.7
+Idle h (all residents)   ▆▇█▇▇▇▇▆▇▄▆█▄▃▅▄▄▄▃▃▄▆▆▅▄▅▄▄▅▆▆▄▄▂▁▅▄▄▄▅▅▃▅▅▅▃▅▅  max 97.5
+Wood (U)                 ▅▅▅▅▄▄▄▄▄██████████▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▆▇▆▆▆▆▆▅▅▅▄▄▄▄  max 64.8
 ```
 
-Orders given by the policy: Auto-fell off 1, Auto-fell on 2, Cover 8, Drain 5, Fish (net) 38, Gather deadfall 2, Saw planks 2, Sow 14, Water 12
+Orders given by the policy: Auto-fell off 1, Auto-fell on 2, Cover 8, Drain 5, Fish (net) 40, Gather deadfall 4, Saw planks 2, Sow 14, Water 14
 
-Work hours per resident-day, by resident: Placeholder 0 7.5, Placeholder 1 6.7, Placeholder 2 6.9, Placeholder 3 6.8, Placeholder 4 7.4, Placeholder 5 6.9
+Work hours per resident-day, by resident: Wenna Tallowby 8.1, Jory Whitethorn 5.9, Linnet Whinberry 5.9, Tobit Highbough 5.9, Tegwin Slipstone 7.6, Corra Netley 6.9, Tuppen Clayholm 7.9, Hulda Slatebrook 5.8, Elstan Weirholt 5.0
 
-New incidents by source: farm 9, kitchen 1, threat 1, village 1, water 39, winter 1; threats: fire at the covered store 2, flood at the stream edge 3
+New incidents by source: farm 11, kitchen 1, threat 1, village 1, water 38, winter 1; threats: fire at the covered store 2, flood at the stream edge 3
 
 ## Run: provisioning seed 1
 
 | | Y1 Spring | Y1 Summer | Y1 Autumn | Y1 Winter |
 |---|---|---|---|---|
-| Food stored (U) | 102.5 | 487.1 | 519.8 | 54.8 |
-| of which fish (U) | 41.9 | 54.3 | 90.6 | 38.8 |
-| Food eaten (U) | 168.1 | 177.0 | 209.2 | 76.6 |
-| Portions eaten | 127 | 105 | 88 | 36 |
-| Spoiled in store (U) | 6.7 | 189.4 | 192.0 | 26.7 |
-| Spoilage % | 7 | 38 | 31 | 13 |
-| Stock at end (U) | 11.6 | 109.4 | 153.5 | 97.0 |
-| Ready food min (days) | 0.17 | 0.00 | 0.00 | 0.00 |
-| Days with no Ready food (opening) | 0 (0) | 5 (0) | 12 (0) | 12 (0) |
-| Meals: ate / raw / missed | 127 / 8 / 9 | 105 / 27 / 12 | 88 / 47 / 9 | 36 / 28 / 80 |
-| Missed % | 6 | 8 | 6 | 56 |
-| Fed / peckish / hungry % of hours | 21 / 14 / 65 | 0 / 11 / 89 | 0 / 17 / 83 | 0 / 4 / 96 |
-| Work h / resident-day | 4.6 | 8.0 | 7.9 | 7.0 |
-| Idle h / resident-day | 7.5 | 4.1 | 3.9 | 6.0 |
-| Idle % | 62 | 34 | 33 | 46 |
-| Board queue avg / max | 2.49 / 16 | 5.53 / 17 | 4.10 / 12 | 4.36 / 13 |
-| Board wait mean / max (game min) | 139 / 660 | 162 / 757 | 119 / 740 | 145 / 800 |
-| Wood in / out / end (U) | 42.2 / 12.1 / 70.2 | 0.0 / 5.3 / 64.8 | 0.0 / 8.6 / 56.3 | 28.8 / 49.7 / 35.3 |
+| Food stored (U) | 114.9 | 483.4 | 585.0 | 100.2 |
+| of which fish (U) | 58.1 | 60.2 | 94.8 | 40.2 |
+| Food eaten (U) | 200.3 | 275.8 | 234.6 | 122.9 |
+| Portions eaten | 149 | 105 | 94 | 39 |
+| Spoiled in store (U) | 2.4 | 56.6 | 173.4 | 35.9 |
+| Spoilage % | 2 | 12 | 25 | 14 |
+| Stock at end (U) | 2.2 | 99.2 | 160.7 | 97.6 |
+| Ready food min (days) | 0.00 | 0.00 | 0.00 | 0.00 |
+| Days with no Ready food (opening) | 5 (0) | 10 (0) | 12 (0) | 12 (0) |
+| Meals: ate / raw / missed | 149 / 15 / 52 | 105 / 71 / 40 | 94 / 70 / 52 | 39 / 90 / 87 |
+| Missed % | 24 | 19 | 24 | 40 |
+| Fed / peckish / hungry % of hours | 16 / 10 / 74 | 0 / 11 / 89 | 0 / 11 / 89 | 0 / 7 / 93 |
+| Work h / resident-day | 3.6 | 7.5 | 8.0 | 7.3 |
+| Idle h / resident-day | 8.9 | 4.7 | 4.5 | 5.4 |
+| Idle % | 71 | 39 | 36 | 43 |
+| Board queue avg / max | 0.96 / 15 | 2.77 / 15 | 2.61 / 14 | 1.56 / 9 |
+| Board wait mean / max (game min) | 109 / 601 | 122 / 825 | 88 / 604 | 151 / 808 |
+| Wood in / out / end (U) | 38.8 / 13.3 / 65.5 | 0.0 / 5.4 / 60.0 | 2.5 / 8.9 / 53.7 | 25.8 / 49.8 / 29.6 |
 | Planks / stone / earth at end (U) | 4.0 / 20.0 / 0.0 | 4.0 / 20.0 / 0.0 | 4.0 / 20.0 / 0.0 | 4.0 / 20.0 / 0.0 |
-| Beds sown / harvested | 12 / 7 | 11 / 19 | 0 / 0 | 0 / 0 |
+| Beds sown / harvested | 12 / 8 | 11 / 18 | 0 / 0 | 0 / 0 |
 | Crops withered (blight/frost/overripe/other) | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 |
 | Weather events | ideal_spell | ideal_spell | blight | ideal_spell |
 | Frost nights / blight outbreaks | 1 / 1 | 0 / 2 | 2 / 1 | 0 / 0 |
-| Incident raises (critical) / rescues | 15 (1) / 0 | 16 (1) / 0 | 18 (1) / 0 | 24 (2) / 0 |
+| Incident raises (critical) / rescues | 20 (1) / 0 | 18 (1) / 0 | 22 (1) / 0 | 21 (2) / 0 |
 
 Daily series (each scaled to its own maximum):
 
 ```
-Ready food (days)        █▇▆▅▄▃▂▃▃▃▂▁▄▆▄▃▂▁▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 5.5
-Pantry stock (U)         ▃▃▃▂▂▂▂▂▂▂▁▁▃▄▄▃▃▃▃▄▄▄▅▄▆▆█████▇▅▅▅▆▅▅▄▄▄▄▄▄▄▄▄▄  max 235.3
-Food stored (U)          ▁▁▁▁▁▁▂▃▂▂▁▁▅▅▃▃▄▃▄▅▃▄▄▃▇▃█▄▄▄▄▄▃▄▃▃▂▂▁▁▁▁▁▁▁▁▁▁  max 97.4
-Portions eaten           ▇▇█████▇█▆▆▅▃██▆██▆▅█▅▅▅▅▅▅▆▆▆▅▅▇▆▆▅▂▃▁▃▃▃▃▃▂▂▄▂  max 12.0
-Spoiled (U)              ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▄▄▅▃▂▂▂▂▄▂▂▂▂▂▃▂▃█▃▁▁▁▁▂▁▁▁▃▁▁▁▁▁  max 65.5
-Meals missed             ▂▂▁▁▁▁▁▁▁▁▂▄▄▁▁▁▁▁▁▁▁▃▂▃▃▁▁▂▂▁▂▁▁▂▂▁▂▁▃▅▆▆▆▆▇▇▅█  max 11.0
-Hungry resident-hours    ▁▁▁▃▇▇▇▇▇▇▇█▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▆▇▇▇▆▇█▇█████████  max 143.0
-Work h (all residents)   ▅▄▃▃▃▃▃▆▄▅▇▄██▆▅▇▇▆█▆▆▆▆▇▇▇▇▇▆▇▇▆▆▆▄▇▆▆▆▆▃▃▃▆▇▇▇  max 62.4
-Idle h (all residents)   ▆▇█▇▇█▇▄▆▅▃▆▃▂▄▅▄▄▄▂▄▅▄▅▄▃▃▃▃▄▄▂▄▅▄▆▃▄▄▅▅███▅▄▄▄  max 60.5
-Wood (U)                 ▅▄▄▄▄▄▄▄▄▄▅████████████▇▇▇▇▇▇▇▇▇▇▇▇▇▆▆▆▆▅▅▅▆▅▅▅▅  max 70.2
+Ready food (days)        █▇▅▃▂▁▁▃▂▁▁▁▄▅▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 3.7
+Pantry stock (U)         ▃▃▃▂▂▁▁▂▁▁▁▁▂▃▃▂▂▂▃▃▃▄▄▄▅▅▇▇█▇▇▆▇▆▆▆▆▅▅▄▄▄▄▄▄▄▄▄  max 238.8
+Food stored (U)          ▁▁▁▂▁▁▂▃▂▂▂▂▅▅▂▃▃▄▅▄▄▄▃▄▆▃█▄▅▄▄▃▄▄▃▃▂▁▂▁▂▁▂▂▂▂▂▂  max 100.3
+Portions eaten           ▅███▅▅▄▄▇▆▅▃▃██▃▃▄▆▄▃▃▃▃▄▃▄▄▄▄▄▄▄▅▄▃▂▂▃▃▁▃▃▃▃▂▃▃  max 18.0
+Spoiled (U)              ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂█▁▂▁▂▃▂▁▁▂▂▁▂▃▇▆▆▇▆▆▆▃▃▁▂▁▁▂▃▁▁▂▁  max 29.7
+Meals missed             ▅▁▁▁▅▄▇▇▁▃▄▇▇▁▁▂▅▅▂▂▄▅▄▂▄▄▅▄▅▄▄▂▅▂▃▄▄▂▃▁▄▆█████▇  max 11.0
+Hungry resident-hours    ▁▁▃▆███████████▇▇▇▇▇▇█▇▇▇████▇▇▇█▇▇▇███▇████████  max 210.0
+Work h (all residents)   ▄▃▂▃▃▂▃▄▃▆▄▃▇▆▆▄▅▇▆▇▄▅▅▅▇▆▆▆▇▆▆▆▆▅▅▅▇██▆▆▂▃▃▆▆▆▆  max 100.8
+Idle h (all residents)   ▆▇█▇▇█▇▆▇▄▆█▄▃▄▅▅▃▃▂▆▄▅▄▃▃▄▄▃▄▄▃▄▄▅▅▃▂▂▄▄███▅▄▄▄  max 97.3
+Wood (U)                 ▅▅▅▅▄▄▄▄▄▇██████████▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▆▆▆▆▆▆▅▅▅▅▅▄  max 65.8
 ```
 
-Orders given by the policy: Auto-fell off 1, Auto-fell on 1, Brew mead 14, Cover 8, Drain 5, Dry fruit 8, Fish (net) 37, Gather deadfall 1, Make cordial 20, Not ordered: Brew mead (NO_HONEY) 34, Not ordered: Dry fish (NO_FISH) 48, Not ordered: Dry fruit (NO_FRUIT) 40, Not ordered: Make cordial (NO_BERRIES) 27, Not ordered: Make cordial (NO_HONEY) 1, Not ordered: Pack rations (NO_FLOUR) 48, Saw planks 2, Sow 14, Water 10
+Orders given by the policy: Auto-fell off 1, Auto-fell on 1, Brew mead 9, Cover 8, Drain 5, Dry fruit 8, Fish (net) 40, Forage (nuts) 21, Gather deadfall 1, Make cheese 15, Make cider 4, Make cordial 16, Make jam 10, Make vinegar 1, Not ordered: Brew ale (NO_BARLEY) 44, Not ordered: Brew ale (VATS_FULL) 4, Not ordered: Brew mead (NO_HONEY) 36, Not ordered: Brew mead (VATS_FULL) 3, Not ordered: Dry fish (NO_FISH) 48, Not ordered: Dry fruit (NO_FRUIT) 40, Not ordered: Make cheese (NO_NUTS) 33, Not ordered: Make cider (NO_APPLES) 40, Not ordered: Make cider (VATS_FULL) 4, Not ordered: Make cordial (NO_BERRIES) 27, Not ordered: Make cordial (NO_HONEY) 5, Not ordered: Make jam (NO_BERRIES) 30, Not ordered: Make jam (NO_HONEY) 8, Not ordered: Make pickles (CROCKS_FULL) 5, Not ordered: Make pickles (NO_ROOTS) 39, Not ordered: Make pickles (NO_VINEGAR) 4, Not ordered: Make vinegar (NO_APPLES) 40, Not ordered: Make vinegar (VATS_FULL) 7, Not ordered: Pack rations (NO_FLOUR) 48, Saw planks 2, Sow 14, Water 10
 
-Work hours per resident-day, by resident: Placeholder 0 7.6, Placeholder 1 6.9, Placeholder 2 6.4, Placeholder 3 6.9, Placeholder 4 7.3, Placeholder 5 6.0
+Work hours per resident-day, by resident: Wenna Tallowby 8.3, Jory Whitethorn 6.7, Linnet Whinberry 5.8, Tobit Highbough 6.1, Tegwin Slipstone 7.4, Corra Netley 6.7, Tuppen Clayholm 7.3, Hulda Slatebrook 5.4, Elstan Weirholt 5.6
 
-New incidents by source: farm 9, kitchen 1, threat 1, village 1, water 38, winter 1; threats: fire at the covered store 2, flood at the stream edge 3
+New incidents by source: farm 10, kitchen 1, threat 1, village 1, water 35, winter 1; threats: fire at the covered store 2, flood at the stream edge 3
 
 ## Run: provisioning seed 2
 
 | | Y1 Spring | Y1 Summer | Y1 Autumn | Y1 Winter |
 |---|---|---|---|---|
-| Food stored (U) | 106.6 | 477.1 | 489.5 | 50.5 |
-| of which fish (U) | 41.9 | 48.4 | 90.3 | 34.5 |
-| Food eaten (U) | 170.1 | 151.7 | 224.0 | 86.0 |
-| Portions eaten | 134 | 104 | 88 | 34 |
-| Spoiled in store (U) | 5.1 | 218.3 | 151.7 | 18.7 |
-| Spoilage % | 5 | 44 | 26 | 9 |
-| Stock at end (U) | 15.4 | 105.4 | 150.2 | 90.5 |
+| Food stored (U) | 114.3 | 489.4 | 523.6 | 106.9 |
+| of which fish (U) | 57.5 | 60.2 | 93.4 | 40.9 |
+| Food eaten (U) | 200.3 | 293.4 | 267.2 | 123.3 |
+| Portions eaten | 149 | 107 | 94 | 36 |
+| Spoiled in store (U) | 1.8 | 58.4 | 108.9 | 20.2 |
+| Spoilage % | 2 | 12 | 18 | 8 |
+| Stock at end (U) | 2.2 | 96.9 | 143.3 | 90.7 |
 | Ready food min (days) | 0.00 | 0.00 | 0.00 | 0.00 |
-| Days with no Ready food (opening) | 1 (0) | 8 (0) | 12 (0) | 12 (0) |
-| Meals: ate / raw / missed | 134 / 6 / 4 | 104 / 18 / 22 | 88 / 48 / 8 | 34 / 38 / 72 |
-| Missed % | 3 | 15 | 6 | 50 |
-| Fed / peckish / hungry % of hours | 22 / 14 / 64 | 0 / 9 / 91 | 0 / 19 / 81 | 0 / 5 / 95 |
-| Work h / resident-day | 4.9 | 8.0 | 8.0 | 9.3 |
-| Idle h / resident-day | 7.2 | 4.2 | 3.7 | 3.7 |
-| Idle % | 60 | 34 | 32 | 28 |
-| Board queue avg / max | 2.43 / 16 | 5.62 / 15 | 5.06 / 13 | 4.97 / 14 |
-| Board wait mean / max (game min) | 136 / 600 | 163 / 828 | 126 / 815 | 166 / 857 |
-| Wood in / out / end (U) | 42.2 / 12.4 / 69.8 | 0.0 / 5.2 / 64.7 | 0.0 / 6.6 / 58.1 | 17.5 / 49.6 / 25.9 |
+| Days with no Ready food (opening) | 5 (0) | 10 (0) | 12 (0) | 12 (0) |
+| Meals: ate / raw / missed | 149 / 15 / 52 | 107 / 76 / 33 | 94 / 81 / 41 | 36 / 92 / 88 |
+| Missed % | 24 | 15 | 19 | 41 |
+| Fed / peckish / hungry % of hours | 17 / 10 / 74 | 0 / 11 / 89 | 0 / 12 / 88 | 0 / 6 / 94 |
+| Work h / resident-day | 3.6 | 7.6 | 7.7 | 8.8 |
+| Idle h / resident-day | 8.9 | 4.6 | 4.5 | 3.8 |
+| Idle % | 71 | 38 | 37 | 30 |
+| Board queue avg / max | 1.00 / 15 | 2.91 / 16 | 2.56 / 15 | 1.44 / 10 |
+| Board wait mean / max (game min) | 107 / 601 | 117 / 731 | 82 / 601 | 151 / 938 |
+| Wood in / out / end (U) | 37.8 / 13.3 / 64.5 | 0.0 / 5.6 / 58.9 | 1.0 / 6.9 / 53.0 | 17.5 / 49.6 / 20.9 |
 | Planks / stone / earth at end (U) | 4.0 / 20.0 / 0.0 | 4.0 / 20.0 / 0.0 | 4.0 / 20.0 / 0.0 | 4.0 / 20.0 / 0.0 |
 | Beds sown / harvested | 12 / 8 | 11 / 18 | 0 / 0 | 0 / 0 |
 | Crops withered (blight/frost/overripe/other) | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 |
 | Weather events | ideal_spell | calm_days | ideal_spell | hard_freeze |
 | Frost nights / blight outbreaks | 1 / 1 | 0 / 2 | 2 / 1 | 0 / 0 |
-| Incident raises (critical) / rescues | 15 (1) / 0 | 15 (1) / 0 | 18 (1) / 0 | 22 (2) / 0 |
+| Incident raises (critical) / rescues | 19 (1) / 0 | 20 (1) / 0 | 20 (1) / 0 | 23 (2) / 0 |
 
 Daily series (each scaled to its own maximum):
 
 ```
-Ready food (days)        █▇▆▅▄▃▂▃▃▃▂▁▄▆▄▃▂▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 5.5
-Pantry stock (U)         ▄▄▃▃▂▂▂▂▂▂▂▂▃▄▄▄▄▄▃▄▅▅▅▅▇▇██▇▇▇▇▇▆▆▆▆▅▅▅▅▅▄▄▄▄▄▄  max 195.6
-Food stored (U)          ▂▁▁▂▁▁▂▃▂▂▁▂▅▆▃▃▄▄▅▅▅▄▄▄█▃█▄▄▄▄▄▄▃▄▃▂▂▁▂▁▁▁▁▁▁▁▁  max 85.0
-Portions eaten           ▇█████▇██▆█▆▅██▆██▇▆▅▅▅▅▅▅▅▆▆▆▅▆▆▆▄▆▂▃▃▂▃▃▁▁▂▃▃▅  max 12.0
-Spoiled (U)              ▁▁▁▂▁▁▂▁▁▁▁▁▁▁▃▇▆▇▇▆▆▅█▇▃▂▆▅▄▅▃▄▇▃▄▁▂▁▁▁▁▁▄▁▁▁▁▁  max 30.0
-Meals missed             ▂▁▁▁▁▁▁▁▁▁▁▃▂▁▁▂▁▁▁▂▅▃▄▃▃▁▁▁▁▁▂▁▁▁▂▂▂▁▁▂▃▆██▇▆▆▅  max 12.0
-Hungry resident-hours    ▁▁▁▃▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇██▇▇▇▇▇▆▆▆▇▇▇▇▇▇▇▇▇▇█▇███████  max 144.0
-Work h (all residents)   ▄▄▂▃▃▃▃▆▃▄▇▅▇▇▆▅▆▆▆▇▅▅▅▅▆▆▆▆▆▆▆▆▆▆▅▅▆▆▆▆▆▇██▆▆▇▇  max 70.1
-Idle h (all residents)   ▆▆█▇▇█▇▄▇▆▃▅▂▃▄▅▃▄▃▃▅▅▅▅▄▄▃▃▃▃▄▃▃▄▅▅▃▄▄▄▄▃▃▃▅▄▃▄  max 58.9
-Wood (U)                 ▅▄▄▄▄▄▄▄▄▄▅████████████▇▇▇▇▇▇▇▇▇▇▇▇▇▆▆▆▆▅▅▅▄▄▄▄▄  max 69.8
+Ready food (days)        █▇▅▃▂▁▁▃▂▁▁▁▄▅▂▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▁▁  max 3.7
+Pantry stock (U)         ▄▄▃▂▂▁▁▂▁▁▁▁▃▄▃▂▂▃▃▄▄▄▄▅▆▆████▇██▇▇▆▆▆▅▅▅▅▄▄▄▄▄▄  max 189.9
+Food stored (U)          ▂▁▁▁▁▁▂▃▂▂▂▂▅▅▂▃▃▄▅▄▄▄▄▄▆▃█▃▃▄▄▄▄▃▄▂▂▂▁▂▁▁▁▂▂▂▂▂  max 97.8
+Portions eaten           ▅███▅▅▄▄▇▆▅▃▃██▃▃▃▆▆▃▃▃▃▃▄▄▄▄▅▃▄▄▃▅▅▁▂▃▂▂▂▃▃▂▁▄▂  max 18.0
+Spoiled (U)              ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▆█▁▁▁▁▄▂▂▁▁▂▂▁▁▃▇▄▃▆█▇▁▁▁▂▁▁▃▁▂▂▁▁  max 22.2
+Meals missed             ▅▁▁▁▄▃▆▆▁▂▄▆▆▁▁▂▂▄▂▂▂▅▂▂▂▂▃▂▅▂▄▅▂▄▄▁▄▃▂▂▄▅▇▆▇█▄▇  max 13.0
+Hungry resident-hours    ▁▁▃▆███████████▇▇▇▇█▇█▇▇▇▇▇██▇▇█▇█▇▇████████████  max 210.0
+Work h (all residents)   ▄▃▂▃▃▃▃▅▃▆▄▃▇▇▆▅▆▆▆▆▅▆▅▆▆▆▇▆▆▅▅▆▆▅▅▆█▇▆▆▆█▇▇▆▇▆▆  max 97.2
+Idle h (all residents)   ▆▇██▇▇▇▆▇▄▆█▄▃▄▄▄▄▃▄▄▄▅▄▃▃▃▃▄▄▅▄▄▅▅▃▂▃▄▄▄▃▃▃▅▄▄▄  max 97.5
+Wood (U)                 ▅▅▅▅▄▄▄▄▄██████████▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▆▆▆▆▆▅▅▄▄▄▄▃  max 64.8
 ```
 
-Orders given by the policy: Auto-fell off 1, Auto-fell on 2, Brew mead 13, Cover 8, Drain 5, Dry fruit 9, Fish (net) 35, Gather deadfall 2, Make cordial 18, Not ordered: Brew mead (NO_HONEY) 35, Not ordered: Dry fish (NO_FISH) 48, Not ordered: Dry fruit (NO_FRUIT) 39, Not ordered: Make cordial (NO_BERRIES) 27, Not ordered: Make cordial (NO_HONEY) 3, Not ordered: Pack rations (NO_FLOUR) 48, Saw planks 2, Sow 14, Water 12
+Orders given by the policy: Auto-fell off 1, Auto-fell on 2, Brew mead 10, Cover 8, Drain 5, Dry fruit 8, Fish (net) 40, Forage (nuts) 18, Gather deadfall 2, Make cheese 18, Make cider 2, Make cordial 15, Make jam 10, Make vinegar 2, Not ordered: Brew ale (NO_BARLEY) 46, Not ordered: Brew ale (VATS_FULL) 2, Not ordered: Brew mead (NO_HONEY) 38, Not ordered: Dry fish (NO_FISH) 48, Not ordered: Dry fruit (NO_FRUIT) 40, Not ordered: Make cheese (NO_NUTS) 30, Not ordered: Make cider (NO_APPLES) 44, Not ordered: Make cider (VATS_FULL) 2, Not ordered: Make cordial (NO_BERRIES) 27, Not ordered: Make cordial (NO_HONEY) 6, Not ordered: Make jam (NO_BERRIES) 28, Not ordered: Make jam (NO_HONEY) 10, Not ordered: Make pickles (CROCKS_FULL) 6, Not ordered: Make pickles (NO_ROOTS) 38, Not ordered: Make pickles (NO_VINEGAR) 4, Not ordered: Make vinegar (NO_APPLES) 44, Not ordered: Make vinegar (VATS_FULL) 2, Not ordered: Pack rations (NO_FLOUR) 48, Saw planks 2, Sow 14, Water 12
 
-Work hours per resident-day, by resident: Placeholder 0 8.9, Placeholder 1 7.3, Placeholder 2 7.0, Placeholder 3 7.0, Placeholder 4 7.8, Placeholder 5 7.2
+Work hours per resident-day, by resident: Wenna Tallowby 8.2, Jory Whitethorn 6.5, Linnet Whinberry 6.1, Tobit Highbough 7.1, Tegwin Slipstone 7.6, Corra Netley 7.2, Tuppen Clayholm 7.4, Hulda Slatebrook 6.1, Elstan Weirholt 6.1
 
-New incidents by source: farm 9, kitchen 1, threat 1, village 1, water 36, winter 1; threats: fire at the covered store 2, flood at the stream edge 3
+New incidents by source: farm 10, kitchen 1, threat 1, village 1, water 37, winter 1; threats: fire at the covered store 2, flood at the stream edge 3
 
 ## Run: provisioning seed 3
 
 | | Y1 Spring | Y1 Summer | Y1 Autumn | Y1 Winter |
 |---|---|---|---|---|
-| Food stored (U) | 102.5 | 482.1 | 494.8 | 65.7 |
-| of which fish (U) | 41.9 | 54.2 | 83.6 | 45.7 |
-| Food eaten (U) | 168.1 | 188.8 | 215.0 | 72.9 |
-| Portions eaten | 127 | 99 | 82 | 42 |
-| Spoiled in store (U) | 6.7 | 149.9 | 202.0 | 22.7 |
-| Spoilage % | 7 | 30 | 33 | 11 |
-| Stock at end (U) | 11.6 | 123.1 | 141.4 | 101.0 |
-| Ready food min (days) | 0.17 | 0.00 | 0.00 | 0.00 |
-| Days with no Ready food (opening) | 0 (0) | 8 (0) | 12 (0) | 12 (0) |
-| Meals: ate / raw / missed | 127 / 8 / 9 | 99 / 35 / 10 | 82 / 53 / 9 | 42 / 20 / 82 |
-| Missed % | 6 | 7 | 6 | 57 |
-| Fed / peckish / hungry % of hours | 21 / 14 / 65 | 0 / 13 / 87 | 0 / 18 / 82 | 0 / 4 / 96 |
-| Work h / resident-day | 4.7 | 8.5 | 8.6 | 9.3 |
-| Idle h / resident-day | 7.3 | 3.6 | 3.2 | 3.7 |
-| Idle % | 61 | 30 | 27 | 28 |
-| Board queue avg / max | 2.48 / 16 | 4.92 / 16 | 4.86 / 13 | 4.86 / 15 |
-| Board wait mean / max (game min) | 137 / 600 | 165 / 868 | 127 / 709 | 162 / 794 |
-| Wood in / out / end (U) | 42.2 / 12.1 / 70.2 | 0.0 / 5.0 / 65.2 | 0.0 / 12.3 / 52.9 | 24.8 / 50.0 / 27.6 |
+| Food stored (U) | 114.3 | 467.3 | 522.1 | 93.7 |
+| of which fish (U) | 57.5 | 59.1 | 85.9 | 39.7 |
+| Food eaten (U) | 200.3 | 296.0 | 226.3 | 122.5 |
+| Portions eaten | 149 | 105 | 86 | 36 |
+| Spoiled in store (U) | 1.8 | 30.6 | 137.3 | 7.7 |
+| Spoilage % | 2 | 7 | 22 | 3 |
+| Stock at end (U) | 2.2 | 89.9 | 146.5 | 99.0 |
+| Ready food min (days) | 0.00 | 0.00 | 0.00 | 0.00 |
+| Days with no Ready food (opening) | 5 (0) | 9 (0) | 12 (0) | 12 (0) |
+| Meals: ate / raw / missed | 149 / 15 / 52 | 105 / 75 / 36 | 86 / 81 / 49 | 36 / 95 / 85 |
+| Missed % | 24 | 17 | 23 | 39 |
+| Fed / peckish / hungry % of hours | 16 / 10 / 74 | 0 / 11 / 89 | 0 / 8 / 92 | 0 / 6 / 94 |
+| Work h / resident-day | 3.6 | 7.4 | 8.8 | 8.6 |
+| Idle h / resident-day | 8.8 | 4.8 | 3.7 | 4.0 |
+| Idle % | 71 | 39 | 30 | 32 |
+| Board queue avg / max | 1.00 / 15 | 2.79 / 15 | 2.79 / 13 | 1.57 / 10 |
+| Board wait mean / max (game min) | 111 / 601 | 122 / 746 | 94 / 694 | 140 / 834 |
+| Wood in / out / end (U) | 37.8 / 13.3 / 64.5 | 0.0 / 5.5 / 59.0 | 5.4 / 12.4 / 52.0 | 26.8 / 49.6 / 29.1 |
 | Planks / stone / earth at end (U) | 4.0 / 20.0 / 0.0 | 4.0 / 20.0 / 0.0 | 4.0 / 20.0 / 0.0 | 4.0 / 20.0 / 0.0 |
-| Beds sown / harvested | 12 / 7 | 11 / 19 | 0 / 0 | 0 / 0 |
+| Beds sown / harvested | 12 / 8 | 11 / 18 | 0 / 0 | 0 / 0 |
 | Crops withered (blight/frost/overripe/other) | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 | 0/0/0/0 |
 | Weather events | ideal_spell | calm_days | early_frost | calm_days |
 | Frost nights / blight outbreaks | 1 / 1 | 0 / 2 | 2 / 1 | 0 / 0 |
-| Incident raises (critical) / rescues | 15 (1) / 0 | 16 (1) / 0 | 18 (1) / 0 | 28 (2) / 0 |
+| Incident raises (critical) / rescues | 20 (1) / 0 | 20 (1) / 0 | 25 (1) / 0 | 23 (2) / 0 |
 
 Daily series (each scaled to its own maximum):
 
 ```
-Ready food (days)        █▇▆▅▄▃▂▃▃▃▂▁▄▆▄▃▂▁▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 5.5
-Pantry stock (U)         ▃▃▃▂▂▂▂▂▂▂▁▁▃▄▄▄▃▃▃▄▄▄▅▅▆▆█████▇▆▆▅▅▅▅▅▅▅▄▄▄▄▄▄▄  max 233.8
-Food stored (U)          ▁▁▁▁▁▁▂▃▂▂▁▁▅▅▃▄▃▃▄▅▄▃▄▄▇▃█▄▃▄▄▃▄▃▁▃▂▂▂▂▁▁▁▁▁▁▁▁  max 98.4
-Portions eaten           ▇▇█████▇█▆▆▅▃████▃▅▆█▅▄▅▅▄▆▆▆▆▆▅▅▂▆▅▂▂▃▃▃▅▂▃▃▃▃▂  max 12.0
-Spoiled (U)              ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▃▄▄▂▂▂▃▂▂▃▁▂▂▃▃▂▃█▂▃▂▁▁▁▁▁▁▂▁▁▁▁▁  max 67.0
-Meals missed             ▂▂▁▁▁▁▁▁▁▁▂▅▄▁▁▁▁▁▁▁▁▂▂▃▂▂▁▁▁▂▁▂▂▂▁▂▂▂▅▇▇▅█▇▇▇▇█  max 10.0
-Hungry resident-hours    ▁▁▁▃█▇▇▇▇▇▇█▇▇███▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▆▇███████████  max 142.0
-Work h (all residents)   ▄▄▂▃▄▃▃▆▄▄▇▄▇▇▆▆▇▆▆█▆▅▆▆▆▆▆▇▇▆▆▆▆██▅█▇▇▇▇▇▆▇▆▇▆▇  max 66.5
-Idle h (all residents)   ▆▆█▇▇▇▇▄▆▅▃▆▃▂▄▄▃▃▃▂▄▅▄▅▄▃▃▂▃▄▃▄▄▂▂▅▂▂▄▄▄▄▄▄▄▄▄▃  max 61.4
-Wood (U)                 ▅▄▄▄▄▄▄▄▄▄▅█████████████▇▇▇▇▇▇▇▇▇▇▆▆▆▆▆▅▅▅▅▅▅▄▄▄  max 70.2
+Ready food (days)        █▇▅▃▂▁▁▃▂▁▁▁▄▅▂▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁  max 3.7
+Pantry stock (U)         ▄▃▃▂▂▁▁▂▁▁▁▁▂▃▃▂▂▂▃▄▄▄▄▄▅▅▇█████▇▆▆▆▅▅▅▅▅▄▄▄▄▄▄▄  max 219.1
+Food stored (U)          ▂▁▁▁▁▁▂▃▂▂▂▂▅▄▃▃▃▄▄▅▄▃▃▄▆▃█▄▄▄▄▄▄▃▂▃▂▁▂▂▁▁▂▁▂▂▂▂  max 98.3
+Portions eaten           ▅███▆▅▄▄▇▆▅▃▃██▃▃▃▆▆▃▃▃▃▄▄▃▄▄▅▄▃▄▁▄▄▁▃▃▁▃▂▁▃▃▂▃▃  max 18.0
+Spoiled (U)              ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▃▂▂▁▂▂▁▁▁▁▂▁▂▁▄▃▅▆█▆▄▁▁▁▁▁▁▂▁▁▁▁▁  max 33.0
+Meals missed             ▅▂▁▁▄▃▆▆▁▂▄▆▆▁▁▃▅▂▂▂▃▃▄▂▂▄▃▄▄▂▃▃▃▅▂▃▃▂▃▃▂▅▇█▅▇▇▇  max 13.0
+Hungry resident-hours    ▁▁▃▆███████████▇▇▇██▇▇▇▇▇▇██▇███▇██▇█▇██████████  max 213.0
+Work h (all residents)   ▃▃▂▃▃▂▃▅▃▆▄▃▆▆▅▅▅▅▅▆▅▆▅▅▆▇▆▆▅▆▆▇▅██▆▇▇▇▆▅▆▆▆▆▆▆▆  max 105.3
+Idle h (all residents)   ▆▇█▇▇▇▇▆▇▄▆█▄▄▄▅▄▄▄▃▅▄▄▅▃▃▄▄▄▃▄▃▅▂▁▄▃▂▂▄▅▄▄▅▄▄▄▄  max 97.5
+Wood (U)                 ▅▅▅▅▄▄▄▄▄███████████▇▇▇▇▇▇▇▇▇▇▇▇▇▇▆▇▆▆▆▆▅▅▅▅▄▄▄▄  max 64.8
 ```
 
-Orders given by the policy: Auto-fell off 1, Auto-fell on 2, Brew mead 15, Cover 8, Drain 5, Dry fish 1, Dry fruit 8, Fish (net) 38, Forage (nuts) 1, Gather deadfall 2, Make cordial 22, Not ordered: Brew mead (NO_HONEY) 33, Not ordered: Dry fish (NO_FISH) 47, Not ordered: Dry fruit (NO_FRUIT) 40, Not ordered: Make cordial (NO_BERRIES) 24, Not ordered: Make cordial (NO_HONEY) 2, Not ordered: Pack rations (NO_FLOUR) 48, Saw planks 2, Sow 14, Water 14
+Orders given by the policy: Auto-fell off 1, Auto-fell on 2, Brew mead 11, Cover 8, Drain 5, Dry fruit 9, Fish (net) 39, Forage (nuts) 17, Gather deadfall 3, Make cheese 19, Make cider 2, Make cordial 15, Make jam 10, Make vinegar 1, Not ordered: Brew ale (NO_BARLEY) 45, Not ordered: Brew ale (VATS_FULL) 3, Not ordered: Brew mead (NO_HONEY) 36, Not ordered: Brew mead (VATS_FULL) 1, Not ordered: Dry fish (NO_FISH) 48, Not ordered: Dry fruit (NO_FRUIT) 39, Not ordered: Make cheese (NO_NUTS) 29, Not ordered: Make cider (NO_APPLES) 43, Not ordered: Make cider (VATS_FULL) 3, Not ordered: Make cordial (NO_BERRIES) 30, Not ordered: Make cordial (NO_HONEY) 3, Not ordered: Make jam (NO_BERRIES) 32, Not ordered: Make jam (NO_HONEY) 6, Not ordered: Make pickles (CROCKS_FULL) 6, Not ordered: Make pickles (NO_ROOTS) 38, Not ordered: Make pickles (NO_VINEGAR) 4, Not ordered: Make vinegar (NO_APPLES) 43, Not ordered: Make vinegar (VATS_FULL) 4, Not ordered: Pack rations (NO_FLOUR) 48, Saw planks 2, Sow 14, Water 12
 
-Work hours per resident-day, by resident: Placeholder 0 9.3, Placeholder 1 7.5, Placeholder 2 7.4, Placeholder 3 7.2, Placeholder 4 7.8, Placeholder 5 7.5
+Work hours per resident-day, by resident: Wenna Tallowby 8.7, Jory Whitethorn 6.4, Linnet Whinberry 6.5, Tobit Highbough 7.3, Tegwin Slipstone 7.4, Corra Netley 7.1, Tuppen Clayholm 7.6, Hulda Slatebrook 6.3, Elstan Weirholt 6.5
 
-New incidents by source: farm 9, kitchen 1, threat 1, village 1, water 39, winter 1; threats: fire at the covered store 2, flood at the stream edge 3
+New incidents by source: farm 11, kitchen 1, threat 1, village 1, water 39, winter 1; threats: fire at the covered store 2, flood at the stream edge 3
 
 ## Definitions
 

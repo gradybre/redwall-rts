@@ -1490,5 +1490,7 @@ As interpreted and relayed by the coordinator session:
 
 Unchanged: the bills (ADR 1209 D3), the tread geometry (D1, D2), and the exact contact still required at L0 and T0.
 
+**Brendan's review (2026-10-08): candidate b approved**, and "the same motion is fine at the sill": there is no separate, lower sill program. The work height stays 131 u at the sill (about 65 u above its bearer).
+
 Engineering records: [decision1217](decisions/1217-claw-digging.md) step 2d and
 [decision1209](decisions/1209-descent-past-t0.md).

@@ -422,7 +422,12 @@ upright with a deeper hip drop. Two exact trials did not clear:
 - lean 15° crossed the bearer with the paws during the entry;
 - a work height that followed each bearer (the sill 64 u lower) put the left arm against the body.
 
-**Next, after review:** native capture, integer rows and a content successor with a tread fitting row, then ADR 1209
+### Brendan's review of step 2d (2026-10-08): **candidate b approved**
+
+Brendan approved candidate b (work height 131 u, paws ±224 at z −300, lean 0°, hip drop 96 u, head lift 60°,
+palms 90°/90°). He also ruled that **the same motion is fine at the sill**: no separate, lower sill program.
+
+**Next:** native capture, integer rows and a content successor with a tread fitting row, then ADR 1209
 steps 5–7 (the arrival at the 310 u station, the tool-free stair gaits M7, runtime stair travel).
 
 ## Step 3 — native capture

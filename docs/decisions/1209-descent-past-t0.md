@@ -430,3 +430,5 @@ and is stopped for review.
 
 - the arrival: the 141 u backward reposition from the descent's end (far + 169) to the 310 u station, tool-free;
 - the bearer delivered after the fitter arrives (step 2c note).
+
+**Brendan (2026-10-08): candidate b approved**, and the same motion serves the T6 sill (no lower sill program).

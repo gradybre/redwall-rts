@@ -61,7 +61,11 @@ Search: `../tread-fit-probe-v1.json` has 96 recipes, 64 of them solvable with un
 
 Feet are blue and paws brown. Green: decks and supports. Orange: the bearer.
 
-## Checklist for Brendan
+## Brendan's review (2026-10-08)
+
+**Candidate b is approved.** The same motion is fine at the sill, so there is no separate, lower sill program.
+
+## Checklist for Brendan (as put)
 
 1. Does b read as the mole working the timber at the stair's edge (`candidate-b/tread/motion.png`)?
 2. At the sill the paws work about 65 u above its lower bearer. Is that acceptable, or should the sill get its own,

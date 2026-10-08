@@ -594,6 +594,23 @@ func test_a_feast_the_kitchen_is_cooking_cannot_be_cancelled() -> void:
 	assert_equal(v.feast.state, FeastScript.ST_PREPARING, "still preparing")
 
 
+func test_a_feast_whose_batch_is_under_way_early_cannot_be_cancelled() -> void:
+	"""Cook now can start the feast's supper before 15:00: with a batch of it at the cauldron, or one cooked, it is no
+	longer cancelled (its batches would not come back, and the table drink would take the supper for an ordinary one --
+	the review of ae137794)."""
+	var v: Village = _village()
+	_stock_theme(v, Rules.HEARTH)
+	assert_equal(v.feast.hold(Rules.HEARTH, DAY, 1, true), "", "held")
+	var key: int = Rules.feast_key(DAY)
+	assert_equal(v.feast.cancel_refusal(), "", "09:00, nothing cooking: it may be cancelled")
+	v.kitchen._wip_key = key
+	assert_equal(v.feast.cancel(), "the kitchen is cooking it", "a batch at the cauldron: no longer")
+	v.kitchen._wip_key = KitchenScript.FREE
+	v.kitchen.cooked_keys.append(key)
+	assert_equal(v.feast.cancel_refusal(), "the kitchen is cooking it", "a batch cooked: no longer")
+	assert_equal(v.feast.state, FeastScript.ST_PREPARING, "still preparing")
+
+
 func test_the_other_drinks_are_poured_for_those_who_came() -> void:
 	"""Half the village at a Harvest feast: half its cider poured (floor), the rest given back with the take; a cider
 	short of ceil(E/4) is not held at all."""

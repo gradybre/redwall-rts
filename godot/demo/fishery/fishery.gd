@@ -1900,14 +1900,7 @@ func ration_keep_milli(category: int) -> int:
 	"""THE RATIONS' DRIED FISH (decision 1740; Brendan's ruling of 2026-10-08 on 1739's F5 (a)): what raw eaters must
 	leave of `category` -- for dried fish, the dried fish one batch of rations takes (§5.7 `ration`), so the next batch
 	never lacks it; 0 for every other category (kitchen.gd FOOD KEPT FROM RAW EATING)."""
-	if category != Catalog.CAT_DRIED_FISH:
-		return 0
-	var kept: int = 0
-	for k: int in Recipes.IN_COUNT[Recipes.R_RATION]:
-		var input: int = Recipes.IN_FIRST[Recipes.R_RATION] + k
-		if Recipes.IN_CATEGORY[input] == category:
-			kept += Recipes.IN_MILLI[input]
-	return kept
+	return Recipes.input_milli(Recipes.R_RATION, category) if category == Catalog.CAT_DRIED_FISH else 0
 
 
 func input_available_milli(input: int) -> int:

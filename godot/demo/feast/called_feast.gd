@@ -411,12 +411,14 @@ func hold(theme: int, day: int, host: int, with_override: bool) -> String:
 
 func cancel_refusal() -> String:
 	"""Why the feast may not be cancelled now ("" when it may): only before the kitchen starts cooking its supper (15:00
-	on its day) -- after that its batches are under way and would not all come back (REQ-SET-102's "untouched")."""
+	on its day, or earlier when a batch of it is already at the cauldron or cooked: Cook now) -- after that its batches
+	are under way and would not all come back (REQ-SET-102's "untouched")."""
 	if state == ST_IDLE:
 		return "no feast is planned"
 	if state == ST_ACTIVE:
 		return "the feast is being served"
-	if today() > plan_day or (today() == plan_day and hour() >= MealRules.COOK_FROM_HOUR[Rules.FEAST_MEAL]):
+	if today() > plan_day or (today() == plan_day and hour() >= MealRules.COOK_FROM_HOUR[Rules.FEAST_MEAL]) \
+			or kitchen.meal_under_way(Rules.feast_key(plan_day)):
 		return "the kitchen is cooking it"
 	return ""
 

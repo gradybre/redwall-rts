@@ -1930,22 +1930,18 @@ func _raw_candidate(lot: int) -> bool:
 
 
 func _reserve_raw(i: int) -> bool:
-	"""Reserve resident `i`'s raw emergency meal (REQ-SET-013): the raw-edible lot nobody reserved that spoils first,
-	enough for at most RAW_NP_CAP. False when there is none."""
-	var best: int = FREE
+	"""Reserve resident `i`'s raw emergency meal (REQ-SET-013): the raw-edible lot nobody reserved that spoils first
+	(`_raw_lot`: one the food kept from raw eating would cut short only when there is no other), enough for at most
+	RAW_NP_CAP and never what is kept. False when there is none."""
 	_raw_rooms_unknown()
-	for lot: int in PantryScript.MAX_LOTS:
-		if not _raw_candidate(lot) or _raw_room(Catalog.category_of(pantry.lot_item(lot))) <= 0:
-			continue
-		if best == FREE or pantry.lot_spoil_hours(lot, _hour_seen) < pantry.lot_spoil_hours(best, _hour_seen):
-			best = lot
+	var best: int = _raw_lot()
 	if best == FREE:
 		return false
 	var item: int = pantry.lot_item(best)
 	var np_per_u: int = Rules.raw_np_per_u(item)
 	_raw_take[i] = takes.new_take()
-	@warning_ignore("integer_division") var want: int = Rules.RAW_NP_CAP * Rules.MILLI_PER_U / np_per_u
-	var milli: int = takes.reserve_lot(pantry, _raw_take[i], best, mini(want, _raw_room(Catalog.category_of(item))))
+	var milli: int = takes.reserve_lot(pantry, _raw_take[i], best, mini(_raw_want(item),
+		_raw_room(Catalog.category_of(item))))
 	if milli <= 0:
 		takes.release(_raw_take[i])
 		_raw_take[i] = 0
@@ -1954,6 +1950,36 @@ func _reserve_raw(i: int) -> bool:
 	_raw_item[i] = item
 	_location[i] = pantry.lot_location(best)
 	return true
+
+
+func _raw_lot() -> int:
+	"""The lot a raw meal eats from (FREE: none): of the raw candidates with any room, the one that spoils first among
+	those the food kept from raw eating leaves a whole meal in (see FOOD KEPT FROM RAW EATING); only when there is none,
+	the one that spoils first among those it cuts short -- never a crumb of kept dried fish over a whole meal of nuts."""
+	var whole: int = FREE
+	var short: int = FREE
+	for lot: int in PantryScript.MAX_LOTS:
+		if not _raw_candidate(lot):
+			continue
+		var item: int = pantry.lot_item(lot)
+		var room: int = _raw_room(Catalog.category_of(item))
+		if room <= 0:
+			continue
+		if room >= mini(takes.free_milli(pantry, lot), _raw_want(item)):
+			whole = lot if _spoils_sooner(lot, whole) else whole
+		else:
+			short = lot if _spoils_sooner(lot, short) else short
+	return whole if whole != FREE else short
+
+
+func _spoils_sooner(lot: int, than: int) -> bool:
+	"""Whether `lot` spoils before lot `than` (always, when `than` is FREE)."""
+	return than == FREE or pantry.lot_spoil_hours(lot, _hour_seen) < pantry.lot_spoil_hours(than, _hour_seen)
+
+
+static func _raw_want(item: int) -> int:
+	"""The most of `item` one raw meal takes: RAW_NP_CAP at its raw NP, milli-U."""
+	@warning_ignore("integer_division") return Rules.RAW_NP_CAP * Rules.MILLI_PER_U / Rules.raw_np_per_u(item)
 
 
 # --- hand-outs ----------------------------------------------------------------------------------------
@@ -2614,9 +2640,11 @@ func _rack_may_take(s: int, next: int) -> bool:
 ## category, how many milli-U a raw meal (REQ-SET-013) must leave free; a raw eater takes only what is free beyond it.
 ## Only RAW eating: the kitchen still cooks it (the biscuit soup), and nothing is reserved. Unbound: nothing is kept.
 var raw_keep: Callable = Callable()
-## `_reserve_raw`'s room per category for this call (ROOM_UNKNOWN: not yet asked), reused.
+## A category's room not yet asked this raw meal.
 const ROOM_UNKNOWN: int = -1
+## A category's room when nothing of it is kept: no limit (only ever passed through `mini`).
 const ROOM_ALL: int = 1 << 40
+## `_reserve_raw`'s room per category for this raw meal (ROOM_UNKNOWN: not yet asked), reused.
 var _raw_rooms: PackedInt64Array = PackedInt64Array()
 
 

@@ -17,6 +17,8 @@ const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const FieldGuideScript := preload("res://demo/guide/field_guide.gd")
+const FarmText := preload("res://demo/farm/farm_text.gd")
 
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 
@@ -258,3 +260,8 @@ func test_the_rations_dried_fish_is_one_batch_s_and_nothing_else_is_kept() -> vo
 	assert_equal(fishery.ration_keep_milli(Catalog.CAT_DRIED_FISH), dried, "that is kept")
 	for category: int in [Catalog.CAT_FLOUR, Catalog.CAT_NUTS, Catalog.CAT_FISH, Catalog.CAT_DRIED_FRUIT]:
 		assert_equal(fishery.ration_keep_milli(category), 0, "category %d is not kept" % category)
+	assert_equal(Recipes.input_milli(Recipes.R_RATION, Catalog.CAT_FLOUR), 2000, "the row read: 2 U of flour")
+	assert_equal(Recipes.input_milli(Recipes.R_RATION, Catalog.CAT_HONEY), 0, "none of what it does not take")
+	var guide := FieldGuideScript.new()
+	var uses: String = guide.entry(guide.index_of(FieldGuideScript.item_id(Catalog.ITEM_DRIED_FISH))).uses
+	assert_true(uses.contains("all but the %s a batch of rations takes" % FarmText.units_text(dried)), uses)

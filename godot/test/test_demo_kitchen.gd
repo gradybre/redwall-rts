@@ -1911,6 +1911,25 @@ func _keep_dried_fish(category: int) -> int:
 	return 1000 if category == Catalog.CAT_DRIED_FISH else 0
 
 
+func test_a_raw_meal_is_never_a_crumb_of_kept_dried_fish() -> void:
+	"""The review of ae137794 (HIGH): 1.001 U of dried fish with 1 U kept leaves one milli-U to eat; a hungry resident
+	takes a whole meal of the nuts beside it, never that crumb, though the dried fish (stocked first) spoils no later. With
+	nothing else, the crumb is all there is."""
+	var v := _village(4, tick_at(1, 10))
+	_stock(v, Catalog.ITEM_DRIED_FISH, 1001)
+	_stock(v, Catalog.ITEM_NUTS, 3000)
+	_open(v)
+	v.kitchen.raw_keep = _keep_dried_fish
+	assert_true(v.kitchen._reserve_raw(0), "a raw meal")
+	assert_equal([v.kitchen._raw_item[0], v.kitchen.takes.live_milli(v.pantry, v.kitchen._raw_take[0])],
+		[Catalog.ITEM_NUTS, KitchenScript._raw_want(Catalog.ITEM_NUTS)], "a whole meal of nuts")
+	assert_true(v.kitchen._reserve_raw(1), "the next")
+	assert_equal(v.kitchen._raw_item[1], Catalog.ITEM_NUTS, "the nuts left first")
+	assert_true(v.kitchen._reserve_raw(2), "the last")
+	assert_equal([v.kitchen._raw_item[2], v.kitchen.takes.live_milli(v.pantry, v.kitchen._raw_take[2])],
+		[Catalog.ITEM_DRIED_FISH, 1], "nothing else: the crumb beyond the kept unit")
+
+
 func test_a_raw_meal_leaves_the_rations_dried_fish() -> void:
 	"""Brendan's F5 (a) (decision 1740): with 1 U of dried fish kept, a hungry resident eats raw only the dried fish
 	beyond it, and none when there is none beyond; other food is not kept; unbound, all of it may be eaten."""

@@ -1574,7 +1574,7 @@ supper, whenever the stores hold a batch's fresh fish and roots nobody has set a
 or trout** instead of the soup -- the GDD's `fish_stew` row: fresh fish 2 U (any of the six species) + roots 2 U + water
 2 U, 20 WU, 3 portions of 2200 NP that keep 24 h; both inputs reserved from real lots and withdrawn together. Dried fish is
 not the stew's `fish`: it is the village's reserve, eaten as it is by a hungry resident (1800 NP a unit, after anything
-spoiling sooner). **The feast's dish** (decision 0438): the GDD's `bean_hotpot` row (beans 2 U + cabbage 2 U + water 2 U,
+spoiling sooner). **The feast's dish** (decision 0438): the GDD's `bean_hotpot` row (beans 2 U + greens or roots 2 U since decision 1735 + water 2 U,
 20 WU, 3 portions of 2100 NP, keeping 36 h), cooked for an **occasion** -- the regatta's supper -- from the food the
 regatta reserved. Since the recipe book (decision 0601: Brendan's "the hotpot cooked from the start") it is an everyday
 supper dish as well; the batch 7 integration kept that ruling (decision 0902). Its **second course** (decision 0682), the
@@ -2392,14 +2392,14 @@ first in summer:
 
 - **Water panel ▸ Regatta** (or the Feasts panel's **The regatta…**, from the HUD's **Feast** command; decision 1701): **◀ Day / Day ▶** (the season's days from
   tomorrow; before summer, summer's), **Host ▸** (anyone but the village cook), and the **preview** -- the GDD's Hearth
-  feast for every resident: bean hotpot ×ceil(E/3) (beans and cabbage, free in the pantry), the second course -- **nut
+  feast for every resident: bean hotpot ×ceil(E/3) (beans and greens or roots, free in the pantry -- the book's selector, decisions 1735 and 1701), the second course -- **nut
   loaf** ×ceil(E/3) (flour from the mill, nuts from a foraging trip) -- and the **warm infusion** (water and herb), each
   read from the pantry's real stock and, when short, named with its shortfall and fix (decision 0682, Brendan's ruling
   "add nuts & herbs now"); the **Shared Warmth** line (cold exposure −25%, mood +400 for 48 h if 80% eat every course);
   seats, staffing,
   the 1 U of service wood, the reserves after it, and the race's crews and paces. **Hold the regatta** refuses what is
   invalid with its fix; under 3 days of ready food or wood it needs **Override reserves** (REQ-SET-101). Held, the feast's
-  beans and cabbage are reserved at once and its wood set aside. **Skip this season** costs nothing and gives everything
+  beans and greens or roots are reserved at once and its wood set aside. **Skip this season** costs nothing and gives everything
   back. Once a season: held or skipped, the season is done.
 - **The day**: crews called at 13:00 to the boathouse jetty; at 15:00 both rowboats race out to a floating barrel and
   home, each at its crew's fishing-skill pace (deterministic; equal paces a dead heat); the otters sing their work songs

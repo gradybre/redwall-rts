@@ -162,9 +162,13 @@ Merged 2026-10-08; the README's two new sections (this lane's and the tuning's) 
   never the cabbage row: `free_cabbage` became `free_greens`, its refusal `NO_GREENS` ("the main course needs 6.0 U of
   greens or roots"), and the card and preview use the book's words. The called feasts already read every input through
   `input_selector` (feast_menu.gd), so they needed no change; tests now show beans and carrots alone holding and
-  cooking a Hearth feast and holding a regatta. Known limit: the post-feast ready-food figure sets a cross-category
-  input aside under its first category (greens), while the kitchen's estimate pools it greens first then roots -- so
-  with no greens in store the figure after a feast is a little high. Left as is (display; the reservation is exact).
+  cooking a Hearth feast and holding a regatta. **REQ-SET-101 with a cross-category input** (the quick review's
+  HIGH): the post-feast ready food set the hotpot's greens-or-roots input aside under greens alone, so with no greens
+  in store a feast of roots left its roots counted as food-days after it and could pass the reserves gate a greens
+  feast failed (3.000 days against 2.888 on the same food). Fixed: `feast_menu.gd add_course_drawn` sets such an input
+  aside as the kitchen's estimate draws it (`_draw_pool`: its categories in order, each up to what the pantry holds
+  beyond what is already set aside); the called feasts and the regatta's `food_days_after` hook both use it, and a
+  test holds the greens and roots figures equal and both refused.
 - **The table drink (decision 1733) skips a called feast's supper**: it skips any occasion's supper by the kitchen's
   `occasion_key`, which a called feast sets; a test runs a Hearth feast with cordial in store and finds none poured at
   it. The Harvest and Orchard feasts pour mead and cider, never the cordial, so nothing is poured twice. (Noted for 1733's

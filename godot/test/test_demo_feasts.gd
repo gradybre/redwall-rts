@@ -10,6 +10,7 @@ extends "res://test/framework/test_case.gd"
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
+const FarmingScript := preload("res://scripts/core/farming.gd")
 const Rules := preload("res://demo/feast/feast_rules.gd")
 const FeastScript := preload("res://demo/feast/called_feast.gd")
 const MenuScript := preload("res://demo/feast/feast_menu.gd")
@@ -47,6 +48,9 @@ const PEA: int = 11
 const WHEAT: int = 13
 const TROUT: int = 16
 const RESIDENTS: int = 6
+## The §5.6 rows the hotpot's greens-or-roots input spans.
+const CABBAGE_ROW: int = FarmingScript.CROP_CABBAGE
+const ROOTS_ROW: int = FarmingScript.CROP_ROOTS
 const DAY: int = 14
 
 
@@ -357,6 +361,7 @@ func test_fuel_days_after_are_the_winters() -> void:
 	var cooking: int = RegattaRules.ceil_div(v.kitchen.daily_portions(), 2) * MealRules.WOOD_MILLI_PER_BATCH
 	@warning_ignore("integer_division") var kitchen_days: int = 6000 * 1000 / cooking
 	assert_equal(v.feast.fuel_days_after_milli(6000), kitchen_days, "6 U over the day's batches at 0.1 U each")
+	assert_equal(kitchen_days, 6666, "six residents at a portion and a half, two meals: 18 portions, 9 batches, 0.9 U a day")
 	assert_equal(v.feast.fuel_days_after_milli(-50), 0, "none left")
 	var fuel := FuelScript.new()
 	v.feast.fuel = fuel
@@ -366,6 +371,7 @@ func test_fuel_days_after_are_the_winters() -> void:
 	assert_equal(fuel.heating_day_milli(), 4000, "a hearth burning 4 U a day")
 	@warning_ignore("integer_division") var heated_days: int = 6000 * 1000 / (4000 + cooking)
 	assert_equal(v.feast.fuel_days_after_milli(6000), heated_days, "6 U over 4 U of heat and the day's cooking")
+	assert_equal(heated_days, 1224, "6 U over 4.9 U a day")
 	assert_equal(v.feast.wood_after_milli(Rules.HEARTH, RESIDENTS), v.stores.wood_milli_u - 1000 - 4 * 100,
 		"the service and 4 batches")
 
@@ -744,8 +750,42 @@ func test_a_feast_supper_pours_no_table_cordial() -> void:
 		return f.state == FeastScript.ST_IDLE, 30000), "tallied (%s)" % Words.status_line(f))
 	drink.update()
 	assert_true(f.attendees.size() > 0, "the feast was eaten: %s" % f.last_line)
+	assert_true(v.kitchen.final_of(Rules.feast_key(DAY)) != null, "its supper published, so the drink looked at it")
 	assert_equal([drink.pours, drink.poured_milli], [0, 0], "no table cordial at the feast's supper")
 	assert_equal(v.pantry.milli_of(Catalog.ITEM_CORDIAL), 4000, "the cordial untouched")
+
+
+func test_a_roots_hotpot_is_left_out_of_the_reserves_as_a_greens_one_is() -> void:
+	"""REQ-SET-101 with decision 1735's greens or roots: the feast's hotpot input is set aside the way the kitchen's
+	estimate draws it (greens first, then roots), so the ready food after a feast of beans and carrots is the same as
+	after one of beans and cabbage -- and both are refused under 3 days, never the roots one let through."""
+	var greens: Village = _village()
+	var roots: Village = _village()
+	for v: Village in [greens, roots]:
+		_stock(v, PEA, 4000)
+		_stock(v, Catalog.ITEM_FLOUR, 4000)
+		_stock(v, Catalog.ITEM_NUTS, 4000)
+		_stock(v, Catalog.ITEM_HERB, 1000)
+	_stock(greens, CABBAGE, 4000)
+	_stock(greens, CARROT, 72000)
+	_stock(roots, CARROT, 76000)
+	var after: int = greens.feast.food_days_after_milli(Rules.HEARTH, RESIDENTS)
+	assert_equal(roots.feast.food_days_after_milli(Rules.HEARTH, RESIDENTS), after, "the same figure after the feast")
+	var aside := PackedInt64Array()
+	roots.feast.menu.set_aside(Rules.HEARTH, RESIDENTS, aside)
+	assert_equal([aside[CABBAGE_ROW], aside[ROOTS_ROW]], [0, 4000], "no greens in store: the roots set aside")
+	greens.feast.menu.set_aside(Rules.HEARTH, RESIDENTS, aside)
+	assert_equal([aside[CABBAGE_ROW], aside[ROOTS_ROW]], [4000, 0], "greens in store: the greens first")
+	var regatta := RegattaScript.new()
+	regatta.kitchen = roots.kitchen
+	regatta.stores = roots.stores
+	regatta.menu.configure(roots.kitchen, roots.stores)
+	roots.feast.bind_regatta(regatta)
+	assert_equal(int(regatta.food_days_after.call(RESIDENTS)), after, "the regatta's Hearth feast sets its roots aside too")
+	greens.feast.refusal(Rules.HEARTH, DAY, 1, false)
+	roots.feast.refusal(Rules.HEARTH, DAY, 1, false)
+	assert_equal([greens.feast.refused_code, roots.feast.refused_code], ["RESERVES", "RESERVES"],
+		"both under 3 days after it (%d thousandths)" % after)
 
 
 # --- the buffs -------------------------------------------------------------------------------------------------------

@@ -280,8 +280,8 @@ func regatta_food_days(e: int) -> int:
 		return 0
 	_aside.resize(MealRules.CATEGORY_COUNT)
 	_aside.fill(0)
-	MenuScript.add_course(_aside, MealRules.DISH_BEAN_HOTPOT, RegattaRules.main_batches(e))
-	MenuScript.add_course(_aside, MealRules.DISH_NUT_LOAF, regatta.menu.second_batches_now(e))
+	menu.add_course_drawn(_aside, MealRules.DISH_BEAN_HOTPOT, RegattaRules.main_batches(e))
+	menu.add_course_drawn(_aside, MealRules.DISH_NUT_LOAF, regatta.menu.second_batches_now(e))
 	if regatta.menu.infusion_short(e).is_empty():
 		_aside[MenuScript.bev_selector(Rules.HEARTH)] += RegattaRules.infusion_herb_milli(e)
 	return kitchen.days_of_meals_after_milli(_aside)

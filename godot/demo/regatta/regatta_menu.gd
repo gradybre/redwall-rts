@@ -5,7 +5,7 @@ extends RefCounted
 ##
 ## THE SECOND COURSE: ceil(E/3) batches of `nut_loaf` (flour 2, nuts 2, water 1 -> 3 x 2600 NP, 24 WU, 72 h). At
 ## confirmation, when the pantry holds every batch's flour and nuts free, both are RESERVED in the regatta's own take
-## beside the main course's beans and cabbage, and the kitchen cooks the loaves once the hotpot is done (kitchen.gd AN
+## beside the main course's beans and greens or roots, and the kitchen cooks the loaves once the hotpot is done (kitchen.gd AN
 ## OCCASION's second course); each guest eats one portion of each course (§5.7).
 ## THE WARM INFUSION: water ceil(E/4) U + herb 0.25 x ceil(E/12) U, "prepared during service from its reserved
 ## water/herb; it has no stored output item or extra work". At confirmation, when both are there, the herb is reserved

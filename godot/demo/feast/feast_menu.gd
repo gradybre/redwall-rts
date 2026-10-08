@@ -164,7 +164,7 @@ func set_aside(theme: int, eligible: int, out: PackedInt64Array) -> void:
 	out.resize(MealRules.CATEGORY_COUNT)
 	out.fill(0)
 	for course: int in 2:
-		add_course(out, course_dish(theme, course == 1), course_batches(theme, course == 1, eligible))
+		add_course_drawn(out, course_dish(theme, course == 1), course_batches(theme, course == 1, eligible))
 	out[bev_selector(theme)] += bev_need_milli(theme, eligible)
 
 
@@ -172,6 +172,39 @@ static func add_course(out: PackedInt64Array, dish: int, batches: int) -> void:
 	"""`batches` of `dish`'s inputs added to `out` by category (sized to the kitchen's categories)."""
 	for k: int in MealRules.INPUT_N[dish]:
 		out[MealRules.input_category(dish, k)] += batches * MealRules.input_milli(dish, k)
+
+
+func add_course_drawn(out: PackedInt64Array, dish: int, batches: int) -> void:
+	"""As `add_course`, but an input spanning several categories (the hotpot's greens or roots, decision 1735) is set
+	aside the way the kitchen's estimate draws it (kitchen.gd `_draw_pool`): from its categories in order, each up to
+	what the pantry holds of it beyond what is already set aside, the rest under its last -- so REQ-SET-101's figure
+	after a feast of roots leaves the roots out, as one of greens leaves the greens."""
+	for k: int in MealRules.INPUT_N[dish]:
+		var mask: int = MealRules.input_categories(dish, k)
+		var need: int = batches * MealRules.input_milli(dish, k)
+		if mask & (mask - 1) == 0:
+			out[MealRules.input_category(dish, k)] += need
+			continue
+		var last: int = -1
+		for c: int in out.size():
+			if mask & (1 << c) == 0:
+				continue
+			var take: int = mini(need, maxi(0, category_milli(c) - int(out[c])))
+			out[c] += take
+			need -= take
+			last = c
+		if last >= 0:
+			out[last] += need
+
+
+func category_milli(category: int) -> int:
+	"""Every milli-U of `category` in the pantry, set aside or not (as the kitchen's ready-food pool counts it)."""
+	if kitchen == null:
+		return 0
+	var total: int = 0
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
+		total += kitchen.pantry.milli_of(item) if Catalog.category_of(item) == category else 0
+	return total
 
 
 # --- holding, giving back, pouring --------------------------------------------------------------------------------

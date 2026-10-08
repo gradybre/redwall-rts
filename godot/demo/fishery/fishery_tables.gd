@@ -64,6 +64,16 @@ var t_overdue: PackedByteArray = PackedByteArray()
 var t_seat_job: PackedInt32Array = PackedInt32Array()
 var t_cycle: Array = []
 var t_words: PackedStringArray = PackedStringArray()
+## The fishing revamp (decisions 1711-1712): 1 for a BEST CATCH trip (catch_plan.gd: its species is chosen again at the
+## water), the trap's collection policy (catch_plan.gd COLLECT_*), and the EXCELLENT share of its catch (milli-U).
+var t_auto: PackedByteArray = PackedByteArray()
+var t_collect: PackedByteArray = PackedByteArray()
+var t_excellent: PackedInt64Array = PackedInt64Array()
+## The FISHING stream's two draws for the trip's open cycle, taken when it departed (fishing_rolls.gd; -1: none yet).
+var t_hazard_roll: PackedInt32Array = PackedInt32Array()
+var t_rare_roll: PackedInt32Array = PackedInt32Array()
+## The tick a soaked trap's collection goes on the board (-1: not worked out yet; catch_plan.gd COLLECTION).
+var t_collect_at: PackedInt64Array = PackedInt64Array()
 
 # --- jobs -----------------------------------------------------------------------------------
 var j_live: PackedByteArray = PackedByteArray()
@@ -118,12 +128,12 @@ func _init(rack_slots: int) -> void:
 
 func _size_trips() -> void:
 	"""Every trip column, MAX_TRIPS long."""
-	for column: PackedByteArray in [t_live, t_called_off, t_overdue]:
+	for column: PackedByteArray in [t_live, t_called_off, t_overdue, t_auto, t_collect]:
 		column.resize(MAX_TRIPS)
 	for column: PackedInt32Array in [t_serial, t_method, t_site, t_species, t_boat, t_gear, t_outfit, t_state, t_hold,
-			t_item]:
+			t_item, t_hazard_roll, t_rare_roll]:
 		column.resize(MAX_TRIPS)
-	for column: PackedInt64Array in [t_expected, t_caught, t_due, t_soak_until, t_work_mwu]:
+	for column: PackedInt64Array in [t_expected, t_caught, t_due, t_soak_until, t_work_mwu, t_excellent, t_collect_at]:
 		column.resize(MAX_TRIPS)
 	t_seat_job.resize(MAX_TRIPS * 2)
 	t_seat_job.fill(NONE)
@@ -161,13 +171,16 @@ func open_trip(method: int, site: int, species: int) -> int:
 	t_method[t] = method
 	t_site[t] = site
 	t_species[t] = species
-	for column: PackedInt32Array in [t_boat, t_gear, t_outfit, t_hold, t_item]:
+	for column: PackedInt32Array in [t_boat, t_gear, t_outfit, t_hold, t_item, t_hazard_roll, t_rare_roll]:
 		column[t] = NONE
-	for column: PackedInt64Array in [t_expected, t_caught, t_due, t_soak_until, t_work_mwu]:
+	for column: PackedInt64Array in [t_expected, t_caught, t_due, t_soak_until, t_work_mwu, t_excellent]:
 		column[t] = 0
 	t_state[t] = TRIP_QUEUED
 	t_called_off[t] = 0
 	t_overdue[t] = 0
+	t_auto[t] = 0
+	t_collect[t] = 0
+	t_collect_at[t] = NONE
 	t_seat_job[t * 2] = NONE
 	t_seat_job[t * 2 + 1] = NONE
 	t_cycle[t] = null

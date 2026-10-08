@@ -1,0 +1,268 @@
+# 1625 — New recipes for the waiting icons: berry jam, nut cheese, ale and cider; drink depicted by the mead rule
+Date: 2026-10-07 · Status: Accepted under Brendan's approval; **every number PROVISIONAL**; the vinegar pickle built by
+his ruling; **the salted pickle approved, waiting on salt**
+
+**Numbering.** The lead assigned 1625–1629 on `feat/demo-new-recipes` (the food packets' remapped 1601–1629 range; the
+packets' own 1251–1260 collides with a parallel digging branch). 1625 is free on every local and remote ref.
+
+## Approval (Brendan, 2026-10-07)
+
+Relayed by the coordinator: **"Approve and build Q-d5 and dec-007"** -- open question Q-D5 options (b) and (c):
+- **(b)** draft and build the recipes the icons of art pass 3 already exist for (decision 0971: `item_jam`,
+  `item_pickles`, `item_cheese`, `item_ale`, `item_cider`), from the content library, within DEC-006's plant, fish and
+  seafood boundary;
+- **(c)** rule how drink is depicted (DEC-007's open point "How should mead and other drinks be depicted?").
+
+**Brendan's ruling on DEC-007's drink depiction (2026-10-07):** ale and cider follow the mead rule -- a feast or table
+drink only, no intoxication, and no effect on Shared Warmth. (`docs/setting_decisions.md` is not edited here, as
+instructed; the ruling is recorded in this record and in `docs/handoff/RULINGS.md`.)
+
+## Brendan's rulings on the proposals (2026-10-07)
+
+Relayed by the coordinator after the first build:
+1. **The four rows and the feast pour: approved as provisional**, to be tuned after a balance run (proposal 1).
+2. **Cheese as nut cheese (proposal 2) and ale/cider from barley/apples alone (proposal 3): confirmed as built.**
+3. **Pickles: "both vinegar and salt".**
+   - **(b) now**: the salt-free vinegar pickle -- apple vinegar first, from the orchard's apples, then onions or roots
+     in that vinegar. Built (below). Every number PROVISIONAL, and the pickle **goes beyond the library's formulas by
+     his approval**.
+   - **(a) the salted pickle, once salt exists.** The demo was searched for any salt path (a trader, a pedlar, a stores
+     item): there is none -- no salt item, no trade, and `water_dressing.gd` leaves the saltpan unplaced because §5.7
+     needs coastal brine. So, as instructed, no salt source is invented: **the salted pickle is approved, waiting on
+     salt**, and is not built. When a salt item exists it is one more appended row (roots + vinegar + salt, the
+     library's `TAG_recipe_pickled_onions` / `LP-RECIPE-tangy-pickles` shape), gated on salt like any input.
+
+## Decision
+
+Four rows are appended to the stations' recipe table (`godot/demo/preserve/preserve_rules.gd`, decisions 1611/1621),
+and four pantry items to `farm_catalog.gd` (append only): **jam 36, cheese 37, ale 38, cider 39** (categories 18–21).
+The preserving table gains **two crocks** (passive slots 8–9, after the rack's 0–3 and the vats' 4–7) for the cheese's
+culture stage. A recipe input may now be an **item selector** (`ingredient_takes.gd` SELECT_ITEMS), so ale takes
+barley alone and cider apples alone; the input column is int64 for it. The regatta's feast pours ale and cider beside
+mead and the cordial (`regatta_menu.gd` DRINK_ITEMS). The Water panel gains Make jam / Make cheese (Preserves) and
+Brew ale / Make cider (Brewing).
+
+### The recipes, each number PROVISIONAL, and its source
+
+| Row | Inputs → output | Work, wait, station | Shelf | Eaten raw | Source (content library, `shared/recipes.json` / `pantry.json`) |
+|---|---|---|---|---|---|
+| `jam` | berries 2 + honey 1 + water 1 → **berry jam 3** | 16 WU, none, preserving table | 720 h | 850 NP | The library's honey fruit jams: `COMPONENT_shared_blackberry_jam` / `strawberry_jam` (fruit, honey, water, apple pectin), `marlfox::MF_RECIPE_damson_jam`, `taggerung::TAG_recipe_quince_jam` (fruit, honey, water). The demo's `berries` stands for the hedge's blackberries and strawberries; the apple pectin is folded into the cooking (no pectin item). |
+| `cheese` | nuts 2 + water 1 → **nut cheese 2** | 16 WU + 24 h in a crock, preserving table | 1440 h | 1600 NP | `taggerung::TAG_recipe_nut_cheese` -- hazelnut, chestnut, water, a cultured food starter: **a salt-free plant cheese the demo's nuts can make.** The cultured oat, hazelnut, almond and seed *cheese* components take `LEAF_salt`; the library's other salt-free bases (`COMPONENT_shared_cultured_hazelnut_cream`, `cultured_oat_curd`, `oat_and_seed_curd`) need an oat drink the demo does not make. The demo's `nuts` are the woods' hazelnuts and chestnuts; the starter is the crock's culture stage, not an input. Dairy stays excluded (DEC-006, SET-AMEND-001). |
+| `ale` | barley 3 + water 3 → **ale 4** | 20 WU + 72 h in a vat, brewery | 1440 h | no | `COMPONENT_shared_october_ale` / `shared_ale` (malted barley, water, fermentation culture); `salamandastron::SAL_recipe_october_ale`. Malting and the culture are folded into the brew; the October ale's "ten seasons" of cellaring is not imported as a wait (the library itself says so). Units, work and wait follow §5.7 `mead`. |
+| `cider` | apples 4 + water 1 → **cider 4** | 16 WU + 72 h in a vat, brewery | 1440 h | no | `taggerung::TAG_recipe_pale_cider` (apple, water, cultured yeast), `mossflower::MF_recipe_cider`, `COMPONENT_shared_pale_cider`. Apples only (pears are not cider); the wait follows mead's. |
+
+Why these numbers: the units sit between §5.7's preserving rows (fruit 4 → 3) and mead (honey 3 + water 3 → 4); the
+work matches the nearest §5.7 rows (16 WU for a cooked preserve, mead's 20 WU for a brew); the raw NP spread a batch's
+input NP over its output (jam: 2 berries × 700 + 1 honey × 1200 ≈ 3 × 850; cheese: 2 nuts × 1600 = 2 × 1600); the
+shelves are dried fruit's 720 h for jam and mead's 1440 h for both drinks and the cheese (the cheese keeps its nuts
+twice as long as the nuts' own 720 h -- its purpose, since its NP equals theirs). The feast pours ale and cider ceil(E/4)
+U each, mead's quantity. None is a GDD number.
+
+### Vinegar and the salt-free pickle (by Brendan's ruling; beyond the library's formulas)
+
+Two more rows and two more items, appended: **vinegar 40, pickles 41** (categories 22–23).
+
+| Row | Inputs → output | Work, wait, station | Shelf | Eaten raw | Source |
+|---|---|---|---|---|---|
+| `vinegar` | apples 4 + water 1 → **apple vinegar 4** | 16 WU + 96 h in a vat, brewery | 1440 h | no (an ingredient) | `COMPONENT_shared_apple_vinegar` (apple, fermentation culture, vinegar culture): the library's vinegar. Cider's inputs and vat; the two cultures folded into a longer wait (cider's 72 h + 24 h for the souring). |
+| `pickles` | roots 3 + vinegar 1 → **pickles 3** | 12 WU + 24 h in a crock, preserving table | 720 h | 800 NP | **Authored, beyond the library's formulas by Brendan's approval** ("both vinegar and salt"): the library's pickled onions and tangy pickles (`taggerung::TAG_recipe_pickled_onions`, `long_patrol::LP-RECIPE-tangy-pickles`) with their salt and water left out. `roots` is the farm's root crops (onion, carrot, beetroot, ...); the crock is the cheese's crock. |
+
+Why these numbers: vinegar takes cider's apples, water and vat, and waits a day longer for the souring; pickles take
+fruit-drying's 3 U out of a 4 U batch (3 roots + 1 vinegar), 12 WU for packing a crock, and the crock's 24 h. The
+raw NP spreads the roots' NP over the output, rounded down. Vinegar keeps mead's 1440 h; pickles keep dried fruit's
+720 h. Vinegar is never eaten, never poured at a feast and is not booked as a preserve (the guide says "An
+ingredient"; the card "kept for pickling"; its vat counts in the Brewing line's "vats in use"). Each row's use --
+eaten, drink or ingredient -- is a column of the recipe table (`preserve_rules.gd` USE), read by the guide and the
+cards. Pickles are booked as a preserve and eaten as they are.
+
+### Pickles with salt: approved, waiting on salt
+
+Every pickle formula in the content library takes **salt**: `taggerung::TAG_recipe_pickled_onions` (onion, cider
+vinegar, water, salt), `long_patrol::LP-RECIPE-tangy-pickles` and `lord_brocktree::LB-RECIPE-kitchen-song-pickles`
+(cucumber, onion, apple vinegar, water, salt); the fish pickles are coastal. The library does give a vinegar route --
+`COMPONENT_shared_apple_vinegar` (apple, fermentation culture, vinegar culture) -- but no pickle that uses vinegar
+without salt. Salt is coastal brine only (GDD §5.7; SET-AMEND-001), and the demo village has no coast. So no salt
+source is invented and the salted pickle is not built (Brendan's ruling (a) above).
+
+### Rules kept
+
+- DEC-006 / SET-AMEND-001: plant staples plus fish and seafood; no livestock, milk or eggs -- the cheese is the
+  library's plant cheese, the jam's sweetener the apiary's honey.
+- LIB-002 / LIB-008: library records stay NOT_RUNTIME_ACTIVE; every number here is the demo's, marked PROVISIONAL.
+- DEC-007 as ruled above: no intoxication; drinks never affect Shared Warmth; ale and cider are never eaten raw.
+- Append-only numbering (SEQUENCE.md); no work-board source and no key added.
+
+### Shared files touched
+
+`farm_catalog.gd` (items 36–39, categories 18–21, `ITEM_BARLEY`), `meal_rules.gd` (words; jam and cheese raw NP),
+`preserve_rules.gd` (four rows, crocks, item selectors, the int64 input column), `preserve_text.gd`, `fishery.gd`
+(item-selector pickup, CROCKS_FULL, `slots_in_use`), `demo_fishery.gd` (cards from the action map, the lines),
+`water_panel.gd` (two button rows), `regatta_menu.gd` (ale and cider poured), `tools/make_demo_pantry_index.py` and
+`pantry_index.json`. For the vinegar pickle: items 40–41 and categories 22–23 in `farm_catalog.gd`; the pickles' raw NP
+in `meal_rules.gd`; two rows in `preserve_rules.gd` (roots as `farming.gd`'s CROP_ROOTS, read-only);
+`preserve_text.gd` (summaries, vinegar's use, `card_use`); `fishery.gd` (crocks "in use", pickles booked as
+preserves); `demo_fishery.gd` (the cards' use words, the line); `water_panel.gd` (a third Preserves row: Make vinegar /
+Make pickles); the pantry index (vinegar → `COMPONENT_shared_apple_vinegar`). Nothing under `scripts/core/`, `demo/burrow/`, `demo/tunnel/`, `demo/cast/` or the settlement UI.
+
+## PROPOSALS (for Brendan)
+
+Ruled 2026-10-07 (above): 1 approved as provisional; 2 and 3 confirmed; 4 ruled "both vinegar and salt" -- (b) built,
+(a) approved and waiting on salt. The text below is the proposal as it was put.
+
+1. **The four rows' numbers** in the table above, and the feast's ceil(E/4) U pour of ale and of cider (with mead and
+   cordial, a fully stocked feast now pours four drinks). *Recommendation: approve as provisional; tune after a balance
+   run.*
+2. **Cheese as nut cheese** (the salt-free taggerung row), set in two crocks at the preserving table for 24 h.
+   *Options:* (a) as built; (b) a salted oat cheese once salt exists. *Recommendation: (a).*
+3. **Ale from barley alone, cider from apples alone**, both in the brewery's vats, poured at the feast like mead.
+   *Recommendation: confirm.*
+4. **Pickles (BLOCKED)**. *Options:* (a) wait for salt -- a coastal scenario or trade brings it, and pickles follow the
+   library's formulas; (b) an authored salt-free vinegar pickle -- onion or roots in apple vinegar made from the
+   orchard's apples (the library's `COMPONENT_shared_apple_vinegar`), a new recipe beyond the library's formulas, which
+   needs your approval; (c) drop pickles from the demo and retire the icon's use. *Recommendation: (b), since the
+   orchard and the brewery now give the demo apples and a fermenting place; otherwise (a).*
+
+## Gates (2026-10-07)
+
+- **Base**: `feat/demo-hives-preserving` after its merge of `origin/master` (#231, wildlife and weather): `e2e52d17`,
+  itself CI-style clean (`9249 test(s), 648498 assertion(s), 0 failure(s)`, 0 unexpected, 0 leaks) and pushed to #233.
+- **CI-style full suite** (a clean checkout of `173489b8`, no `godot/demo/assets`, `.godot` re-imported,
+  `./tools/run_tests.sh`): `9262 test(s), 648642 assertion(s), 0 failure(s)` ·
+  `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 371 tolerated; leaked at exit: 0 object(s), 0 resource(s)` ·
+  `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).`
+- **Analyzer**: `0 GDScript warning(s) in 0 of 1052 file(s)` (the merged tree; the fix-up's files rerun: 0).
+- **Contracts**: decision_numbers PASS (334 records); `tools/test_make_demo_pantry_index.py` OK.
+- **Live harness** `test/live/demo_food_live.gd` (staged art): `LIVE-SUMMARY 32 0` at 1280x720 and 1920x1080; frames
+  `new_recipes_panel_*` and `brewing_panel_*` looked at (the two new button rows fit the column at both sizes).
+- **Mutation**: 13 mutants on the rows, slots, selectors, words, drinks and shelves; 12 killed, the survivor (the
+  item-selector fetch) killed after a test; 6 of the review's survivors rerun on the fix, all killed.
+  SURVIVED_MUTANTS: none.
+- **Independent review** (`code-reviewer`, waited for): no CRITICAL or HIGH. MEDIUMs fixed in `173489b8`: the
+  salt-free wording (the library has other salt-free bases, which need an oat drink), the index no longer lists the
+  salted hazelnut cheese's dishes, the cheese keeps 1440 h (its purpose: its nuts kept twice as long), `packing()`
+  counts a cheese at the table. LOWs fixed: crock words, jam and cheese booked as preserves, the feast's pour marked
+  provisional, stale comments, elderberry jam dropped from the index.
+
+### Gates for the vinegar pickle (2026-10-07, after Brendan's rulings)
+
+- **Base**: `origin/master` merged twice -- first with #233 (`4fbe1b11`), then with #232 (goals, hall fuel, time
+  controls: `c1f9268f`). Neither needed a hand resolution.
+- **CI-style full suite** (a clean checkout of `c1f9268f`, no `godot/demo/assets`, `.godot` re-imported,
+  `./tools/run_tests.sh`): `9288 test(s), 648899 assertion(s), 0 failure(s)` ·
+  `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 371 tolerated; leaked at exit: 0 object(s), 0 resource(s)` ·
+  `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).` (Also clean on
+  `bf0a70d5`, before review: 9267 tests.)
+- **Analyzer**: `0 GDScript warning(s) in 0 of 1053 file(s)`. **Contracts**: decision_numbers PASS (337 records),
+  merge_gate PASS, lane_notes PASS, `tools/test_make_demo_pantry_index.py` OK.
+- **Live harness** (staged art): `LIVE-SUMMARY 36 0` at 1280x720 and 1920x1080 on the merge. In the frames
+  `new_recipes_panel_*` and `brewing_panel_*`, Make vinegar and Make pickles sit as a third Preserves row inside the
+  column, the pantry line lists vinegar and pickles, and the Brewing line reads "vats in use".
+- **Mutation**: 19 mutants on the rows, inputs, codes, shelves, NP, booking, words and action map; 18 killed. The
+  survivor (vinegar treated as a drink in the guide) was killed by an added assertion. After review, 11 mutants on the
+  USE column and its readers: 9 killed. Two did not need killing. `card_drink` is equivalent, because the ingredient
+  case returns first. `brewing_vats` (the "vats in use" words) is caught by the live harness's Brewing-line check,
+  not by the unit suites. SURVIVED_MUTANTS: none besides those two.
+- **Independent review** (`code-reviewer`, waited for): no CRITICAL or HIGH. Fixed in `6f93e8f4`:
+  - MEDIUM: a per-row USE column (eaten / drink / ingredient) replaces the vinegar special cases, and the pickles'
+    alternative is built from the shelf hours.
+  - LOW: the Brewing line says "vats in use"; the stale "not built" README lines and comments are corrected; the
+    "(decision 1625)" is gone from player text; the refusal code and fix are asserted; the docs say vinegar "is not
+    booked as a preserve".
+  - Not done then (LOW, already a gap before this commit; **fixed in the follow-up below**): the roots' crop card "Uses:" did not list pickles
+    (`farm_crop_roles.uses_of` reads only the kitchen and mill tables). Barley → ale has the same gap.
+
+## Follow-up: every ingredient's Uses come from the recipe rows (Brendan, 2026-10-07)
+
+Relayed by the coordinator: fix the crop card "Uses:" gaps the review left open (roots should list pickles, barley
+ale, apples cider and vinegar), check every crop and ingredient that feeds the new or earlier rows, and **derive the
+list from the recipe rows so it cannot drift**.
+
+- `preserve_rules.gd` `rows_taking(item)`: the station rows (after the fish row, whose catch has its own text) with an
+  input selector that takes the item (`ingredient_takes.gd` `matches`, the same test the stations' pickup uses).
+- The crop picker (`farm_crop_roles.gd` `uses_of`): dishes, the mill, then each row as "the brewery (ale)", then raw
+  last. Roots (all six) gain the preserving table's pickles; barley gains the brewery's ale; oats and wheat gain none.
+- The field guide (`field_guide.gd`): a crop's Uses add "made into pickles at the preserving table"; every other
+  good's "Cooked in: ..." adds "Made into: ...", and each output is linked. The apple's entry no longer says "no demo
+  dish cooks it yet" (`orchard_text.gd` takes the stations' words): dried fruit, cider, apple vinegar. A pear: dried
+  fruit. Honey: mead, cordial, berry jam. Nuts: rations, nut cheese. Berries: cordial, berry jam. Flour and dried fish:
+  rations. Vinegar: pickles (linked from its entry).
+- Not changed: the mill stays its own use (it is not a recipe row); the fish row's dried fish keeps the catch's own
+  "Or dried at the rack".
+
+- **Apples have no crop card** (they are the orchard's, not a bed's), so "apples should list cider and vinegar" is
+  met in the field guide's apple entry; the crop card covers the bed crops (roots, barley). **Kept as built by
+  Brendan's ruling below.**
+- **The potato**: as first built, the pickles row took the catalog's roots row, which files the potato too, so its
+  guide entry said "Made into: pickles at the preserving table." **Changed by Brendan's ruling below**: the row now
+  takes the six farmed roots only.
+- **The cordial is listed twice for honey and berries** -- "Cooked in: Raspberry cordial" (the recipe book's dish) and
+  "Made into: cordial at the brewery" (the station row) -- each linked. Kept: they are two entries of the guide,
+  and the dish's own entry says where it is made. **Kept as built by Brendan's ruling below.**
+- **Station goods** (vinegar) add the same "Made into: ..." to their own use; foraged goods keep "Eaten raw ..." as
+  its own sentence, not a product; the orchard's fruit reads the dishes too (`_dishes_taking`), so a future fruit dish
+  shows (the orchard text's unreachable berry branch and empty fallback are removed); a guide entry links each good
+  once (a defensive dedupe: no path links twice today; `test_no_guide_entry_links_twice` guards a future one); the crop's "same row" line says "grown and kept alike", since barley's
+  ale differs from its row-mates.
+- Not changed (outside this follow-up): the grain crops' guide Uses do not name the mill, which their crop cards do
+  ("the mill (flour)"); and `farm_harvest_plan.gd`'s spoiling risk counts only the kitchen's eating, so a
+  root harvest meant for pickling still reads as at risk.
+
+Tests: `test_demo_new_recipes.gd` pins every pantry item's rows (all 42) and sweeps every pantry item -- each row that
+takes it must be named as "<good> at <station>" and linked in its guide entry, and on its crop card when it is a crop;
+no guide entry links an id twice.
+
+Gates for the follow-up (2026-10-07):
+- **CI-style full suite** on a clean checkout of `07eaa6fb`, with no assets and `.godot` re-imported:
+  `9296 test(s), 649618 assertion(s), 0 failure(s)` ·
+  `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 371 tolerated; leaked at exit: 0 object(s), 0 resource(s)` ·
+  `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).`
+- **Analyzer and contracts:** `0 GDScript warning(s) in 0 of 1053 file(s)`; decision_numbers PASS (337).
+- **Live harness:** `LIVE-SUMMARY 38 0` at 1280x720 and 1920x1080. The `crop_picker_*` frames show the radish's Uses
+  ending "the preserving table (pickles), eaten raw in a pinch".
+  - With the art staged, a run sometimes ends with "3–5 resources still in use at exit". The pre-follow-up harness
+    shows the same with the art staged, and no run without the art shows it (6 of 6 clean), so it is not this work's.
+- **Mutation:**
+  - 13 mutants on `rows_taking`, the card, the guide and the orchard text: 12 killed. One survivor was killed by an
+    added test (a good no dish cooks); the other (`rows_taking`'s `break`) is equivalent on today's rows.
+  - 6 mutants on the review fixes: 5 killed. The survivor (the row-mates wording) was killed by an added test.
+- **Independent review** (`code-reviewer`, twice, waited for): no CRITICAL or HIGH.
+  - First review: the MEDIUMs were fixed in `1c8932bb` (the sweep now asserts "<good> at <station>", row-mates
+    wording, the raw clause as its own sentence, links deduplicated and guarded).
+  - Re-review: no MEDIUM. Its LOWs were fixed in `07eaa6fb`; the mill's absence from the grain guide is noted above. The live harness checks the
+picker's radish and barley lines and captures `crop_picker_*`.
+
+## Brendan's ruling on the follow-up (2026-10-07): "exclude potatoes from pickles"
+
+Relayed by the coordinator:
+1. **Potatoes are excluded from pickles.** The pickles row takes onions and the other roots, never the potato.
+   - Built as a recipe change in the row. The row's roots input is now `SEL_PICKLE_ROOTS` in `preserve_rules.gd`,
+     an item selector of the six farmed roots (radish, turnip, carrot, beetroot, parsnip and onion: every item whose
+     ITEM_CROP is the roots row). It was the catalog's roots category, which also files the potato.
+   - `SELECTOR_WORDS` keeps the word "roots" on the card, in the refusal and in the guide's "made" line.
+   - The derived Uses follow on their own: no row takes the potato, and its guide entry no longer names or links the
+     pickles.
+   - Tests: the selector equals the farmed roots and never the potato; potatoes and vinegar are refused (NO_ROOTS,
+     potatoes untouched); onions then pickle; the potato's entry lists no pickles.
+2. **Kept as built:** the apple's Uses live in the field guide (apples have no crop card), and the cordial is listed
+   twice for honey and berries (the recipe-book dish and the brewery row).
+
+Gates for the ruling (2026-10-07):
+- **CI-style full suite** on a clean checkout of `25c81615`, with no assets and `.godot` re-imported:
+  `9299 test(s), 649664 assertion(s), 0 failure(s)` ·
+  `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 371 tolerated; leaked at exit: 0 object(s), 0 resource(s)` ·
+  `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).`
+- **Analyzer:** `0 GDScript warning(s) in 0 of 1053 file(s)`. **Contracts:** decision_numbers PASS.
+- **Live harness:** `LIVE-SUMMARY 38 0` at 1280x720 and 1920x1080. The pickles card still reads "Roots: have ...".
+- **Mutation:** 4 mutants, all killed, run on `4d94040f` and again on `25c81615`. They were: the row taking the
+  catalog's roots row again, the potato added to the mask, the onion dropped from it, and the word "roots" dropped.
+- **Independent review** (`code-reviewer`, waited for): no CRITICAL or HIGH. Its LOWs were fixed in `25c81615`:
+  - the catalog header no longer says "onions or roots";
+  - `category_words` documents the named selectors, and `SELECTOR_WORDS` is a typed dictionary;
+  - the roots' fix text reads "onions or other roots (not potatoes)";
+  - the onion is named in the tests.
+
+## Source
+
+Brendan, 2026-10-07 ("Approve and build Q-d5 and dec-007"); `docs/handoff/OPEN_QUESTIONS.md` Q-D5; DEC-006, DEC-007;
+`docs/setting_rules_amendment.md`; GDD §5.7; the content library (`shared/recipes.json`, `shared/pantry.json`,
+`authoring_handoff.md`); decisions 0971, 1601, 1611, 1621.

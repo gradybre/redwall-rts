@@ -15,8 +15,9 @@ Feature #9, feasts (Brendan, 2026-10-01, "NEW 2"; tracker only, first recorded i
 SOC-023, feasts with occasion and memory (decision 0493).
 
 **Q-D11, the hour of a feast. Brendan, 2026-10-07: "All at 17:00 supper".** Every feast, called or the regatta's, is
-served at the kitchen's 17:00 supper. This is a **DEVIATION from REQ-SET-103's hour** ("When a ready feast begins at
-18:00 ..."), by his ruling; the rest of REQ-SET-103 (waves, consumption on attendance) stands. Q-D11 is CLOSED in
+served at the kitchen's 17:00 supper. It was first built as a deviation from REQ-SET-103's 18:00; on his approval of P9
+(a) the same day, **REQ-SET-103 is amended by DEC-058** to 17:00, so the demo now follows the GDD. The rest of
+REQ-SET-103 (waves, consumption on attendance) stands. Q-D11 is CLOSED in
 `docs/handoff/OPEN_QUESTIONS.md` and indexed in `RULINGS.md`. The regatta was already served at that supper (decision
 0438; the 2026-10-01 tracker ruling), so it is unchanged.
 
@@ -137,8 +138,11 @@ P4 (a), P5 (a), P6 (b), P7 (a), P8 (b), P9 (a). What they required:
   (nothing cooked is undone). `feast_menu.gd available_of` adds it to the free food for the feast's own supper; the
   plan, the "needs X" words and the preview's "free" figures use it. The reservation is unchanged: what the free food
   lacks at confirmation, the kitchen's own top-up takes once it adopts the occasion (it lets the meal's food go and
-  holds each course's from it). The regatta is unchanged: it is planned from tomorrow at the earliest, and its menu
-  file was left alone (a follow-up if wanted).
+  holds each course's from it). **The regatta counts it too** (the ruling's "shared with the regatta"; the second
+  review found its planned day's supper already planned four meals ahead): `regatta.gd count_supper(day)` names the
+  supper while planning, `free_beans`/`free_cabbage` and `regatta_menu.gd _free` (the nut loaf's flour and nuts) add
+  what it holds, and the hold clears it. Only courses count it: the kitchen never tops a beverage or drink up, and no
+  ordinary meal takes herbs or mead, so the called feasts' beverage check uses the free food alone.
 - **P9 (a), done.** `DEC-058` in `docs/setting_decisions.md` ("Every feast is served at the 17:00 supper", Brendan's
   words "All at 17:00 supper"; DEC-050–057 are taken on the digging branch, so 058 is the next free one); REQ-SET-103
   in `docs/game_gdd.md` amended to "the 17:00 supper" with a dated amendment note; `docs/gameplay_balance.md`

@@ -1335,6 +1335,7 @@ Brendan put these on the backlog. Building any of them needs his go-ahead first.
 | UX-032 | A few named voices | 0493: backlog |
 | Crowd rendering past 24 residents | The crowd presentation path (Codex R07's second half; scale-test hot spot 3); capacity limits (POI slots, seats, beds, hall door places, roster pool, overlay marks) | Brendan 2026-10-01/02: "route work now, crowd later"; "crowd path + capacity limits NOT now" (tracker; the perf doc says "deferred by Brendan") |
 | Canopy access, ECO-042 | Trunk and ladder routes into the canopy | 0493 row AA: waits on MOVE-G01–05 |
+
 <a id="art-next"></a>
 ## ART-NEXT — The next costed art list (nothing approved, nothing spent)
 
@@ -1343,7 +1344,7 @@ generate nothing until he approves it and a cap. Add each new art need here as i
 
 | Item | Key(s) | Why | Style and cost | Source |
 |---|---|---|---|---|
-| The feasts' four new courses | `dish_feast_fish`, `dish_berry_tart`, `dish_nut_roast`, `dish_orchard_crumble` | They show the fallback swatch in the Pantry and the guide (no dish art) | The 3D-render item-icon style (ART-LOCK-001 as amended, 0971); one `nano-banana-2` image-to-image 3×3 sheet conditioned on pass 1's dish sheet, as 0972's was: **about 6 credits** (0972's sheet cost 6; suggested cap 12). Five spare cells for other waiting dishes | Decision 1701 P8 (b), approved by Brendan 2026-10-07 |
+| The feasts' four new courses | `dish_feast_fish`, `dish_berry_tart`, `dish_nut_roast`, `dish_orchard_crumble` | They show the fallback swatch in the Pantry and the guide (no dish art) | The 3D-render item-icon style (ART-LOCK-001 as amended, 0971); one `nano-banana-2` image-to-image 3×3 sheet conditioned on pass 1's `sheet_foods_a`, as 0972's was: **about 6 credits** (0972's sheet cost 6; suggested cap 12). Five spare cells for other waiting dishes | Decision 1701 P8 (b), approved by Brendan 2026-10-07 |
 
 # Not chosen: do not build
 

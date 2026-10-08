@@ -2287,6 +2287,31 @@ Fishing trips feed the pantry through the real fishery (`fishery/`, `boats/`): t
   (decision 0602). The sound: a splash where a net
   or trap goes in, a boat pushes off or a hole is cut, and the oars' knock as a boat rows.
 
+## The fishing revamp: hazards, catch plans, collection and stewardship (#49; decisions 1711-1713)
+
+- **Hazards** (REQ-SET-053): every completed fishing cycle rolls §5.4's injury chance -- net 12, trap 8, boat 20, ice 24
+  in 10000, less 2 for each level of the crew's fishing skill and 4 for a boat's second crew, never below 1 -- on the
+  core RNG's FISHING stream (`fishery/fishing_rolls.gd`). A hit on a net or trap is a bite from a pike or a territorial
+  eel (which, by the habitat and the day): severity 1, −20 health. On a boat or the ice it is cold-water exposure:
+  severity 2, −35. The trip's first fisher (a boat's helm) is hurt through the infirmary, which says so in the news and
+  takes the patient to a bed once the catch is landed. The demo stays non-fatal (the infirmary's health floor).
+- **A fine catch**: the same cycle rolls §5.4's rare bonus, `100 + 30 x skill` in 10000 (at most 1000); a success books a
+  quarter of the catch as excellent, said in the feed and totalled on the trips line. The pantry keeps no quality yet, so
+  it is stored as plain fish. Both rolls are drawn when the cycle opens at the water and kept if the trip is then called
+  off.
+- **Catch plans** (Water panel ▸ Fishing ▸ **Fish ▸**): after the water's three fish comes **Best catch**, the GDD's auto
+  mode -- the legal fish with the most expected nourishment for the work, then the one closing soonest, then the table
+  order. It is chosen again at the water, so a fish that closed on the way is replaced. A chosen fish that is closed
+  waits instead, and the refusal names the day it reopens.
+- **Traps: when soaked / morning run** (Fishing ▸ the stewardship row): new traps are collected as soon as their 6 h soak
+  is done, or on the morning run (06:00-10:00) -- unless their fish closes tomorrow, when they are collected at once.
+- **Each water's record** (under the gear): the catch landed over the last 12 days, the stock and its change today, the
+  fishing places in use, the intensive policy, and for any fish restocking (below 30% until back above 40%) the days
+  until it is back above 40% with no fishing.
+- **Intensive: off / on** for the chosen water: its card, and the first press, show the 10% hard floor it allows and
+  each fish's days from that floor back above 40%; a second press accepts it ("Intensive: press to accept"). One press
+  turns it off. Never during a closure; never reset by itself.
+
 ## The ferry and the regatta (water part B lane 3; decisions 0437-0439)
 
 Brendan approved ferries and the regatta feast with the rest of water part B (decision 0493, group K), though the review

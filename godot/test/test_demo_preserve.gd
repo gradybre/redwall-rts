@@ -672,7 +672,9 @@ func test_the_reserve_counts_the_rations_in_store_and_only_ration_batches() -> v
 	assert_equal(full.fishery.ration_reserve.held_milli(Catalog.CAT_DRIED_FISH), 0, "at the target: nothing held")
 	var rig := _reserve_rig([[Catalog.ITEM_DRIED_FISH, 1000], [Catalog.FIRST_CATCH, 4000]])
 	assert_equal(rig.fishery.order_batch(Recipes.R_DRY_FISH, PackedInt32Array()), "", "a Dry fish batch on the board")
-	assert_equal(rig.fishery.rations_owned_milli(), 0, "not rations")
+	var j: int = rig.fishery.tables.open_job(Tables.KIND_BATCH, FisheryScript.PROG_MILL, -1)
+	rig.fishery.tables.j_recipe[j] = Recipes.R_CORDIAL
+	assert_equal(rig.fishery.rations_owned_milli(), 0, "a cordial batch (a table batch, as rations are) neither")
 	rig.fishery.top_up_ration_reserve()
 	assert_equal(rig.fishery.ration_reserve.held_milli(Catalog.CAT_DRIED_FISH), 1000, "still held")
 
@@ -691,6 +693,8 @@ func test_the_reserve_replaces_the_keep_and_its_release_frees_both() -> void:
 	f.ration_reserve.target_milli = 0
 	f.top_up_ration_reserve()
 	assert_equal(f.ration_keep_milli(Catalog.CAT_DRIED_FISH), 1000, "no target: 1740's keep")
+	f.release_ration_reserve(true)
+	assert_equal(f.ration_keep_milli(Catalog.CAT_DRIED_FISH), 0, "no target, released: the keep let go too")
 
 
 func test_the_reserve_lets_its_grain_go_while_its_mill_batch_grinds() -> void:

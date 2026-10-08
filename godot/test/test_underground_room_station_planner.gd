@@ -12,7 +12,6 @@ const Publication := preload("res://scripts/core/underground_room_frontier_publi
 const Frontier := preload("res://scripts/core/underground_room_frontier.gd")
 const Face := preload("res://scripts/core/underground_work_face.gd")
 const Approach := preload("res://scripts/core/underground_room_approach.gd")
-const MoleCatalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
 const StonePins := preload("res://data/underground/mole-worker/qualified-stone-v7/catalog_source.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Routes := preload("res://scripts/core/underground_routes.gd")
@@ -22,7 +21,13 @@ const Space := preload("res://scripts/core/room_space.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const Sites := preload("res://scripts/core/excavation_sites.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
-const CONTENT: int = MoleCatalog.CONTENT_REVISION
+## ADR1217 step 5 moved the mounted catalog to content 9; this loop keeps the published content-6 rows, pinned here.
+const CONTENT: int = 6
+const CONTENT_6_PROFILES: int = 42
+const CONTENT_6_BOXES: int = 377
+const CONTENT_6_SOURCES: int = 4
+const CONTENT_6_BANK_BYTES: int = 29664
+const CONTENT_6_WIRE: String = "res://data/underground/mole-worker/qualified-stone-v7/mole-worker.ugprof"
 const KITCHEN_SITES: int = 8 # DEC-054: 2 x 2 x the two reachable levels.
 const YAW_PLUS_X: int = 49152
 
@@ -52,10 +57,10 @@ class StepFixture extends Phase.SourceFixture:
 		assert_true(_gear.bind_equipment(_inventory, _residents.directory(), _residents).ok, "actual Gear")
 		_work = Work.new(_jobs); assert_true(_work.bind_gear(_gear).ok, "actual Work")
 		_profiles = Profiles.new()
-		assert_equal(_profiles.configure(MoleCatalog.PROFILE_COUNT, MoleCatalog.BOX_COUNT, MoleCatalog.SOURCE_COUNT,
-			MoleCatalog.PAIRED_BANK_BYTES + Profiles.CONTROL_RESERVE), &"", "content-6 two-bank arena")
+		assert_equal(_profiles.configure(CONTENT_6_PROFILES, CONTENT_6_BOXES, CONTENT_6_SOURCES,
+			CONTENT_6_BANK_BYTES + Profiles.CONTROL_RESERVE), &"", "content-6 two-bank arena")
 		assert_equal(_profiles.bind_actual(_residents, _transforms, _inventory, _gear, _carry, _work, _pool, _piles), &"", "actual source owners")
-		assert_equal(_profiles.load_file(MoleCatalog.WIRE_PATH, StonePins.WIRE_SHA, CONTENT), &"", "mounted content-6 wire")
+		assert_equal(_profiles.load_file(CONTENT_6_WIRE, StonePins.WIRE_SHA, CONTENT), &"", "mounted content-6 wire")
 
 	func _load_catalog(revision: int) -> StringName:
 		"""Selected, finite-step and canonical-ground rows inherit the existing Movement rate (RATE_GROUND_CAP)."""

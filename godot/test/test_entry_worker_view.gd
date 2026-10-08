@@ -1,6 +1,6 @@
 extends "res://test/framework/test_case.gd"
 ## ADR1211: the live demo's entry worker view. G5 presentation half on a real settlement whose first-entry chain has
-## chosen its crew (the ADR1197 host fixture, with the G11 test stand-in tool); the drawing half on the real content-6
+## chosen its crew (the ADR1197 host fixture, tool-free since ADR1217 step 5); the drawing half on the real content-6
 ## stone haul (ADR1206 fixture) through a host seam; and the mesh factories' exact fingerprints.
 
 const View := preload("res://demo/cast/entry_worker_view.gd")
@@ -141,16 +141,15 @@ func _view(host: Node, cast: Cast, include_stone: bool = true) -> View:
 
 
 func _crew_host() -> HostSuite:
-	"""The real ADR1197 chain on a generated settlement with its crew chosen (G11 stand-in tool) and, ADR1219,
-	set off on its timed surface walk to H: not yet a Routes actor."""
+	"""The real ADR1197 chain on a generated settlement with its crew chosen (an idle adult mole, no tool: ADR1217
+	step 5) and, ADR1219, set off on its timed surface walk to H: not yet a Routes actor."""
 	_host_suite = HostSuite.new()
 	_host_suite.before_each()
 	var session: RefCounted = _host_suite._generate_and_mount()
 	var host: Node = _host_suite._host
 	assert_true(host.compose_underground_room_owners() and host.compose_underground_route_owners()
 		and host.compose_underground_surface_anchor() and host.compose_underground_entry_owners(), "owners composed")
-	assert_false(host.begin_underground_entry(NEAR), "G11 first")
-	_host_suite._equip_first_mole(session._retirement_owners, host.underground_entry()._output)
+	assert_false(_host_suite._first_mole(session._retirement_owners).x < 0, "an idle adult mole qualifies")
 	assert_true(host.begin_underground_entry(NEAR), "the crew sets off for H: %s" % host.last_refusal())
 	assert_equal(host.underground_entry().step(), EntryRuntime.STEP_RUNNING, "crew chosen and planned")
 	assert_true(host.underground_entry().walk_ticks_left() > 0, "still on its surface walk")

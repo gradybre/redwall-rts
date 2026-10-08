@@ -56,10 +56,10 @@ func _assert_phase_selectors() -> void:
 		assert_equal(episode[6], 7, "BRACE CUT FINISH remain distinct required operations")
 		for phase: int in 3:
 			assert_equal(_frontier.station_into(episode[8 + phase], station, revision), &"", "actual phase station")
-			assert_equal(station[5], 25 if ordinal % 2 == 0 else 17, "actual downward top-face program")
-			assert_equal(station[1], -1536 if ordinal % 2 == 0 else 1536, "complete all-yaw foot stays outside future cuts")
+			assert_equal(station[5], 57 if ordinal % 2 == 0 else 53, "actual claw dig row (ADR1217 step 4e: yaw 49152 / 16384)")
+			assert_equal(station[1], -1430 if ordinal % 2 == 0 else 1430, "the claw station at 1,430 u stays outside future cuts")
 			assert_equal(revision.value, 1, "exact program revision")
-			assert_equal(profiles._live.fields[Profiles.F_SOURCE * profiles._profile_capacity + station[5]], 0, "original source image")
+			assert_equal(profiles._live.fields[Profiles.F_SOURCE * profiles._profile_capacity + station[5]], 4, "claw source image")
 		# Revision 2 (ADR1191) routes cuts through explicit travel selectors 10/11, aliases of M/R endpoints 1/2.
 		assert_equal(episode[15], 10, "material endpoint")
 		assert_equal(episode[16], 11, "finite output endpoint")

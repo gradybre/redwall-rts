@@ -135,8 +135,10 @@ P5 left this alone. [MEAS-2]
 
 Recommendation: (c).
 
-**Q-D7. Orchard remainders.** Moving a sapling needs its own ruling (0673); harvest groups have baskets but no carts
-(0674). [RG-Y]
+**Q-D7. Orchard remainders.** **CLOSED: ruled (a) by Brendan on 2026-10-07**, "Both, agent proposes numbers": a
+sapling can be moved once, with a delay of some days; carts are a haul tool for harvest groups (decision 1721, which
+built both and puts its numbers to him as proposals). Moving a sapling needs its own ruling (0673); harvest groups
+have baskets but no carts (0674). [RG-Y]
 - (a) Saplings can be moved once, with a delay of days; carts as a haul tool.
 - (b) Neither.
 

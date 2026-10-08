@@ -2024,7 +2024,7 @@ seasons (`orchard/`). Presentation only; every number not the GDD's is named in 
 |---|---|
 | Left click an orchard tree, a site's pegs, a bush, the baskets, the nursery or the grove's stone | Select it: the **Orchard (demo)** panel takes the right column (it has no tab; any tab takes the column back) -- the thing's readout and verbs (each with its action card), its group's policy, the nursery's plans, the grove's record |
 | Right click one (residents selected) | The nearest does its most pressing work: a tree's harvest (else its tending), an empty site's planting, a bush's picking, the baskets' haul, the grove's observation |
-| Orchard panel | Tend, Harvest, Pick berries, Send baskets on, Plant apple/pear, Plan an apple/pear, Drop the plan, Observe now -- with nobody selected, queued for the Field crew; Timing, To, Keep (the group's policy); Protected (the grove) |
+| Orchard panel | Tend, Harvest, Pick berries, Send baskets on, Plant apple/pear, Plan an apple/pear, Drop the plan, Observe now -- with nobody selected, queued for the Field crew; Timing, Share (a fresh-table share since decision 1721), Keep (the group's policy); Protected (the grove) |
 
 ## Hives, honey and wax (decision 1601)
 
@@ -2058,6 +2058,45 @@ not the GDD's is named in `hives/hive_rules.gd`.
 |---|---|
 | Left click the skep | Select the apiary: the **Orchard (demo)** panel -- its strength and season, REQ-SET-083's service and feed deficits, its honey, wax and winter feed, the crops it pollinates, and its verbs |
 | Right click it (residents selected) | The nearest does its most pressing work: the service, else a feeding, else a recolonisation |
+
+## Review group Y's remainders: a sapling moved, carts and shares, two groves, prepared outings (decision 1721)
+
+Brendan's ruling on open question Q-D7 (2026-10-07): "Both, agent proposes numbers". Every number below is a
+PROVISIONAL proposal of decision 1721, named in `orchard/orchard_rules.gd` or `forage/forage_rules.gd`.
+
+- **Moving a sapling** (ECO-009): a planted tree still a sapling (its first 24 days, never an inherited one) may be
+  moved **once** to a free site (empty, not promised to a plan or another move). The Orchard panel's **Move sapling**
+  orders it: a resident lifts it (20 WU), carries it in arms, and replants it (40 WU, compost 4 U taken at the end).
+  The tree keeps its age and health and then **settles 12 days** (its age stands still), so its early fruit and its
+  maturity come 12 days later. Let go before the replanting, the sapling is set back in its hole; the new site is
+  spoken for from the order until the move is over.
+- **Carts** (ECO-010): **Build a cart** at a group's baskets (wood 4 U, 60 WU): its hauls then carry up to **40 U** a
+  trip instead of a basket's 10 U (a basket's load when no store has room for 40). The cart stands beside its baskets
+  and goes ahead of its hauler above ground.
+- **The fresh-table share** (ECO-010): the group's **Share** button steps 0, 25, 50, 75 or 100% to the kitchen pantry,
+  the rest to the best keeping store. Each haul goes where the share is furthest behind, and to the other place when
+  that has no room; the baskets' readout says what share went where this year.
+- **The beech hollow** (ECO-015): a second protected grove, round the foraging trips' mushroom spot, with its own mossy
+  stone, ring, toggle and seasonal record. While a grove is protected, **foraging trips leave its kind a reserve**:
+  10% of the woods' capacity above §5.5's floor (the hazel brake's nuts in the North hollow, the beech hollow's
+  mushrooms).
+- **Prepared outings** (ECO-014), in the Woods panel's Foraging section: a trip is planned to be **home by dusk**
+  (20:00, at the slowest resident's 18 m a game hour): it is refused at night or too late, and a forager at its spot
+  claims only what it can gather and still walk home, **turning back** when that is too little. **Kit ▸** lends the
+  village's one carry kit (its carrier brings two baskets, 8 U); **Lead ▸** names the first selected resident the
+  trip's lead. Each spot **remembers** its latest trip home (when, what, how long, who led) -- shown under the trip,
+  never a bonus. The card says REQ-SET-067's permission is not asked at the woods' danger 1.
+- **Not built**: a rest stop on an outing and rest at a grove wait on a rest need (review group AE's leisure model, as
+  decision 0675 said).
+- Checked by `test_demo_orchard_remainders.gd`, `test_demo_forage_outings.gd` and, on the real scene with real input
+  at 1280x720 and 1920x1080, `test/live/demo_orchard_remainders_live.gd`.
+
+| Input | Does |
+|---|---|
+| Orchard panel, a sapling selected: **Move sapling** | Lift it, carry it and replant it on the first free site (to the nearest selected resident, else the Field crew) |
+| Orchard panel, the baskets selected: **Build a cart** / **Share** | Build the group's handcart; step its fresh-table share |
+| Click the beech hollow's stone | Select the second grove (its section, Protected and Observe now) |
+| Woods panel ▸ Foraging: **Kit ▸**, **Lead ▸** | Take the carry kit; name the first selected resident the lead |
 
 ## Preserving: dried fruit and rations (decision 1611)
 

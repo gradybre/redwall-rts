@@ -36,6 +36,18 @@ extends RefCounted
 ##   * THE NURSERY's place and the M3 grant (2 apple + 2 pear saplings) held there from the start.
 ##   * THE GROVE (ECO-015): one protected grove in the North stand, never felled while protected, observed once a
 ##     season (OBSERVE_MWU).
+##
+## THE REVIEW GROUP Y REMAINDERS (decision 1721; Brendan's ruling of 2026-10-07 on open question Q-D7: "Both, agent
+## proposes numbers" -- a sapling can be moved once, with a delay of some days; carts are a haul tool for harvest groups).
+## Every number below is a PROPOSAL of decision 1721, its source or reasoning beside it:
+##   * MOVING A SAPLING (ECO-009): a planted tree still a sapling (its first half-year, HALF_YEAR_DAYS) may be lifted
+##     and replanted on a free site ONCE; it then SETTLES for MOVE_SETTLE_DAYS, not growing (its age stands still).
+##   * A CART (ECO-010): a group may build one handcart at its baskets (CART_WOOD_MILLI, CART_BUILD_MWU); its hauls
+##     then carry up to CART_LOAD_MILLI a trip instead of a basket's HAUL_LOAD_MILLI.
+##   * THE FRESH-TABLE SHARE (ECO-010's "shares as desired priorities"): a group sends FRESH_STEPS percent of what it
+##     hauls to the kitchen pantry and the rest to the best keeping store -- a priority, not a guarantee.
+##   * A SECOND GROVE and the groves' FORAGE RESERVE (ECO-015): the beech hollow round the mushroom spot; while a grove
+##     is protected the foraging trips leave GROVE_RESERVE_PERMILLE of the woods' stock of the kind gathered in it.
 
 const Hive := preload("res://scripts/core/orchard_hive.gd")
 const ForageScript := preload("res://scripts/core/forage.gd")
@@ -89,11 +101,8 @@ const TIMING_TOGETHER: int = 1
 const TIMING_NAMES: Array[String] = ["As each ripens", "All together"]
 const TIMING_SHORT: Array[String] = ["staggered", "together"]
 ## Where the baskets go on to (ECO-010's destination policy): the kitchen's pantry for the table, or the store that
-## keeps food longest (a root cellar before the covered store).
-const DEST_KITCHEN: int = 0
-const DEST_KEEPING: int = 1
-const DEST_NAMES: Array[String] = ["Kitchen pantry (fresh table)", "Best keeping store (preserve)"]
-const DEST_SHORT: Array[String] = ["kitchen", "keeping store"]
+## keeps food longest (a root cellar before the covered store). Decision 0674 built it as a choice of one; decision
+## 1721 makes it the group's fresh-table share (FRESH_STEPS below): 100% is the old "kitchen", 0% the old "keeping".
 const KITCHEN_STORE_ID: StringName = &"kitchen_pantry"
 ## How much of each fruit the stand keeps back for the nursery (ECO-010's "seedling" share): 0, one propagation's
 ## fruit, or two.
@@ -128,6 +137,19 @@ const MAX_PLANS: int = 6
 const GROVE_NAME: String = "the North hollow"
 const GROVE_AT: Vector2 = Vector2(-10.0, -25.5)
 const GROVE_RADIUS_M: float = 6.5
+## Every grove (decision 1721: more than one, ECO-015): the North hollow (above, decision 0675) and the beech hollow, a
+## 6 m circle round the foraging trips' mushroom spot (forage_rules.gd SPOT_AT[1], (10.4, -30.4)) and two mature
+## beeches. Each has its mossy stone (its rest and observation spot), its toggle and its record.
+const GROVE_NAMES: Array[String] = [GROVE_NAME, "the beech hollow"]
+const GROVE_CENTRES: Array[Vector2] = [GROVE_AT, Vector2(10.4, -30.4)]
+const GROVE_RADII_M: PackedFloat32Array = [GROVE_RADIUS_M, 6.0]
+## Each grove's stone: the North hollow's at its heart (decision 0675), the beech hollow's off the foragers' spot.
+const GROVE_STONES: Array[Vector2] = [GROVE_AT, Vector2(8.8, -29.2)]
+const GROVE_COUNT: int = 2
+## ECO-015's "protected areas maintain identifiable seasonal forage reserves" (decision 1721, PROPOSAL): while a grove
+## is protected, a foraging trip to a spot inside it leaves a tenth of the kind's §5.5 capacity above the sustainable
+## floor (so trips stop at 30% of the stock, not §5.5's 20%). The basin's own rules are untouched.
+const GROVE_RESERVE_PERMILLE: int = 100
 const OBSERVE_MWU: int = 10000
 const MAX_RECORDS: int = 16
 
@@ -153,7 +175,10 @@ const K_OBSERVE: int = 6
 const K_SERVICE: int = 7
 const K_FEED: int = 8
 const K_RECOLONIZE: int = 9
-const KIND_COUNT: int = 10
+## Decision 1721: a sapling lifted and replanted on another site (ECO-009), and a group's handcart built (ECO-010).
+const K_MOVE: int = 10
+const K_CART: int = 11
+const KIND_COUNT: int = 12
 
 # --- work (milli-WU) -------------------------------------------------------------------------------------------------------
 
@@ -164,6 +189,39 @@ const PROPAGATE_MWU: int = Hive.NURSERY_WORK_MILLI_WU
 ## An early harvest is picked in the share of a full one's work that its fruit is of a full crop (decision 0672).
 @warning_ignore("integer_division") const EARLY_HARVEST_MWU: int = HARVEST_MWU * EARLY_YIELD_PERMILLE / PERMILLE
 const RETRY_USEC: int = FisheryRules.RETRY_USEC
+
+# --- moving a sapling (ECO-009; decision 1721, Brendan's ruling on Q-D7, 2026-10-07) -----------------------------------
+## The delay (PROPOSAL): one season, 12 days (SimClock.DAYS_PER_SEASON -- the same as §5.6's nursery wait, the time the
+## demo already gives a sapling to take), in which the moved tree does not grow: its age stands still, so its early
+## fruit and its maturity both come 12 days later. Health, tending and the winter's chill go on as §5.6 says.
+const MOVE_SETTLE_DAYS: int = SimClock.DAYS_PER_SEASON
+## Lifting it (PROPOSAL): half a planting's BAL-CAT-010 40 WU -- the hole is dug round the root ball, not filled.
+@warning_ignore("integer_division") const MOVE_LIFT_MWU: int = PLANT_MWU / 2
+## Replanting it: BAL-CAT-010's planting, 40 WU, with §5.6's planting compost 4 U (the sapling is the one lifted).
+const MOVE_REPLANT_MWU: int = PLANT_MWU
+const MOVE_COMPOST_MILLI: int = Hive.PLANT_COMPOST_MILLI
+
+# --- the groups' carts (ECO-010; decision 1721, Brendan's ruling on Q-D7) -------------------------------------------------
+## A handcart's load (PROPOSAL): four baskets, 40 U -- 10 kg of fruit at §5.7's 250 g a unit, under a medium resident's
+## own 16 kg carry (BAL-WORK-003), pushed rather than carried. Loading and unloading stay one payload's BAL-CAT-010
+## 2 WU each: that, and a quarter of the trips, is what the cart saves.
+const CART_LOAD_MILLI: int = 40000
+## Building one (PROPOSAL): wood 4 U (20 kg at §5.7's 5000 g a unit: a bed, two wheels and the handles) and 60 WU at
+## the group's baskets -- one and a half times §5.9's 40 WU workbench trap, a larger piece. No rope (open question Q-D3).
+const CART_WOOD_MILLI: int = 4000
+const CART_BUILD_MWU: int = 60000
+## Where each group's cart stands when it is not out: beside its baskets, clear of the stump by the east stand and of
+## every obstacle by CART_CLEAR_M (the suite checks it against the real layout).
+const CART_PARK_AT: Array[Vector2] = [Vector2(-2.4, 22.0), Vector2(2.2, 29.0)]
+## The handcart's half-length (world_sizes.gd's `handcart` bound: 0.95 m) and a hand's breadth.
+const CART_CLEAR_M: float = 1.1
+
+# --- the fresh-table share (ECO-010; decision 1721) --------------------------------------------------------------------------
+## The share of a group's hauls it would like on the fresh table (the kitchen pantry), in percent; the rest go to the
+## best keeping store. A desired priority (ECO-010): each haul goes where the share is furthest behind, and to the other
+## when that has no room.
+const FRESH_STEPS: PackedInt32Array = [0, 25, 50, 75, 100]
+const PERCENT: int = 100
 
 ## A tree's drawn stages, by age: a sapling until YOUNG_FROM_DAYS, then the tree's model growing to full size at
 ## maturity (presentation).
@@ -198,6 +256,34 @@ static func is_site(site: int) -> bool:
 static func is_group(group: int) -> bool:
 	"""Whether `group` names one of the groups."""
 	return group >= 0 and group < GROUP_COUNT
+
+
+static func is_grove(grove: int) -> bool:
+	"""Whether `grove` names one of the groves."""
+	return grove >= 0 and grove < GROVE_COUNT
+
+
+static func grove_of(at: Vector2) -> int:
+	"""The grove `at` stands in (NONE: none)."""
+	for grove: int in GROVE_COUNT:
+		if at.distance_to(GROVE_CENTRES[grove]) <= GROVE_RADII_M[grove]:
+			return grove
+	return NONE
+
+
+static func is_movable_age(age_days: int) -> bool:
+	"""Whether a planted tree `age_days` old is still a sapling that may be moved (its first half-year)."""
+	return age_days >= 0 and age_days < HALF_YEAR_DAYS
+
+
+static func to_kitchen(fresh_pct: int, to_kitchen_milli: int, hauled_milli: int, load_milli: int) -> bool:
+	"""Whether the next haul of `load_milli` should go to the fresh table: the share's kitchen part is furthest behind --
+	what has gone there (`to_kitchen_milli` of `hauled_milli` hauled) is under `fresh_pct` of the total with this load."""
+	if fresh_pct <= 0:
+		return false
+	if fresh_pct >= PERCENT:
+		return true
+	return to_kitchen_milli * PERCENT < fresh_pct * (hauled_milli + load_milli)
 
 
 static func is_bush(bush: int) -> bool:

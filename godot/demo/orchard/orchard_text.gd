@@ -291,19 +291,13 @@ static func fruit_words(species: int) -> String:
 		Hive.SPECIES_HARVEST_FIRST_DAY[species], Hive.SPECIES_HARVEST_LAST_DAY[species]]
 
 
-static func guide_fields(item: int) -> Array:
-	"""The field guide's entry for an orchard item (demo/guide/field_guide.gd's goods): [summary, fields]."""
-	var shelf: int = Catalog.shelf_hours_of(item)
-	if Catalog.category_of(item) == Catalog.CAT_FRUIT:
-		var species: int = Catalog.ORCHARD_SPECIES_ITEM.find(item)
-		return ["Picked from the orchard's trees", PackedStringArray([
-			"Fruit (§5.7): eaten raw by a hungry resident when a meal is missed (900 NP a unit); no demo dish cooks it yet.",
-			cap(fruit_words(species)) + "; a young tree gives a fifth of that from its first full year.",
-			"The nursery turns 4 U into a sapling (with compost 2 and water 2).",
-			"Keeps %d game hours in store; the Pantry (K) lists it." % shelf])]
-	return ["Picked from the berry hedge", PackedStringArray([
-		"Berries (§5.7): raspberries, blackberries and strawberries alike; eaten raw by a hungry resident when a meal is " \
-			+ "missed (700 NP a unit); kept for the cordials, tarts and preserves still to come.",
-		"The hedge fruits in summer and less in autumn (§5.5); none in spring or winter.",
-		"Picked by the basket at 4 WU a unit, never below a fifth of the hedge.",
-		"Keeps %d game hours in store; the Pantry (K) lists it." % shelf])]
+static func guide_fields(item: int, uses: String) -> Array:
+	"""The field guide's entry for the orchard's apple or pear (demo/guide/field_guide.gd's goods; the hedge's berries
+	are the woods' forage entry): [summary, fields]; `uses` is what the dishes and the stations make of it
+	(field_guide.gd `_dishes_taking`)."""
+	var species: int = Catalog.ORCHARD_SPECIES_ITEM.find(item)
+	return ["Picked from the orchard's trees", PackedStringArray([
+		"Fruit (§5.7): eaten raw by a hungry resident when a meal is missed (900 NP a unit). %s" % uses,
+		cap(fruit_words(species)) + "; a young tree gives a fifth of that from its first full year.",
+		"The nursery turns 4 U into a sapling (with compost 2 and water 2).",
+		"Keeps %d game hours in store; the Pantry (K) lists it." % Catalog.shelf_hours_of(item)])]

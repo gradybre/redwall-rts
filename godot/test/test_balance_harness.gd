@@ -656,62 +656,12 @@ func test_the_stores_round_orders_every_recipe_the_stations_take_and_counts_the_
 	for recipe: int in Recipes.RECIPE_COUNT:
 		if recipe != Recipes.R_MEAD:
 			expected.append(recipe)
-	assert_equal(fishery.ordered, expected, "every row but the refused one, in order; no mill")
-	assert_true(trips.asked.is_empty(), "no forager: rations lack their dried fish")
+	assert_equal(fishery.ordered, expected, "every row but the refused one, in order; no mill without dried fish")
+	assert_equal(trips.asked.size(), 1, "one forager: the nut cheese waits on nuts alone")
 	var orders: Dictionary = policy.take_orders()
 	assert_equal(orders.get(Recipes.VERB[Recipes.R_CORDIAL], 0), 1, "a batch counted under its verb")
 	assert_equal(orders.get("Not ordered: %s (NO_HONEY)" % Recipes.VERB[Recipes.R_MEAD], 0), 1, "the refusal counted")
 	assert_false(orders.has(Recipes.VERB[Recipes.R_MEAD]), "the refused row was not ordered")
-
-
-func test_rations_inputs_are_gathered_in_their_chain_s_order() -> void:
-	"""Nuts are sent for only once a batch's dried fish is free; flour is ground only once its dried fish and nuts are;
-	each only while it is itself short (boundaries one milli-U either side)."""
-	var fishery := FakeFishery.new()
-	var policy := _provisioner(fishery)
-	var trips := FakeTrips.new()
-	policy.bind_forage(trips)
-	for recipe: int in Recipes.RECIPE_COUNT:
-		fishery.refusals[recipe] = "Can't"
-	assert_equal(ForageRules.KIND_WORDS[ProvisioningScript.NUTS_KIND], "nuts", "the kind sent for is nuts")
-	_stock(fishery, Catalog.ITEM_DRIED_FISH, _ration_need(Catalog.CAT_DRIED_FISH) - 1)
-	policy._stores_round()
-	assert_true(trips.asked.is_empty() and fishery.ordered.is_empty(), "dried fish one milli-U short: nothing")
-	_stock(fishery, Catalog.ITEM_DRIED_FISH, 1)
-	_stock(fishery, Catalog.ITEM_NUTS, _ration_need(Catalog.CAT_NUTS) - 1)
-	policy._stores_round()
-	assert_equal(trips.asked, [Vector2i(ProvisioningScript.NUTS_KIND, ForageRules.PARTY_MIN)] as Array[Vector2i],
-		"dried fish there, nuts short: one forager sent")
-	assert_true(fishery.ordered.is_empty(), "and no flour ground while the nuts are short")
-	assert_equal(policy.take_orders().get("Forage (nuts)", 0), 1, "counted")
-	_stock(fishery, Catalog.ITEM_NUTS, 1)
-	policy._stores_round()
-	assert_equal(trips.asked.size(), 1, "nuts at the need: no more foraging")
-	assert_equal(fishery.ordered, [-1] as Array[int], "dried fish and nuts there, flour short: ground")
-	_stock(fishery, Catalog.ITEM_FLOUR, _ration_need(Catalog.CAT_FLOUR))
-	policy._stores_round()
-	assert_equal(fishery.ordered, [-1] as Array[int], "flour at the need: not ground again")
-
-
-func test_a_trip_out_or_a_refusal_holds_the_forager_and_a_busy_mill_holds_the_grinding() -> void:
-	"""The woods' refusal or a trip already out sends nobody; the mill's refusal grinds nothing."""
-	var fishery := FakeFishery.new()
-	var policy := _provisioner(fishery)
-	var trips := FakeTrips.new()
-	policy.bind_forage(trips)
-	for recipe: int in Recipes.RECIPE_COUNT:
-		fishery.refusals[recipe] = "Can't"
-	_stock(fishery, Catalog.ITEM_DRIED_FISH, _ration_need(Catalog.CAT_DRIED_FISH))
-	trips.out = 1
-	policy._stores_round()
-	trips.out = 0
-	trips.why = "nuts are out of season now"
-	policy._stores_round()
-	assert_true(trips.asked.is_empty(), "a trip out, or the woods refusing: none sent")
-	_stock(fishery, Catalog.ITEM_NUTS, _ration_need(Catalog.CAT_NUTS))
-	fishery.mill_why = "Can't: both mill slots are grinding"
-	policy._stores_round()
-	assert_true(fishery.ordered.is_empty(), "the mill refusing: nothing ground")
 
 
 func test_a_recipe_with_a_batch_waiting_is_not_ordered_again() -> void:
@@ -747,3 +697,79 @@ func test_the_runner_accepts_the_provisioning_policy() -> void:
 	run._read_args(PackedStringArray(["--policy", "provisioning", "--out", "/tmp/x.json"]))
 	assert_equal(run._error, "", "accepted")
 	assert_true("provisioning" in RunScript.POLICIES, "listed")
+
+
+
+func test_a_row_waits_on_one_input_only_when_every_other_is_free() -> void:
+	"""Decision 1731: `waits_only_on` -- the category short and every other input free (one milli-U either side)."""
+	var fishery := FakeFishery.new()
+	var policy := _provisioner(fishery)
+	assert_true(policy.waits_only_on(Recipes.R_CHEESE, Catalog.CAT_NUTS), "nut cheese with no nuts: waits on nuts alone")
+	assert_false(policy.waits_only_on(Recipes.R_MEAD, Catalog.CAT_NUTS), "mead takes no nuts")
+	assert_false(policy.waits_only_on(Recipes.R_RATION, Catalog.CAT_NUTS), "rations lack their flour and dried fish too")
+	_stock(fishery, Catalog.ITEM_FLOUR, _ration_need(Catalog.CAT_FLOUR))
+	_stock(fishery, Catalog.ITEM_DRIED_FISH, _ration_need(Catalog.CAT_DRIED_FISH) - 1)
+	assert_false(policy.waits_only_on(Recipes.R_RATION, Catalog.CAT_NUTS), "dried fish one milli-U short: not nuts alone")
+	_stock(fishery, Catalog.ITEM_DRIED_FISH, 1)
+	assert_true(policy.waits_only_on(Recipes.R_RATION, Catalog.CAT_NUTS), "flour and dried fish there: nuts alone")
+	_stock(fishery, Catalog.ITEM_NUTS, _ration_need(Catalog.CAT_NUTS))
+	assert_false(policy.waits_only_on(Recipes.R_RATION, Catalog.CAT_NUTS), "nuts at the need: nothing waits")
+
+
+func test_one_forager_goes_for_nuts_while_a_batch_waits_on_them() -> void:
+	"""Nuts are wanted while some batch waits on them alone (the cheese takes the most); none once the largest need is
+	met; a trip out or the woods refusing sends nobody."""
+	var fishery := FakeFishery.new()
+	var policy := _provisioner(fishery)
+	var trips := FakeTrips.new()
+	policy.bind_forage(trips)
+	for recipe: int in Recipes.RECIPE_COUNT:
+		fishery.refusals[recipe] = "Can't"
+	assert_equal(ForageRules.KIND_WORDS[ProvisioningScript.NUTS_KIND], "nuts", "the kind sent for is nuts")
+	var cheese: int = Recipes.IN_MILLI[Recipes.IN_FIRST[Recipes.R_CHEESE]]
+	_stock(fishery, Catalog.ITEM_NUTS, cheese - 1)
+	assert_true(policy.wants_nuts(), "one milli-U short of a cheese batch: wanted")
+	trips.out = 1
+	policy._stores_round()
+	trips.out = 0
+	trips.why = "nuts are out of season now"
+	policy._stores_round()
+	assert_true(trips.asked.is_empty(), "a trip out, or the woods refusing: none sent")
+	trips.why = ""
+	policy._stores_round()
+	assert_equal(trips.asked, [Vector2i(ProvisioningScript.NUTS_KIND, ForageRules.PARTY_MIN)] as Array[Vector2i],
+		"one forager sent")
+	assert_equal(policy.take_orders().get("Forage (nuts)", 0), 1, "counted")
+	_stock(fishery, Catalog.ITEM_NUTS, 1)
+	assert_false(policy.wants_nuts(), "every batch's nuts there: not wanted")
+	policy._stores_round()
+	assert_equal(trips.asked.size(), 1, "none sent")
+
+
+func test_flour_is_ground_only_once_rations_lack_nothing_else() -> void:
+	"""The mill grinds only when the free flour is short and a batch's dried fish and nuts are both free, and the mill
+	takes it -- never the kitchen's grain for a batch that cannot be made."""
+	var fishery := FakeFishery.new()
+	var policy := _provisioner(fishery)
+	for recipe: int in Recipes.RECIPE_COUNT:
+		fishery.refusals[recipe] = "Can't"
+	_stock(fishery, Catalog.ITEM_NUTS, _ration_need(Catalog.CAT_NUTS))
+	policy._stores_round()
+	assert_true(fishery.ordered.is_empty(), "no dried fish: nothing ground")
+	_stock(fishery, Catalog.ITEM_DRIED_FISH, _ration_need(Catalog.CAT_DRIED_FISH))
+	fishery.mill_why = "Can't: both mill slots are grinding"
+	policy._stores_round()
+	assert_true(fishery.ordered.is_empty(), "the mill refusing: nothing ground")
+	fishery.mill_why = ""
+	policy._stores_round()
+	assert_equal(fishery.ordered, [-1] as Array[int], "dried fish and nuts there, flour short: ground")
+	_stock(fishery, Catalog.ITEM_FLOUR, _ration_need(Catalog.CAT_FLOUR))
+	policy._stores_round()
+	assert_equal(fishery.ordered, [-1] as Array[int], "flour at the need: not ground again")
+	var short := FakeFishery.new()
+	var other := _provisioner(short)
+	for recipe: int in Recipes.RECIPE_COUNT:
+		short.refusals[recipe] = "Can't"
+	_stock(short, Catalog.ITEM_DRIED_FISH, _ration_need(Catalog.CAT_DRIED_FISH))
+	other._stores_round()
+	assert_true(short.ordered.is_empty(), "dried fish there but no nuts: nothing ground")

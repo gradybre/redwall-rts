@@ -6,12 +6,14 @@ extends "res://tools/balance/light_touch_policy.gd"
 ## never touches a stock and never orders anything the panel would refuse.
 ##
 ## THE STORES ROUND (06:00, after the light-touch rounds):
-##   rations' inputs, gathered in their chain's order, each only once every input before it is free (no planned meal
-##            holds it), so nothing is taken for a batch that cannot be made: dried fish comes from the rack's own row
-##            (below); then NUTS -- one forager sent when the free nuts are short of a batch's, no foraging trip is out
-##            and the woods allow it (forage_trips.gd `trip_refusal`); then FLOUR -- one mill batch when the free flour is
-##            short and the mill takes it (`mill_refusal`). The mill grinds grain the kitchen would cook, so it waits
-##            until a batch of rations is otherwise possible;
+##   nuts     one forager sent when a batch waits on nuts alone, no foraging trip is out and the woods allow it
+##            (forage_trips.gd `trip_refusal`) -- nuts come only from a trip. A batch waits on nuts alone when its nuts
+##            are short and every other input is free (no planned meal holds it): the nut cheese (decision 1625), or any
+##            row like it; and rations once their dried fish is free (their flour is ground after the nuts, below);
+##   flour    rations' inputs are gathered in their chain's order, each only once every input before it is free, so
+##            nothing is taken for a batch that cannot be made: dried fish from the rack's own row (below), then the nuts
+##            (above), then one mill batch when the free flour is short and the mill takes it (`mill_refusal`). The mill
+##            grinds grain the kitchen would cook, so it waits until a batch of rations is otherwise possible;
 ##   recipes  every row of the stations' recipe table (preserve_rules.gd, in its own order: dried fish, dried fruit,
 ##            rations, mead, cordial, and whatever rows are appended after them) gets a batch ordered when the fishery
 ##            would take it (`batch_refusal` is empty) and no batch of that row is waiting to be worked. A passive batch
@@ -50,11 +52,10 @@ func _stores_round() -> void:
 	ROUND)."""
 	if _fishery == null:
 		return
-	if ration_input_free(Catalog.CAT_DRIED_FISH):
-		_gather_nuts()
-		if ration_input_free(Catalog.CAT_NUTS) and not ration_input_free(Catalog.CAT_FLOUR) \
-				and _fishery.mill_refusal().is_empty():
-			_count("Grind flour", _fishery.order_mill(_nobody))
+	_gather_nuts()
+	if ration_input_free(Catalog.CAT_DRIED_FISH) and ration_input_free(Catalog.CAT_NUTS) \
+			and not ration_input_free(Catalog.CAT_FLOUR) and _fishery.mill_refusal().is_empty():
+		_count("Grind flour", _fishery.order_mill(_nobody))
 	for recipe: int in Recipes.RECIPE_COUNT:
 		if open_batches(recipe) > 0:
 			continue
@@ -65,11 +66,36 @@ func _stores_round() -> void:
 
 
 func _gather_nuts() -> void:
-	"""One forager for nuts while the free nuts are short of a ration batch's, no trip is out and the woods allow it."""
-	if _trips == null or ration_input_free(Catalog.CAT_NUTS) or _trips.trip_count() > 0:
+	"""One forager for nuts while a batch waits on nuts alone, no trip is out and the woods allow it."""
+	if _trips == null or _trips.trip_count() > 0 or not wants_nuts():
 		return
 	if _trips.trip_refusal(NUTS_KIND, ForageRules.PARTY_MIN).is_empty():
 		_count("Forage (nuts)", _trips.order_trip(NUTS_KIND, ForageRules.PARTY_MIN, _nobody))
+
+
+func wants_nuts() -> bool:
+	"""Whether a batch waits on nuts alone: rations once their dried fish is free (their flour waits on the nuts), or any
+	row whose nuts are short and every other input free (see THE STORES ROUND)."""
+	if ration_input_free(Catalog.CAT_DRIED_FISH) and not ration_input_free(Catalog.CAT_NUTS):
+		return true
+	for recipe: int in Recipes.RECIPE_COUNT:
+		if waits_only_on(recipe, Catalog.CAT_NUTS):
+			return true
+	return false
+
+
+func waits_only_on(recipe: int, category: int) -> bool:
+	"""Whether `recipe`'s inputs of `category` are short while every other input is free (false when it takes none)."""
+	var short: bool = false
+	for k: int in Recipes.IN_COUNT[recipe]:
+		var input: int = Recipes.IN_FIRST[recipe] + k
+		var free: bool = _fishery.takes.free_milli_of_crop(_fishery.pantry, Recipes.IN_CATEGORY[input]) \
+				>= Recipes.IN_MILLI[input]
+		if Recipes.IN_CATEGORY[input] == category:
+			short = short or not free
+		elif not free:
+			return false
+	return short
 
 
 func ration_input_free(category: int) -> bool:

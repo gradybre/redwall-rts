@@ -150,3 +150,24 @@ its own (1601), so `hands_off` exercises it.
   4. **The CSV writes a missing figure as 0.** On a day with no heating demand, `hearths/fuel_days_hundredths_end`
      therefore reads 0 in the CSV, which looks like "out of wood". **The JSON leaves the key out**, so read fuel-days
      from the JSON. Not changed, so that the CSV keeps its one rule.
+
+## Addendum (2026-10-07, after #234's new recipes merged): nuts for any batch that waits on them alone
+
+- **The problem.** #234 (decision 1625) added the nut cheese (nuts 2 + water → 2). Nuts come only from a foraging trip,
+  and the provisioning player sent one only for rations, once their dried fish was free. Rations never got their dried
+  fish, so the cheese could never run.
+- **The change.** `provisioning_policy.gd` now sends one forager while **any batch waits on nuts alone**:
+  - `waits_only_on(recipe, CAT_NUTS)`: the row's nuts are short, and every other input is free;
+  - or rations, once their dried fish is free, because their flour waits on the nuts.
+- **Unchanged.** The mill still grinds only once a ration batch's dried fish and nuts are both free.
+- **Tests:**
+  - a row waits on one input only when every other is free (one milli-U either side);
+  - one forager for nuts while a batch waits on them, and none once the largest need is met, a trip is out, or the
+    woods refuse;
+  - flour is ground only once rations lack nothing else.
+- **Focused suite:** `32 test(s), 154 assertion(s), 0 failure(s)`, 0 unexpected, 0 leaked.
+- **Mutation:** 11 mutants on the new logic, 10 killed.
+  - **The survivor** removes the rations branch of `wants_nuts`. It is equivalent under the current table: the cheese
+    takes more nuts (2 U) than rations (1 U) and no other food, so whenever rations wait on nuts the cheese does too.
+    The branch is kept, so that rations do not depend on the cheese row existing.
+  - **A second survivor** showed an `!= R_RATION` exclusion was redundant; it was removed.

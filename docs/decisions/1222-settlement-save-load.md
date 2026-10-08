@@ -447,6 +447,8 @@ These record the engineering choices made while building, step by step.
 
   **Measured cost** (generated settlement, this Mac, 2026-10-08): a save takes about 33 s and writes
   56,989,480 bytes; a load about 66 s. Every autosave therefore stalls the frame it runs in for that long.
+  **Superseded by [ADR 1235](1235-fast-settlement-saves.md)** (same day, same bytes): a save takes about 0.65 s, a
+  load about 1.0 s, a load over the live world (with its rollback checkpoint) about 1.7 s.
 
 - **Step 12, ARCH-SAVE-006 parity** (`test_settlement_save_parity.gd`). A whole save takes ~33 s, so the
   per-tick comparison cannot recapture the world 15,000 times. `test/fixtures/save_parity_fingerprint.gd`

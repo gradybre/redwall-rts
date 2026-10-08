@@ -65,6 +65,7 @@ extends RefCounted
 ## class cannot call them unqualified. Same pattern as `save_codec.gd`'s `SaveCodecScript`.
 const CanonicalStateHashScript := preload("res://scripts/core/canonical_state_hash.gd")
 const SaveCodec := preload("res://scripts/core/save_codec.gd")
+const ColumnProofs := preload("res://scripts/core/column_proofs.gd")
 
 # --- stream framing -------------------------------------------------------------------------------
 
@@ -415,6 +416,26 @@ class Emitter:
 				return false
 			offset += width
 		return not failed()
+
+	func put_bulk(source: PackedByteArray) -> bool:
+		"""Append `source` verbatim by folding it straight into SHA-256 (ADR 1235).
+
+		The buffered bytes are folded first, so the stream order is exactly `put_raw()`'s; SHA-256
+		over a stream does not depend on how it is split, so the digest is the same. A capture
+		appends the whole run under the same cap.
+		"""
+		if failed():
+			return false
+		if _capture_limit > 0:
+			if _total + source.size() > _capture_limit:
+				return fail(REFUSE_CAPTURE_LIMIT, "stream exceeds the %d-byte capture cap"
+					% _capture_limit)
+			_capture.append_array(source)
+		_flush()
+		if source.size() > 0:
+			_context.update(source)
+		_total += source.size()
+		return true
 
 	func put_utf8_u32(text: String, max_bytes: int) -> bool:
 		"""Append a u32 UTF-8 BYTE-length prefix and the encoded bytes. Never a character count."""
@@ -963,7 +984,45 @@ class Walker:
 				return
 
 	func _emit_integers(type_code: int, emitter: Emitter) -> Refusal:
-		"""Types 0-4, each from the storage form the adapter declared. See the sign-trap note."""
+		"""Types 0-4, each from the storage form the adapter declared. See the sign-trap note.
+
+		ADR 1235: every column is emitted as ONE little-endian run (`Emitter.put_bulk`), the very
+		bytes the per-value writes produced; the per-value writes remain only for a host that is
+		not little-endian. A range refusal names the same first offending index either way.
+		"""
+		var count: int = _values.count
+		if not CanonicalStateHashScript.host_is_little_endian():
+			return _emit_per_value(type_code, emitter)
+		if type_code == TYPE_U8:
+			emitter.put_bulk(_values.bytes.slice(0, count))
+		elif type_code == TYPE_I32 or (type_code == TYPE_U32 and _values.storage == STORAGE_INT32):
+			emitter.put_bulk(_values.int32s.slice(0, count).to_byte_array())
+		elif type_code == TYPE_U32:
+			var narrowed: PackedInt32Array = PackedInt32Array()
+			var refusal: Refusal = _narrow_u32(narrowed)
+			if not refusal.is_ok():
+				return refusal
+			emitter.put_bulk(narrowed.to_byte_array())
+		else:
+			var wide: PackedInt64Array = _values.int64s.slice(0, count)
+			if type_code == TYPE_U64 and ColumnProofs.i64_minimum(wide) < 0:
+				return _emit_wide(type_code, emitter)
+			emitter.put_bulk(wide.to_byte_array())
+		return Refusal.new(REFUSE_NONE, "")
+
+	func _narrow_u32(out: PackedInt32Array) -> Refusal:
+		"""Logical u32 values from i64 storage as i32 bit patterns, refusing the first out of range."""
+		out.resize(_values.count)
+		for position: int in _values.count:
+			var value: int = _values.int64s[position]
+			if value < 0 or value > SaveCodec.UINT32_MAX:
+				return Refusal.new(REFUSE_VALUE_RANGE,
+					"u32 value %d at index %d is outside 0..4294967295" % [value, position])
+			out[position] = SaveCodec.u32_bits_to_int32(value)
+		return Refusal.new(REFUSE_NONE, "")
+
+	func _emit_per_value(type_code: int, emitter: Emitter) -> Refusal:
+		"""The value-by-value encoding: the reference the bulk runs reproduce byte for byte."""
 		if type_code == TYPE_U8:
 			for position: int in _values.count:
 				emitter.put_u8(_values.bytes[position])
@@ -1020,6 +1079,17 @@ class Walker:
 # --- module entry points --------------------------------------------------------------------------
 
 static var _production: Declaration = null
+
+
+static var _little_endian: int = -1
+
+
+static func host_is_little_endian() -> bool:
+	"""True when packed `to_byte_array()` conversions are little-endian here (probed once)."""
+	if _little_endian < 0:
+		var probe: PackedByteArray = PackedInt32Array([0x01020304]).to_byte_array()
+		_little_endian = 1 if probe == PackedByteArray([4, 3, 2, 1]) else 0
+	return _little_endian == 1
 
 
 static func ascii_compare(left: String, right: String) -> int:

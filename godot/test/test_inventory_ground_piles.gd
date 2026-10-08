@@ -456,3 +456,16 @@ func test_a_reclaimed_piles_slot_returns_to_the_allocator_under_a_new_generation
 	assert_equal(next.x, pile.x, "the reclaimed slot is the next one handed out")
 	assert_equal(next.y, pile.y + 1, "under the next generation")
 	assert_false(_inv.is_container_valid(pile), "so the pile's ref stays stale")
+
+
+func test_restore_refuses_a_reachable_flag_on_an_inactive_container() -> void:
+	"""ADR 1235: the inactive-payload proof covers `c_reachable`; a 1 on a free container refuses."""
+	_pile_in_transaction(TILE_A)
+	var columns: InventoryScript.CanonicalColumns = InventoryScript.CanonicalColumns.new(16, 16)
+	assert_true(_inv.copy_canonical_columns_into(columns), "copy")
+	var free_slot: int = columns.c_live.find(0)
+	assert_true(free_slot >= 0, "a free container")
+	columns.c_reachable[free_slot] = 1
+	var target: InventoryScript = InventoryScript.new(16, 16)
+	assert_false(target.restore_canonical_columns(columns), "refused")
+	assert_true(target.canonical_detail().contains("inactive container"), target.canonical_detail())

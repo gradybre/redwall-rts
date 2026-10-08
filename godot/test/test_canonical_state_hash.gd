@@ -1232,3 +1232,24 @@ func test_haul_admission_record_is_a_section_six_owner() -> void:
 		assert_equal(String(field["source_contract"]), "C196", "haul admission contract")
 		assert_equal(String(field["shape"]["declared_capacity"]), "`JOB_CAPACITY` = 8192", "one row per Job key")
 
+
+
+func test_bulk_runs_hash_and_capture_exactly_like_byte_appends() -> void:
+	"""ADR 1235: `put_bulk()` folds the same stream `put_raw()` builds, captured byte for byte."""
+	var payload: PackedByteArray = PackedByteArray()
+	payload.resize(70000)
+	for index: int in payload.size():
+		payload[index] = (index * 31) & 0xff
+	var by_bytes: Digest.Emitter = Digest.Emitter.new(Digest.CHUNK_BYTES, 200000)
+	var by_bulk: Digest.Emitter = Digest.Emitter.new(Digest.CHUNK_BYTES, 200000)
+	for emitter: Digest.Emitter in [by_bytes, by_bulk]:
+		emitter.put_u32(7)
+	by_bytes.put_raw(payload)
+	by_bulk.put_bulk(payload)
+	var first: PackedByteArray = PackedByteArray()
+	var second: PackedByteArray = PackedByteArray()
+	assert_true(by_bytes.finish_into(first) and by_bulk.finish_into(second), "both finish")
+	assert_equal(second, first, "the same digest")
+	assert_equal(by_bulk.captured(), by_bytes.captured(), "the same captured stream")
+	assert_equal(by_bulk.total_bytes(), 70004, "and the same length")
+	assert_true(Digest.host_is_little_endian(), "this build's packed conversions are little-endian")

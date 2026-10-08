@@ -1446,7 +1446,14 @@ taking the recommended option each time. The coordinator session relayed the ans
     - Rename an unverifiable save to `.corrupt` and report it.
     - Never delete a save.
 
-Engineering record: [decision1222](decisions/1222-settlement-save-load.md).
+**2026-10-08 (Brendan, in chat): make saves fast first.** Before the save browser, a save (33 s) and a load (66 s)
+had to become fast enough to autosave in play, keeping every save test, the goal tests and ARCH-SAVE-006 parity
+byte-identical, the format canonical and versioned, and Q3's "no compression". The engineering target set for it is a
+save under 1 s and a load under 2 s on the development Mac at the generated settlement; ADR 1235 records how and
+the numbers reached.
+
+Engineering record: [decision1222](decisions/1222-settlement-save-load.md); speed:
+[decision1235](decisions/1235-fast-settlement-saves.md).
 
 
 ### DEC-056 — A lost entry crew is replaced; every resident follows its schedule

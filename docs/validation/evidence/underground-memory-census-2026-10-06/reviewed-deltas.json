@@ -114,6 +114,11 @@
      "bytes": 10496000,
      "carried_by": "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
      "store": "sections 4+5+6-flag capture/apply: one Columns (3,298,304) and one Links (1,884,160) image plus the matching FramedOwner and section 5/6 blocks, and 131,072 bytes of cold validator bitmaps"
+    },
+    {
+     "bytes": 983040,
+     "carried_by": "ADR 1235 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+     "store": "ADR 1235 whole-column proof of columns_refusal(): native slices of one column at a time while differing rows are located (at most twice the largest, 81,920 x 4 B) plus the differing-row list (at most 81,920 x 4 B); no retained member"
     }
    ],
    "delta": {
@@ -222,10 +227,12 @@
      ]
     },
     "allocation_sites": {
+     "([": 2,
      ".duplicate(": 46,
+     "=[": 1,
      "PackedByteArray(": 8,
      "PackedInt32Array(": 15,
-     "in[": 3,
+     "in[": 4,
      "range(": 1
     }
    }
@@ -241,6 +248,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "ADR 1228: a retired excavation or modular row also clears its worker capacity (the exact never-used clear row); no storage change"
+    },
+    {
+     "bytes": 9621504,
+     "carried_by": "ADR 1235 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+     "store": "ADR 1235 whole-column proofs of columns_refusal() and restore_columns(): the delivered ledger's sorted copy (2,654,208 B), native slices while its differing cells are located (at most 5,308,416 B), the differing-cell and differing-row lists (at most 1,327,104 + 331,776 B); the column proof and the present-row lists are smaller and not concurrent; no retained member"
     }
    ],
    "delta": {
@@ -275,10 +287,13 @@
      ]
     },
     "allocation_sites": {
+     "([": 1,
      ".duplicate(": 19,
-     "PackedInt32Array(": 2,
+     "PackedInt32Array(": 3,
      "PackedInt64Array(": 1,
-     "range(": 1
+     "in[": 2,
+     "range(": 1,
+     "return[": 1
     }
    }
   },
@@ -352,18 +367,28 @@
      "bytes": 50200,
      "carried_by": "ADR 1228 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
      "store": "section 6 inventory spatial capture/apply: the 1,024-row endpoint arena (24 B a row plus 12 scalar bytes) captured, and the previous arena held through the post-install audit; section 7's canonical anchor check marks 1,024 endpoint rows (1,024 B)"
+    },
+    {
+     "bytes": 4460544,
+     "carried_by": "ADR 1235 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+     "store": "ADR 1235 whole-column proofs of the canonical partition, tail and inactive checks and the vectorised projection: a range() Array of up to 101,376 ints (2,433,024 B) and five 101,376-slot int32 columns (sorted generation copy, live list, ascending set, prefix slice and its sort; 2,027,520 B); the projection's replacement occupancy, generation and free-stack columns (1,059,840 B) are built after the proof and are not concurrent; no retained member"
     }
    ],
    "delta": {
     "resizes_added": [
-     "rows.resize(SPATIAL_ENDPOINT_CAPACITY)"
+     "rows.resize(SPATIAL_ENDPOINT_CAPACITY)",
+     "tail.resize(capacity - count)"
     ],
     "allocation_sites": {
-     ".duplicate(": 10,
+     "([": 4,
+     ",[": 18,
+     ".duplicate(": 14,
+     ".slice(": 4,
      "PackedByteArray(": 1,
-     "PackedInt32Array(": 10,
+     "PackedInt32Array(": 11,
      "PackedInt64Array(": 1,
-     "range(": 1,
+     "in[": 2,
+     "range(": -8,
      "return[": 4
     }
    }

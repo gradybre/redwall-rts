@@ -18,13 +18,15 @@ extends RefCounted
 ## contiguity, every CRC, the body digest, then the identities. A refusal returns no Body.
 ##
 ## DISK. `write_atomic()` writes `<path>.tmp` in 65536-byte chunks, re-reads and re-decodes it,
-## and only then renames it over `<path>` (ARCH-SAVE-003). `read_file()` reads a whole file. Both
-## refuse with an exact code; neither ever deletes a save.
+## and only then renames it over `<path>` (ARCH-SAVE-003). `write_encoded_atomic()` does the same
+## for bytes `encode_file()` just produced, validating the re-read by byte comparison (ADR 1235).
+## `read_file()` reads a whole file. All refuse with an exact code; none ever deletes a save.
 ##
 ## NO FLOAT. ARCH-AUTH-002: there is no float in this file and there must never be one.
 
 const SaveHeader := preload("res://scripts/core/save_header.gd")
 const SaveIdentity := preload("res://scripts/core/save_identity_hashes.gd")
+const Jobs := preload("res://scripts/core/save_integrity_jobs.gd")
 
 const SECTION_COUNT: int = SaveHeader.SECTION_COUNT
 const PROVENANCE_PREFIX_BYTES: int = SaveIdentity.PROVENANCE_PREFIX_BYTES
@@ -133,13 +135,26 @@ static func identity_refusal(header: SaveHeader.Header,
 
 # --- encode ---------------------------------------------------------------------------------------
 
-static func encode_file(body: Body, out: PackedByteArray) -> SaveHeader.Refusal:
-	"""Lay out header, table and sections into `out`. A refusal leaves `out` unchanged."""
+static func start_crcs(body: Body, count: int) -> Jobs.CrcJob:
+	"""ADR 1235: fold the CRC-32 of sections 1..`count` on worker threads while the caller works.
+	The sections must not be replaced before `encode_file()` collects the job."""
+	var sections: Array[PackedByteArray] = []
+	for index: int in mini(count, SECTION_COUNT):
+		sections.append(body.sections[index])
+	return Jobs.CrcJob.new(sections)
+
+
+static func encode_file(body: Body, out: PackedByteArray,
+		crcs: Jobs.CrcJob = null) -> SaveHeader.Refusal:
+	"""Lay out header, table and sections into `out`. A refusal leaves `out` unchanged. `crcs`
+	(from `start_crcs()`) supplies the leading sections' CRCs; any others are folded here."""
 	if body == null or body.shape_detail() != "":
 		return _no(REFUSE_BODY_SHAPE, "no body" if body == null else body.shape_detail())
 	var staging: PackedByteArray = PackedByteArray()
 	staging.resize(SaveHeader.body_offset())
-	var table: SaveHeader.Refusal = _write_table_and_sections(body, staging)
+	var folded: PackedInt64Array = crcs.values_for(body.sections) if crcs != null \
+		else PackedInt64Array()
+	var table: SaveHeader.Refusal = _write_table_and_sections(body, staging, folded)
 	if not table.is_ok():
 		return table
 	var header: SaveHeader.Header = _header_of(body, staging.size())
@@ -166,7 +181,8 @@ static func _header_of(body: Body, total: int) -> SaveHeader.Header:
 	return header
 
 
-static func _write_table_and_sections(body: Body, staging: PackedByteArray) -> SaveHeader.Refusal:
+static func _write_table_and_sections(body: Body, staging: PackedByteArray,
+		folded: PackedInt64Array) -> SaveHeader.Refusal:
 	"""Each descriptor at its table slot; each body appended at its contiguous offset."""
 	var at: int = SaveHeader.body_offset()
 	for index: int in SECTION_COUNT:
@@ -177,7 +193,7 @@ static func _write_table_and_sections(body: Body, staging: PackedByteArray) -> S
 		descriptor.offset = at
 		descriptor.byte_length = bytes.size()
 		descriptor.row_count = body.row_counts[index]
-		descriptor.crc32 = SaveHeader.crc32_of(bytes)
+		descriptor.crc32 = folded[index] if index < folded.size() else SaveHeader.crc32_of(bytes)
 		var refusal: SaveHeader.Refusal = SaveHeader.encode_descriptor_into(descriptor, staging,
 			SaveHeader.SECTION_TABLE_OFFSET + index * SaveHeader.SECTION_DESCRIPTOR_BYTES)
 		if not refusal.is_ok():
@@ -189,36 +205,97 @@ static func _write_table_and_sections(body: Body, staging: PackedByteArray) -> S
 
 # --- decode ---------------------------------------------------------------------------------------
 
-static func decode_file(bytes: PackedByteArray, out: Body,
-		out_header: SaveHeader.Header) -> SaveHeader.Refusal:
-	"""Validate the whole file, then fill `out` and `out_header`. A refusal changes neither."""
+class PendingDecode:
+	"""A file whose header and table are parsed, its CRCs and body digest folding on workers.
+
+	`refusal` is the first refusal the header and table earned; `tiled` says the sections tile the
+	body in order, so `body` holds their slices and the only layout refusal left is a CRC.
+	"""
+	var bytes: PackedByteArray = PackedByteArray()
 	var header: SaveHeader.Header = SaveHeader.Header.new()
-	var parsed: SaveHeader.Refusal = SaveHeader.decode_header_into(bytes, header)
-	if parsed.is_ok():
-		parsed = SaveHeader.header_refusal(header, bytes.size())
-	if not parsed.is_ok():
-		return parsed
 	var descriptors: Array[SaveHeader.Descriptor] = []
-	var table: SaveHeader.Refusal = SaveHeader.decode_section_table(bytes, descriptors)
-	if table.is_ok():
-		table = SaveHeader.section_table_refusal(descriptors, header)
-	if table.is_ok():
-		table = _layout_refusal(descriptors, bytes)
-	if table.is_ok():
-		table = SaveHeader.body_digest_refusal(bytes, header)
-	if not table.is_ok():
-		return table
-	var staged: Body = _body_of(bytes, descriptors, header)
-	var identity: SaveHeader.Refusal = identity_refusal(header, staged.section(1))
+	var refusal: SaveHeader.Refusal = null
+	var tiled: bool = false
+	var body: Body = null
+	var crcs: Jobs.CrcJob = null
+	var digest: Jobs.DigestJob = null
+
+	func parsed() -> bool:
+		"""True when the sections are sliced and can be decoded while the hashes fold."""
+		return refusal.is_ok() and tiled
+
+	func crcs_hold() -> bool:
+		"""Wait for the section CRCs (about 0.1 s) and say whether every one matches its
+		descriptor, so no section decoder ever sees bytes its CRC refuses (ADR 1235)."""
+		if not parsed():
+			return false
+		var folded: PackedInt64Array = crcs.values()
+		for index: int in descriptors.size():
+			if folded[index] != descriptors[index].crc32:
+				return false
+		return true
+
+
+static func begin_decode(bytes: PackedByteArray) -> PendingDecode:
+	"""Parse the header and table, then (ADR 1235) start the CRCs and body digest on workers."""
+	var pending: PendingDecode = PendingDecode.new()
+	pending.bytes = bytes
+	pending.refusal = SaveHeader.decode_header_into(bytes, pending.header)
+	if pending.refusal.is_ok():
+		pending.refusal = SaveHeader.header_refusal(pending.header, bytes.size())
+	if pending.refusal.is_ok():
+		pending.refusal = SaveHeader.decode_section_table(bytes, pending.descriptors)
+	if pending.refusal.is_ok():
+		pending.refusal = SaveHeader.section_table_refusal(pending.descriptors, pending.header)
+	pending.tiled = pending.refusal.is_ok() and _tiles(pending.descriptors, bytes)
+	if pending.parsed():
+		pending.body = _body_of(bytes, pending.descriptors, pending.header)
+		pending.crcs = Jobs.CrcJob.new(pending.body.sections)
+		pending.digest = Jobs.DigestJob.new(bytes)
+	return pending
+
+
+static func finish_decode(pending: PendingDecode, out: Body,
+		out_header: SaveHeader.Header) -> SaveHeader.Refusal:
+	"""Collect the hashes and judge the file in `decode_file()`'s exact order; fill `out` and
+	`out_header` only on success."""
+	if not pending.refusal.is_ok():
+		return pending.refusal
+	var checked: SaveHeader.Refusal = _layout_refusal(pending.descriptors, pending.bytes,
+		pending.crcs.values() if pending.tiled else PackedInt64Array())
+	if checked.is_ok() and not pending.tiled:
+		return _no(REFUSE_NOT_CONTIGUOUS, "the sections do not tile the file")
+	if checked.is_ok():
+		checked = SaveHeader.body_digest_value_refusal(pending.digest.digest(), pending.header)
+	if not checked.is_ok():
+		return checked
+	var identity: SaveHeader.Refusal = identity_refusal(pending.header, pending.body.section(1))
 	if not identity.is_ok():
 		return identity
-	_adopt(staged, out, header, out_header)
+	_adopt(pending.body, out, pending.header, out_header)
 	return _ok()
 
 
+static func decode_file(bytes: PackedByteArray, out: Body,
+		out_header: SaveHeader.Header) -> SaveHeader.Refusal:
+	"""Validate the whole file, then fill `out` and `out_header`. A refusal changes neither."""
+	return finish_decode(begin_decode(bytes), out, out_header)
+
+
+static func _tiles(descriptors: Array[SaveHeader.Descriptor], bytes: PackedByteArray) -> bool:
+	"""Table slot `i` is section `i + 1` and the sections tile the body exactly, in order."""
+	var at: int = SaveHeader.body_offset()
+	for index: int in SECTION_COUNT:
+		if descriptors[index].section_id != index + 1 or descriptors[index].offset != at:
+			return false
+		at += descriptors[index].byte_length
+	return at == bytes.size()
+
+
 static func _layout_refusal(descriptors: Array[SaveHeader.Descriptor],
-		bytes: PackedByteArray) -> SaveHeader.Refusal:
-	"""Table slot `i` is section `i + 1`, sections tile the body exactly, and every CRC matches."""
+		bytes: PackedByteArray, folded: PackedInt64Array) -> SaveHeader.Refusal:
+	"""Table slot `i` is section `i + 1`, sections tile the body exactly, and every CRC matches.
+	`folded` holds the CRCs a `CrcJob` computed for a tiled file; otherwise each is folded here."""
 	var at: int = SaveHeader.body_offset()
 	for index: int in SECTION_COUNT:
 		var descriptor: SaveHeader.Descriptor = descriptors[index]
@@ -228,8 +305,9 @@ static func _layout_refusal(descriptors: Array[SaveHeader.Descriptor],
 		if descriptor.offset != at:
 			return _no(REFUSE_NOT_CONTIGUOUS, "section %d starts at %d, not %d"
 				% [descriptor.section_id, descriptor.offset, at])
-		var slice: PackedByteArray = bytes.slice(at, at + descriptor.byte_length)
-		if SaveHeader.crc32_of(slice) != descriptor.crc32:
+		var crc: int = folded[index] if index < folded.size() \
+			else SaveHeader.crc32_of(bytes.slice(at, at + descriptor.byte_length))
+		if crc != descriptor.crc32:
 			return _no(REFUSE_SECTION_CRC, "section %d fails its CRC" % descriptor.section_id)
 		at += descriptor.byte_length
 	if at != bytes.size():
@@ -303,6 +381,23 @@ static func remove_file(path: String) -> void:
 
 static func write_atomic(path: String, bytes: PackedByteArray) -> SaveHeader.Refusal:
 	"""Write `<path>.tmp` in chunks, re-read and re-decode it, then rename it over `path`."""
+	return _write_verified(path, bytes, true)
+
+
+static func write_encoded_atomic(path: String, bytes: PackedByteArray) -> SaveHeader.Refusal:
+	"""`write_atomic()` for bytes `encode_file()` has just produced (ADR 1235).
+
+	ARCH-SAVE-003's re-open-and-validate is the byte-for-byte comparison of the re-read temp file
+	with those bytes: their CRCs and body digest were computed over exactly these bytes by
+	`encode_file()`, so a temp file that equals them carries valid checksums, and re-decoding it
+	would only recompute the same numbers (about a quarter of a save). Any other caller, holding
+	bytes of unknown provenance, uses `write_atomic()`.
+	"""
+	return _write_verified(path, bytes, false)
+
+
+static func _write_verified(path: String, bytes: PackedByteArray, redecode: bool) -> SaveHeader.Refusal:
+	"""Write the temp file, re-read and compare it (and re-decode it when asked), then rename."""
 	var temp: String = path + TEMP_SUFFIX
 	var written: SaveHeader.Refusal = _write_chunks(temp, bytes)
 	if not written.is_ok():
@@ -313,9 +408,10 @@ static func write_atomic(path: String, bytes: PackedByteArray) -> SaveHeader.Ref
 		return read
 	if back != bytes:
 		return _no(REFUSE_VERIFY, "%s does not read back as written" % temp)
-	var verify: SaveHeader.Refusal = decode_file(back, Body.new(), null)
-	if not verify.is_ok():
-		return _no(REFUSE_VERIFY, "%s does not decode: %s" % [temp, verify.detail])
+	if redecode:
+		var verify: SaveHeader.Refusal = decode_file(back, Body.new(), null)
+		if not verify.is_ok():
+			return _no(REFUSE_VERIFY, "%s does not decode: %s" % [temp, verify.detail])
 	var error: Error = DirAccess.rename_absolute(temp, path)
 	if error != OK:
 		return _no(REFUSE_IO, "renaming %s over %s failed (error %d)" % [temp, path, error])

@@ -9,10 +9,10 @@ extends RefCounted
 ## section, recomputing section 15 against the decoded records BEFORE any world is touched (load
 ## steps 3-5). Only then does it retire the target world through its own `reset()` (ADR 1222's
 ## one-way bindings) and bind its command queue to the manager's clock, open the GameManager load,
-## apply every section in dependency order, and prove the
-## result by RECAPTURING the restored world: sections 1-14 must come back byte-identical and the
-## digest must equal section 15 (load steps 7-9). Then it publishes and ends the load. A refusal
-## after the load opened restores the target from its disk checkpoint when the caller asked for
+## apply every section in dependency order, and prove the result by RECAPTURING the restored
+## world: sections 1-14 must come back byte-identical, which (ADR 1235) also carries the section 15
+## digest the decode already verified (load steps 7-9). Then it publishes and ends the load. A
+## refusal after the load opened restores the target from its disk checkpoint when the caller asked for
 ## one (`rollback_path`: the live world is saved there before it is retired), then rolls the clock
 ## back (`rollback_load()`); without a checkpoint the target is left empty, never half-restored.
 ##
@@ -61,10 +61,12 @@ static func save_bytes(settlement: Node, manager: Node, out: PackedByteArray) ->
 	var captured: SaveHeader.Refusal = Capture.capture_body(world, staged, body)
 	if not captured.is_ok():
 		return captured
+	var crcs: SaveFile.Jobs.CrcJob = SaveFile.start_crcs(body, SaveFile.SECTION_COUNT - 1)
 	var digested: SaveHeader.Refusal = _seal(world, staged, body)
 	if not digested.is_ok():
+		crcs.values()
 		return digested
-	return SaveFile.encode_file(body, out)
+	return SaveFile.encode_file(body, out, crcs)
 
 
 static func _seal(world: SaveWorld.World, staged: Capture.Staged,
@@ -94,12 +96,12 @@ static func quiescence_refusal(settlement: Node, manager: Node) -> SaveHeader.Re
 
 
 static func save_to_path(settlement: Node, manager: Node, path: String) -> SaveHeader.Refusal:
-	"""Save, then write atomically: temp file, re-read and re-decode, rename."""
+	"""Save, then write atomically: temp file, re-read and compared with the encoded bytes, rename."""
 	var bytes: PackedByteArray = PackedByteArray()
 	var saved: SaveHeader.Refusal = save_bytes(settlement, manager, bytes)
 	if not saved.is_ok():
 		return saved
-	return SaveFile.write_atomic(path, bytes)
+	return SaveFile.write_encoded_atomic(path, bytes)
 
 
 # --- load ----------------------------------------------------------------------------------------
@@ -108,6 +110,9 @@ class Incoming:
 	"""One validated, decoded and digest-verified file, ready to apply."""
 	var body: SaveFile.Body = SaveFile.Body.new()
 	var header: SaveHeader.Header = SaveHeader.Header.new()
+	## The movement profile revisions section 15 was verified with (section 2 carries no value for
+	## them); the restored world must hold the same ones (ADR 1235).
+	var profile_revisions: PackedInt32Array = PackedInt32Array()
 	var staged: Capture.Staged = Capture.Staged.new()
 
 
@@ -141,13 +146,36 @@ static func load_bytes(settlement: Node, manager: Node, bytes: PackedByteArray,
 
 static func decode_verified(bytes: PackedByteArray, settlement: Node, manager: Node,
 		out: Incoming) -> SaveHeader.Refusal:
-	"""Load steps 3-5: the whole file, every section decoded, section 15 recomputed. Touches no world."""
-	var checked: SaveHeader.Refusal = SaveFile.decode_file(bytes, out.body, out.header)
+	"""Load steps 3-5: the whole file, every section decoded, section 15 recomputed. Touches no world.
+
+	ADR 1235: once every section CRC holds, the sections are decoded and the digest walked on
+	this thread while a worker folds the body SHA-256. Their verdicts are reported only after the
+	file's own checks pass, in the sequential order, and nothing is published into `out` before
+	then. A section whose CRC fails is never handed to a decoder.
+	"""
+	var movement: Decode.MovementScript = SaveWorld.bind(settlement, manager).movement
+	out.profile_revisions = movement._profile_revision.duplicate()
+	var pending: SaveFile.PendingDecode = SaveFile.begin_decode(bytes)
+	var staged: Capture.Staged = Capture.Staged.new()
+	var early: SaveHeader.Refusal = _ok()
+	if pending.crcs_hold():
+		early = _decode_and_verify(pending.body, pending.header, staged, movement)
+	var checked: SaveHeader.Refusal = SaveFile.finish_decode(pending, out.body, out.header)
+	if not checked.is_ok():
+		return checked
+	if not pending.crcs_hold():
+		early = _decode_and_verify(out.body, out.header, staged, movement)
+	if early.is_ok():
+		out.staged = staged
+	return early
+
+
+static func _decode_and_verify(body: SaveFile.Body, header: SaveHeader.Header,
+		staged: Capture.Staged, movement: Decode.MovementScript) -> SaveHeader.Refusal:
+	"""Load steps 4-5: decode every section into `staged`, then recompute section 15."""
+	var checked: SaveHeader.Refusal = Decode.decode_body(body, header, staged)
 	if checked.is_ok():
-		checked = Decode.decode_body(out.body, out.header, out.staged)
-	if checked.is_ok():
-		checked = Decode.verify_digest(out.staged, out.body, out.header,
-			SaveWorld.bind(settlement, manager).movement)
+		checked = Decode.verify_digest(staged, body, header, movement)
 	return checked
 
 
@@ -206,19 +234,27 @@ static func _apply_prove(settlement: Node, manager: Node, incoming: Incoming,
 	var applied: SaveHeader.Refusal = Apply.apply_all(world, incoming.staged, incoming.header)
 	if not applied.is_ok():
 		return applied
-	return _prove(world, incoming.body)
+	return _prove(world, incoming.body, incoming.profile_revisions)
 
 
-static func _prove(world: SaveWorld.World, body: SaveFile.Body) -> SaveHeader.Refusal:
-	"""Recapture the restored world: sections 1-14 byte-identical and the same section 15."""
+static func _prove(world: SaveWorld.World, body: SaveFile.Body,
+		profile_revisions: PackedInt32Array) -> SaveHeader.Refusal:
+	"""Recapture the restored world: sections 1-14 must come back byte-identical.
+
+	ADR 1235: section 15 is not recomputed here. It is a function of the decoded records of
+	sections 1-14 plus the movement profile revisions, and `decode_verified()` has already proved
+	the file's section 15 equals the digest of these bytes' decoded records with `profile_revisions`.
+	Byte-identical sections and the same four revisions therefore carry that same digest;
+	recomputing it would only repeat the SHA-256 walk (about 130 ms).
+	"""
+	if world.movement._profile_revision != profile_revisions:
+		return _no(REFUSE_VERIFY, "the restored movement profile revisions differ from the verified ones")
 	var staged: Capture.Staged = Capture.Staged.new()
 	var again: SaveFile.Body = SaveFile.Body.new()
 	var captured: SaveHeader.Refusal = Capture.capture_body(world, staged, again)
-	if captured.is_ok():
-		captured = _seal(world, staged, again)
 	if not captured.is_ok():
 		return _no(captured.code, "recapture: " + captured.detail)
-	for id: int in range(1, SaveFile.SECTION_COUNT + 1):
+	for id: int in range(1, SaveFile.SECTION_COUNT):
 		if again.section(id) != body.section(id):
 			return _no(REFUSE_VERIFY, "section %d of the restored world differs from the file" % id)
 	return _ok()

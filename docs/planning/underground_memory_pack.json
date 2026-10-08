@@ -793,35 +793,35 @@
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "capacity",
-        "line": 5592
+        "line": 5637
       },
       "_spatial_container_slot": {
         "width": 4,
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "capacity",
-        "line": 5591
+        "line": 5636
       },
       "_spatial_location_generation": {
         "width": 4,
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "capacity",
-        "line": 5594
+        "line": 5639
       },
       "_spatial_location_revision": {
         "width": 8,
         "capacity": 1024,
         "bytes": 8192,
         "resize_expression": "capacity",
-        "line": 5595
+        "line": 5640
       },
       "_spatial_location_slot": {
         "width": 4,
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "capacity",
-        "line": 5593
+        "line": 5638
       }
     }
   },
@@ -4220,7 +4220,7 @@
       "current_source_sha256": {
         "godot/scripts/core/gear.gd": "aeed59191a5e06fbd6e8b4bccf93d9b991ff9a73e2a1229afa1f2ed0cc6972ea",
         "godot/scripts/core/haul_carry.gd": "0f878cae0faa419da7d4ff563a2ea7f88cba95a5fe2c8eeeb613843ff903872b",
-        "godot/scripts/core/inventory.gd": "92a00d390ba18f327c0de8992b8cef16966de86e742378f745440bf7dfb03824",
+        "godot/scripts/core/inventory.gd": "7e93fe28fd7e15e5ee0d401af47b06e91939ec4cd86c0195b5dfac8a3ecdff77",
         "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
         "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
         "godot/scripts/core/underground_profiles.gd": "4adcdc2be52254d7c9ca73f7790b64cdd58e62f35d512dbd6f47a9f573d17d28",
@@ -6826,10 +6826,10 @@
     },
     "source_sha256": {
       "godot/scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
-      "godot/scripts/core/buildings.gd": "3c76433e6f4fdcc2752ba97a26f95b35a89e883fc7ebba63a4a7c26eb926cb85",
-      "godot/scripts/core/construction.gd": "e85958b2b0236b0cb9714ecec1a701b12679c8e0c907db47ad564b5d2302ccda",
+      "godot/scripts/core/buildings.gd": "ecee0a6758e695065d7e5db7c61241bf0ad5d99f1bfff99fb94a139dbb1bb0c6",
+      "godot/scripts/core/construction.gd": "48a6d74a8e1e26e7959ac9af9046ca6dce014f0cfe3ab177de383bc34b980fa4",
       "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310",
-      "godot/scripts/core/inventory.gd": "92a00d390ba18f327c0de8992b8cef16966de86e742378f745440bf7dfb03824",
+      "godot/scripts/core/inventory.gd": "7e93fe28fd7e15e5ee0d401af47b06e91939ec4cd86c0195b5dfac8a3ecdff77",
       "godot/scripts/core/underground_session.gd": "23b5f7a1e77aed78070924584fdc2be02429c456289a5f564f0ca1edcfca6711",
       "godot/scripts/systems/settlement_system.gd": "c1a6b14bdb229de0a5de4baa81c347f266daba04f845c452d77c9669f7cfe8bf"
     },
@@ -41701,6 +41701,11 @@
             "bytes": 10496000,
             "carried_by": "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
             "store": "sections 4+5+6-flag capture/apply: one Columns (3,298,304) and one Links (1,884,160) image plus the matching FramedOwner and section 5/6 blocks, and 131,072 bytes of cold validator bitmaps"
+          },
+          {
+            "bytes": 983040,
+            "carried_by": "ADR 1235 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "ADR 1235 whole-column proof of columns_refusal(): native slices of one column at a time while differing rows are located (at most twice the largest, 81,920 x 4 B) plus the differing-row list (at most 81,920 x 4 B); no retained member"
           }
         ],
         "delta": {
@@ -41809,10 +41814,12 @@
             ]
           },
           "allocation_sites": {
+            "([": 2,
             ".duplicate(": 46,
+            "=[": 1,
             "PackedByteArray(": 8,
             "PackedInt32Array(": 15,
-            "in[": 3,
+            "in[": 4,
             "range(": 1
           }
         }
@@ -41828,6 +41835,11 @@
             "bytes": 0,
             "carried_by": "none",
             "store": "ADR 1228: a retired excavation or modular row also clears its worker capacity (the exact never-used clear row); no storage change"
+          },
+          {
+            "bytes": 9621504,
+            "carried_by": "ADR 1235 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "ADR 1235 whole-column proofs of columns_refusal() and restore_columns(): the delivered ledger's sorted copy (2,654,208 B), native slices while its differing cells are located (at most 5,308,416 B), the differing-cell and differing-row lists (at most 1,327,104 + 331,776 B); the column proof and the present-row lists are smaller and not concurrent; no retained member"
           }
         ],
         "delta": {
@@ -41862,10 +41874,13 @@
             ]
           },
           "allocation_sites": {
+            "([": 1,
             ".duplicate(": 19,
-            "PackedInt32Array(": 2,
+            "PackedInt32Array(": 3,
             "PackedInt64Array(": 1,
-            "range(": 1
+            "in[": 2,
+            "range(": 1,
+            "return[": 1
           }
         }
       },
@@ -41939,18 +41954,28 @@
             "bytes": 50200,
             "carried_by": "ADR 1228 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
             "store": "section 6 inventory spatial capture/apply: the 1,024-row endpoint arena (24 B a row plus 12 scalar bytes) captured, and the previous arena held through the post-install audit; section 7's canonical anchor check marks 1,024 endpoint rows (1,024 B)"
+          },
+          {
+            "bytes": 4460544,
+            "carried_by": "ADR 1235 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "ADR 1235 whole-column proofs of the canonical partition, tail and inactive checks and the vectorised projection: a range() Array of up to 101,376 ints (2,433,024 B) and five 101,376-slot int32 columns (sorted generation copy, live list, ascending set, prefix slice and its sort; 2,027,520 B); the projection's replacement occupancy, generation and free-stack columns (1,059,840 B) are built after the proof and are not concurrent; no retained member"
           }
         ],
         "delta": {
           "resizes_added": [
-            "rows.resize(SPATIAL_ENDPOINT_CAPACITY)"
+            "rows.resize(SPATIAL_ENDPOINT_CAPACITY)",
+            "tail.resize(capacity - count)"
           ],
           "allocation_sites": {
-            ".duplicate(": 10,
+            "([": 4,
+            ",[": 18,
+            ".duplicate(": 14,
+            ".slice(": 4,
             "PackedByteArray(": 1,
-            "PackedInt32Array(": 10,
+            "PackedInt32Array(": 11,
             "PackedInt64Array(": 1,
-            "range(": 1,
+            "in[": 2,
+            "range(": -8,
             "return[": 4
           }
         }
@@ -44093,6 +44118,7 @@
       "Profiles CONTROL_RESERVE (load-time, released)": 432,
       "none": 0,
       "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)": 43566080,
+      "ADR 1235 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)": 15065088,
       "ADR 1228 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)": 12801861,
       "joint pack (the reserve is a pack contribution)": 256,
       "BINDINGS_AND_GROWTH_BYTES (fully assigned, 524,544)": 256,
@@ -44238,14 +44264,14 @@
   "gate_bytes": 150000000,
   "headroom_bytes": 49771958,
   "source_sha256": {
-    "godot/scripts/core/construction.gd": "e85958b2b0236b0cb9714ecec1a701b12679c8e0c907db47ad564b5d2302ccda",
+    "godot/scripts/core/construction.gd": "48a6d74a8e1e26e7959ac9af9046ca6dce014f0cfe3ab177de383bc34b980fa4",
     "godot/scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
     "godot/scripts/core/excavation_inventory.gd": "79c603c39b4b0cd9e1bba3243b5dd21d4a397d65f71d64baedf21bd86e4d0c68",
     "godot/scripts/core/excavation_sites.gd": "e552c220f04460c61f40ec17bf79e474be667d29353d8a92ce27321e2f3f2a10",
     "godot/scripts/core/haul_planner.gd": "ff125c7c0a1a9ab3c23be832ceec77b54354e4b87c0b7fe8ebc482fee0a400e4",
     "godot/scripts/core/haul_transfer_contract.gd": "dad5b6beb6d215fa9e71e7c31ab4b10e505393116374249eb8efc1bf58fcb60d",
     "godot/scripts/core/int_math.gd": "fbc9c291059dc65cef91bf0ed1496b95532c5d8bc8f9a2876871c64f0545adc1",
-    "godot/scripts/core/inventory.gd": "92a00d390ba18f327c0de8992b8cef16966de86e742378f745440bf7dfb03824",
+    "godot/scripts/core/inventory.gd": "7e93fe28fd7e15e5ee0d401af47b06e91939ec4cd86c0195b5dfac8a3ecdff77",
     "godot/scripts/core/modular_project_contract.gd": "b008e397952a9eeffeefa805d1f70e586a4e580e261ef29682187b6df537b437",
     "godot/scripts/core/modular_projects.gd": "4a705b8c18f21d3f7c7aba0768298d89c610fc5eddf7b273702f49c9d1e0180c",
     "godot/data/underground/mole-worker/mole_profile_catalog.gd": "b64d0ec1d7391bebcd6704e3b0771f7e211527979226078ecffef97a2cb96426",

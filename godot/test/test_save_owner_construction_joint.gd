@@ -151,3 +151,40 @@ func test_corruptions_refuse_with_their_codes_and_write_nothing() -> void:
 	assert_equal(Bridge.apply(parts[0], parts[1], empty).code,
 		Construction.REFUSE_COLUMN_DIRECTORY, "rows the Directory does not hold")
 	assert_true(target.state_bytes() == before, "no refusal wrote anything")
+
+
+# --- ADR 1235: the whole-column proofs must not hide a fault the row walks refuse -----------------
+
+func test_a_delivery_on_a_never_used_middle_row_refuses_through_the_proof() -> void:
+	"""The ledger proof lists the rows whose cells differ; a forged cell mid-ledger is one of them."""
+	var target: Construction = _target()
+	var parts: Array = _captured()
+	var delivered: PackedInt64Array = parts[1].delivered.i64_column(Bridge.CHILD_DELIVERED)
+	@warning_ignore("integer_division") var row: int = Construction.CONSTRUCTION_CAPACITY / 2
+	delivered[row * Construction.MATERIAL_SLOTS_PER_PROJECT] = 5
+	assert_true(parts[1].delivered.set_i64_column(Bridge.CHILD_DELIVERED, delivered).is_ok(), "x")
+	assert_equal(Bridge.apply(parts[0], parts[1], target).code, Construction.REFUSE_COLUMN_LEDGER,
+		"a delivery on a never-used middle row")
+
+
+func test_a_non_flag_byte_on_a_live_construction_row_refuses() -> void:
+	"""`paused = 2` on a present row passes every row gate; only the flag scan refuses it."""
+	var parts: Array = _captured()
+	var image: Construction.Columns = Construction.Columns.new(false)
+	Bridge._project_columns(parts[0], image)
+	var row: int = image.present.find(1)
+	assert_true(row >= 0, "a present row")
+	image.paused[row] = 2
+	assert_equal(Construction.columns_refusal(image), Construction.REFUSE_COLUMN_FLAG, "refused")
+
+
+func test_a_non_flag_byte_on_a_live_room_refuses() -> void:
+	"""`r_valid = 2` on a present room passes every room gate; only the flag scan refuses it."""
+	var image: Buildings.Columns = Buildings.Columns.new()
+	var links: Buildings.Links = Buildings.Links.new()
+	assert_true(_buildings.copy_columns_into(image, links), "copied")
+	var row: int = image.r_present.find(1)
+	assert_true(row >= 0, "a present room")
+	assert_equal(Buildings.columns_refusal(image), Buildings.REFUSE_NONE, "the image is valid")
+	image.r_valid[row] = 2
+	assert_equal(Buildings.columns_refusal(image), Buildings.REFUSE_COLUMN_FLAG, "refused")

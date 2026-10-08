@@ -128,6 +128,7 @@ const Buildings := preload("res://scripts/core/buildings.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const ExcavationContract := preload("res://scripts/core/excavation_contract.gd")
 const ModularContract := preload("res://scripts/core/modular_project_contract.gd")
+const ColumnProofs := preload("res://scripts/core/column_proofs.gd")
 
 ## systems_architecture.md §2.2 and entity_directory.gd's KIND_CAPACITY, which must agree.
 const CONSTRUCTION_CAPACITY: int = 82944
@@ -3487,6 +3488,8 @@ static func columns_refusal(image: Columns) -> StringName:
 	var source_code: StringName = column_source_metadata_refusal()
 	if source_code != REFUSE_NONE:
 		return source_code
+	if _columns_proven(image):
+		return REFUSE_NONE
 	var flag_code: StringName = _column_flag_scan_refusal(image)
 	if flag_code != REFUSE_NONE:
 		return flag_code
@@ -3495,6 +3498,22 @@ static func columns_refusal(image: Columns) -> StringName:
 		if row_code != REFUSE_NONE:
 			return row_code
 	return REFUSE_NONE
+
+
+static func _columns_proven(image: Columns) -> bool:
+	"""ADR 1235: the flag and row walks above provably accept. Every gate reads only its own row
+	of these sixteen columns, so `ColumnProofs.rows_proven()` may judge identical rows once; any
+	doubt returns false and the walks run, so each refusal is unchanged."""
+	for flags: PackedByteArray in [image.present, image.paused, image.work_begun]:
+		if not ColumnProofs.bytes_are_flags(flags):
+			return false
+	return ColumnProofs.rows_proven(_image_columns(image),
+		_image_row_ok.bind(image))
+
+
+static func _image_row_ok(row: int, image: Columns) -> bool:
+	"""One row passes gates 1-8 (bound, not a lambda: see `Buildings._building_row_ok()`)."""
+	return _row_refusal(image, row) == REFUSE_NONE
 
 
 # --- ADR1155: owner-owned release after the complete original World has been cleared. ---
@@ -3637,12 +3656,12 @@ func restore_columns(columns: Columns, extension: Columns, ledger: Ledger) -> bo
 	run before the first write. Authority WeakRefs are untouched; re-mounting re-binds them.
 	"""
 	var code: StringName = columns_refusal(columns)
-	if code == REFUSE_NONE:
+	if code == REFUSE_NONE and not _restore_proven(columns, extension, ledger):
 		code = extension_refusal(extension)
-	if code == REFUSE_NONE:
-		code = split_refusal(columns, extension)
-	if code == REFUSE_NONE:
-		code = _ledger_refusal(columns, extension, ledger)
+		if code == REFUSE_NONE:
+			code = split_refusal(columns, extension)
+		if code == REFUSE_NONE:
+			code = _ledger_refusal(columns, extension, ledger)
 	if code == REFUSE_NONE:
 		code = _directory_refusal(columns, extension)
 	if code != REFUSE_NONE:
@@ -3706,19 +3725,7 @@ func _ledger_refusal(columns: Columns, extension: Columns, ledger: Ledger) -> St
 	if ledger == null or not ledger.is_sized():
 		return REFUSE_COLUMN_SHAPE
 	for row: int in CONSTRUCTION_CAPACITY:
-		var image: Columns = extension if extension.purpose[row] >= PURPOSE_COUNT else columns
-		var bill: int = 0
-		if is_modular(image.purpose[row]):
-			bill = MATERIAL_SLOTS_PER_PROJECT
-		elif image.type_id[row] != -1:
-			bill = _bill_count_of(image.purpose[row], image.type_id[row])
-		for index: int in range(bill, MATERIAL_SLOTS_PER_PROJECT):
-			if ledger.delivered_milli[row * MATERIAL_SLOTS_PER_PROJECT + index] != 0:
-				return REFUSE_COLUMN_LEDGER
-		if ledger.paid_base_type[row] < NO_PAID_PACKAGE or ledger.paid_upgrade_mask[row] < 0:
-			return REFUSE_COLUMN_LEDGER
-		if image.type_id[row] == -1 and (ledger.paid_base_type[row] != NO_PAID_PACKAGE
-				or ledger.paid_upgrade_mask[row] != 0):
+		if not _ledger_row_ok(columns, extension, ledger, row):
 			return REFUSE_COLUMN_LEDGER
 	for value: int in ledger.delivered_milli:
 		if value < 0:
@@ -3726,9 +3733,71 @@ func _ledger_refusal(columns: Columns, extension: Columns, ledger: Ledger) -> St
 	return REFUSE_NONE
 
 
+func _ledger_row_ok(columns: Columns, extension: Columns, ledger: Ledger,
+		row: int) -> bool:
+	"""One row of `_ledger_refusal()`: no delivery past the row's bill, paid ledgers in range and
+	clear on a never-used row. Reads only that row of both images and of the ledger."""
+	var image: Columns = extension if extension.purpose[row] >= PURPOSE_COUNT else columns
+	var bill: int = 0
+	if is_modular(image.purpose[row]):
+		bill = MATERIAL_SLOTS_PER_PROJECT
+	elif image.type_id[row] != -1:
+		bill = _bill_count_of(image.purpose[row], image.type_id[row])
+	for index: int in range(bill, MATERIAL_SLOTS_PER_PROJECT):
+		if ledger.delivered_milli[row * MATERIAL_SLOTS_PER_PROJECT + index] != 0:
+			return false
+	if ledger.paid_base_type[row] < NO_PAID_PACKAGE or ledger.paid_upgrade_mask[row] < 0:
+		return false
+	return image.type_id[row] != -1 or (ledger.paid_base_type[row] == NO_PAID_PACKAGE
+		and ledger.paid_upgrade_mask[row] == 0)
+
+
+func _restore_proven(columns: Columns, extension: Columns, ledger: Ledger) -> bool:
+	"""ADR 1235: `extension_refusal()`, `split_refusal()` and `_ledger_refusal()` provably accept.
+	Their row gates read only that row of both images and of the ledger, so `ColumnProofs`
+	judges identical rows once; any doubt returns false and the three walks run unchanged."""
+	if extension == null or not extension.is_sized() or not columns.is_sized() \
+			or ledger == null or not ledger.is_sized():
+		return false
+	for flags: PackedByteArray in [extension.present, extension.paused, extension.work_begun]:
+		if not ColumnProofs.bytes_are_flags(flags):
+			return false
+	var extra: PackedInt32Array = PackedInt32Array()
+	if ColumnProofs.i64_minimum(ledger.delivered_milli) < 0 or not ColumnProofs.strided_deviant_rows(
+			ledger.delivered_milli, MATERIAL_SLOTS_PER_PROJECT, CONSTRUCTION_CAPACITY, extra):
+		return false
+	var inputs: Array = _image_columns(columns) + _image_columns(extension)
+	inputs.append_array([ledger.paid_base_type, ledger.paid_upgrade_mask])
+	return ColumnProofs.rows_proven(inputs, _restore_row_ok.bind(columns, extension, ledger), extra)
+
+
+func _restore_row_ok(row: int, columns: Columns, extension: Columns, ledger: Ledger) -> bool:
+	"""One row of the extension, split and ledger walks."""
+	var purpose: int = extension.purpose[row]
+	if purpose < PURPOSE_COUNT:
+		if not _is_clear_row(extension, row):
+			return false
+	elif _extension_row_refusal(extension, row, purpose) != REFUSE_NONE \
+			or not _is_clear_row(columns, row):
+		return false
+	return _ledger_row_ok(columns, extension, ledger, row)
+
+
+static func _image_columns(image: Columns) -> Array:
+	"""The sixteen columns of one image, in ordinal order."""
+	return [image.present, image.material_container_slot, image.material_container_generation,
+		image.assigned_count, image.max_workers, image.refund_policy, image.remaining_mwu,
+		image.paused, image.work_begun, image.ref_slot, image.ref_generation, image.subject_slot,
+		image.subject_generation, image.purpose, image.type_id, image.phase]
+
+
 func _directory_refusal(columns: Columns, extension: Columns) -> StringName:
-	"""Every present row's own reference resolves to a live CONSTRUCTION entry at that row."""
-	for row: int in CONSTRUCTION_CAPACITY:
+	"""Every present row's own reference resolves to a live CONSTRUCTION entry at that row. Only
+	rows present in either image can be present in the one that carries them (ADR 1235)."""
+	var rows: PackedInt32Array = ColumnProofs.rows_holding(columns.present, 1)
+	rows.append_array(ColumnProofs.rows_holding(extension.present, 1))
+	rows.sort()
+	for row: int in rows:
 		var image: Columns = extension if extension.purpose[row] >= PURPOSE_COUNT else columns
 		if image.present[row] != 1:
 			continue

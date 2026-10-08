@@ -90,6 +90,10 @@ func test_structural_corruptions_refuse_with_their_codes() -> void:
 	var foreign: PackedByteArray = bytes.duplicate()
 	foreign[SaveHeader.OFFSET_RULES_HASH] ^= 1
 	_assert_refused(foreign, SaveIdentity.REFUSE_RULES_MISMATCH, "a foreign rules identity")
+	var digest: PackedByteArray = bytes.duplicate()
+	digest[SaveHeader.OFFSET_BODY_DIGEST] ^= 1
+	_assert_refused(digest, SaveHeader.REFUSE_BODY_DIGEST_MISMATCH,
+		"a stored body digest the worker's SHA-256 does not match (ADR 1235)")
 
 
 func test_a_body_without_a_provenance_prefix_is_refused_before_any_byte_is_laid_out() -> void:

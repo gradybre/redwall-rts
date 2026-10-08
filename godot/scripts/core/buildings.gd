@@ -96,6 +96,7 @@ const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
 const BuildingDefinitions := preload("res://scripts/core/building_definitions.gd")
 const Milestones := preload("res://scripts/core/milestones.gd")
 const UndergroundBudget := preload("res://scripts/core/underground_budget.gd")
+const ColumnProofs := preload("res://scripts/core/column_proofs.gd")
 
 ## systems_architecture.md §2.2 and entity_directory.gd's KIND_CAPACITY, which must agree.
 const BUILDING_CAPACITY: int = 1024
@@ -2807,6 +2808,8 @@ static func columns_refusal(image: Columns,
 	"""
 	if image == null or not image.is_sized():
 		return REFUSE_COLUMN_SHAPE
+	if _columns_proven(image, spatial_kind):
+		return REFUSE_NONE
 	var flags: StringName = _columns_flag_refusal(image)
 	if flags != REFUSE_NONE:
 		return flags
@@ -2825,6 +2828,48 @@ static func columns_refusal(image: Columns,
 		if f_code != REFUSE_NONE:
 			return f_code
 	return REFUSE_NONE
+
+
+static func _columns_proven(image: Columns, spatial_kind: PackedByteArray) -> bool:
+	"""ADR 1235: the flag and row walks of `columns_refusal()` provably accept. Each table's gates
+	read only their own row of that table's columns (a room also its `spatial_kind` byte), so
+	`ColumnProofs.rows_proven()` may judge identical rows once; any doubt returns false and the
+	walks run, so each refusal is unchanged."""
+	for flags: PackedByteArray in [image.b_present, image.r_present, image.f_present, image.r_valid]:
+		if not ColumnProofs.bytes_are_flags(flags):
+			return false
+	var spatial: bool = spatial_kind.size() == ROOM_CAPACITY
+	var room_columns: Array = [image.r_present, image.r_type, image.r_building_slot,
+		image.r_building_generation, image.r_tile_offset, image.r_tile_count,
+		image.r_temperature_tenths, image.r_furniture_mask, image.r_occupants, image.r_valid]
+	if spatial:
+		room_columns.append(spatial_kind)
+	return ColumnProofs.rows_proven([image.b_present, image.b_type_id, image.b_tier,
+			image.b_origin_tile, image.b_rotation, image.b_state, image.b_condition,
+			image.b_construction_slot, image.b_construction_generation, image.b_interior_id],
+			_building_row_ok.bind(image)) \
+		and ColumnProofs.rows_proven(room_columns, _room_row_ok.bind(image, spatial_kind)) \
+		and ColumnProofs.rows_proven([image.f_present, image.f_type_id, image.f_room_slot,
+			image.f_room_generation, image.f_origin_tile, image.f_rotation, image.f_user_slot,
+			image.f_user_generation, image.f_condition], _furniture_row_ok.bind(image))
+
+
+static func _building_row_ok(row: int, image: Columns) -> bool:
+	"""One building row passes its gates (bound, not a lambda: a lambda here stopped subclasses of
+	this script from resolving it at load)."""
+	return _columns_building_refusal(image, row) == REFUSE_NONE
+
+
+static func _room_row_ok(row: int, image: Columns, spatial_kind: PackedByteArray) -> bool:
+	"""One room row passes its gates, a present underground room by the spatial predicate."""
+	var underground: bool = spatial_kind.size() == ROOM_CAPACITY \
+		and spatial_kind[row] == ROOM_SPACE_UNDERGROUND
+	return _columns_room_refusal(image, row, underground) == REFUSE_NONE
+
+
+static func _furniture_row_ok(row: int, image: Columns) -> bool:
+	"""One furniture row passes its gates."""
+	return _columns_furniture_refusal(image, row) == REFUSE_NONE
 
 
 static func _columns_flag_refusal(image: Columns) -> StringName:

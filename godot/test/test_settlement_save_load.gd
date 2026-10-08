@@ -107,3 +107,47 @@ func test_a_loaded_settlement_continues_exactly_like_the_original() -> void:
 	_advance(_target, 900)
 	assert_true(_saved(_target, GameManager) == expected, "the continuation is byte-identical")
 	_cleanup_autoload()
+
+
+# --- the load's proof (ADR 1235) ------------------------------------------------------------------
+
+const SaveWorld := preload("res://scripts/core/settlement_save_world.gd")
+const Apply := preload("res://scripts/core/settlement_save_apply.gd")
+const RngScript := preload("res://scripts/core/rng.gd")
+
+
+func _applied_target(incoming: SettlementSave.Incoming) -> SaveWorld.World:
+	"""Decode `_saved(_source)` into `incoming`, retire the target, open its load and apply."""
+	var bytes: PackedByteArray = _saved(_source, _source_manager)
+	assert_true(SettlementSave.decode_verified(bytes, _target, _target_manager, incoming).is_ok(),
+		"decoded")
+	assert_true(SettlementSave._retire(_target, _target_manager).is_ok(), "retired")
+	assert_true(_target_manager.begin_load(), "load opened")
+	var world: SaveWorld.World = SaveWorld.bind(_target, _target_manager)
+	assert_true(Apply.apply_all(world, incoming.staged, incoming.header).is_ok(), "applied")
+	return world
+
+
+func test_the_proof_refuses_a_restored_world_that_differs_from_the_file() -> void:
+	"""With section 15 no longer recomputed, the recapture is the load's last proof: one draw of
+	an RNG stream between apply and prove must refuse SAVE_LOAD_VERIFY_MISMATCH."""
+	var incoming: SettlementSave.Incoming = SettlementSave.Incoming.new()
+	var world: SaveWorld.World = _applied_target(incoming)
+	assert_true(SettlementSave._prove(world, incoming.body, incoming.profile_revisions).is_ok(),
+		"the faithful world proves")
+	world.rng.draw(RngScript.STREAM_WEATHER)
+	assert_equal(SettlementSave._prove(world, incoming.body, incoming.profile_revisions).code,
+		SettlementSave.REFUSE_VERIFY, "one changed stream refuses")
+	_target_manager.rollback_load()
+
+
+func test_the_proof_refuses_other_movement_profile_revisions() -> void:
+	"""Section 2 carries no value for the four profile revisions section 15 hashes, so the proof
+	compares them with the ones the digest was verified under."""
+	var incoming: SettlementSave.Incoming = SettlementSave.Incoming.new()
+	var world: SaveWorld.World = _applied_target(incoming)
+	var other: PackedInt32Array = incoming.profile_revisions.duplicate()
+	other[0] += 1
+	assert_equal(SettlementSave._prove(world, incoming.body, other).code,
+		SettlementSave.REFUSE_VERIFY, "a different revision refuses")
+	_target_manager.rollback_load()

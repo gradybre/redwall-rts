@@ -449,9 +449,9 @@ static func portions_for(diners: int, halves: int = PORTIONS_PER_DINER_HALVES) -
 	@warning_ignore("integer_division") return (maxi(diners, 0) * maxi(halves, 0) + 1) / 2
 
 
-static func entitled_to_seconds(resident: int, meal_key: int) -> bool:
-	"""Whether resident `resident` has seconds at meal `meal_key` (see A PORTION AND A HALF A DINER): (i + k) even."""
-	return resident >= 0 and meal_key >= 0 and (resident + meal_key) % 2 == 0
+static func entitled_to_seconds(resident: int, key: int) -> bool:
+	"""Whether resident `resident` has seconds at meal key `key` (see A PORTION AND A HALF A DINER): (i + k) even."""
+	return resident >= 0 and key >= 0 and (resident + key) % 2 == 0
 
 
 static func is_meal_dish(dish: int) -> bool:

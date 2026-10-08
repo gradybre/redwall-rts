@@ -41,6 +41,7 @@ const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 const Layout := preload("res://demo/world/world_layout.gd")
 const Ledger := preload("res://demo/people/people_ledger.gd")
 const PeopleText := preload("res://demo/people/people_text.gd")
+const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 
 const DT: float = 0.1
 const SUMMER_1: int = 12
@@ -934,6 +935,11 @@ func test_the_regatta_counts_the_food_its_supper_already_holds() -> void:
 	var free: int = rig.kitchen.takes.free_milli_of_crop(rig.pantry, FarmingScript.CROP_BEANS)
 	var need: int = r.main_food_milli(r.residents())
 	assert_true(held > 0 and free < need and free + held >= need, "the day's supper holds the rest (free %d, held %d, need %d)" % [free, held, need])
+	var lines: String = "\n".join(r.preview_lines(day, 2))
+	assert_true(lines.contains("beans %s (free %s)" % [ForestRules.units_text(need), ForestRules.units_text(free + held)]),
+		"the preview counts the day's supper: %s" % lines)
+	lines = "\n".join(r.preview_lines(day + 1, 2))
+	assert_false(lines.contains("(free %s)" % ForestRules.units_text(free + held)), "not another day's preview")
 	r.count_supper(day)
 	assert_equal(r.free_beans(), free + held, "counted for that day's feast")
 	r.count_supper(day + 1)

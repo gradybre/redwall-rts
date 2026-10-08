@@ -92,12 +92,14 @@ existing **occasion** (decision 0438's API, both courses), served at 17:00, tall
 | `godot/demo/kitchen/kitchen.gd` | `days_of_meals_after_milli(set_aside)` and its `_set_aside` pool deduction (empty: no change); `held_for_meal_milli(key, selector)` (P6 (b), a read); a **fix**: a batch of a dish with no water no longer calls `take_water(0)`, which refused and raised "a batch's water or wood was gone" |
 | `godot/demo/kitchen/dish_book.gd` | four OCCASION rows appended; three category constants; `ADOPTED_ROWS` |
 | `godot/demo/regatta/regatta.gd` | three optional Callables (`feast_clash`, `food_days_after`, `fuel_days_after`); unbound, the regatta's own figures as before; FEAST_CLASH refusal first in `_feast_refusal` |
-| `godot/demo/regatta/demo_regatta.gd` | header words only (the Feast command is the feasts' now) |
+| `godot/demo/regatta/regatta.gd` (P6 (b)) | `count_supper(day)` (called from `refusal` and `preview_lines`, cleared by `hold`), `free_beans`/`free_cabbage` through `_free_with_supper` |
+| `godot/demo/regatta/regatta_menu.gd` (P6 (b), after #234 merged) | `supper_key` and `_course_free`: the nut loaf's flour and nuts count the supper's held food; `_free` (the infusion's herb, the drinks) stays free food alone |
+| `godot/demo/regatta/demo_regatta.gd` | header words (the Feast command is the feasts' now); `hold_card` names its supper first (`count_supper`) |
 | `godot/demo/winter/cold_exposure.gd` | `gain_permille` (1000 by default: no change) and `gained_rate` |
 | `godot/demo/README.md` | "Called feasts" section; Layout row; the regatta's line |
 
 Not touched: `godot/scripts/core/`, `demo/burrow/`, `demo/tunnel/`, `demo/cast/`, the settlement UI, and the files
-#234 changes (`kitchen/meal_rules.gd`, `preserve/*`, `regatta_menu.gd`, `fishery.gd`). **No key added**: the panel is
+#234 changed (`kitchen/meal_rules.gd`, `preserve/*`, `fishery.gd`; `regatta_menu.gd` only after #234 merged, for P6 (b)). **No key added**: the panel is
 behind the existing Feast command.
 
 ## PROPOSALS for Brendan
@@ -140,7 +142,7 @@ P4 (a), P5 (a), P6 (b), P7 (a), P8 (b), P9 (a). What they required:
   lacks at confirmation, the kitchen's own top-up takes once it adopts the occasion (it lets the meal's food go and
   holds each course's from it). **The regatta counts it too** (the ruling's "shared with the regatta"; the second
   review found its planned day's supper already planned four meals ahead): `regatta.gd count_supper(day)` names the
-  supper while planning, `free_beans`/`free_cabbage` and `regatta_menu.gd _free` (the nut loaf's flour and nuts) add
+  supper while planning, `free_beans`/`free_cabbage` and `regatta_menu.gd _course_free` (the nut loaf's flour and nuts) add
   what it holds, and the hold clears it. Only courses count it: the kitchen never tops a beverage or drink up, and no
   ordinary meal takes herbs or mead, so the called feasts' beverage check uses the free food alone.
 - **P9 (a), done.** `DEC-058` in `docs/setting_decisions.md` ("Every feast is served at the 17:00 supper", Brendan's

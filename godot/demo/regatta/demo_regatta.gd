@@ -232,6 +232,7 @@ func preview_text() -> String:
 func hold_card() -> CardScript:
 	"""Hold the regatta's card: `regatta.refusal`, the feast's food and wood, the day and its host."""
 	_card.reset("Hold the %s regatta" % regatta.day_text(regatta.choice_day))
+	regatta.count_supper(regatta.choice_day)
 	var e: int = regatta.residents()
 	_card.add_cost("Beans", regatta.free_beans(), regatta.main_food_milli(e))
 	_card.add_cost("Cabbage", regatta.free_cabbage(), regatta.main_food_milli(e))

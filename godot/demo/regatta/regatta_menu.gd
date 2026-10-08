@@ -80,22 +80,28 @@ func configure(p_kitchen: KitchenScript, p_stores: StoresScript) -> void:
 
 
 func _free(category: int) -> int:
-	"""Category `category`'s food in the pantry nobody has set aside, milli-U -- with what the feast's own supper holds
-	(THE SUPPER'S OWN FOOD)."""
+	"""Category `category`'s food in the pantry nobody has set aside, milli-U."""
+	return kitchen.takes.free_milli_of_crop(kitchen.pantry, category) if kitchen != null else 0
+
+
+func _course_free(category: int) -> int:
+	"""A course's input: its free food and what the feast's own supper holds (THE SUPPER'S OWN FOOD) -- the second
+	course only, which the kitchen tops up at adoption; the infusion's herb and the drinks are never topped up, so they
+	count free food alone."""
 	if kitchen == null:
 		return 0
 	var held: int = kitchen.held_for_meal_milli(supper_key, category) if supper_key >= 0 else 0
-	return kitchen.takes.free_milli_of_crop(kitchen.pantry, category) + held
+	return _free(category) + held
 
 
 func free_flour() -> int:
-	"""Flour nobody has set aside."""
-	return _free(Catalog.CAT_FLOUR)
+	"""Flour nobody has set aside (with the supper's own: the nut loaf's)."""
+	return _course_free(Catalog.CAT_FLOUR)
 
 
 func free_nuts() -> int:
-	"""Nuts nobody has set aside."""
-	return _free(Catalog.CAT_NUTS)
+	"""Nuts nobody has set aside (with the supper's own: the nut loaf's)."""
+	return _course_free(Catalog.CAT_NUTS)
 
 
 func free_herb() -> int:

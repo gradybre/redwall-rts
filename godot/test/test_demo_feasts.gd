@@ -674,15 +674,35 @@ func test_a_supper_with_a_batch_cooked_lends_the_feast_nothing() -> void:
 	assert_equal(v.feast.menu.available_of(beans, Rules.feast_key(DAY)), 4000, "the supper's own")
 	var regatta_menu := RegattaMenuScript.new()
 	regatta_menu.configure(v.kitchen, v.stores)
-	assert_equal(regatta_menu._free(beans), 0, "the regatta's menu: free food alone, no supper named")
+	assert_equal(regatta_menu._course_free(beans), 0, "the regatta's menu: free food alone, no supper named")
 	regatta_menu.supper_key = Rules.feast_key(DAY)
-	assert_equal(regatta_menu._free(beans), 4000, "with its supper named, that supper's food (regatta_menu.gd)")
+	assert_equal(regatta_menu._course_free(beans), 4000, "with its supper named, a course counts that supper's food")
+	assert_equal(regatta_menu._free(beans), 0, "the herb and the drinks count free food alone")
 	var key: int = Rules.feast_key(DAY)
 	assert_true(_run(v, func() -> bool: return v.kitchen._wip_key == key, 30000), "today's supper at the cauldron")
 	assert_equal(v.kitchen.batches_cooked, 0, "nothing cooked yet")
 	assert_equal(v.kitchen.held_for_meal_milli(key, beans), 0, "a batch at the cauldron: 0")
 	assert_true(_run(v, func() -> bool: return v.kitchen.batches_cooked > 0, 30000), "a batch of today's supper cooked")
 	assert_equal(v.kitchen.held_for_meal_milli(Rules.feast_key(DAY), beans), 0, "nothing cooked is undone: 0")
+
+
+func test_the_regattas_second_course_counts_the_suppers_flour() -> void:
+	"""With only flour and nuts in store the supper is planned from them (the other meal's dish: scones or hardtack) and
+	holds flour; the regatta's menu, naming that supper, counts it for its nut loaf (a course the kitchen tops up), and
+	not without it."""
+	var v: Village = _village()
+	_stock(v, Catalog.ITEM_FLOUR, 6000)
+	_stock(v, Catalog.ITEM_NUTS, 6000)
+	v.calendar.tick = tick_at(DAY, 10)
+	v.kitchen.update()
+	var key: int = Rules.feast_key(DAY)
+	var held: int = v.kitchen.held_for_meal_milli(key, Catalog.CAT_FLOUR)
+	assert_true(held > 0, "the supper holds flour (%d)" % held)
+	var regatta_menu := RegattaMenuScript.new()
+	regatta_menu.configure(v.kitchen, v.stores)
+	var free: int = regatta_menu.free_flour()
+	regatta_menu.supper_key = key
+	assert_equal(regatta_menu.free_flour(), free + held, "the nut loaf's flour counts the supper's")
 
 
 # --- the buffs -------------------------------------------------------------------------------------------------------

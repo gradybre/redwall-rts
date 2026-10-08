@@ -84,3 +84,25 @@ added.
 - Selection now resolves busy residents too. That is one resolve per resident per 30 ticks, the cost idle
   residents already paid.
 - No memory: `work.gd` gains two constants and one function. Its reviewed storage delta is recorded.
+
+## Addendum (2026-10-08, ADR 1229 increment 6b): the hauler rests at its stand
+
+The descent's live chain met a gap. The crew's 22:00 hour turned to SLEEP just as it selected a lift at R's stand.
+That stand is a resting point, so the entry paused there (§3). The lift's HAUL Job was already in WORK, and its
+2 WU (`HAUL_LOAD_MILLI_WU`) are not a safe point. So the settlement's ProductiveWork, which ticks every Job in WORK,
+finished it during the pause. When the hour permitted work again, the hauler's next `tick_solo` refused
+`NO_WORK_REMAINING`, and the entry stopped with `ENTRY_HAUL_WORK`.
+
+The hauler now follows this section's rules for handling Work at a stand:
+
+- a `WORK_SCHEDULE_REST` refusal waits at the stand;
+- a handling Job the rest left complete is finished, not refused. Work belongs to the Job.
+
+No field, stage or record changes. Evidence:
+`test_underground_host.gd::test_a_rest_at_a_haul_stand_lets_the_lift_finish_and_the_haul_carries_on`.
+
+**Recorded, not changed: ProductiveWork also ticks the entry's own HAUL Jobs.** It skips BUILD Jobs only. During a
+live day the hauler and the settlement therefore each tick a lift or set-down: 11 ticks for 2 WU instead of about
+23. Every measured haul in ADR 1229 includes this. Excluding the dispatcher's Jobs (`Jobs.bind_dispatcher`) from
+ProductiveWork would make each lift and set-down about 12 ticks longer and move every live-chain pin. That needs
+its own decision.

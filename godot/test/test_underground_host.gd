@@ -1636,3 +1636,40 @@ func test_the_live_chain_builds_the_descent_down_the_stair_to_the_sill() -> void
 	assert_equal(tick - 1, DESCENT_DONE_TICK, "the finishing tick")
 	assert_false(_host.begin_underground_entry(Vector3i(60 * 2048 + 512, 512, 50 * 2048 + 512)), "a finished entry")
 	assert_equal(_host.last_refusal(), Settlement.UndergroundEntryRuntime.REFUSE_KITCHEN_UNBUILT, "re-raises G9")
+
+
+func _lifting(entry: Settlement.UndergroundEntryRuntime) -> bool:
+	"""The foreman's hauler has just reached R's stand and selected its lift."""
+	var hauler: RefCounted = entry._foreman._hauler
+	return hauler != null and hauler.stage() == hauler.STAGE_LIFT
+
+
+func _set_rest(o: Session.Retirement.Owners, row: int, hour: int, activity: int) -> void:
+	"""The crew's hour, and its already resolved activity, become `activity`."""
+	assert_true(o.jobs.schedule().set_hour_activity(row, hour, activity).ok, "hour %d set" % hour)
+	o.jobs.schedule()._current_activity[row] = activity
+
+
+func test_a_rest_at_a_haul_stand_lets_the_lift_finish_and_the_haul_carries_on() -> void:
+	"""ADR1226 for the hauler (REQ-SET-034): the crew's hour turns to SLEEP as it selects its lift at R's stand, a
+	resting point, so the entry pauses there. The lift's HAUL Job is in WORK and its 2 WU are not a safe point, so
+	the settlement's ProductiveWork finishes it while the entry waits. When the hour permits work again the hauler
+	finds the Job done and loads the unit instead of refusing ENTRY_HAUL_WORK; the prefix ends with the same ledger."""
+	var live: Array = _begin_live_entry()
+	var o: Session.Retirement.Owners = live[0]
+	var entry: Settlement.UndergroundEntryRuntime = live[1]
+	var row: int = o.residents.directory().get_typed_row(live[2])
+	var tick: int = _run_until(entry, 1, _lifting.bind(entry))
+	var hauler: RefCounted = entry._foreman._hauler
+	var hour: int = _host._hour_of(tick)
+	var before: int = o.jobs.schedule().hour_activity_of(row, hour).value
+	_set_rest(o, row, hour, Schedule.ACTIVITY_SLEEP)
+	tick = _run_to(entry, tick, tick + 60)
+	assert_true(entry.is_running() and entry._crew_at_rest(), "the crew rests at R's stand: %s" % entry.error())
+	assert_equal(hauler.stage(), hauler.STAGE_LIFT, "the entry advanced nothing while it rested")
+	var left: IntMath.IntResult = IntMath.IntResult.new()
+	assert_true(o.jobs.remaining_mwu_into(hauler._job, left) and left.value == 0, "the lift's Work finished meanwhile")
+	_set_rest(o, row, hour, before)
+	tick = _run_until(entry, tick, _prefix_done.bind(entry))
+	assert_true(entry.is_running() and _prefix_done(entry), "the haul carried on: %s" % entry.error())
+	assert_equal(_done_ledger(o, entry._foreman), DONE_LEDGER, "with the same ledgers")

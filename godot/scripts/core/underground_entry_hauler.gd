@@ -29,6 +29,8 @@ const REFUSE_ITEM: StringName = &"ENTRY_HAUL_UNCERTIFIED_ITEM"
 const REFUSE_STAGED: StringName = &"ENTRY_HAUL_NO_STAGED_STOCK"
 const REFUSE_STAND: StringName = &"ENTRY_HAUL_NO_STAND"
 const REFUSE_HELD: StringName = &"ENTRY_HAUL_ROUTE_HELD"
+const REST_REFUSAL: StringName = &"WORK_SCHEDULE_REST" # Work's REFUSE_SCHEDULE_REST (ADR1226).
+const DONE_REFUSAL: StringName = &"NO_WORK_REMAINING" # Work's REFUSE_NO_WORK_REMAINING.
 
 
 class Leg extends RefCounted:
@@ -262,10 +264,15 @@ func _grip(row: int) -> StringName:
 
 
 func _work(tick: int) -> int:
-	"""One Work tick of the handling phase: 1 finished, 0 continuing, -1 refused."""
+	"""One Work tick of the handling phase: 1 finished, 0 continuing, -1 refused.
+	ADR1226 (REQ-SET-034): a lift or set-down stands at a stand, a resting point. A rest refusal waits there, and a
+	handling Job the rest left complete (Work belongs to the Job; the settlement's ProductiveWork also ticks a HAUL
+	Job in WORK while the entry pauses) is finished, not refused."""
 	_o.routes.advance_tick(tick)
 	var worked: RefCounted = _o.work.tick_solo(_job)
-	if not worked.ok: return -1
+	if not worked.ok:
+		if worked.error == REST_REFUSAL: return 0
+		return 1 if worked.error == DONE_REFUSAL else -1
 	_haul_mwu += worked.accepted_mwu
 	return 1 if worked.remaining_mwu == 0 else 0
 

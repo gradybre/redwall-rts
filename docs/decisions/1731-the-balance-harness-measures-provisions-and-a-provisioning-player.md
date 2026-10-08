@@ -190,3 +190,14 @@ its own (1601), so `hands_off` exercises it.
     - The mill check runs before the recipe loop. With 2–2.9 U of free nuts, the mill can grind for rations in the same
       round that the cheese reserves 2 U, which delays the rations until the next trip. Nothing is lost: the flour stays
       free for the kitchen.
+
+### Gates for the addendum (at `bcb792e4`)
+
+- **CI-style full suite.** Run in a fresh, art-free worktree at the commit, with `.godot` deleted and reimported, then
+  `./tools/run_tests.sh`. The art staged in the working worktree was not moved aside, because staged balance runs were
+  live there; a fresh checkout is the state CI sees.
+  - `9310 test(s), 649747 assertion(s), 0 failure(s)`
+  - `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 371 tolerated; leaked at exit: 0
+    object(s), 0 resource(s)`
+  - `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).`
+- **Analyzer:** `0 GDScript warning(s) in 0 of 1055 file(s)`.

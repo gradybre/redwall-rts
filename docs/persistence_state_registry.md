@@ -2122,6 +2122,15 @@ reference/header costs and whole-client peak qualification remain open.
 |---|---|---:|---|---|:-:|---|---|
 | Stateless source-time query | -- | -- | -- | No retained state | 3 | -- | ADR1147: no fields or packed banks. Checked integer commands sample the unchanged source into one44B caller packet inside existing176B. Additional208B scalar/helper estimate joins current Motion1090B inside the same4096B reserve; source-only timing creates no actor progress or movement permit. Native and whole-game qualification remain open. |
 
+### `godot/scripts/core/underground_stair_motion.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stair program words | `_programs` | 4 | `PROGRAM_FIELDS * PROGRAMS` = 60 | Empty before load | 3 | -- | [ADR 1229](decisions/1229-stair-travel-runtime.md) increment 3. Five programs (steps 51/52, descent 53, ascent 54, half-turn 55) of the pinned create-only wire `qualified-claw-stair-motion-v1`; immutable content, reloaded by its pin, never saved (ADR 1228 §2: content is identified, not saved). |
+| Stair keys | `_keys` | 4 | `KEY_FIELDS * KEYS` = 2285 | Empty before load | 3 | -- | Root x/y/z, heading and supporting deck per key, relative to the start root. |
+| Fixture decks | `_decks` | 4 | `DECK_FIELDS * DECKS` = 42 | Empty before load | 3 | -- | The decks each program's approved proofs stood on; WorldRoutes proves them installed. |
+| Bound profile wire digest | `_digest` | 1 | `32` = 32 | Empty before load | 3 | -- | The content-10 profile wire the tables were derived against. |
+
 ### `godot/scripts/core/underground_room_approach.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

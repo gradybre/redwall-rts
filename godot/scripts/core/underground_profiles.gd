@@ -742,7 +742,10 @@ func _matches(row: int, mode: int, posture: int, family: int) -> bool:
 	var quantity: int = _candidate.cargo_quantity_milli
 	if quantity < _long(_live, row, L_QUANTITY_MIN) or quantity > _long(_live, row, L_QUANTITY_MAX):
 		return false
-	if _field(_live, row, F_YAW_KIND) == YAW_EXACT and _field(_live, row, F_YAW) != _pose.yaw:
+	# ADR1229: the half-turn's heading is its own table's (Routes checks the start heading); every other exact row
+	# matches the actor's current heading.
+	if _field(_live, row, F_YAW_KIND) == YAW_EXACT and _field(_live, row, F_YAW) != _pose.yaw \
+			and _live.flags[_profile_capacity + row] != POLICY_STAIR_TURN:
 		return false
 	return family == -1 or (_field(_live, row, F_FAMILIES) & (1 << family)) != 0
 

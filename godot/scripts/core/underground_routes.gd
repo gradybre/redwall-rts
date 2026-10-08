@@ -27,6 +27,11 @@ const Assembly := preload("res://data/underground/mole-worker/qualified-assembly
 ## ADR1217 step 5: the claw work program (source 4) and the handling-program selector (pick 29 dormant, paw 59).
 const Claw := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/claw_program.gd")
 const Handling := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/handling_programs.gd")
+## ADR1229 increment 3: content 10's claw program (rows 42-50, 56-64), its stair program (51-55: steps, descent,
+## ascent, half-turn) and the claw stair motion tables the stair rows sample.
+const Claw2 := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/claw_program.gd")
+const Stair := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/stair_program.gd")
+const StairMotion := preload("res://scripts/core/underground_stair_motion.gd")
 const Workpieces := preload("res://scripts/core/underground_connector_workpieces.gd")
 const Router := preload("res://scripts/core/modular_projects.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
@@ -187,6 +192,7 @@ class MotionStep extends RefCounted:
 	var pace: int = 0
 	var cursor: int = -1
 	var consumed: int = 0
+	var stair_key: int = 0 # ADR1229: the presented key of a stair crossing after this tick.
 
 
 class ProfilePath extends RefCounted:
@@ -251,6 +257,11 @@ class Bindings extends RefCounted:
 
 	func pace_into(_selection: Profiles.Selection, _family: int, _variant: int, _out: IntMath.IntResult) -> StringName:
 		"""Read an authored integer units/second rate; missing stairs or ladder content never borrows ground pace."""
+		return &"ROUTE_WORLD_BINDING_UNAVAILABLE"
+
+	func stair_motion_refusal(_worker: Vector2i, _edge: Vector2i, _origin: Vector3i,
+			_selection: Profiles.Selection) -> StringName:
+		"""ADR1229: one tick of a source-proved crossing: its certificate and the whole motion's live occupancy."""
 		return &"ROUTE_WORLD_BINDING_UNAVAILABLE"
 
 	func publication_refusal(_route_token: int, _space_token: int, _location_token: int) -> StringName:
@@ -443,6 +454,7 @@ var _catalog_extent: PackedInt32Array = PackedInt32Array()
 var _candidate_bounds: PackedInt32Array = PackedInt32Array()
 var _occupant_bounds: PackedInt32Array = PackedInt32Array()
 var _extent_revision: int = 0
+var _stair_motion: StairMotion = null # ADR1229: the loaded claw stair tables, or null (stair rows then refuse).
 
 
 func _init(residents: Residents, transforms: Transforms) -> void:
@@ -586,6 +598,14 @@ func bind_profiles(profiles: Profiles, inventory: Inventory, gear: Gear, carry: 
 	_work = work
 	_jobs = work.jobs()
 	return refresh_profile_extent() if profiles.content_revision() > 0 else &""
+
+
+func bind_stair_motion(motion: StairMotion) -> StringName:
+	"""ADR1229: borrow the loaded claw stair tables once; without them every stair row refuses."""
+	if _reject_callback() or _stair_motion != null: return &"ROUTE_STAIR_MOTION_BOUND"
+	if motion == null or not motion.is_loaded(): return &"ROUTE_STAIR_MOTION_SOURCE"
+	_stair_motion = motion
+	return &""
 
 
 func binding_matches(residents: Residents, transforms: Transforms, locations: Locations,
@@ -2285,6 +2305,8 @@ static func _source_word_for(profiles: Profiles, phase: int, source_phase: int) 
 static func _source_profile_refusal(profiles: Profiles, profile: int, profile_revision: int, content: int) -> StringName:
 	"""Version selection never substitutes for the complete source/descriptor/current-revision proof."""
 	if Handling.is_handling(profile): return Handling.profile_refusal(profiles, profile, profile_revision, content)
+	if Stair.owns(profiles, profile): return Stair.profile_refusal(profiles, profile, profile_revision, content)
+	if Claw2.owns(profiles, profile): return Claw2.profile_refusal(profiles, profile, profile_revision, content)
 	if Claw.owns(profiles, profile): return Claw.profile_refusal(profiles, profile, profile_revision, content)
 	return ShortStep.profile_refusal(profiles, profile, profile_revision, content) if ShortStep.uses(profiles) \
 		else SourceProgram.profile_refusal(profiles, profile, profile_revision, content)
@@ -2308,6 +2330,9 @@ static func _source_clock_leaf(actual: RefCounted, row: int) -> StringName:
 	if code != &"": return code
 	if Handling.is_handling(profile):
 		return Handling.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
+	if Stair.owns(actual._profiles, profile): return _stair_clock_leaf(actual, row, phase, profile)
+	if Claw2.owns(actual._profiles, profile):
+		return Claw2.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
 	if Claw.owns(actual._profiles, profile):
 		return Claw.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
 	if not ShortStep.uses(actual._profiles):
@@ -2319,6 +2344,16 @@ static func _source_clock_leaf(actual: RefCounted, row: int) -> StringName:
 			actual._motion.resident_long[R_REMAINDER * RESIDENT_CAPACITY + row],
 			actual._motion.resident[R_EDGE_SLOT * RESIDENT_CAPACITY + row] >= 0)
 	return code
+
+
+static func _stair_clock_leaf(actual: RefCounted, row: int, phase: int, profile: int) -> StringName:
+	"""ADR1229: a stair state is READY at a Location or WALK on one edge, with its ticks in the progress column."""
+	var clock: int = actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
+	var code: StringName = Stair.clock_refusal(phase, clock, profile)
+	if code != &"": return code
+	return Stair.progress_refusal(phase, clock, actual._motion.resident_long[R_PROGRESS * RESIDENT_CAPACITY + row],
+		actual._motion.resident_long[R_REMAINDER * RESIDENT_CAPACITY + row],
+		actual._motion.resident[R_EDGE_SLOT * RESIDENT_CAPACITY + row] >= 0)
 
 
 func _set_route_phase(row: int, phase: int) -> void:
@@ -2471,11 +2506,18 @@ func request_source_ready(worker: Vector2i, job: Vector2i) -> StringName:
 	if not _source_word_known(word): return &"ROUTE_SOURCE_PROFILE"
 	var profile: int = _motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]
 	var clock: int = _motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
-	var next: Vector3i = Claw.ready_request((word >> 2) & 15, clock & I32_MAX, clock >> 32, profile) \
-		if Claw.owns(_profiles, profile) else _pick_ready_request((word >> 2) & 15, clock & I32_MAX, clock >> 32)
+	var next: Vector3i = _ready_request_of(profile, (word >> 2) & 15, clock & I32_MAX, clock >> 32)
 	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = _source_word_for(_profiles, word & 3, next.x)
 	_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = SourceProgram.clock(next.y, next.z)
 	return &""
+
+
+func _ready_request_of(profile: int, phase: int, time: int, old: int) -> Vector3i:
+	"""The selected row's own program decides the exact stop."""
+	if Stair.owns(_profiles, profile): return Stair.ready_request(phase, time)
+	if Claw2.owns(_profiles, profile): return Claw2.ready_request(phase, time, old, profile)
+	if Claw.owns(_profiles, profile): return Claw.ready_request(phase, time, old, profile)
+	return _pick_ready_request(phase, time, old)
 
 
 static func _pick_ready_request(phase: int, time: int, old: int) -> Vector3i:
@@ -3013,6 +3055,8 @@ func _transit_identity_refusal(row: int) -> StringName:
 	var edge: Vector2i = _resident_pair(R_EDGE_SLOT, row)
 	if not is_live_edge(edge):
 		return &"ROUTE_EDGE_STALE"
+	if Stair.owns(_profiles, _motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]):
+		return _stair_transit_refusal(row, edge)
 	var segment: int = _motion.resident[R_SEGMENT * RESIDENT_CAPACITY + row]
 	var progress: int = _motion.resident_long[R_PROGRESS * RESIDENT_CAPACITY + row]
 	if segment < 0 or segment + 1 >= _edge_i32(_live, E_PATH_COUNT, edge.x):
@@ -3024,6 +3068,24 @@ func _transit_identity_refusal(row: int) -> StringName:
 		return &"ROUTE_PROGRESS_STALE"
 	return &"" if _interpolate(first, second, progress, length) == Vector3i(_pose.x, _pose.y, _pose.z) \
 		else &"ROUTE_ACTOR_POSITION_DRIFT"
+
+
+func _stair_transit_refusal(row: int, edge: Vector2i) -> StringName:
+	"""ADR1229: mid-crossing the pose is the program's presented key: the root track, or the step's straight share."""
+	var program: int = _stair_motion.program_of(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]) \
+		if _stair_motion != null else -1
+	if program < 0 or _edge_i32(_live, E_PATH_COUNT, edge.x) != 2 \
+			or _edge_pair(_live, E_SECTION_SLOT, edge.x) != _resident_pair(R_SECTION_SLOT, row):
+		return &"ROUTE_PROGRESS_STALE"
+	@warning_ignore("integer_division") var key: int = (_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] & I32_MAX) / Stair.ONE
+	var first: Vector3i = _vertex(edge.x, 0)
+	var second: Vector3i = _vertex(edge.x, 1)
+	var pose: Vector3i = first + _stair_motion.root_at(program, key)
+	if not _stair_motion.rooted(program):
+		var length: int = _segment_length(first, second)
+		@warning_ignore("integer_division") var done: int = length * key / Stair.STEP_CLIP_INTERVALS
+		pose = _interpolate(first, second, done, length)
+	return &"" if pose == Vector3i(_pose.x, _pose.y, _pose.z) else &"ROUTE_ACTOR_POSITION_DRIFT"
 
 
 func _vertex(row: int, ordinal: int) -> Vector3i:
@@ -3098,18 +3160,30 @@ func _advance_actor(row: int) -> StringName:
 	var code: StringName = read_actor_into(_resident_ref(row), _actor)
 	if code != &"":
 		return code
+	_begin_stair_crossing(row)
 	var word: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
 	if _source_word_known(word) and (((word >> 2) & 15) != SourceProgram.WALK \
 			or (_resident_pair(R_EDGE_SLOT, row) == NULL_REF and _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] < 0)):
 		return _advance_stationary_source(row)
 	code = _prepare_motion(row)
 	if code == &"":
-		code = _compute_motion(row)
+		code = _compute_stair_motion(row) if Stair.owns(_profiles, _selection.profile_id) else _compute_motion(row)
 	if code == &"":
 		code = _final_motion_refusal(row)
 	if code == &"":
 		_commit_motion(row)
 	return code
+
+
+func _begin_stair_crossing(row: int) -> void:
+	"""ADR1229: a queued READY stair actor leaves the READY hub on this very tick, so a crossing takes exactly its
+	authored ticks. Only the source phase changes here; the motion that follows proves and commits everything else."""
+	var word: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+	if not Stair.owns(_profiles, _motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]) or ((word >> 2) & 15) != Stair.READY \
+			or _resident_pair(R_EDGE_SLOT, row) != NULL_REF or _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] < 0:
+		return
+	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = Stair.word(word & 3, Stair.WALK)
+	_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = Stair.clock(0)
 
 
 func _advance_stationary_source(row: int) -> StringName:
@@ -3142,6 +3216,9 @@ func _advance_stationary_source(row: int) -> StringName:
 func _stationary_next(phase: int, time: int, old: int, queued: bool) -> Vector3i:
 	"""One headless tick of the selected row's program: a queued READY fades to WALK, an unqueued WALK fades to
 	READY (the claw program first walks on past its blocked keys, ADR1217 step 4d), every other phase advances."""
+	if Stair.owns(_profiles, _selection.profile_id): return Stair.stationary(phase, time, queued)
+	if Claw2.owns(_profiles, _selection.profile_id):
+		return Claw2.stationary(phase, time, old, _selection.profile_id, queued)
 	if Claw.owns(_profiles, _selection.profile_id):
 		return Claw.stationary(phase, time, old, _selection.profile_id, queued)
 	if phase == SourceProgram.READY and queued:
@@ -3248,6 +3325,55 @@ func _compute_motion(row: int) -> StringName:
 			break
 	_step.remainder = _encode_fraction(_step.numerator % _step.denominator, _step.denominator)
 	return _read_motion_containment()
+
+
+func _compute_stair_motion(row: int) -> StringName:
+	"""ADR1229: one fixed tick of a source-proved crossing. The pose is the program's whole key for the elapsed ticks
+	(the root track and heading for a stair gait or the half-turn, the straight span for a step); the certificate and
+	the whole motion's live occupancy are re-proved each tick; the crossing ends exactly on the edge's last point."""
+	var code: StringName = _pace_refusal()
+	if code != &"": return code
+	var program: int = _stair_motion.program_of(_selection.profile_id) if _stair_motion != null else -1
+	if program < 0 or _edge_i32(_live, E_PATH_COUNT, _step.edge.x) != 2: return &"ROUTE_STAIR_MOTION_SOURCE"
+	var ticks: int = Stair.ticks_for(_edge_i64(_live, E_LENGTH, _step.edge.x), _number.value)
+	var step: int = Stair.key_step(_stair_intervals(program), ticks)
+	if step < 0 or _step.progress >= ticks: return &"ROUTE_SOURCE_STEP_PACE"
+	if _step.progress == 0 and _selection.yaw != _stair_motion.start_yaw(program): return &"ROUTE_TURN_UNCERTIFIED"
+	var first: Vector3i = _vertex(_step.edge.x, 0)
+	var last: Vector3i = _vertex(_step.edge.x, 1)
+	var elapsed: int = _step.progress + 1
+	_stair_pose(program, first, last, elapsed, ticks, step)
+	if elapsed == ticks and _step.point != last: return &"ROUTE_STAIR_GEOMETRY"
+	_copy_selection(_selection, _pinned_selection)
+	_in_callback = true
+	_callback_reentered = false
+	code = _bindings.stair_motion_refusal(_resident_ref(row), _step.edge, first, _selection)
+	_in_callback = false
+	if _callback_reentered or not _same_selection(_selection, _pinned_selection): return &"ROUTE_CALLBACK_REENTRY"
+	if code != &"": return code
+	_step.progress = elapsed
+	_step.segment = 0
+	_step.remainder = 0
+	_step.finished = elapsed == ticks
+	return _read_motion_containment()
+
+
+func _stair_intervals(program: int) -> int:
+	"""Presented clip intervals: the rooted programs' own keys; a step's five-key clip (claw v2 plan.json)."""
+	return _stair_motion.key_count(program) - 1 if _stair_motion.rooted(program) else Stair.STEP_CLIP_INTERVALS
+
+
+func _stair_pose(program: int, first: Vector3i, last: Vector3i, elapsed: int, ticks: int, step: int) -> void:
+	"""The root and heading after `elapsed` of `ticks` ticks; a backward step keeps facing its row's heading."""
+	_step.stair_key = elapsed * step
+	if _stair_motion.rooted(program):
+		_step.point = first + _stair_motion.root_at(program, _step.stair_key)
+		_step.yaw = _stair_motion.heading_at(program, _step.stair_key)
+		return
+	var length: int = _segment_length(first, last)
+	@warning_ignore("integer_division") var done: int = length * elapsed / ticks
+	_step.point = _interpolate(first, last, done, length)
+	_step.yaw = _selection.yaw
 
 
 static func _gcd(first: int, second: int) -> int:
@@ -3493,18 +3619,35 @@ func _advance_source_motion_clock(row: int) -> void:
 	if not _source_word_known(word): return
 	var clock: int = _motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
 	var profile: int = _motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]
+	if Stair.owns(_profiles, profile):
+		_advance_stair_clock(row, word)
+		return
+	if Claw2.owns(_profiles, profile) and (word & 3) == PHASE_IDLE:
+		var landed: Vector3i = Claw2.arrive(clock & I32_MAX, profile)
+		_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = _source_word_for(_profiles, PHASE_IDLE, landed.x)
+		_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = SourceProgram.clock(landed.y, landed.z)
+		return
 	if Claw.owns(_profiles, profile) and (word & 3) == PHASE_IDLE:
 		var arrived: Vector3i = Claw.arrive(clock & I32_MAX, profile) # ADR1217 step 4d: walk on past blocked keys.
 		_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = _source_word_for(_profiles, PHASE_IDLE, arrived.x)
 		_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = SourceProgram.clock(arrived.y, arrived.z)
 		return
-	var duration: int = Claw.WALK_DURATION if Claw.owns(_profiles, profile) else SourceProgram.WALK_DURATION
+	var duration: int = Claw.WALK_DURATION if Claw.owns(_profiles, profile) or Claw2.owns(_profiles, profile) \
+		else SourceProgram.WALK_DURATION
 	var time: int = ((clock & I32_MAX) + SourceProgram.ONE) % duration
 	if (word & 3) == PHASE_IDLE:
 		_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = _source_word_for(_profiles, PHASE_IDLE, SourceProgram.FADE_READY)
 		_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = SourceProgram.clock(0, time)
 	else:
 		_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = SourceProgram.clock(time, 0)
+
+
+func _advance_stair_clock(row: int, word: int) -> void:
+	"""ADR1229: a crossing presents its key; it ends on the READY hub, or runs straight into a queued next crossing."""
+	var walking: bool = (word & 3) != PHASE_IDLE
+	var key: int = 0 if _step.finished else _step.stair_key
+	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = Stair.word(word & 3, Stair.WALK if walking else Stair.READY)
+	_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = Stair.clock(key if walking else 0)
 
 
 func _pop_route_head(row: int) -> void:

@@ -4223,9 +4223,9 @@
         "godot/scripts/core/inventory.gd": "92a00d390ba18f327c0de8992b8cef16966de86e742378f745440bf7dfb03824",
         "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
         "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
-        "godot/scripts/core/underground_profiles.gd": "4c0dc617ba04dc32b7580144129940028c035d65ad9217286838a56dfad7ae1b",
-        "godot/scripts/core/underground_routes.gd": "95b2c8c5c3383592485b95ba7f6f4f5673d2fd0e62c49ae7da2f24361b6113c4",
-        "godot/scripts/core/underground_world_routes.gd": "071ed8e39e11941a620e3bd29fb2e2c3773ee7a8e8de4c6b91071c5076cb2f34"
+        "godot/scripts/core/underground_profiles.gd": "4adcdc2be52254d7c9ca73f7790b64cdd58e62f35d512dbd6f47a9f573d17d28",
+        "godot/scripts/core/underground_routes.gd": "c2ffab033eabde66ed135350ff04f71825b8c56cbb83672d3768181a3d0236be",
+        "godot/scripts/core/underground_world_routes.gd": "5df1dcd545b1e1700138ff45beb62c10a7a89d892f2c5af64f1aeba991e59b05"
       }
     },
     "current_profile_control": {
@@ -43071,9 +43071,20 @@
             "bytes": 0,
             "carried_by": "Budget.COLD_BYTES shared cold lease",
             "store": "ADR 1221: Routes wire schema 1 capture/restore image (320,608 B at the composed capacities) is the caller's leased cold image; restore decodes into the existing stage and load banks. No retained storage"
+          },
+          {
+            "bytes": 8,
+            "carried_by": "Routes HEADER_RESERVE (fixed numeric controls)",
+            "store": "ADR 1229 increment 3: MotionStep.stair_key (one int in the single step packet) and the borrowed `_stair_motion` reference (native header, uncounted like every reference); the claw stair tables themselves are charged when the Session mounts them (increment 6)"
           }
         ],
         "delta": {
+          "members_added": [
+            [
+              "_stair_motion",
+              "StairMotion"
+            ]
+          ],
           "resizes_added": [
             "out.resize(wire_bytes()"
           ],
@@ -43095,6 +43106,138 @@
               "1"
             ]
           ],
+          "classes": {
+            "MotionStep": [
+              [
+                [
+                  "consumed",
+                  "int"
+                ],
+                [
+                  "cursor",
+                  "int"
+                ],
+                [
+                  "denominator",
+                  "int"
+                ],
+                [
+                  "edge",
+                  "Vector2i"
+                ],
+                [
+                  "finished",
+                  "bool"
+                ],
+                [
+                  "level",
+                  "int"
+                ],
+                [
+                  "numerator",
+                  "int"
+                ],
+                [
+                  "pace",
+                  "int"
+                ],
+                [
+                  "point",
+                  "Vector3i"
+                ],
+                [
+                  "progress",
+                  "int"
+                ],
+                [
+                  "remainder",
+                  "int"
+                ],
+                [
+                  "room",
+                  "Vector2i"
+                ],
+                [
+                  "section",
+                  "Vector2i"
+                ],
+                [
+                  "segment",
+                  "int"
+                ],
+                [
+                  "yaw",
+                  "int"
+                ]
+              ],
+              [
+                [
+                  "consumed",
+                  "int"
+                ],
+                [
+                  "cursor",
+                  "int"
+                ],
+                [
+                  "denominator",
+                  "int"
+                ],
+                [
+                  "edge",
+                  "Vector2i"
+                ],
+                [
+                  "finished",
+                  "bool"
+                ],
+                [
+                  "level",
+                  "int"
+                ],
+                [
+                  "numerator",
+                  "int"
+                ],
+                [
+                  "pace",
+                  "int"
+                ],
+                [
+                  "point",
+                  "Vector3i"
+                ],
+                [
+                  "progress",
+                  "int"
+                ],
+                [
+                  "remainder",
+                  "int"
+                ],
+                [
+                  "room",
+                  "Vector2i"
+                ],
+                [
+                  "section",
+                  "Vector2i"
+                ],
+                [
+                  "segment",
+                  "int"
+                ],
+                [
+                  "stair_key",
+                  "int"
+                ],
+                [
+                  "yaw",
+                  "int"
+                ]
+              ]
+            ]
+          },
           "allocation_sites": {
             "=[": 2,
             "PackedInt64Array(": 2,
@@ -43958,6 +44101,7 @@
       "LOCATION_AND_TOPOLOGY_BYTES unassigned remainder (recounted)": 5376,
       "Room publication CONTROL_BYTES (8,970 of 9,216) inside Budget.COLD_BYTES": 920,
       "Budget.COLD_BYTES shared cold lease": 1792,
+      "Routes HEADER_RESERVE (fixed numeric controls)": 8,
       "presentation (outside the REQ-SET-163 simulation gate)": 0,
       "SurfaceAnchor RESERVED_BYTES (asserted by the pack)": 8,
       "entry structure reservation (decision1122, 384 B)": 0,
@@ -44133,10 +44277,10 @@
     "godot/scripts/core/underground_motion_catalog.gd": "3fbfa3d858a4752751e8c0965e787d331956fcbf3bf8299bf08f2ca82d1f3195",
     "godot/scripts/core/underground_motion_clock.gd": "91e036e333a61cadd543a88833204fb26d7c93d3c83b7dabd822352ff276d7cd",
     "godot/scripts/core/underground_phase_structure.gd": "8ca9a827a4002f5ceaf73869548ea5cb61bcc39d0cc618deab33773aca4e2a7c",
-    "godot/scripts/core/underground_profiles.gd": "4c0dc617ba04dc32b7580144129940028c035d65ad9217286838a56dfad7ae1b",
+    "godot/scripts/core/underground_profiles.gd": "4adcdc2be52254d7c9ca73f7790b64cdd58e62f35d512dbd6f47a9f573d17d28",
     "godot/scripts/core/underground_room_world_bindings.gd": "d012c526a267fc7aecb365e7a6afa40d00d931f2b710b1122fc19705f556f8b1",
     "godot/scripts/core/underground_route_composition.gd": "a4ec922b891d57aa8494d5fc1c56767512294352db1860dea1e0dcbce185f71d",
-    "godot/scripts/core/underground_routes.gd": "95b2c8c5c3383592485b95ba7f6f4f5673d2fd0e62c49ae7da2f24361b6113c4",
+    "godot/scripts/core/underground_routes.gd": "c2ffab033eabde66ed135350ff04f71825b8c56cbb83672d3768181a3d0236be",
     "godot/scripts/core/underground_session.gd": "23b5f7a1e77aed78070924584fdc2be02429c456289a5f564f0ca1edcfca6711",
     "godot/scripts/core/underground_space_authority.gd": "3377e00f509e833e618330237c65fa7a18aaf20a4876b5b16322bbdab7d4ec5b",
     "godot/scripts/core/underground_space_owner.gd": "c5aea1c3904c621552f67537f303799d51c7ab1adbe2478cef2fbdfd81e955d5",
@@ -44144,7 +44288,7 @@
     "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
     "godot/scripts/core/underground_work_face.gd": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
     "godot/scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
-    "godot/scripts/core/underground_world_routes.gd": "071ed8e39e11941a620e3bd29fb2e2c3773ee7a8e8de4c6b91071c5076cb2f34",
+    "godot/scripts/core/underground_world_routes.gd": "5df1dcd545b1e1700138ff45beb62c10a7a89d892f2c5af64f1aeba991e59b05",
     "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310"
   },
   "registry_sha256": "6ed6974b635ef777fda440ddcd743d24c1607b54fdbff1b58e439a302fcff715",

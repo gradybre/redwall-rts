@@ -105,3 +105,60 @@ columns. A new column would be a declared schema change with its own record.
   - `test_mole_claw_stairs_profiles.gd` loads it through the actual loader (6 tests, including three negative
     edits); `test_publish_claw_stairs_runtime.py` holds 5 tests.
   - It is not active: the catalog and Session still load content 9.
+- **Increment 3 (stair program, stair tables, Routes and WorldRoutes), done.** Details and the engineering choices
+  below (§ Increment 3).
+
+## Increment 3 — the stair program and stair edges in Routes and WorldRoutes (2026-10-08)
+
+### What was built
+
+- **The claw stair tables** (`publish_claw_stair_motion.py` → `qualified-claw-stair-motion-v1/`, create-only, wire
+  `e7840c7b…`, 9,620 B) and their owner `underground_stair_motion.gd`. For rows 51–55 they hold, in the start root's
+  frame: the root and heading per key, the deck supporting each interval and the fixture decks each proof stood on.
+  Nothing is chosen:
+  - the descent and ascent roots are the content-10 motion wire's gait tables (M7: "the root tracks are the
+    accepted ones"); the ascent's are turned by the exact half turn;
+  - the half-turn's roots and headings are its handoff program 1 (step 5b: the author runs unchanged), checked
+    against the claw turn record's controls;
+  - the decks and per-interval support are M7's terrain proof's; the steps' standing decks are the step proofs'
+    fixtures moved into the start frame.
+- **Content 10's runtime programs** (`qualified-claw-runtime-v2/`): `claw_program.gd` is runtime-v1's on content 10's
+  row layout (travel 42–50, dig/tap 56–63, the tread fitting tap 64 on the tread tap clips); `stair_program.gd` owns
+  51–55. Routes dispatches to them by row and image digest beside the content-9 programs, which stay as they are until
+  activation.
+- **Routes.** A stair row crosses one two-point edge in `ceil(length × 30 / pace)` ticks; the pose at tick t is the
+  program's whole key `t × intervals / ticks` (the gaits' and half-turn's root track and heading, the step's straight
+  share). A queued READY leaves the READY hub on the same tick, and a finished crossing runs straight into a queued
+  next one, so a crossing takes exactly its ticks. The source word is READY or WALK; the clock's time lane holds the
+  presented key; the progress column the elapsed ticks (no new column).
+- **WorldRoutes** qualifies a source-proved row on an edge when: the edge is exactly the motion's span (two points,
+  rotation 0); its pace lands on whole keys; both endpoints are live; every fixture deck is covered by installed
+  SUPPORT of the edge's Room (the World's, outside a Room); and each body and recovery box at the start root meets
+  only void, floor metadata or that Room's SUPPORT, and is covered by void, the Room's timber or terrain-proved
+  exterior air. Each tick re-proves the certificate and the whole motion's box for other actors and exclusions.
+- **Tests.** `test_claw_stair_programs.gd` (5) and `test_underground_stair_routes.gd` (5, the hand fixture: a descent
+  in 30 ticks on its root track, the half-turn in 45 to heading 32768, the ascent in 30, the step back in 2, and a
+  short lower deck, an obstacle in the body and unbound tables each refusing); `test_publish_claw_stair_motion.py` (5).
+
+### Engineering choices (recorded here so they are not undone by accident)
+
+1. **The short steps are source-proved too.** Content 10's rows 51 and 52 carry the swept foot hull as their stance
+   (up to 248 u high), as derived. The ground route proof requires a stance box wholly inside SUPPORT, so it can never
+   admit them; they are qualified by the same fixture rule as the stair rows. Their published bytes are unchanged.
+2. **Stair paces are one row per stair profile on the Placement's single variant.** A Placement binds exactly one
+   catalog variant (`H_CATALOG_ROW`), and every tread segment has the same length, so DEC-050 needs one authored row
+   per profile on variant 0, not one variant per tread: descent and ascent 528 u/s over the 528 u tread edge
+   (`ceil_root(128² + 512²)`), the half-turn 116 u/s over its 174 u span — exactly 30 and 45 ticks.
+3. **The half-turn's heading is its table's.** Profiles' exact-heading match and WorldRoutes' selection check skip
+   POLICY_STAIR_TURN; Routes refuses to start a crossing unless the actor faces the program's start heading.
+4. **No per-key support re-proof at runtime.** The support primitive per key is carried by the tables; the live check
+   is that every deck the proofs stood on is installed. The source proofs (M7 flight and bottom, step 5b, the step
+   proofs) cover the rest.
+
+### Still to come in this plan
+
+- Increment 4: the paw program for rows 65/66, the handling and endpoint-certificate selectors on content 10, the
+  presentation of the v2 images, and the Session mounting the stair tables (memory census).
+- Tread Locations and the pending bearer: the arrival (169 u) and ascent start (343 u) of T_{k−1} physically overlap
+  T_k's staged bearer (ADR 1209 step 5), so their Locations and stair edges must not exist while it is pending.
+  They are retracted before FUND and restored after the installation commits (increment 5/6).

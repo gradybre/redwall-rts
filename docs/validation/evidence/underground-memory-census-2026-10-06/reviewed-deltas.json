@@ -1484,9 +1484,20 @@
      "bytes": 0,
      "carried_by": "Budget.COLD_BYTES shared cold lease",
      "store": "ADR 1221: Routes wire schema 1 capture/restore image (320,608 B at the composed capacities) is the caller's leased cold image; restore decodes into the existing stage and load banks. No retained storage"
+    },
+    {
+     "bytes": 8,
+     "carried_by": "Routes HEADER_RESERVE (fixed numeric controls)",
+     "store": "ADR 1229 increment 3: MotionStep.stair_key (one int in the single step packet) and the borrowed `_stair_motion` reference (native header, uncounted like every reference); the claw stair tables themselves are charged when the Session mounts them (increment 6)"
     }
    ],
    "delta": {
+    "members_added": [
+     [
+      "_stair_motion",
+      "StairMotion"
+     ]
+    ],
     "resizes_added": [
      "out.resize(wire_bytes()"
     ],
@@ -1508,6 +1519,138 @@
       "1"
      ]
     ],
+    "classes": {
+     "MotionStep": [
+      [
+       [
+        "consumed",
+        "int"
+       ],
+       [
+        "cursor",
+        "int"
+       ],
+       [
+        "denominator",
+        "int"
+       ],
+       [
+        "edge",
+        "Vector2i"
+       ],
+       [
+        "finished",
+        "bool"
+       ],
+       [
+        "level",
+        "int"
+       ],
+       [
+        "numerator",
+        "int"
+       ],
+       [
+        "pace",
+        "int"
+       ],
+       [
+        "point",
+        "Vector3i"
+       ],
+       [
+        "progress",
+        "int"
+       ],
+       [
+        "remainder",
+        "int"
+       ],
+       [
+        "room",
+        "Vector2i"
+       ],
+       [
+        "section",
+        "Vector2i"
+       ],
+       [
+        "segment",
+        "int"
+       ],
+       [
+        "yaw",
+        "int"
+       ]
+      ],
+      [
+       [
+        "consumed",
+        "int"
+       ],
+       [
+        "cursor",
+        "int"
+       ],
+       [
+        "denominator",
+        "int"
+       ],
+       [
+        "edge",
+        "Vector2i"
+       ],
+       [
+        "finished",
+        "bool"
+       ],
+       [
+        "level",
+        "int"
+       ],
+       [
+        "numerator",
+        "int"
+       ],
+       [
+        "pace",
+        "int"
+       ],
+       [
+        "point",
+        "Vector3i"
+       ],
+       [
+        "progress",
+        "int"
+       ],
+       [
+        "remainder",
+        "int"
+       ],
+       [
+        "room",
+        "Vector2i"
+       ],
+       [
+        "section",
+        "Vector2i"
+       ],
+       [
+        "segment",
+        "int"
+       ],
+       [
+        "stair_key",
+        "int"
+       ],
+       [
+        "yaw",
+        "int"
+       ]
+      ]
+     ]
+    },
     "allocation_sites": {
      "=[": 2,
      "PackedInt64Array(": 2,

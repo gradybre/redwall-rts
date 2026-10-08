@@ -970,7 +970,15 @@ func _path_refusal(edge: Routes.Edge) -> StringName:
 			if edge.points[point * 3 + 1] != edge.points[1]:
 				return &"WORLD_ROUTE_GROUND_HEIGHT"
 		return &""
-	return &"WORLD_ROUTE_FIXED_CONNECTOR_SOURCE_REQUIRED"
+	return _stair_path_refusal(edge)
+
+
+func _stair_path_refusal(edge: Routes.Edge) -> StringName:
+	"""ADR1229: an EARTH_TIMBER edge is one straight span qualified per stair row from the bound claw stair tables;
+	without them, or for any other connector family, fixed connector geometry still needs its own source."""
+	if _routes()._stair_motion == null or edge.family != 0 or edge.point_count != 2 or edge.rotation != 0:
+		return &"WORLD_ROUTE_FIXED_CONNECTOR_SOURCE_REQUIRED"
+	return &""
 
 
 func _profile_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
@@ -980,6 +988,7 @@ func _profile_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
 		return code
 	if not _kind_matches(edge):
 		return &"WORLD_ROUTE_PROFILE_KIND"
+	if _stair_row(profile): return _stair_edge_refusal(profile, edge)
 	_carried = _carry_edge and _live.admits(edge.ref.x, profile) and not _may_excuse_pending()
 	code = _catalog.pace_into(profile, _descriptor.profile_revision, _content_revision,
 		edge.family, edge.variant, _catalog_revision, _pace)
@@ -992,6 +1001,103 @@ func _profile_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
 		code = _profile_endpoint_refusal(edge.from_location, _point(edge, 0))
 		if code == &"": code = _profile_endpoint_refusal(edge.to_location, _point(edge, edge.point_count - 1))
 	return _profile_segments_refusal(edge) if code == &"" else code
+
+
+func _stair_row(profile: int) -> bool:
+	"""ADR1229: content 10's source-proved travel rows (steps, descent, ascent, half-turn), once the tables are bound."""
+	return _routes()._stair_motion != null and Routes.Stair.owns(_profiles, profile)
+
+
+func _stair_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
+	"""ADR1229: a source-proved row qualifies on the exact span its approved proofs moved over, at its pace's whole
+	keys, between live endpoints, with every fixture deck it stood on installed under it, and with its whole motion's
+	body in completed void, installed timber of the edge's own Room or proved exterior air. Its triangles and support
+	were proved against that fixture (ADR 1217 M7, step 5b; ADR 1209 step 5), so no ground stance rule is re-derived."""
+	var motion: Routes.StairMotion = _routes()._stair_motion
+	var program: int = motion.program_of(profile)
+	var first: Vector3i = _point(edge, 0)
+	if program < 0 or edge.point_count != 2 or edge.rotation != 0 or _point(edge, 1) - first != motion.end_of(program):
+		return &"WORLD_ROUTE_STAIR_SPAN"
+	var code: StringName = _catalog.pace_into(profile, _descriptor.profile_revision, _content_revision,
+		edge.family, edge.variant, _catalog_revision, _pace)
+	if code != &"": return code
+	var intervals: int = motion.key_count(program) - 1 if motion.rooted(program) else Routes.Stair.STEP_CLIP_INTERVALS
+	if Routes.Stair.key_step(intervals, Routes.Stair.ticks_for(edge.length_u, _pace.value)) < 0:
+		return &"WORLD_ROUTE_STAIR_PACE"
+	code = _endpoint_observation_refusal(edge.from_location, first)
+	if code == &"": code = _endpoint_observation_refusal(edge.to_location, _point(edge, 1))
+	if code == &"": code = _stair_decks_refusal(motion, program, first, edge.room)
+	return _stair_bodies_refusal(first, edge.room) if code == &"" else code
+
+
+func _stair_decks_refusal(motion: Routes.StairMotion, program: int, first: Vector3i, room: Vector2i) -> StringName:
+	"""Every fixture deck of the motion is wholly covered by installed SUPPORT of the edge's own Room."""
+	for ordinal: int in motion.deck_count(program):
+		if not _proof.spend() or not motion.deck_into(program, ordinal, first, _scratch):
+			return _proof.error if _proof.error != &"" else &"WORLD_ROUTE_STAIR_SUPPORT"
+		_proof.start(_scratch)
+		if not _subtract_room_support(room): return _proof.error if _proof.error != &"" else REFUSE_COVERAGE
+		if _proof.count != 0: return &"WORLD_ROUTE_STAIR_SUPPORT"
+	return &""
+
+
+func _subtract_room_support(room: Vector2i) -> bool:
+	"""Subtract every SUPPORT row the Room owns (its installed timber and retained bearings) from the open fragments;
+	an edge outside any Room counts the World's own support."""
+	var rows: Space.Volumes = _proof.image.volumes
+	var owner: Vector2i = room if room != NULL_REF else _domain._world
+	for row: int in rows.role.size():
+		if not _proof.spend(): return false
+		if rows.role[row] != Space.SUPPORT or Vector2i(rows.owner_slot[row], rows.owner_generation[row]) != owner:
+			continue
+		_proof.read_box(row, _proof.cover)
+		if not _proof.subtract_cover(): return false
+		if _proof.count == 0: return true
+	return true
+
+
+func _stair_bodies_refusal(first: Vector3i, room: Vector2i) -> StringName:
+	"""Each body and recovery box at the start root: no exclusion, no foreign or pending matter, and full cover."""
+	for ordinal: int in _descriptor.box_count:
+		if not _proof.spend(): return _proof.error
+		var code: StringName = _profile_box_into(ordinal, _body)
+		if code != &"": return code
+		if _body.role != Profiles.BODY_HELD_LOAD and _body.role != Profiles.TURN_RECOVERY: continue
+		code = _sweep_into(_body, first, first, _bounds)
+		if code == &"": code = _terrain.exclusions_refusal(_bounds)
+		if code == &"" and _stair_blocked(room): code = _proof.error if _proof.error != &"" else &"WORLD_ROUTE_STAIR_BLOCKED"
+		if code == &"": code = _stair_covered_refusal(room)
+		if code != &"": return code
+	return &""
+
+
+func _stair_blocked(room: Vector2i) -> bool:
+	"""Only void, floor metadata and the Room's own installed SUPPORT may meet the motion's body box."""
+	var rows: Space.Volumes = _proof.image.volumes
+	var owner: Vector2i = room if room != NULL_REF else _domain._world
+	for row: int in rows.role.size():
+		if not _proof.spend(): return true
+		var role: int = rows.role[row]
+		if role == Space.FLOOR_DATUM or role == Space.SUPPORTED_VOID \
+				or (role == Space.SUPPORT and Vector2i(rows.owner_slot[row], rows.owner_generation[row]) == owner):
+			continue
+		_proof.read_box(row, _proof.box)
+		if Space.overlaps(_bounds, _proof.box): return true
+	return false
+
+
+func _stair_covered_refusal(room: Vector2i) -> StringName:
+	"""Completed void and the Room's timber cover the box; any remainder must be proved exterior air."""
+	_proof.start(_bounds)
+	if not _proof.subtract_role(Space.SUPPORTED_VOID) or not _subtract_room_support(room):
+		return _proof.error if _proof.error != &"" else REFUSE_COVERAGE
+	for fragment: int in _proof.count:
+		if not _proof.spend(Terrain.LOCAL_QUERY_CHECKS): return _proof.error
+		for axis: int in 6:
+			_scratch[axis] = _proof.fragments[fragment * 6 + axis]
+		var code: StringName = _terrain.exterior_refusal(_scratch)
+		if code != &"": return REFUSE_COVERAGE
+	return &""
 
 
 func _endpoint_observation_refusal(location: Vector2i, point: Vector3i) -> StringName:
@@ -1390,7 +1496,9 @@ func _selection_refusal(selection: Profiles.Selection) -> StringName:
 			or _descriptor.species != selection.species or _descriptor.life_stage != selection.life_stage \
 			or _descriptor.rig != selection.rig or _descriptor.mode != selection.mode \
 			or _descriptor.posture != selection.posture or _descriptor.yaw_kind != selection.orientation \
-			or (_descriptor.yaw_kind != Profiles.YAW_ALL and _descriptor.yaw != selection.yaw) \
+			or (_descriptor.yaw_kind != Profiles.YAW_ALL and _descriptor.yaw != selection.yaw \
+				and Profiles.selection_policy_leaf(_profiles, selection.profile_id, selection.profile_revision,
+					selection.content_revision) != Profiles.POLICY_STAIR_TURN) \
 			or _descriptor.certificate_flags != Profiles.CERT_REQUIRED:
 		return &"WORLD_ROUTE_PROFILE_STALE"
 	return &""
@@ -1867,6 +1975,7 @@ func _actor_admission_refusal(location: Vector2i, selection: Profiles.Selection)
 	if _endpoint.world != _domain._world or _endpoint.geometry_revision != _owner().revision() \
 			or _endpoint.point != point:
 		return &"WORLD_ROUTE_ENDPOINT_STALE"
+	if _stair_row(selection.profile_id): return _stair_occupancy_refusal(point, selection.worker)
 	for ordinal: int in _descriptor.box_count:
 		code = _profile_box_into(ordinal, _body)
 		if code == &"":
@@ -2097,6 +2206,32 @@ func _motion_refusal(worker: Vector2i, ref: Vector2i, segment: int, first: Vecto
 			code = _moving_box_refusal(worker, first, last)
 		if code != &"":
 			return code
+	return &""
+
+
+func stair_motion_refusal(worker: Vector2i, ref: Vector2i, origin: Vector3i,
+		selection: Profiles.Selection) -> StringName:
+	"""ADR1229: one tick of a source-proved crossing keeps its certificate and its whole motion's box unoccupied."""
+	if _reading:
+		return REFUSE_BUSY
+	_reading = true
+	var code: StringName = _certificate_refusal(ref, selection)
+	if code == &"" and (selection.worker != worker or not _stair_row(selection.profile_id)):
+		code = &"WORLD_ROUTE_MOTION_CONTEXT"
+	return _finish_read(_stair_occupancy_refusal(origin, worker) if code == &"" else code)
+
+
+func _stair_occupancy_refusal(origin: Vector3i, worker: Vector2i) -> StringName:
+	"""The motion's body and recovery boxes, placed at its start root, hold no other actor or live exclusion. A READY
+	stop of a stair row is proved by its Location; the motion itself by its edge certificate."""
+	for ordinal: int in _descriptor.box_count:
+		var code: StringName = _profile_box_into(ordinal, _body)
+		if code != &"": return code
+		if _body.role != Profiles.BODY_HELD_LOAD and _body.role != Profiles.TURN_RECOVERY: continue
+		code = _sweep_into(_body, origin, origin, _bounds)
+		if code == &"": code = _terrain.exclusions_refusal(_bounds)
+		if code == &"": code = _routes().occupancy_refusal(_bounds, worker)
+		if code != &"": return code
 	return &""
 
 

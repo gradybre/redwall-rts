@@ -1926,11 +1926,11 @@ func top_up_ration_reserve() -> void:
 func rations_owned_milli() -> int:
 	"""The rations the village owns, milli-U: those in store and those a live batch is packing (THE RATION RESERVE
 	counts both against its target, so a batch on the board does not draw a second batch's inputs early)."""
-	var packing: int = 0
+	var being_packed: int = 0
 	for j: int in Tables.MAX_JOBS:
 		if tables.j_live[j] == 1 and tables.j_kind[j] == Tables.KIND_BATCH and tables.j_recipe[j] == Recipes.R_RATION:
-			packing += Recipes.OUT_MILLI[Recipes.R_RATION]
-	return pantry.milli_of(Catalog.ITEM_RATION) + packing
+			being_packed += Recipes.OUT_MILLI[Recipes.R_RATION]
+	return pantry.milli_of(Catalog.ITEM_RATION) + being_packed
 
 
 func release_ration_reserve(on: bool) -> void:

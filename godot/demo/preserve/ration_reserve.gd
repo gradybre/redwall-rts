@@ -53,10 +53,10 @@ var _read: IntMath.IntResult = IntMath.IntResult.new()
 
 
 func configure(p_pantry: PantryScript, p_takes: TakesScript) -> void:
-	"""Hold food in `p_pantry` through a take of its own in `p_takes`."""
+	"""Hold food in `p_pantry` through a take of its own in `p_takes` (none: a fishery with no takes -- nothing held)."""
 	pantry = p_pantry
 	takes = p_takes
-	take = p_takes.new_take()
+	take = p_takes.new_take() if p_takes != null and p_pantry != null else 0
 
 
 func held_milli(category: int) -> int:

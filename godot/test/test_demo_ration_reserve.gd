@@ -63,6 +63,11 @@ func test_with_no_target_nothing_is_held() -> void:
 	assert_equal([bare.held_milli(Catalog.CAT_FLOUR), bare.wanted_milli(Catalog.CAT_FLOUR, 0)], [0, 0], "unconfigured")
 	assert_equal(bare.give(Catalog.CAT_FLOUR, 1000, 0), 0, "unconfigured gives nothing")
 	bare.top_up(0, 0)
+	var no_takes := ReserveScript.new()
+	no_takes.configure(PantryScript.new(StorageScript.new()), null)
+	no_takes.target_milli = 6000
+	no_takes.top_up(0, 0)
+	assert_equal([no_takes.take, no_takes.held_milli(Catalog.CAT_NUTS)], [0, 0], "a fishery with no takes: inert")
 	assert_equal(ReserveScript.DEMO_TARGET_MILLI, 6000, "the demo's PROVISIONAL target: two batches")
 
 

@@ -221,6 +221,15 @@ static func food_in_milli(recipe: int) -> int:
 	return total
 
 
+static func input_milli(recipe: int, category: int) -> int:
+	"""What a batch of `recipe` takes of `category`, milli-U (0: none) -- the rations' dried fish kept from raw eating
+	(decision 1740)."""
+	var total: int = 0
+	for k: int in IN_COUNT[recipe]:
+		total += IN_MILLI[IN_FIRST[recipe] + k] if IN_CATEGORY[IN_FIRST[recipe] + k] == category else 0
+	return total
+
+
 static func cap(words: String) -> String:
 	"""`words` with its first letter capitalised ("Dried fish")."""
 	return words if words.is_empty() else words[0].to_upper() + words.substr(1)

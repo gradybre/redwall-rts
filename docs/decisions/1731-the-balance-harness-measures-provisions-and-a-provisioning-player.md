@@ -222,3 +222,15 @@ relayed by the coordinator.
 
 The coordinator also assigned the game-side water fix noted in the report to `feat/demo-balance-tuning`:
 `order_batch` must **reserve** the butt's water, not only check it.
+
+## Brendan's rulings (2026-10-08) on the follow-up's questions F1–F4
+
+The questions are in `docs/balance/2026-10-07-year-matrix-rerun.md`, "Follow-up: after the tuning", and decision 1738.
+Brendan's rulings were relayed by the coordinator.
+
+| # | Ruling | Who builds it |
+|---|---|---|
+| F1 | **Wait.** No more beds or greens now; leave hunger until it has a cost (E8). | – |
+| F2 | Not separately ruled: it **waits with F1**. | – |
+| F3 | **(a)**: Dry fish may take fish the kitchen has planned beyond the next meal, never the next meal's fish. | `feat/demo-rack-fish`, decision 1739 |
+| F4 | **Waits on FEAST** (#239). | the FEAST lane |

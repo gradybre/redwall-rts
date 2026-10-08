@@ -34,6 +34,11 @@ const FisheryWork := preload("res://demo/work/fishery_work.gd")
 const TaskRecord := preload("res://demo/work/work_task.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 const FieldGuideScript := preload("res://demo/guide/field_guide.gd")
+const FarmingScript := preload("res://scripts/core/farming.gd")
+const RationReserveScript := preload("res://demo/preserve/ration_reserve.gd")
+const DemoFisheryScript := preload("res://demo/fishery/demo_fishery.gd")
+const WaterPanelScript := preload("res://demo/waterplay/water_panel.gd")
+const CardScript := preload("res://demo/ui/action_card.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
 
 const DT: float = 0.1
@@ -386,3 +391,463 @@ func test_rations_are_worked_at_the_table_and_fruit_at_the_rack() -> void:
 	f.tables.j_recipe[j] = Recipes.R_DRY_FRUIT
 	f.tables.j_kind[j] = Tables.KIND_TAKE_DOWN
 	assert_equal(f.place_words(j), "the rack", "a fruit batch's place")
+
+
+## The kitchen's side of the rack's fish (decision 1739), as Callables over one take of its own: what it holds, and
+## giving that back -- each call counted.
+class KitchenFish extends RefCounted:
+	var takes: TakesScript = null
+	var pantry: PantryScript = null
+	var take: int = 0
+	var asked: Array[int] = []
+	## The category it holds: fish, or the mill's grain (decision 1741).
+	var crop: int = Catalog.CAT_FISH
+
+	func held() -> int:
+		"""The food of its category its take holds in store."""
+		return takes.live_milli(pantry, take, TakesScript.AT_STORE, crop)
+
+	func give(milli: int) -> int:
+		"""Give back up to `milli`, counted."""
+		asked.append(milli)
+		return takes.release_milli(pantry, take, milli, 0, crop)
+
+
+func _kitchen_fish(rig: Rig, milli: int) -> KitchenFish:
+	"""A kitchen holding `milli` of fish for meals beyond its next one, bound to the rig's fishery."""
+	var k := KitchenFish.new()
+	k.takes = rig.takes
+	k.pantry = rig.pantry
+	k.take = rig.takes.new_take()
+	assert_true(rig.takes.reserve_into(rig.pantry, k.take, Catalog.CAT_FISH, milli, 0, _read), "the kitchen holds fish")
+	rig.fishery.bind_spare_fish(k.held, k.give)
+	return k
+
+
+func test_dry_fish_takes_the_kitchen_s_fish_beyond_its_next_meal() -> void:
+	"""Decision 1739 (F3 (a)): 1 U of fish free and 3 U held by the kitchen beyond its next meal is a batch (4 U):
+	the refusal counts both, the order asks the kitchen for exactly the 3 U it lacks, and the batch sets its 4 U aside;
+	the card shows what may be taken."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	rig.pantry.add_into(Catalog.FIRST_CATCH, 4000, 0, _read)
+	var kitchen := _kitchen_fish(rig, 3000)
+	var input: int = Recipes.IN_FIRST[Recipes.R_DRY_FISH]
+	assert_equal(f.input_available_milli(input), Rules.DRY_IN_MILLI, "1 U free + 3 U beyond the next meal")
+	assert_equal(f.batch_refusal(Recipes.R_DRY_FISH), "", "a batch may be ordered")
+	assert_equal(f.order_batch(Recipes.R_DRY_FISH, PackedInt32Array()), "", "ordered")
+	assert_equal(kitchen.asked, [3000] as Array[int], "the kitchen asked for exactly what was lacking")
+	var j: int = f.tables.job_count() - 1
+	assert_equal(rig.takes.live_milli(rig.pantry, f.tables.j_take[j]), Rules.DRY_IN_MILLI, "the batch holds its 4 U")
+	assert_equal(kitchen.held(), 0, "the kitchen gave its 3 U")
+
+
+func test_dry_fish_leaves_the_kitchen_alone_when_free_fish_will_do_or_too_little_is_spare() -> void:
+	"""Free fish enough: the kitchen is not asked. Free and spare one milli-U short: refused NO_FISH, nothing asked.
+	Unbound: only free fish counts."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	var input: int = Recipes.IN_FIRST[Recipes.R_DRY_FISH]
+	rig.pantry.add_into(Catalog.FIRST_CATCH, 5000, 0, _read)
+	var kitchen := _kitchen_fish(rig, 1000)
+	assert_equal(f.order_batch(Recipes.R_DRY_FISH, PackedInt32Array()), "", "4 U free: ordered")
+	assert_true(kitchen.asked.is_empty(), "the kitchen not asked")
+	var short := _rig()
+	short.pantry.add_into(Catalog.FIRST_CATCH, Rules.DRY_IN_MILLI - 1, 0, _read)
+	var little := _kitchen_fish(short, 1000)
+	little.takes.release_milli(short.pantry, little.take, 1, 0, Catalog.CAT_FISH)
+	assert_equal(short.fishery.input_available_milli(input), Rules.DRY_IN_MILLI - 1, "one milli-U short in all")
+	assert_true(not short.fishery.batch_refusal(Recipes.R_DRY_FISH).is_empty() and short.fishery.refused_code == "NO_FISH",
+		"refused for fish")
+	assert_true(little.asked.is_empty(), "nothing asked of the kitchen")
+	var bare := _rig()
+	bare.pantry.add_into(Catalog.FIRST_CATCH, 3000, 0, _read)
+	assert_equal(bare.fishery.input_available_milli(input), 3000, "unbound: the free fish only")
+	assert_equal(bare.fishery.input_available_milli(Recipes.IN_FIRST[Recipes.R_DRY_FRUIT]), 0, "fruit: no kitchen fish")
+	var fruit := _rig()
+	var spare := KitchenFish.new()
+	spare.takes = fruit.takes
+	spare.pantry = fruit.pantry
+	spare.take = fruit.takes.new_take()
+	fruit.fishery.bind_spare_fish(spare.held, spare.give)
+	fruit.fishery._take_spare_fish(Recipes.R_DRY_FRUIT)
+	assert_true(spare.asked.is_empty(), "a fruit batch short of fruit never asks the kitchen for fish")
+
+
+
+## A kitchen that says it holds fish beyond its next meal but gives none back (the review's M4).
+class StingyFish extends RefCounted:
+	func held() -> int:
+		"""Claims 3 U."""
+		return 3000
+
+	func give(_milli: int) -> int:
+		"""Gives nothing."""
+		return 0
+
+
+func test_a_kitchen_that_gives_no_fish_back_refuses_the_batch() -> void:
+	"""The count said there was fish, but the kitchen gave none back: the order is refused NO_FISH and opens nothing --
+	never a short batch (ARCH-AUTH-003; the review of f86d79c2)."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	rig.pantry.add_into(Catalog.FIRST_CATCH, 1000, 0, _read)
+	var stingy := StingyFish.new()
+	f.bind_spare_fish(stingy.held, stingy.give)
+	assert_equal(f.batch_refusal(Recipes.R_DRY_FISH), "", "the count passes")
+	assert_false(f.order_batch(Recipes.R_DRY_FISH, PackedInt32Array()).is_empty(), "the order refused")
+	assert_equal(f.refused_code, "NO_FISH", "for fish")
+	assert_equal(f.tables.job_count(), 0, "nothing opened")
+
+
+func test_only_a_fish_input_counts_the_kitchen_s_fish() -> void:
+	"""With the kitchen holding fish beyond its next meal, the dry fruit's fruit is still only the free fruit."""
+	var rig := _rig()
+	rig.pantry.add_into(Catalog.FIRST_CATCH, 3000, 0, _read)
+	rig.pantry.add_into(APPLE, 1000, 0, _read)
+	var kitchen := _kitchen_fish(rig, 3000)
+	assert_equal(rig.fishery.input_available_milli(Recipes.IN_FIRST[Recipes.R_DRY_FRUIT]), 1000, "fruit: the free fruit only")
+	assert_equal(rig.fishery.input_available_milli(Recipes.IN_FIRST[Recipes.R_DRY_FISH]), kitchen.held(),
+		"fish: the kitchen's 3 U too")
+
+
+# --- grain for the mill (decision 1741) --------------------------------------------------------------------------
+
+const WHEAT: int = 13
+
+
+func _kitchen_grain(rig: Rig, milli: int) -> KitchenFish:
+	"""A kitchen holding `milli` of grain for meals beyond its next one, bound to the rig's mill."""
+	var k := KitchenFish.new()
+	k.takes = rig.takes
+	k.pantry = rig.pantry
+	k.crop = FarmingScript.CROP_GRAIN
+	k.take = rig.takes.new_take()
+	assert_true(rig.takes.reserve_into(rig.pantry, k.take, k.crop, milli, 0, _read), "the kitchen holds grain")
+	rig.fishery.bind_spare_grain(k.held, k.give)
+	return k
+
+
+func test_the_mill_takes_the_kitchen_s_grain_beyond_its_next_meal() -> void:
+	"""Brendan's F6 (decision 1741): 1 U of grain free and 2 U held by the kitchen beyond its next meal is a mill batch
+	(3 U): the refusal counts both, the order asks the kitchen for exactly the 2 U it lacks, the batch sets its 3 U
+	aside. Free grain enough asks nothing; unbound, only the free grain counts."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	rig.pantry.add_into(WHEAT, 3000, 0, _read)
+	var kitchen := _kitchen_grain(rig, 2000)
+	assert_equal(f.grain_available_milli(), Rules.MILL_IN_MILLI, "1 U free + 2 U beyond the next meal")
+	assert_equal(f.mill_refusal(), "", "a batch may be ordered")
+	assert_equal(f.order_mill(PackedInt32Array()), "", "ordered")
+	assert_equal(kitchen.asked, [2000] as Array[int], "the kitchen asked for exactly what was lacking")
+	var j: int = f.tables.job_count() - 1
+	assert_equal(rig.takes.live_milli(rig.pantry, f.tables.j_take[j]), Rules.MILL_IN_MILLI, "the batch holds its 3 U")
+	var plenty := _rig()
+	plenty.pantry.add_into(WHEAT, 4000, 0, _read)
+	var idle := _kitchen_grain(plenty, 1000)
+	assert_equal(plenty.fishery.order_mill(PackedInt32Array()), "", "3 U free: ordered")
+	assert_true(idle.asked.is_empty(), "the kitchen not asked")
+	var bare := _rig()
+	bare.pantry.add_into(WHEAT, 2000, 0, _read)
+	assert_equal(bare.fishery.grain_available_milli(), 2000, "unbound: the free grain only")
+	assert_false(bare.fishery.mill_refusal().find("the kitchen holds") >= 0, "unbound: the words name no kitchen")
+
+
+func test_a_kitchen_that_gives_no_grain_back_refuses_the_mill() -> void:
+	"""The count said there was grain, but the kitchen gave none back: refused NO_GRAIN, nothing opened; short in all,
+	refused NO_GRAIN with the kitchen's grain named and nothing asked."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	rig.pantry.add_into(WHEAT, 1000, 0, _read)
+	var stingy := StingyFish.new()
+	f.bind_spare_grain(stingy.held, stingy.give)
+	assert_equal(f.mill_refusal(), "", "the count passes")
+	assert_false(f.order_mill(PackedInt32Array()).is_empty(), "the order refused")
+	assert_equal(f.refused_code, "NO_GRAIN", "for grain")
+	assert_equal(f.tables.job_count(), 0, "nothing opened")
+	var short := _rig()
+	short.pantry.add_into(WHEAT, Rules.MILL_IN_MILLI - 1, 0, _read)
+	var little := _kitchen_grain(short, 1000)
+	assert_equal(short.fishery.grain_available_milli(), Rules.MILL_IN_MILLI - 1, "free and spare: one milli-U short")
+	assert_true(short.fishery.mill_refusal().contains("or the kitchen holds beyond its next meal"), "the kitchen named")
+	assert_equal(short.fishery.refused_code, "NO_GRAIN", "one milli-U short in all")
+	assert_true(little.asked.is_empty(), "nothing asked of the kitchen")
+
+
+# --- the ration reserve (decision 1742) --------------------------------------------------------------------------
+
+func _reserve_rig(stock: Array) -> Rig:
+	"""A rig whose fishery keeps the demo's ration reserve (6 U), stocked with the [item, milli] pairs, water in the
+	butt, and the reserve topped up."""
+	var rig := _rig()
+	for pair: Array in stock:
+		assert_true(rig.pantry.add_into(int(pair[0]), int(pair[1]), 0, _read), "stocked")
+	_services.stores.water_milli_u = 5000
+	rig.fishery.ration_reserve.target_milli = RationReserveScript.DEMO_TARGET_MILLI
+	rig.fishery.top_up_ration_reserve()
+	return rig
+
+
+func test_rations_are_packed_from_what_the_reserve_holds() -> void:
+	"""Brendan's F7 (b) (decision 1742): with every input held by the ration reserve and none free, the rations' refusal
+	counts the held food, the order takes it from the reserve, and the batch packing counts toward the target (so the
+	reserve does not draw a second batch's food while the first is on the board -- here none is left to draw)."""
+	var rig := _reserve_rig([[Catalog.ITEM_FLOUR, 2000], [Catalog.ITEM_DRIED_FISH, 1000], [Catalog.ITEM_NUTS, 1000]])
+	var f: FisheryScript = rig.fishery
+	for category: int in [Catalog.CAT_FLOUR, Catalog.CAT_DRIED_FISH, Catalog.CAT_NUTS]:
+		assert_equal(rig.takes.free_milli_of_crop(rig.pantry, category), 0, "category %d all held" % category)
+	assert_equal(f.batch_refusal(Recipes.R_RATION), "", "the held food counts for rations")
+	assert_equal(f.order_batch(Recipes.R_RATION, PackedInt32Array()), "", "ordered")
+	var j: int = f.tables.job_count() - 1
+	assert_equal(rig.takes.live_milli(rig.pantry, f.tables.j_take[j]), Recipes.food_in_milli(Recipes.R_RATION),
+		"the batch holds its 4 U")
+	assert_equal(f.ration_reserve.held_milli(Catalog.CAT_FLOUR), 0, "the reserve gave it")
+	assert_equal(f.rations_owned_milli(), Recipes.OUT_MILLI[Recipes.R_RATION], "the batch's 3 U count as owned")
+
+
+func test_only_the_rations_count_the_reserve_s_food() -> void:
+	"""The reserve's nuts are the rations': the nut cheese counts only the free nuts."""
+	var rig := _reserve_rig([[Catalog.ITEM_NUTS, 3000]])
+	var f: FisheryScript = rig.fishery
+	var cheese_nuts: int = -1
+	for k: int in Recipes.IN_COUNT[Recipes.R_CHEESE]:
+		if Recipes.IN_CATEGORY[Recipes.IN_FIRST[Recipes.R_CHEESE] + k] == Catalog.CAT_NUTS:
+			cheese_nuts = Recipes.IN_FIRST[Recipes.R_CHEESE] + k
+	var ration_nuts: int = -1
+	for k: int in Recipes.IN_COUNT[Recipes.R_RATION]:
+		if Recipes.IN_CATEGORY[Recipes.IN_FIRST[Recipes.R_RATION] + k] == Catalog.CAT_NUTS:
+			ration_nuts = Recipes.IN_FIRST[Recipes.R_RATION] + k
+	assert_equal(f.input_available_milli(cheese_nuts), 2000, "the cheese: the 2 U free")
+	assert_equal(f.input_available_milli(ration_nuts), 3000, "the rations: free and held")
+
+
+func test_the_mill_grinds_the_reserve_s_grain_and_the_reserve_holds_the_flour() -> void:
+	"""With no flour, the reserve holds a mill batch's grain (3 U), so none is free; the mill counts it and takes it
+	from the reserve first; the flour stored is held at once (before the kitchen's next hour could plan it)."""
+	var rig := _reserve_rig([[WHEAT, 3000]])
+	var f: FisheryScript = rig.fishery
+	assert_equal(f.ration_reserve.held_milli(FarmingScript.CROP_GRAIN), Rules.MILL_IN_MILLI, "a mill batch's grain")
+	assert_equal(f.mill_refusal(), "", "the mill counts it")
+	assert_equal(f.order_mill(PackedInt32Array()), "", "ordered")
+	assert_equal(f.ration_reserve.held_milli(FarmingScript.CROP_GRAIN), 0, "the reserve gave it")
+	assert_equal(rig.takes.live_milli(rig.pantry, f.tables.j_take[f.tables.job_count() - 1]), Rules.MILL_IN_MILLI,
+		"the mill batch holds it")
+	assert_true(rig.pantry.add_into(Catalog.ITEM_FLOUR, 3000, 0, _read), "the flour, stored")
+	f._book_stored(Catalog.ITEM_FLOUR, 3000)
+	assert_equal(f.ration_reserve.held_milli(Catalog.CAT_FLOUR), 2000, "held as it is stored")
+
+
+func test_the_emergency_action_releases_the_reserve() -> void:
+	"""§5.10's "release ordinary production food reserves" (REQ-SET-146, never taken by itself): everything held goes
+	free; restored, the reserve gathers again."""
+	var rig := _reserve_rig([[Catalog.ITEM_DRIED_FISH, 1000]])
+	var f: FisheryScript = rig.fishery
+	assert_equal(f.ration_reserve.held_milli(Catalog.CAT_DRIED_FISH), 1000, "held")
+	var revision: int = f.revision
+	f.release_ration_reserve(true)
+	assert_equal(rig.takes.free_milli_of_crop(rig.pantry, Catalog.CAT_DRIED_FISH), 1000, "released: free")
+	assert_true(f.revision > revision, "the panels learn")
+	f.release_ration_reserve(false)
+	assert_equal(f.ration_reserve.held_milli(Catalog.CAT_DRIED_FISH), 1000, "restored: held again")
+
+
+func test_the_reserve_gathers_each_hour_and_when_dried_fish_is_stored() -> void:
+	"""Food that comes in by other ways (nuts from a trip) is held at the fishery's next game hour; dried fish off the
+	rack is held as it is stored."""
+	var rig := _reserve_rig([])
+	var f: FisheryScript = rig.fishery
+	assert_true(rig.pantry.add_into(Catalog.ITEM_NUTS, 2000, 0, _read), "nuts brought in")
+	f._follow_hours()
+	assert_equal(f.ration_reserve.held_milli(Catalog.CAT_NUTS), 0, "the same hour: not yet")
+	rig.calendar.tick += SimClock.TICKS_PER_HOUR
+	f._follow_hours()
+	assert_equal(f.ration_reserve.held_milli(Catalog.CAT_NUTS), 1000, "the next hour: held")
+	assert_true(rig.pantry.add_into(Catalog.ITEM_DRIED_FISH, 3000, 0, _read), "dried fish off the rack")
+	f._book_stored(Catalog.ITEM_DRIED_FISH, 3000)
+	assert_equal(f.ration_reserve.held_milli(Catalog.CAT_DRIED_FISH), 1000, "held as it is stored")
+
+
+func test_the_reserve_counts_the_rations_in_store_and_only_ration_batches() -> void:
+	"""Rations in store at the target: nothing held. Another recipe's batch on the board (a Dry fish batch) is not
+	rations: the reserve still holds (the review of c9f67f16)."""
+	var full := _reserve_rig([[Catalog.ITEM_RATION, 6000], [Catalog.ITEM_DRIED_FISH, 3000]])
+	assert_equal(full.fishery.rations_owned_milli(), 6000, "6 U in store")
+	assert_equal(full.fishery.ration_reserve.held_milli(Catalog.CAT_DRIED_FISH), 0, "at the target: nothing held")
+	var rig := _reserve_rig([[Catalog.ITEM_DRIED_FISH, 1000], [Catalog.FIRST_CATCH, 4000]])
+	assert_equal(rig.fishery.order_batch(Recipes.R_DRY_FISH, PackedInt32Array()), "", "a Dry fish batch on the board")
+	var j: int = rig.fishery.tables.open_job(Tables.KIND_BATCH, FisheryScript.PROG_MILL, -1)
+	rig.fishery.tables.j_recipe[j] = Recipes.R_CORDIAL
+	assert_equal(rig.fishery.rations_owned_milli(), 0, "a cordial batch (a table batch, as rations are) neither")
+	rig.fishery.top_up_ration_reserve()
+	assert_equal(rig.fishery.ration_reserve.held_milli(Catalog.CAT_DRIED_FISH), 1000, "still held")
+
+
+func test_the_reserve_replaces_the_keep_and_its_release_frees_both() -> void:
+	"""1740's keep yields to the reserve (decision 1742): with a target, the keep keeps nothing -- the reserve holds the
+	dried fish; released (§5.10), nothing is withheld at all; with no target the keep is as 1740 built it."""
+	var rig := _reserve_rig([[Catalog.ITEM_DRIED_FISH, 3000], [Catalog.ITEM_NUTS, 2000], [Catalog.ITEM_FLOUR, 4000]])
+	var f: FisheryScript = rig.fishery
+	assert_equal(f.ration_reserve.held_milli(Catalog.CAT_DRIED_FISH), 1000, "the reserve holds a batch's dried fish")
+	assert_equal(f.ration_keep_milli(Catalog.CAT_DRIED_FISH), 0, "the keep keeps none more")
+	f.release_ration_reserve(true)
+	assert_equal(f.ration_keep_milli(Catalog.CAT_DRIED_FISH), 0, "released: the keep too")
+	assert_equal(rig.takes.free_milli_of_crop(rig.pantry, Catalog.CAT_DRIED_FISH), 3000, "all free")
+	f.release_ration_reserve(false)
+	f.ration_reserve.target_milli = 0
+	f.top_up_ration_reserve()
+	assert_equal(f.ration_keep_milli(Catalog.CAT_DRIED_FISH), 1000, "no target: 1740's keep")
+	f.release_ration_reserve(true)
+	assert_equal(f.ration_keep_milli(Catalog.CAT_DRIED_FISH), 0, "no target, released: the keep let go too")
+
+
+func test_the_reserve_lets_its_grain_go_while_its_mill_batch_grinds() -> void:
+	"""The review's repro: 6 U of grain, a mill batch ordered; at the next top-up the reserve does not hold another 3 U
+	for a second batch."""
+	var rig := _reserve_rig([[WHEAT, 6000]])
+	var f: FisheryScript = rig.fishery
+	assert_equal(f.order_mill(PackedInt32Array()), "", "ordered")
+	f.top_up_ration_reserve()
+	assert_equal(f.ration_reserve.held_milli(FarmingScript.CROP_GRAIN), 0, "no grain held while it grinds")
+
+
+# --- the reserve's controls (decision 1742; Brendan's R5) ------------------------------------------------------
+
+func _reserve_node(rig: Rig) -> DemoFisheryScript:
+	"""The Water panel's fishery node over the rig's fishery (no command, no panel: its words and verbs alone)."""
+	var node: DemoFisheryScript = _keep(DemoFisheryScript.new()) as DemoFisheryScript
+	node.fishery = rig.fishery
+	return node
+
+
+func test_the_reserve_stepper_steps_a_batch_within_its_range() -> void:
+	"""UI-SET-099's stepper: a batch (3 U) a press, never below none nor above ten batches (R6, R7); the line says so."""
+	var rig := _rig()
+	assert_true(rig.pantry.add_into(Catalog.ITEM_DRIED_FISH, 2000, 0, _read), "dried fish in store")
+	var node := _reserve_node(rig)
+	assert_equal(node.reserve_text(), DemoFisheryScript.RESERVE_NONE, "no reserve: the line says how to keep one")
+	var revision: int = node.fishery.revision
+	assert_equal(node.step_reserve(1), "Ration reserve: keep 3.0 U of rations", "a batch up")
+	assert_equal(node.fishery.ration_reserve.target_milli, 3000, "3 U")
+	assert_true(node.fishery.revision > revision, "the panels learn")
+	assert_equal(node.fishery.ration_reserve.held_milli(Catalog.CAT_DRIED_FISH), 1000, "held at once, not next hour")
+	assert_true(node.step_reserve(-1).begins_with("Ration reserve: none"), "back to none")
+	node.step_reserve(-1)
+	assert_equal(node.fishery.ration_reserve.target_milli, 0, "never below none")
+	assert_equal(node.step_reserve(100), "Ration reserve: keep 30.0 U of rations", "up to the cap")
+	node.step_reserve(1)
+	assert_equal(node.fishery.ration_reserve.target_milli, RationReserveScript.TARGET_CAP_MILLI, "never above it")
+	node.step_reserve(1 << 61)
+	assert_equal(node.fishery.ration_reserve.target_milli, RationReserveScript.TARGET_CAP_MILLI, "no overflow")
+	node.step_reserve(-(1 << 61))
+	assert_equal(node.fishery.ration_reserve.target_milli, 0, "nor below")
+
+
+func test_release_shows_what_it_frees_then_frees_it_and_keeps_them_again() -> void:
+	"""§5.10's emergency action: the line says what is held, the card what it frees (before the press); the press frees
+	it and says so; the line and the card then offer to keep them again, and that press holds the food again."""
+	var rig := _reserve_rig([[Catalog.ITEM_DRIED_FISH, 1000], [Catalog.ITEM_NUTS, 1000], [Catalog.ITEM_FLOUR, 2000]])
+	var node := _reserve_node(rig)
+	var held: String = "1.0 U dried fish, 1.0 U nuts, 2.0 U flour"
+	assert_equal(node.reserve_text(), "Ration reserve: keep 6.0 U (0 U owned)\nHolding %s" % held, "the line")
+	var card: CardScript = node.release_card()
+	assert_true(card.is_ok() and card.result.begins_with("Frees %s at once" % held), card.result)
+	assert_equal(node.toggle_release(), "Food reserves released: %s free for the kitchen and the hungry" % held,
+		"the answer")
+	assert_true(node.fishery.ration_reserve.released, "released")
+	assert_equal(rig.takes.free_milli_of_crop(rig.pantry, Catalog.CAT_FLOUR), 2000, "the flour free")
+	assert_true(node.reserve_text().ends_with("\nReleased: nothing held until kept again"),
+		node.reserve_text())
+	card = node.release_card()
+	assert_true(card.is_ok() and card.verb == DemoFisheryScript.KEEP_AGAIN_CAPTION, card.verb)
+	assert_equal(card.result, DemoFisheryScript.KEEP_AGAIN_RESERVE, "keeping a reserve again")
+	assert_equal(node.toggle_release(), "Food reserves kept again: holding %s" % held, "kept again")
+	assert_false(node.fishery.ration_reserve.released, "no longer released")
+
+
+func test_release_with_nothing_held_is_still_offered_and_lasts() -> void:
+	"""The review of 72817b34 (MEDIUM): with a reserve kept but nothing held now, Release is still offered -- a release
+	lasts, so food arriving later is not held back -- and says so; its answer says nothing was held (M27). With no
+	reserve and nothing kept from raw eating, it is refused."""
+	var node := _reserve_node(_reserve_rig([]))
+	var card: CardScript = node.release_card()
+	assert_true(card.is_ok(), "offered")
+	assert_equal(card.result, DemoFisheryScript.RELEASE_NOTHING_NOW, "nothing now, nothing later")
+	assert_equal(node.toggle_release(), DemoFisheryScript.RELEASED_NOTHING, "the answer")
+	assert_true(node.fishery.ration_reserve.released, "released")
+	var none := _reserve_node(_rig())
+	assert_false(none.release_card().is_ok(), "no reserve, nothing kept: refused")
+	assert_equal(none.release_card().code, "NO_RESERVE", "why")
+
+
+func test_release_frees_1740_s_kept_dried_fish_with_no_reserve() -> void:
+	"""The review of 72817b34 (MEDIUM): with no reserve target, 1740's keep still keeps a batch's dried fish from raw
+	eating; the line says so, Release is offered and frees it."""
+	var rig := _rig()
+	for pair: Array in [[Catalog.ITEM_DRIED_FISH, 3000], [Catalog.ITEM_NUTS, 2000], [Catalog.ITEM_FLOUR, 4000]]:
+		assert_true(rig.pantry.add_into(int(pair[0]), int(pair[1]), 0, _read), "stocked")
+	var node := _reserve_node(rig)
+	assert_equal(node.fishery.ration_keep_milli(Catalog.CAT_DRIED_FISH), 1000, "1740's keep")
+	assert_true(node.reserve_text().ends_with("\nHolding 1.0 U dried fish kept from raw eating"), node.reserve_text())
+	var card: CardScript = node.release_card()
+	assert_true(card.is_ok() and card.result.begins_with("Frees 1.0 U dried fish kept from raw eating"), card.result)
+	node.toggle_release()
+	assert_equal(node.fishery.ration_keep_milli(Catalog.CAT_DRIED_FISH), 0, "freed")
+	assert_equal(node.release_card().result, DemoFisheryScript.KEEP_AGAIN_KEEP, "no reserve: keeping the keep again")
+
+
+func test_after_a_release_the_line_card_and_answers_agree() -> void:
+	"""The review of 72817b34 (MEDIUM): Release, then Keep fewer to none -- the line still says released, the answer says
+	nothing is held until they are kept again, the card keeps the keep again; Keep more then keeps a reserve again. The
+	line counts the rations owned (M20)."""
+	var rig := _reserve_rig([[Catalog.ITEM_RATION, 3000]])
+	var node := _reserve_node(rig)
+	assert_true(node.reserve_text().begins_with("Ration reserve: keep 6.0 U (3.0 U owned)"), node.reserve_text())
+	node.toggle_release()
+	node.step_reserve(-1)
+	assert_equal(node.step_reserve(-1),
+		"Ration reserve: none — nothing is held back for rations (released: nothing is held until you keep them again)",
+		"the answer")
+	assert_true(node.reserve_text().begins_with(DemoFisheryScript.RESERVE_NONE)
+		and node.reserve_text().contains("Released: nothing held"), node.reserve_text())
+	assert_equal(node.release_card().result, DemoFisheryScript.KEEP_AGAIN_KEEP, "no reserve: the keep")
+	assert_true(node.step_reserve(1).ends_with("(released: nothing is held until you keep them again)"), "still released")
+	assert_equal(node.release_card().result, DemoFisheryScript.KEEP_AGAIN_RESERVE, "a reserve again")
+
+
+func test_the_reserve_row_is_dressed_and_routes_only_its_own() -> void:
+	"""The row: Keep fewer off at none, Keep more off at the cap, Release's caption following the state, the stepper's
+	tooltips (M24); its verbs route through the panel's actions, and every other action goes on to its own verb (M28)."""
+	var rig := _reserve_rig([])
+	var node := _reserve_node(rig)
+	var panel: WaterPanelScript = _keep(WaterPanelScript.new()) as WaterPanelScript
+	panel.build()
+	node._dress_reserve(panel)
+	assert_false(panel.button(WaterPanelScript.ACTION_RESERVE_RELEASE).disabled, "Release offered")
+	assert_true(panel.button(WaterPanelScript.ACTION_RESERVE_RELEASE).tooltip_text.contains("Nothing is held now"),
+		panel.button(WaterPanelScript.ACTION_RESERVE_RELEASE).tooltip_text)
+	for key: StringName in [WaterPanelScript.ACTION_RESERVE_FEWER, WaterPanelScript.ACTION_RESERVE_MORE]:
+		assert_equal(panel.button(key).tooltip_text, WaterPanelScript.BUTTON_TIPS[key], "%s's tooltip" % key)
+	assert_equal([panel.button(WaterPanelScript.ACTION_RESERVE_FEWER).disabled,
+		panel.button(WaterPanelScript.ACTION_RESERVE_MORE).disabled], [false, false], "6 U: both ways open")
+	node.on_action(WaterPanelScript.ACTION_RESERVE_FEWER)
+	node.on_action(WaterPanelScript.ACTION_RESERVE_FEWER)
+	node._dress_reserve(panel)
+	assert_true(panel.button(WaterPanelScript.ACTION_RESERVE_FEWER).disabled, "none: Keep fewer off")
+	node.on_action(WaterPanelScript.ACTION_RESERVE_MORE)
+	assert_equal(node.fishery.ration_reserve.target_milli, 3000, "Keep more routes")
+	node.step_reserve(100)
+	node._dress_reserve(panel)
+	assert_true(panel.button(WaterPanelScript.ACTION_RESERVE_MORE).disabled, "the cap: Keep more off")
+	node.on_action(WaterPanelScript.ACTION_RESERVE_RELEASE)
+	assert_true(node.fishery.ration_reserve.released, "Release routes")
+	node._dress_reserve(panel)
+	assert_equal(panel.button(WaterPanelScript.ACTION_RESERVE_RELEASE).text, DemoFisheryScript.KEEP_AGAIN_CAPTION,
+		"released: the caption keeps them again")
+	node.on_action(WaterPanelScript.ACTION_RESERVE_RELEASE)
+	node._dress_reserve(panel)
+	assert_equal(panel.button(WaterPanelScript.ACTION_RESERVE_RELEASE).text, DemoFisheryScript.RELEASE_CAPTION, "kept")
+	assert_false(node._on_reserve(WaterPanelScript.ACTION_MILL), "not the reserve's")
+	var mill := _reserve_node(_rig())
+	assert_true(mill.fishery.pantry.add_into(WHEAT, 3000, 0, _read), "grain")
+	mill.on_action(WaterPanelScript.ACTION_MILL)
+	assert_equal(mill.fishery.tables.job_count(), 1, "Mill grain still reaches the mill")

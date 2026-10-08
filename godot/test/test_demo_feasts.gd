@@ -594,6 +594,23 @@ func test_a_feast_the_kitchen_is_cooking_cannot_be_cancelled() -> void:
 	assert_equal(v.feast.state, FeastScript.ST_PREPARING, "still preparing")
 
 
+func test_a_feast_whose_batch_is_under_way_early_cannot_be_cancelled() -> void:
+	"""Cook now can start the feast's supper before 15:00: with a batch of it at the cauldron, or one cooked, it is no
+	longer cancelled (its batches would not come back, and the table drink would take the supper for an ordinary one --
+	the review of ae137794)."""
+	var v: Village = _village()
+	_stock_theme(v, Rules.HEARTH)
+	assert_equal(v.feast.hold(Rules.HEARTH, DAY, 1, true), "", "held")
+	var key: int = Rules.feast_key(DAY)
+	assert_equal(v.feast.cancel_refusal(), "", "09:00, nothing cooking: it may be cancelled")
+	v.kitchen._wip_key = key
+	assert_equal(v.feast.cancel(), "the kitchen is cooking it", "a batch at the cauldron: no longer")
+	v.kitchen._wip_key = KitchenScript.FREE
+	v.kitchen.cooked_keys.append(key)
+	assert_equal(v.feast.cancel_refusal(), "the kitchen is cooking it", "a batch cooked: no longer")
+	assert_equal(v.feast.state, FeastScript.ST_PREPARING, "still preparing")
+
+
 func test_the_other_drinks_are_poured_for_those_who_came() -> void:
 	"""Half the village at a Harvest feast: half its cider poured (floor), the rest given back with the take; a cider
 	short of ceil(E/4) is not held at all."""
@@ -753,6 +770,28 @@ func test_a_feast_supper_pours_no_table_cordial() -> void:
 	assert_true(v.kitchen.final_of(Rules.feast_key(DAY)) != null, "its supper published, so the drink looked at it")
 	assert_equal([drink.pours, drink.poured_milli], [0, 0], "no table cordial at the feast's supper")
 	assert_equal(v.pantry.milli_of(Catalog.ITEM_CORDIAL), 4000, "the cordial untouched")
+
+
+func test_a_cancelled_feast_s_supper_pours_the_table_cordial() -> void:
+	"""The note this lane left for 1733's owner, fixed: a feast called and then cancelled before its supper is an
+	ordinary supper again, so the table drink pours the cordial at it (ceil(diners/4) U), as at any supper."""
+	var v: Village = _village()
+	_stock_everyday(v)
+	_stock_theme(v, Rules.HEARTH)
+	_stock(v, Catalog.ITEM_CORDIAL, 4000)
+	var drink := TableDrinkScript.new()
+	drink.bind(v.kitchen)
+	assert_equal(v.feast.hold(Rules.HEARTH, DAY, 1, true), "", "held")
+	drink.update()
+	assert_equal(v.feast.cancel(), "", "cancelled before the supper")
+	var key: int = Rules.feast_key(DAY)
+	assert_true(_run(v, func() -> bool:
+		drink.update()
+		return v.kitchen.final_of(key) != null, 30000), "the day's supper published")
+	drink.update()
+	var diners: int = v.kitchen.final_of(key).diners.size()
+	assert_true(diners > 0, "the supper was eaten")
+	assert_equal([drink.pours, drink.poured_milli], [1, TableDrinkScript.need_milli(diners)], "the table cordial poured")
 
 
 func test_a_roots_hotpot_is_left_out_of_the_reserves_as_a_greens_one_is() -> void:

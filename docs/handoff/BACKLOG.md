@@ -382,7 +382,9 @@ next" (Brendan, 2026-10-02; 0537), and the R-H rulings above.
   UI-SET-004, -005, -043, -050, -062, -066, -099 and the new closing section of `docs/ui_ux_controls.md`.
 - **Depends on:** batch 8 (#222), the review fixes (#221) and perf merged (they all change demo text files; the
   coordinator scheduled phase 2 after them). Bring `feat/demo-measures`'s three commits in first (STATUS §2.5; DEC-049
-  after DEC-048).
+  after DEC-048). **Brendan, 2026-10-08: it runs after the digging revamp lands**, as one pass over the demo, the tunnel
+  and burrow stores and the settlement UI. Until then new lanes may keep using the existing U helpers (RULINGS.md,
+  2026-10-08).
 - **Files:** about 75 demo files, plus `ui_manager.gd`, `hud.gd`, `ui_specimen.gd`, `test_ui_manager.gd`,
   `test_hud.gd`. **This touches nearly every demo panel's text**, so it conflicts with any demo lane that adds or
   edits player-facing amounts. Run it alone, or with lanes that add no amount text (SEQUENCE.md).

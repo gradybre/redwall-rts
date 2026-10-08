@@ -547,9 +547,13 @@ func hold(day: int, host: int, with_override: bool) -> String:
 
 
 func skip_refusal() -> String:
-	"""Why this season's regatta may not be skipped now ("" when it may): once its race has begun, it is held."""
+	"""Why this season's regatta may not be skipped now ("" when it may): once its race has begun, or a batch of its
+	feast's supper is at the cauldron or cooked (Cook now can start it before the race: its batches would not all come
+	back, and the table drink would take the supper for an ordinary one -- decision 1733's fix), it is held."""
 	if state == ST_CREWING or state == ST_RACING or state == ST_RACED:
 		return "the regatta is under way"
+	if state == ST_PLANNED and kitchen.meal_under_way(Rules.feast_key(plan_day)):
+		return "the kitchen is cooking its feast"
 	if state == ST_DONE or state == ST_SKIPPED:
 		return "this season's regatta is %s" % STATE_WORDS[state]
 	return ""

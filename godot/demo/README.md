@@ -2800,7 +2800,8 @@ Brendan's rulings of 2026-10-07 on the balance rerun's proposals (decision 1731;
 - **The cordial** (1733, P2 (a) + (c)).
   - **Shelf.** It keeps 240 h.
   - **Pouring.** `kitchen/table_drink.gd` pours ceil(diners/4) U of free cordial at every ordinary supper somebody ate,
-    reading the kitchen's published meal events. A feast pours its own.
+    reading the kitchen's published meal events. A feast pours its own. A feast cancelled (or a regatta skipped) before
+    its supper cooked is an ordinary supper again, and pours (`kitchen.meal_under_way`; 1733's fix of 2026-10-08).
 - **Ordering a drink** (mead, the cordial, ale, cider) **warns** when the stores already hold two feasts' worth, 6 U (1734,
   P3 (b)). The warning goes on the card and in the order's answer, and the order is never refused.
 - **The bean hotpot** takes beans and greens **or roots** (1735, P5 (a)), so the rotation's peas are eaten. Ready food
@@ -2810,6 +2811,19 @@ Brendan's rulings of 2026-10-07 on the balance rerun's proposals (decision 1731;
     over a day of portions.
   - **Where it shows.** On the ledger's food line ("Ready food: 2.5 days · raw 0.4 days") and in the cell's tooltip.
   - **How often.** It is worked out at most once a game hour.
+- **Fish for the rack** (1739, F3 (a) and F5 (b)). Dry fish may take fish the kitchen planned for meals beyond the next
+  one, in store or already fetched to the kitchen, store first (`kitchen.gd` FISH FOR THE RACK) -- never the next
+  meal's, an occasion's, a meal cooked or cooking, or fish in the cook's hand.
+- **Grain for the mill** (1741, F6). The mill may take grain planned for meals beyond the next under the same rule
+  (`kitchen.gd beyond_next_meal_milli` / `release_beyond_next_meal` by category; `fishery.gd grain_available_milli`).
+- **The ration reserve** (1742, F7 (b)). While the rations owned are below the target (the GDD's WorldPolicy
+  `ration_reserve_milli`; the demo sets a PROVISIONAL 6 U), `preserve/ration_reserve.gd` holds one batch's dried fish,
+  nuts and flour (or a mill batch's grain) back from the kitchen and raw eating. The Water panel's Preserves section
+  shows what it holds, steps its target (◀ Keep fewer / Keep more ▶, 3 U a press up to 30 U) and offers §5.10's
+  emergency release (Release food reserves, its card saying what it frees).
+- **The rations' dried fish** (1740, F5 (a)). A raw meal leaves the dried fish one batch of rations takes, 1 U
+  (`kitchen.gd` FOOD KEPT FROM RAW EATING, bound to `fishery.gd ration_keep_milli`), only while a batch could be made
+  but for it (`rations_wait_on_dried_fish`, a PROPOSAL). The kitchen may still cook it.
 - **A batch holds its water** (1737). `fishery.gd water_held_milli` is the water of batches ordered but not yet started,
   and a batch's refusal and card see the butt less that hold. Only the fishery's own orders see it: the butt
   (`tunnel_stores.gd`) keeps no reservations.

@@ -1930,20 +1930,18 @@ func _raw_candidate(lot: int) -> bool:
 
 
 func _reserve_raw(i: int) -> bool:
-	"""Reserve resident `i`'s raw emergency meal (REQ-SET-013): the raw-edible lot nobody reserved that spoils first,
-	enough for at most RAW_NP_CAP. False when there is none."""
-	var best: int = FREE
-	for lot: int in PantryScript.MAX_LOTS:
-		if not _raw_candidate(lot):
-			continue
-		if best == FREE or pantry.lot_spoil_hours(lot, _hour_seen) < pantry.lot_spoil_hours(best, _hour_seen):
-			best = lot
+	"""Reserve resident `i`'s raw emergency meal (REQ-SET-013): the raw-edible lot nobody reserved that spoils first
+	(`_raw_lot`: one the food kept from raw eating would cut short only when there is no other), enough for at most
+	RAW_NP_CAP and never what is kept. False when there is none."""
+	_raw_rooms_unknown()
+	var best: int = _raw_lot()
 	if best == FREE:
 		return false
 	var item: int = pantry.lot_item(best)
 	var np_per_u: int = Rules.raw_np_per_u(item)
 	_raw_take[i] = takes.new_take()
-	@warning_ignore("integer_division") var milli: int = takes.reserve_lot(pantry, _raw_take[i], best, Rules.RAW_NP_CAP * Rules.MILLI_PER_U / np_per_u)
+	var milli: int = takes.reserve_lot(pantry, _raw_take[i], best, mini(_raw_want(item),
+		_raw_room(Catalog.category_of(item))))
 	if milli <= 0:
 		takes.release(_raw_take[i])
 		_raw_take[i] = 0
@@ -1952,6 +1950,36 @@ func _reserve_raw(i: int) -> bool:
 	_raw_item[i] = item
 	_location[i] = pantry.lot_location(best)
 	return true
+
+
+func _raw_lot() -> int:
+	"""The lot a raw meal eats from (FREE: none): of the raw candidates with any room, the one that spoils first among
+	those the food kept from raw eating leaves a whole meal in (see FOOD KEPT FROM RAW EATING); only when there is none,
+	the one that spoils first among those it cuts short -- never a crumb of kept dried fish over a whole meal of nuts."""
+	var whole: int = FREE
+	var short: int = FREE
+	for lot: int in PantryScript.MAX_LOTS:
+		if not _raw_candidate(lot):
+			continue
+		var item: int = pantry.lot_item(lot)
+		var room: int = _raw_room(Catalog.category_of(item))
+		if room <= 0:
+			continue
+		if room >= mini(takes.free_milli(pantry, lot), _raw_want(item)):
+			whole = lot if _spoils_sooner(lot, whole) else whole
+		else:
+			short = lot if _spoils_sooner(lot, short) else short
+	return whole if whole != FREE else short
+
+
+func _spoils_sooner(lot: int, than: int) -> bool:
+	"""Whether `lot` spoils before lot `than` (always, when `than` is FREE)."""
+	return than == FREE or pantry.lot_spoil_hours(lot, _hour_seen) < pantry.lot_spoil_hours(than, _hour_seen)
+
+
+static func _raw_want(item: int) -> int:
+	"""The most of `item` one raw meal takes: RAW_NP_CAP at its raw NP, milli-U."""
+	@warning_ignore("integer_division") return Rules.RAW_NP_CAP * Rules.MILLI_PER_U / Rules.raw_np_per_u(item)
 
 
 # --- hand-outs ----------------------------------------------------------------------------------------
@@ -2391,6 +2419,12 @@ func wip_dish() -> int:
 	return _wip_dish if _wip_key != FREE else Rules.NO_DISH
 
 
+func meal_under_way(key: int) -> bool:
+	"""Whether meal `key` has a batch at the cauldron or cooked -- an occasion cleared now is still served as planned
+	(AN OCCASION: nothing cooked is undone); one cleared before is an ordinary meal again (table_drink.gd)."""
+	return key != FREE and (_wip_key == key or cooked_keys.has(key))
+
+
 func wip_progress() -> int:
 	"""The batch at the cauldron's work done, milli-WU."""
 	return _wip_mwu
@@ -2537,6 +2571,116 @@ func cookable_portions() -> int:
 	for dish: int in Rules.DISH_COUNT:
 		total += _estimated[dish] * Rules.PORTIONS_PER_BATCH[dish]
 	return total
+
+
+# --- the rack's fish and the mill's grain (decisions 1739, 1741) ----------------------------------------------
+
+## FISH FOR THE RACK (decision 1739; Brendan's ruling of 2026-10-08 on the balance rerun's F3 (a)): the smoking rack's
+## Dry fish may take fish the kitchen has planned for a meal BEYOND the next one -- never the next meal's (the earliest
+## planned, or the one the calendar is serving now, read from the calendar itself so an hour the kitchen has not yet
+## run is not missed), never an occasion's, never a meal with a batch cooked or at the cauldron. The fish may be still
+## in its store or already fetched to the kitchen (Brendan's ruling of 2026-10-08 on 1739's F5 (b): the cook fetches a
+## later meal's fish within the hour it is reserved, so in-store fish alone was almost never there) -- never what the
+## cook has in hand. Fish in store goes first; its books never left the store either way (ingredient_takes.gd WHERE
+## THE FOOD IS). The kitchen plans two days ahead and had reserved every fish, so the rack never got any. A meal that
+## gives food up tops itself up again from what is free at the kitchen's next hour (THE CHOICE) -- never here: topping
+## up now could take back the food just freed before the station sets it aside.
+## GRAIN FOR THE MILL (decision 1741; Brendan's ruling of 2026-10-08 on 1740's F6, "Push on: mill takes grain too"): the
+## same rule for the mill's grain -- the one harvest went to the porridge planned two days ahead, so the mill never had
+## 3 U free and the rations never their flour. Both are `beyond_next_meal_milli` and `release_beyond_next_meal` of a
+## category (the fishery binds each with its own: Catalog.CAT_FISH, FarmingScript.CROP_GRAIN).
+
+func beyond_next_meal_milli(crop: int) -> int:
+	"""Category `crop`'s food, milli-U, the kitchen holds in store or at the kitchen for meals beyond the next (see FISH
+	FOR THE RACK)."""
+	var next: int = _next_meal_for_rack()
+	var total: int = 0
+	for s: int in MAX_SLOTS:
+		if _rack_may_take(s, next):
+			total += takes.live_milli(pantry, _slot_take[s], TakesScript.AT_STORE, crop) \
+				+ takes.live_milli(pantry, _slot_take[s], TakesScript.AT_KITCHEN, crop)
+	return total
+
+
+func release_beyond_next_meal(milli: int, crop: int) -> int:
+	"""Give a station up to `milli` of category `crop`'s food held for meals beyond the next: all of it still in store
+	first, then what is at the kitchen, each the latest meal's first (see FISH FOR THE RACK; never a top-up here). How
+	much was given back to the pantry, free. (`crop` last, so a station binds it: `.bind(crop)`.)"""
+	var next: int = _next_meal_for_rack()
+	var given: int = _release_beyond(next, milli, crop, TakesScript.AT_STORE)
+	given += _release_beyond(next, milli - given, crop, TakesScript.AT_KITCHEN)
+	if given > 0:
+		revision += 1
+	return given
+
+
+func fish_beyond_next_meal_milli() -> int:
+	"""The fish the rack may take (`beyond_next_meal_milli` of fish)."""
+	return beyond_next_meal_milli(Catalog.CAT_FISH)
+
+
+func release_fish_beyond_next_meal(milli: int) -> int:
+	"""Give the rack up to `milli` of that fish (`release_beyond_next_meal` of fish)."""
+	return release_beyond_next_meal(milli, Catalog.CAT_FISH)
+
+
+func _release_beyond(next: int, milli: int, crop: int, where: int) -> int:
+	"""Up to `milli` of `crop`'s food at `where` the meals beyond `next` hold, the latest meal's first; how much was
+	given."""
+	var left: int = milli
+	for k: int in range(_slot_order.size() - 1, -1, -1):
+		var s: int = _slot_order[k]
+		if left > 0 and _rack_may_take(s, next):
+			left -= takes.release_milli(pantry, _slot_take[s], left, _hour_seen, crop, where)
+	return milli - left
+
+
+func _next_meal_for_rack() -> int:
+	"""The next meal a station never takes from: the later of the earliest planned and the one the calendar is
+	serving."""
+	var hour: int = calendar.hour_index() if calendar != null else _hour_seen
+	return maxi(_earliest_key(), _first_key(hour))
+
+
+func _rack_may_take(s: int, next: int) -> bool:
+	"""Whether slot `s`'s meal is beyond `next` and a station may take its food (see FISH FOR THE RACK)."""
+	var key: int = _slot_key[s]
+	return key != FREE and key > next and key != occasion_key and key != _wip_key and _slot_cooked[s] == 0
+
+
+# --- food kept from raw eating (decision 1740) ----------------------------------------------------------------
+
+## FOOD KEPT FROM RAW EATING (decision 1740; Brendan's ruling of 2026-10-08 on 1739's F5 (a)): dried fish is not eaten
+## raw while a batch of rations lacks it -- hungry residents ate every unit of it raw before the rations (flour, dried
+## fish, nuts, water) could ever be packed. `raw_keep` (the village binds the fishery's `ration_keep_milli`) says, per
+## category, how many milli-U a raw meal (REQ-SET-013) must leave free; a raw eater takes only what is free beyond it.
+## Only RAW eating: the kitchen still cooks it (the biscuit soup), and nothing is reserved. Unbound: nothing is kept.
+var raw_keep: Callable = Callable()
+## A category's room not yet asked this raw meal.
+const ROOM_UNKNOWN: int = -1
+## A category's room when nothing of it is kept: no limit (only ever passed through `mini`).
+const ROOM_ALL: int = 1 << 40
+## `_reserve_raw`'s room per category for this raw meal (ROOM_UNKNOWN: not yet asked), reused.
+var _raw_rooms: PackedInt64Array = PackedInt64Array()
+
+
+func raw_kept_milli(category: int) -> int:
+	"""The milli-U of `category` raw eaters must leave free (see FOOD KEPT FROM RAW EATING); 0 when nothing is bound."""
+	return maxi(0, int(raw_keep.call(category))) if raw_keep.is_valid() else 0
+
+
+func _raw_rooms_unknown() -> void:
+	"""Forget the rooms: a new raw meal asks again (the pantry and the takes may have changed)."""
+	_raw_rooms.resize(Rules.CATEGORY_COUNT)
+	_raw_rooms.fill(ROOM_UNKNOWN)
+
+
+func _raw_room(category: int) -> int:
+	"""How much of `category` a raw eater may take now: its free food less what is kept (ROOM_ALL: nothing kept)."""
+	if _raw_rooms[category] == ROOM_UNKNOWN:
+		var kept: int = raw_kept_milli(category)
+		_raw_rooms[category] = maxi(0, takes.free_milli_of_crop(pantry, category) - kept) if kept > 0 else ROOM_ALL
+	return _raw_rooms[category]
 
 
 func _estimate() -> void:

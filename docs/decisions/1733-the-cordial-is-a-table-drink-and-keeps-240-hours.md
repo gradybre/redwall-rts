@@ -34,6 +34,37 @@ The evidence: all of it spoiled (48–56 U a year), because it kept 72 h and was
 - **Why it is left.** Telling a skipped feast from a served one belongs to the FEAST lane's `regatta/*`.
 - **Fixed in the review:** `pours` and `dry_suppers` count what was actually poured.
 
+## The limit fixed (2026-10-08, `ae137794` on `feat/demo-rack-fish`)
+
+The FEAST lane (decision 1701, #239) found the same limit for a called feast cancelled before its supper, and noted it
+for this decision's owner. The coordinator asked for it fixed with 1739's F5 work.
+- **The rule now.** An occasion the kitchen clears before any batch of its meal is at the cauldron or cooked is
+  forgotten, so that supper pours the cordial as any other.
+  - That covers a cancelled called feast (`called_feast.gd cancel`, allowed only before the kitchen starts cooking
+    the supper) and a regatta skipped while planned (`regatta.gd _release_plan`).
+  - In both cases the kitchen gives the meal back to the alternation (`kitchen.gd clear_occasion`).
+- **A held feast still pours nothing.** It is cleared only after its supper is cooked and served (`_tally`), so it stays
+  noted. One cleared with a batch at the cauldron is still served as the occasion (nothing cooked is undone), and stays
+  noted too.
+- **How.**
+  - `table_drink.gd` keeps the occasion it saw last (`_live`). When the kitchen's `occasion_key` moves off it, the drink
+    asks `kitchen.meal_under_way(key)`: true when a batch of that meal is at the cauldron or cooked (`cooked_keys`).
+  - When it is not under way, the key is forgotten.
+  - Dishes are not compared: the bean hotpot is both an ordinary supper and the Hearth and regatta feasts' main course.
+- **Cancelling and skipping wait on the kitchen too** (the review of `ae137794`; `6fcdec12`, `b21acaf8`).
+  - Cook now can start a feast's supper before 15:00. A called feast cancelled then, or a planned regatta skipped then,
+    would have its food partly cooked and its supper skipped by the drink.
+  - So `called_feast.gd cancel_refusal` and `regatta.gd skip_refusal` both refuse ("the kitchen is cooking it" / "the
+    kitchen is cooking its feast") once `kitchen.meal_under_way` holds for the feast's supper.
+- **Tests:**
+  - `test_demo_feasts.gd test_a_feast_whose_batch_is_under_way_early_cannot_be_cancelled` and `test_demo_regatta.gd
+    test_a_plan_whose_feast_is_cooking_cannot_be_skipped`: a batch at the cauldron, or one cooked, refuses.
+  - `test_demo_balance_tuning.gd`: an occasion cleared with nothing cooked pours at its supper (2 U for 8 diners); one
+    cleared with a batch at the cauldron pours nothing. The existing feast-supper test now marks its meal cooked before
+    clearing, as a served feast is.
+  - `test_demo_feasts.gd`: a Hearth feast held and then cancelled, run to its supper in a real village: the table
+    cordial is poured at ceil(diners/4) U.
+
 ## Tests
 
 `test_demo_balance_tuning.gd`:

@@ -8,7 +8,9 @@ extends RefCounted
 ## as people_taps.gd reads them, so the kitchen gains no hook). A breakfast pours nothing. An OCCASION's supper (the
 ## regatta's feast) pours nothing here: the feast pours its own drinks (regatta_menu.gd THE FEAST'S DRINKS). The
 ## occasion's meal is told by the kitchen's `occasion_key`, noted each update while it is set, so a feast whose
-## occasion is cleared before its event is published is still known.
+## occasion is cleared before its event is published is still known. An occasion cleared before any batch of its meal
+## is at the cauldron or cooked (a called feast cancelled, a planned regatta skipped: the kitchen gives the meal back to
+## the alternation) is forgotten, so that supper pours as any other (the FEAST lane's note to 1733, decision 1701).
 ##
 ## HOW MUCH. A feast's measure: a unit for every four who ate (ceil(diners/4) U; regatta_menu.gd `drink_need_milli`,
 ## §5.7's mead quantity), of the cordial nobody has set aside, the lots that spoil first first -- no more than there is.
@@ -29,6 +31,8 @@ var _kitchen: KitchenScript = null
 ## The kitchen's events already looked through (its `finals_published`), and the occasion meals noted.
 var _last_final: int = 0
 var _occasions: PackedInt32Array = PackedInt32Array()
+## The occasion meal the kitchen had set at the last look (FREE: none).
+var _live: int = FREE
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 ## THE BOOKS: cordial poured at suppers (milli-U), the suppers it was poured at, and those that had none to pour.
 var poured_milli: int = 0
@@ -42,6 +46,7 @@ func bind(kitchen: KitchenScript) -> void:
 	_last_final = kitchen.finals_published if kitchen != null else 0
 	_occasions.resize(OCCASIONS_KEPT)
 	_occasions.fill(FREE)
+	_live = FREE
 
 
 func update() -> void:
@@ -58,7 +63,13 @@ func update() -> void:
 
 
 func _note_occasion(key: int) -> void:
-	"""Remember occasion meal `key` (FREE: none set), the oldest forgotten first."""
+	"""Remember occasion meal `key` (FREE: none set), the oldest forgotten first; forget the one the kitchen just cleared
+	when nothing of its meal was cooking or cooked (see WHEN)."""
+	if key != _live:
+		var at: int = _occasions.find(_live) if _live != FREE else -1
+		if at >= 0 and not _kitchen.meal_under_way(_live):
+			_occasions[at] = FREE
+		_live = key
 	if key == FREE or _occasions.has(key):
 		return
 	for k: int in range(OCCASIONS_KEPT - 1, 0, -1):

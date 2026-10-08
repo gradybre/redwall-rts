@@ -721,6 +721,27 @@ func test_a_row_waits_on_one_input_only_when_every_other_is_free() -> void:
 	assert_false(policy.waits_only_on(Recipes.R_RATION, Catalog.CAT_NUTS), "nuts at the need: nothing waits")
 
 
+func test_the_ration_reserve_s_food_counts_as_the_rations() -> void:
+	"""Decision 1742: food the ration reserve holds is not free, but it is the rations' -- `ration_input_free` counts it,
+	so the chain's mill and nuts steps see a batch held for; with no reserve, held food is not counted."""
+	var fishery := FakeFishery.new()
+	var policy := _provisioner(fishery)
+	_stock(fishery, Catalog.ITEM_DRIED_FISH, _ration_need(Catalog.CAT_DRIED_FISH))
+	fishery.ration_reserve.configure(fishery.pantry, fishery.takes)
+	fishery.ration_reserve.target_milli = 6000
+	fishery.ration_reserve.top_up(0, 0)
+	assert_equal(fishery.takes.free_milli_of_crop(fishery.pantry, Catalog.CAT_DRIED_FISH), 0, "all of it held")
+	assert_true(policy.ration_input_free(Catalog.CAT_DRIED_FISH), "held for rations: theirs")
+	assert_true(policy.wants_nuts(), "so the rations wait on their nuts")
+	var other := FakeFishery.new()
+	var bare := _provisioner(other)
+	_stock(other, Catalog.ITEM_DRIED_FISH, _ration_need(Catalog.CAT_DRIED_FISH))
+	var take: int = other.takes.new_take()
+	assert_true(other.takes.reserve_into(other.pantry, take, Catalog.CAT_DRIED_FISH, 1, 0, IntMath.IntResult.new()),
+		"a meal holds one milli-U")
+	assert_false(bare.ration_input_free(Catalog.CAT_DRIED_FISH), "held by a meal: not the rations'")
+
+
 func test_one_forager_goes_for_nuts_while_a_batch_waits_on_them() -> void:
 	"""Nuts are wanted while some batch waits on them alone (the cheese takes the most); none once the largest need is
 	met; a trip out or the woods refusing sends nobody."""

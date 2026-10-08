@@ -311,8 +311,10 @@ func _station_goods_fields(item: int, links: Array[StringName]) -> PackedStringA
 	if item == Catalog.ITEM_DRIED_FISH:
 		@warning_ignore("integer_division")
 		return PackedStringArray([
-			"The village's reserve: eaten raw by a hungry resident when a meal is missed (%d NP a unit). %s" % [
-				Rules.raw_np_per_u(item), _dishes_taking(item, links)],
+			("The village's reserve: eaten raw by a hungry resident when a meal is missed (%d NP a unit), all but the "
+				+ "%s a batch of rations takes. %s") % [
+				Rules.raw_np_per_u(item), FarmText.units_text(PreserveText.Recipes.input_milli(PreserveText.Recipes.R_RATION,
+				Catalog.CAT_DRIED_FISH)), _dishes_taking(item, links)],
 			"Drying fresh fish at the rack: %s of fish makes %s, %d WU and %d hours' curing." % [
 				FarmText.units_text(FisheryRules.DRY_IN_MILLI), FarmText.units_text(FisheryRules.DRY_OUT_MILLI),
 				FisheryRules.DRY_WORK_MWU / 1000, FisheryRules.DRY_PASSIVE_HOURS],

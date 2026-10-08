@@ -50,7 +50,8 @@ func _initialize() -> void:
 	current_scene = _village
 	_steps = [_pause, _the_apiary_is_wired, _look_at_the_apiary, _click_the_skep, _its_readout_and_verbs,
 		_close_on_the_bees, _look_at_the_preserving_table, _open_the_preserves, _look_at_the_brewery, _open_the_brewing,
-		_the_new_recipes, _a_deep_drink_warns, _the_cordial_is_a_table_drink, _open_the_ledger, _ready_food_says_eaten_raw,
+		_the_new_recipes, _a_deep_drink_warns, _the_cordial_is_a_table_drink, _the_reserve_row, _press_keep_more, _keep_more_pressed,
+		_keep_fewer_pressed, _release_pressed, _press_keep_again, _keep_again_pressed, _open_the_ledger, _ready_food_says_eaten_raw,
 		_select_a_bed, _open_the_crop_picker, _the_picker_lists_the_stations]
 
 
@@ -319,8 +320,125 @@ func _the_cordial_is_a_table_drink() -> void:
 	var card: String = _flat((panel.call(&"button", &"make_cordial") as Button).tooltip_text)
 	_check("the cordial card: 240 h, poured at supper", card.contains("keeps 240 h") and card.contains("poured at supper"),
 		card.replace("\n", " / "))
+	var fishery: RefCounted = _village.get("_fishery").get("fishery")
+	_check("the rack reads the kitchen's fish beyond its next meal (decision 1739)",
+		(fishery.get("spare_fish") as Callable).is_valid() and (fishery.get("free_spare_fish") as Callable).is_valid())
+	var spare: Callable = fishery.get("spare_fish")
+	var give: Callable = fishery.get("free_spare_fish")
+	fishery.call(&"bind_spare_fish", func() -> int: return 3000, func(_m: int) -> int: return 0)
+	var dry: RefCounted = _village.get("_fishery").call(&"dry_card", PackedInt32Array())
+	var have: int = int((dry.get("cost_have") as PackedInt64Array)[0])
+	var expected: int = int(fishery.call(&"input_available_milli", Recipes.IN_FIRST[Recipes.R_DRY_FISH]))
+	_check("the Dry fish card counts the kitchen's fish too", have == expected and have >= 3000, "%d of %d" % [have, expected])
+	fishery.call(&"bind_spare_fish", spare, give)
+	var kitchen: RefCounted = _village.call(&"kitchen").get("kitchen")
+	var kept: int = int(kitchen.call(&"raw_kept_milli", Catalog.CAT_DRIED_FISH))
+	_check("the kitchen keeps the rations' dried fish from raw eating as the fishery says (decision 1740)",
+		(kitchen.get("raw_keep") as Callable).is_valid()
+		and kept == int(fishery.call(&"ration_keep_milli", Catalog.CAT_DRIED_FISH))
+		and int(kitchen.call(&"raw_kept_milli", Catalog.CAT_NUTS)) == 0, "kept %d" % kept)
+	_check("the mill reads the kitchen's grain beyond its next meal (decision 1741)",
+		(fishery.get("spare_grain") as Callable).is_valid() and (fishery.get("free_spare_grain") as Callable).is_valid()
+		and int(fishery.call(&"grain_available_milli")) == int(fishery.get("takes").call(&"free_milli_of_crop",
+		fishery.get("pantry"), 3)) + int(kitchen.call(&"beyond_next_meal_milli", 3)))
+	_check("the mill's grain pair is bound to grain", (fishery.get("spare_grain") as Callable).get_bound_arguments()
+		== [3] and (fishery.get("free_spare_grain") as Callable).get_bound_arguments() == [3])
+	var reserve: RefCounted = fishery.get("ration_reserve")
+	_check("the village keeps a ration reserve of 6 U, drawing on the kitchen's later meals (decision 1742)",
+		int(reserve.get("target_milli")) == 6000 and (reserve.get("kitchen_give") as Callable).is_valid()
+		and int(reserve.get("take")) != 0)
+	var grain_spare: Callable = fishery.get("spare_grain")
+	var grain_give: Callable = fishery.get("free_spare_grain")
+	fishery.call(&"bind_spare_grain", func() -> int: return 3000, func(_m: int) -> int: return 0)
+	var mill: RefCounted = _village.get("_fishery").call(&"mill_card", PackedInt32Array())
+	var grain: int = int((mill.get("cost_have") as PackedInt64Array)[0])
+	_check("the Mill grain card counts the kitchen's grain too", grain == int(fishery.call(&"grain_available_milli"))
+		and grain >= 3000, "%d" % grain)
+	fishery.call(&"bind_spare_grain", grain_spare, grain_give)
 	var drink: RefCounted = _village.call(&"kitchen").get("table_drink")
 	_check("the table drink watches the kitchen", drink != null and drink.get("_kitchen") != null)
+
+
+func _reserve_panel() -> CanvasLayer:
+	"""The Water panel, refreshed, its reserve line at the top of the view."""
+	var panel: CanvasLayer = _village.get("_waterplay").get("panel")
+	_village.get("_fishery").call(&"refresh_panel")
+	panel.call(&"scroll_to_line", &"reserve")
+	return panel
+
+
+func _press(key: StringName) -> void:
+	"""A real click on the Water panel's `key` button."""
+	var button: Button = _reserve_panel().call(&"button", key)
+	_click(button.get_global_transform_with_canvas() * (button.size / 2.0))
+
+
+func _reserve() -> RefCounted:
+	"""The fishery's ration reserve."""
+	return _village.get("_fishery").get("fishery").get("ration_reserve")
+
+
+func _the_reserve_row() -> void:
+	"""Decision 1742, Brendan's R5: the Preserves section's reserve line, its stepper and Release, each shown (the view
+	scrolled to it, settling before the first click). Dried fish is stocked and the reserve tops up, so it holds some."""
+	_stock(Catalog.ITEM_DRIED_FISH, 1000)
+	_village.get("_fishery").get("fishery").call(&"top_up_ration_reserve")
+	var panel: CanvasLayer = _reserve_panel()
+	var text: String = panel.call(&"line", &"reserve")
+	_check("the reserve line says what it keeps and holds", text.begins_with("Ration reserve: keep 6.0 U (")
+		and text.contains("1.0 U dried fish"), text.replace("\n", " / "))
+	for key: StringName in [&"reserve_fewer", &"reserve_more", &"reserve_release"]:
+		var button: Button = panel.call(&"button", key)
+		_check("%s is shown" % key, button != null and button.is_visible_in_tree() and not button.text.is_empty(),
+			button.text if button != null else "")
+	var release: Button = panel.call(&"button", &"reserve_release")
+	_check("Release's card says what it frees", release.tooltip_text.contains("Frees") and not release.disabled,
+		release.tooltip_text.replace("\n", " / "))
+	var label: Label = (panel.get("_lines") as Dictionary)[&"reserve"]
+	_check("the reserve line holds three lines, so the row does not jump", label.get_line_height() > 0
+		and label.custom_minimum_size.y >= 3.0 * label.get_line_height(), str(label.custom_minimum_size.y))
+	_capture("reserve_row")
+
+
+func _press_keep_more() -> void:
+	"""Keep more is clicked."""
+	_press(&"reserve_more")
+
+
+func _keep_more_pressed() -> void:
+	"""Keep more stepped the target a batch up, and the panel's own refresh (its _process, not this harness) shows it;
+	Keep fewer is clicked."""
+	_check("Keep more: 9 U", int(_reserve().get("target_milli")) == 9000, str(_reserve().get("target_milli")))
+	var line: String = _village.get("_waterplay").get("panel").call(&"line", &"reserve")
+	_check("the panel's own refresh shows it", line.begins_with("Ration reserve: keep 9.0 U ("), line.replace("\n", " / "))
+	_press(&"reserve_fewer")
+
+
+func _keep_fewer_pressed() -> void:
+	"""Keep fewer stepped it back; Release is clicked."""
+	_check("Keep fewer: 6 U", int(_reserve().get("target_milli")) == 6000, str(_reserve().get("target_milli")))
+	_press(&"reserve_release")
+
+
+func _release_pressed() -> void:
+	"""Released: nothing held, the line and the caption say so (the frame captured before the next press)."""
+	var panel: CanvasLayer = _reserve_panel()
+	_check("Release: released", bool(_reserve().get("released")))
+	_check("the line says released", String(panel.call(&"line", &"reserve")).contains("Released: nothing held"),
+		panel.call(&"line", &"reserve"))
+	_check("the caption offers to keep them again",
+		(panel.call(&"button", &"reserve_release") as Button).text == "Keep food reserves again")
+	_capture("reserve_released")
+
+
+func _press_keep_again() -> void:
+	"""Keep food reserves again is clicked."""
+	_press(&"reserve_release")
+
+
+func _keep_again_pressed() -> void:
+	"""Kept again."""
+	_check("kept again", not bool(_reserve().get("released")))
 
 
 func _open_the_ledger() -> void:

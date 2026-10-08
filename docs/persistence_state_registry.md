@@ -763,6 +763,18 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 |---|---|---:|---|---|:-:|---|---|
 | Section 13 CHRONICLE codec | -- | -- | -- | -- | 3 | -- | ADR 1222 step 5. Holds no module-level `var`; all static over a caller-owned `Record` (count + 32-byte digest, never records), `EncodeResult` and per-call `DigestVerifier`. Body `record_count:u64, rolling_digest:32, records:24*N`, exactly `40 + 24*N` bytes, schema 1; the descriptor `row_count` and header offset 208 must equal N. Decode streams records in whole-record chunks of at most 65536 bytes (2730 records, 65520 bytes) through the owner's digest rule, reports digest mismatch before any record refusal, and refuses every nonempty stream while the event domain is empty (DEC-055 Q8). Carries the `chronicle` canonical adapter. The classified rows for what it carries are `chronicle.gd`'s two above. |
 
+### `godot/scripts/core/save_child_arenas_schema.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Section 5 CHILD_ARENAS framing table | -- | -- | -- | -- | 3 | -- | ADR 1222 step 3. Stateless: no module-level `var`, only immutable `const` tables plus static lookups, with section 6's table API. `tools/generate_auxiliary_state_schema.py --section 5 [--check]` compiles the registry's 5 section-5 owners (32 fields, section schema 1) and the capacity audit into the marked region. Every field is FIXED at a proved capacity or SCALAR, so the section is exactly 5,081,011 bytes and no count is bounded or unproved. |
+
+### `godot/scripts/core/save_section_child_arenas.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Section 5 CHILD_ARENAS codec | -- | -- | -- | -- | 3 | -- | ADR 1222 step 3. Holds no module-level `var`; all static over a caller-owned `State` (5 `Block`s of per-field counts plus raw little-endian value bytes), `EncodeResult` and per-call `Cursor`s. Section 6's owner-block wire form: `store_count:u32` = 5, then buildings, construction, forage, jobs, orchard_hive. Decode stages a whole State and adopts it only on success; every `SAVE_S5_*` refusal leaves `out` unchanged. No owner adapters: Jobs, Buildings and Construction restore their sections 4 and 5 through one joint bridge call. A captured State is a transient 5,081,011-byte image at a save or load boundary (ADR 1222 working set, task 09.3 ledger). |
+
 ### `godot/scripts/core/save_auxiliary_state_schema.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

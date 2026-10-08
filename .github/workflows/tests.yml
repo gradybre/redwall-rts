@@ -372,8 +372,11 @@ jobs:
           python3 tools/generate_component_columns_schema.py --check
           python3 tools/test_component_columns_schema.py
 
-      - name: Auxiliary state (section 6) schema matches the registry
-        run: python3 tools/generate_auxiliary_state_schema.py --check
+      - name: Auxiliary state (section 6) and child arenas (section 5) schemas match the registry
+        run: |
+          set -euo pipefail
+          python3 tools/generate_auxiliary_state_schema.py --check
+          python3 tools/generate_auxiliary_state_schema.py --section 5 --check
 
       - name: Lane records are one file each, not appended to a shared checklist
         run: python3 tools/lane_notes.py --check

@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
-"""Compile section 6 AUXILIARY_STATE's framing table into save_auxiliary_state_schema.gd.
+"""Compile section 6 AUXILIARY_STATE's (or section 5 CHILD_ARENAS') framing table into GDScript.
 
-ADR 1222 step 4a. The runtime may not read the registry JSON (it lives outside res:// and
-JSON.parse_string() would put a float on every count), so this script compiles the section-6
+ADR 1222 step 4a; `--section 5` (ADR 1222 step 3) compiles the same table shape for section 5 into
+save_child_arenas_schema.gd, whose codec shares section 6's owner-block wire form.
+
+The runtime may not read the registry JSON (it lives outside res:// and JSON.parse_string()
+would put a float on every count), so this script compiles the chosen section's
 owners of docs/planning/canonical_state_registry.json into the single marked region of the
 GDScript schema module and leaves every hand-written line byte-identical.
 
@@ -23,7 +26,7 @@ name the same registry id and version.
 
 `--check` writes nothing and exits 1 on drift. Any refusal exits 2.
 
-    python3 tools/generate_auxiliary_state_schema.py [--check] [--require-proved]
+    python3 tools/generate_auxiliary_state_schema.py [--section 5|6] [--check] [--require-proved]
 """
 
 from __future__ import annotations
@@ -37,11 +40,20 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 REGISTRY_PATH = ROOT / "docs/planning/canonical_state_registry.json"
 AUDIT_PATH = ROOT / "docs/planning/registry_capacity_audit.json"
-TARGET = ROOT / "godot/scripts/core/save_auxiliary_state_schema.gd"
-BEGIN = "# --- BEGIN GENERATED AUXILIARY STATE SCHEMA ---"
-END = "# --- END GENERATED AUXILIARY STATE SCHEMA ---"
+TARGETS = {
+    5: ROOT / "godot/scripts/core/save_child_arenas_schema.gd",
+    6: ROOT / "godot/scripts/core/save_auxiliary_state_schema.gd",
+}
+MARKERS = {
+    5: ("# --- BEGIN GENERATED CHILD ARENAS SCHEMA ---", "# --- END GENERATED CHILD ARENAS SCHEMA ---"),
+    6: ("# --- BEGIN GENERATED AUXILIARY STATE SCHEMA ---",
+        "# --- END GENERATED AUXILIARY STATE SCHEMA ---"),
+}
 
+# Rebound by main() from --section; every helper below reads these module globals.
 SECTION_ID = 6
+TARGET = TARGETS[6]
+BEGIN, END = MARKERS[6]
 TYPE_CODES = {"u8": 0, "u32": 1, "i32": 2, "u64": 3, "i64": 4}
 TYPE_WIDTHS = {0: 1, 1: 4, 2: 4, 3: 8, 4: 8}
 RULE_SCALAR, RULE_FIXED, RULE_BOUNDED, RULE_UNPROVED = 0, 1, 2, 3
@@ -60,7 +72,7 @@ def refuse(message: str) -> None:
 
 
 def audit_rows(audit: dict, registry: dict) -> dict:
-    """Index the audit's section-6 rows by (owner, field) after checking it audited THIS registry."""
+    """Index the audit's rows for SECTION_ID by (owner, field) after checking it audited THIS registry."""
     audited = audit["audited_registry"]
     if (audited["registry_id"], audited["registry_version"]) != (
             registry["registry_id"], registry["registry_version"]):
@@ -144,8 +156,8 @@ def check_owner(owner: dict, previous: str) -> None:
             refuse("%s.%s has ordinal %r, expected %d" % (key, field["field_key"],
                                                           field["ordinal"], ordinal))
         if TYPE_CODES.get(field["type"]) != field["type_code"]:
-            refuse("%s.%s type %s/%r is not a section-6 type" % (key, field["field_key"],
-                                                                 field["type"], field["type_code"]))
+            refuse("%s.%s type %s/%r is not a section-%d type" % (
+                key, field["field_key"], field["type"], field["type_code"], SECTION_ID))
 
 
 def collect(registry: dict, rows: dict) -> dict:
@@ -215,7 +227,8 @@ def render(registry: dict, table: dict) -> str:
     lines = [
         BEGIN,
         "# Generated from docs/planning/canonical_state_registry.json and",
-        "# docs/planning/registry_capacity_audit.json by tools/generate_auxiliary_state_schema.py.",
+        "# docs/planning/registry_capacity_audit.json by tools/generate_auxiliary_state_schema.py"
+        + ("." if SECTION_ID == 6 else " --section %d." % SECTION_ID),
         "# Registry %s v%d." % (registry["registry_id"], registry["registry_version"]),
         "# Do not hand-edit. %d owners, %d fields, %d UNPROVED (zero-only) fields."
         % (len(table["OWNER_KEYS"]), len(table["FIELD_KEYS"]), len(table["UNPROVED_FIELDS"])),
@@ -250,27 +263,32 @@ def splice(source: str, region: str) -> str:
 
 def main() -> int:
     """Compile and check the table, name every unproved bound, then regenerate or check."""
+    global SECTION_ID, TARGET, BEGIN, END
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--section", type=int, choices=(5, 6), default=6,
+                        help="the section to compile (default 6)")
     parser.add_argument("--check", action="store_true", help="exit 1 on drift, write nothing")
     parser.add_argument("--require-proved", action="store_true",
                         help="refuse (exit 2) while any field's bound is unproved")
     args = parser.parse_args()
+    SECTION_ID, TARGET = args.section, TARGETS[args.section]
+    BEGIN, END = MARKERS[args.section]
     registry = json.loads(REGISTRY_PATH.read_text())
     table = collect(registry, audit_rows(json.loads(AUDIT_PATH.read_text()), registry))
     for name in table["UNPROVED_FIELDS"]:
         print("UNPROVED BOUND: %s (no literal, no max_count, no audit row)" % name, file=sys.stderr)
     if args.require_proved and table["UNPROVED_FIELDS"]:
-        refuse("%d section-6 field bounds are unproved" % len(table["UNPROVED_FIELDS"]))
+        refuse("%d section-%d field bounds are unproved" % (len(table["UNPROVED_FIELDS"]), SECTION_ID))
     source = TARGET.read_text()
     updated = splice(source, render(registry, table))
     if updated == source:
-        print("PASS generated auxiliary state schema matches the registry")
+        print("PASS generated section %d schema matches the registry" % SECTION_ID)
         return 0
     if args.check:
         print("DRIFT: %s does not match the registry; rerun without --check" % TARGET.name)
         return 1
     TARGET.write_text(updated)
-    print("REWROTE generated auxiliary state schema in %s" % TARGET.name)
+    print("REWROTE generated section %d schema in %s" % (SECTION_ID, TARGET.name))
     return 0
 
 

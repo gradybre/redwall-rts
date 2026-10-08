@@ -23,14 +23,15 @@ const Jobs := preload("res://scripts/core/jobs.gd")
 const Needs := preload("res://scripts/core/needs.gd")
 const Schedule := preload("res://scripts/core/schedule.gd")
 const Contract := preload("res://scripts/core/excavation_contract.gd")
-## ADR1224: with the entry structure composed (G12), ADR1219's reach rule in the assembly-handling proof and the
-## contact-retirement scope sized to the live Workpieces bank (G13), the live chain installs L0, cuts T0's six
-## phases, and stops in T0's paid FUND: Contacts' per-operation check budget runs out (ADR1197 G14).
-const NEXT_GAP: StringName = &"CONNECTOR_CONTACT_OPERATION_CAPACITY"
-## The tick the uninterrupted live chain stops on (ADR1224), asserted by both the plain and the restored chain.
-const NEXT_GAP_TICK: int = 4349
-## [task index, cut Work mWU, hauled whole units] at that stop: L0 (12 phases) and T0's cuts (6) settled.
-const NEXT_GAP_LEDGER: Array = [19, 54000, 9]
+## ADR1227 (G14): with Contacts' Region scans charged one check per slot plus the row's own checks per present row,
+## T0's paid FUND fits its operation budget and the live chain runs the whole first-entry prefix: L0 installed, T0's
+## six cuts settled, T0 installed. The foreman is then done; nothing past the prefix is planned (ADR1197 G9: the
+## Kitchen's own cuts wait on Brendan's choice in ADR1208).
+## The tick the uninterrupted live chain finishes on, asserted by both the plain and the restored chain.
+const DONE_TICK: int = 4630
+## [task index, cut Work mWU, hauled whole units, installation Work mWU, groups INSTALLED] at the end: L0's twelve
+## phases, T0's six cuts, both installations' fastening (32,000 + 12,000 mWU).
+const DONE_LEDGER: Array = [20, 54000, 9, 44000, 2]
 ## ADR1221: the live chain's route owners are cold-restored this often (ticks; prime).
 const ROUTE_RESTORE_EVERY: int = 23
 ## ADR1218 runtime wire: header, step, code, origin, section, endpoint count and eleven endpoints, then M's container.
@@ -738,8 +739,8 @@ func test_fixed_ticks_drive_the_live_foreman_until_the_first_gap() -> void:
 	cubes. It retreats to R, walks tooled to M, puts the tool down and hauls both units. ADR1223: the JobSelector
 	never selects the reserved crew (it holds no Job through the walk) nor offers its Jobs to anyone, so at every tick
 	from arrival the crew holds one of the entry's own Jobs and no other resident holds one; it walks home under its
-	BUILD Job, re-equips and works every paid L0 phase (ADR1224: the entry structure is composed, G12), then the L0
-	installation's handling proof stops at the next gap."""
+	BUILD Job, re-equips and works every paid L0 phase (ADR1224: the entry structure is composed, G12), installs L0,
+	cuts and installs T0 (ADR1227: G14 built) and finishes the prefix; on the finishing tick it gives its Job back."""
 	var session: Session = _generate_and_mount()
 	assert_true(_host.compose_underground_room_owners() and _host.compose_underground_route_owners()
 		and _host.compose_underground_surface_anchor() and _host.compose_underground_entry_owners(), "every owner composed")
@@ -761,13 +762,16 @@ func test_fixed_ticks_drive_the_live_foreman_until_the_first_gap() -> void:
 		"admitted on H's own approach row, then at once on the authored retreat row toward R")
 	var tick: int = arrived[0] + 1
 	var held: int = 0
+	var last: int = 0
 	while entry.is_running() and tick < 8000:
 		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
-		held += _assert_dispatch_held(o, entry, worker, tick)
+		last = _assert_dispatch_held(o, entry, worker, tick)
+		held += last
 		tick += 1
-	assert_equal(held, tick - arrived[0] - 1, "the crew held an entry Job at every tick from arrival to the stop")
-	_assert_next_gap_stop(o, entry, worker)
-	assert_equal(tick - 1, NEXT_GAP_TICK, "the stop tick")
+	assert_equal(held, tick - arrived[0] - 2, "the crew held an entry Job at every tick from arrival to the last")
+	assert_equal(last, 0, "and none once the prefix is done")
+	_assert_prefix_done(o, entry, worker)
+	assert_equal(tick - 1, DONE_TICK, "the finishing tick")
 
 
 func _expected_walk(o: Session.Retirement.Owners, worker: Vector2i, entry: Settlement.UndergroundEntryRuntime) -> int:
@@ -815,25 +819,28 @@ func _assert_dispatch_held(o: Session.Retirement.Owners, entry: Settlement.Under
 	return 1 if held != Jobs.NULL_REF and entry.owns_job(o.residents.directory().get_typed_row(held)) else 0
 
 
-func _assert_next_gap_stop(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime, worker: Vector2i) -> void:
-	"""ADR1223/1224: past G6, G12 and G13. The crew hauled, settled every L0 phase, installed L0 once (its handling
-	and fastening Work), settled T0's six cut phases and opened T0's paid installation under its own Job; the T0
-	FUND refuses at the next gap (NEXT_GAP)."""
-	assert_false(entry.is_running(), "stopped at the next remaining gap")
-	assert_equal(entry.error(), NEXT_GAP, "exact refusal")
+func _assert_prefix_done(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime, worker: Vector2i) -> void:
+	"""ADR1227: past G6, G12, G13 and G14. The crew hauled every unit, settled every L0 phase, installed L0, settled
+	T0's six cut phases and installed T0, each group exactly once; the foreman is done with no refusal and no Project
+	is left live. The crew stays the only route actor (ADR1219 section 4) and keeps its tool."""
+	assert_false(entry.is_running(), "the chain no longer runs")
+	assert_equal(entry.step(), Settlement.UndergroundEntryRuntime.STEP_DONE, "the runtime finished the prefix")
 	var foreman: RefCounted = entry._foreman
-	assert_equal(foreman._installer.stage(), foreman.Installer.STAGE_FUND, "stopped in the paid FUND, after delivery")
-	assert_equal([foreman._index, foreman._tasks[19].install_ordinal, foreman.accepted_mwu(), foreman.haul_trips()],
-		[19, 1] + NEXT_GAP_LEDGER.slice(1), "L0 and T0's cuts settled with their exact Work, all units hauled, T0 open")
-	assert_equal(foreman.install_mwu(), 32000, "L0 fastened exactly once")
-	assert_equal(o.placements._get32(o.placements._live, o.placements.INSTALLED, 0), 1, "L0 INSTALLED")
+	assert_true(foreman.is_done() and foreman.error() == &"", "every planned task done, no refusal: %s" % foreman.error())
+	assert_equal(_done_ledger(o, foreman), DONE_LEDGER, "both installations and every cut with their exact Work, once")
+	assert_equal(o.construction.live_project_count(), 0, "every Project retired")
 	assert_true(o.gear.is_equipped_record(entry.crew().tool) and o.gear.owner_of(entry.crew().tool) == worker,
 		"the crew holds its tool")
-	assert_equal(o.jobs.worker_of(foreman._installer._job), worker, "the crew holds the installation's own Job")
 	var actors: int = 0
 	for row: int in Session.Retirement.Routes.RESIDENT_CAPACITY:
 		if o.routes._resident_ref(row) != Session.Retirement.Routes.NULL_REF: actors += 1
 	assert_equal(actors, 1, "only the crew mole is registered; every other resident stayed on the surface")
+
+
+func _done_ledger(o: Session.Retirement.Owners, foreman: RefCounted) -> Array:
+	"""[task index, cut Work, hauled units, installation Work, groups INSTALLED] (DONE_LEDGER's shape)."""
+	return [foreman._index, foreman.accepted_mwu(), foreman.haul_trips(), foreman.install_mwu(),
+		o.placements._get32(o.placements._live, o.placements.INSTALLED, 0)]
 
 
 func _stage(o: Session.Retirement.Owners, container: Vector2i, key: StringName, milli: int) -> Vector2i:
@@ -1216,11 +1223,10 @@ func test_a_crew_lost_mid_haul_is_replaced_and_the_entry_resumes_where_it_stoppe
 	assert_equal(o.jobs.worker_of(entry._foreman._job), Jobs.NULL_REF, "the step's BUILD Job is parked for the spare")
 	assert_true(entry.reserves_resident(o.residents.directory().get_typed_row(live[3])), "the reservation moved")
 	tick = _run_until(entry, tick + 1, func() -> bool: return false)
-	assert_equal(entry.error(), NEXT_GAP, "the resumed entry reaches the same next gap")
-	var foreman: RefCounted = entry._foreman
-	assert_equal([foreman._index, foreman.accepted_mwu(), foreman.haul_trips()], NEXT_GAP_LEDGER,
-		"every L0 phase settled once, with the same Work and the same six hauled units")
-	assert_equal(o.jobs.worker_of(foreman._installer._job), live[3], "the replacement holds the installation Job")
+	assert_equal(entry.step(), Settlement.UndergroundEntryRuntime.STEP_DONE, "the resumed entry finishes the prefix")
+	assert_equal(_done_ledger(o, entry._foreman), DONE_LEDGER,
+		"every phase settled and both groups installed once, with the same Work and the same hauled units")
+	assert_equal(entry.crew().worker, live[3], "the replacement finished it")
 
 
 func test_a_crew_lost_mid_phase_is_replaced_and_the_paid_phase_is_not_paid_again() -> void:
@@ -1235,8 +1241,8 @@ func test_a_crew_lost_mid_phase_is_replaced_and_the_paid_phase_is_not_paid_again
 	assert_equal(entry.advance(tick), Jobs.REFUSE_RESIDENT_DEAD, "the loss is alerted")
 	assert_equal(entry._foreman._stage, entry._foreman.STAGE_RESUME, "the step waits for the replacement")
 	tick = _run_until(entry, tick + 1, func() -> bool: return false)
-	assert_equal(entry.error(), NEXT_GAP, "the resumed entry reaches the same next gap")
-	assert_equal([entry._foreman._index, entry._foreman.accepted_mwu()], NEXT_GAP_LEDGER.slice(0, 2), "no Work paid twice or lost")
+	assert_equal(entry.step(), Settlement.UndergroundEntryRuntime.STEP_DONE, "the resumed entry finishes the prefix")
+	assert_equal(_done_ledger(o, entry._foreman), DONE_LEDGER, "no Work paid twice or lost")
 
 
 func _earning_the_first_cut(entry: Settlement.UndergroundEntryRuntime) -> bool:
@@ -1376,24 +1382,24 @@ func _expect_runtime_refusal(session: Session, bytes: PackedByteArray, code: Str
 
 func test_fixed_ticks_with_the_entry_restored_every_tick_end_byte_identical() -> void:
 	"""ADR1218/1219: the live run_tick chain from the surface walk, through arrival and registration on H, the
-	retreat, both hauls and (ADR1223) the walk home under the crew's reserved BUILD Job to the next stop runs
+	retreat, both hauls and (ADR1223) the walk home under the crew's reserved BUILD Job, to the end of the prefix (ADR1227), runs
 	uninterrupted, then again with the whole entry runtime captured and replaced by its restored record (which rebinds
 	the Jobs dispatcher) before every tick and (ADR1221) Routes and WorldRoutes cold-restored into blanked banks every
-	ROUTE_RESTORE_EVERY ticks; the stop, every owner image and both route images are byte-identical."""
+	ROUTE_RESTORE_EVERY ticks; the finish, every owner image and both route images are byte-identical."""
 	var plain: Array = _live_chain(false)
 	if plain.is_empty(): return
 	after_each()
 	before_each()
 	var restored: Array = _live_chain(true)
 	if restored.is_empty(): return
-	print("LIVE-ENTRY-PROGRESS walk_restores=%d registered_restores=%d stop_tick=%d" % restored.slice(0, 3))
+	print("LIVE-ENTRY-PROGRESS walk_restores=%d registered_restores=%d finish_tick=%d" % restored.slice(0, 3))
 	assert_true(restored[0] > 0 and restored[1] > 0, "restored mid-walk (%d) and after registration (%d)" % restored.slice(0, 2))
 	for index: int in range(2, plain.size()):
 		assert_equal(restored[index], plain[index], "live image %d is byte-identical after restores" % index)
 
 
 func _live_chain(restoring: bool) -> Array:
-	"""[walk restores, registered restores, stop tick, error, owner images..., final record] of one live chain."""
+	"""[walk restores, registered restores, finish tick, error, owner images..., final record] of one live chain."""
 	var session: Session = _generate_and_mount()
 	assert_true(_host.compose_underground_room_owners() and _host.compose_underground_route_owners()
 		and _host.compose_underground_surface_anchor() and _host.compose_underground_entry_owners(), "every owner composed")
@@ -1414,8 +1420,8 @@ func _live_chain(restoring: bool) -> Array:
 			if tick % ROUTE_RESTORE_EVERY == 0 and not _cold_restore_routes(o, tick): return []
 		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
 		tick += 1
-	_assert_next_gap_stop(o, _host.underground_entry(), worker)
-	assert_equal(tick - 1, NEXT_GAP_TICK, "the stop tick")
+	_assert_prefix_done(o, _host.underground_entry(), worker)
+	assert_equal(tick - 1, DONE_TICK, "the finishing tick")
 	if restoring:
 		assert_true(o.jobs._dispatch_owns.get_object() == _host.underground_entry(), "the restored runtime dispatches")
 	var record: PackedByteArray = PackedByteArray()
@@ -1470,7 +1476,7 @@ func _run_to(entry: Settlement.UndergroundEntryRuntime, from: int, to: int) -> i
 func test_the_busy_crew_rests_at_a_resting_point_through_its_sleep_hour_and_resumes() -> void:
 	"""ADR1226 (DEC-055, REQ-SET-034): the crew holds its entry Jobs all day. When its 08:00 hour turns to SLEEP it
 	finishes its current safe segment, stops at a resting point (ADR1210's switch-at-rest state) and earns nothing
-	while it rests. At 09:00 it resumes and reaches the same next gap with the same ledgers, later."""
+	while it rests. At 09:00 it resumes and finishes the prefix with the same ledgers, later."""
 	var live: Array = _begin_live_entry(_sleep_at_eight)
 	var o: Session.Retirement.Owners = live[0]
 	var entry: Settlement.UndergroundEntryRuntime = live[1]
@@ -1482,10 +1488,9 @@ func test_the_busy_crew_rests_at_a_resting_point_through_its_sleep_hour_and_resu
 	tick = _run_to(entry, tick, 2250)
 	assert_equal(entry._foreman.accepted_mwu(), resting, "no Work while it rests")
 	tick = _run_until(entry, tick, func() -> bool: return false)
-	assert_equal(entry.error(), NEXT_GAP, "it resumes and reaches the same next gap")
-	assert_equal([entry._foreman._index, entry._foreman.accepted_mwu(), entry._foreman.haul_trips()], NEXT_GAP_LEDGER,
-		"with the same ledgers")
-	assert_true(tick - 1 > NEXT_GAP_TICK, "later, by the rest")
+	assert_equal(entry.step(), Settlement.UndergroundEntryRuntime.STEP_DONE, "it resumes and finishes the prefix")
+	assert_equal(_done_ledger(o, entry._foreman), DONE_LEDGER, "with the same ledgers")
+	assert_true(tick - 1 > DONE_TICK, "later, by the rest")
 
 
 ## DEC-057: installer stages a crew can be lost in, in the order the live chain crosses them ([ordinal, stage]).
@@ -1501,8 +1506,8 @@ func _installing_at(entry: Settlement.UndergroundEntryRuntime, ordinal: int, sta
 
 
 func _lose_and_resume(at: Array, restore_every: int) -> Array:
-	"""Kill the crew in installer stage `at`; run to the stop (restoring the runtime every `restore_every` ticks
-	when positive). Returns [stop tick, error, foreman ledgers..., owner images...]."""
+	"""Kill the crew in installer stage `at`; run to the finish (restoring the runtime every `restore_every` ticks
+	when positive). Returns [finish tick, step, DONE_LEDGER-shaped ledger..., owner images...]."""
 	var live: Array = _live_with_spare()
 	var o: Session.Retirement.Owners = live[0]
 	var entry: Settlement.UndergroundEntryRuntime = live[1]
@@ -1518,9 +1523,7 @@ func _lose_and_resume(at: Array, restore_every: int) -> Array:
 			return []
 		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
 		tick += 1
-	var foreman: RefCounted = _host.underground_entry()._foreman
-	return [tick, _host.underground_entry().error(), foreman._index, foreman.accepted_mwu(), foreman.install_mwu(),
-		o.placements._get32(o.placements._live, o.placements.INSTALLED, 0)] + _snapshot()
+	return [tick, _host.underground_entry().step()] + _done_ledger(o, _host.underground_entry()._foreman) + _snapshot()
 
 
 func test_a_crew_lost_in_any_installation_stage_is_replaced_and_re_handles_in_place() -> void:
@@ -1528,20 +1531,20 @@ func test_a_crew_lost_in_any_installation_stage_is_replaced_and_re_handles_in_pl
 	station approach, handling, INSTALL entry, fastening and recovery, and T0's split-landing arrival. The spare mole
 	walks in, is registered on H, walks to M and on to the station; a funded order is revalidated with resume_work
 	and the piece is handled again where it stands (or, already handled, goes straight to INSTALL). Every run reaches
-	the same next gap with L0 installed exactly once and no Work paid twice."""
+	the end of the prefix with L0 and T0 each installed exactly once and no Work paid twice."""
 	for at: Array in LOSS_STAGES:
 		var result: Array = _lose_and_resume(at, 0)
 		if result.is_empty(): return
-		assert_equal(result[1], NEXT_GAP, "lost in installation %d stage %d: same next gap" % at)
-		assert_equal(result.slice(2, 6), [NEXT_GAP_LEDGER[0], NEXT_GAP_LEDGER[1], 32000, 1],
-			"lost in installation %d stage %d: cut Work, L0 fastening and INSTALLED exactly once" % at)
+		assert_equal(result[1], Settlement.UndergroundEntryRuntime.STEP_DONE, "lost in installation %d stage %d: finished" % at)
+		assert_equal(result.slice(2, 7), DONE_LEDGER,
+			"lost in installation %d stage %d: cut Work, both fastenings and INSTALLED exactly once" % at)
 		after_each()
 		before_each()
 
 
 func test_a_crew_lost_while_handling_resumes_byte_identically_across_restores() -> void:
-	"""DEC-057 persistence: lost mid-handling, run to the stop uninterrupted and again with the whole runtime replaced
-	by its restored record every 7 ticks (the walk-in, the RESUME wait and the re-handling are all crossed); the stop
+	"""DEC-057 persistence: lost mid-handling, run to the finish uninterrupted and again with the whole runtime replaced
+	by its restored record every 7 ticks (the walk-in, the RESUME wait and the re-handling are all crossed); the finish
 	and every owner image are byte-identical."""
 	var plain: Array = _lose_and_resume([0, 4], 0)
 	if plain.is_empty(): return

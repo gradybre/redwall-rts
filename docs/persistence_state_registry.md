@@ -929,7 +929,7 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---|---|---|:-:|---|---|
-| FarmPlot saved validation bridge | -- | -- | -- | -- | 3 | -- | Pure owner2 bridge, FARMING-S4-VALIDATE-R01v1/ADR0180. No mutable authoritative state or live owner construction. Caller266240 + cold Columns defaults266240 + two4096 i32 sort copies32768 =565248 conservative logical packed bytes, within6417408 stream allowance; native/RSS unmeasured. Present crop-state relations differ from broad inactive retained history. Same-file TileHistory/Directory/clock bindings and bulk restoration remain FARMING-SAVED-BINDINGS. |
+| FarmPlot saved validation bridge | -- | -- | -- | -- | 3 | -- | Pure owner2 bridge, FARMING-S4-VALIDATE-R01v1/ADR0180. No mutable authoritative state or live owner construction. Caller266240 + cold Columns defaults266240 + two4096 i32 sort copies32768 =565248 conservative logical packed bytes, within6417408 stream allowance; native/RSS unmeasured. Present crop-state relations differ from broad inactive retained history. Same-file TileHistory/Directory/clock bindings remain FARMING-SAVED-BINDINGS. Bulk capture/apply exist (ADR 1222 step 2): `Farming.copy_columns_into()`/`restore_columns()` over the fifteen columns, judged by the same `columns_refusal()`, nothing written on refusal, `_live_slots`/`_live_count` rebuilt; section 1's TileHistory is not touched; the bridge's `capture_into()`/`apply()`. `_last_column_refusal` is a category-3 diagnostic. |
 
 ### `godot/scripts/core/save_owner_field_policy.gd`
 

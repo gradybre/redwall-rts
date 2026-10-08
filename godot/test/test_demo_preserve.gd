@@ -736,6 +736,10 @@ func test_the_reserve_stepper_steps_a_batch_within_its_range() -> void:
 	assert_equal(node.step_reserve(100), "Ration reserve: keep 30.0 U of rations", "up to the cap")
 	node.step_reserve(1)
 	assert_equal(node.fishery.ration_reserve.target_milli, RationReserveScript.TARGET_CAP_MILLI, "never above it")
+	node.step_reserve(1 << 61)
+	assert_equal(node.fishery.ration_reserve.target_milli, RationReserveScript.TARGET_CAP_MILLI, "no overflow")
+	node.step_reserve(-(1 << 61))
+	assert_equal(node.fishery.ration_reserve.target_milli, 0, "nor below")
 
 
 func test_release_shows_what_it_frees_then_frees_it_and_keeps_them_again() -> void:

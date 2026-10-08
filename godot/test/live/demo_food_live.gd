@@ -394,6 +394,9 @@ func _the_reserve_row() -> void:
 	var release: Button = panel.call(&"button", &"reserve_release")
 	_check("Release's card says what it frees", release.tooltip_text.contains("Frees") and not release.disabled,
 		release.tooltip_text.replace("\n", " / "))
+	var label: Label = (panel.get("_lines") as Dictionary)[&"reserve"]
+	_check("the reserve line holds two lines, so the row does not jump", label.get_line_height() > 0
+		and label.custom_minimum_size.y >= 2.0 * label.get_line_height(), str(label.custom_minimum_size.y))
 	_capture("reserve_row")
 
 

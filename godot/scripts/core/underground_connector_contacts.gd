@@ -36,6 +36,10 @@ const NULL_REF: Vector2i = Vector2i(-1, 0)
 const CONTROL_BYTES: int = 4352
 const FRAGMENT_CAPACITY: int = 32
 const SOURCE_CHECKS: int = 2048
+## ADR1227: a full Region scan charges one check per slot plus these per present row, so a full bank costs exactly
+## the old 16-per-slot (datum) and 12-per-slot (bearing) precharges and an emptier one costs what it reads.
+const PRESENT_DATUM_CHECKS: int = 15
+const PRESENT_REGION_CHECKS: int = 11
 const REFUSE_BINDING: StringName = &"CONNECTOR_CONTACT_BINDING"
 const REFUSE_SCOPE: StringName = &"CONNECTOR_CONTACT_SCOPE"
 const REFUSE_SOURCE: StringName = &"CONNECTOR_CONTACT_SOURCE"
@@ -710,10 +714,14 @@ func _unique_datum() -> Vector2i:
 	"""A second actual identical datum is ambiguous; no first-match or synthetic full reference is permitted."""
 	var found: Vector2i = NULL_REF
 	var owner: Owner = _placements._space
-	if not _fragments.spend(16 * owner._region_capacity):
+	if not _fragments.spend(owner._region_capacity):
 		return NULL_REF
 	for row: int in owner._region_capacity:
-		if owner._r_present[row] != 1 or owner._r_role[row] != Space.FLOOR_DATUM \
+		if owner._r_present[row] != 1:
+			continue
+		if not _fragments.spend(PRESENT_DATUM_CHECKS): # ADR1227: a slot costs 1, a present row 16 in all.
+			return NULL_REF
+		if owner._r_role[row] != Space.FLOOR_DATUM \
 				or owner._r_claim_kind[row] != Owner.CLAIM_NONE or owner._r_level[row] != _other.level \
 				or owner._r_owner_slot[row] != _order.corridor.x or owner._r_owner_generation[row] != _order.corridor.y:
 			continue
@@ -800,10 +808,14 @@ func _bearing_refusal(row: int, out: PackedInt32Array) -> StringName:
 func _retained_earth_refusal(bounds: PackedInt32Array) -> StringName:
 	"""Original terrain cannot refill a paid cavity or stand in for installed timber after excavation."""
 	var owner: Owner = _placements._space
-	if not _fragments.spend(12 * owner._region_capacity):
+	if not _fragments.spend(owner._region_capacity):
 		return REFUSE_CAPACITY
 	for row: int in owner._region_capacity:
-		if owner._r_present[row] != 1 or owner._r_role[row] == Space.FLOOR_DATUM:
+		if owner._r_present[row] != 1:
+			continue
+		if not _fragments.spend(PRESENT_REGION_CHECKS): # ADR1227: a slot costs 1, a present row 12 in all.
+			return REFUSE_CAPACITY
+		if owner._r_role[row] == Space.FLOOR_DATUM:
 			continue
 		_copy_region_box(row, _scratch)
 		if not Space.overlaps(bounds, _scratch):
@@ -896,10 +908,14 @@ func _installed_part_refusal(bounds: PackedInt32Array) -> StringName:
 func _installed_bearing_obstacles(bounds: PackedInt32Array) -> StringName:
 	"""An exact part and positive support union cannot hide another owner's claim or physical obstacle."""
 	var owner: Owner = _placements._space
-	if not _fragments.spend(12 * owner._region_capacity):
+	if not _fragments.spend(owner._region_capacity):
 		return REFUSE_CAPACITY
 	for row: int in owner._region_capacity:
-		if owner._r_present[row] != 1 or owner._r_role[row] == Space.FLOOR_DATUM or _installed_solid_row(row):
+		if owner._r_present[row] != 1:
+			continue
+		if not _fragments.spend(PRESENT_REGION_CHECKS): # ADR1227: a slot costs 1, a present row 12 in all.
+			return REFUSE_CAPACITY
+		if owner._r_role[row] == Space.FLOOR_DATUM or _installed_solid_row(row):
 			continue
 		if owner._r_claim_kind[row] == Owner.CLAIM_ROOM and _row_room_claim(row):
 			continue

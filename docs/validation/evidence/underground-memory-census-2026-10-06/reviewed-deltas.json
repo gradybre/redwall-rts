@@ -359,6 +359,11 @@
      "bytes": 74,
      "carried_by": "none (new)",
      "store": "ADR 1221: retained contact scope image (SCOPE_WIRE_BYTES 74), one caller image at a time, charged as retained, conservatively"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "ADR 1227: PRESENT_DATUM_CHECKS 15 and PRESENT_REGION_CHECKS 11 are check-charge constants; no retained storage"
     }
    ],
    "delta": {
@@ -369,6 +374,14 @@
      [
       "CONTROL_BYTES",
       "4352"
+     ],
+     [
+      "PRESENT_DATUM_CHECKS",
+      "15"
+     ],
+     [
+      "PRESENT_REGION_CHECKS",
+      "11"
      ],
      [
       "SCOPE_WIRE_BYTES",

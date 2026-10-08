@@ -41941,6 +41941,11 @@
             "bytes": 74,
             "carried_by": "none (new)",
             "store": "ADR 1221: retained contact scope image (SCOPE_WIRE_BYTES 74), one caller image at a time, charged as retained, conservatively"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1227: PRESENT_DATUM_CHECKS 15 and PRESENT_REGION_CHECKS 11 are check-charge constants; no retained storage"
           }
         ],
         "delta": {
@@ -41951,6 +41956,14 @@
             [
               "CONTROL_BYTES",
               "4352"
+            ],
+            [
+              "PRESENT_DATUM_CHECKS",
+              "15"
+            ],
+            [
+              "PRESENT_REGION_CHECKS",
+              "11"
             ],
             [
               "SCOPE_WIRE_BYTES",
@@ -43741,7 +43754,7 @@
     "godot/scripts/core/underground_budget.gd": "fc8e43428787784f1ada4b8f26348ebfd8f7c4c907f5169a9658dcc5d71713f8",
     "godot/scripts/core/underground_connector_assemblies.gd": "3199049decf5b6ca95da09bb416196d82a96e89af194166b196df29f1cf7b73c",
     "godot/scripts/core/underground_connector_catalog.gd": "bab9c370eb6253d65c12cb330ee90e06f4fb7f02493a47ef27784ad2fdd1cbdb",
-    "godot/scripts/core/underground_connector_contacts.gd": "ec896e8bc5dee91d5de8d3f6df1cc64bc0e9f45b768ec3339a4afd34e7db227e",
+    "godot/scripts/core/underground_connector_contacts.gd": "c7345c1b937187eaadc8cbb59bb638468c0385179eb21f6b36724b4a45bc682a",
     "godot/scripts/core/underground_connector_delivery.gd": "baa1a1882cf53a77f829df417cba2bc54731a4c004596b59b7cc32920952ca45",
     "godot/scripts/core/underground_connector_placements.gd": "173e0fcad1bf2da32dd6e12a9679d75bd066a6321575a5f305eef3ab72ff8d03",
     "godot/scripts/core/underground_connector_recipes.gd": "a23c0f6087597b1c3bee978f9008824af86856dca6ddaba1b6bc41d1d03cba1a",

@@ -758,6 +758,39 @@ func test_initial_worker_observation_cannot_mint_start_transition() -> void:
 	assert_false(_fixture._router._funding.is_funded(_fixture.project), "no receipt from observation")
 
 
+func test_region_scans_charge_each_slot_once_and_each_present_row_in_full() -> void:
+	"""ADR1227 (G14): a Region-bank scan costs one check per slot plus the row's own checks per present row, never the
+	old per-slot precharge; exactly that budget passes and one check fewer refuses, poisoning the operation."""
+	_paid_order()
+	var contacts: Contacts = _fixture.contacts
+	var owner: RefCounted = _fixture._placements._space
+	var present: int = 0
+	for row: int in owner._region_capacity:
+		if owner._r_present[row] == 1: present += 1
+	assert_true(present > 0 and present < owner._region_capacity, "a partly filled bank: %d rows" % present)
+	var far: PackedInt32Array = PackedInt32Array([1 << 28, 1 << 28, 1 << 28, (1 << 28) + 1, (1 << 28) + 1, (1 << 28) + 1])
+	var bearing: int = owner._region_capacity + Contacts.PRESENT_REGION_CHECKS * present
+	assert_true(bearing < 12 * owner._region_capacity, "below the old 12-per-slot precharge")
+	_set_fragments(contacts, bearing)
+	assert_equal(contacts._installed_bearing_obstacles(far), &"", "exactly its reads fit")
+	assert_equal(contacts._fragments.remaining, 0, "and are all charged")
+	_set_fragments(contacts, bearing - 1)
+	assert_equal(contacts._installed_bearing_obstacles(far), Contacts.REFUSE_CAPACITY, "one check short refuses")
+	assert_true(contacts._fragments.failed, "and poisons the operation")
+	_set_fragments(contacts, owner._region_capacity + Contacts.PRESENT_DATUM_CHECKS * present)
+	contacts._unique_datum()
+	assert_true(contacts._fragments.remaining == 0 and not contacts._fragments.failed, "the datum scan charges the same way")
+	_set_fragments(contacts, owner._region_capacity + Contacts.PRESENT_DATUM_CHECKS * present - 1)
+	assert_equal(contacts._unique_datum(), NULL_REF, "one check short finds nothing")
+	assert_true(contacts._fragments.failed, "and poisons the operation")
+
+
+func _set_fragments(contacts: Contacts, remaining: int) -> void:
+	"""Arm the operation budget at exactly `remaining` checks."""
+	contacts._fragments.remaining = remaining
+	contacts._fragments.failed = false
+
+
 func _paid_order() -> void:
 	"""Funding and Construction remain the sole authorities for earned labor and material consumption."""
 	_unpaid_order()

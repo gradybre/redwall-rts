@@ -23,7 +23,7 @@ var _read: IntMath.IntResult = IntMath.IntResult.new()
 
 ## Ingredient takes that sees free food but can reserve none (as when every entry row is taken).
 class FullTakes extends "res://demo/kitchen/ingredient_takes.gd":
-	func reserve_into(_pantry: PantryScript, _take: int, _crop: int, _milli: int, _hour_index: int,
+	func reserve_into(_pantry: PantryScript, _which: int, _crop: int, _amount: int, _hour_index: int,
 			out: IntMath.IntResult) -> bool:
 		"""Nothing reserved."""
 		return out.succeed(0)

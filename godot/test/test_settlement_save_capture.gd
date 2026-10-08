@@ -69,3 +69,32 @@ func test_a_mounted_underground_owner_refuses_until_its_codec_lands() -> void:
 		SaveFile.Body.new())
 	world.inventory._spatial_world = world.inventory.NULL_REF
 	assert_equal(refusal.code, &"SAVE_UNSUPPORTED_STATE", "named: %s" % refusal.detail)
+
+
+# --- section 15 -----------------------------------------------------------------------------------
+
+const SaveDigest := preload("res://scripts/core/settlement_save_digest.gd")
+const SaveIdentity := preload("res://scripts/core/save_identity_hashes.gd")
+
+
+func _digest(staged: Capture.Staged) -> SaveDigest.DigestOutcome:
+	"""The digest of a staged capture under this build's development identities."""
+	var local: SaveIdentity.LocalIdentityResult = SaveIdentity.local_identity(true)
+	assert_true(local.ok, "local identity")
+	var inputs: Variant = SaveDigest.inputs_for(local.identity.rules, local.identity.catalog,
+		SaveIdentity.zero_digest(), local.identity.lookup, staged.s01.runtime.completed_tick)
+	var world: SaveWorld.World = SaveWorld.bind(_settlement, _manager)
+	return SaveDigest.digest_of(staged, world.movement, inputs)
+
+
+func test_every_declared_owner_has_an_adapter_and_the_digest_tracks_state() -> void:
+	"""The whole declaration walks; a recapture digests identically; a changed latch changes it."""
+	var first: SaveDigest.DigestOutcome = _digest(_captured()[1])
+	assert_true(first.ok, "digest: %s %s" % [first.code, first.detail])
+	assert_equal(first.digest.size(), 32, "a SHA-256")
+	var again: SaveDigest.DigestOutcome = _digest(_captured()[1])
+	assert_equal(again.digest, first.digest, "deterministic over an unchanged world")
+	assert_true(_settlement.ecology().restore_last_day(_settlement.ecology().save_last_day() + 1),
+		"move one saved latch")
+	var moved: SaveDigest.DigestOutcome = _digest(_captured()[1])
+	assert_true(moved.ok and moved.digest != first.digest, "the digest covers that latch")

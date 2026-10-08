@@ -797,6 +797,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 |---|---|---:|---|---|:-:|---|---|
 | Settlement save world binding | -- | -- | -- | -- | 3 | -- | ADR 1222 steps 8-9. One World object per save or load binding every store of a SettlementSystem and its GameManager, plus fresh instances of the owners production does not compose (spatial map, field policy, injury, event schedule, Chronicle, unmounted movement). Holds references only; the fresh instances are transient at the save or load boundary. |
 
+### `godot/scripts/core/settlement_save_digest.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Settlement save section 15 adapters | -- | -- | -- | -- | 3 | -- | ADR 1222 step 7. Stateless module of canonical value adapters over a staged or decoded record set, one per declared owner the section modules do not register themselves; each binds one record by reference. `digest_of()` walks the production declaration; no subset digest exists. |
+
 ### `godot/scripts/core/save_child_arenas_schema.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

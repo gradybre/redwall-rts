@@ -82,11 +82,12 @@ The coordinator's brief:
 Built demo-side, in the panel that already orders rations: the Water panel's Preserves section
 (`waterplay/water_panel.gd`, `fishery/demo_fishery.gd`), after the preserving table's rows. Nothing is in the
 settlement UI or `scripts/core`.
-- **The readout** (the `reserve` line), in one of three forms:
-  - no target: "Ration reserve: none" and how to keep one;
-  - otherwise: "Ration reserve: keep 6.0 U of rations (0 U owned). Holding 1.0 U dried fish, 1.0 U nuts, 2.0 U flour"
-    (or "Holding nothing now");
-  - released: "Released for an emergency: nothing held".
+- **The readout** (the `reserve` line):
+  - **the head:** "Ration reserve: keep 6.0 U (0 U owned)", or, with no target, "Ration reserve: none" and how to
+    keep one;
+  - **then what is withheld:** "Holding 1.0 U dried fish, 1.0 U nuts, 2.0 U flour", including "… dried fish kept from
+    raw eating" for 1740's keep; or "Holding nothing now"; or "Released: nothing held until kept again".
+  - **Height.** The line holds three lines, so the row never jumps between states.
 - **The target (UI-SET-099), a stepper.**
   - "◀ Keep fewer" and "Keep more ▶" move it one batch (3 U) a press, from none to ten batches (30 U). Both values are
     PROVISIONAL (R6, R7).
@@ -94,7 +95,10 @@ settlement UI or `scripts/core`.
   - `fishery.gd set_ration_reserve_target` clamps the target; the reserve gathers or lets go at once.
 - **Release food reserves (§5.10), never taken by itself.**
   - Its action card says what it frees before it is pressed ("Frees 1.0 U dried fish, 1.0 U nuts, 2.0 U flour at
-    once…"). It is refused, and the button disabled, when nothing is held.
+    once…"), 1740's kept dried fish included.
+  - With a reserve kept but nothing held now, it is still offered: a release lasts, so food arriving later is not held
+    back. The card then says "Nothing is held now; nothing will be held back until you keep them again".
+  - It is refused, and the button disabled, only with no reserve and nothing kept from raw eating.
   - The press frees the food and says what it freed.
   - The button then reads "Keep food reserves again"; pressed, the reserve holds again.
 - **Looked at:** frames at 1280x720 and 1920x1080, before and after a release. The live harness clicks Keep more, Keep
@@ -198,6 +202,23 @@ No CRITICAL or HIGH. Four MEDIUMs, three of them reproduced:
 - The analyzer flagged a local `packing` shadowing a fishery function.
 
 Neither changes the built village, so the measurement below (on `ae0e1143`) stands.
+
+**The independent review of the controls (`72817b34`, waited for).** No CRITICAL or HIGH. Its 3 MEDIUMs and its
+LOWs are fixed in `6f492de0`, `0840fd16` and the commit after it:
+- **Release was refused when nothing was held.** A release lasts, so food arriving later would have been held back,
+  and 1740's kept dried fish could not be freed from the card. Now it is refused only with no reserve and nothing
+  kept.
+- **After a release, the line, the card and the stepper's answer disagreed with the state.** The released state is now
+  read first everywhere.
+- **Nothing would catch `_on_reserve` swallowing other actions.** Tested now.
+- **The LOWs:**
+  - the released-with-nothing answer has its own words;
+  - the row no longer jumps;
+  - the stepper's steps are clamped before the multiply;
+  - the live checks can fail, and the panel's own refresh is read;
+  - the owned figure and the tooltips are tested.
+
+**My mutants on the fixes:** 16 of 16 killed, two of them after `0840fd16`.
 
 ## The measurement
 

@@ -385,6 +385,17 @@ These record the engineering choices made while building, step by step.
     name rows and section 15's is 1.
   - **Underground owners.** Until step 10 they use `UnsupportedAdapter`, so a mounted world (or a bound spatial
     inventory endpoint) refuses SAVE_UNSUPPORTED_STATE rather than losing state.
+- **Step 9, load.** `settlement_save.gd` validates the whole file, decodes every section
+  (`settlement_save_decode.gd`) and recomputes section 15 over the decoded records before any world is touched.
+  It then retires the target through its own `reset()`, binds the empty command queue to the manager's clock (a
+  queue cannot rebind while a load barrier is held), opens the load, applies every section in dependency order
+  (`settlement_save_apply.gd`) and proves the result by recapturing it: sections 1-14 must come back
+  byte-identical, with the same section 15. A refusal after the load opened rolls the clock back and resets the
+  target, so it is left empty rather than half-restored.
+  - **Section 14's apply** snapshots the prior names raw for its rollback. A validating capture there refused the
+    deliberately mid-restore state (section 4 has installed the `_named` flags, the names are still cleared).
+  - **The settlement's resident list** (`_live_slots`) is not registered state; it is rebuilt as the present
+    residents in ascending persistent id, which is the order `create_initial_settlement()` appends them in.
 - **Step 2, memory.** Every section-4 capture and apply makes a transient owner image. It is charged to "ADR 1222
   save/load working set" in the reviewed census deltas, and the 09.3 ledger owns the total. It is never resident
   between ticks.

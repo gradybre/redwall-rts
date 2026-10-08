@@ -803,6 +803,24 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 |---|---|---:|---|---|:-:|---|---|
 | Settlement save section 15 adapters | -- | -- | -- | -- | 3 | -- | ADR 1222 step 7. Stateless module of canonical value adapters over a staged or decoded record set, one per declared owner the section modules do not register themselves; each binds one record by reference. `digest_of()` walks the production declaration; no subset digest exists. |
 
+### `godot/scripts/core/settlement_save.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Settlement save and load entry points | -- | -- | -- | -- | 3 | -- | ADR 1222 steps 8-9. Stateless static save_bytes/save_to_path and load_bytes; every buffer is a transient image at the save or load boundary. |
+
+### `godot/scripts/core/settlement_save_apply.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Settlement load apply | -- | -- | -- | -- | 3 | -- | ADR 1222 step 9. Stateless static apply of a decoded record set into a bound World in dependency order, under the caller's open load; it also rebuilds the settlement's resident list. |
+
+### `godot/scripts/core/settlement_save_decode.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Settlement load decode | -- | -- | -- | -- | 3 | -- | ADR 1222 step 9. Stateless static decode of a validated Body into a staged record set (adopted only on success) and the section 15 verification; touches no store. |
+
 ### `godot/scripts/core/save_child_arenas_schema.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

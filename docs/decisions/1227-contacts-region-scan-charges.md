@@ -105,3 +105,22 @@ a tool. It is part of the ADR 1218 record, so the tests read `step()` and the fo
 Nothing is saved or rebuilt: no field, column, wire byte or registry row. The two constants are check-charge
 constants. Their storage delta is reviewed at 0 bytes in `reviewed-deltas.json`, and `REVIEWED_SHA` is re-pinned.
 The joint pack is unchanged.
+
+## Amendment (2026-10-07, coordinator's engineering decisions): the G9 alert and the stale refusal
+
+**1. The finished prefix raises `ENTRY_DESCENT_UNBUILT` (G9).** The next room is decided. Stairs go past T0 first
+(ADR 1209, paw-fitted treads side-on, still being authored), then a Kitchen dug to reachable height (DEC-054). So the
+gap is named by what is missing next: the descent past T0, not the Kitchen's shape.
+- The runtime raises it once, on the finishing tick, as `advance`'s return; `run_tick` then alerts it with its gap
+  row.
+- It stays as the runtime's `error()`.
+- A later `begin_underground_entry` on a finished entry refuses with the same code, so the alert is never lost.
+
+**2. A successful `start()` clears the previous attempt's refusal.** `_stop` now records the attempt's result, empty
+on success. The live chain's G11 code from before the stand-in equips a tool no longer survives the successful start.
+- `_error` is in the ADR 1218 record, so the record's `VERSION` is now 2.
+- A version-1 record is refused with `ENTRY_SAVE_VERSION`, because there is no migration before 1.0 (DEC-055 item 1).
+- The wire layout and `MAX_WIRE_BYTES` are unchanged.
+- The restore-every-tick variants stay byte-identical.
+
+The "Recorded, not changed" note above is superseded by item 2.

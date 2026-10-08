@@ -2128,9 +2128,9 @@ func _qualify_actor_at(worker: Vector2i, job: Vector2i, location: Vector2i,
 		mode: int, posture: int, family: int, hint: Vector2i, profile_id: int = -1,
 		profile_revision: int = 0, content_revision: int = 0) -> StringName:
 	"""Pin source values around the actual callback and re-read current identity/gear/load before publication."""
-	var pieces: Workpieces = _assembly_workpieces() if Handling.is_handling(profile_id) else null
+	var pieces: Workpieces = _assembly_workpieces() if Handling.is_handling(profile_id, content_revision) else null
 	var bindings: Bindings = _bindings
-	if Handling.is_handling(profile_id):
+	if Handling.is_handling(profile_id, content_revision):
 		if pieces == null or bindings == null or _domain == null: return &"ROUTE_ASSEMBLY_UNBOUND"
 		_remaining = _domain._checks
 		_operation_error = &""
@@ -2143,12 +2143,12 @@ func _qualify_actor_at(worker: Vector2i, job: Vector2i, location: Vector2i,
 		code = _source_profile_refusal(_profiles, _selection.profile_id, _selection.profile_revision, _selection.content_revision)
 	if code == &"":
 		code = _profile_endpoint_refusal(location)
-	if code != &"" or Handling.is_handling(profile_id) and _callback_reentered:
-		if Handling.is_handling(profile_id): _in_callback = false
+	if code != &"" or Handling.is_handling(profile_id, content_revision) and _callback_reentered:
+		if Handling.is_handling(profile_id, content_revision): _in_callback = false
 		if code == &"": return &"ROUTE_CALLBACK_REENTRY"
 		return code
 	_copy_selection(_selection, _checked_selection)
-	code = bindings.actor_admission_refusal(location, _selection) if Handling.is_handling(profile_id) \
+	code = bindings.actor_admission_refusal(location, _selection) if Handling.is_handling(profile_id, content_revision) \
 		else _attest_actor(location, _selection)
 	if code == &"" and not _same_selection(_selection, _checked_selection):
 		code = &"ROUTE_CALLBACK_CHANGED_PACKET"
@@ -2163,7 +2163,7 @@ func _qualify_actor_at(worker: Vector2i, job: Vector2i, location: Vector2i,
 		code = _occupancy_context_refusal()
 	if code == &"":
 		code = _selected_bounds_into(_selection, _profile_box, _candidate_bounds)
-	if Handling.is_handling(profile_id):
+	if Handling.is_handling(profile_id, content_revision):
 		_in_callback = false
 		if _callback_reentered: return &"ROUTE_CALLBACK_REENTRY"
 		if _bindings != bindings or _selection.worker != worker or _selection.job != job \
@@ -2233,8 +2233,8 @@ static func _assembly_selected_leaf(actual: RefCounted, expected: Profiles.Selec
 			or expected.cargo_quantity_milli < profiles._live.quantities[Profiles.L_QUANTITY_MIN * stride + expected.profile_id] \
 			or expected.cargo_quantity_milli > profiles._live.quantities[Profiles.L_QUANTITY_MAX * stride + expected.profile_id] \
 			or expected.yaw != profiles._live.fields[Profiles.F_YAW * stride + expected.profile_id] \
-			or expected.source_id != Handling.source_of(expected.profile_id) \
-			or expected.box_count != Handling.role_count(expected.profile_id) \
+			or expected.source_id != Handling.source_of(expected.profile_id, expected.content_revision) \
+			or expected.box_count != Handling.role_count(expected.profile_id, expected.content_revision) \
 			or expected.orientation != Profiles.YAW_EXACT \
 			or family != -1 and (family < 0 or family >= 5 \
 				or (profiles._live.fields[Profiles.F_FAMILIES * stride + expected.profile_id] & (1 << family)) == 0):
@@ -2304,7 +2304,7 @@ static func _source_word_for(profiles: Profiles, phase: int, source_phase: int) 
 
 static func _source_profile_refusal(profiles: Profiles, profile: int, profile_revision: int, content: int) -> StringName:
 	"""Version selection never substitutes for the complete source/descriptor/current-revision proof."""
-	if Handling.is_handling(profile): return Handling.profile_refusal(profiles, profile, profile_revision, content)
+	if Handling.is_handling(profile, content): return Handling.profile_refusal(profiles, profile, profile_revision, content)
 	if Stair.owns(profiles, profile): return Stair.profile_refusal(profiles, profile, profile_revision, content)
 	if Claw2.owns(profiles, profile): return Claw2.profile_refusal(profiles, profile, profile_revision, content)
 	if Claw.owns(profiles, profile): return Claw.profile_refusal(profiles, profile, profile_revision, content)
@@ -2328,8 +2328,9 @@ static func _source_clock_leaf(actual: RefCounted, row: int) -> StringName:
 		return &"ROUTE_SOURCE_CLOCK"
 	var code: StringName = _source_profile_refusal(actual._profiles, profile, profile_revision, content)
 	if code != &"": return code
-	if Handling.is_handling(profile):
-		return Handling.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
+	if Handling.is_handling(profile, content):
+		return Handling.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row],
+			profile, content)
 	if Stair.owns(actual._profiles, profile): return _stair_clock_leaf(actual, row, phase, profile)
 	if Claw2.owns(actual._profiles, profile):
 		return Claw2.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
@@ -2447,7 +2448,7 @@ static func source_ready_leaf_refusal(actual: RefCounted, worker: Vector2i, job:
 	var row: int = _source_tuple_row(actual, worker, job, profile_id, profile_revision, content_revision)
 	if row < 0: return &"ROUTE_SOURCE_TUPLE_STALE"
 	var word: int = actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
-	return &"" if word == (Assembly.word(PHASE_IDLE, Assembly.Clock.READY) if Handling.is_handling(profile_id) \
+	return &"" if word == (Assembly.word(PHASE_IDLE, Assembly.Clock.READY) if Handling.is_handling(profile_id, content_revision) \
 		else _source_word_for(actual._profiles, PHASE_IDLE, SourceProgram.READY)) \
 		and actual._motion.resident[R_EDGE_SLOT * RESIDENT_CAPACITY + row] == -1 \
 		and actual._motion.resident[R_EDGE_GENERATION * RESIDENT_CAPACITY + row] == 0 \
@@ -2493,7 +2494,8 @@ func request_source_ready(worker: Vector2i, job: Vector2i) -> StringName:
 	if _resident_ref(row) != worker or _resident_pair(R_JOB_SLOT, row) != job \
 			or _resident_pair(R_EDGE_SLOT, row) != NULL_REF or _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] >= 0:
 		return &"ROUTE_ACTOR_BUSY"
-	if Handling.is_handling(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]):
+	if Handling.is_handling(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row],
+			_motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row]):
 		return _assembly_ready(row, worker, job)
 	_in_callback = true
 	_callback_reentered = false
@@ -2632,7 +2634,7 @@ static func assembly_handled_ready_leaf_refusal(actual: RefCounted, worker: Vect
 		profile_id: int, profile_revision: int, content_revision: int) -> StringName:
 	"""A distinct complete recovery witness is required; ordinary READY or a caller-provided elapsed time is insufficient."""
 	var row: int = _source_tuple_row(actual, worker, job, profile_id, profile_revision, content_revision)
-	if row < 0 or not Handling.is_handling(profile_id): return &"ROUTE_SOURCE_TUPLE_STALE"
+	if row < 0 or not Handling.is_handling(profile_id, content_revision): return &"ROUTE_SOURCE_TUPLE_STALE"
 	return &"" if actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row] == Assembly.word(PHASE_IDLE, Assembly.Clock.HANDLED_READY) \
 		and actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] == 0 \
 		and _resident_pair_leaf(actual, R_EDGE_SLOT, row) == NULL_REF \
@@ -3188,7 +3190,8 @@ func _begin_stair_crossing(row: int) -> void:
 
 func _advance_stationary_source(row: int) -> StringName:
 	"""Headless entry/fade/recovery uses the same real endpoint proof before the sole canonical clock write."""
-	if Handling.is_handling(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]):
+	if Handling.is_handling(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row],
+			_motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row]):
 		return _assembly_transition(row, _resident_ref_leaf(self, row), _resident_pair_leaf(self, R_JOB_SLOT, row), 1)
 	if _resident_pair(R_EDGE_SLOT, row) != NULL_REF:
 		return &"ROUTE_SOURCE_CLOCK"

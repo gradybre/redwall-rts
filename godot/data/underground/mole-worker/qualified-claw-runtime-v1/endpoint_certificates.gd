@@ -7,16 +7,20 @@ extends RefCounted
 
 const Pick := preload("res://data/underground/mole-worker/qualified-assembly-v1/endpoint_certificate.gd")
 const Claw := preload("res://data/underground/mole-worker/qualified-claw-certificate-v1/endpoint_certificate.gd")
+## ADR 1229: content 10's successor (rows 43/47, tap 57, paw handling 65 on the v2 images).
+const Claw10 := preload("res://data/underground/mole-worker/qualified-claw-certificate-v2/endpoint_certificate.gd")
 
 
 static func is_claw(content: int) -> bool:
-	"""Content 9 is the claw certificate's; every earlier content is the pick's."""
-	return content == Claw.CONTENT
+	"""Content 9 and 10 are claw certificates'; every earlier content is the pick's."""
+	return content == Claw.CONTENT or content == Claw10.CONTENT
 
 
 static func prepared_record_refusal(actual_locations: RefCounted, original_context: RefCounted,
 		record: RefCounted, snapshot_volume_row: int) -> StringName:
 	"""The record proof of the certificate bound to the installation's content."""
+	if original_context != null and original_context.profile_revision == Claw10.CONTENT:
+		return Claw10.prepared_record_refusal(actual_locations, original_context, record, snapshot_volume_row)
 	if original_context != null and is_claw(original_context.profile_revision):
 		return Claw.prepared_record_refusal(actual_locations, original_context, record, snapshot_volume_row)
 	return Pick.prepared_record_refusal(actual_locations, original_context, record, snapshot_volume_row)
@@ -24,6 +28,8 @@ static func prepared_record_refusal(actual_locations: RefCounted, original_conte
 
 static func prepared_span_refusal(actual: RefCounted, first: Vector3i, last: Vector3i, volume_row: int) -> StringName:
 	"""The span proof of the certificate bound to the installation's content."""
+	if actual != null and actual._installation != null and actual._installation.profile_revision == Claw10.CONTENT:
+		return Claw10.prepared_span_refusal(actual, first, last, volume_row)
 	if actual != null and actual._installation != null and is_claw(actual._installation.profile_revision):
 		return Claw.prepared_span_refusal(actual, first, last, volume_row)
 	return Pick.prepared_span_refusal(actual, first, last, volume_row)
@@ -31,7 +37,7 @@ static func prepared_span_refusal(actual: RefCounted, first: Vector3i, last: Vec
 
 static func excuses_pending(profile: int, content: int) -> bool:
 	"""Only the certified narrow approach and retreat at heading 0 may omit a pending bearer (ADR1205): claw rows
-	43/47 in content 9, pick rows 2/6 before it."""
+	43/47 in contents 9 and 10, pick rows 2/6 before them."""
 	if is_claw(content):
 		return profile == Claw.Pins.CLAW_APPROACH_ROWS[0] or profile == Claw.Pins.CLAW_RETREAT_ROWS[0]
 	return profile == 2 or profile == 6

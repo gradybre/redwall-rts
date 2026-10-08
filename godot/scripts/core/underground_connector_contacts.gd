@@ -1762,7 +1762,8 @@ func _assembly_source_selected() -> bool:
 	var actual: Workpieces = _workpiece_owner()
 	return actual != null and _ordinal >= 0 and _ordinal < actual._assembly_capacity \
 		and actual._parts.size() == 6 * actual._assembly_capacity \
-		and Handling.is_handling(actual._parts[Workpieces.PROFILE * actual._assembly_capacity + _ordinal])
+		and Handling.is_handling(actual._parts[Workpieces.PROFILE * actual._assembly_capacity + _ordinal],
+			actual._header[Workpieces.H_PROFILES])
 
 
 func _handling_row() -> int:
@@ -1831,7 +1832,7 @@ func _assembly_start_worker_leaf(job: Vector2i, worker: Vector2i, row: int) -> S
 		return code if code != &"" else REFUSE_WORKER
 	code = Routes.source_ready_leaf_refusal(graph, worker, job, _handling_row(), 1, _frontier._header[5])
 	if code == &"": code = Handling.source_station(actual, _placement, _selection)
-	if code == &"": code = Handling.bearer_refusal(_ordinal, _location.point, _target)
+	if code == &"": code = Handling.bearer_refusal(_ordinal, _location.point, _target, _selection.content_revision)
 	if code == &"": code = _assembly_start_geometry()
 	if code == &"": code = _worker_retreat_leaf(worker, job)
 	return _occupancy_leaf(worker, _handling_row()) if code == &"" else code
@@ -1841,7 +1842,7 @@ func _assembly_start_geometry() -> StringName:
 	"""The full source fits current real air and footing before its future obstacle is published; no target is subtracted."""
 	if _terrain._checked_geometry_revision != _geometry_revision \
 			or not Terrain._final_owners_match(_terrain, _placements._space._sources): return REFUSE_BINDING
-	for part: int in Handling.part_count(_selection.profile_id):
+	for part: int in Handling.part_count(_selection.profile_id, _selection.content_revision):
 		var code: StringName = Handling.box_into(_selection, part, _bounds)
 		if code == &"": code = _assembly_start_volume(part == 1)
 		if code != &"": return code
@@ -1880,12 +1881,20 @@ func _assembly_start_regions(foot: bool) -> StringName:
 			continue
 		if foot and Handling.own_room_marker(owner, region, _location.room): continue
 		var role: int = owner._r_role[region]
-		if role == Space.SUPPORTED_VOID:
+		if role == Space.SUPPORTED_VOID or (not foot and _tread_timber(owner, region)):
 			if not foot and not _fragments.subtract(_scratch): return REFUSE_CAPACITY
 		elif role == Space.DRY_SOLID or role == Space.SUPPORT:
 			if not foot: return REFUSE_GEOMETRY
 		elif role != Space.FLOOR_DATUM and role != Space.PROTECTED_ACCESS: return REFUSE_GEOMETRY
 	return &""
+
+
+func _tread_timber(owner: Owner, region: int) -> bool:
+	"""ADR 1229: at a tread station (content 10, T1-T6) the body may meet the station Room's own installed SUPPORT,
+	the timber its approved proofs stood among (tread-fit-v1); everywhere else SUPPORT blocks a body."""
+	return _frontier._header[5] == Handling.Paw10.CONTENT and Handling.PawPhysical10.Tread.is_tread(_ordinal) \
+		and owner._r_role[region] == Space.SUPPORT and owner._r_claim_kind[region] == Owner.CLAIM_NONE \
+		and Vector2i(owner._r_owner_slot[region], owner._r_owner_generation[region]) == _location.room
 
 
 func _handling_leaf(worker: Vector2i, job: Vector2i) -> StringName:

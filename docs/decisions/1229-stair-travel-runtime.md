@@ -107,6 +107,7 @@ columns. A new column would be a declared schema change with its own record.
   - It is not active: the catalog and Session still load content 9.
 - **Increment 3 (stair program, stair tables, Routes and WorldRoutes), done.** Details and the engineering choices
   below (§ Increment 3).
+- **Increment 4 (content 10's handling layer), done.** Below (§ Increment 4).
 
 ## Increment 3 — the stair program and stair edges in Routes and WorldRoutes (2026-10-08)
 
@@ -162,3 +163,28 @@ columns. A new column would be a declared schema change with its own record.
 - Tread Locations and the pending bearer: the arrival (169 u) and ascent start (343 u) of T_{k−1} physically overlap
   T_k's staged bearer (ADR 1209 step 5), so their Locations and stair edges must not exist while it is pending.
   They are retracted before FUND and restored after the installation commits (increment 5/6).
+
+## Increment 4 — content 10's handling layer (2026-10-08)
+
+Content 10 moves the rows the handling layer named by number: content 9's paw handling row 59 is a claw tap there,
+the yaw-0 seating tap 52 is the step forward. So the layer now reads every row under its content:
+
+- **The handling selector** (`qualified-claw-runtime-v1/handling_programs.gd`) takes the content with the row:
+  `is_handling`, `is_install_tap`, `clock_refusal`, `source_of`, `role_count`, `part_count`, `bearer_refusal` and
+  `part_refusal`; the physical proofs read the selection's content. Routes, WorldRoutes, Contacts, ConnectorWork and
+  Workpieces pass it. Content 9's behaviour is unchanged (its suites pass unchanged).
+- **Content 10's programs** (`qualified-claw-runtime-v2/`): `paw_program.gd` for rows 65 (L0/T0) and 66 (the treads)
+  on the paw v2 image (clips 0-2 and 3-5); `paw_physical_certificate.gd`, whose L0/T0 stations keep the pick
+  certificate's roots, prisms, transforms and real-air volumes with tap 57; `tread_geometry.gd`, ADR 1209's derived
+  stations and staged bearers (T_k's left bearer is part 7(k+1)+1 turned as T0's part 8, translated by T0's
+  translation plus d − R(d) for the tread offset d; the sill's bearer 64 u lower).
+- **Tread stations** are proved against their own fixture: the station body may meet the station Room's own installed
+  SUPPORT (the timber the tread fitting proof stood among: the deck behind, the bearers and posts) besides void, the
+  certified pending bearer and exterior air; the stance must lie in the station's footing. Tap 64 is certified at a
+  tread station over its derived prism (DEC-058: the bearer was hard for every triangle, tread and sill).
+- **The claw endpoint certificate successor** (`qualified-claw-certificate-v2/`) serves L0 and T0 on content 10
+  (rows 43/47/57/65); `endpoint_certificates.gd` routes content 10 to it.
+- **The Frontier** admits a station whose WORK row is the tread fitting motion (`CONTACT_TREAD_FIT`, DEC-058) beside
+  the exact anchor-and-patch contact, and an episode with no bearing under it (the seventh row, D2).
+- Tests: `test_claw_tread_programs.gd` (5). The routes, world routes, contacts, first prefix, haul grip and hauled
+  assembly suites pass unchanged on content 9.

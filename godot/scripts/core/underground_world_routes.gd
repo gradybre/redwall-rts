@@ -518,7 +518,8 @@ static func workpiece_occupancy_checks(actual: RefCounted) -> int:
 	for row: int in Routes.RESIDENT_CAPACITY:
 		if graph._resident_ref(row) != Routes.NULL_REF:
 			checks += 512 + 64 * Profiles.MAX_SELECTION_BOXES
-			if Handling.is_handling(graph._motion.resident[Routes.R_PROFILE * Routes.RESIDENT_CAPACITY + row]):
+			if Handling.is_handling(graph._motion.resident[Routes.R_PROFILE * Routes.RESIDENT_CAPACITY + row],
+					graph._motion.resident_long[Routes.R_CONTENT_REVISION * Routes.RESIDENT_CAPACITY + row]):
 				checks += 2048
 	return checks
 
@@ -563,7 +564,8 @@ static func _workpiece_occupant_boxes(actual: RefCounted, graph: Routes, bounds:
 			actual._support[axis + 3] = high
 		if Space.overlaps(bounds, actual._support):
 			return _assembly_candidate_certificate(actual, graph, bounds, selection) \
-				if Handling.is_handling(selection.profile_id) or Handling.is_install_tap(selection.profile_id) \
+				if Handling.is_handling(selection.profile_id, selection.content_revision) \
+						or Handling.is_install_tap(selection.profile_id, selection.content_revision) \
 				else &"ROUTE_OCCUPIED"
 	return &""
 
@@ -594,13 +596,13 @@ static func _candidate_source_refusal(actual: RefCounted, pieces: Workpieces, co
 		selection: Profiles.Selection, bounds: PackedInt32Array) -> StringName:
 	"""The handling row's source, root and full bearer; or (ADR1217 step 5) the triangle-proved claw seating tap."""
 	var root: Vector3i = Vector3i(selection.x, selection.y, selection.z)
-	if Handling.is_install_tap(selection.profile_id):
+	if Handling.is_install_tap(selection.profile_id, selection.content_revision):
 		return &"" if Handling.tap_certified(actual._profiles, selection.profile_id, selection.profile_revision,
 			selection.content_revision, context.assembly, root, bounds) else &"ROUTE_OCCUPIED"
 	var code: StringName = Handling.profile_refusal(actual._profiles, selection.profile_id,
 		selection.profile_revision, selection.content_revision)
 	if code == &"": code = Handling.source_station(pieces, context.placement, selection)
-	return Handling.bearer_refusal(context.assembly, root, bounds) if code == &"" else code
+	return Handling.bearer_refusal(context.assembly, root, bounds, selection.content_revision) if code == &"" else code
 
 
 static func _assembly_candidate_stage_refusal(actual: RefCounted, graph: Routes, issuer: RefCounted,
@@ -2099,7 +2101,8 @@ static func _assembly_release_selection(graph: Routes, pieces: Workpieces, place
 	if code != &"" or row < 0 or row >= Routes.RESIDENT_CAPACITY: return REFUSE_CONTEXT
 	code = Routes.turn_selection_into(graph, row, graph._selection)
 	if code != &"": return code
-	if not Handling.is_handling(graph._selection.profile_id) and not Handling.is_install_tap(graph._selection.profile_id):
+	if not Handling.is_handling(graph._selection.profile_id, graph._selection.content_revision) \
+			and not Handling.is_install_tap(graph._selection.profile_id, graph._selection.content_revision):
 		return REFUSE_CONTEXT
 	return Routes.source_ready_leaf_refusal(graph, worker, job, graph._selection.profile_id,
 		graph._selection.profile_revision, graph._selection.content_revision)
@@ -2115,7 +2118,7 @@ static func assembly_release_leaf_refusal(actual: RefCounted, pieces: Workpieces
 	var row: int = Owner.CoreSources._final_row(graph._ids, worker, Routes.Directory.KIND_RESIDENT)
 	if pieces._live.present[placement.x] == 0:
 		var project_row: int = Workpieces._project_row(pieces, placement, project)
-		if not Handling.is_handling(graph._selection.profile_id) or project_row < 0 \
+		if not Handling.is_handling(graph._selection.profile_id, graph._selection.content_revision) or project_row < 0 \
 				or Workpieces._funded(pieces, project, project_row) \
 				or pieces._router._construction._work_begun[project_row] != 0:
 			return REFUSE_CONTEXT
@@ -2126,7 +2129,7 @@ static func assembly_release_leaf_refusal(actual: RefCounted, pieces: Workpieces
 				graph._motion.resident[(Routes.R_LOCATION_SLOT + 1) * Routes.RESIDENT_CAPACITY + row]), graph._selection)
 	else:
 		code = Workpieces.live_leaf_refusal(pieces, placement, project)
-		if code == &"" and Handling.is_install_tap(graph._selection.profile_id):
+		if code == &"" and Handling.is_install_tap(graph._selection.profile_id, graph._selection.content_revision):
 			code = Workpieces.handled_leaf_refusal(pieces, placement, project)
 		if code == &"": code = Handling.physical_refusal(actual, graph, pieces, placement, project, worker, job, graph._selection)
 	return Routes._assembly_occupants_leaf(graph, row) if code == &"" else code

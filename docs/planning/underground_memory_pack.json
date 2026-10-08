@@ -1332,42 +1332,42 @@
         "capacity": 6,
         "bytes": 24,
         "resize_expression": "6",
-        "line": 132
+        "line": 133
       },
       "_digests": {
         "width": 1,
         "capacity": 160,
         "bytes": 160,
         "resize_expression": "160",
-        "line": 129
+        "line": 130
       },
       "_header": {
         "width": 8,
         "capacity": 9,
         "bytes": 72,
         "resize_expression": "9",
-        "line": 128
+        "line": 129
       },
       "_parts": {
         "width": 4,
         "capacity": 1536,
         "bytes": 6144,
         "resize_expression": "6 * assemblies",
-        "line": 130
+        "line": 131
       },
       "_profile_revisions": {
         "width": 8,
         "capacity": 256,
         "bytes": 2048,
         "resize_expression": "assemblies",
-        "line": 131
+        "line": 132
       },
       "_scratch": {
         "width": 4,
         "capacity": 6,
         "bytes": 24,
         "resize_expression": "6",
-        "line": 133
+        "line": 134
       }
     },
     "two_bank_bytes": 10752,
@@ -4224,8 +4224,8 @@
         "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
         "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
         "godot/scripts/core/underground_profiles.gd": "4adcdc2be52254d7c9ca73f7790b64cdd58e62f35d512dbd6f47a9f573d17d28",
-        "godot/scripts/core/underground_routes.gd": "c2ffab033eabde66ed135350ff04f71825b8c56cbb83672d3768181a3d0236be",
-        "godot/scripts/core/underground_world_routes.gd": "5df1dcd545b1e1700138ff45beb62c10a7a89d892f2c5af64f1aeba991e59b05"
+        "godot/scripts/core/underground_routes.gd": "1d13b09767ad6ce49cb149419a182bcf5c2e94f145dbaa5847336ebc84ce14d1",
+        "godot/scripts/core/underground_world_routes.gd": "02afcf4b5af55f73bf747113d6ab08b98adf7273bdfe2763d1957217deb204b2"
       }
     },
     "current_profile_control": {
@@ -44261,14 +44261,14 @@
     "godot/scripts/core/underground_budget.gd": "7319d3e2479436bb1bcdb28b1d70d094b9f820b378f9167cd32f2c0a024b8641",
     "godot/scripts/core/underground_connector_assemblies.gd": "3199049decf5b6ca95da09bb416196d82a96e89af194166b196df29f1cf7b73c",
     "godot/scripts/core/underground_connector_catalog.gd": "bab9c370eb6253d65c12cb330ee90e06f4fb7f02493a47ef27784ad2fdd1cbdb",
-    "godot/scripts/core/underground_connector_contacts.gd": "cf8dab150579ceba6d4e4473a370dc1f0d38a226e7b4307beb91918682faa853",
+    "godot/scripts/core/underground_connector_contacts.gd": "71a9b5d40a7ee416b5ee7891c5712a2c10f6d718df18ebf4485fe0c465c6b7fa",
     "godot/scripts/core/underground_connector_delivery.gd": "7cbdb906be067d3d45473c2fabfb414f7ca5f0c358bc58b1fabe04947b0b12ea",
     "godot/scripts/core/underground_connector_placements.gd": "cc9bde333e23d17a923532e2a443f46f3e92326113949294fe40ec8a118645cc",
     "godot/scripts/core/underground_connector_recipes.gd": "a23c0f6087597b1c3bee978f9008824af86856dca6ddaba1b6bc41d1d03cba1a",
-    "godot/scripts/core/underground_connector_work.gd": "6fd07f67b2aaecf39e3aaccc55251f1b715dcdcb886d6b00fa89714985a9f575",
-    "godot/scripts/core/underground_connector_workpieces.gd": "ae18e3df95343046ef941e1f5e761827f474aea7c1d37ea0b54e43444bcc1907",
+    "godot/scripts/core/underground_connector_work.gd": "491db9b077295a1dc4c028817d7fcf86e4cfa95544e9377e83fb7082b4fdf647",
+    "godot/scripts/core/underground_connector_workpieces.gd": "4932c58d3530ece356ac7f45df624c76f536e6ebab11cecac20ddf5a0660d9bc",
     "godot/scripts/core/underground_entry_bindings.gd": "7ede793c3b30b3d103410c9b5c11f3f5ae262789d573ad71ec9bf68ebe6e7be6",
-    "godot/scripts/core/underground_entry_frontier.gd": "a13de97fa8c528739db9e9ce73322f0d3ba580e7f6f6555aba44a68684b3886c",
+    "godot/scripts/core/underground_entry_frontier.gd": "964240d5f87f9f116a644c6f15c516e7b28d8b4390f454dcba0070e4a4b6148b",
     "godot/scripts/core/underground_entry_plan.gd": "2103c7a93431b3bc6acfe4dc7934aaaabe557c1d978e5d2db5152ea2816aac7e",
     "godot/scripts/core/underground_entry_structure.gd": "4965b8e314171f5c1445d816b3b2c18d87f35dee0f5129371d15a1b1d2a7cefa",
     "godot/scripts/core/underground_entry_world_bindings.gd": "f7c89ea91adbaba9e2091ad12446019848977d4af6789be3eb9f14fb4351783c",
@@ -44280,7 +44280,7 @@
     "godot/scripts/core/underground_profiles.gd": "4adcdc2be52254d7c9ca73f7790b64cdd58e62f35d512dbd6f47a9f573d17d28",
     "godot/scripts/core/underground_room_world_bindings.gd": "d012c526a267fc7aecb365e7a6afa40d00d931f2b710b1122fc19705f556f8b1",
     "godot/scripts/core/underground_route_composition.gd": "a4ec922b891d57aa8494d5fc1c56767512294352db1860dea1e0dcbce185f71d",
-    "godot/scripts/core/underground_routes.gd": "c2ffab033eabde66ed135350ff04f71825b8c56cbb83672d3768181a3d0236be",
+    "godot/scripts/core/underground_routes.gd": "1d13b09767ad6ce49cb149419a182bcf5c2e94f145dbaa5847336ebc84ce14d1",
     "godot/scripts/core/underground_session.gd": "23b5f7a1e77aed78070924584fdc2be02429c456289a5f564f0ca1edcfca6711",
     "godot/scripts/core/underground_space_authority.gd": "3377e00f509e833e618330237c65fa7a18aaf20a4876b5b16322bbdab7d4ec5b",
     "godot/scripts/core/underground_space_owner.gd": "c5aea1c3904c621552f67537f303799d51c7ab1adbe2478cef2fbdfd81e955d5",
@@ -44288,7 +44288,7 @@
     "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
     "godot/scripts/core/underground_work_face.gd": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
     "godot/scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
-    "godot/scripts/core/underground_world_routes.gd": "5df1dcd545b1e1700138ff45beb62c10a7a89d892f2c5af64f1aeba991e59b05",
+    "godot/scripts/core/underground_world_routes.gd": "02afcf4b5af55f73bf747113d6ab08b98adf7273bdfe2763d1957217deb204b2",
     "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310"
   },
   "registry_sha256": "6ed6974b635ef777fda440ddcd743d24c1607b54fdbff1b58e439a302fcff715",

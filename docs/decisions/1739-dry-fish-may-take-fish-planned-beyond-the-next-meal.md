@@ -89,6 +89,16 @@ touching no existing line.
     - (b) only meals of a later day.
   - **Recommendation:** (a), which is the ruling as worded; the measurement below shows the next point matters more.
 
+**Re-review of `61d2da9b` (the same reviewer, waited for).**
+- **Every finding above confirmed fixed.** No CRITICAL, HIGH or MEDIUM remains.
+- **Its 16 mutants, adapted to the new code, all killed.**
+- **Four LOWs, left as they are** (the code stays as gated):
+  - `_take_spare_fish` builds its refusal words and drops them, and `order_batch` repeats them as a literal;
+  - a refused order may leave fish the kitchen gave back free until the kitchen's next hour, which is harmless; the
+    reviewer found no path to it;
+  - the take-0 test can no longer fail now that the guard is gone; it is kept as documentation;
+  - one assertion in the calendar test (`the village ran`) checks only the set-up.
+
 ## The measurement (staged; 3 seeds; the report's follow-up section, "Fish for the rack")
 
 Provisioning rerun on `f86d79c2`; the review's fixes after it change nothing at the 06:00 round: **rations still never made; Dry fish refused NO_FISH on 47 of 48 mornings; missed
@@ -102,5 +112,15 @@ fish-high 12):
 - **At the 06:00 round,** when the scripted player orders preserving, the later meals' fish is at the kitchen
   (8 U on day 3). That is never the rack's under this ruling, which takes only fish still in its store.
 
-So the rule works as ruled, but its window is about one game hour after each catch. A further question for Brendan is in
-the report.
+So the rule works as ruled, but its window is about one game hour after each catch.
+
+**A probe of the window** (uncommitted: the scripted player also tries Dry fish every hour). The rack ran 7–8 batches a
+year, making 21–24 U of dried fish:
+- **Every unit was eaten.** Dried fish is directly edible, and the residents were hungry.
+- **No flour was ground.** Flour waits for dried fish and nuts to be free together.
+- **So rations were still 0,** and meals missed were still 210–242.
+
+**F5, a question for Brendan.** It is in the report and asks whether dried fish should be kept for rations. The options:
+- (a) keep it for rations: recommended;
+- (b) let the rack take fish already fetched;
+- (c) leave it.

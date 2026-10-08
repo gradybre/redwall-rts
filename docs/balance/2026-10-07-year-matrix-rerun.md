@@ -53,6 +53,50 @@ still misses 189 of 216.
 | F4 | Mead's and cider's sink | waits on FEAST's Harvest and Orchard feasts (P3 (a)) | mead 36–44 U and cider 8–16 U a year still unpoured |
 
 
+## Follow-up: fish for the rack (2026-10-08; decision 1739)
+
+Brendan ruled on F1–F4 on 2026-10-08 (decision 1731):
+- **F1:** wait for hunger to have a cost (E8);
+- **F2:** waits with F1;
+- **F3 (a):** Dry fish may take fish the kitchen planned beyond the next meal, never the next meal's;
+- **F4:** waits on FEAST.
+
+F3 (a) is built on branch `feat/demo-rack-fish` (decision 1739). Staged provisioning, 3 seeds; the summaries and CSVs
+are in [rack-fish/](2026-10-07-year-matrix-rerun/rack-fish/):
+
+| Provisioning run | Meals missed (of 864) | Winter missed (of 216) | Dried fish made (U) | Rations made | Dry fish refused NO_FISH (mornings) |
+|---|---|---|---|---|---|
+| Before 1739 (default fishing, 4 U) | 210–225 | 68–93 | 3 | 0 | 47 |
+| **1739, default fishing** | 190–226 | 62–88 | 3 | **0** | 47 |
+| Before 1739, `--fish-high 12` | 203–221 | 74–85 | 3 | 0 | 47 |
+| **1739, `--fish-high 12`** | 216–223 | 74–85 | 3 | **0** | 47 |
+| Probe: 1739, the scripted player also tries Dry fish every hour (not committed) | 210–242 | 79–93 | 21–24 | **0** | – |
+
+**Did rations get made, and did missed meals move? No, and no.**
+
+- **The kitchen fetches too soon for the 06:00 round.**
+  - **The window.** Logged hour by hour, the kitchen reserves a landed catch for meals beyond the next one (6–8 U of
+    "spare" fish), and the cook fetches it to the kitchen **within the same game hour**. The ruling's window is about
+    an hour after each catch.
+  - **What the round sees.** At the scripted player's 06:00 round, the later meals' fish is already at the kitchen,
+    which is never the rack's: the rack takes only fish still in its store.
+- **Within the window, the dried fish is eaten raw.** An uncommitted probe tried Dry fish every hour; its patch is one
+  `elif` in `provisioning_policy.gd`'s `on_hour` that orders `R_DRY_FISH` when no batch is open and its refusal is empty.
+  - **The rack runs.** 7–8 batches a year, 21–24 U of dried fish.
+  - **But it is all eaten.** Dried fish is directly edible at 1800 NP (GDD §5.7), so hungry residents eat every unit before a batch of
+    rations can set it aside.
+  - **So no flour is ground either.** The scripted player grinds flour only once dried fish and nuts are both free
+    (the chain order of decision 1731), and in the probe the dried fish was gone by the next 06:00 round, so
+    `Pack rations` still reads `NO_FLOUR` (the first input checked) on all 48 mornings.
+  - **So the outcome is the same.** Rations are still never made, and missed meals do not move: the fish goes from
+    the table to the rack and back to the residents.
+
+**A new question for Brendan:**
+
+| # | Question | Options (recommended first) | Evidence |
+|---|---|---|---|
+| F5 | Rations need dried fish to be kept, not eaten | **(a) keep dried fish for rations:** dried fish is not eaten raw while a ration batch lacks it (close to 1611 P3's option (b), a ration reserve the cook keeps topped up, and the GDD's WorldPolicy `ration_reserve_milli`); (b) let the rack take fish already fetched for meals beyond the next (the rack's fetch from the kitchen's larder); (c) leave it, since rations are a winter reserve the player orders by hand | 21–24 U of dried fish a year, all eaten raw, with an hourly rack; 0 rations in every run |
+
 ## Findings (written by hand; the generated report follows)
 
 The first full rerun of the year matrix since the [2026-10-01 baseline](2026-10-01-first-year-baseline.md).

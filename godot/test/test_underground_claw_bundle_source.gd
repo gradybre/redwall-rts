@@ -1,7 +1,7 @@
 extends "res://test/framework/test_case.gd"
 ## ADR 1217 step 4e: the claw first-entry bundle (`qualified-claw-v6`) through the actual Catalog, Recipes,
-## Assemblies and Frontier readers, against content 9 loaded in a fixture Profiles store. The mounted Session keeps
-## content 6: nothing here switches the active content or grants a Location, route or Job.
+## Assemblies and Frontier readers, against content 9 loaded in a fixture Profiles store. Since ADR 1217 step 5 the
+## mounted Session runs this bundle too; nothing here grants a Location, route or Job.
 
 const Host := preload("res://scripts/systems/settlement_system.gd")
 const Session := preload("res://scripts/core/underground_session.gd")
@@ -96,7 +96,7 @@ func test_structure_binds_the_claw_source_and_its_ground_caps() -> void:
 	var o: Session.Retirement.Owners = _session._retirement_owners
 	assert_equal(o.routes._live.edge_count, 0, "no route")
 	assert_equal(o.locations._live.count, 0, "no endpoint")
-	assert_equal(o.world_routes._catalog._live.header[8], Stone.CONTENT_REVISION, "the mounted content is unchanged")
+	assert_equal(o.world_routes._catalog._live.header[8], Bundle.CONTENT_REVISION, "the mounted content is the claw bundle's")
 
 
 func test_frontier_loads_with_claw_stations_at_1430_and_mapped_travel() -> void:

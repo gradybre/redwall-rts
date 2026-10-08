@@ -18,6 +18,8 @@ const Budget := preload("res://scripts/core/underground_budget.gd")
 const Space := preload("res://scripts/core/room_space.gd")
 const Jobs := preload("res://scripts/core/jobs.gd")
 const AssemblySource := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
+## ADR1217 step 5: the paw handling program (row 59, source 5) is the active set-down program; row 29 stays dormant.
+const PawSource := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/paw_program.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const MAX_PLACEMENTS: int = 256
 const MAX_ASSEMBLIES: int = Catalog.MAX_PARTS
@@ -458,7 +460,8 @@ static func _profile_leaf(a: RefCounted, assembly: int) -> StringName:
 			or p._live.fields[Profiles.F_WORK_KIND * capacity + row] != Jobs.JOB_KIND_BUILD:
 		return REFUSE_PROFILE
 	if p._live.fields[Profiles.F_CONTACT_KIND * capacity + row] == Profiles.CONTACT_ASSEMBLY_PALM:
-		var code: StringName = AssemblySource.profile_refusal(p, row, a._profile_revisions[assembly], a._header[H_PROFILES])
+		var code: StringName = PawSource.profile_refusal(p, row, a._profile_revisions[assembly], a._header[H_PROFILES]) \
+			if row == PawSource.PROFILE else AssemblySource.profile_refusal(p, row, a._profile_revisions[assembly], a._header[H_PROFILES])
 		return code if code != &"" else AssemblySource.part_refusal(assembly,
 			a._parts[PART * a._assembly_capacity + assembly], a._parts[ROTATION * a._assembly_capacity + assembly],
 			Vector3i(a._parts[X * a._assembly_capacity + assembly],

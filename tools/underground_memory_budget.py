@@ -1032,9 +1032,11 @@ def build(index: dict | None = None) -> dict:
                     "current_itinerary_and_callers": room_extensions["itinerary"],
                     "additional_reserved_bytes": 0, "native_measured": False}
         clock = clock_memory.build(index, motion)
-        session = session_memory.build(historical, old_motion, reserves["PROFILE_BYTES"])
-        retirement = retirement_memory.build(historical, session, reserves["PROFILE_BYTES"])
-        ui_reset = ui_reset_memory.build(historical, retirement, reserves["PROFILE_BYTES"])
+        # ADR1217 step 5: the historical 1156 censuses replay inside their own (historical) PROFILE_BYTES.
+        historical_profile = resolve(historical, "underground_budget", "PROFILE_BYTES")
+        session = session_memory.build(historical, old_motion, historical_profile)
+        retirement = retirement_memory.build(historical, session, historical_profile)
+        ui_reset = ui_reset_memory.build(historical, retirement, historical_profile)
         room_memory.reconcile(room_extensions, index, session, retirement, ui_reset, motion)
         current = current_census.build(index, room_extensions["projected_reviewed_inputs"], motion)
     except ValueError as error:

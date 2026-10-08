@@ -92,9 +92,10 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "1458308f32cd2bc69d30d885413d5d0e4bec5d89fb20210900a7a5d59db6d345"
-FRONTIER = Path("godot/data/underground/first-entry-prefix-v1/qualified-stone-v5/frontier.ugfront")
-FRONTIER_SHA = "2d5c36163ed5e5f8e96a3f1b0611d85937c075abcb8b02c7d7f01f7cf0738660"
+REVIEWED_SHA = "5dad9f216888e1c8e9b463e61bd2e586a0efb8074eb17410be17ff9618819f02"
+# ADR1217 step 5: the runtime Frontier is the claw bundle's (same row census as qualified-stone-v5's).
+FRONTIER = Path("godot/data/underground/first-entry-prefix-v1/qualified-claw-v6/frontier.ugfront")
+FRONTIER_SHA = "0d81d4f439912f737a5848d29cbfce4ad612da30b85f2d7fe38b5c23e0e8dfc7"
 CORE = "godot/scripts/core/"
 
 
@@ -446,7 +447,7 @@ def build(index: dict, projected: list, motion: dict) -> dict:
             charged[charge["carried_by"]] += charge["bytes"]
     require(charged.get("new contribution", 0) == journals["bytes"] + locations["bytes"],
             "reviewed new-contribution rows disagree with the recount")
-    require(motion["joint"]["total"] + 1536 + 8192 <= 262144, "PROFILE_BYTES joint")
+    require(motion["joint"]["total"] + 1536 + 8192 <= 278528, "PROFILE_BYTES joint") # ADR1217 step 5
     return {"scope": __doc__.strip().splitlines()[0], "reviewed_inputs": rows, "charged_by_carrier": charged,
             "geometry_journals": journals, "locations_controls": locations, "first_entry_runtime": entry,
             "world_routes_controls": controls, "world_routes_cold": cold, "contact_retirement_cold": retirement,

@@ -9,14 +9,15 @@ const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
 const Movement := preload("res://scripts/core/movement.gd")
 const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stone-v5/catalog_source.gd")
+## ADR1217 step 5: the claw first-entry bundle (content 9, Frontier on source 4, workpieces on source 5).
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-claw-v6/catalog_source.gd")
 const PROFILE_CONTENT_REVISION: int = Bundle.CONTENT_REVISION
 # ADR1190/1195: the mounted graph selects the published first-entry structure, which carries the same
 # ground paces plus the L0/T0 regions; selecting it before the first WorldRoutes binding is final.
 const CATALOG_REVISION: int = Bundle.CATALOG_REVISION
 const CATALOG_PATH: String = Bundle.CATALOG_PATH
 const CATALOG_SHA: String = Bundle.CATALOG_SHA
-const GROUND_PACE_COUNT: int = 15 # ADR1200/1206: twelve ground rows, tool-free WALK 31, CARRY 32 and stone CARRY 37.
+const GROUND_PACE_COUNT: int = 24 # ADR1200/1206/1217: content 6's fifteen, claw WALK 42 and the narrow claw rows 43-50.
 
 const CATALOG_DIGEST_0: int = Bundle.CATALOG_DIGEST_0
 const CATALOG_DIGEST_1: int = Bundle.CATALOG_DIGEST_1

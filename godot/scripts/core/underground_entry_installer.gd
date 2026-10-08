@@ -2,6 +2,8 @@ extends RefCounted
 ## ADR1196 increment 2: fixed-tick paid installation of one first-entry assembly after its cuts settle.
 ## Order, approach legs, handling and INSTALL profiles come from the Frontier install row and the assembly
 ## source; payment, retirement, handling promotion and commit are the real owners' own transactions.
+## ADR1217 step 5 (DEC-052): the bearer is handled and seated by paw. The order's Job needs no tool, nothing is
+## claimed, and the handling row is the set-down program Workpieces names (paw row 59 on source 5).
 
 const Jobs := preload("res://scripts/core/jobs.gd")
 const Routes := preload("res://scripts/core/underground_routes.gd")
@@ -11,7 +13,6 @@ const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Modular := preload("res://scripts/core/modular_project_contract.gd")
 const Reservations := preload("res://scripts/core/reservations.gd")
 const Retirement := preload("res://scripts/core/underground_entry_contact_retirement.gd")
-const Assembly := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const Space := preload("res://scripts/core/room_space.gd")
 const Hauler := preload("res://scripts/core/underground_entry_hauler.gd")
@@ -157,7 +158,7 @@ func _job_ref() -> Vector2i:
 
 
 func _open(tick: int) -> StringName:
-	"""Admit the real paid order and its sole BUILD Job, bind M, haul what M lacks, then walk to M with the tool."""
+	"""Admit the real paid order and its sole BUILD Job, bind M, haul what M lacks, then walk to M."""
 	var code: StringName = _open_order()
 	if code != &"": return code
 	var queue: PackedInt32Array = PackedInt32Array()
@@ -166,7 +167,6 @@ func _open(tick: int) -> StringName:
 	if code != &"": return code
 	var worker: int = _o.residents.directory().get_typed_row(_crew.worker)
 	var result: RefCounted = _o.jobs.assign_worker(worker, _job)
-	if result.ok: result = _o.work.claim_tool_for_work(worker, _crew.tool)
 	if not result.ok: return result.error
 	code = _travel(_plan.walk_profile, _plan.walk_revision, _plan.material, tick)
 	if code == &"": _stage = STAGE_LEG_MATERIAL
@@ -174,7 +174,7 @@ func _open(tick: int) -> StringName:
 
 
 func _open_order() -> StringName:
-	"""The real paid order, its BUILD Job with the satisfied tool gate, and M as its material container."""
+	"""The real paid order, its tool-free BUILD Job (DEC-052: paws), and M as its material container."""
 	var opened: RefCounted = _paid.router.open_order(_paid.connector, _plan.placement, _plan.ordinal)
 	if not opened.ok: return opened.error
 	_project = opened.ref
@@ -184,7 +184,7 @@ func _open_order() -> StringName:
 	if not made.ok: return made.error
 	_job = made.value
 	var result: RefCounted = _o.jobs.set_requester(_job, _project)
-	if result.ok: result = _o.jobs.set_tool_gate(_job, Jobs.GATE_SATISFIED)
+	if result.ok: result = _o.jobs.set_tool_gate(_job, Jobs.GATE_NOT_REQUIRED)
 	if result.ok: result = _paid.router.bind_job(_project, _job_ref())
 	if result.ok: result = _paid.router.bind_material_container(_project, _crew.storage)
 	return &"" if result.ok else result.error
@@ -203,7 +203,7 @@ func _units(out: PackedInt32Array) -> StringName:
 
 
 func _begin_haul(queue: PackedInt32Array, tick: int) -> StringName:
-	"""The tooled walk to M uses the last cut's travel profile, exactly as the unhauled walk does."""
+	"""The walk to M uses the last cut's travel profile, exactly as the unhauled walk does."""
 	var leg: Hauler.Leg = Hauler.Leg.new()
 	leg.target = _plan.material
 	leg.profile = _plan.walk_profile
@@ -216,24 +216,22 @@ func _begin_haul(queue: PackedInt32Array, tick: int) -> StringName:
 
 
 func _haul(tick: int) -> StringName:
-	"""Delegate to the hauler; home on M with the tool, the worker claims it, switches back to the source walk
-	profile at rest (ADR1210) and continues exactly as an arrival at M."""
+	"""Delegate to the hauler; home on M the worker switches back to the source walk profile at rest (ADR1210) and
+	continues exactly as an arrival at M."""
 	var code: StringName = _hauler.advance(tick)
 	if code != &"" or _hauler.stage() != Hauler.STAGE_DONE: return code
 	_haul_mwu += _hauler.haul_mwu()
 	_haul_trips += _hauler.trips()
 	_hauler = null
-	var result: RefCounted = _o.work.claim_tool_for_work(_o.residents.directory().get_typed_row(_crew.worker), _crew.tool)
-	if not result.ok: return result.error
 	code = _o.routes.refresh_travel_actor(_crew.worker, _job_ref(), _plan.walk_profile, _plan.walk_revision,
-		_content, 0, -1, _crew.tool)
+		_content, 0, -1, NULL_REF)
 	return _from_material(tick) if code == &"" else code
 
 
 func _travel(profile: int, revision: int, target: Vector2i, tick: int) -> StringName:
 	"""Hand the ready source to one explicit travel profile and request the real itinerary."""
 	var code: StringName = _o.routes.refresh_travel_actor(_crew.worker, _job_ref(), profile, revision,
-		_content, 0, -1, _crew.tool)
+		_content, 0, -1, NULL_REF)
 	return _o.routes.request_route(_crew.worker, target, tick) if code == &"" else code
 
 
@@ -281,14 +279,19 @@ func _leg_station(tick: int) -> StringName:
 	if arrived < 0: return &"ENTRY_INSTALLER_ROUTE_HELD"
 	if arrived == 0: return &""
 	var code: StringName = &""
-	if _actor.yaw != _yaw(Assembly.PROFILE):
+	if _actor.yaw != _yaw(_handling_profile()):
 		if not _all_yaw(_plan.approach_profile): return REFUSE_HEADING
-		code = WorldRoutes.turn_actor(_o.binding, _crew.worker, _job_ref(), _yaw(Assembly.PROFILE), Space.MAX_CHECKS)
+		code = WorldRoutes.turn_actor(_o.binding, _crew.worker, _job_ref(), _yaw(_handling_profile()), Space.MAX_CHECKS)
 	if code == &"" and _funded() and _handled(): return _resume_funded() # DEC-057: straight to INSTALL.
-	if code == &"": code = _o.routes.refresh_work_actor(_crew.worker, _job_ref(), Assembly.PROFILE,
-		_plan.handling_revision, _content, 0, -1, _crew.tool)
+	if code == &"": code = _o.routes.refresh_work_actor(_crew.worker, _job_ref(), _handling_profile(),
+		_plan.handling_revision, _content, 0, -1, NULL_REF)
 	if code == &"": _stage = STAGE_FUND
 	return code
+
+
+func _handling_profile() -> int:
+	"""ADR1217 step 5: the set-down (handling) row the bound Workpieces names for this assembly (paw row 59)."""
+	return Routes.Handling.profile_of(_paid.connector._workpieces, _plan.ordinal)
 
 
 func _handled() -> bool:
@@ -333,7 +336,7 @@ func _resume_funded() -> StringName:
 	handled again where it stands; an already handled piece goes to INSTALL, revalidated once its source works."""
 	if _handled():
 		var refreshed: StringName = _o.routes.refresh_work_actor(_crew.worker, _job_ref(), _plan.install_profile,
-			_plan.install_revision, _content, 0, -1, _crew.tool)
+			_plan.install_revision, _content, 0, -1, NULL_REF)
 		if refreshed == &"": _stage = STAGE_INSTALL_ENTER
 		return refreshed
 	var result: RefCounted = _paid.router.resume_work(_project)
@@ -355,7 +358,7 @@ func _finish_resume() -> StringName:
 
 
 func release_lost_crew(lost: Vector2i, row: int) -> StringName:
-	"""DEC-057: the lost crew's haul is cancelled and its hold on the order's Job and tool released; the piece, the
+	"""DEC-057: the lost crew's haul is cancelled and its hold on the order's Job released; the piece, the
 	paid inputs and every Work mWU stay where they are. The installation then waits in STAGE_RESUME."""
 	var code: StringName = &""
 	if _hauler != null:
@@ -364,9 +367,6 @@ func release_lost_crew(lost: Vector2i, row: int) -> StringName:
 		code = _hauler.release_lost(lost, row)
 		_hauler = null
 	if code == &"" and row >= 0 and _job >= 0 and _o.jobs.worker_of(_job) == lost:
-		if _o.work.tool_job_of(row) == _job_ref():
-			var unclaimed: RefCounted = _o.work.release_tool_claim(row)
-			if not unclaimed.ok: return unclaimed.error
 		var released: RefCounted = _o.jobs.release_worker(row)
 		if not released.ok: return released.error
 	if code == &"" and _project != NULL_REF and _funded(): _o.construction.set_assigned_count(_project, 0)
@@ -437,14 +437,14 @@ func _retire_pair() -> StringName:
 
 func _handle(tick: int) -> StringName:
 	"""Positioning ticks earn nothing; only complete recovery promotes, then INSTALL is selected."""
-	if Routes.assembly_handled_ready_leaf_refusal(_o.routes, _crew.worker, _job_ref(), Assembly.PROFILE,
+	if Routes.assembly_handled_ready_leaf_refusal(_o.routes, _crew.worker, _job_ref(), _handling_profile(),
 			_plan.handling_revision, _content) != &"":
 		_o.routes.advance_tick(tick)
 		return &""
 	var code: StringName = _paid.connector.complete_handling(_plan.placement, _project, _crew.worker, _job_ref())
 	if code == &"": code = _o.routes.request_source_ready(_crew.worker, _job_ref())
 	if code == &"": code = _o.routes.refresh_work_actor(_crew.worker, _job_ref(), _plan.install_profile,
-		_plan.install_revision, _content, 0, -1, _crew.tool)
+		_plan.install_revision, _content, 0, -1, NULL_REF)
 	if code == &"": _stage = STAGE_INSTALL_ENTER
 	return code
 
@@ -490,7 +490,7 @@ func _rest(tick: int) -> StringName:
 		return &""
 	if _o.jobs.schedule().rests_now(_o.residents.directory().get_typed_row(_crew.worker)): return &""
 	var code: StringName = _o.routes.refresh_work_actor(_crew.worker, _job_ref(), _plan.install_profile,
-		_plan.install_revision, _content, 0, -1, _crew.tool)
+		_plan.install_revision, _content, 0, -1, NULL_REF)
 	if code == &"": _stage = STAGE_INSTALL_ENTER
 	return code
 

@@ -7,9 +7,10 @@ const Routes := preload("res://scripts/core/underground_routes.gd")
 const Owner := preload("res://scripts/core/underground_space_owner.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
-const AssemblySource := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
-const AssemblyPhysical := preload("res://data/underground/mole-worker/qualified-assembly-v1/physical_certificate.gd")
-const AssemblyEndpoint := preload("res://data/underground/mole-worker/qualified-assembly-v1/endpoint_certificate.gd")
+## ADR1217 step 5: the endpoint certificate bound to the installation's content (claw rows 43/47/52/59 for content 9,
+## pick rows 2/6/16/29 before); the handling program is selected by row (pick 29 dormant, paw 59 active).
+const AssemblyEndpoint := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/endpoint_certificates.gd")
+const Handling := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/handling_programs.gd")
 const Workpieces := preload("res://scripts/core/underground_connector_workpieces.gd")
 const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Levels := preload("res://scripts/core/underground_level_catalog.gd")
@@ -517,7 +518,7 @@ static func workpiece_occupancy_checks(actual: RefCounted) -> int:
 	for row: int in Routes.RESIDENT_CAPACITY:
 		if graph._resident_ref(row) != Routes.NULL_REF:
 			checks += 512 + 64 * Profiles.MAX_SELECTION_BOXES
-			if graph._motion.resident[Routes.R_PROFILE * Routes.RESIDENT_CAPACITY + row] == AssemblySource.PROFILE:
+			if Handling.is_handling(graph._motion.resident[Routes.R_PROFILE * Routes.RESIDENT_CAPACITY + row]):
 				checks += 2048
 	return checks
 
@@ -562,7 +563,8 @@ static func _workpiece_occupant_boxes(actual: RefCounted, graph: Routes, bounds:
 			actual._support[axis + 3] = high
 		if Space.overlaps(bounds, actual._support):
 			return _assembly_candidate_certificate(actual, graph, bounds, selection) \
-				if selection.profile_id == AssemblySource.PROFILE else &"ROUTE_OCCUPIED"
+				if Handling.is_handling(selection.profile_id) or Handling.is_install_tap(selection.profile_id) \
+				else &"ROUTE_OCCUPIED"
 	return &""
 
 
@@ -585,12 +587,20 @@ static func _assembly_candidate_certificate(actual: RefCounted, graph: Routes, b
 		return &"ROUTE_OCCUPIED"
 	var code: StringName = Workpieces.prepared_bounds_leaf_refusal(pieces, context.placement, context.project,
 		context.action, context.cold_token, bounds)
-	if code == &"": code = AssemblySource.profile_refusal(actual._profiles, selection.profile_id,
+	return _candidate_source_refusal(actual, pieces, context, selection, bounds) if code == &"" else code
+
+
+static func _candidate_source_refusal(actual: RefCounted, pieces: Workpieces, context: Locations.InstallationContext,
+		selection: Profiles.Selection, bounds: PackedInt32Array) -> StringName:
+	"""The handling row's source, root and full bearer; or (ADR1217 step 5) the triangle-proved claw seating tap."""
+	var root: Vector3i = Vector3i(selection.x, selection.y, selection.z)
+	if Handling.is_install_tap(selection.profile_id):
+		return &"" if Handling.tap_certified(actual._profiles, selection.profile_id, selection.profile_revision,
+			selection.content_revision, context.assembly, root, bounds) else &"ROUTE_OCCUPIED"
+	var code: StringName = Handling.profile_refusal(actual._profiles, selection.profile_id,
 		selection.profile_revision, selection.content_revision)
-	if code == &"": code = AssemblyPhysical._source_station(pieces, context.placement, selection)
-	if code == &"": code = AssemblySource.bearer_refusal(context.assembly,
-		Vector3i(selection.x, selection.y, selection.z), bounds)
-	return code
+	if code == &"": code = Handling.source_station(pieces, context.placement, selection)
+	return Handling.bearer_refusal(context.assembly, root, bounds) if code == &"" else code
 
 
 static func _assembly_candidate_stage_refusal(actual: RefCounted, graph: Routes, issuer: RefCounted,
@@ -1152,8 +1162,9 @@ func _pending_span_refusal(first: Vector3i, last: Vector3i, row: int) -> StringN
 
 
 func _may_excuse_pending() -> bool:
-	"""Only source profiles 2 and 6 may omit a pending bearer, so their old proofs never carry (ADR1205)."""
-	return _descriptor.profile_id == 2 or _descriptor.profile_id == 6
+	"""Only the certified narrow approach and retreat at yaw 0 may omit a pending bearer, so their old proofs never
+	carry (ADR1205): claw rows 43/47 in content 9 (ADR1217 step 4e), pick rows 2/6 before it."""
+	return AssemblyEndpoint.excuses_pending(_descriptor.profile_id, _descriptor.content_revision)
 
 
 func _subtract_pending_bearer(first: Vector3i, last: Vector3i) -> bool:
@@ -1880,8 +1891,8 @@ func _assembly_admission(location: Vector2i, selection: Profiles.Selection) -> S
 	if code == &"": code = _terrain.binding_refusal()
 	if code == &"": code = _locations().read_location_into(location, _endpoint)
 	if code == &"" and pieces._live.present[placement.x] != 0: # DEC-057: a replacement re-handles the live piece.
-		code = AssemblyPhysical.refusal(self, graph, pieces, placement, project, selection.worker, selection.job, selection)
-	elif code == &"": code = AssemblyPhysical.admission_refusal(self, graph, pieces, placement, project, location, selection)
+		code = Handling.physical_refusal(self, graph, pieces, placement, project, selection.worker, selection.job, selection)
+	elif code == &"": code = Handling.physical_admission_refusal(self, graph, pieces, placement, project, location, selection)
 	return code
 
 
@@ -1892,6 +1903,13 @@ static func _assembly_pieces(graph: Routes) -> Workpieces:
 	if router == null or router._connector_owner == null or router._connector_owner.get_ref() == null: return null
 	var paid: RefCounted = router._connector_owner.get_ref()
 	return paid._workpieces as Workpieces if paid._placements != null and paid._placements._routes == graph else null
+
+
+static func _handling_profile(pieces: Workpieces, placement: Vector2i) -> int:
+	"""The handling row Workpieces names for the Placement's installed assembly, or -1."""
+	var owner: RefCounted = pieces._placements
+	if placement.x < 0 or placement.x >= owner._capacity: return -1
+	return Handling.profile_of(pieces, owner._live.i32[owner.INSTALLED * owner._capacity + placement.x])
 
 
 static func _assembly_project(pieces: Workpieces, job: Vector2i) -> Vector2i:
@@ -1916,7 +1934,7 @@ func assembly_handling_refusal(pieces: Workpieces, placement: Vector2i, project:
 		code = Workpieces.handling_leaf_refusal(pieces, placement, project, worker, job)
 		if code == &"": code = _terrain.binding_refusal()
 		if code == &"":
-			code = _profiles.query_work_profile_into(worker, job, AssemblySource.PROFILE, 1,
+			code = _profiles.query_work_profile_into(worker, job, _handling_profile(pieces, placement), 1,
 				_profiles._live.header[0], Profiles.POSTURE_UPRIGHT, -1, Routes.NULL_REF, graph._selection)
 		if code == &"" and (graph._owner._header[17] != revision \
 				or graph._locations._last_published_token != receipt or graph._transforms._mutation_revision != pose):
@@ -1972,7 +1990,7 @@ static func _assembly_release_selection(graph: Routes, pieces: Workpieces, place
 	if code != &"" or row < 0 or row >= Routes.RESIDENT_CAPACITY: return REFUSE_CONTEXT
 	code = Routes.turn_selection_into(graph, row, graph._selection)
 	if code != &"": return code
-	if graph._selection.profile_id != AssemblySource.PROFILE and graph._selection.profile_id != 16:
+	if not Handling.is_handling(graph._selection.profile_id) and not Handling.is_install_tap(graph._selection.profile_id):
 		return REFUSE_CONTEXT
 	return Routes.source_ready_leaf_refusal(graph, worker, job, graph._selection.profile_id,
 		graph._selection.profile_revision, graph._selection.content_revision)
@@ -1988,20 +2006,20 @@ static func assembly_release_leaf_refusal(actual: RefCounted, pieces: Workpieces
 	var row: int = Owner.CoreSources._final_row(graph._ids, worker, Routes.Directory.KIND_RESIDENT)
 	if pieces._live.present[placement.x] == 0:
 		var project_row: int = Workpieces._project_row(pieces, placement, project)
-		if graph._selection.profile_id != AssemblySource.PROFILE or project_row < 0 \
+		if not Handling.is_handling(graph._selection.profile_id) or project_row < 0 \
 				or Workpieces._funded(pieces, project, project_row) \
 				or pieces._router._construction._work_begun[project_row] != 0:
 			return REFUSE_CONTEXT
 		for field: int in 5:
 			if pieces._live.fields[field * pieces._capacity + placement.x] != 0: return REFUSE_CONTEXT
-		code = AssemblyPhysical.admission_refusal(actual, graph, pieces, placement, project,
+		code = Handling.physical_admission_refusal(actual, graph, pieces, placement, project,
 			Vector2i(graph._motion.resident[Routes.R_LOCATION_SLOT * Routes.RESIDENT_CAPACITY + row],
 				graph._motion.resident[(Routes.R_LOCATION_SLOT + 1) * Routes.RESIDENT_CAPACITY + row]), graph._selection)
 	else:
 		code = Workpieces.live_leaf_refusal(pieces, placement, project)
-		if code == &"" and graph._selection.profile_id == 16:
+		if code == &"" and Handling.is_install_tap(graph._selection.profile_id):
 			code = Workpieces.handled_leaf_refusal(pieces, placement, project)
-		if code == &"": code = AssemblyPhysical.refusal(actual, graph, pieces, placement, project, worker, job, graph._selection)
+		if code == &"": code = Handling.physical_refusal(actual, graph, pieces, placement, project, worker, job, graph._selection)
 	return Routes._assembly_occupants_leaf(graph, row) if code == &"" else code
 
 

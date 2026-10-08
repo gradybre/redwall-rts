@@ -16,6 +16,14 @@
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/source_program.gd-f566f5caaf49.txt",
       "sha256": "f566f5caaf49e1da47f7f3f2020750a29f4ce3e858b313b5c3eb8d0c0ca59524"
     },
+    "godot/scripts/core/construction.gd": {
+      "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/construction.gd-da07d55eb1a2.txt",
+      "sha256": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a"
+    },
+    "godot/scripts/core/excavation_sites.gd": {
+      "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/excavation_sites.gd-69797b79377b.txt",
+      "sha256": "69797b79377bf5b5b3a055126d065304668c3415460863ef958fbef72385eb74"
+    },
     "godot/scripts/core/jobs.gd": {
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/jobs.gd-d8cd5fc96ab0.txt",
       "sha256": "d8cd5fc96ab00748f16fe0b5b29f2a4ae943ed53f6fa48fbd1790ae98d4b171b"

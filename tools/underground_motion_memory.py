@@ -18,6 +18,8 @@ EXPECTED = {
     '_admitted_bytes': 'int', '_revision': 'int', '_busy': 'bool', '_poisoned': 'bool',
 }
 
+# ADR1217 step 5: the shared Motion/Profile/Level/Session/retirement reserve (was 262,144 through content 6).
+PROFILE_BYTES = 278528
 
 def require(condition, message):
     if not condition:
@@ -143,9 +145,10 @@ def build(index):
     joint = profile + level + 2*one_bank + 4096 + 176 + 4096 + 32768
     maximum_profiles = derived['maximum_profile_bytes']
     maximum_joint = joint - profile + maximum_profiles
-    # ADR1212: content 6 (42 rows, 377 boxes, 4 sources) replaces content 3 (29, 271, 1): +8,676 profile bytes.
-    require((profile, one_bank, joint, maximum_joint) == (62432, 70860, 247580, 444284), 'exact joint formula')
-    require(joint <= 262144 < maximum_joint, 'configured coexistence, no independent maxima')
+    # ADR1212: content 6 (42 rows, 377 boxes, 4 sources) replaced content 3 (29, 271, 1): +8,676 profile bytes.
+    # ADR1217 step 5: content 9 (60 rows, 517 boxes, 6 sources) replaces content 6: +11,496 profile bytes.
+    require((profile, one_bank, joint, maximum_joint) == (73928, 70860, 259076, 444284), 'exact joint formula')
+    require(joint <= PROFILE_BYTES < maximum_joint, 'configured coexistence, no independent maxima')
     return {
         'source_sha256': hashlib.sha256(source.encode()).hexdigest(),
         'status': 'SOURCE_COUNTED_COMPONENT_ONLY; no native allocation or travel/timing qualification',
@@ -169,7 +172,7 @@ def build(index):
         'foreign_call_lifetime': 'MoleCatalog runtime source hashing and exact Profile wire check run sequentially before decoding. Their existing32KiB Profiles control reserve is included once in62432, not additionally allocated. Actual Content palettes in tests have separate declared presentation reservation; none is retained by Motion.',
         'profile_configuration': derived['configuration'],
         'joint': {'profiles': profile, 'levels': level, 'paired_motion': 2*one_bank, 'decode': 4096, 'caller': 176,
-                  'logical_helper': 4096, 'native': 32768, 'total': joint, 'reservation': 262144, 'headroom': 262144-joint,
+                  'logical_helper': 4096, 'native': 32768, 'total': joint, 'reservation': PROFILE_BYTES, 'headroom': PROFILE_BYTES-joint,
                   'independent_maxima_total_refuses': maximum_joint},
         'admission_limit': 'This component assumes a single caller-owned composed source catalog. Root owns shared reservation enforcement; constructing arbitrary extra owners is not an admitted World configuration.',
     }
@@ -201,7 +204,7 @@ def joint_sources(index, memory):
     require(per_profile == resolve('underground_profiles', 'PROFILE_WIRE_BYTES') == 98, 'Profile row width')
     catalog = index['mole_profile_catalog']
     counts = tuple(resolve(catalog.name, key) for key in ('PROFILE_COUNT', 'BOX_COUNT', 'SOURCE_COUNT'))
-    require(counts == (42, 377, 4), 'current accepted publication configuration')
+    require(counts == (60, 517, 6), 'current accepted publication configuration') # ADR1217 step 5: content 9
     session = index['underground_session'].text
     require('const PROFILE_SOURCE_COUNT: int = Catalog.SOURCE_COUNT' in session
             and '_profiles.configure(Catalog.PROFILE_COUNT, Catalog.BOX_COUNT, PROFILE_SOURCE_COUNT,' in session,
@@ -219,7 +222,7 @@ def joint_sources(index, memory):
     for constant, expected in {'BANK_BYTES': 70860, 'DECODE_BYTES': 4096, 'CALLER_BYTES': 176,
                                'CONTROL_BYTES': 4096, 'NATIVE_RESERVE': 32768}.items():
         require(resolve('underground_motion_catalog', constant) == expected, 'Motion reserve: ' + constant)
-    require(resolve('underground_budget', 'PROFILE_BYTES') == 262144, 'unchanged shared PROFILE_BYTES')
+    require(resolve('underground_budget', 'PROFILE_BYTES') == PROFILE_BYTES, 'the shared PROFILE_BYTES (ADR1217 step 5)')
     require(resolve('underground_profiles', 'ARENA_BYTES') == 262144, 'unchanged Profile admission ceiling')
     return {'profile_bytes': size(counts), 'level_bytes': level, 'maximum_profile_bytes': size(maximum),
             'configuration': dict(zip(('profiles', 'boxes', 'sources'), counts))}

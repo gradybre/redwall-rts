@@ -310,8 +310,8 @@ func test_unbound_adapter_cannot_admit_or_publish_actual_routes() -> void:
 		Binding.REFUSE_BINDING, "an unbound pause release cannot stand in for physical proof")
 	assert_equal(binding.assembly_release_observation_refusal(null, NULL_REF, NULL_REF, NULL_REF, NULL_REF),
 		Binding.REFUSE_BINDING, "an observed pause has no default success")
-	assert_equal(Binding.AssemblyPhysical.install_ready_selection_refusal(null, Profiles.Selection.new()),
-		Binding.AssemblyPhysical.REFUSE, "a supplied ready-looking selection has no original canonical actor")
+	assert_equal(Binding.Handling.PickPhysical.install_ready_selection_refusal(null, Profiles.Selection.new()),
+		Binding.Handling.PickPhysical.REFUSE, "a supplied ready-looking selection has no original canonical actor")
 
 
 func _actual_fixture(obstruction: int = 0) -> void:

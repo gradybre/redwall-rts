@@ -201,7 +201,7 @@ class Probe extends PhaseFixture:
 
 	func _select_phase_actor(job: int, ordinal: int) -> void:
 		"""The first phase starts at an explicitly placed station; successors retain the same real actor and pose."""
-		var profile: int = 25 if ordinal % 2 == 0 else 17
+		var profile: int = _dig_profile(ordinal)
 		var worker: int = _world._residents.directory().get_typed_row(_world._worker)
 		if _world._routes._resident_ref(worker) != NULL_REF:
 			_move_to_source_station(job, ordinal)
@@ -212,11 +212,19 @@ class Probe extends PhaseFixture:
 		assert_true(_world._transforms.place(_world._worker, point.x, point.y, point.z, 49152 if ordinal % 2 == 0 else 16384), "explicit initial test arrival")
 		assert_equal(_world._routes.admit_work_actor(_world._worker, _world._jobs.ref_of(job), _endpoints[3 + ordinal], profile, 1, _content_revision(), 0, -1, _tool), &"", "actual source actor")
 
+	func _dig_profile(ordinal: int) -> int:
+		"""The pick downward stroke at the station's heading (25 at 49152, 17 at 16384); claw fixtures override."""
+		return 25 if ordinal % 2 == 0 else 17
+
+	func _ground_profile() -> int:
+		"""The pick canonical-ground travel row; claw fixtures override."""
+		return 12
+
 	func _move_to_source_station(job: int, ordinal: int) -> void:
 		"""Successor stations require actual perimeter travel, source recovery and a physically certified turn."""
 		var worker: int = _world._residents.directory().get_typed_row(_world._worker)
 		if _world._routes._resident_pair(Routes.R_LOCATION_SLOT, worker) == _endpoints[3 + ordinal]: return
-		assert_equal(_world._routes.refresh_travel_actor(_world._worker, _world._jobs.ref_of(job), 12, 1, _content_revision(), 0, -1, _tool), &"", "actual source WALK handoff")
+		assert_equal(_world._routes.refresh_travel_actor(_world._worker, _world._jobs.ref_of(job), _ground_profile(), 1, _content_revision(), 0, -1, _tool), &"", "actual source WALK handoff")
 		assert_equal(_world._routes.request_route(_world._worker, _endpoints[3 + ordinal], _tick), &"", "actual perimeter itinerary")
 		if not failures.is_empty(): return
 		var actor: Routes.Actor = Routes.Actor.new()
@@ -227,7 +235,7 @@ class Probe extends PhaseFixture:
 				assert_true(false, "actual perimeter route held")
 				return
 			if actor.location == _endpoints[3 + ordinal] and \
-				Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 12, 1, _content_revision()) == &"": break
+				Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), _ground_profile(), 1, _content_revision()) == &"": break
 		assert_equal(actor.location, _endpoints[3 + ordinal], "actual endpoint reached")
 		assert_equal(WorldRoutes.turn_actor(_world._binding, _world._worker, _world._jobs.ref_of(job),
 			49152 if ordinal % 2 == 0 else 16384, Space.MAX_CHECKS), &"", "actual full-envelope work-facing turn")
@@ -236,7 +244,7 @@ class Probe extends PhaseFixture:
 		"""Canonical source entry must finish through actual Routes before any paid productive START."""
 		var job: int = _open_real_phase_job(site, operation, ordinal)
 		if job < 0 or not failures.is_empty(): return -1
-		var profile: int = 25 if ordinal % 2 == 0 else 17
+		var profile: int = _dig_profile(ordinal)
 		for step: int in 240:
 			if Routes.source_work_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), profile, 1, _content_revision()) == &"": break
 			_world._routes.advance_tick(_tick); _tick += 1
@@ -270,7 +278,7 @@ class Probe extends PhaseFixture:
 		_earn_actual_phase(job)
 		if not failures.is_empty(): return false
 		assert_equal(_world._routes.request_source_ready(_world._worker, _world._jobs.ref_of(job)), &"", "real source recovery")
-		var profile: int = 25 if ordinal % 2 == 0 else 17
+		var profile: int = _dig_profile(ordinal)
 		for step: int in 240:
 			if Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), profile, 1, _content_revision()) == &"": break
 			_world._routes.advance_tick(_tick); _tick += 1

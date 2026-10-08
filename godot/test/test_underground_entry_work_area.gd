@@ -5,8 +5,10 @@ const Previous := preload("res://test/test_underground_entry_source_phases.gd")
 const Prefix := preload("res://test/test_underground_first_prefix.gd")
 const Foreman := preload("res://scripts/core/underground_entry_foreman.gd")
 const WorkAreaSource := preload("res://scripts/core/underground_entry_work_area.gd")
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stone-v5/catalog_source.gd")
+## ADR1217 step 5: the production work area is the claw bundle's (stations at +/-1430, H's claw air).
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-claw-v6/catalog_source.gd")
 const MoleCatalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
+const ClawPins := preload("res://data/underground/mole-worker/qualified-claw-approach-v10/catalog_source.gd")
 const WA_PROFILE_SHA: String = Bundle.PROFILE_SHA
 const WA_CATALOG_SHA: String = Bundle.CATALOG_SHA
 const WA_GROUP_SHA: String = Bundle.GROUPING_SHA
@@ -109,6 +111,18 @@ class Probe extends Previous.Probe:
 	func _surface_point(index: int) -> Vector3i:
 		"""The same authored points the production publisher uses."""
 		return WorkAreaSource.point(ORIGIN, index)
+
+	func _equips_tool() -> bool:
+		"""DEC-052: the claw crew digs and fits with no tool."""
+		return false
+
+	func _dig_profile(ordinal: int) -> int:
+		"""The claw dig rows of the bundle's left (49152) and right (16384) cut stations."""
+		return ClawPins.CLAW_DIG_ROWS[3] if ordinal % 2 == 0 else ClawPins.CLAW_DIG_ROWS[1]
+
+	func _ground_profile() -> int:
+		"""The claw canonical-ground WALK."""
+		return ClawPins.CLAW_WALK_ROW
 
 
 var _probe: Probe = null

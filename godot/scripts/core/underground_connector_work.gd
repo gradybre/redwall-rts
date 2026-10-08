@@ -367,7 +367,7 @@ func _pause_recover_worker(pieces: Workpieces, project: Vector2i, worker: Vector
 	var content: int = graph._motion.resident_long[Routes.R_CONTENT_REVISION * Routes.RESIDENT_CAPACITY + resident]
 	var code: StringName = Routes.source_ready_leaf_refusal(graph, worker, job, profile, revision, content)
 	if code == &"": return &""
-	if profile == Routes.Assembly.PROFILE \
+	if Routes.Handling.is_handling(profile) \
 			and Routes.assembly_handled_ready_leaf_refusal(graph, worker, job, profile, revision, content) == &"":
 		var placement: Vector2i = Vector2i(_construction._subject_slot[row], _construction._subject_generation[row])
 		if pieces._live.present[placement.x] == Workpieces.PENDING_HANDLING:

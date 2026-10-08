@@ -46,15 +46,24 @@ const PRESENTATION_BYTES: int = 7141920
 const HANDLING_ACTOR_PATH: String = "res://data/underground/mole-worker/qualified-assembly-v1/compiled-3/mole-worker.ugactor"
 const HANDLING_ACTOR_SHA: String = "b94d676e999c87dd399a4dc110674620a4fbc66f0ca07e494b8bedadac683b66"
 const HANDLING_PRESENTATION_BYTES: int = 6628488
-const HAUL_ACTOR_PATH: String = "res://data/underground/mole-worker/haul-handling-v1/evidence/native-program-v8/compiled/haul-handling.ugactor"
-const HAUL_ACTOR_SHA: String = "cc8542712705248f944d7430cbba0b7a365860f0073473c2fc0cb9106cf97a85"
+# ADR1217 step 5: content 9's sources 2/3 are the haul images v10 (the corrected stand, walk and joins; same clips,
+# parts and reservations as v8/v9).
+const HAUL_ACTOR_PATH: String = "res://data/underground/mole-worker/stand-walk-v2/evidence/native-haul-v10-wood/compiled/haul-handling.ugactor"
+const HAUL_ACTOR_SHA: String = "fa8dc668f7ae881d5fcc88a9dd1b6796b7f37466d0cca5e1994647e04a54dc71"
 const HAUL_PRESENTATION_BYTES: int = 7486168
-# ADR1206/1211: the native stone image v9 is the fourth source (rows 37-41).
-const STONE_ACTOR_PATH: String = "res://data/underground/mole-worker/haul-handling-v1/evidence/native-program-v9/compiled/stone-handling.ugactor"
-const STONE_ACTOR_SHA: String = "49ff3018d363c7dbad05df0af91368e8fec11e30525c2f8231e6a959f80a7b95"
+# ADR1206/1211: the native stone image is the fourth source (rows 37-41); v10 since ADR1217 step 5.
+const STONE_ACTOR_PATH: String = "res://data/underground/mole-worker/stand-walk-v2/evidence/native-haul-v10-stone/compiled/stone-handling.ugactor"
+const STONE_ACTOR_SHA: String = "1756932c3839c3dbf2d66a715f65f5dfea7861ddafdf7f5921687b821040e6e6"
 const STONE_PRESENTATION_BYTES: int = 7285004
+# ADR1217 step 5: the claw image (source 4, rows 42-58) and the paw-handling image (source 5, row 59).
+const CLAW_ACTOR_PATH: String = "res://data/underground/mole-worker/claw-work-v1/evidence/native-claw-split-v1/claw/compiled/claw.ugactor"
+const CLAW_ACTOR_SHA: String = "2b58852e0e39d3ae1c697ed5487081cead7ce80efc8a30662e469fd33059af5b"
+const CLAW_PRESENTATION_BYTES: int = 6906492
+const PAW_ACTOR_PATH: String = "res://data/underground/mole-worker/claw-work-v1/evidence/native-claw-split-v1/paw/compiled/paw-handling.ugactor"
+const PAW_ACTOR_SHA: String = "cbe80b76b3b9eb5fbd857865eac27b7a0c6f0fa251df53e52c471c457a865e2a"
+const PAW_PRESENTATION_BYTES: int = 6567544
 const PRESENTATION_SET_BYTES: int = PRESENTATION_BYTES + HANDLING_PRESENTATION_BYTES + HAUL_PRESENTATION_BYTES \
-	+ STONE_PRESENTATION_BYTES
+	+ STONE_PRESENTATION_BYTES + CLAW_PRESENTATION_BYTES + PAW_PRESENTATION_BYTES
 const CONTROL_BYTES: int = 1024
 const HELPER_BYTES: int = 512
 const RESERVED_BYTES: int = CONTROL_BYTES + HELPER_BYTES

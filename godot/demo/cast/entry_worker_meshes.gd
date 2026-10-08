@@ -3,10 +3,11 @@ extends RefCounted
 ## exist. Nothing here is authored: each mesh is the factory its source image was compiled from, and the Content
 ## refuses any part whose exact geometry fingerprint differs (Content.mesh_binding_refusal), so a wrong mesh can never
 ## be drawn in place of the certified one.
-##   body (all four sources): the staged mole_digger import through the approved hand derivative (mole_grip_source.gd)
+##   body (sources 0-3): the staged mole_digger import through the approved hand derivative (mole_grip_source.gd)
 ##   source 0/1 part 1: the staged mole_pick prop
 ##   source 2 part 1: the native-program-v8 stock factory (a 0.0495 m x 1 m cylinder, its own wood material)
 ##   source 3 part 1: the tunnel dressing's stone lump (bore_dressing.gd::stone_mesh) with the derived stone material
+##   sources 4/5 (ADR1217 step 5, claw and paw handling): the original open-paw import body itself, no held part
 
 const Grip := preload("res://data/underground/mole-worker/mole_grip_source.gd")
 const Presentation := preload("res://data/underground/mole-worker/mole_presentation.gd")
@@ -28,7 +29,7 @@ class Parts extends RefCounted:
 
 
 static func build(manifest: Dictionary, props: Props) -> Parts:
-	"""All four sources' parts, or the first refusal; the import is freed before returning."""
+	"""All six sources' parts, or the first refusal; the import is freed before returning."""
 	var parts: Parts = Parts.new()
 	parts.meshes.resize(Presentation.ContentSet.MAX_SOURCES)
 	parts.materials.resize(Presentation.ContentSet.MAX_SOURCES)
@@ -49,7 +50,7 @@ static func build(manifest: Dictionary, props: Props) -> Parts:
 
 
 static func _fill(parts: Parts, body: Node, pick: Mesh) -> void:
-	"""Derive the shared body once, then pair it with each source's own held part."""
+	"""Derive the closed-paw body once and pair it with each held part; the claw and paw images take the open paw."""
 	var nodes: Array[Node] = body.find_children("*", "MeshInstance3D", true, false)
 	var rigs: Array[Node] = body.find_children("*", "Skeleton3D", true, false)
 	if nodes.size() != 1 or rigs.size() != 1:
@@ -68,6 +69,11 @@ static func _fill(parts: Parts, body: Node, pick: Mesh) -> void:
 		var materials: Array[Material] = [skin, held_materials[source]]
 		parts.meshes[source] = meshes
 		parts.materials[source] = materials
+	for source: int in [Presentation.SOURCE_CLAW, Presentation.SOURCE_PAW]:
+		var open_paw: Array[Mesh] = [instance.mesh]
+		var open_materials: Array[Material] = [skin]
+		parts.meshes[source] = open_paw
+		parts.materials[source] = open_materials
 
 
 static func pick_fit() -> Transform3D:

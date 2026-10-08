@@ -481,7 +481,8 @@ func bind_job(project: Vector2i, job: Vector2i) -> Construction.OpResult:
 	_construction.remaining_mwu_into(project, _math)
 	if not _jobs.remaining_mwu_into(row, _other) or _math.value != _other.value:
 		return _refuse(REFUSE_JOB)
-	if not _jobs.is_coordinator(row) and (not _jobs.tool_gate_into(row, _math) or _math.value == Jobs.GATE_NOT_REQUIRED):
+	if not _jobs.is_coordinator(row) and (not _jobs.tool_gate_into(row, _math) \
+			or _math.value == Jobs.GATE_NOT_REQUIRED and not _tool_free(project)):
 		return _refuse(Work.REFUSE_TOOL_NOT_CLAIMED)
 	_write_binding(row, job, project)
 	return _ok(project)
@@ -797,8 +798,17 @@ func _worker_refusal(project: Vector2i, row: int, require_work_state: bool, obse
 	return code
 
 
+func _tool_free(project: Vector2i) -> bool:
+	"""DEC-052: a connector installation (L0, T0, the treads) is seated and fastened by paw, so its Job may need no
+	tool. Every other modular project keeps its mandatory tool."""
+	return _construction.purpose_into(project, _other) and _other.value == Construction.PURPOSE_CONNECTOR_INSTALL
+
+
 func _tool_refusal(row: int, resident: int, worker: Vector2i) -> StringName:
-	"""Mandatory equipped positive-durability tools use actual owner/job generation proof."""
+	"""Mandatory equipped positive-durability tools use actual owner/job generation proof; a tool-free connector
+	installation (DEC-052) holds no tool claim at all."""
+	if _jobs.tool_gate_into(row, _math) and _math.value == Jobs.GATE_NOT_REQUIRED and _tool_free(_project(row)):
+		return &"" if _work.tool_lot_of(resident) == NULL_REF else Work.REFUSE_TOOL_CLAIM_STALE
 	if not _jobs.tool_gate_into(row, _math) or _math.value != Jobs.GATE_SATISFIED:
 		return Work.REFUSE_TOOL_NOT_CLAIMED if _math.value == Jobs.GATE_NOT_REQUIRED \
 			else Work.REFUSE_TOOL_GATE_BLOCKED

@@ -3,6 +3,9 @@ extends RefCounted
 ## Geometry is the accepted focus-4 work area relative to the entry origin; SurfaceAnchor and WorldRoutes keep
 ## every terrain, air, footing and profile proof. This publishes no Room, Site, Job or permission.
 ## ADR1198 step 5 appends two haul stands beside M and R (indices 9, 10); the first nine keep their indices.
+## ADR1217 step 5 (the claw bundle `qualified-claw-v6`): the six cut stations stand at x = -/+1430 (Brendan, step 1:
+## 106 u in from 1536, so the tool-free stance edge lands on the dig area's edge at |x| = 1024), and H's surveyed air
+## and footing are exactly the claw endpoint certificate's words (rows 43/47/52/59), which it compares for equality.
 
 const Anchor := preload("res://scripts/core/underground_surface_anchor.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
@@ -39,16 +42,20 @@ const HAUL_EDGES: Array[Vector3i] = [
 ]
 const GATEWAY_X: int = 2560
 const GATEWAY_Z: int = 1536
-const H_AIR: Array[int] = [-445, 0, -732, 910, 1036, 346]
-const H_FOOT: Array[int] = [-274, -1, -274, 299, 0, 249]
+const CUT_X: int = 1430
+const H_AIR: Array[int] = [-485, 0, -578, 479, 930, 412]
+const H_FOOT: Array[int] = [-276, -1, -274, 299, 0, 249]
 const H_METADATA: Array[int] = [-4096, 0, -5120, 4096, 1, 4096]
 const STORAGE_AIR: Array[int] = [-3816, 0, 280, 3816, 1036, 3304]
 const STORAGE_FOOT: Array[int] = [-2966, -1, 238, 2966, 0, 2454]
 const LEFT_PAIR_AIR: Array[int] = [-3816, 0, -3816, -280, 1422, 2792]
 const RIGHT_PAIR_AIR: Array[int] = [280, 0, -3816, 3816, 1422, 2792]
-const CUT_AIR: Array[int] = [-1256, 0, -1256, 1256, 1422, 1256]
-const LEFT_FOOT: Array[int] = [-2966, -1, -4096, -1130, 0, 2454]
-const RIGHT_FOOT: Array[int] = [1130, -1, -4096, 2966, 0, 2454]
+## ADR1217 step 5: a cut station's air is the claw WALK 42's all-yaw body and turn sweep, which holds every box of
+## the claw dig rows above the floor. The pick's +/-1256 (its held tool) would now reach 174 u from the entry axis,
+## into the pending T0 bearer (x +/-256), because the stations stand 106 u nearer.
+const CUT_AIR: Array[int] = [-712, 0, -712, 712, 930, 712]
+const LEFT_FOOT: Array[int] = [-2966, -1, -4096, -1024, 0, 2454]
+const RIGHT_FOOT: Array[int] = [1024, -1, -4096, 2966, 0, 2454]
 
 
 class Published extends RefCounted:
@@ -58,13 +65,13 @@ class Published extends RefCounted:
 
 
 static func point(origin: Vector3i, index: int) -> Vector3i:
-	"""Authored source points: H, material M, output R, six cut stations at -/+1536, then the M and R stands."""
+	"""Authored source points: H, material M, output R, six cut stations at -/+1430, then the M and R stands."""
 	if index == 0: return origin + Vector3i(-832, 0, 512)
 	if index == 1: return origin + Vector3i(-832, 0, 2048)
 	if index == 2: return origin + Vector3i(-832, 0, 1536)
 	if index >= STAND_M: return point(origin, stock_of(index)) + STAND_OFFSET
 	@warning_ignore("integer_division")
-	return origin + Vector3i(-1536 if index % 2 == 1 else 1536, 0, -512 - ((index - 3) / 2) * 1024)
+	return origin + Vector3i(-CUT_X if index % 2 == 1 else CUT_X, 0, -512 - ((index - 3) / 2) * 1024)
 
 
 static func stock_of(stand: int) -> int:

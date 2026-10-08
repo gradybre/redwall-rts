@@ -1332,42 +1332,42 @@
         "capacity": 6,
         "bytes": 24,
         "resize_expression": "6",
-        "line": 130
+        "line": 132
       },
       "_digests": {
         "width": 1,
         "capacity": 160,
         "bytes": 160,
         "resize_expression": "160",
-        "line": 127
+        "line": 129
       },
       "_header": {
         "width": 8,
         "capacity": 9,
         "bytes": 72,
         "resize_expression": "9",
-        "line": 126
+        "line": 128
       },
       "_parts": {
         "width": 4,
         "capacity": 1536,
         "bytes": 6144,
         "resize_expression": "6 * assemblies",
-        "line": 128
+        "line": 130
       },
       "_profile_revisions": {
         "width": 8,
         "capacity": 256,
         "bytes": 2048,
         "resize_expression": "assemblies",
-        "line": 129
+        "line": 131
       },
       "_scratch": {
         "width": 4,
         "capacity": 6,
         "bytes": 24,
         "resize_expression": "6",
-        "line": 131
+        "line": 133
       }
     },
     "two_bank_bytes": 10752,
@@ -1504,7 +1504,7 @@
     "scope": "Separate ADR1140 per-world contribution. Reviewed coupled logical helper census817 fits1024; the borrowed216-byte Transfer is already charged in1141. No new gameplay bank; runtime memory remains unqualified."
   },
   "profile_motion_reservation": {
-    "source_sha256": "c3c95b677147cbcd0019b982c8e6f73cf7ed963c1eac8a18093fbc679565b14f",
+    "source_sha256": "3fbfa3d858a4752751e8c0965e787d331956fcbf3bf8299bf08f2ca82d1f3195",
     "status": "SOURCE_COUNTED_COMPONENT_ONLY; no native allocation or travel/timing qualification",
     "bank_members": {
       "ints": [
@@ -1802,21 +1802,21 @@
     "native_measured": false,
     "foreign_call_lifetime": "MoleCatalog runtime source hashing and exact Profile wire check run sequentially before decoding. Their existing32KiB Profiles control reserve is included once in62432, not additionally allocated. Actual Content palettes in tests have separate declared presentation reservation; none is retained by Motion.",
     "profile_configuration": {
-      "profiles": 42,
-      "boxes": 377,
-      "sources": 4
+      "profiles": 60,
+      "boxes": 517,
+      "sources": 6
     },
     "joint": {
-      "profiles": 62432,
+      "profiles": 73928,
       "levels": 2292,
       "paired_motion": 141720,
       "decode": 4096,
       "caller": 176,
       "logical_helper": 4096,
       "native": 32768,
-      "total": 247580,
-      "reservation": 262144,
-      "headroom": 14564,
+      "total": 259076,
+      "reservation": 278528,
+      "headroom": 19452,
       "independent_maxima_total_refuses": 444284
     },
     "admission_limit": "This component assumes a single caller-owned composed source catalog. Root owns shared reservation enforcement; constructing arbitrary extra owners is not an admitted World configuration."
@@ -4224,8 +4224,8 @@
         "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
         "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
         "godot/scripts/core/underground_profiles.gd": "64325eed6772207817a043220fe4db371fe5aa68a89fec60a287099ea589dfaf",
-        "godot/scripts/core/underground_routes.gd": "3983826ff5e0c177bc831ea41e4dd96c5ba1764f92e2f2488467a6e1fdffdad8",
-        "godot/scripts/core/underground_world_routes.gd": "36e7ddc5dd1a1486d1e0ee4d60bd3cd98f2eb6777f3b62a17081575ddd378974"
+        "godot/scripts/core/underground_routes.gd": "95b2c8c5c3383592485b95ba7f6f4f5673d2fd0e62c49ae7da2f24361b6113c4",
+        "godot/scripts/core/underground_world_routes.gd": "071ed8e39e11941a620e3bd29fb2e2c3773ee7a8e8de4c6b91071c5076cb2f34"
       }
     },
     "current_profile_control": {
@@ -4699,8 +4699,8 @@
     "native_measured": false
   },
   "motion_clock_reservation": {
-    "clock_source_sha256": "d846389d90532884476c642d5f101a93c5e78c9d8757b408bf87aa80c9f77822",
-    "motion_source_sha256": "c3c95b677147cbcd0019b982c8e6f73cf7ed963c1eac8a18093fbc679565b14f",
+    "clock_source_sha256": "91e036e333a61cadd543a88833204fb26d7c93d3c83b7dabd822352ff276d7cd",
+    "motion_source_sha256": "3fbfa3d858a4752751e8c0965e787d331956fcbf3bf8299bf08f2ca82d1f3195",
     "scope": "Logical source census only; no native allocation, route or presentation qualification",
     "retained_fields_or_banks": 0,
     "accepted_variant_payload_bytes": 32,
@@ -4722,16 +4722,16 @@
     "clock_caller_bytes": 44,
     "shared_caller_reservation": 176,
     "joint": {
-      "profiles": 62432,
+      "profiles": 73928,
       "levels": 2292,
       "paired_motion": 141720,
       "decode": 4096,
       "caller": 176,
       "logical_helper": 4096,
       "native": 32768,
-      "total": 247580,
-      "reservation": 262144,
-      "headroom": 14564,
+      "total": 259076,
+      "reservation": 278528,
+      "headroom": 19452,
       "independent_maxima_total_refuses": 444284
     },
     "native_measured": false,
@@ -4744,7 +4744,7 @@
     "lifetime": "One synchronous caller; no resident clock. Motion phase frame and clock frame coexist. The existing maximum Motion chain is conservatively retained in the total, plus the entire clock-only maximum. The clock 44-byte output replaces, rather than adds to, the existing 176-byte caller ceiling."
   },
   "session_reservation": {
-    "source_sha256": "3fcd2db0da172e162df5c3d0bd6cffd1c1b63684a5bc4fbdbedabecfc2d1f3a6",
+    "source_sha256": "23b5f7a1e77aed78070924584fdc2be02429c456289a5f564f0ca1edcfca6711",
     "retained_numeric_bytes": 43,
     "strong_reference_or_alias_members": 24,
     "additional_retirement_reference_slots_charged_separately": 2,
@@ -4771,13 +4771,13 @@
     "references_are_not_measured_native_bytes": true,
     "own_total_slice_bytes": 1536,
     "slice_source": "existing PROFILE_BYTES; no global reserve increase",
-    "existing_profile_paired_plus_control_bytes": 62432,
+    "existing_profile_paired_plus_control_bytes": 73928,
     "existing_level_bytes": 2292,
-    "foundation_profile_level_session_bytes": 66260,
-    "source_counted_motion_joint_before_session_bytes": 247580,
-    "profile_level_motion_session_joint_bytes": 249116,
+    "foundation_profile_level_session_bytes": 77756,
+    "source_counted_motion_joint_before_session_bytes": 259076,
+    "profile_level_motion_session_joint_bytes": 260612,
     "profile_envelope_bytes": 262144,
-    "joint_remaining_bytes": 13028,
+    "joint_remaining_bytes": 17916,
     "sequential_foundation_allocations": {
       "Space.Domain": 1,
       "Budget": 1,
@@ -6095,10 +6095,10 @@
       "existing_native_symbol_bytes_assumed": 2048,
       "helper_expression_bytes_assumed": 256,
       "profile_ceiling": 262144,
-      "joint_with_retirement": 257308,
-      "joint_remaining_bytes": 4836,
+      "joint_with_retirement": 268804,
+      "joint_remaining_bytes": 9724,
       "direct_reset_helper_bytes": 1199,
-      "current_source_joint_bytes": 249116
+      "current_source_joint_bytes": 260612
     },
     "lifetime": "One permanent Session-owned caller Owners plus one private Scope and its fixed Owners copy; the original Session1536 is charged once, and the two new references/host integer are in retirement8192. All own selected call frames include implicit self and reference-valued returns; complete accepted1155 static owner frames are composed. Original cold source checking and store-clear internals keep their existing owner reservations, with each caller prefix included here. No new source image is decoded/copied.",
     "native_measured": false,
@@ -6827,10 +6827,10 @@
     "source_sha256": {
       "godot/scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
       "godot/scripts/core/buildings.gd": "e893b278f8b1f35e6e8f6e3971e8ade136662a0d3f1f5b619042d18e17506fcd",
-      "godot/scripts/core/construction.gd": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a",
+      "godot/scripts/core/construction.gd": "79e7d48217219eedc0925ae878a7a59318fc48086f04167a732e433964aecaa9",
       "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310",
       "godot/scripts/core/inventory.gd": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
-      "godot/scripts/core/underground_session.gd": "3fcd2db0da172e162df5c3d0bd6cffd1c1b63684a5bc4fbdbedabecfc2d1f3a6",
+      "godot/scripts/core/underground_session.gd": "23b5f7a1e77aed78070924584fdc2be02429c456289a5f564f0ca1edcfca6711",
       "godot/scripts/systems/settlement_system.gd": "5b2d6d471a6e176769287d8e619ec2f91fcec420e5bd9b62c078ccc1951998cc"
     },
     "current_composition_source_sha256": {
@@ -7736,7 +7736,7 @@
       "helpers": 1919,
       "helper_ceiling": 2048,
       "original_session_reserved_bytes": 1536,
-      "profile_joint_unchanged": 257308,
+      "profile_joint_unchanged": 268804,
       "profile_ceiling": 262144,
       "reference_bytes_assumed": 32,
       "one_outcome_header_assumed": 256,
@@ -41095,7 +41095,7 @@
         "helper_ceiling": 2048,
         "retirement_reserved_bytes": 8192,
         "existing_session_reserved_bytes": 1536,
-        "profile_joint": 257308,
+        "profile_joint": 268804,
         "profile_ceiling": 262144
       },
       "native_measured": false,
@@ -41227,6 +41227,8 @@
       "godot/data/underground/mole-worker/qualified-step-v4/catalog_source.gd",
       "godot/data/underground/mole-worker/qualified-step-v4/manifest.json",
       "godot/data/underground/mole-worker/work-step-v1/source_program.gd",
+      "godot/scripts/core/construction.gd",
+      "godot/scripts/core/excavation_sites.gd",
       "godot/scripts/core/jobs.gd",
       "godot/scripts/core/modular_projects.gd",
       "godot/scripts/core/movement.gd",
@@ -41593,36 +41595,44 @@
             "bytes": 96,
             "carried_by": "Profiles CONTROL_RESERVE (load-time, released)",
             "store": "three 32-byte digest buffers while hashing sources at load"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1217 step 5: content 9 (60 rows, 517 boxes, 6 sources; paired bank 41,160 B, counted in the Motion/Profile joint under the raised PROFILE_BYTES); the six source digests are hashed through one 32-byte scratch and one PackedStringArray of the pinned digests"
           }
         ],
         "delta": {
-          "allocation_sites": {
-            "PackedByteArray(": 3
-          },
+          "resizes_added": [
+            "digest.resize(32)"
+          ],
+          "resizes_removed": [
+            "source.resize(32)"
+          ],
           "int_constants_added": [
             [
               "BOX_COUNT",
-              "377"
+              "517"
             ],
             [
               "CONTENT_REVISION",
-              "6"
+              "9"
             ],
             [
               "PAIRED_BANK_BYTES",
-              "29664"
+              "41160"
             ],
             [
               "PROFILE_COUNT",
-              "42"
+              "60"
             ],
             [
               "SOURCE_COUNT",
-              "4"
+              "6"
             ],
             [
               "WIRE_BYTES",
-              "14840"
+              "20588"
             ]
           ],
           "int_constants_removed": [
@@ -41647,11 +41657,9 @@
               "10502"
             ]
           ],
-          "resizes_added": [
-            "handling.resize(32)",
-            "haul.resize(32)",
-            "stone.resize(32)"
-          ]
+          "allocation_sites": {
+            "PackedStringArray(": 1
+          }
         }
       },
       "godot/data/underground/mole-worker/qualified-step-v4/catalog_source.gd": {
@@ -41680,6 +41688,26 @@
             "bytes": 0,
             "carried_by": "none",
             "store": "no retained-storage change"
+          }
+        ],
+        "delta": {}
+      },
+      "godot/scripts/core/construction.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1217 step 5: the excavation START worker check accepts a tool-free (GATE_NOT_REQUIRED) BUILD Job; no member, packet or resize"
+          }
+        ],
+        "delta": {}
+      },
+      "godot/scripts/core/excavation_sites.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1217 step 5: tool-free claw phases (GATE_NOT_REQUIRED, no tool claim) are bound, worked and released; three functions, no member, packet or resize"
           }
         ],
         "delta": {}
@@ -41903,6 +41931,11 @@
             "bytes": 256,
             "carried_by": "joint pack (the reserve is a pack contribution)",
             "store": "BINDINGS_AND_GROWTH_BYTES 524,288 -> 524,544 for the Contacts control below"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1217 step 5: PROFILE_BYTES 262,144 -> 278,528 (+16,384 B reserve) so content 9's paired profile bank keeps the Motion/Profile/Level joint plus the Session and retirement slices inside one assigned reserve"
           }
         ],
         "delta": {
@@ -41910,12 +41943,20 @@
             [
               "BINDINGS_AND_GROWTH_BYTES",
               "524544"
+            ],
+            [
+              "PROFILE_BYTES",
+              "278528"
             ]
           ],
           "int_constants_removed": [
             [
               "BINDINGS_AND_GROWTH_BYTES",
               "524288"
+            ],
+            [
+              "PROFILE_BYTES",
+              "262144"
             ]
           ]
         }
@@ -42400,13 +42441,18 @@
             "bytes": 0,
             "carried_by": "none",
             "store": "REVISION constant 6; tables and bank unchanged"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1217 step 5: rebound to the content-9 motion wire (REVISION 9); tables unchanged"
           }
         ],
         "delta": {
           "int_constants_added": [
             [
               "REVISION",
-              "6"
+              "9"
             ]
           ]
         }
@@ -42652,12 +42698,14 @@
             "bytes": 0,
             "carried_by": "none",
             "store": "bundle constants; 15 ground-pace rows inside the Catalog's fixed MAX_PACES = 256 bank"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1217 step 5: the claw bundle's 24 ground caps (GROUND_PACE_COUNT 15 -> 24); the structure catalog is unchanged in size"
           }
         ],
         "delta": {
-          "allocation_sites": {
-            "range(": -1
-          },
           "int_constants_added": [
             [
               "CATALOG_DIGEST_0",
@@ -42681,7 +42729,7 @@
             ],
             [
               "GROUND_PACE_COUNT",
-              "15"
+              "24"
             ],
             [
               "PROFILE_CONTENT_REVISION",
@@ -42713,7 +42761,10 @@
               "PROFILE_CONTENT_REVISION",
               "3"
             ]
-          ]
+          ],
+          "allocation_sites": {
+            "range(": -1
+          }
         }
       },
       "godot/scripts/core/underground_routes.gd": {
@@ -42764,10 +42815,19 @@
             "bytes": 0,
             "carried_by": "presentation (outside the REQ-SET-163 simulation gate)",
             "store": "presentation reservation constants (ADR 1201); profile source count 4 is in the Profile joint"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1217 step 5: presentation constants for the claw and paw images and the v10 haul images (presentation memory, outside the simulation-owned gate); no simulation member, packet or resize"
           }
         ],
         "delta": {
           "int_constants_added": [
+            [
+              "CLAW_PRESENTATION_BYTES",
+              "6906492"
+            ],
             [
               "HANDLING_PRESENTATION_BYTES",
               "6628488"
@@ -42775,6 +42835,10 @@
             [
               "HAUL_PRESENTATION_BYTES",
               "7486168"
+            ],
+            [
+              "PAW_PRESENTATION_BYTES",
+              "6567544"
             ],
             [
               "PRESENTATION_SET_BYTES",
@@ -43719,29 +43783,29 @@
     "shared_router_and_funding_increment": 275099,
     "LOCATION_AND_TOPOLOGY_BYTES": 1048576,
     "INVENTORY_EXTENSION_BYTES": 131072,
-    "PROFILE_BYTES": 262144,
+    "PROFILE_BYTES": 278528,
     "TERRAIN_BYTES": 131072,
     "LAYOUT_COLD_BYTES": 262144,
     "BINDINGS_AND_GROWTH_BYTES": 524544
   },
-  "new_mutable_and_reserved_bytes": 5216821,
+  "new_mutable_and_reserved_bytes": 5233205,
   "declaration_bytes": 23888,
   "declaration_delta_bytes": 2703,
-  "live_with_reserve_bytes": 100209901,
+  "live_with_reserve_bytes": 100226285,
   "gate_bytes": 150000000,
-  "headroom_bytes": 49790099,
+  "headroom_bytes": 49773715,
   "source_sha256": {
-    "godot/scripts/core/construction.gd": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a",
+    "godot/scripts/core/construction.gd": "79e7d48217219eedc0925ae878a7a59318fc48086f04167a732e433964aecaa9",
     "godot/scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
     "godot/scripts/core/excavation_inventory.gd": "e69e83b0fa3851f7408b574fec44b0978d048fb759eb90b458492ac81d15c001",
-    "godot/scripts/core/excavation_sites.gd": "69797b79377bf5b5b3a055126d065304668c3415460863ef958fbef72385eb74",
+    "godot/scripts/core/excavation_sites.gd": "0136bdba31781d40c0a1a406dd292d35b422719b27e303723ad425184d203ab9",
     "godot/scripts/core/haul_planner.gd": "ff125c7c0a1a9ab3c23be832ceec77b54354e4b87c0b7fe8ebc482fee0a400e4",
     "godot/scripts/core/haul_transfer_contract.gd": "dad5b6beb6d215fa9e71e7c31ab4b10e505393116374249eb8efc1bf58fcb60d",
     "godot/scripts/core/int_math.gd": "fbc9c291059dc65cef91bf0ed1496b95532c5d8bc8f9a2876871c64f0545adc1",
     "godot/scripts/core/inventory.gd": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
     "godot/scripts/core/modular_project_contract.gd": "b008e397952a9eeffeefa805d1f70e586a4e580e261ef29682187b6df537b437",
-    "godot/scripts/core/modular_projects.gd": "b1254a5040614a2151d6bb30a6789f92afc20da3d54a5c7a500b64e1e5b03e50",
-    "godot/data/underground/mole-worker/mole_profile_catalog.gd": "50ac2eb8c06347f97397f8009a083d68fd4c4c8c0dd05bfb1b20cb54fa21b00d",
+    "godot/scripts/core/modular_projects.gd": "c60c4f3e3b3826ef7d399755c45edbdfe67ebd77f363a5a7b97ae10976da3345",
+    "godot/data/underground/mole-worker/mole_profile_catalog.gd": "b64d0ec1d7391bebcd6704e3b0771f7e211527979226078ecffef97a2cb96426",
     "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
     "godot/scripts/core/reservations.gd": "2a2ce0b41cde10974f480184d0da53a7d27e1930030f80fee8c16dd1a9b74534",
     "godot/scripts/core/room_connectors.gd": "010a73355679d8b9f04a941b84520a0c0a904e622e7335562dbe35bcd0e7d067",
@@ -43751,37 +43815,37 @@
     "godot/data/underground/mole-worker/work-step-v1/source_program.gd": "7134c58f0a48c8eb1184484f1caf41089696cc90083c5cd7038fafeb3fce7879",
     "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
     "godot/scripts/core/spoil_tips.gd": "3915c888d9a37defe3ddc859d8b99beac91d94075cfe0db4ded78fb0dc1050b8",
-    "godot/scripts/core/underground_budget.gd": "fc8e43428787784f1ada4b8f26348ebfd8f7c4c907f5169a9658dcc5d71713f8",
+    "godot/scripts/core/underground_budget.gd": "7319d3e2479436bb1bcdb28b1d70d094b9f820b378f9167cd32f2c0a024b8641",
     "godot/scripts/core/underground_connector_assemblies.gd": "3199049decf5b6ca95da09bb416196d82a96e89af194166b196df29f1cf7b73c",
     "godot/scripts/core/underground_connector_catalog.gd": "bab9c370eb6253d65c12cb330ee90e06f4fb7f02493a47ef27784ad2fdd1cbdb",
-    "godot/scripts/core/underground_connector_contacts.gd": "c7345c1b937187eaadc8cbb59bb638468c0385179eb21f6b36724b4a45bc682a",
-    "godot/scripts/core/underground_connector_delivery.gd": "baa1a1882cf53a77f829df417cba2bc54731a4c004596b59b7cc32920952ca45",
+    "godot/scripts/core/underground_connector_contacts.gd": "cf8dab150579ceba6d4e4473a370dc1f0d38a226e7b4307beb91918682faa853",
+    "godot/scripts/core/underground_connector_delivery.gd": "7cbdb906be067d3d45473c2fabfb414f7ca5f0c358bc58b1fabe04947b0b12ea",
     "godot/scripts/core/underground_connector_placements.gd": "173e0fcad1bf2da32dd6e12a9679d75bd066a6321575a5f305eef3ab72ff8d03",
     "godot/scripts/core/underground_connector_recipes.gd": "a23c0f6087597b1c3bee978f9008824af86856dca6ddaba1b6bc41d1d03cba1a",
-    "godot/scripts/core/underground_connector_work.gd": "6bce56fc7d0545f32b837ba15f8703cad4f2b10138b9458a60dfa45eea6ccc73",
-    "godot/scripts/core/underground_connector_workpieces.gd": "2dd9fcfa5c9373cd14f5842a6cce55ea5c56525092f42bc26ad22a3a2efa57f7",
+    "godot/scripts/core/underground_connector_work.gd": "6fd07f67b2aaecf39e3aaccc55251f1b715dcdcb886d6b00fa89714985a9f575",
+    "godot/scripts/core/underground_connector_workpieces.gd": "ae18e3df95343046ef941e1f5e761827f474aea7c1d37ea0b54e43444bcc1907",
     "godot/scripts/core/underground_entry_bindings.gd": "9bd2ab201ad3815ff16511f0d4feced949760bde15e4f4f7e5397da17ee9da94",
     "godot/scripts/core/underground_entry_frontier.gd": "a13de97fa8c528739db9e9ce73322f0d3ba580e7f6f6555aba44a68684b3886c",
     "godot/scripts/core/underground_entry_plan.gd": "2103c7a93431b3bc6acfe4dc7934aaaabe557c1d978e5d2db5152ea2816aac7e",
     "godot/scripts/core/underground_entry_structure.gd": "4965b8e314171f5c1445d816b3b2c18d87f35dee0f5129371d15a1b1d2a7cefa",
     "godot/scripts/core/underground_entry_world_bindings.gd": "f7c89ea91adbaba9e2091ad12446019848977d4af6789be3eb9f14fb4351783c",
     "godot/scripts/core/underground_level_catalog.gd": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
-    "godot/scripts/core/underground_locations.gd": "a4475c4abbb9e7c0e8290c33dbf76dc5d196ddfe1d8c509a709003ece0213547",
-    "godot/scripts/core/underground_motion_catalog.gd": "c3c95b677147cbcd0019b982c8e6f73cf7ed963c1eac8a18093fbc679565b14f",
-    "godot/scripts/core/underground_motion_clock.gd": "d846389d90532884476c642d5f101a93c5e78c9d8757b408bf87aa80c9f77822",
+    "godot/scripts/core/underground_locations.gd": "52f1671fad5ee2eb2005cd1ca05d1cc7dfa63997fc385c6590a4d8e8e20563a2",
+    "godot/scripts/core/underground_motion_catalog.gd": "3fbfa3d858a4752751e8c0965e787d331956fcbf3bf8299bf08f2ca82d1f3195",
+    "godot/scripts/core/underground_motion_clock.gd": "91e036e333a61cadd543a88833204fb26d7c93d3c83b7dabd822352ff276d7cd",
     "godot/scripts/core/underground_phase_structure.gd": "8ca9a827a4002f5ceaf73869548ea5cb61bcc39d0cc618deab33773aca4e2a7c",
     "godot/scripts/core/underground_profiles.gd": "64325eed6772207817a043220fe4db371fe5aa68a89fec60a287099ea589dfaf",
     "godot/scripts/core/underground_room_world_bindings.gd": "d012c526a267fc7aecb365e7a6afa40d00d931f2b710b1122fc19705f556f8b1",
-    "godot/scripts/core/underground_route_composition.gd": "7ea85ba19ce0aaf91eb0bbaed74860a02f1e0290251b8e1616ce11a0e5f28497",
-    "godot/scripts/core/underground_routes.gd": "3983826ff5e0c177bc831ea41e4dd96c5ba1764f92e2f2488467a6e1fdffdad8",
-    "godot/scripts/core/underground_session.gd": "3fcd2db0da172e162df5c3d0bd6cffd1c1b63684a5bc4fbdbedabecfc2d1f3a6",
+    "godot/scripts/core/underground_route_composition.gd": "a4ec922b891d57aa8494d5fc1c56767512294352db1860dea1e0dcbce185f71d",
+    "godot/scripts/core/underground_routes.gd": "95b2c8c5c3383592485b95ba7f6f4f5673d2fd0e62c49ae7da2f24361b6113c4",
+    "godot/scripts/core/underground_session.gd": "23b5f7a1e77aed78070924584fdc2be02429c456289a5f564f0ca1edcfca6711",
     "godot/scripts/core/underground_space_authority.gd": "3377e00f509e833e618330237c65fa7a18aaf20a4876b5b16322bbdab7d4ec5b",
     "godot/scripts/core/underground_space_owner.gd": "c5aea1c3904c621552f67537f303799d51c7ab1adbe2478cef2fbdfd81e955d5",
     "godot/scripts/core/underground_surface_anchor.gd": "00f2ba73e64a50e4d6236a9c0c99a11391f192255c309d554d8b4a976ddfe2f5",
     "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
     "godot/scripts/core/underground_work_face.gd": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
     "godot/scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
-    "godot/scripts/core/underground_world_routes.gd": "36e7ddc5dd1a1486d1e0ee4d60bd3cd98f2eb6777f3b62a17081575ddd378974",
+    "godot/scripts/core/underground_world_routes.gd": "071ed8e39e11941a620e3bd29fb2e2c3773ee7a8e8de4c6b91071c5076cb2f34",
     "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310"
   },
   "registry_sha256": "1809c2e5ab4048ad7b8ec09808dd015dbd5e8e7fb70216914896cd51804a5999",

@@ -1140,7 +1140,7 @@ func bind_job(site: Vector2i, job: Vector2i) -> Construction.OpResult:
 	_construction.remaining_mwu_into(_project(site.x), _math)
 	if not _jobs.remaining_mwu_into(row, _other_math) or _math.value != _other_math.value:
 		return _refuse(REFUSE_JOB)
-	if not _jobs.tool_gate_into(row, _math) or not _gate_accepted(_math.value):
+	if not _jobs.tool_gate_into(row, _math) or _math.value == Jobs.GATE_NOT_REQUIRED:
 		return _refuse(Work.REFUSE_TOOL_NOT_CLAIMED)
 	_job_slot[site.x] = job.x
 	_job_generation[site.x] = job.y
@@ -1284,7 +1284,7 @@ func _room_worker_count(room: Vector2i) -> int:
 
 
 func _worker_refusal(row: int, require_registered: bool) -> StringName:
-	"""Read the actual Job worker, its tool claim (or none, DEC-052) and legal dry work contact."""
+	"""Read the actual Job worker, equipped Gear claim and legal dry work contact."""
 	var job_row: int = _job_row(_job(row))
 	var worker: Vector2i = _jobs.worker_of(job_row)
 	if not _jobs.directory().is_valid_of_kind(worker, Directory.KIND_RESIDENT):
@@ -1296,27 +1296,18 @@ func _worker_refusal(row: int, require_registered: bool) -> StringName:
 		return REFUSE_CHILD
 	if require_registered and (_worker_site[resident] != row or _worker_generation[resident] != worker.y):
 		return REFUSE_WORKER
-	var code: StringName = _tool_claim_refusal(row, job_row, resident, worker)
-	if code != &"":
-		return code
-	return _spatial().worker_refusal(origin_of(Vector2i(row, SITE_GENERATION)),
-		_operation[row], _room(row), _job(row), worker)
-
-
-func _tool_claim_refusal(row: int, job_row: int, resident: int, worker: Vector2i) -> StringName:
-	"""A tooled Job needs the worker's live equipped claim on it; a tool-free Job (DEC-052: claws) needs none, and
-	none may be held."""
-	if not _jobs.tool_gate_into(job_row, _math) or not _gate_accepted(_math.value):
+	if not _jobs.tool_gate_into(job_row, _math) or _math.value != Jobs.GATE_SATISFIED:
 		return Work.REFUSE_TOOL_NOT_CLAIMED
-	if _math.value == Jobs.GATE_NOT_REQUIRED:
-		return &"" if _work.tool_lot_of(resident) == NULL_REF else Work.REFUSE_TOOL_CLAIM_STALE
 	var tool: Vector2i = _work.tool_lot_of(resident)
 	if _work.tool_job_of(resident) != _job(row) or _work.gear() == null:
 		return Work.REFUSE_TOOL_NOT_CLAIMED
 	var gear_code: StringName = _work.gear().equipped_work_claim_refusal(tool, worker, _job(row))
 	if gear_code == Gear.REFUSE_GEAR_CLAIM_MISMATCH:
 		return Work.REFUSE_TOOL_CLAIM_STALE
-	return Work.REFUSE_TOOL_BROKEN if gear_code != &"" else &""
+	if gear_code != &"":
+		return Work.REFUSE_TOOL_BROKEN
+	return _spatial().worker_refusal(origin_of(Vector2i(row, SITE_GENERATION)),
+		_operation[row], _room(row), _job(row), worker)
 
 
 func begin_phase_work(site: Vector2i, now_tick: int) -> Construction.OpResult:
@@ -1549,31 +1540,17 @@ func release_worker(site: Vector2i) -> Construction.OpResult:
 	var resident: int = _jobs.directory().get_typed_row(worker)
 	if _worker_site[resident] != site.x or _worker_generation[resident] != worker.y:
 		return _refuse(REFUSE_WORKER)
-	if _jobs.job_of(resident) != _job(site.x) or not _tool_claim_matches(resident, job_row):
+	if _work.tool_job_of(resident) != _job(site.x) or _jobs.job_of(resident) != _job(site.x):
 		return _refuse(Work.REFUSE_TOOL_CLAIM_STALE)
-	if _work.tool_lot_of(resident) != NULL_REF:
-		var released: Work.OpResult = _work.release_tool_claim(resident)
-		if not released.ok:
-			return _refuse(released.error)
+	var released: Work.OpResult = _work.release_tool_claim(resident)
+	if not released.ok:
+		return _refuse(released.error)
 	var detached: Jobs.OpResult = _jobs.release_worker(resident)
 	assert(detached.ok, "preflighted worker departure must succeed after its tool claim releases")
 	_worker_site[resident] = NO_ROW
 	_worker_generation[resident] = 0
 	_construction.set_assigned_count(_project(site.x), 0)
 	return _ok(site)
-
-
-static func _gate_accepted(gate: int) -> bool:
-	"""A paid phase's BUILD Job either needs its claimed tool (the dormant pick rows) or none: DEC-052 amends
-	SET-MOVE-ECON-001's tool condition, so claw BRACE, CUT and FINISH bind GATE_NOT_REQUIRED."""
-	return gate == Jobs.GATE_SATISFIED or gate == Jobs.GATE_NOT_REQUIRED
-
-
-func _tool_claim_matches(resident: int, job_row: int) -> bool:
-	"""A tooled Job holds the worker's claim on it; a tool-free Job (DEC-052) holds none."""
-	if not _jobs.tool_gate_into(job_row, _math): return false
-	if _math.value == Jobs.GATE_NOT_REQUIRED: return _work.tool_lot_of(resident) == NULL_REF
-	return _work.tool_job_of(resident) == _jobs.ref_of(job_row)
 
 
 func _registered_worker_row(row: int) -> int:

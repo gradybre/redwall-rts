@@ -161,11 +161,11 @@ static func arrive(time: int, profile: int) -> Vector3i:
 static func stationary(phase: int, time: int, old: int, profile: int, queued: bool) -> Vector3i:
 	"""One headless tick at an endpoint: a queued READY fades to WALK; an unqueued WALK fades to READY once its key
 	is clear and otherwise walks on in place (at most ten keys); every other phase advances its own clock."""
-	if phase == READY and queued: return advance(FADE_WALK, time, old, profile)
+	if phase == READY and queued: return advance(FADE_WALK, time, old)
 	if phase == WALK and not queued:
 		if fade_blocked(profile, time): return Vector3i(WALK, (time + ONE) % WALK_DURATION, 0)
-		return advance(FADE_READY, 0, time, profile)
-	return advance(phase, time, old, profile)
+		return advance(FADE_READY, 0, time)
+	return advance(phase, time, old)
 
 
 static func ready_request(phase: int, time: int, old: int, profile: int) -> Vector3i:
@@ -177,7 +177,7 @@ static func ready_request(phase: int, time: int, old: int, profile: int) -> Vect
 	return Vector3i(phase, time, old)
 
 
-static func advance(phase: int, time: int, old: int, profile: int) -> Vector3i:
+static func advance(phase: int, time: int, old: int) -> Vector3i:
 	"""One accepted 30 Hz tick; a finite transition endpoint holds for the rest of that tick."""
 	if phase == READY: return Vector3i(READY, 0, 0)
 	if phase == WALK: return Vector3i(WALK, (time + ONE) % WALK_DURATION, 0)

@@ -1,8 +1,10 @@
 extends RefCounted
-## ADR1210 (ADR1197 G4): fixed-tick haul of one step's missing inputs. The tooled worker walks to M, puts its tool
-## in M's container, switches at rest to the tool-free rows (ADR1168 as amended), carries every whole unit from R's
-## staging to M through Delivery (ADR1203 trip: WALK to stand R, turn, named lift row, CARRY to stand M, set-down),
-## walks back onto M under the step's BUILD Job and re-equips. Every guard stays with Routes, Delivery and Gear.
+## ADR1210 (ADR1197 G4): fixed-tick haul of one step's missing inputs. The worker walks to M on its source-clocked
+## claw travel rows, switches at rest to the automatic haul rows (ADR1168 as amended), carries every whole unit from
+## R's staging to M through Delivery (ADR1203 trip: WALK to stand R, turn, named lift row, CARRY to stand M,
+## set-down) and walks back onto M under the step's BUILD Job. ADR1217 step 5 (DEC-052): no tool is held, so there
+## is nothing to put down or take back; the switch at rest is now only a policy-family change. Every guard stays
+## with Routes and Delivery.
 
 const Jobs := preload("res://scripts/core/jobs.gd")
 const Routes := preload("res://scripts/core/underground_routes.gd")
@@ -11,7 +13,7 @@ const Locations := preload("res://scripts/core/underground_locations.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Planner := preload("res://scripts/core/haul_planner.gd")
 const Space := preload("res://scripts/core/room_space.gd")
-const Grip := preload("res://data/underground/mole-worker/qualified-stone-v7/grip_certificate.gd")
+const Grip := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/grip_certificate.gd")
 const Progress := preload("res://scripts/core/underground_entry_progress.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const STAGE_APPROACH: int = 0
@@ -30,13 +32,13 @@ const REFUSE_HELD: StringName = &"ENTRY_HAUL_ROUTE_HELD"
 
 
 class Leg extends RefCounted:
-	## One tooled travel leg toward M on an explicit source profile.
+	## One source-clocked travel leg toward M on an explicit claw travel profile.
 	var target: Vector2i = NULL_REF
 	var profile: int = -1
 	var revision: int = 0
 
 
-var _o: RefCounted = null # The foreman's Owners packet (delivery and gear included).
+var _o: RefCounted = null # The foreman's Owners packet (delivery included).
 var _crew: RefCounted = null
 var _project: Vector2i = NULL_REF
 var _home: int = -1
@@ -83,8 +85,8 @@ static func free_milli(inventory: RefCounted, container: Vector2i, item: int) ->
 
 func begin(owners: RefCounted, crew: RefCounted, project: Vector2i, home_job: int, queue: PackedInt32Array,
 		legs: Array[Leg], start: Vector2i, tick: int) -> StringName:
-	"""Plan the trips, create the first HAUL Job and set off for M with the tool still held."""
-	if owners == null or owners.delivery == null or owners.gear == null or legs.is_empty():
+	"""Plan the trips, create the first HAUL Job and set off for M."""
+	if owners == null or owners.delivery == null or legs.is_empty():
 		return REFUSE_PLAN
 	_o = owners; _crew = crew; _project = project; _home = home_job; _queue = queue; _legs = legs
 	_content = owners.profiles.content_revision()
@@ -96,7 +98,7 @@ func begin(owners: RefCounted, crew: RefCounted, project: Vector2i, home_job: in
 	var code: StringName = _new_job() if not queue.is_empty() else _take_home()
 	if code == &"" and _o.routes._resident_ref(_row()) == NULL_REF:
 		code = _o.routes.admit_travel_actor(_crew.worker, _job_ref(), start, legs[0].profile, legs[0].revision,
-			_content, 0, -1, _crew.tool)
+			_content, 0, -1, NULL_REF)
 	return _next_leg(tick) if code == &"" else code
 
 
@@ -180,18 +182,18 @@ func release_lost(lost: Vector2i, row: int) -> StringName:
 
 
 func _next_leg(tick: int) -> StringName:
-	"""Skip legs already reached; at M the tool goes down and the first trip starts."""
+	"""Skip legs already reached; at M the first trip starts."""
 	if _o.routes.read_actor_into(_crew.worker, _actor) != &"": return REFUSE_PLAN
 	while _leg < _legs.size() and _legs[_leg].target == _actor.location: _leg += 1
 	if _leg >= _legs.size(): return _at_store(tick)
 	var leg: Leg = _legs[_leg]
 	var code: StringName = _o.routes.refresh_travel_actor(_crew.worker, _job_ref(), leg.profile, leg.revision,
-		_content, 0, -1, _crew.tool)
+		_content, 0, -1, NULL_REF)
 	return _o.routes.request_route(_crew.worker, leg.target, tick) if code == &"" else code
 
 
 func _approach(tick: int) -> StringName:
-	"""Tooled source travel; each source-ready arrival starts the next leg."""
+	"""Source-clocked claw travel; each source-ready arrival starts the next leg."""
 	var leg: Leg = _legs[_leg]
 	var arrived: int = _arrived(leg.target, tick)
 	if arrived < 0: return REFUSE_HELD
@@ -209,17 +211,15 @@ func _arrived(target: Vector2i, tick: int) -> int:
 
 
 func _at_store(tick: int) -> StringName:
-	"""At M: the tool goes into M's container, so every trip is tool-free from its first step. A walk-in (nothing
-	to haul) ends here, tooled, under the parent's Job."""
+	"""At M the first trip starts; a walk-in (nothing to haul) ends here under the parent's Job."""
 	if _queue.is_empty():
 		_stage = STAGE_DONE
 		return &""
-	var result: RefCounted = _o.gear.unequip(_crew.tool, _crew.storage, false)
-	return _start_trip(tick) if result.ok else result.error
+	return _start_trip(tick)
 
 
 func _start_trip(tick: int) -> StringName:
-	"""Switch to tool-free WALK, admit one whole unit with Delivery, then walk to R's stand."""
+	"""Switch at rest to the automatic WALK, admit one whole unit with Delivery, then walk to R's stand."""
 	var lot: Vector2i = _staged_lot(_queue[_trip])
 	if lot == NULL_REF: return REFUSE_STAGED
 	var code: StringName = _o.routes.refresh_actor(_crew.worker, _job_ref(), Profiles.MODE_WALK, 0, -1, NULL_REF)
@@ -257,8 +257,8 @@ func _to_source(tick: int) -> StringName:
 
 
 func _grip(row: int) -> StringName:
-	"""Select one certified grip row explicitly; an empty lift is never chosen automatically in content 6."""
-	return _o.routes.refresh_work_actor(_crew.worker, _job_ref(), row, 1, Grip.CONTENT_REVISION, 0, -1, NULL_REF)
+	"""Select one certified grip row explicitly; an empty lift is never chosen automatically (content 6 onwards)."""
+	return _o.routes.refresh_work_actor(_crew.worker, _job_ref(), row, 1, _content, 0, -1, NULL_REF)
 
 
 func _work(tick: int) -> int:
@@ -314,7 +314,7 @@ func _retire_job() -> StringName:
 
 
 func _go_home(tick: int) -> StringName:
-	"""The step's own BUILD Job takes the worker; still tool-free it walks from M's stand onto M."""
+	"""The step's own BUILD Job takes the worker; it walks from M's stand onto M on the automatic WALK."""
 	_job = _home
 	var result: RefCounted = _o.jobs.assign_worker(_row(), _home)
 	if not result.ok: return result.error
@@ -325,11 +325,9 @@ func _go_home(tick: int) -> StringName:
 
 
 func _home_leg(tick: int) -> StringName:
-	"""On M the worker takes its tool back from M's container."""
+	"""Home on M: the parent switches back to its claw rows at rest."""
 	var arrived: int = _arrived(_store, tick)
 	if arrived != 1: return REFUSE_HELD if arrived < 0 else &""
-	var result: RefCounted = _o.gear.equip(_crew.tool, _crew.worker)
-	if not result.ok: return result.error
 	_stage = STAGE_DONE
 	return &""
 
@@ -416,7 +414,7 @@ func _read_tail(r: Progress.Reader) -> void:
 
 func _restored_refusal(job: Vector2i) -> StringName:
 	"""Every handle the haul will still read must exist in the restored owners exactly as saved."""
-	if _o.delivery == null or _o.gear == null: return Progress.REFUSE_OWNERS
+	if _o.delivery == null: return Progress.REFUSE_OWNERS
 	if _content != _o.profiles.content_revision(): return Progress.REFUSE_CONTENT
 	for item: int in _queue:
 		if Grip.carry_row_for(item) < 0: return Progress.REFUSE_SHAPE

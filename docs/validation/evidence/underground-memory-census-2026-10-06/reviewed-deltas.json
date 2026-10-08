@@ -11,36 +11,44 @@
      "bytes": 96,
      "carried_by": "Profiles CONTROL_RESERVE (load-time, released)",
      "store": "three 32-byte digest buffers while hashing sources at load"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "ADR 1217 step 5: content 9 (60 rows, 517 boxes, 6 sources; paired bank 41,160 B, counted in the Motion/Profile joint under the raised PROFILE_BYTES); the six source digests are hashed through one 32-byte scratch and one PackedStringArray of the pinned digests"
     }
    ],
    "delta": {
-    "allocation_sites": {
-     "PackedByteArray(": 3
-    },
+    "resizes_added": [
+     "digest.resize(32)"
+    ],
+    "resizes_removed": [
+     "source.resize(32)"
+    ],
     "int_constants_added": [
      [
       "BOX_COUNT",
-      "377"
+      "517"
      ],
      [
       "CONTENT_REVISION",
-      "6"
+      "9"
      ],
      [
       "PAIRED_BANK_BYTES",
-      "29664"
+      "41160"
      ],
      [
       "PROFILE_COUNT",
-      "42"
+      "60"
      ],
      [
       "SOURCE_COUNT",
-      "4"
+      "6"
      ],
      [
       "WIRE_BYTES",
-      "14840"
+      "20588"
      ]
     ],
     "int_constants_removed": [
@@ -65,11 +73,9 @@
       "10502"
      ]
     ],
-    "resizes_added": [
-     "handling.resize(32)",
-     "haul.resize(32)",
-     "stone.resize(32)"
-    ]
+    "allocation_sites": {
+     "PackedStringArray(": 1
+    }
    }
   },
   "godot/data/underground/mole-worker/qualified-step-v4/catalog_source.gd": {
@@ -98,6 +104,26 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "no retained-storage change"
+    }
+   ],
+   "delta": {}
+  },
+  "godot/scripts/core/construction.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "ADR 1217 step 5: the excavation START worker check accepts a tool-free (GATE_NOT_REQUIRED) BUILD Job; no member, packet or resize"
+    }
+   ],
+   "delta": {}
+  },
+  "godot/scripts/core/excavation_sites.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "ADR 1217 step 5: tool-free claw phases (GATE_NOT_REQUIRED, no tool claim) are bound, worked and released; three functions, no member, packet or resize"
     }
    ],
    "delta": {}
@@ -321,6 +347,11 @@
      "bytes": 256,
      "carried_by": "joint pack (the reserve is a pack contribution)",
      "store": "BINDINGS_AND_GROWTH_BYTES 524,288 -> 524,544 for the Contacts control below"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "ADR 1217 step 5: PROFILE_BYTES 262,144 -> 278,528 (+16,384 B reserve) so content 9's paired profile bank keeps the Motion/Profile/Level joint plus the Session and retirement slices inside one assigned reserve"
     }
    ],
    "delta": {
@@ -328,12 +359,20 @@
      [
       "BINDINGS_AND_GROWTH_BYTES",
       "524544"
+     ],
+     [
+      "PROFILE_BYTES",
+      "278528"
      ]
     ],
     "int_constants_removed": [
      [
       "BINDINGS_AND_GROWTH_BYTES",
       "524288"
+     ],
+     [
+      "PROFILE_BYTES",
+      "262144"
      ]
     ]
    }
@@ -818,13 +857,18 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "REVISION constant 6; tables and bank unchanged"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "ADR 1217 step 5: rebound to the content-9 motion wire (REVISION 9); tables unchanged"
     }
    ],
    "delta": {
     "int_constants_added": [
      [
       "REVISION",
-      "6"
+      "9"
      ]
     ]
    }
@@ -1070,12 +1114,14 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "bundle constants; 15 ground-pace rows inside the Catalog's fixed MAX_PACES = 256 bank"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "ADR 1217 step 5: the claw bundle's 24 ground caps (GROUND_PACE_COUNT 15 -> 24); the structure catalog is unchanged in size"
     }
    ],
    "delta": {
-    "allocation_sites": {
-     "range(": -1
-    },
     "int_constants_added": [
      [
       "CATALOG_DIGEST_0",
@@ -1099,7 +1145,7 @@
      ],
      [
       "GROUND_PACE_COUNT",
-      "15"
+      "24"
      ],
      [
       "PROFILE_CONTENT_REVISION",
@@ -1131,7 +1177,10 @@
       "PROFILE_CONTENT_REVISION",
       "3"
      ]
-    ]
+    ],
+    "allocation_sites": {
+     "range(": -1
+    }
    }
   },
   "godot/scripts/core/underground_routes.gd": {
@@ -1182,10 +1231,19 @@
      "bytes": 0,
      "carried_by": "presentation (outside the REQ-SET-163 simulation gate)",
      "store": "presentation reservation constants (ADR 1201); profile source count 4 is in the Profile joint"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "ADR 1217 step 5: presentation constants for the claw and paw images and the v10 haul images (presentation memory, outside the simulation-owned gate); no simulation member, packet or resize"
     }
    ],
    "delta": {
     "int_constants_added": [
+     [
+      "CLAW_PRESENTATION_BYTES",
+      "6906492"
+     ],
      [
       "HANDLING_PRESENTATION_BYTES",
       "6628488"
@@ -1193,6 +1251,10 @@
      [
       "HAUL_PRESENTATION_BYTES",
       "7486168"
+     ],
+     [
+      "PAW_PRESENTATION_BYTES",
+      "6567544"
      ],
      [
       "PRESENTATION_SET_BYTES",

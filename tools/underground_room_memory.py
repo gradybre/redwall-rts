@@ -22,7 +22,8 @@ E = Path("docs/validation/evidence/underground-current-memory-2026-10-05")
 MANIFEST = Path("docs/validation/evidence/underground-entry-source-phases-2026-10-05/memory-manifest-3.json")
 MANIFEST_SHA = "0eb02a8f447fdea58032583e2828f4fe5f38dc28b15a9b810939cb532851ee7f"
 PROJECTION = Path("docs/validation/evidence/underground-memory-census-2026-10-06/projection.json")
-PROJECTION_SHA = "a40a0d6563cdb54b0fd4b7e92992fa5003d2dea7c9317dacc175c7d52f1cd932"
+PROFILE_BYTES = 278528 # ADR1217 step 5 (underground_budget.gd PROFILE_BYTES)
+PROJECTION_SHA = "a97d9a0623d962ccf4621362348d45e3a75a722e109910c8c34373f6da45bd22"
 P = Path("docs/validation/evidence/underground-room-frontier-publication-2026-10-04")
 I = Path("docs/validation/evidence/underground-room-itinerary-census-2026-10-05")
 C = Path("docs/validation/evidence/underground-room-owner-composition-2026-10-04")
@@ -570,9 +571,10 @@ def reconcile(result, index, session, retirement, ui_reset, motion):
     require(reviewed == result["current_source_runtime"]["joint"]["total"] == 248632 == 238904 + 1536 + 8192,
             "reviewed complete joint disagrees")
     # ADR1212: the reviewed Session (1,536) and retirement (8,192) terms are unchanged; the Motion/Profile/Level
-    # term is the current source count (content 6), so the joint follows the published profile configuration.
+    # term is the current source count (content 9 since ADR1217 step 5, which raised PROFILE_BYTES to 278,528), so the
+    # joint follows the published profile configuration.
     joint = motion["joint"]["total"] + 1536 + 8192
-    require(joint <= 262144, "current complete joint exceeds PROFILE_BYTES")
+    require(joint <= PROFILE_BYTES, "current complete joint exceeds PROFILE_BYTES")
     terms = {"paired_profiles": motion["joint"]["profiles"] - 32768, "profile_controls": 32768,
              "levels": motion["joint"]["levels"]}
     result["current_publication_metadata"]["historical_joint"] = reviewed
@@ -584,9 +586,9 @@ def reconcile(result, index, session, retirement, ui_reset, motion):
         foundation_profile_level_session_bytes=terms["paired_profiles"] + terms["profile_controls"] + terms["levels"] + 1536,
         source_counted_motion_joint_before_session_bytes=motion["joint"]["total"],
         profile_level_motion_session_joint_bytes=motion["joint"]["total"] + 1536,
-        joint_remaining_bytes=262144 - motion["joint"]["total"] - 1536)
+        joint_remaining_bytes=PROFILE_BYTES - motion["joint"]["total"] - 1536)
     retirement["accounting"].update(parent_1156_joint_bytes=session["profile_level_motion_session_joint_bytes"],
-        joint_with_retirement=joint, joint_remaining_bytes=262144-joint)
+        joint_with_retirement=joint, joint_remaining_bytes=PROFILE_BYTES-joint)
     # Preserve the old report's label exactly in historical_accounting only.
     retirement["accounting"]["current_source_joint_bytes"] = retirement["accounting"].pop("parent_1156_joint_bytes")
     ui_reset["accounting"].update(profile_joint_unchanged=joint)

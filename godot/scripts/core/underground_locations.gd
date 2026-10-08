@@ -21,7 +21,8 @@ const EntryPlan := preload("res://scripts/core/underground_entry_plan.gd")
 const ConnectorCatalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const ConnectorFacts := preload("res://scripts/core/underground_connector_source_facts.gd")
 const ContactRetirementScope := preload("res://scripts/core/underground_entry_contact_retirement_scope.gd")
-const AssemblyEndpoint := preload("res://data/underground/mole-worker/qualified-assembly-v1/endpoint_certificate.gd")
+## ADR1217 step 5: the endpoint certificate bound to the installation's content (claw for content 9, pick before).
+const AssemblyEndpoint := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/endpoint_certificates.gd")
 const Journal := preload("res://scripts/core/underground_geometry_journal.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const SCHEMA: int = 2 # ADR1215: schema 2 appends the optional per-motion air pool to the wire.

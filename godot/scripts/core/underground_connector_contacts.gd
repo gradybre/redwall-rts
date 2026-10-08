@@ -29,8 +29,8 @@ const Transforms := preload("res://scripts/core/transforms.gd")
 const Inventory := preload("res://scripts/core/inventory.gd")
 const Gear := preload("res://scripts/core/gear.gd")
 const Workpieces := preload("res://scripts/core/underground_connector_workpieces.gd")
-const AssemblySource := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
-const AssemblyPhysical := preload("res://data/underground/mole-worker/qualified-assembly-v1/physical_certificate.gd")
+## ADR1217 step 5: the handling program is the row Workpieces names (pick 29 dormant, paw 59 active).
+const Handling := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/handling_programs.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 ## ADR1212: +256 for the ADR1215 air shape in its two retained Location records (fixed 3,219 + 1,024 helper).
 const CONTROL_BYTES: int = 4352
@@ -985,7 +985,8 @@ func _part_cross(a: int, b: int, x: int, z: int) -> int:
 
 
 func _profile_refusal() -> StringName:
-	"""An installation source must explicitly name the real BUILD tool and complete certified WORK contact roles."""
+	"""An installation source names the real BUILD tool, or none (DEC-052 paw seating), and complete certified WORK
+	contact roles."""
 	var profiles: Profiles = _placements._profiles
 	var id: int = _station[5]
 	var code: StringName = profiles.descriptor_into(id, _frontier._header[5], _descriptor)
@@ -999,7 +1000,7 @@ func _profile_refusal() -> StringName:
 			or _descriptor.yaw_kind != Profiles.YAW_EXACT or _descriptor.yaw != heading \
 			or _descriptor.posture != _station[6] or _descriptor.certificate_flags != Profiles.CERT_REQUIRED \
 			or _descriptor.contact_kind != Profiles.CONTACT_ANCHOR_AND_PATCH \
-			or _descriptor.tool_item < 0 or _descriptor.tool_item != _tool_item():
+			or not _tool_fits(_descriptor.tool_item):
 		return REFUSE_PROFILE
 	return _scope_leaf()
 
@@ -1067,7 +1068,8 @@ func _role_geometry(role: int, source_profile: int = -1) -> StringName:
 	var code: StringName = _terrain_refusal(_bounds, Terrain.EXCLUSIONS)
 	if code != &"":
 		return code
-	if _workpiece_owner() != null and role != Profiles.WORK_STROKE and Space.overlaps(_bounds, _target):
+	if _workpiece_owner() != null and role != Profiles.WORK_STROKE and Space.overlaps(_bounds, _target) \
+			and not _certified_tap(source_profile):
 		return REFUSE_GEOMETRY
 	if role == Profiles.STANCE_SUPPORT:
 		return &"" if Space.contains_box(_location.support, _bounds) else REFUSE_GEOMETRY
@@ -1082,6 +1084,14 @@ func _role_geometry(role: int, source_profile: int = -1) -> StringName:
 	elif not _subtract_stances(source_profile):
 		return REFUSE_CAPACITY if _fragments.failed else REFUSE_GEOMETRY
 	return &"" if _fragments.count == 0 else REFUSE_GEOMETRY
+
+
+func _certified_tap(source_profile: int) -> bool:
+	"""ADR1217 step 5: the claw seating tap's entry/recovery AABB crosses the bearer prism only because the published
+	row does not split the paws at the contact plane; its offline triangle proof (step 2) clears the whole motion
+	against both bearer prisms at the canonical root. Only that exact row at that exact root is excused."""
+	return source_profile < 0 and Handling.tap_certified(_placements._profiles, _descriptor.profile_id,
+		_descriptor.profile_revision, _frontier._header[5], _ordinal, _location.point, _target)
 
 
 func _subtract_stances(source_profile: int = -1) -> bool:
@@ -1474,7 +1484,7 @@ func _observe_workers() -> StringName:
 			if code == &"":
 				if _assembly_start():
 					code = Routes.source_ready_leaf_refusal(_placements._routes, worker, job,
-						AssemblySource.PROFILE, 1, _frontier._header[5])
+						_handling_row(), 1, _frontier._header[5])
 				else:
 					code = _placements._routes.source_work_observation_refusal(worker, job, _station[5],
 						_profile_revision, _frontier._header[5])
@@ -1752,7 +1762,12 @@ func _assembly_source_selected() -> bool:
 	var actual: Workpieces = _workpiece_owner()
 	return actual != null and _ordinal >= 0 and _ordinal < actual._assembly_capacity \
 		and actual._parts.size() == 6 * actual._assembly_capacity \
-		and actual._parts[Workpieces.PROFILE * actual._assembly_capacity + _ordinal] == AssemblySource.PROFILE
+		and Handling.is_handling(actual._parts[Workpieces.PROFILE * actual._assembly_capacity + _ordinal])
+
+
+func _handling_row() -> int:
+	"""ADR1217 step 5: the set-down (handling) row the bound Workpieces names for this order's assembly."""
+	return Handling.profile_of(_workpiece_owner(), _ordinal)
 
 
 func _assembly_start() -> bool:
@@ -1805,7 +1820,7 @@ func _assembly_start_worker_leaf(job: Vector2i, worker: Vector2i, row: int) -> S
 	var graph: Routes = _placements._routes
 	var code: StringName = Workpieces.source_leaf_refusal(actual, _placement, _project)
 	if code == &"": code = Routes.turn_selection_into(graph, row, _selection)
-	if code == &"": code = AssemblySource.profile_refusal(_placements._profiles, _selection.profile_id,
+	if code == &"": code = Handling.profile_refusal(_placements._profiles, _selection.profile_id,
 		_selection.profile_revision, _selection.content_revision)
 	if code != &"" or _selection.worker != worker or _selection.job != job \
 			or _selection.content_revision != _frontier._header[5] or _selection.yaw != 0 \
@@ -1814,20 +1829,20 @@ func _assembly_start_worker_leaf(job: Vector2i, worker: Vector2i, row: int) -> S
 			or graph._resident_pair(Routes.R_SECTION_SLOT, row) != _location.section \
 			or graph._motion.resident[Routes.R_LEVEL * Routes.RESIDENT_CAPACITY + row] != _location.level:
 		return code if code != &"" else REFUSE_WORKER
-	code = Routes.source_ready_leaf_refusal(graph, worker, job, AssemblySource.PROFILE, 1, _frontier._header[5])
-	if code == &"": code = AssemblyPhysical._source_station(actual, _placement, _selection)
-	if code == &"": code = AssemblySource.bearer_refusal(_ordinal, _location.point, _target)
+	code = Routes.source_ready_leaf_refusal(graph, worker, job, _handling_row(), 1, _frontier._header[5])
+	if code == &"": code = Handling.source_station(actual, _placement, _selection)
+	if code == &"": code = Handling.bearer_refusal(_ordinal, _location.point, _target)
 	if code == &"": code = _assembly_start_geometry()
 	if code == &"": code = _worker_retreat_leaf(worker, job)
-	return _occupancy_leaf(worker, AssemblySource.PROFILE) if code == &"" else code
+	return _occupancy_leaf(worker, _handling_row()) if code == &"" else code
 
 
 func _assembly_start_geometry() -> StringName:
 	"""The full source fits current real air and footing before its future obstacle is published; no target is subtracted."""
 	if _terrain._checked_geometry_revision != _geometry_revision \
 			or not Terrain._final_owners_match(_terrain, _placements._space._sources): return REFUSE_BINDING
-	for part: int in 3:
-		var code: StringName = AssemblyPhysical._box_into(_selection, part, _bounds)
+	for part: int in Handling.part_count(_selection.profile_id):
+		var code: StringName = Handling.box_into(_selection, part, _bounds)
 		if code == &"": code = _assembly_start_volume(part == 1)
 		if code != &"": return code
 	return &""
@@ -1863,7 +1878,7 @@ func _assembly_start_regions(foot: bool) -> StringName:
 		if region == piece: # DEC-057: the pending piece being re-handled in place, never under a foot.
 			if foot: return REFUSE_GEOMETRY
 			continue
-		if foot and AssemblyPhysical.own_room_marker(owner, region, _location.room): continue
+		if foot and Handling.own_room_marker(owner, region, _location.room): continue
 		var role: int = owner._r_role[region]
 		if role == Space.SUPPORTED_VOID:
 			if not foot and not _fragments.subtract(_scratch): return REFUSE_CAPACITY
@@ -2097,14 +2112,18 @@ func _descriptor_leaf() -> StringName:
 	if profiles._field(profiles._live, row, Profiles.F_SOURCE) != _frontier._header[7] \
 			or profiles._field(profiles._live, row, Profiles.F_MODE) != Profiles.MODE_WORK \
 			or profiles._field(profiles._live, row, Profiles.F_WORK_KIND) != Jobs.JOB_KIND_BUILD \
-			or profiles._field(profiles._live, row, Profiles.F_TOOL) < 0 \
-			or profiles._field(profiles._live, row, Profiles.F_TOOL) != _tool_item() \
+			or not _tool_fits(profiles._field(profiles._live, row, Profiles.F_TOOL)) \
 			or profiles._field(profiles._live, row, Profiles.F_POSTURE) != _station[6] \
 			or profiles._field(profiles._live, row, Profiles.F_YAW_KIND) != Profiles.YAW_EXACT \
 			or profiles._field(profiles._live, row, Profiles.F_YAW) != _world_yaw() \
 			or profiles._field(profiles._live, row, Profiles.F_CONTACT_KIND) != Profiles.CONTACT_ANCHOR_AND_PATCH:
 		return REFUSE_PROFILE
 	return &""
+
+
+func _tool_fits(tool_item: int) -> bool:
+	"""DEC-052: a paw-seating source holds no tool (-1); a tooled source must name the real BUILD tool."""
+	return tool_item == -1 or tool_item == _tool_item()
 
 
 func _tool_item() -> int:
@@ -2449,6 +2468,11 @@ func _site_job_row(job: Vector2i, row: int) -> int:
 		and _sites._job_slot[_phase_site.x] == job.x and _sites._job_generation[_phase_site.x] == job.y else -1
 
 
+static func _gate_accepted(gate: int) -> bool:
+	"""A paid worker's Job either holds its claimed tool (dormant pick work) or needs none (DEC-052 claw and paw)."""
+	return gate == Jobs.GATE_SATISFIED or gate == Jobs.GATE_NOT_REQUIRED
+
+
 func _site_lifecycle_leaf() -> StringName:
 	"""Match current paid phase/pause/work truth immediately before a real worker or payment boundary."""
 	if _site_scope_leaf() != &"" or not _sites._operation_allowed(_phase_site.x, _phase_operation): return REFUSE_SCOPE
@@ -2460,7 +2484,7 @@ func _site_lifecycle_leaf() -> StringName:
 	if phase < 0 or phase >= Construction.PHASE_COUNT or construction._remaining_mwu[row] < 0: return REFUSE_SCOPE
 	if _action == Contract.CANCEL or _action == -1: return &""
 	var job_row: int = _job_row(_primary_job)
-	if _phase_needs_worker() and (job_row < 0 or _placements._jobs._tool_gate[job_row] != Jobs.GATE_SATISFIED \
+	if _phase_needs_worker() and (job_row < 0 or not _gate_accepted(_placements._jobs._tool_gate[job_row]) \
 			or _placements._jobs._remaining_mwu[job_row] != construction._remaining_mwu[row]): return REFUSE_WORKER
 	if construction._paused[row] != 0: return Construction.REFUSE_PAUSED
 	var funding: RefCounted = _sites._funding

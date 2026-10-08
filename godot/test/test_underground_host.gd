@@ -27,8 +27,10 @@ const Contract := preload("res://scripts/core/excavation_contract.gd")
 ## T0's paid FUND fits its operation budget and the live chain runs the whole first-entry prefix: L0 installed, T0's
 ## six cuts settled, T0 installed. The foreman is then done; nothing past the prefix is planned (ADR1197 G9: the
 ## Kitchen's own cuts wait on Brendan's choice in ADR1208).
-## The tick the uninterrupted live chain finishes on, asserted by both the plain and the restored chain.
-const DONE_TICK: int = 4630
+## The tick the uninterrupted live chain finishes on, asserted by both the plain and the restored chain. ADR1217 step 5:
+## 4630 -> 4670 on the claw and paw rows (new motion timings: the claw walk's 44-key loop, the walk-on past the
+## blocked fade keys, the 32-tick dig and tap loops); every Work amount, bill and hauled unit is unchanged (DEC-052).
+const DONE_TICK: int = 4670
 ## [task index, cut Work mWU, hauled whole units, installation Work mWU, groups INSTALLED] at the end: L0's twelve
 ## phases, T0's six cuts, both installations' fastening (32,000 + 12,000 mWU).
 const DONE_LEDGER: Array = [20, 54000, 9, 44000, 2]
@@ -711,20 +713,25 @@ func test_suggested_entry_site_publishes_the_whole_work_area_on_generated_ground
 
 
 func test_live_entry_chain_publishes_confirms_then_alerts_each_missing_capability() -> void:
-	"""ADR1197: real steps stay done; the first missing capability stops the chain with its gap row."""
+	"""ADR1197: real steps stay done; the first missing capability stops the chain with its gap row. ADR1217 step 5
+	(DEC-052): no tool is needed, so G11 is gone; with every mole busy the chain stops at G6 and a retry resumes."""
 	var session: Session = _generate_and_mount()
 	assert_true(_host.compose_underground_room_owners() and _host.compose_underground_route_owners()
 		and _host.compose_underground_surface_anchor() and _host.compose_underground_entry_owners(), "every owner composed")
 	var near: Vector3i = Vector3i(60 * 2048 + 512, 512, 50 * 2048 + 512)
-	assert_false(_host.begin_underground_entry(near), "no settlement mole holds a tool yet")
-	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
-	assert_equal(entry.error(), Settlement.UndergroundEntryRuntime.REFUSE_NO_TOOLED_MOLE, "exact refusal")
-	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G11"), "named gap row")
-	assert_equal(entry.step(), Settlement.UndergroundEntryRuntime.STEP_CONTAINERS, "site, work area, entry and containers are real")
 	var o: Session.Retirement.Owners = session._retirement_owners
+	var worker: Vector2i = _first_mole(o)
+	var busy: Array[int] = _busy_all_moles(o)
+	assert_false(_host.begin_underground_entry(near), "every adult mole holds another Job")
+	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
+	assert_equal(entry.error(), Jobs.REFUSE_AGENT_BUSY, "exact refusal")
+	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G6"), "named gap row")
+	assert_false(Settlement.UndergroundEntryRuntime.GAPS.has(&"ENTRY_CREW_NO_TOOLED_MOLE"), "G11 retired")
+	assert_equal(entry.step(), Settlement.UndergroundEntryRuntime.STEP_CONTAINERS, "site, work area, entry and containers are real")
 	assert_equal(o.locations._live.count, EntryWorkArea.ENDPOINTS, "published work area retained")
-	var worker: Vector2i = _equip_first_mole(o, entry._output)
+	_release_busy(o, busy)
 	assert_true(_host.begin_underground_entry(near), "retry resumes; the crew sets off for H: %s" % _host.last_refusal())
+	assert_equal([entry.crew().worker, entry.crew().tool], [worker, Vector2i(-1, 0)], "the first idle adult mole, no tool")
 	assert_equal(entry.step(), Settlement.UndergroundEntryRuntime.STEP_RUNNING, "crew chosen and the foreman planned")
 	assert_true(entry.walk_ticks_left() > 0, "ADR1219: the crew is on its timed surface walk to H")
 	assert_equal(entry.crew().arrival, entry._published.endpoints[0], "it will be registered at H")
@@ -736,23 +743,22 @@ func test_fixed_ticks_drive_the_live_foreman_until_the_first_gap() -> void:
 	"""ADR1219: run_tick alone walks the crew mole from its surface pose to H over BAL-WORK-003's straight-leg ticks,
 	places it exactly on H, registers it there on H's authored approach row and drives the foreman on; no stand-in
 	places it. Only the crew is a route actor; the other surface residents pass every occupancy proof by their reach
-	cubes. It retreats to R, walks tooled to M, puts the tool down and hauls both units. ADR1223: the JobSelector
+	cubes. It retreats to R, walks to M and hauls both units (no tool at all, ADR1217 step 5). ADR1223: the JobSelector
 	never selects the reserved crew (it holds no Job through the walk) nor offers its Jobs to anyone, so at every tick
 	from arrival the crew holds one of the entry's own Jobs and no other resident holds one; it walks home under its
-	BUILD Job, re-equips and works every paid L0 phase (ADR1224: the entry structure is composed, G12), installs L0,
+	BUILD Job and digs every paid L0 phase with its claws (ADR1224: the entry structure is composed, G12), installs L0,
 	cuts and installs T0 (ADR1227: G14 built) and finishes the prefix; on the finishing tick it gives its Job back."""
 	var session: Session = _generate_and_mount()
 	assert_true(_host.compose_underground_room_owners() and _host.compose_underground_route_owners()
 		and _host.compose_underground_surface_anchor() and _host.compose_underground_entry_owners(), "every owner composed")
 	var near: Vector3i = Vector3i(60 * 2048 + 512, 512, 50 * 2048 + 512)
-	assert_false(_host.begin_underground_entry(near), "G11 first")
-	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
 	var o: Session.Retirement.Owners = session._retirement_owners
-	var worker: Vector2i = _equip_first_mole(o, entry._output)
+	var worker: Vector2i = _first_mole(o)
+	assert_true(_host.begin_underground_entry(near), "foreman planned and the walk begun: %s" % _host.last_refusal())
+	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
 	_stage(o, entry._output, &"wood", 7000)
 	_stage(o, entry._output, &"stone", 2000)
-	assert_true(_host.begin_underground_entry(near), "foreman planned and the walk begun: %s" % _host.last_refusal())
-	assert_equal(entry.error(), &"", "ADR1227: the successful start cleared the G11 refusal of the first attempt")
+	assert_equal([entry.error(), entry.crew().worker], [&"", worker], "no refusal; the first idle adult mole")
 	var walk: int = _expected_walk(o, worker, entry)
 	assert_equal(entry.walk_ticks_left(), walk, "BAL-WORK-003 ticks from its own pose")
 	var arrived: Array = _tick_until_registered(o, entry, worker)
@@ -825,7 +831,7 @@ func _assert_dispatch_held(o: Session.Retirement.Owners, entry: Settlement.Under
 func _assert_prefix_done(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime, worker: Vector2i) -> void:
 	"""ADR1227: past G6, G12, G13 and G14. The crew hauled every unit, settled every L0 phase, installed L0, settled
 	T0's six cut phases and installed T0, each group exactly once; the foreman is done with no refusal and no Project
-	is left live. The crew stays the only route actor (ADR1219 section 4) and keeps its tool."""
+	is left live. The crew stays the only route actor (ADR1219 section 4) and never held a tool (DEC-052)."""
 	assert_false(entry.is_running(), "the chain no longer runs")
 	assert_equal(entry.step(), Settlement.UndergroundEntryRuntime.STEP_DONE, "the runtime finished the prefix")
 	assert_equal(entry.error(), Settlement.UndergroundEntryRuntime.REFUSE_DESCENT_UNBUILT, "and stopped at the descent")
@@ -834,8 +840,8 @@ func _assert_prefix_done(o: Session.Retirement.Owners, entry: Settlement.Undergr
 	assert_true(foreman.is_done() and foreman.error() == &"", "every planned task done, no refusal: %s" % foreman.error())
 	assert_equal(_done_ledger(o, foreman), DONE_LEDGER, "both installations and every cut with their exact Work, once")
 	assert_equal(o.construction.live_project_count(), 0, "every Project retired")
-	assert_true(o.gear.is_equipped_record(entry.crew().tool) and o.gear.owner_of(entry.crew().tool) == worker,
-		"the crew holds its tool")
+	assert_equal(entry.crew().tool, Vector2i(-1, 0), "the claw crew has no tool")
+	assert_equal(o.work.tool_lot_of(o.residents.directory().get_typed_row(worker)), Vector2i(-1, 0), "and claimed none")
 	var actors: int = 0
 	for row: int in Session.Retirement.Routes.RESIDENT_CAPACITY:
 		if o.routes._resident_ref(row) != Session.Retirement.Routes.NULL_REF: actors += 1
@@ -855,19 +861,67 @@ func _stage(o: Session.Retirement.Owners, container: Vector2i, key: StringName, 
 	return lot.ref
 
 
-func _equip_first_mole(o: Session.Retirement.Owners, container: Vector2i) -> Vector2i:
-	"""Test stand-in for future tool gameplay: one real basic tool lot equipped by the first adult mole."""
+func _eligible_moles(o: Session.Retirement.Owners) -> Array[Vector2i]:
+	"""Every living adult mole holding no Job and no tool, by resident slot: the runtime's crew order (DEC-052)."""
 	var residents: RefCounted = o.residents
+	var found: Array[Vector2i] = []
 	for slot: int in residents._present.size():
-		if not residents.is_present(slot) or residents.species_key(residents.species_of(slot).value) != &"mole": continue
-		var owner: Vector2i = residents.ref_of(slot)
+		if not residents.is_alive(slot) or residents.life_stage_code_of(slot) != Residents.LIFE_STAGE_ADULT \
+				or residents.species_key(residents.species_of(slot).value) != &"mole" or residents.has_equipped_tool(slot) \
+				or o.jobs.job_of(slot) != Jobs.NULL_REF: continue
+		found.append(residents.ref_of(slot))
+	return found
+
+
+func _first_mole(o: Session.Retirement.Owners) -> Vector2i:
+	"""The mole the runtime will choose as the crew."""
+	var found: Array[Vector2i] = _eligible_moles(o)
+	assert_false(found.is_empty(), "the starting cohort has an idle adult mole")
+	return found[0] if not found.is_empty() else Vector2i(-1, 0)
+
+
+func _busy_all_moles(o: Session.Retirement.Owners) -> Array[int]:
+	"""Every eligible mole takes an ordinary KEEP Job in a resolved work hour; returns the Jobs."""
+	var jobs: Array[int] = []
+	for mole: Vector2i in _eligible_moles(o):
+		var row: int = o.residents.directory().get_typed_row(mole)
+		var job: int = o.jobs.create_job(Jobs.JOB_KIND_KEEP, 0, 0, 0, 0).value
+		assert_true(o.jobs.schedule().resolve_into(row, 8, false, IntMath.IntResult.new()), "a work hour is resolved")
+		assert_true(o.jobs.assign_worker(row, job).ok, "the mole takes ordinary work")
+		jobs.append(job)
+	return jobs
+
+
+func _release_busy(o: Session.Retirement.Owners, jobs: Array[int]) -> void:
+	"""Every Job from _busy_all_moles is given back and destroyed."""
+	for job: int in jobs:
+		var worker: Vector2i = o.jobs.worker_of(job)
+		assert_true(o.jobs.release_worker(o.residents.directory().get_typed_row(worker)).ok, "released")
+		assert_true(o.jobs.destroy_job(job).ok, "destroyed")
+
+
+func _bench_moles(o: Session.Retirement.Owners, container: Vector2i, keep: Array[Vector2i]) -> Array[Vector2i]:
+	"""Equip a real basic tool on every eligible mole outside `keep`: DEC-052's claw rows take no tool, so the runtime
+	passes a tooled mole over. Returns the benched moles, in crew order."""
+	var benched: Array[Vector2i] = []
+	for mole: Vector2i in _eligible_moles(o):
+		if mole in keep: continue
 		var lot: RefCounted = o.inventory.create_lot(container, o.items.compiled_id(&"tool"), 1000, 1, 0, -1, 0, 0)
-		assert_true(lot.ok, "real tool lot: %s" % lot.error)
-		assert_true(o.gear.create_gear(o.inventory, o.items, lot.ref, o.gear.MANUFACTURE_BASIC).ok, "real basic tool")
-		assert_true(o.gear.equip(lot.ref, owner).ok, "mole equips it")
-		return owner
-	assert_true(false, "starting cohort has a mole")
-	return Vector2i(-1, 0)
+		assert_true(lot.ok and o.gear.create_gear(o.inventory, o.items, lot.ref, o.gear.MANUFACTURE_BASIC).ok, "basic tool")
+		assert_true(o.gear.equip(lot.ref, mole).ok, "the mole is benched by its tool")
+		benched.append(mole)
+	return benched
+
+
+func _unbench(o: Session.Retirement.Owners, container: Vector2i, mole: Vector2i) -> void:
+	"""Put a benched mole's tool down, so it is eligible again."""
+	var row: int = o.residents.directory().get_typed_row(mole)
+	var lot: Vector2i = Vector2i(-1, 0)
+	for at: int in o.gear._row_capacity:
+		if o.gear._occupied[at] == 1 and o.gear._equipped[at] == 1 \
+				and Vector2i(o.gear._owner_slot[at], o.gear._owner_generation[at]) == mole:
+			lot = Vector2i(o.gear._lot_slot[at], o.gear._lot_generation[at])
+	assert_true(lot != Vector2i(-1, 0) and o.gear.unequip(lot, container, false).ok, "tool down (row %d)" % row)
 
 
 func test_actual_surface_publication_retires_and_remounts_without_old_scope_or_endpoint_alias() -> void:
@@ -1099,20 +1153,19 @@ func test_surface_active_publication_rejects_whole_world_reset_and_keeps_its_ori
 
 
 func _begin_live_entry(configure: Callable = Callable()) -> Array:
-	"""[owners, runtime, crew worker] of a live chain begun with the G11 tool and G4 staged-stock stand-ins;
-	`configure(owners, worker)` runs after the mole is equipped and before the entry begins."""
+	"""[owners, runtime, crew worker] of a live chain begun with the G4 staged-stock stand-in (no tool: DEC-052);
+	`configure(owners, worker)` runs on the crew before the entry begins."""
 	_generate_and_mount()
 	assert_true(_host.compose_underground_room_owners() and _host.compose_underground_route_owners()
 		and _host.compose_underground_surface_anchor() and _host.compose_underground_entry_owners(), "every owner composed")
 	var near: Vector3i = Vector3i(60 * 2048 + 512, 512, 50 * 2048 + 512)
-	assert_false(_host.begin_underground_entry(near), "G11 first")
 	var o: Session.Retirement.Owners = _host.underground_session()._retirement_owners
-	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
-	var worker: Vector2i = _equip_first_mole(o, entry._output)
-	_stage(o, entry._output, &"wood", 7000)
-	_stage(o, entry._output, &"stone", 2000)
+	var worker: Vector2i = _first_mole(o)
 	if configure.is_valid(): configure.call(o, worker)
 	assert_true(_host.begin_underground_entry(near), "foreman planned and the walk begun: %s" % _host.last_refusal())
+	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
+	_stage(o, entry._output, &"wood", 7000)
+	_stage(o, entry._output, &"stone", 2000)
 	return [o, entry, worker]
 
 
@@ -1173,19 +1226,6 @@ func test_the_crew_waits_reserved_through_a_non_work_hour_at_arrival() -> void:
 	assert_true(entry.reserves_resident(row), "reserved throughout")
 
 
-func _equip_both_moles(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime) -> Vector2i:
-	"""The G11 stand-in for two moles: the first is the crew, the second (returned) the replacement."""
-	var first: Vector2i = _equip_first_mole(o, entry._output)
-	var residents: RefCounted = o.residents
-	for slot: int in residents._present.size():
-		if not residents.is_present(slot) or residents.ref_of(slot) == first \
-				or residents.species_key(residents.species_of(slot).value) != &"mole": continue
-		var lot: RefCounted = o.inventory.create_lot(entry._output, o.items.compiled_id(&"tool"), 1000, 1, 0, -1, 0, 0)
-		assert_true(o.gear.create_gear(o.inventory, o.items, lot.ref, o.gear.MANUFACTURE_BASIC).ok, "second basic tool")
-		assert_true(o.gear.equip(lot.ref, residents.ref_of(slot)).ok, "the second mole equips it")
-		return residents.ref_of(slot)
-	assert_true(false, "the starting cohort has two moles")
-	return Vector2i(-1, 0)
 
 
 func _kill(o: Session.Retirement.Owners, worker: Vector2i) -> void:
@@ -1194,19 +1234,17 @@ func _kill(o: Session.Retirement.Owners, worker: Vector2i) -> void:
 
 
 func _live_with_spare() -> Array:
-	"""[owners, runtime, crew, spare mole] of a live chain begun with two tooled moles; the first is the crew."""
-	_generate_and_mount()
-	assert_true(_host.compose_underground_room_owners() and _host.compose_underground_route_owners()
-		and _host.compose_underground_surface_anchor() and _host.compose_underground_entry_owners(), "every owner composed")
-	var near: Vector3i = Vector3i(60 * 2048 + 512, 512, 50 * 2048 + 512)
-	assert_false(_host.begin_underground_entry(near), "G11 first")
-	var o: Session.Retirement.Owners = _host.underground_session()._retirement_owners
-	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
-	var spare: Vector2i = _equip_both_moles(o, entry)
-	_stage(o, entry._output, &"wood", 7000)
-	_stage(o, entry._output, &"stone", 2000)
-	assert_true(_host.begin_underground_entry(near), "begun: %s" % _host.last_refusal())
-	return [o, entry, entry.crew().worker, spare]
+	"""[owners, runtime, crew, spare mole] of a live chain with exactly two eligible moles: the first is the crew, the
+	second the replacement; every other mole is benched by a tool (DEC-052: the claw rows take none)."""
+	var live: Array = _begin_live_entry()
+	var o: Session.Retirement.Owners = live[0]
+	var entry: Settlement.UndergroundEntryRuntime = live[1]
+	var others: Array[Vector2i] = _eligible_moles(o)
+	others.erase(live[2])
+	assert_false(others.is_empty(), "the starting cohort has two adult moles")
+	if others.is_empty(): return [o, entry, live[2], Vector2i(-1, 0)]
+	_bench_moles(o, entry._output, [live[2], others[0]])
+	return [o, entry, entry.crew().worker, others[0]]
 
 
 func test_a_crew_lost_mid_haul_is_replaced_and_the_entry_resumes_where_it_stopped() -> void:
@@ -1256,12 +1294,14 @@ func _earning_the_first_cut(entry: Settlement.UndergroundEntryRuntime) -> bool:
 	return foreman._index == 1 and foreman._stage == foreman.STAGE_EARN and foreman._stage_ticks > 5
 
 
-func test_with_no_spare_the_entry_waits_restores_and_takes_the_next_tooled_mole() -> void:
-	"""ADR1225: a crew lost on its walk with no idle tooled mole raises ENTRY_CREW_NO_REPLACEMENT and waits; the
-	waiting record round-trips; once a mole is equipped the next JobSelector interval sends it in."""
+func test_with_no_spare_the_entry_waits_restores_and_takes_the_next_idle_mole() -> void:
+	"""ADR1225: a crew lost on its walk with no idle adult mole raises ENTRY_CREW_NO_REPLACEMENT and waits; the
+	waiting record round-trips; once a mole is free (its tool put down) the next JobSelector interval sends it in."""
 	var live: Array = _begin_live_entry()
 	var o: Session.Retirement.Owners = live[0]
 	var entry: Settlement.UndergroundEntryRuntime = live[1]
+	var benched: Array[Vector2i] = _bench_moles(o, entry._output, [live[2]])
+	assert_false(benched.is_empty(), "another adult mole exists")
 	assert_equal(entry.advance(1), &"", "walking")
 	_kill(o, live[2])
 	assert_equal(entry.advance(2), Settlement.UndergroundEntryRuntime.REFUSE_NO_REPLACEMENT, "nobody to send")
@@ -1273,23 +1313,11 @@ func test_with_no_spare_the_entry_waits_restores_and_takes_the_next_tooled_mole(
 	var fresh: Settlement.UndergroundEntryRuntime = Settlement.UndergroundEntryRuntime.new()
 	assert_equal(fresh.restore(bytes, _host.underground_session()), &"", "and restores")
 	_host._underground_entry = fresh
-	var spare: Vector2i = _equip_other_mole(o, fresh._output, live[2])
+	var spare: Vector2i = benched[0]
+	_unbench(o, fresh._output, spare)
 	var tick: int = _run_until(fresh, 3, func() -> bool: return fresh.crew().worker != Vector2i(-1, 0))
 	assert_true(tick - 3 <= Jobs.REEVALUATION_INTERVAL_TICKS + 1, "within one interval")
 	assert_true(fresh.crew().worker == spare and fresh.walk_ticks_left() > 0, "the new mole walks in")
-
-
-func _equip_other_mole(o: Session.Retirement.Owners, container: Vector2i, except: Vector2i) -> Vector2i:
-	"""Equip a basic tool on a mole other than `except`."""
-	var residents: RefCounted = o.residents
-	for slot: int in residents._present.size():
-		if not residents.is_present(slot) or residents.ref_of(slot) == except \
-				or residents.species_key(residents.species_of(slot).value) != &"mole": continue
-		var lot: RefCounted = o.inventory.create_lot(container, o.items.compiled_id(&"tool"), 1000, 1, 0, -1, 0, 0)
-		assert_true(o.gear.create_gear(o.inventory, o.items, lot.ref, o.gear.MANUFACTURE_BASIC).ok, "basic tool")
-		assert_true(o.gear.equip(lot.ref, residents.ref_of(slot)).ok, "equipped")
-		return residents.ref_of(slot)
-	return Vector2i(-1, 0)
 
 
 func test_a_crew_that_leaves_on_its_walk_is_released_and_the_entry_waits() -> void:
@@ -1299,6 +1327,7 @@ func test_a_crew_that_leaves_on_its_walk_is_released_and_the_entry_waits() -> vo
 	var o: Session.Retirement.Owners = live[0]
 	var entry: Settlement.UndergroundEntryRuntime = live[1]
 	var row: int = o.residents.directory().get_typed_row(live[2])
+	_bench_moles(o, entry._output, [live[2]])
 	assert_true(entry.advance(1) == &"" and entry.walk_ticks_left() > 0 and entry.reserves_resident(row), "walking, reserved")
 	assert_true(o.jobs.despawn_agent(row).ok and o.residents.despawn(live[2]).ok, "the crew leaves")
 	assert_equal(entry.advance(2), Settlement.UndergroundEntryRuntime.REFUSE_NO_REPLACEMENT, "lost; nobody to send")
@@ -1306,34 +1335,38 @@ func test_a_crew_that_leaves_on_its_walk_is_released_and_the_entry_waits() -> vo
 	assert_false(entry.reserves_resident(row), "its row is reserved by nobody")
 
 
-func test_a_busy_tooled_mole_is_not_taken_as_the_crew() -> void:
-	"""ADR1223: crew selection passes over a mole holding another Job and never takes that Job from it."""
+func test_a_busy_mole_is_not_taken_as_the_crew() -> void:
+	"""ADR1223: crew selection passes over a mole holding another Job and never takes that Job from it; a mole with a
+	tool in hand is passed over too (DEC-052: no claw or paw row takes one)."""
 	_generate_and_mount()
 	assert_true(_host.compose_underground_room_owners() and _host.compose_underground_route_owners()
 		and _host.compose_underground_surface_anchor() and _host.compose_underground_entry_owners(), "every owner composed")
 	var near: Vector3i = Vector3i(60 * 2048 + 512, 512, 50 * 2048 + 512)
-	assert_false(_host.begin_underground_entry(near), "G11 first")
 	var o: Session.Retirement.Owners = _host.underground_session()._retirement_owners
-	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
-	var worker: Vector2i = _equip_first_mole(o, entry._output)
+	var worker: Vector2i = _first_mole(o)
 	var row: int = o.residents.directory().get_typed_row(worker)
-	var job: int = o.jobs.create_job(Jobs.JOB_KIND_KEEP, 0, 0, 0, 0).value
-	assert_true(o.jobs.schedule().resolve_into(row, 8, false, IntMath.IntResult.new()), "a work hour is resolved")
-	assert_true(o.jobs.assign_worker(row, job).ok, "the only tooled mole takes ordinary work")
-	assert_false(_host.begin_underground_entry(near), "no idle tooled mole")
+	var jobs: Array[int] = _busy_all_moles(o)
+	assert_false(_host.begin_underground_entry(near), "no idle adult mole")
+	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
 	assert_equal(entry.error(), Jobs.REFUSE_AGENT_BUSY, "exact refusal")
 	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G6"), "named gap row")
-	assert_equal(o.jobs.job_of(row), o.jobs.ref_of(job), "its own Job is untouched")
+	assert_equal(o.jobs.job_of(row), o.jobs.ref_of(jobs[0]), "its own Job is untouched")
+	_release_busy(o, jobs)
+	_bench_moles(o, entry._output, [])
+	assert_false(_host.begin_underground_entry(near), "every adult mole holds a tool")
+	assert_equal(entry.error(), Settlement.UndergroundEntryRuntime.REFUSE_NO_IDLE_MOLE, "exact refusal")
+	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G6"), "named gap row")
 
 
 func test_entry_runtime_progress_round_trips_at_a_stopped_step_and_resumes() -> void:
-	"""ADR1218 (G10): the runtime stopped at G11 is captured, restored exactly into a fresh runtime from the
-	Session's owners, refuses damaged or stale records with exact codes, and the restored runtime resumes."""
+	"""ADR1218 (G10): the runtime stopped before its crew (every mole busy, G6) is captured, restored exactly into a
+	fresh runtime from the Session's owners, refuses damaged or stale records with exact codes, and resumes."""
 	var session: Session = _generate_and_mount()
 	assert_true(_host.compose_underground_room_owners() and _host.compose_underground_route_owners()
 		and _host.compose_underground_surface_anchor() and _host.compose_underground_entry_owners(), "every owner composed")
 	var near: Vector3i = Vector3i(60 * 2048 + 512, 512, 50 * 2048 + 512)
-	assert_false(_host.begin_underground_entry(near), "G11 first")
+	var busy: Array[int] = _busy_all_moles(session._retirement_owners)
+	assert_false(_host.begin_underground_entry(near), "every mole busy first")
 	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
 	var bytes: PackedByteArray = PackedByteArray()
 	assert_equal(entry.capture(bytes), &"", "capture at STEP_CONTAINERS")
@@ -1355,7 +1388,7 @@ func test_entry_runtime_progress_round_trips_at_a_stopped_step_and_resumes() -> 
 	stale.encode_s32(AT_RUNTIME_STORAGE + 4, bytes.decode_s32(AT_RUNTIME_STORAGE + 4) + 1)
 	_expect_runtime_refusal(session, stale, Progress.REFUSE_CREW)
 	_host._underground_entry = fresh
-	_equip_first_mole(session._retirement_owners, fresh._output)
+	_release_busy(session._retirement_owners, busy)
 	assert_true(_host.begin_underground_entry(near), "the restored runtime resumes: %s" % _host.last_refusal())
 	assert_equal(fresh.step(), Settlement.UndergroundEntryRuntime.STEP_RUNNING, "foreman planned; nothing republished")
 	_assert_mid_walk_record(session, fresh)
@@ -1412,13 +1445,12 @@ func _live_chain(restoring: bool) -> Array:
 	assert_true(_host.compose_underground_room_owners() and _host.compose_underground_route_owners()
 		and _host.compose_underground_surface_anchor() and _host.compose_underground_entry_owners(), "every owner composed")
 	var near: Vector3i = Vector3i(60 * 2048 + 512, 512, 50 * 2048 + 512)
-	assert_false(_host.begin_underground_entry(near), "G11 first")
 	var o: Session.Retirement.Owners = session._retirement_owners
+	var worker: Vector2i = _first_mole(o)
+	assert_true(_host.begin_underground_entry(near), "foreman planned and the walk begun: %s" % _host.last_refusal())
 	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
-	var worker: Vector2i = _equip_first_mole(o, entry._output)
 	_stage(o, entry._output, &"wood", 7000)
 	_stage(o, entry._output, &"stone", 2000)
-	assert_true(_host.begin_underground_entry(near), "foreman planned and the walk begun: %s" % _host.last_refusal())
 	var counts: PackedInt64Array = PackedInt64Array([0, 0])
 	var tick: int = 1
 	while _host.underground_entry().is_running() and tick < 8000:

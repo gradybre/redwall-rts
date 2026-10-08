@@ -5,7 +5,7 @@ extends "res://test/framework/test_case.gd"
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Published := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
 const Pins := preload("res://data/underground/mole-worker/profile-publication-v1/catalog_source.gd")
-const CurrentPins := preload("res://data/underground/mole-worker/qualified-stone-v7/catalog_source.gd")
+const CurrentPins := preload("res://data/underground/mole-worker/qualified-claw-approach-v10/catalog_source.gd")
 const Entry := preload("res://scripts/core/underground_entry_bindings.gd")
 const Placements := preload("res://scripts/core/underground_connector_placements.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")

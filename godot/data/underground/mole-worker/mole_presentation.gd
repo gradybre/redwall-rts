@@ -1,6 +1,8 @@
 extends RefCounted
 ## ADR1201/1211 per-source mole presentation: one Actor per loaded source image, chosen by the row's source digest.
 ## Presentation only. It reads the actual Routes owner and never advances a clock or grants work or movement.
+## ADR1217 step 5: content 9's claw rows (source 4) are drawn from their source clock and the paw handling row 59
+## (source 5) from its handling clock, on the original open-paw body.
 
 const ContentSet := preload("res://demo/cast/underground_content_set.gd")
 const Content := preload("res://demo/cast/underground_actor_content.gd")
@@ -11,12 +13,17 @@ const Session := preload("res://scripts/core/underground_session.gd")
 const Assembly := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
 const Clock := preload("res://data/underground/mole-worker/qualified-assembly-v1/handling_clock.gd")
 const HaulProgram := preload("res://data/underground/mole-worker/mole_haul_program.gd")
+const ClawProgram := preload("res://data/underground/mole-worker/mole_claw_program.gd")
+const Paw := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/paw_program.gd")
+const PawClock := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/paw_clock.gd")
 const Dressing := preload("res://demo/tunnel/bore_dressing.gd")
 const ONE: int = 65536
 const SOURCE_ACTOR: int = 0
 const SOURCE_HANDLING: int = 1
 const SOURCE_HAUL: int = 2
 const SOURCE_STONE: int = 3
+const SOURCE_CLAW: int = 4
+const SOURCE_PAW: int = 5
 # Body = part 0, held item (pick or haul stock) = part 1. Every pick clip shows both parts.
 const ACTOR_MASKS: PackedInt32Array = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
 const HANDLING_MASKS: PackedInt32Array = [3, 3, 3]
@@ -24,6 +31,9 @@ const HANDLING_MASKS: PackedInt32Array = [3, 3, 3]
 const HAUL_MASKS: PackedInt32Array = [3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 3, 3]
 # haul-handling-v1 native-program-v9 plan.json part_visibility_masks: body and stone lump in every clip (ADR1206).
 const STONE_MASKS: PackedInt32Array = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+# The claw and paw images hold one part, the open-paw body, in every clip (native-claw-split-v1 programs).
+const CLAW_MASKS: PackedInt32Array = [1, 1, 1, 1, 1, 1, 1, 1]
+const PAW_MASKS: PackedInt32Array = [1, 1, 1]
 # Stone image part 1 is the tunnel dressing's own lump (bore_dressing.gd::stone_mesh), bound by its exact fingerprint.
 const STONE_PART: int = 1
 # Haul image clip ordinals, in plan order. Rows that select them are content-5 work (ADR1198 step 4).
@@ -61,12 +71,14 @@ var _program_start: int = 0
 var _located: PackedInt32Array = PackedInt32Array([0, 0])
 
 
-static func load_sources(sources: ContentSet, include_haul: bool, include_stone: bool = false) -> StringName:
-	"""Actor and assembly images are required; the haul and stone images are optional, inside the declared set."""
-	return load_sources_within(sources, Session.PRESENTATION_SET_BYTES, include_haul, include_stone)
+static func load_sources(sources: ContentSet, include_haul: bool, include_stone: bool = false,
+		include_claw: bool = false) -> StringName:
+	"""Actor and assembly images are required; haul, stone and the claw pair are optional, inside the declared set."""
+	return load_sources_within(sources, Session.PRESENTATION_SET_BYTES, include_haul, include_stone, include_claw)
 
 
-static func load_sources_within(sources: ContentSet, budget: int, include_haul: bool, include_stone: bool) -> StringName:
+static func load_sources_within(sources: ContentSet, budget: int, include_haul: bool, include_stone: bool,
+		include_claw: bool = false) -> StringName:
 	"""The pinned table in source order; stone needs the haul image, which holds the tool-free stand and walk."""
 	if sources == null or (include_stone and not include_haul):
 		return &"MOLE_PRESENTATION_INPUT"
@@ -85,7 +97,28 @@ static func load_sources_within(sources: ContentSet, budget: int, include_haul: 
 	if code == &"" and include_stone:
 		code = sources.load_source(SOURCE_STONE, Session.STONE_ACTOR_PATH, Session.STONE_ACTOR_SHA,
 			Session.STONE_PRESENTATION_BYTES, STONE_MASKS)
-	return code
+	return _load_claw_pair(sources) if code == &"" and include_claw else code
+
+
+static func _load_claw_pair(sources: ContentSet) -> StringName:
+	"""ADR1217 step 5: the claw image (source 4) and the paw-handling image (source 5), whose ready joins it holds."""
+	var code: StringName = sources.load_source(SOURCE_CLAW, Session.CLAW_ACTOR_PATH, Session.CLAW_ACTOR_SHA,
+		Session.CLAW_PRESENTATION_BYTES, CLAW_MASKS)
+	if code == &"":
+		code = sources.load_source(SOURCE_PAW, Session.PAW_ACTOR_PATH, Session.PAW_ACTOR_SHA,
+			Session.PAW_PRESENTATION_BYTES, PAW_MASKS)
+	return paw_timing_refusal(sources.content(SOURCE_PAW)) if code == &"" else code
+
+
+static func paw_timing_refusal(image: Content) -> StringName:
+	"""The paw clock reads clips 0 and 2 over exactly its SOURCE_INTERVALS clamped source intervals."""
+	var timing: PackedInt32Array = PackedInt32Array([0, 0])
+	if image == null or image.source_digest() != Session.PAW_ACTOR_SHA:
+		return &"MOLE_PRESENTATION_HANDLING_SOURCE"
+	for clip: int in [PawClock.CLIP_ENTRY, PawClock.CLIP_RECOVERY]:
+		if not image.clip_timing_into(clip, timing) or timing[0] != PawClock.SOURCE_INTERVALS * ONE or timing[1] != 0:
+			return &"MOLE_PRESENTATION_HANDLING_SOURCE"
+	return &""
 
 
 static func stone_material() -> StandardMaterial3D:
@@ -193,36 +226,39 @@ func _show(source: int, frames: PackedInt32Array) -> StringName:
 
 
 func handling_frame_into(routes: Routes, worker: Vector2i, job: Vector2i, out: Driver.Frame) -> StringName:
-	"""Row 29: read the actual handling clock word and map it onto the assembly image; output is preserved on refusal."""
+	"""Row 29 (pick image) or row 59 (paw image): read the actual handling clock word and map it onto the row's own
+	image; output is preserved on refusal."""
 	if _sources == null or routes == null or out == null or out.frames.size() != 7:
 		return &"MOLE_PRESENTATION_UNBOUND"
 	var code: StringName = routes.read_actor_into(worker, _actor)
 	if code != &"":
 		return code
-	if _actor.profile_id != Assembly.PROFILE or _actor.job != job:
+	var paw: bool = _actor.profile_id == Paw.PROFILE
+	var source: int = SOURCE_PAW if paw else SOURCE_HANDLING
+	if (_actor.profile_id != Assembly.PROFILE and not paw) or _actor.job != job:
 		return &"MOLE_PRESENTATION_NOT_HANDLING"
-	if _sources.source_for_row(routes._profiles, Assembly.PROFILE, _actor.profile_revision,
-			_actor.content_revision) != SOURCE_HANDLING:
+	if _sources.source_for_row(routes._profiles, _actor.profile_id, _actor.profile_revision,
+			_actor.content_revision) != source:
 		return &"MOLE_PRESENTATION_ROW_SOURCE"
-	code = Routes.source_state_leaf_into(routes, worker, job, Assembly.PROFILE, _actor.profile_revision,
+	code = Routes.source_state_leaf_into(routes, worker, job, _actor.profile_id, _actor.profile_revision,
 		_actor.content_revision, _state)
 	if code == &"":
-		code = Clock.source_into(_state[0], _state[1], _clock)
+		code = PawClock.source_into(_state[0], _state[1], _clock) if paw else Clock.source_into(_state[0], _state[1], _clock)
 	if code == &"":
-		code = _sources.content(SOURCE_HANDLING).clip_into(_clock[0], _clock[1], _pose)
+		code = _sources.content(source).clip_into(_clock[0], _clock[1], _pose)
 	if code != &"":
 		return code
-	_publish_handling(worker, job, out)
+	_publish_handling(worker, job, source, out)
 	return &""
 
 
-func _publish_handling(worker: Vector2i, job: Vector2i, out: Driver.Frame) -> void:
+func _publish_handling(worker: Vector2i, job: Vector2i, source: int, out: Driver.Frame) -> void:
 	"""Single unconditional output write after every handling read succeeded."""
 	for index: int in 3:
 		out.frames[index] = _pose[index]
 		out.frames[index + 3] = _pose[index]
 	out.frames[6] = ONE
-	out.source_digest = _sources.content(SOURCE_HANDLING).source_digest()
+	out.source_digest = _sources.content(source).source_digest()
 	out.worker = worker
 	out.job = job
 	out.tool = _actor.tool
@@ -230,28 +266,31 @@ func _publish_handling(worker: Vector2i, job: Vector2i, out: Driver.Frame) -> vo
 	out.yaw = _actor.yaw
 	out.phase = _state[0]
 	out.ready = _state[0] == Clock.READY or _state[0] == Clock.HANDLED_READY
-	out.profile_id = Assembly.PROFILE
+	out.profile_id = _actor.profile_id
 	out.profile_revision = _actor.profile_revision
 	out.content_revision = _actor.content_revision
 
 
 func present_handling(routes: Routes, worker: Vector2i, job: Vector2i, out: Driver.Frame) -> StringName:
-	"""Read the row-29 frame, then present it through the same source-digest selection as every row."""
+	"""Read the handling frame (row 29 or 59), then present it through the same source-digest selection."""
 	var code: StringName = handling_frame_into(routes, worker, job, out)
 	return present(routes._profiles, out) if code == &"" else code
 
 
 func present_row(routes: Routes, worker: Vector2i, tick: int, out: Driver.Frame) -> StringName:
-	"""ADR1211: draw the actual selected row on one fixed tick: row 29 from the handling clock, rows 30-41 from their
-	program on the ticks since the row was first observed. Source-0 rows are the pinned driver's; output is preserved
-	on refusal and the shown Actor is unchanged."""
+	"""ADR1211: draw the actual selected row on one fixed tick: rows 29 and 59 from their handling clock, the claw
+	rows 42-58 from their source clock (ADR1217 step 5), rows 30-41 from their program on the ticks since the row was
+	first observed. Source-0 rows are the pinned driver's; output is preserved on refusal and the shown Actor is
+	unchanged."""
 	if _sources == null or routes == null or out == null or out.frames.size() != 7 or tick < 0:
 		return &"MOLE_PRESENTATION_UNBOUND"
 	var code: StringName = routes.read_actor_into(worker, _actor)
 	if code != &"":
 		return code
-	if _actor.profile_id == Assembly.PROFILE:
+	if _actor.profile_id == Assembly.PROFILE or _actor.profile_id == Paw.PROFILE:
 		return present_handling(routes, worker, _actor.job, out)
+	if Paw.Claw.owns(routes._profiles, _actor.profile_id):
+		return present_claw(routes, worker, out)
 	code = _observe_program(routes._profiles, tick)
 	if code != &"":
 		return code
@@ -262,6 +301,27 @@ func present_row(routes: Routes, worker: Vector2i, tick: int, out: Driver.Frame)
 	if code == &"":
 		_publish_row(worker, out)
 	return code
+
+
+func present_claw(routes: Routes, worker: Vector2i, out: Driver.Frame) -> StringName:
+	"""ADR1217 step 5: a claw row from the simulation's own source clock, on the claw image (source 4)."""
+	if _sources.source_for_row(routes._profiles, _actor.profile_id, _actor.profile_revision,
+			_actor.content_revision) != SOURCE_CLAW:
+		return &"MOLE_PRESENTATION_SOURCE_ABSENT" if not _sources.has_source(SOURCE_CLAW) else &"MOLE_PRESENTATION_ROW_SOURCE"
+	var code: StringName = Routes.source_state_leaf_into(routes, worker, _actor.job, _actor.profile_id,
+		_actor.profile_revision, _actor.content_revision, _state)
+	if code == &"":
+		code = ClawProgram.frames_into(_sources.content(SOURCE_CLAW), _actor.profile_id, _state, _pose, _frames)
+	if code == &"":
+		code = _show(SOURCE_CLAW, _frames)
+	if code != &"":
+		return code
+	_program_source = SOURCE_CLAW
+	_key[0] = -1
+	_publish_row(worker, out)
+	out.phase = _state[0]
+	out.ready = _state[0] == Paw.Claw.READY
+	return &""
 
 
 func _observe_program(profiles: Routes.Profiles, tick: int) -> StringName:

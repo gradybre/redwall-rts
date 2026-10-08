@@ -2,6 +2,8 @@ extends RefCounted
 ## ADR1196/ADR1202: fixed-tick dispatcher for the first-entry prefix: the L0 cuts, the paid L0 installation,
 ## the T0 cuts and the paid T0 installation. The plan is derived from the immutable Frontier and Placement only;
 ## every step is a real owner call whose own final guards decide. Surface arrival and hauling are outside it.
+## ADR1217 step 5 (DEC-052): the crew digs with its claws and fits by paw. Every BUILD Job is bound tool-free
+## (GATE_NOT_REQUIRED), nothing is claimed, and Routes receives no tool hint.
 
 const Sites := preload("res://scripts/core/excavation_sites.gd")
 const Contract := preload("res://scripts/core/excavation_contract.gd")
@@ -15,7 +17,6 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const Space := preload("res://scripts/core/room_space.gd")
 const Installer := preload("res://scripts/core/underground_entry_installer.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
-const Assembly := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
 const ContactPath := preload("res://scripts/core/underground_entry_contact_path.gd")
 const Hauler := preload("res://scripts/core/underground_entry_hauler.gd")
 const Progress := preload("res://scripts/core/underground_entry_progress.gd")
@@ -61,13 +62,13 @@ class Owners extends RefCounted:
 	var anchor: RefCounted = null # SurfaceAnchor; needed only when an installation stands on an installed contact.
 	var items: RefCounted = null # Compiled item ids of the authored input keys (ADR1210).
 	var delivery: RefCounted = null # ADR1210: when bound, missing inputs are hauled from R's staging to M.
-	var gear: RefCounted = null # ADR1210: the worker's tool goes down at M for the tool-free trips.
 
 
 class Crew extends RefCounted:
-	## One worker, its equipped tool and the source-selected containers. Inputs are drawn from whatever free stock
-	## of each input item the storage container holds (ADR1210); no caller names a lot.
+	## One worker and the source-selected containers. Inputs are drawn from whatever free stock of each input item
+	## the storage container holds (ADR1210); no caller names a lot.
 	var worker: Vector2i = NULL_REF
+	## DEC-052: always null (no tool). Kept because the ADR1218 progress record writes the crew's five handles.
 	var tool: Vector2i = NULL_REF
 	var storage: Vector2i = NULL_REF
 	var output: Vector2i = NULL_REF
@@ -244,7 +245,7 @@ func _run_stage(tick: int) -> StringName:
 
 
 func _open(tick: int) -> StringName:
-	"""Admit the real phase Project and its BUILD Job, haul any missing inputs, then take the Job and the tool."""
+	"""Admit the real phase Project and its BUILD Job, haul any missing inputs, then take the Job."""
 	var task: Task = _tasks[_index]
 	var opened: RefCounted = _owners.sites.open_phase(task.site, task.operation)
 	if not opened.ok: return opened.error
@@ -302,7 +303,7 @@ static func _haul_leg(target: Vector2i, profile: int, revision: int) -> Hauler.L
 
 
 func _haul(tick: int) -> StringName:
-	"""Delegate to the hauler; once home on M with the tool, claim it and travel to the station."""
+	"""Delegate to the hauler; once home on M, travel to the station (a switch at rest back to the claw rows)."""
 	var code: StringName = _hauler.advance(tick)
 	if code != &"": return code
 	var marker: int = _hauler.trips() * 16 + _hauler.stage()
@@ -312,8 +313,6 @@ func _haul(tick: int) -> StringName:
 	_haul_mwu += _hauler.haul_mwu()
 	_haul_trips += _hauler.trips()
 	_hauler = null
-	var result: RefCounted = _owners.work.claim_tool_for_work(_owners.residents.directory().get_typed_row(_crew.worker), _crew.tool)
-	if not result.ok: return result.error
 	var task: Task = _tasks[_index]
 	_set_stage(STAGE_TRAVEL)
 	return _leg(_owners.jobs.ref_of(_job), task.station, task.travel_profile, task.travel_revision, tick)
@@ -327,7 +326,7 @@ func _place_actor(task: Task, job: Vector2i, tick: int) -> StringName:
 	if _owners.routes._resident_ref(worker) == NULL_REF:
 		_set_stage(STAGE_ENTER)
 		return _owners.routes.admit_work_actor(_crew.worker, job, task.station, task.work_profile,
-			task.work_revision, _content, 0, -1, _crew.tool)
+			task.work_revision, _content, 0, -1, NULL_REF)
 	if _owners.routes._resident_pair(Routes.R_LOCATION_SLOT, worker) == task.station:
 		_set_stage(STAGE_ENTER)
 		return _refresh_work(task, job)
@@ -340,7 +339,7 @@ func _admit_at_arrival(task: Task, job: Vector2i, tick: int) -> StringName:
 	arrival's authored retreat, then travels to the station."""
 	_set_stage(STAGE_TRAVEL)
 	var code: StringName = _owners.routes.admit_travel_actor(_crew.worker, job, _crew.arrival, _arrival_profile,
-		_arrival_revision, _content, 0, -1, _crew.tool)
+		_arrival_revision, _content, 0, -1, NULL_REF)
 	if code != &"": return code
 	_take_arrival_retreat()
 	return _begin_travel(task, job, tick)
@@ -393,9 +392,9 @@ func arrival_yaw() -> int:
 
 
 func _bind_phase_job(task: Task, project: Vector2i, job: Vector2i) -> StringName:
-	"""The Job names its Project, the satisfied tool gate, its Site and the source-selected containers."""
+	"""The Job names its Project, needs no tool (DEC-052: claws), its Site and the source-selected containers."""
 	var result: RefCounted = _owners.jobs.set_requester(_job, project)
-	if result.ok: result = _owners.jobs.set_tool_gate(_job, Jobs.GATE_SATISFIED)
+	if result.ok: result = _owners.jobs.set_tool_gate(_job, Jobs.GATE_NOT_REQUIRED)
 	if result.ok: result = _owners.sites.bind_job(task.site, job)
 	if result.ok: result = _owners.sites.bind_material_container(task.site, _crew.storage)
 	if result.ok and task.operation == Contract.OP_CUT: result = _owners.sites.bind_output(task.site, _crew.output)
@@ -403,10 +402,8 @@ func _bind_phase_job(task: Task, project: Vector2i, job: Vector2i) -> StringName
 
 
 func _assign() -> StringName:
-	"""The same real worker takes the Job and claims its equipped tool for work."""
-	var worker: int = _owners.residents.directory().get_typed_row(_crew.worker)
-	var result: RefCounted = _owners.jobs.assign_worker(worker, _job)
-	if result.ok: result = _owners.work.claim_tool_for_work(worker, _crew.tool)
+	"""The same real worker takes the Job; nothing is claimed (DEC-052)."""
+	var result: RefCounted = _owners.jobs.assign_worker(_owners.residents.directory().get_typed_row(_crew.worker), _job)
 	return &"" if result.ok else result.error
 
 
@@ -425,7 +422,7 @@ func _leg(job: Vector2i, target: Vector2i, profile: int, revision: int, tick: in
 	_leg_profile = profile
 	_leg_revision = revision
 	var code: StringName = _owners.routes.refresh_travel_actor(_crew.worker, job, profile, revision, _content,
-		0, -1, _crew.tool)
+		0, -1, NULL_REF)
 	return _owners.routes.request_route(_crew.worker, target, tick) if code == &"" else code
 
 
@@ -451,7 +448,7 @@ func _travel(tick: int) -> StringName:
 func _refresh_work(task: Task, job: Vector2i) -> StringName:
 	"""Select the station's exact WORK source for the current Job."""
 	return _owners.routes.refresh_work_actor(_crew.worker, job, task.work_profile, task.work_revision,
-		_content, 0, -1, _crew.tool)
+		_content, 0, -1, NULL_REF)
 
 
 func _enter(tick: int) -> StringName:
@@ -547,7 +544,7 @@ func _rest(tick: int) -> StringName:
 
 
 func _recover(tick: int) -> StringName:
-	"""Full source recovery precedes the paid settlement that releases the Job and tool claim."""
+	"""Full source recovery precedes the paid settlement that releases the Job."""
 	var task: Task = _tasks[_index]
 	if Routes.source_ready_leaf_refusal(_owners.routes, _crew.worker, _owners.jobs.ref_of(_job),
 			task.work_profile, task.work_revision, _content) != &"":
@@ -591,8 +588,8 @@ func halt(code: StringName) -> StringName:
 
 
 func release_lost_crew() -> StringName:
-	"""ADR1225: detach the dispatch from a crew that died or left: cancel its admitted haul, release its Job and
-	tool claim (Sites' own departure path once the phase is bound), unregister its actor, then wait in RESUME for
+	"""ADR1225: detach the dispatch from a crew that died or left: cancel its admitted haul, release its Job
+	(Sites' own departure path once the phase is bound), unregister its actor, then wait in RESUME for
 	a replacement. Paid progress, consumed inputs and the parked Jobs stay; carried goods stay with the lost crew.
 	DEC-057: a paid installation is released by its installer and re-handled in place by the replacement."""
 	if _terminal(): return _error
@@ -622,15 +619,12 @@ func _release_haul(lost: Vector2i, row: int) -> StringName:
 
 
 func _release_phase_job(row: int) -> StringName:
-	"""Sites releases a bound phase worker itself; before START only the Job and any tool claim are released."""
+	"""Sites releases a bound phase worker itself; before START only the Job is released (nothing is claimed)."""
 	if row < 0: return &""
 	var task: Task = _tasks[_index]
 	if _stage in [STAGE_START, STAGE_EARN, STAGE_RECOVER, STAGE_REST]:
 		var departed: RefCounted = _owners.sites.release_worker(task.site)
 		return &"" if departed.ok else departed.error
-	if _owners.work.tool_job_of(row) == _owners.jobs.ref_of(_job):
-		var unclaimed: RefCounted = _owners.work.release_tool_claim(row)
-		if not unclaimed.ok: return unclaimed.error
 	var released: RefCounted = _owners.jobs.release_worker(row)
 	return &"" if released.ok else released.error
 
@@ -759,7 +753,9 @@ func _finish_plan(plan: Installer.Plan) -> Installer.Plan:
 	plan.walk_profile = last.travel_profile
 	plan.walk_revision = last.travel_revision
 	var profiles: RefCounted = _owners.profiles
-	plan.handling_revision = profiles._live.quantities[Profiles.L_REVISION * profiles._profile_capacity + Assembly.PROFILE]
+	var handling: int = Routes.Handling.profile_of(_paid.connector._workpieces, plan.ordinal)
+	if handling < 0: return null
+	plan.handling_revision = profiles._live.quantities[Profiles.L_REVISION * profiles._profile_capacity + handling]
 	if plan.ordinal == 0:
 		plan.retired_first = _tasks[0].station
 		plan.retired_second = _tasks[OPERATIONS.size()].station
@@ -1087,7 +1083,7 @@ func _cursor_shape_ok() -> bool:
 func _restored_refusal(job: Vector2i) -> StringName:
 	"""Content, crew, Placement, every future task and every pending leg must exist in the restored owners."""
 	if _content != _owners.profiles.content_revision(): return Progress.REFUSE_CONTENT
-	var code: StringName = &"" if awaiting_crew() and _crew.tool == NULL_REF else _crew_refusal(_owners, _crew)
+	var code: StringName = &"" if awaiting_crew() else _crew_refusal(_owners, _crew)
 	var placements: RefCounted = _owners.placements
 	if code == &"" and not placements._is_live(placements._live, _placement): code = Progress.REFUSE_PLACEMENT
 	if code == &"": code = _task_refusal()
@@ -1103,8 +1099,8 @@ func _restored_refusal(job: Vector2i) -> StringName:
 
 
 static func _crew_refusal(owners: RefCounted, crew: Crew) -> StringName:
-	"""A live resident worker, a live tool lot and two live spatial containers."""
-	if owners.residents.directory().get_typed_row(crew.worker) < 0 or not owners.inventory.is_lot_valid(crew.tool):
+	"""A live resident worker holding no tool (DEC-052) and two live spatial containers."""
+	if owners.residents.directory().get_typed_row(crew.worker) < 0 or crew.tool != NULL_REF:
 		return Progress.REFUSE_CREW
 	for container: Vector2i in [crew.storage, crew.output]:
 		if owners.inventory.spatial_location_of(container) == NULL_REF: return Progress.REFUSE_CREW

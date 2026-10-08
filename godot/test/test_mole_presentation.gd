@@ -10,6 +10,7 @@ const Driver := preload("res://data/underground/mole-worker/mole_profile_driver.
 const Session := preload("res://scripts/core/underground_session.gd")
 const Catalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
 const Assembly := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
+const PawClock := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/paw_clock.gd")
 const Clock := preload("res://data/underground/mole-worker/qualified-assembly-v1/handling_clock.gd")
 const Qualified := preload("res://test/test_mole_qualified_profiles.gd")
 const PaidSuite := preload("res://test/test_underground_paid_assembly_handling.gd")
@@ -56,10 +57,10 @@ func after_each() -> void:
 	_owned.clear()
 
 
-func _loaded(include_haul: bool, include_stone: bool = false) -> ContentSet:
+func _loaded(include_haul: bool, include_stone: bool = false, include_claw: bool = false) -> ContentSet:
 	"""The pinned production table through the one public loader."""
 	var sources: ContentSet = ContentSet.new()
-	assert_equal(Presentation.load_sources(sources, include_haul, include_stone), &"", "pinned source images")
+	assert_equal(Presentation.load_sources(sources, include_haul, include_stone, include_claw), &"", "pinned source images")
 	return sources
 
 
@@ -88,21 +89,24 @@ func _masks(presenter: Presentation) -> PackedInt32Array:
 
 
 func test_pinned_sources_load_inside_the_declared_set_reservation() -> void:
-	"""Four exact images, each at its exact peak, summed into the Session's explicit set reservation."""
-	var sources: ContentSet = _loaded(true, true)
+	"""Six exact images, each at its exact peak, summed into the Session's explicit set reservation."""
+	var sources: ContentSet = _loaded(true, true, true)
 	assert_equal(Session.HANDLING_ACTOR_SHA, Assembly.ACTOR_SHA, "handling pin is row 29's source digest")
 	assert_equal(Session.HANDLING_ACTOR_SHA, Catalog.Pins.HANDLING_SOURCE_SHA, "same digest the catalog requires")
-	assert_equal(Session.PRESENTATION_SET_BYTES, 28541580, "7141920 + 6628488 + 7486168 + 7285004")
+	assert_equal(Session.PRESENTATION_SET_BYTES, 42015616, "7141920 + 6628488 + 7486168 + 7285004 + 6906492 + 6567544")
 	assert_equal(sources.reserved_bytes(), Session.PRESENTATION_SET_BYTES, "every source reserved, none shared")
 	var peaks: PackedInt32Array = [Session.PRESENTATION_BYTES, Session.HANDLING_PRESENTATION_BYTES,
-		Session.HAUL_PRESENTATION_BYTES, Session.STONE_PRESENTATION_BYTES]
-	var clips: PackedInt32Array = [14, 3, 12, 10]
-	for source: int in 4:
+		Session.HAUL_PRESENTATION_BYTES, Session.STONE_PRESENTATION_BYTES, Session.CLAW_PRESENTATION_BYTES,
+		Session.PAW_PRESENTATION_BYTES]
+	var clips: PackedInt32Array = [14, 3, 12, 10, 8, 3]
+	for source: int in 6:
 		assert_equal(sources.content(source).required_peak_bytes(), peaks[source], "exact declared peak %d" % source)
 		assert_equal(sources.content(source).clip_count(), clips[source], "clip count %d" % source)
 	assert_equal(sources.content(2).source_digest(), Session.HAUL_ACTOR_SHA, "haul pin")
 	assert_equal(sources.content(3).source_digest(), Session.STONE_ACTOR_SHA, "stone pin")
 	assert_equal(sources.content(3).source_digest(), Catalog.Pins.STONE_SOURCE_SHA, "the stone digest the catalog requires")
+	assert_equal(sources.content(4).source_digest(), Catalog.Pins.CLAW_SOURCE_SHA, "the claw digest the catalog requires")
+	assert_equal(sources.content(5).source_digest(), Catalog.Pins.PAW_SOURCE_SHA, "the paw digest the catalog requires")
 	for clip: int in 12:
 		assert_equal(sources.clip_mask(2, clip), Presentation.HAUL_MASKS[clip], "haul clip %d mask" % clip)
 	for clip: int in 10:
@@ -154,8 +158,8 @@ func test_set_refuses_wrong_digest_capacity_budget_masks_and_duplicates() -> voi
 	assert_equal(sources.load_source(1, header, OTHER_SHA, 1000000, Presentation.HANDLING_MASKS),
 		&"ACTOR_CONTENT_CAPACITY", "MAX_CLIPS stays 16")
 	assert_equal(DirAccess.remove_absolute(ProjectSettings.globalize_path(header)), OK, "owned candidate removed")
-	assert_equal(sources.load_source(4, Session.HANDLING_ACTOR_PATH, Session.HANDLING_ACTOR_SHA,
-		Session.HANDLING_PRESENTATION_BYTES, Presentation.HANDLING_MASKS), &"CONTENT_SET_ARGUMENT", "four sources")
+	assert_equal(sources.load_source(6, Session.HANDLING_ACTOR_PATH, Session.HANDLING_ACTOR_SHA,
+		Session.HANDLING_PRESENTATION_BYTES, Presentation.HANDLING_MASKS), &"CONTENT_SET_ARGUMENT", "six sources")
 	assert_equal(sources.reserved_bytes(), 0, "nothing admitted")
 	assert_equal(sources.load_source(1, Session.HANDLING_ACTOR_PATH, Session.HANDLING_ACTOR_SHA,
 		Session.HANDLING_PRESENTATION_BYTES, Presentation.HANDLING_MASKS), &"", "exact handling image")
@@ -189,11 +193,11 @@ func test_haul_clips_apply_their_own_mask_and_hidden_actors_keep_their_pose() ->
 	var pick: RecordingActor = presenter.actor(0) as RecordingActor
 	var haul: RecordingActor = presenter.actor(2) as RecordingActor
 	assert_equal(presenter.present_clip(0, 3, 4 * ONE), &"", "pick entry clip")
-	assert_equal(_masks(presenter), PackedInt32Array([3, 0, 0, 0]), "only the actor image shows")
+	assert_equal(_masks(presenter), PackedInt32Array([3, 0, 0, 0, -1, -1]), "only the actor image shows")
 	var pick_frames: PackedInt32Array = pick.last_frames.duplicate()
 	for clip: int in 12:
 		assert_equal(presenter.present_clip(2, clip, ONE), &"", "haul clip %d" % clip)
-		assert_equal(_masks(presenter), PackedInt32Array([0, 0, Presentation.HAUL_MASKS[clip], 0]), "haul clip %d mask" % clip)
+		assert_equal(_masks(presenter), PackedInt32Array([0, 0, Presentation.HAUL_MASKS[clip], 0, -1, -1]), "haul clip %d mask" % clip)
 	assert_equal(presenter.visible_source(), 2, "haul visible")
 	assert_equal(pick.poses, 1, "hidden actor not posed")
 	assert_equal(pick.last_frames, pick_frames, "hidden actor pose stable")
@@ -202,7 +206,7 @@ func test_haul_clips_apply_their_own_mask_and_hidden_actors_keep_their_pose() ->
 	var blend: PackedInt32Array = [595, 596, 0, 311, 312, 0, ONE / 2]
 	assert_equal(presenter._sources.frames_mask(2, blend), -1, "stand-to-carry blend has no single mask")
 	assert_equal(presenter.present_clip(2, 12, 0), &"ACTOR_CONTENT_CLIP_QUERY", "no thirteenth clip")
-	assert_equal(_masks(presenter), PackedInt32Array([0, 0, 3, 0]), "refusal changes nothing")
+	assert_equal(_masks(presenter), PackedInt32Array([0, 0, 3, 0, -1, -1]), "refusal changes nothing")
 
 
 func test_stone_source_binds_the_dressing_lump_with_a_derived_material() -> void:
@@ -227,31 +231,31 @@ func test_stone_clips_apply_their_mask_and_hide_the_other_sources() -> void:
 	"""Every stone clip shows body and lump on the stone Actor only; the hidden haul Actor keeps its pose."""
 	var presenter: Presentation = _presenter(_loaded(true, true))
 	assert_equal(presenter.present_clip(2, Presentation.HAUL_STAND, ONE), &"", "tool-free stand")
-	assert_equal(_masks(presenter), PackedInt32Array([0, 0, 1, 0]), "stand hides the wood stock")
+	assert_equal(_masks(presenter), PackedInt32Array([0, 0, 1, 0, -1, -1]), "stand hides the wood stock")
 	var haul: RecordingActor = presenter.actor(2) as RecordingActor
 	for clip: int in 10:
 		assert_equal(presenter.present_clip(3, clip, ONE), &"", "stone clip %d" % clip)
-		assert_equal(_masks(presenter), PackedInt32Array([0, 0, 0, Presentation.STONE_MASKS[clip]]), "stone clip %d" % clip)
+		assert_equal(_masks(presenter), PackedInt32Array([0, 0, 0, Presentation.STONE_MASKS[clip], -1, -1]), "stone clip %d" % clip)
 	assert_equal(haul.poses, 1, "hidden haul actor not posed")
 	assert_equal((presenter.actor(3) as RecordingActor).poses, 10, "one pose per stone clip")
 	assert_equal(presenter.present_clip(3, 10, 0), &"ACTOR_CONTENT_CLIP_QUERY", "no eleventh stone clip")
 	assert_equal(presenter.visible_source(), Presentation.SOURCE_STONE, "refusal keeps the stone actor")
 
 
-func test_stone_image_is_refused_when_the_set_budget_is_one_byte_short() -> void:
-	"""The declared set is the plain sum; one byte less refuses the fourth image and admits the other three."""
+func test_last_image_is_refused_when_the_set_budget_is_one_byte_short() -> void:
+	"""The declared set is the plain sum; one byte less refuses the sixth image (paw handling) and admits the rest."""
 	var sources: ContentSet = ContentSet.new()
-	assert_equal(Presentation.load_sources_within(sources, Session.PRESENTATION_SET_BYTES - 1, true, true),
-		&"CONTENT_SET_BUDGET", "stone does not fit")
-	assert_false(sources.has_source(Presentation.SOURCE_STONE), "stone absent")
-	assert_equal(sources.reserved_bytes(), Session.PRESENTATION_SET_BYTES - Session.STONE_PRESENTATION_BYTES,
-		"only the first three reservations")
-	assert_equal(sources.load_source(3, Session.STONE_ACTOR_PATH, Session.STONE_ACTOR_SHA,
-		Session.STONE_PRESENTATION_BYTES - 1, Presentation.STONE_MASKS), &"ACTOR_CONTENT_PRESENTATION_RESERVE",
+	assert_equal(Presentation.load_sources_within(sources, Session.PRESENTATION_SET_BYTES - 1, true, true, true),
+		&"CONTENT_SET_BUDGET", "the paw image does not fit")
+	assert_false(sources.has_source(Presentation.SOURCE_PAW), "paw absent")
+	assert_equal(sources.reserved_bytes(), Session.PRESENTATION_SET_BYTES - Session.PAW_PRESENTATION_BYTES,
+		"only the first five reservations")
+	assert_equal(sources.load_source(5, Session.PAW_ACTOR_PATH, Session.PAW_ACTOR_SHA,
+		Session.PAW_PRESENTATION_BYTES - 1, Presentation.PAW_MASKS), &"ACTOR_CONTENT_PRESENTATION_RESERVE",
 		"the exact declared peak, never less")
-	assert_equal(sources.load_source(3, Session.STONE_ACTOR_PATH, Session.STONE_ACTOR_SHA,
-		Session.STONE_PRESENTATION_BYTES, Presentation.STONE_MASKS), &"CONTENT_SET_BUDGET", "exact peak over budget")
-	assert_false(sources.has_source(3), "every refusal leaves the source absent")
+	assert_equal(sources.load_source(5, Session.PAW_ACTOR_PATH, Session.PAW_ACTOR_SHA,
+		Session.PAW_PRESENTATION_BYTES, Presentation.PAW_MASKS), &"CONTENT_SET_BUDGET", "exact peak over budget")
+	assert_false(sources.has_source(5), "every refusal leaves the source absent")
 
 
 func test_absent_haul_source_refuses_without_changing_the_shown_actor() -> void:
@@ -259,7 +263,7 @@ func test_absent_haul_source_refuses_without_changing_the_shown_actor() -> void:
 	var presenter: Presentation = _presenter(_loaded(false))
 	assert_equal(presenter.present_clip(1, 0, 0), &"", "handling entry")
 	assert_equal(presenter.present_clip(2, Presentation.HAUL_STAND, 0), &"MOLE_PRESENTATION_SOURCE_ABSENT", "no haul image")
-	assert_equal(_masks(presenter), PackedInt32Array([0, 3, -1, -1]), "handling actor still shown")
+	assert_equal(_masks(presenter), PackedInt32Array([0, 3, -1, -1, -1, -1]), "handling actor still shown")
 	assert_equal(presenter.visible_source(), 1, "unchanged selection")
 
 
@@ -276,13 +280,13 @@ func test_profile_rows_select_the_actor_of_their_own_source_digest() -> void:
 	assert_equal(sources.source_for_row(profiles, Assembly.PROFILE, 2, content), -1, "exact revision")
 	var frame: Driver.Frame = _frame(sources, 1, 0, Assembly.PROFILE, content)
 	assert_equal(presenter.present(profiles, frame), &"", "row 29 frame")
-	assert_equal(_masks(presenter), PackedInt32Array([0, 3, 0, -1]), "assembly actor shown")
+	assert_equal(_masks(presenter), PackedInt32Array([0, 3, 0, -1, -1, -1]), "assembly actor shown")
 	frame = _frame(sources, 0, 1, 0, content)
 	assert_equal(presenter.present(profiles, frame), &"", "stand row frame")
-	assert_equal(_masks(presenter), PackedInt32Array([3, 0, 0, -1]), "actor image shown again")
+	assert_equal(_masks(presenter), PackedInt32Array([3, 0, 0, -1, -1, -1]), "actor image shown again")
 	frame = _frame(sources, 0, 1, Assembly.PROFILE, content)
 	assert_equal(presenter.present(profiles, frame), &"MOLE_PRESENTATION_FRAME_SOURCE", "row 29 cannot draw pick frames")
-	assert_equal(_masks(presenter), PackedInt32Array([3, 0, 0, -1]), "refusal changes nothing")
+	assert_equal(_masks(presenter), PackedInt32Array([3, 0, 0, -1, -1, -1]), "refusal changes nothing")
 	fixture.after_each()
 	assert_true(fixture.failures.is_empty(), "qualified fixture: %s" % fixture.failures)
 
@@ -302,8 +306,9 @@ func _frame(sources: ContentSet, source: int, clip: int, profile: int, content: 
 	return frame
 
 
-func test_row_29_handling_cycle_is_drawn_from_the_actual_clock() -> void:
-	"""Actual paid L0 handling: READY, thirty entry ticks, thirty recovery ticks, HANDLED_READY on the assembly actor."""
+func test_row_59_handling_cycle_is_drawn_from_the_actual_clock() -> void:
+	"""Actual paid L0 paw handling (ADR1217 step 5): READY, thirty entry ticks, thirty recovery ticks, HANDLED_READY on
+	the paw-handling image."""
 	var probe: PaidSuite.PaidProbe = PaidSuite.PaidProbe.new()
 	probe.before_each()
 	var project: Vector2i = probe.prepare_l0()
@@ -318,20 +323,20 @@ func test_row_29_handling_cycle_is_drawn_from_the_actual_clock() -> void:
 	var routes: Presentation.Routes = probe._world._routes
 	var worker: Vector2i = probe._world._worker
 	var ref: Vector2i = probe._world._jobs.ref_of(job)
-	var presenter: Presentation = _presenter(_loaded(false))
+	var presenter: Presentation = _presenter(_loaded(false, false, true))
 	var frame: Driver.Frame = Driver.Frame.new()
 	assert_equal(presenter.present_handling(routes, worker, ref, frame), &"", "READY handling frame")
 	assert_equal([frame.phase, frame.frames[0], frame.ready], [Clock.READY, 0, true], "seat entry first pose")
 	var row_frame: Driver.Frame = Driver.Frame.new()
-	assert_equal(presenter.present_row(routes, worker, 0, row_frame), &"", "ADR1211: present_row routes row 29")
+	assert_equal(presenter.present_row(routes, worker, 0, row_frame), &"", "ADR1211: present_row routes row 59")
 	assert_equal([row_frame.profile_id, row_frame.frames, presenter.visible_source()],
-		[Assembly.PROFILE, frame.frames, Presentation.SOURCE_HANDLING], "row 29 by the handling clock, not a program")
+		[Presentation.Paw.PROFILE, frame.frames, Presentation.SOURCE_PAW], "row 59 by the handling clock, not a program")
 	assert_equal(routes.begin_assembly_handling(worker, ref), &"", "actual handling entry")
 	_handling_ticks(probe, presenter, routes, worker, ref, frame)
 	assert_equal(presenter.present_handling(routes, worker, ref, frame), &"", "completed handling frame")
-	assert_equal([frame.phase, frame.frames[0], frame.frames[1], frame.ready], [Clock.HANDLED_READY, 111, 111, true],
+	assert_equal([frame.phase, frame.frames[0], frame.frames[1], frame.ready], [Clock.HANDLED_READY, 63, 63, true],
 		"recovery final pose")
-	assert_equal(_masks(presenter), PackedInt32Array([0, 3, -1, -1]), "pick actor hidden throughout")
+	assert_equal(_masks(presenter), PackedInt32Array([0, 0, -1, -1, 0, 1]), "pick actors hidden throughout")
 	assert_equal((presenter.actor(0) as RecordingActor).poses, 0, "pick actor never posed by handling")
 	assert_equal(presenter.handling_frame_into(routes, worker, Vector2i(ref.x, ref.y + 1), frame),
 		&"MOLE_PRESENTATION_NOT_HANDLING", "exact Job generation")
@@ -346,11 +351,34 @@ func _handling_ticks(probe: PaidSuite.PaidProbe, presenter: Presentation, routes
 	for tick: int in 60:
 		assert_equal(presenter.present_handling(routes, worker, ref, frame), &"", "tick %d frame" % tick)
 		var expected_phase: int = Clock.ENTRY if tick < 30 else Clock.RECOVERY
-		@warning_ignore("integer_division") var interval: int = (tick % 30) * Clock.SOURCE_INTERVALS / Clock.TRANSITION_TICKS
-		var first: int = 0 if tick < 30 else 57
+		@warning_ignore("integer_division") var interval: int = (tick % 30) * PawClock.SOURCE_INTERVALS / Clock.TRANSITION_TICKS
+		var first: int = 0 if tick < 30 else 33
 		assert_equal([frame.phase, frame.frames[0], frame.ready], [expected_phase, first + interval, false], "tick %d pose" % tick)
 		assert_true(frame.frames[0] >= previous, "monotone source frames")
 		previous = frame.frames[0]
-		assert_equal(presenter.visible_source(), Presentation.SOURCE_HANDLING, "handling actor shown")
+		assert_equal(presenter.visible_source(), Presentation.SOURCE_PAW, "paw-handling actor shown")
 		routes.advance_tick(probe._tick)
 		probe._tick += 1
+
+
+func test_claw_row_is_drawn_from_its_source_clock_on_the_claw_image() -> void:
+	"""ADR1217 step 5: after the real claw L0 cuts the worker rests on a claw dig row at READY; present_row draws the
+	claw stand's ready key on the claw image (source 4), body only, with every other Actor hidden."""
+	var probe: PaidSuite.PaidProbe = PaidSuite.PaidProbe.new()
+	probe.before_each()
+	probe.execute_l0_cubes()
+	assert_true(probe.completed_l0, "real claw L0 cuts: %s" % probe.failures)
+	if not probe.completed_l0:
+		probe.after_each()
+		return
+	var presenter: Presentation = _presenter(_loaded(false, false, true))
+	var frame: Driver.Frame = Driver.Frame.new()
+	assert_equal(presenter.present_row(probe._world._routes, probe._world._worker, 0, frame), &"", "claw row frame")
+	assert_true(Presentation.Paw.Claw.owns(probe._world._routes._profiles, frame.profile_id), "a source-4 row")
+	assert_equal([frame.frames[0], frame.frames[2], frame.frames[6], frame.ready],
+		[Presentation.Paw.Claw.CLIP_STAND + 8, 0, Presentation.ONE, true], "stand key 8 at READY")
+	assert_equal(frame.source_digest, Session.CLAW_ACTOR_SHA, "the claw image")
+	assert_equal(presenter.visible_source(), Presentation.SOURCE_CLAW, "claw actor shown")
+	assert_equal(_masks(presenter), PackedInt32Array([0, 0, -1, -1, 1, 0]), "body only; every other actor hidden")
+	probe.after_each()
+	assert_true(probe.failures.is_empty(), "actual claw fixture: %s" % probe.failures)

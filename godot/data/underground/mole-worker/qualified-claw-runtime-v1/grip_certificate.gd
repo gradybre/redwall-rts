@@ -3,8 +3,9 @@ extends RefCounted
 ## v10 and stone v10 (the corrected stand, walk and joins of ADR 1217 step 1c) and kept every descriptor word and box
 ## of the grip rows 32-41; so the certificate is content 6's (`qualified-stone-v7/grip_certificate.gd`) with the
 ## content revision and the two image digests renewed. Every row table, contact cell and station equation is that
-## certificate's own. It supplies source identity and station geometry only, never a Job, payment, route or World
-## permission.
+## certificate's own. A content-6 bank keeps content 6's certificate unchanged (the dormant pick contents), so the
+## certificate follows the loaded content. It supplies source identity and station geometry only, never a Job,
+## payment, route or World permission.
 
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Parent := preload("res://data/underground/mole-worker/qualified-stone-v7/grip_certificate.gd")
@@ -72,7 +73,11 @@ static func stock_offset(yaw: int) -> Vector3i:
 
 
 static func profile_refusal(actual: Profiles, row: int) -> StringName:
-	"""Exact descriptor words, revision, quantity, policy, boxes and the v10 source image digest of one row."""
+	"""Exact descriptor words, revision, quantity, policy, boxes and the v10 source image digest of one row; a
+	content-6 bank is content 6's certificate's."""
+	if actual != null and actual._live != null and actual._live.header.size() == 4 \
+			and actual._live.header[0] == Parent.CONTENT_REVISION:
+		return Parent.profile_refusal(actual, row)
 	var family: int = family_of(row)
 	if actual == null or actual._live == null or actual._loading or actual._live.header.size() != 4 \
 			or actual._live.header[0] != CONTENT_REVISION or family < 0 \

@@ -1572,16 +1572,13 @@ static func _excavation_start_worker(sites: ExcavationContract, site: int, job_r
 			or residents._ref_generation[row] != worker.y or residents._life_stage[row] == residents.LIFE_STAGE_CHILD \
 			or jobs._agent_present[row] != 1 or jobs._agent_job_slot[row] != job.x \
 			or jobs._agent_job_generation[row] != job.y or sites._worker_site[row] != site \
-			or sites._worker_generation[row] != worker.y \
-			or (jobs._tool_gate[job_row] != jobs.GATE_SATISFIED and jobs._tool_gate[job_row] != jobs.GATE_NOT_REQUIRED):
+			or sites._worker_generation[row] != worker.y or jobs._tool_gate[job_row] != jobs.GATE_SATISFIED:
 		return sites.REFUSE_WORKER
 	var needs: RefCounted = jobs._needs
 	if needs == null or needs != residents._needs or needs._present[row] != 1 \
 			or needs._status[row] == needs.STATUS_DEAD or needs._status[row] == needs.STATUS_INCAPACITATED \
 			or needs._need_value[row * needs.NEED_COUNT + needs.NEED_REST] <= jobs.REST_COLLAPSE_THRESHOLD:
 		return sites.REFUSE_WORKER
-	if jobs._tool_gate[job_row] == jobs.GATE_NOT_REQUIRED: # DEC-052: claws need no tool, and none is claimed.
-		return REFUSE_NONE if sites._work._tool_lot_slot[row] == -1 else sites.REFUSE_WORKER
 	return _excavation_start_tool(sites, row, worker, job)
 
 

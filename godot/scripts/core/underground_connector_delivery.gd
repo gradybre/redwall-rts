@@ -29,7 +29,8 @@ const Buildings := preload("res://scripts/core/buildings.gd")
 const Definitions := preload("res://scripts/core/building_definitions.gd")
 const WorkScript := preload("res://scripts/core/work.gd")
 const Clock := preload("res://scripts/core/sim_clock.gd")
-const Grip := preload("res://data/underground/mole-worker/qualified-stone-v7/grip_certificate.gd")
+## ADR1217 step 5: content 9's grip certificate (wood/stone v10 images; rows 32-41 unchanged).
+const Grip := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/grip_certificate.gd")
 const RESERVED_BYTES: int = 4096
 const HELPER_BYTES: int = 1024
 const NATIVE_RESERVE: int = 2048 # A declaration ceiling, not measured native allocation.
@@ -569,7 +570,7 @@ func _reach_stands(origin: Vector2i) -> StringName:
 	var code: StringName = _reach(origin, source) if origin != source else &""
 	if code != &"": return code
 	var carry: int = Grip.carry_row_for(_placements._inventory.lot_item_id(_source_lot))
-	return _reach(source, destination, carry, 1, Grip.CONTENT_REVISION) if carry >= 0 else REFUSE_TRANSFER
+	return _reach(source, destination, carry, 1, _placements._profiles.content_revision()) if carry >= 0 else REFUSE_TRANSFER
 
 
 static func _admission_profile_leaf(a: RefCounted) -> StringName:
@@ -642,7 +643,7 @@ static func _grip_profile_leaf(a: RefCounted) -> StringName:
 	"""A certified grip row, lifting for LOAD and setting down for UNLOAD, for exactly one whole unit."""
 	var row: int = a._selection.profile_id
 	if not Grip.is_grip(row) or Grip.profile_refusal(a._placements._profiles, row) != &"" \
-			or a._selection.profile_revision != 1 or a._selection.content_revision != Grip.CONTENT_REVISION \
+			or a._selection.profile_revision != 1 or a._selection.content_revision != a._placements._profiles.content_revision() \
 			or Grip.is_load(row) != (a._action == LOAD) or a._quantity != Grip.QUANTITY_MILLI: return REFUSE_HANDLING
 	# ADR1206: the grip row's cargo family must be the shipped item's (wood rows never lift stone).
 	var inventory: Inventory = a._placements._inventory

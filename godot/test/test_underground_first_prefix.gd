@@ -405,9 +405,10 @@ func _finite_stock_and_worker() -> void:
 	assert_true(_storage != NULL_REF and _output != NULL_REF, "two finite spatial containers")
 	_wood = _stock(&"wood", 6500)
 	_stone = _stock(&"stone", 1500)
-	_tool = _stock(&"tool", 1000)
-	assert_true(_world._gear.create_gear(_world._inventory, _world._items, _tool, Gear.MANUFACTURE_BASIC).ok, "actual durable basic tool")
-	assert_true(_world._gear.equip(_tool, _world._worker).ok, "actual resident equipment")
+	if _equips_tool():
+		_tool = _stock(&"tool", 1000)
+		assert_true(_world._gear.create_gear(_world._inventory, _world._items, _tool, Gear.MANUFACTURE_BASIC).ok, "actual durable basic tool")
+		assert_true(_world._gear.equip(_tool, _world._worker).ok, "actual resident equipment")
 	var row: int = _world._residents.directory().get_typed_row(_world._worker)
 	assert_true(_world._jobs.priorities().spawn(row).ok, "actual priorities")
 	assert_true(_world._jobs.schedule().spawn(row, _world._jobs.schedule().default_template_id().value).ok, "actual schedule")
@@ -415,6 +416,11 @@ func _finite_stock_and_worker() -> void:
 	for need: int in Needs.NEED_COUNT:
 		var value: int = _world._residents.needs().need_of(row, need).value
 		assert_true(_world._residents.needs().apply_need_event(row, need, 5000 - value).ok, "ordinary base-rate mood")
+
+
+func _equips_tool() -> bool:
+	"""The pick-era fixture equips one basic tool (the dormant tooled rows); claw fixtures override (DEC-052)."""
+	return true
 
 
 func _stock(key: StringName, quantity: int) -> Vector2i:

@@ -29,6 +29,14 @@ const RESTORE_EVERY: int = 1
 ## fall on every phase of the 30 Hz motion fractions).
 const ROUTE_RESTORE_EVERY: int = 41
 const NULL_REF: Vector2i = Vector2i(-1, 0)
+const ClawPins := preload("res://data/underground/mole-worker/qualified-claw-approach-v10/catalog_source.gd")
+## ADR1217 step 5 (DEC-052): the claw bundle's rows replace pick rows 29 (handling), 16 (INSTALL), 12 (ground) and 2
+## (narrow approach); the crew holds no tool.
+const HANDLING: int = ClawPins.PAW_HANDLING_ROW
+const INSTALL: int = 52
+const GROUND: int = ClawPins.CLAW_WALK_ROW
+const APPROACH: int = 43
+const RETREAT: int = 47
 
 ## ADR1221: the hauled prefix's one Delivery (with its Planner), cold-restored with the route owners.
 var _cold_delivery: Delivery = null
@@ -108,39 +116,38 @@ class PaidProbe extends WorkArea.Probe:
 		super.after_each()
 
 	func _installation_job(project: Vector2i, endpoint: Vector2i) -> int:
-		"""A real BUILD Job and equipped tool travel to the supported station before selecting handling READY."""
+		"""A real tool-free BUILD Job travels to the supported station before selecting handling READY."""
 		var quote: Modular.Quote = Modular.Quote.new()
 		assert_equal(_router.project_facts_into(project, quote), &"", "actual complete bill")
 		var made: Jobs.OpResult = _world._jobs.create_job(quote.job_kind, 0, 0, quote.remaining_mwu, 0)
 		assert_true(made.ok, "actual assembly Job")
 		if not made.ok: return -1
 		assert_true(_world._jobs.set_requester(made.value, project).ok, "actual Project requester")
-		assert_true(_world._jobs.set_tool_gate(made.value, Jobs.GATE_SATISFIED).ok, "actual tool gate")
+		assert_true(_world._jobs.set_tool_gate(made.value, Jobs.GATE_NOT_REQUIRED).ok, "paws need no tool")
 		assert_true(_router.bind_job(project, made.ref).ok, "exact primary Job")
 		var worker: int = _world._residents.directory().get_typed_row(_world._worker)
 		assert_true(_world._jobs.assign_worker(worker, made.value).ok, "same actual worker")
-		assert_true(_world._work.claim_tool_for_work(worker, _tool).ok, "same equipped tool")
 		_move_to_handling_station(made.value, endpoint)
 		if not failures.is_empty(): return -1
-		assert_equal(_world._routes.refresh_work_actor(_world._worker, made.ref, 29, 1, WorkArea.Bundle.CONTENT_REVISION, 0, -1, _tool), &"", "actual pre-funded handling READY")
+		assert_equal(_world._routes.refresh_work_actor(_world._worker, made.ref, HANDLING, 1, WorkArea.Bundle.CONTENT_REVISION, 0, -1, NULL_REF), &"", "actual pre-funded handling READY")
 		return made.value if failures.is_empty() else -1
 
 	func _move_to_handling_station(job: int, endpoint: Vector2i) -> void:
-		"""ADR1191: all-yaw source12 reaches material M; only the narrow same-heading source2 approaches H."""
+		"""ADR1191: the all-yaw claw WALK reaches material M; only the narrow same-heading approach reaches H."""
 		var ref: Vector2i = _world._jobs.ref_of(job)
-		assert_equal(_world._routes.refresh_travel_actor(_world._worker, ref, 12, 1, WorkArea.Bundle.CONTENT_REVISION, 0, -1, _tool), &"", "actual source WALK handoff")
-		_travel_to(ref, _endpoints[1], 12, "material endpoint")
+		assert_equal(_world._routes.refresh_travel_actor(_world._worker, ref, GROUND, 1, WorkArea.Bundle.CONTENT_REVISION, 0, -1, NULL_REF), &"", "actual source WALK handoff")
+		_travel_to(ref, _endpoints[1], GROUND, "material endpoint")
 		if not failures.is_empty(): return
 		var profiles: Profiles = _world._profiles
-		assert_equal(profiles._field(profiles._live, 2, Profiles.F_YAW_KIND), Profiles.YAW_EXACT, "source2 is a fixed-heading approach")
-		var heading: int = profiles._field(profiles._live, 2, Profiles.F_YAW)
+		assert_equal(profiles._field(profiles._live, APPROACH, Profiles.F_YAW_KIND), Profiles.YAW_EXACT, "source2 is a fixed-heading approach")
+		var heading: int = profiles._field(profiles._live, APPROACH, Profiles.F_YAW)
 		assert_equal(WorldRoutes.turn_actor(_world._binding, _world._worker, ref, heading, Space.MAX_CHECKS), &"", "all-yaw turn to the source2 heading at M")
-		assert_equal(_world._routes.refresh_travel_actor(_world._worker, ref, 2, 1, WorkArea.Bundle.CONTENT_REVISION, 0, -1, _tool), &"", "narrow approach source at M")
-		_travel_to(ref, endpoint, 2, "handling station")
+		assert_equal(_world._routes.refresh_travel_actor(_world._worker, ref, APPROACH, 1, WorkArea.Bundle.CONTENT_REVISION, 0, -1, NULL_REF), &"", "narrow approach source at M")
+		_travel_to(ref, endpoint, APPROACH, "handling station")
 		if not failures.is_empty(): return
 		var actor: Routes.Actor = Routes.Actor.new()
 		assert_equal(_world._routes.read_actor_into(_world._worker, actor), &"", "actor at H")
-		assert_equal(actor.yaw, profiles._field(profiles._live, 29, Profiles.F_YAW), "same-heading approach arrives at the handling yaw; H admits no turn")
+		assert_equal(actor.yaw, profiles._field(profiles._live, HANDLING, Profiles.F_YAW), "same-heading approach arrives at the handling yaw; H admits no turn")
 
 	func _travel_to(ref: Vector2i, endpoint: Vector2i, profile: int, label: String) -> void:
 		"""Advance real route ticks until the actor stands source-ready at the exact endpoint."""
@@ -187,10 +194,10 @@ class PaidProbe extends WorkArea.Probe:
 		var inventory_before: PackedByteArray = _world._inventory.state_bytes()
 		for step: int in 60:
 			assert_false(Routes.assembly_handled_ready_leaf_refusal(_world._routes, _world._worker,
-				_world._jobs.ref_of(job), 29, 1, WorkArea.Bundle.CONTENT_REVISION) == &"", "no premature handling completion")
+				_world._jobs.ref_of(job), HANDLING, 1, WorkArea.Bundle.CONTENT_REVISION) == &"", "no premature handling completion")
 			_world._routes.advance_tick(_tick); _tick += 1
 		assert_equal(Routes.assembly_handled_ready_leaf_refusal(_world._routes, _world._worker,
-			_world._jobs.ref_of(job), 29, 1, WorkArea.Bundle.CONTENT_REVISION), &"", "exact thirty entry plus thirty recovery ticks")
+			_world._jobs.ref_of(job), HANDLING, 1, WorkArea.Bundle.CONTENT_REVISION), &"", "exact thirty entry plus thirty recovery ticks")
 		assert_equal(_world._work.state_bytes(), work_before, "handling earns no WU or XP")
 		assert_equal(_world._jobs.state_bytes(), jobs_before, "no productive progress")
 		assert_equal(_world._inventory.state_bytes(), inventory_before, "no repeated material payment")
@@ -240,11 +247,11 @@ class PaidProbe extends WorkArea.Probe:
 	func begin_install(job: int) -> void:
 		"""Handled READY normalizes, then the unchanged INSTALL source reaches WORK without earning anything."""
 		assert_equal(_world._routes.request_source_ready(_world._worker, _world._jobs.ref_of(job)), &"", "handled state normalizes to READY")
-		assert_equal(_world._routes.refresh_work_actor(_world._worker, _world._jobs.ref_of(job), 16, 1, WorkArea.Bundle.CONTENT_REVISION, 0, -1, _tool), &"", "actual unchanged INSTALL source")
+		assert_equal(_world._routes.refresh_work_actor(_world._worker, _world._jobs.ref_of(job), INSTALL, 1, WorkArea.Bundle.CONTENT_REVISION, 0, -1, NULL_REF), &"", "actual unchanged INSTALL source")
 		for step: int in 240:
-			if Routes.source_work_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, WorkArea.Bundle.CONTENT_REVISION) == &"": break
+			if Routes.source_work_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), INSTALL, 1, WorkArea.Bundle.CONTENT_REVISION) == &"": break
 			_world._routes.advance_tick(_tick); _tick += 1
-		assert_equal(Routes.source_work_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, WorkArea.Bundle.CONTENT_REVISION), &"", "actual INSTALL WORK")
+		assert_equal(Routes.source_work_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), INSTALL, 1, WorkArea.Bundle.CONTENT_REVISION), &"", "actual INSTALL WORK")
 
 	func finish_install(job: int) -> void:
 		"""Earn all fastening work, recover the INSTALL source and commit the one whole group."""
@@ -253,9 +260,9 @@ class PaidProbe extends WorkArea.Probe:
 		if not failures.is_empty(): return
 		assert_equal(_world._routes.request_source_ready(_world._worker, _world._jobs.ref_of(job)), &"", "actual INSTALL recovery")
 		for step: int in 240:
-			if Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, WorkArea.Bundle.CONTENT_REVISION) == &"": break
+			if Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), INSTALL, 1, WorkArea.Bundle.CONTENT_REVISION) == &"": break
 			_world._routes.advance_tick(_tick); _tick += 1
-		assert_equal(Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, WorkArea.Bundle.CONTENT_REVISION), &"", "INSTALL full recovery before release")
+		assert_equal(Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), INSTALL, 1, WorkArea.Bundle.CONTENT_REVISION), &"", "INSTALL full recovery before release")
 		if not failures.is_empty(): return
 		var completed: Construction.OpResult = _router.complete_order(project)
 		assert_true(completed.ok, "actual paid L0 commit: %s" % completed.error)
@@ -265,9 +272,9 @@ class PaidProbe extends WorkArea.Probe:
 		"""A paused worker finishes the real INSTALL recovery before any cancellation may settle."""
 		assert_equal(_world._routes.request_source_ready(_world._worker, _world._jobs.ref_of(job)), &"", "INSTALL recovery requested")
 		for step: int in 240:
-			if Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, WorkArea.Bundle.CONTENT_REVISION) == &"": break
+			if Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), INSTALL, 1, WorkArea.Bundle.CONTENT_REVISION) == &"": break
 			_world._routes.advance_tick(_tick); _tick += 1
-		assert_equal(Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 16, 1, WorkArea.Bundle.CONTENT_REVISION), &"", "INSTALL recovered")
+		assert_equal(Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), INSTALL, 1, WorkArea.Bundle.CONTENT_REVISION), &"", "INSTALL recovered")
 
 	func _router_project(job: int) -> Vector2i:
 		"""The Job's requester is the exact paid Project."""
@@ -412,16 +419,9 @@ func test_actual_prefunded_pause_closes_late_pose_and_reentrant_observers() -> v
 	assert_equal(_probe._world._jobs.worker_of(job), Prefix.NULL_REF, "release follows final original physical proof")
 
 
-func _late_release_drop_tool_lot(resident: int, lot: Vector2i, job: Vector2i, called: PackedInt32Array) -> void:
-	"""A late independent Gear release must not hide a half-cleared Work binding from the final crew leaf."""
-	called[0] += 1
-	assert_true(_probe._world._gear.cancel_claim(lot, job).ok, "actual Gear claim released by the late observer")
-	_probe._world._work._tool_lot_slot[resident] = -1
-	_probe._world._work._tool_lot_generation[resident] = 0
-
-
-func test_actual_prefunded_pause_refuses_unpaired_tool_job_with_or_without_gear_claim() -> void:
-	"""The actual release must preserve assignment when Work's lot disappears but its original Job pair remains."""
+func test_actual_prefunded_pause_refuses_a_stray_tool_binding_on_the_paw_order() -> void:
+	"""DEC-052: the paw order's Job needs no tool and holds no claim; a Work tool binding written onto that Job (with no
+	Gear claim behind it) is inconsistent, so the release refuses and keeps the worker, then succeeds once it is gone."""
 	_probe = PaidProbe.new()
 	_probe.before_each()
 	var project: Vector2i = _probe.prepare_l0()
@@ -429,23 +429,20 @@ func test_actual_prefunded_pause_refuses_unpaired_tool_job_with_or_without_gear_
 	if project == Prefix.NULL_REF: return
 	var resident: int = _probe._world._residents.directory().get_typed_row(_probe._world._worker)
 	var job: Vector2i = _probe._world._jobs.ref_of(_probe._router._primary_row(project))
-	var lot: Vector2i = _probe._world._work.tool_lot_of(resident)
+	assert_equal(_probe._world._work.tool_lot_of(resident), NULL_REF, "the paw crew claims no tool")
 	var jobs: PackedByteArray = _probe._world._jobs.state_bytes()
-	var inventory: PackedByteArray = _probe._world._inventory.state_bytes()
+	_probe._world._work._tool_lot_slot[resident] = 0
+	_probe._world._work._tool_lot_generation[resident] = 1
+	_probe._world._work._tool_job_slot[resident] = job.x
+	_probe._world._work._tool_job_generation[resident] = job.y
+	assert_false(_probe._router.set_paused(project, true).ok, "a stray tool binding refuses the release")
+	assert_equal(_probe._world._jobs.state_bytes(), jobs, "the worker is retained")
 	_probe._world._work._tool_lot_slot[resident] = -1
 	_probe._world._work._tool_lot_generation[resident] = 0
-	assert_false(_probe._router.set_paused(project, true).ok, "retained actual Gear claim closes the original whole-path refusal")
-	assert_equal(_probe._world._jobs.state_bytes(), jobs, "original worker retained with live Gear claim")
-	assert_equal(_probe._world._work.tool_job_of(resident), job, "refusal does not erase the inconsistent observer state")
-	_probe._world._work._tool_lot_slot[resident] = lot.x
-	_probe._world._work._tool_lot_generation[resident] = lot.y
-	var called: PackedInt32Array = PackedInt32Array([0])
-	(_probe._contacts as ObservedPaidContacts).release_probe = _late_release_drop_tool_lot.bind(resident, lot, job, called)
-	assert_false(_probe._router.set_paused(project, true).ok, "final paired binding refuses even after actual Gear claim disappears")
-	assert_equal(called[0], 1, "the actual successful physical observer was reached before mutation")
-	assert_equal(_probe._world._jobs.state_bytes(), jobs, "no worker release can strand the original Work Job binding")
-	assert_equal(_probe._world._work.tool_job_of(resident), job, "late observer mutation alone remains visible")
-	assert_equal(_probe._world._inventory.state_bytes(), inventory, "no paid or loose stock changes")
+	_probe._world._work._tool_job_slot[resident] = -1
+	_probe._world._work._tool_job_generation[resident] = 0
+	assert_true(_probe._router.set_paused(project, true).ok, "the tool-free crew is released")
+	assert_equal(_probe._world._jobs.worker_of(_probe._router._primary_row(project)), NULL_REF, "released")
 
 
 func _arm_pre_stage_probe(kind: int, observed: PackedInt64Array) -> void:
@@ -709,19 +706,19 @@ func _assert_complete_prefix_ledger(foreman: Foreman) -> void:
 
 
 func _assert_crossing_reachability() -> void:
-	"""The published crossing joins M and the arrival; the narrow contact admits only its backward/forward sources."""
+	"""The published crossing joins M and the arrival; the narrow contact admits only its backward/forward claw rows."""
 	var arrival: Vector2i = _installed_l0_arrival()
 	var contact: Vector2i = _probe._installed_l0_contact()
-	assert_equal(_reach(_probe._endpoints[1], arrival, 12), &"", "source12 reaches the arrival from M")
-	assert_equal(_reach(arrival, _probe._endpoints[1], 12), &"", "source12 returns to M")
-	assert_equal(_reach(arrival, contact, 2), &"", "source2 steps onto the contact")
-	assert_equal(_reach(contact, arrival, 6), &"", "source6 backs off the contact")
-	assert_true(_reach(arrival, contact, 12) != &"", "source12 is refused onto the narrow contact")
+	assert_equal(_reach(_probe._endpoints[1], arrival, GROUND), &"", "claw WALK 42 reaches the arrival from M")
+	assert_equal(_reach(arrival, _probe._endpoints[1], GROUND), &"", "claw WALK 42 returns to M")
+	assert_equal(_reach(arrival, contact, APPROACH), &"", "narrow approach 43 steps onto the contact")
+	assert_equal(_reach(contact, arrival, RETREAT), &"", "narrow retreat 47 backs off the contact")
+	assert_true(_reach(arrival, contact, GROUND) != &"", "claw WALK 42 is refused onto the narrow contact")
 
 
 func test_entry_foreman_hauls_every_input_of_the_complete_prefix() -> void:
 	"""ADR1210 (G4): all inputs start as surface stock staged at R. Only Foreman.advance(tick) runs; every unit
-	reaches M by a real tool-free Delivery haul between the tooled cuts, and the same prefix installs once."""
+	reaches M by a real Delivery haul between the claw cuts (no tool at all, DEC-052), and the prefix installs once."""
 	_probe = PaidProbe.new()
 	_probe.before_each()
 	var foreman: Foreman = _complete_prefix_foreman(true)
@@ -758,7 +755,8 @@ func _assert_hauled_ledger(foreman: Foreman) -> void:
 	assert_equal(_probe._sites.support_conservation_refusal(), &"", "complete brace conservation")
 	assert_true(world._inventory.audit().ok and world._pool.audit(world._inventory).ok, "real conservation audits")
 	assert_equal(world._construction.live_project_count(), 0, "every Project retired")
-	assert_true(world._inventory.is_lot_equipped(_probe._tool), "the tool is back in the worker's hands")
+	assert_equal(world._work.tool_lot_of(world._residents.directory().get_typed_row(world._worker)), NULL_REF,
+		"the claw crew never claimed a tool")
 
 
 func _stage_surface_stock() -> void:
@@ -782,7 +780,6 @@ func _bind_delivery(owners: Foreman.Owners) -> void:
 	assert_equal(delivery.configure(_probe._placements, _probe._source, planner, world._binding, world._work,
 		SimClock.new(), Delivery.RESERVED_BYTES), &"", "one bounded Delivery")
 	owners.delivery = delivery
-	owners.gear = world._gear
 	_cold_delivery = delivery
 
 
@@ -808,12 +805,12 @@ func _complete_prefix_foreman(hauled: bool = false) -> Foreman:
 
 
 func _assert_split_landing() -> void:
-	"""The L0 contact has H's narrow shape; one arrival Location sized for source12 stands clear of the T0 bearer."""
+	"""The L0 contact has H's narrow claw shape; one arrival Location sized for WALK 42 stands clear of the T0 bearer."""
 	var record: Prefix.Locations.Record = _record(_probe._installed_l0_contact())
-	assert_equal(_relative(record.envelope, record.point), PackedInt32Array([-445, 0, -732, 910, 1036, 346]),
-		"contact air: the source2/6/16 union, exactly the endpoint certificate's words")
-	assert_equal(_relative(record.support, record.point), PackedInt32Array([-274, -1, -274, 299, 0, 249]),
-		"contact footing: the source2/16 stance union")
+	assert_equal(_relative(record.envelope, record.point), PackedInt32Array([-485, 0, -578, 479, 930, 412]),
+		"contact air: the rows 43/47/52/59 union, exactly the claw endpoint certificate's words")
+	assert_equal(_relative(record.support, record.point), PackedInt32Array([-276, -1, -274, 299, 0, 249]),
+		"contact footing: the claw stance union")
 	var bearer: PackedInt32Array = PackedInt32Array()
 	bearer.resize(Foreman.Frontier.row_fields(Foreman.Frontier.BEARING))
 	assert_equal(_probe._source.bearing_into(1, bearer), &"", "T0 bearer footprint (install row 1's bearing)")
@@ -823,16 +820,16 @@ func _assert_split_landing() -> void:
 	var bearer_far_z: int = record.point.z + bearer[8] - contact[6]
 	var arrival: Vector2i = _installed_l0_arrival()
 	record = _record(arrival)
-	assert_equal(_relative(record.envelope, record.point), PackedInt32Array([-1256, 0, -1256, 1256, 1036, 1256]),
-		"arrival air: the whole source12 body and turn sweep")
+	assert_equal(_relative(record.envelope, record.point), PackedInt32Array([-712, 0, -712, 712, 930, 712]),
+		"arrival air: the whole claw WALK 42 body and turn sweep")
 	assert_equal(_relative(record.support, record.point), PackedInt32Array([-406, -1, -406, 406, 0, 406]),
-		"arrival footing: the source12 stance on the deck")
-	assert_equal(record.envelope[2], bearer_far_z, "arrival air ends exactly at the T0 bearer's far face")
+		"arrival footing: the claw WALK 42 stance on the deck")
+	assert_equal(record.envelope[2] - bearer_far_z, 544, "arrival air stands 544 u clear of the T0 bearer's far face")
 	var row: PackedInt32Array = PackedInt32Array()
 	row.resize(Foreman.Frontier.row_fields(Foreman.Frontier.INSTALL))
 	assert_equal(_probe._source.installation_into(1, row), &"", "successor T0 install row")
 	assert_equal(row[7], 10, "T0 material stays M's all-yaw selector")
-	assert_equal(row[8], 13, "T0 retreats to the arrival on backward source6")
+	assert_equal(row[8], 13, "T0 retreats to the arrival on the narrow claw retreat")
 
 
 func _record(ref: Vector2i) -> Prefix.Locations.Record:

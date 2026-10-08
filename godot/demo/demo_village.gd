@@ -525,8 +525,9 @@ func prewarm() -> PrewarmScript:
 func _mount_modular_foundation() -> void:
 	"""Give the actual settlement its single source-qualified underground foundation, without free construction."""
 	var sources: ModularSources = ModularSources.new()
-	# Content 6 publishes the wood and stone haul rows (ADR1200/1206), so both haul images load (ADR1211).
-	var code: StringName = MolePresentation.load_sources(sources, true, true)
+	# Content 9 publishes the wood and stone haul rows (ADR1200/1206) and the claw and paw rows (ADR1217 step 5), so
+	# every image loads (ADR1211).
+	var code: StringName = MolePresentation.load_sources(sources, true, true, true)
 	if code == &"":
 		_modular_sources = sources
 	if code == &"" and not SettlementSystem.mount_underground(sources.content(MolePresentation.SOURCE_ACTOR)):

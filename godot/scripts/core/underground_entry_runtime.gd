@@ -7,6 +7,8 @@ extends RefCounted
 ## registers it with Routes there. No other surface resident is registered.
 ## ADR1223 (G6): the runtime is the Jobs dispatcher. The JobSelector never offers its Jobs (any Job an excavation or
 ## connector-installation Project requests) to anyone and never selects its crew; only the foreman commits them.
+## ADR1217 step 5 (DEC-052): moles dig with their claws and fit by paw, so the crew is any idle adult mole holding
+## no tool; ADR1197 G11 (no settlement mole ever gets a tool) no longer stops the entry and its alert is retired.
 
 const Site := preload("res://scripts/core/underground_entry_site.gd")
 const WorkArea := preload("res://scripts/core/underground_entry_work_area.gd")
@@ -17,10 +19,11 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const Progress := preload("res://scripts/core/underground_entry_progress.gd")
 const Construction := preload("res://scripts/core/construction.gd")
 const Needs := preload("res://scripts/core/needs.gd")
+const Residents := preload("res://scripts/core/residents.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const SEARCH_RINGS: int = 8
 const REFUSE_SCOPE: StringName = &"ENTRY_RUNTIME_SCOPE"
-const REFUSE_NO_TOOLED_MOLE: StringName = &"ENTRY_CREW_NO_TOOLED_MOLE"
+const REFUSE_NO_IDLE_MOLE: StringName = &"ENTRY_CREW_NO_IDLE_MOLE"
 const REFUSE_SURFACE_ARRIVAL: StringName = &"ENTRY_SURFACE_ARRIVAL_MISSING"
 const REFUSE_CREW_LOST: StringName = &"ENTRY_CREW_LOST"
 const REFUSE_NO_REPLACEMENT: StringName = &"ENTRY_CREW_NO_REPLACEMENT"
@@ -39,17 +42,17 @@ const STEP_DONE: int = 7
 const GAPS: Dictionary = {
 	&"ENTRY_SITE_NONE_FOUND": "G1/G2 no surveyed entry site near the settlement",
 	&"ENTRY_DESCENT_UNBUILT": "G9 the first-entry prefix is built; the descent past T0 (ADR 1209 stairs, then the Kitchen dug to reachable height, DEC-054) is not planned yet (ADR 1227)",
-	&"ENTRY_CREW_NO_TOOLED_MOLE": "G11 no adult mole with an equipped basic tool (tool equipping is not gameplay yet)",
+	&"ENTRY_CREW_NO_IDLE_MOLE": "G6 no living adult mole is free: every one holds another Job (or a tool, which the claw and paw rows do not take; DEC-052)",
 	&"ROUTE_UNREGISTERED_RESIDENT_NEAR": "G5 a resident outside the entry crew stands within reach of the work area (surface Movement does not route residents around it yet; ADR 1219)",
 	&"ENTRY_SURFACE_ARRIVAL_MISSING": "G5 the crew mole has no surface pose to walk from, or could not be placed on the stair-top anchor (ADR 1219)",
 	&"JOB_HAS_WORKER": "G6 an entry Job already had another worker (the dispatch reservation should prevent this; ADR 1223)",
-	&"JOB_AGENT_BUSY": "G6 every tooled adult mole already holds another Job; the crew is chosen only from idle moles (ADR 1223)",
+	&"JOB_AGENT_BUSY": "G6 every adult mole already holds another Job; the crew is chosen only from idle moles (ADR 1223)",
 	&"STEP2_ACTIVITY_FORBIDS_WORK": "G6 the crew's schedule forbade work when the foreman committed it (the runtime waits for a work hour; ADR 1223)",
 	&"JOB_DISPATCHED_TO_CREW": "G6 an entry Job was committed to a resident outside the crew (ADR 1223)",
 	&"JOB_AGENT_RESERVED_BY_DISPATCH": "G6 the crew was committed to a Job outside the entry (ADR 1223)",
 	&"ENTRY_CREW_LOST": "G6 the crew left the settlement; a replacement mole walks in and resumes the step (ADR 1225)",
 	&"STEP1_RESIDENT_DEAD": "G6 the crew died; a replacement mole walks in and resumes the step (ADR 1225)",
-	&"ENTRY_CREW_NO_REPLACEMENT": "G6 the crew was lost and no idle adult mole with a tool can replace it yet; the entry waits and retries (ADR 1225)",
+	&"ENTRY_CREW_NO_REPLACEMENT": "G6 the crew was lost and no idle adult mole can replace it yet; the entry waits and retries (ADR 1225)",
 	&"STEP1_RESIDENT_INCAPACITATED": "G6 the crew was incapacitated mid-dispatch; interrupting and resuming a dispatch is not built (ADR 1223)",
 	&"STEP1_REST_COLLAPSED": "G6 the crew collapsed from exhaustion mid-dispatch; interrupting and resuming a dispatch is not built (ADR 1223)",
 	&"ROUTE_ASSEMBLY_ACTOR_UNBOUND": "G5 the paid installation's handling occupancy proof still requires every living resident to be a route actor (ADR 1219's reach-cube rule is not applied there yet; ADR 1224)",
@@ -162,15 +165,15 @@ func _lose_crew(code: StringName, tick: int) -> StringName:
 
 
 func _replace_crew(tick: int, now: bool) -> StringName:
-	"""ADR1225: the first idle tooled adult mole becomes the crew and walks to H (ADR1219's arrival path); the
+	"""ADR1225: the first idle adult mole becomes the crew and walks to H (ADR1219's arrival path); the
 	Jobs reserved to the entry follow it, being derived from the crew. Without one, the entry retries every
 	JobSelector interval."""
 	if not now and tick % Foreman.Jobs.REEVALUATION_INTERVAL_TICKS != 0: return &""
 	var o: Foreman.Owners = _foreman._owners
 	var found: Array[Vector2i] = []
-	if _tooled_mole(o, found) != &"": return REFUSE_NO_REPLACEMENT if now else &""
+	if _idle_mole(o, found) != &"": return REFUSE_NO_REPLACEMENT if now else &""
 	_crew.worker = found[0]
-	_crew.tool = found[1]
+	_crew.tool = NULL_REF
 	_worker_row = o.residents.directory().get_typed_row(_crew.worker)
 	var code: StringName = _begin_walk(o.locations, _transforms, o.residents, _foreman.arrival_yaw())
 	return _halt(code) if code != &"" else &""
@@ -284,36 +287,35 @@ func _containers(o: RefCounted) -> StringName:
 
 
 func _select_crew(o: RefCounted) -> StringName:
-	"""The first idle living adult mole holding an equipped tool lot; no tool is created or equipped here."""
+	"""The first idle living adult mole with no tool (DEC-052: claws dig, paws fit); nothing is equipped here."""
 	var found: Array[Vector2i] = []
-	var code: StringName = _tooled_mole(o, found)
+	var code: StringName = _idle_mole(o, found)
 	if code != &"": return code
 	_crew = Foreman.Crew.new()
 	_crew.worker = found[0]
-	_crew.tool = found[1]
+	_crew.tool = NULL_REF
 	_crew.storage = _storage
 	_crew.output = _output
 	_step = STEP_CREW
 	return &""
 
 
-static func _tooled_mole(o: RefCounted, out: Array[Vector2i]) -> StringName:
-	"""[worker, tool] of the first living adult mole with an equipped tool and no Job. ADR1223: a mole holding
-	another Job is passed over (its Job is never taken from it), and `JOB_AGENT_BUSY` names that case."""
+static func _idle_mole(o: RefCounted, out: Array[Vector2i]) -> StringName:
+	"""[worker] of the first living adult mole, by resident slot, holding no Job and no tool. ADR1223: a mole holding
+	another Job is passed over (its Job is never taken from it), and `JOB_AGENT_BUSY` names that case. A tooled mole
+	is passed over too: the claw and paw rows hold no tool (DEC-052), so Profiles would refuse its equipped tool."""
 	var residents: RefCounted = o.residents
 	var busy: bool = false
-	for row: int in o.gear._row_capacity:
-		if o.gear._occupied[row] != 1 or o.gear._equipped[row] != 1: continue
-		var owner: Vector2i = Vector2i(o.gear._owner_slot[row], o.gear._owner_generation[row])
-		var slot: int = residents.directory().get_typed_row(owner)
-		if slot < 0 or not residents.is_alive(slot) or residents.species_key(residents.species_of(slot).value) != &"mole":
+	for slot: int in Residents.RESIDENT_CAPACITY:
+		if not residents.is_alive(slot) or residents.life_stage_code_of(slot) != Residents.LIFE_STAGE_ADULT \
+				or residents.species_key(residents.species_of(slot).value) != &"mole" or residents.has_equipped_tool(slot):
 			continue
 		if o.jobs.job_of(slot) != NULL_REF:
 			busy = true
 			continue
-		out.assign([owner, Vector2i(o.gear._lot_slot[row], o.gear._lot_generation[row])])
+		out.assign([residents.ref_of(slot)])
 		return &""
-	return Foreman.Jobs.REFUSE_AGENT_BUSY if busy else REFUSE_NO_TOOLED_MOLE
+	return Foreman.Jobs.REFUSE_AGENT_BUSY if busy else REFUSE_NO_IDLE_MOLE
 
 
 func _plan_foreman(o: RefCounted) -> StringName:
@@ -340,7 +342,7 @@ func _foreman_owners(o: RefCounted) -> Foreman.Owners:
 	f.sites = o.sites; f.jobs = o.jobs; f.work = o.work; f.routes = o.routes; f.binding = o.world_routes
 	f.residents = o.residents; f.pool = o.reservations; f.construction = o.construction; f.inventory = o.inventory
 	f.profiles = o.profiles; f.frontier = o.room_bindings._entry_frontier; f.placements = o.placements
-	f.locations = o.locations; f.anchor = o.surface_anchor; f.items = o.items; f.delivery = o.delivery; f.gear = o.gear
+	f.locations = o.locations; f.anchor = o.surface_anchor; f.items = o.items; f.delivery = o.delivery
 	return f
 
 

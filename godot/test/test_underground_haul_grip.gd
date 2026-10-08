@@ -1,11 +1,15 @@
 extends "res://test/framework/test_case.gd"
 ## ADR1198 steps 6 and 8, ADR1206: the certified curved haul grips (wood and stone) and the Delivery station seam,
-## on the real published content-6 bank and the production work area. The worker is a real adult mole with no tool.
+## on the real published bank and the production work area. The worker is a real adult mole with no tool.
+## ADR1217 step 5: the bank is content 9 (wood/stone v10 images, grip rows 32-41 unchanged) and the work-area
+## worker is the claw crew, which never holds a tool: the switch at rest is between the claw source rows and the
+## automatic haul rows.
 
 const WorkArea := preload("res://test/test_underground_entry_work_area.gd")
 const Prefix := preload("res://test/test_underground_first_prefix.gd")
 const WorkAreaSource := preload("res://scripts/core/underground_entry_work_area.gd")
-const Grip := preload("res://data/underground/mole-worker/qualified-stone-v7/grip_certificate.gd")
+const Grip := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/grip_certificate.gd")
+const ClawPins := preload("res://data/underground/mole-worker/qualified-claw-approach-v10/catalog_source.gd")
 const Delivery := preload("res://scripts/core/underground_connector_delivery.gd")
 const Planner := preload("res://scripts/core/haul_planner.gd")
 const StorePolicy := preload("res://scripts/core/store_policy.gd")
@@ -44,19 +48,19 @@ func test_certificate_constants_are_the_rows_json_witnesses() -> void:
 		var rows: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(ROWS_PATHS[family]))
 		var station: Dictionary = rows["station"]
 		var r_minus_s: Array = station["R_minus_S_u"]
-		assert_equal(Grip.R_MINUS_S, Vector3i(int(r_minus_s[0]), int(r_minus_s[1]), int(r_minus_s[2])), "R-S")
+		assert_equal(Grip.Parent.R_MINUS_S, Vector3i(int(r_minus_s[0]), int(r_minus_s[1]), int(r_minus_s[2])), "R-S")
 		for contact: int in 2:
 			var cell: Array = station["grip_contacts"][contact]["C_minus_S_cell_u"]
 			for axis: int in 6:
-				assert_equal(Grip.CONTACT_CELLS[12 * family + 6 * contact + axis], int(cell[axis]), "contact cell word")
+				assert_equal(Grip.Parent.CONTACT_CELLS[12 * family + 6 * contact + axis], int(cell[axis]), "contact cell word")
 		for kind: int in 3:
 			var row: int = Grip.carry_of(family) + [0, 1, 3][kind]
 			var boxes: Array = rows["rows"][kind]["boxes"]
-			assert_equal(boxes.size(), Grip.word(row, Profiles.F_BOX_COUNT), "row %d box count" % row)
+			assert_equal(boxes.size(), Grip.Parent.word(row, Profiles.F_BOX_COUNT), "row %d box count" % row)
 			for ordinal: int in boxes.size():
 				for field: int in 6:
-					assert_equal(Grip.box_word(row, ordinal, field), int(boxes[ordinal]["bounds_u"][field]), "box word")
-				assert_equal(Grip.box_word(row, ordinal, 6), int(boxes[ordinal]["role_id"]), "box role")
+					assert_equal(Grip.Parent.box_word(row, ordinal, field), int(boxes[ordinal]["bounds_u"][field]), "box word")
+				assert_equal(Grip.Parent.box_word(row, ordinal, 6), int(boxes[ordinal]["role_id"]), "box role")
 	assert_equal(Grip.carry_row_for(60), 32, "wood carries on row 32")
 	assert_equal(Grip.carry_row_for(53), 37, "stone carries on row 37")
 	assert_equal(Grip.carry_row_for(0), -1, "no other compiled item is certified")
@@ -68,7 +72,7 @@ func test_certificate_admits_only_the_exact_station_transform() -> void:
 	_probe = WorkArea.Probe.new()
 	_probe.before_each()
 	var profiles: Profiles = _probe._world._profiles
-	assert_true(Grip.uses(profiles), "real content 6 carries all ten certified rows")
+	assert_true(Grip.uses(profiles), "real content 9 carries all ten certified rows")
 	var stock: Vector3i = WorkAreaSource.point(Prefix.ORIGIN, 1)
 	var root: Vector3i = WorkAreaSource.point(Prefix.ORIGIN, WorkAreaSource.STAND_M)
 	assert_equal(Grip.station_refusal(profiles, 34, root, 16384, stock), &"", "load grip at M's stand")
@@ -174,9 +178,9 @@ func test_toolless_mole_hauls_one_staged_stone_unit_to_m_through_delivery() -> v
 	assert_equal(world._inventory.container_lot_count(_probe._storage), before + 1, "one new stone lot in M's container")
 
 
-func test_switch_between_tooled_source_and_tool_free_rows_only_at_rest() -> void:
-	"""ADR1210 amends ADR1168: at rest on READY a tooled source actor switches to the tool-free automatic rows and
-	back, each time through the full admission re-proof; moving, mid-programme or unproved switches refuse."""
+func test_switch_between_claw_source_and_automatic_rows_only_at_rest() -> void:
+	"""ADR1210 amends ADR1168: at rest on READY a claw source actor switches to the automatic haul rows and back,
+	each time through the full admission re-proof; moving or mid-programme switches refuse."""
 	if not _source_actor_at_m(): return
 	var world: RefCounted = _probe._world
 	assert_equal(world._routes.request_route(world._worker, _probe._endpoints[3], 0), &"", "leave M")
@@ -188,45 +192,53 @@ func test_switch_between_tooled_source_and_tool_free_rows_only_at_rest() -> void
 		world._routes.advance_tick(tick)
 		world._routes.read_actor_into(world._worker, actor)
 		if actor.location == _probe._endpoints[3] and actor.phase == Routes.PHASE_IDLE and actor.edge == NULL_REF: break
-	assert_true(Routes.source_ready_leaf_refusal(world._routes, world._worker, NULL_REF, 12, 1, Grip.CONTENT_REVISION)
-		!= &"", "stopped on the station, still recovering")
+	assert_true(Routes.source_ready_leaf_refusal(world._routes, world._worker, NULL_REF, ClawPins.CLAW_WALK_ROW, 1,
+		Grip.CONTENT_REVISION) != &"", "stopped on the station, still recovering")
 	assert_equal(world._routes.refresh_actor(world._worker, NULL_REF, Profiles.MODE_WALK, 0, -1, NULL_REF),
 		&"ROUTE_SOURCE_HANDOFF_REQUIRED", "never before the source is READY")
 
 
 func test_switch_at_rest_reruns_the_full_admission_proof_both_ways() -> void:
-	"""The tool must really be put down before the tool-free rows, and really held before the tooled ones."""
+	"""READY at rest switches to the automatic WALK and back to the claw WALK; each switch reruns the admission
+	proof, so a tool in hand (which no claw row takes, DEC-052) refuses the claw row."""
 	if not _source_actor_at_m(): return
 	var world: RefCounted = _probe._world
-	assert_true(world._routes.refresh_actor(world._worker, NULL_REF, Profiles.MODE_WALK, 0, -1, NULL_REF) != &"",
-		"a held tool refuses the tool-free selection")
-	assert_true(world._gear.unequip(_probe._tool, _probe._storage, false).ok, "tool down at M")
-	assert_true(world._routes.refresh_travel_actor(world._worker, NULL_REF, 12, 1, Grip.CONTENT_REVISION, 0, -1,
-		_probe._tool) != &"", "the tooled row needs the tool in hand")
 	assert_equal(world._routes.refresh_actor(world._worker, NULL_REF, Profiles.MODE_WALK, 0, -1, NULL_REF), &"",
-		"READY at rest switches to tool-free WALK")
+		"READY at rest switches to the automatic WALK")
 	var actor: Routes.Actor = Routes.Actor.new()
 	assert_equal(world._routes.read_actor_into(world._worker, actor), &"", "actual actor")
 	assert_equal(actor.profile_id, 31, "the tool-free walk row")
-	assert_true(world._routes.refresh_travel_actor(world._worker, NULL_REF, 12, 1, Grip.CONTENT_REVISION, 0, -1,
-		_probe._tool) != &"", "still tool-free: the tooled source refuses")
-	assert_true(world._gear.equip(_probe._tool, world._worker).ok, "tool back in hand")
-	assert_equal(world._routes.refresh_travel_actor(world._worker, NULL_REF, 12, 1, Grip.CONTENT_REVISION, 0, -1,
-		_probe._tool), &"", "idle automatic actor at rest switches back to tooled ground")
-	assert_equal(Routes.source_ready_leaf_refusal(world._routes, world._worker, NULL_REF, 12, 1, Grip.CONTENT_REVISION),
-		&"", "it starts exactly at READY")
+	var tool: Vector2i = _equip_tool()
+	assert_true(world._routes.refresh_travel_actor(world._worker, NULL_REF, ClawPins.CLAW_WALK_ROW, 1,
+		Grip.CONTENT_REVISION, 0, -1, tool) != &"", "the re-proof refuses the claw row with a tool in hand")
+	assert_true(world._gear.unequip(tool, _probe._storage, false).ok, "tool down at M")
+	assert_equal(world._routes.refresh_travel_actor(world._worker, NULL_REF, ClawPins.CLAW_WALK_ROW, 1,
+		Grip.CONTENT_REVISION, 0, -1, NULL_REF), &"", "idle automatic actor at rest switches back to the claw WALK")
+	assert_equal(Routes.source_ready_leaf_refusal(world._routes, world._worker, NULL_REF, ClawPins.CLAW_WALK_ROW, 1,
+		Grip.CONTENT_REVISION), &"", "it starts exactly at READY")
+
+
+func _equip_tool() -> Vector2i:
+	"""A real basic tool equipped to the claw crew, to prove the re-proof reads the actual hand."""
+	var world: RefCounted = _probe._world
+	var made: RefCounted = world._inventory.create_lot(_probe._storage, world._items.compiled_id(&"tool"), 1000, 1,
+		Prefix.Provenance.PROVENANCE_ORDINARY, -1, 0, 0)
+	assert_true(made.ok and world._gear.create_gear(world._inventory, world._items, made.ref,
+		Prefix.Gear.MANUFACTURE_BASIC).ok, "actual basic tool")
+	assert_true(world._gear.equip(made.ref, world._worker).ok, "tool in hand")
+	return made.ref
 
 
 func _source_actor_at_m() -> bool:
-	"""A real tooled mole admitted on canonical ground 12 at the first station, then walked to M (READY)."""
+	"""The real claw crew admitted on the claw canonical-ground WALK at the first station, walked to M (READY)."""
 	_probe = WorkArea.Probe.new()
 	_probe.before_each()
 	if _probe._confirm_prefix() == NULL_REF: return false
 	var world: RefCounted = _probe._world
 	var at: Vector3i = _probe._surface_point(3)
 	assert_true(world._transforms.place(world._worker, at.x, at.y, at.z, 49152), "on the first station")
-	assert_equal(world._routes.admit_travel_actor(world._worker, NULL_REF, _probe._endpoints[3], 12, 1,
-		Grip.CONTENT_REVISION, 0, -1, _probe._tool), &"", "canonical ground admission")
+	assert_equal(world._routes.admit_travel_actor(world._worker, NULL_REF, _probe._endpoints[3], ClawPins.CLAW_WALK_ROW,
+		1, Grip.CONTENT_REVISION, 0, -1, NULL_REF), &"", "canonical ground admission")
 	assert_equal(world._routes.request_route(world._worker, _probe._endpoints[1], 0), &"", "to M")
 	return _settle_at(_probe._endpoints[1], 1) and failures.is_empty()
 
@@ -238,14 +250,14 @@ func _settle_at(target: Vector2i, first_tick: int) -> bool:
 	for tick: int in range(first_tick, first_tick + 3000):
 		world._routes.advance_tick(tick)
 		world._routes.read_actor_into(world._worker, actor)
-		if actor.location == target and Routes.source_ready_leaf_refusal(world._routes, world._worker, NULL_REF, 12, 1,
+		if actor.location == target and Routes.source_ready_leaf_refusal(world._routes, world._worker, NULL_REF, ClawPins.CLAW_WALK_ROW, 1,
 				Grip.CONTENT_REVISION) == &"": return true
 	assert_true(false, "arrived READY on %s" % target)
 	return false
 
 
 func _ready() -> bool:
-	"""Real entry, an open BRACE phase whose Site holds M's container, Delivery composed, and the tool unequipped."""
+	"""Real entry, an open BRACE phase whose Site holds M's container, and Delivery composed (no tool: DEC-052)."""
 	_probe = WorkArea.Probe.new()
 	_probe.before_each()
 	if _probe._confirm_prefix() == NULL_REF:
@@ -262,10 +274,9 @@ func _ready() -> bool:
 	assert_true(world._construction.remaining_mwu_into(_project, amount), "quoted phase work")
 	var build: Jobs.OpResult = world._jobs.create_job(Jobs.JOB_KIND_BUILD, 0, 0, amount.value, 0)
 	assert_true(world._jobs.set_requester(build.value, _project).ok, "BUILD names the phase Project")
-	assert_true(world._jobs.set_tool_gate(build.value, Jobs.GATE_SATISFIED).ok, "tool gate")
+	assert_true(world._jobs.set_tool_gate(build.value, Jobs.GATE_NOT_REQUIRED).ok, "claws need no tool")
 	assert_true(_probe._sites.bind_job(site, build.ref).ok, "Site job")
 	assert_true(_probe._sites.bind_material_container(site, _probe._storage).ok, "Site validates M's container")
-	assert_true(world._gear.unequip(_probe._tool, _probe._storage, false).ok, "the mole holds no tool")
 	_compose_delivery()
 	return failures.is_empty() and _probe.failures.is_empty()
 

@@ -114,14 +114,14 @@ func test_claw_work_cycle_matches_the_pick_protocol_shape() -> void:
 	"""ENTRY reaches WORK after 30 ticks, WORK loops, a stop finishes the loop and recovers to READY."""
 	var state: Vector3i = Vector3i(Claw.ENTRY, 0, 0)
 	for tick: int in 30:
-		state = Claw.advance(state.x, state.y, state.z, 51)
+		state = Claw.advance(state.x, state.y, state.z)
 	assert_equal(state, Vector3i(Claw.WORK, 0, 0), "entry done")
-	state = Claw.advance(state.x, state.y, state.z, 51)
+	state = Claw.advance(state.x, state.y, state.z)
 	state = Claw.ready_request(state.x, state.y, state.z, 51)
 	assert_equal(state.x, Claw.RECOVERY_WAIT, "loop finishes first")
 	var ticks: int = 0
 	while state.x != Claw.READY:
-		state = Claw.advance(state.x, state.y, state.z, 51)
+		state = Claw.advance(state.x, state.y, state.z)
 		ticks += 1
 	assert_equal(ticks, 31 + 30, "rest of the loop, then recovery")
 

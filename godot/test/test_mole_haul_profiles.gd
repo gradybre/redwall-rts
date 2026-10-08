@@ -4,7 +4,7 @@ extends "res://test/framework/test_case.gd"
 ## Selection identity only; no World support, route, station seam, grip certificate or presentation is granted.
 
 const Catalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
-const Pins := preload("res://data/underground/mole-worker/qualified-stone-v7/catalog_source.gd")
+const Pins := preload("res://data/underground/mole-worker/qualified-claw-approach-v10/catalog_source.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Fixture := preload("res://test/test_underground_profiles.gd")
 const Content := preload("res://demo/cast/underground_actor_content.gd")
@@ -50,7 +50,7 @@ func before_each() -> void:
 	assert_equal(_fixture._profiles.configure(Catalog.PROFILE_COUNT, Catalog.BOX_COUNT, Catalog.SOURCE_COUNT,
 		Catalog.PAIRED_BANK_BYTES + Catalog.CONTROL_RESERVE), &"", "complete peak admission")
 	assert_equal(_fixture._bind(_fixture._profiles), &"", "actual same-owner profile identity")
-	assert_equal(Catalog.load_into(_fixture._profiles, _content, _domain), &"", "published content 6")
+	assert_equal(Catalog.load_into(_fixture._profiles, _content, _domain), &"", "published content 9 (ADR1217 step 5)")
 	assert_true(_fixture.failures.is_empty(), "actual fixture assertions propagated")
 
 
@@ -90,11 +90,11 @@ func test_published_content_5_keeps_content_4_and_appends_the_haul_source_block(
 	"""Rows 30-36 are the tool-free source-2 block; the full live wire still hashes to the published pin."""
 	var profiles: Profiles = _fixture._profiles
 	assert_equal(Catalog.catalog_refusal(profiles), &"", "complete live wire matches the published digest")
-	assert_equal(profiles.profile_count(Catalog.CONTENT_REVISION), 42, "content 4, seven haul rows, five stone rows")
+	assert_equal(profiles.profile_count(Catalog.CONTENT_REVISION), 60, "content 4, the haul and stone blocks, then content 9's claw and paw rows")
 	var digest: PackedByteArray = PackedByteArray()
 	digest.resize(32)
 	assert_true(profiles.source_hash_into(2, Catalog.CONTENT_REVISION, digest), "third source exists")
-	assert_equal(digest.hex_encode(), Pins.HAUL_SOURCE_SHA, "native haul image v8")
+	assert_equal(digest.hex_encode(), Pins.HAUL_SOURCE_SHA, "native haul image v10 (ADR1217 step 3a)")
 	var row: Profiles.Descriptor = Profiles.Descriptor.new()
 	var wood: int = _fixture._items.compiled_id(&"wood")
 	for profile: int in range(STAND, 37):
@@ -190,7 +190,7 @@ func test_stone_rows_are_their_own_source_block_and_select_by_actual_cargo() -> 
 	var digest: PackedByteArray = PackedByteArray()
 	digest.resize(32)
 	assert_true(profiles.source_hash_into(3, Catalog.CONTENT_REVISION, digest), "fourth source exists")
-	assert_equal(digest.hex_encode(), Pins.STONE_SOURCE_SHA, "native stone image v9")
+	assert_equal(digest.hex_encode(), Pins.STONE_SOURCE_SHA, "native stone image v10 (ADR1217 step 3a)")
 	var stone: int = _fixture._items.compiled_id(&"stone")
 	assert_equal(stone, 53, "stone's compiled id")
 	var row: Profiles.Descriptor = Profiles.Descriptor.new()

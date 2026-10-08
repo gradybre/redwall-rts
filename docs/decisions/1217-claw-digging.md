@@ -1,7 +1,7 @@
 # 1217 — Claw digging and paw fitting: no tools for now
 
 Date: 2026-10-07 · Status: Accepted direction (DEC-052). Step 1 reviewed: stations move in to 1,430 u and the stroke
-becomes two-paw. Step 1b, the two-paw stroke, is stopped for Brendan's review.
+becomes two-paw. Step 1b, the two-paw stroke, is stopped for Brendan's review. Step 2c, the side-on tread station, is refused and stopped for his choice.
 
 ## Decision
 
@@ -318,6 +318,59 @@ candidate still rebuilds byte for byte.
 
 L0/T0 are unaffected. The rest of ADR 1217's order (native capture, claw rows with the Frontier successor at
 1,430 u, the content successor, the runtime switch) does not depend on the treads.
+
+## Step 2c — the side-on tread station: refused by footing and paw spread (stopped for Brendan's choice)
+
+This step carries out Brendan's side-on decision (below, "treads are fitted side-on"). It authors nothing new and
+publishes nothing.
+
+- **Tools** (`claw-work-v1/`):
+  - `derive_tread_side_station.py` derives and proves the station;
+  - `render_tread_side_station.py` renders the review images;
+  - `probe_tread_side_options.py` holds float decision aids;
+  - `test_tread_side_station.py` holds 7 tests, including a byte-for-byte rebuild.
+- **Record:** `evidence/tread-side-station-v1/station.json`.
+- **Packet:** `evidence/tread-side-review-v1/` (README, `tread-t3/` and `sill-t6/` overview, hands and motion).
+
+**Derivation.** All inputs are published:
+
+- ADR 1209's tread fixture: T_{k−1}'s deck, 512 u deep, and T_k's bearer staged across its forward edge, with its top
+  at 128, or 64 for the T6 sill;
+- the trench side walls;
+- the approved paw clips (candidate a), unchanged;
+- the published quarter turn (yaw 16384, facing −x).
+
+The best side-on station puts the 448 u contact reach at the bearer's centre along its length and centres the feet
+on the deck's depth: (448, −42), station-local to ADR 1209's 310 u station.
+
+**Findings.**
+
+1. **Footing, exact.** The accepted sole rule needs every foot vertex over the support deck. A quarter turn lays the
+   feet's lateral span along the tread's depth. The exact skin equation gives a span of at least **568.68 u** on every
+   played key, against a deck **512 u** deep. No side-on station on any tread or the sill has footing:
+   `TREAD_SIDE_FOOTING`.
+2. **Paw spread, exact.** Turned a quarter, the bearer runs along the mole's forward axis, and its top is 128 u
+   across. The approved contacts are 256 u apart, so at most one lands on it: `TREAD_SIDE_PAW_SPREAD`.
+3. **The accepted world prover agrees.** It refuses the seat and the tap at T3 and at the T6 sill: both feet lose
+   support on interval 0 (29.7 u past the far edge, 29.0 u into the riser), and the run stops at its 32-witness
+   limit.
+4. **The turn (float).** The feet fit the deck's depth up to a 71° turn, not 90°.
+
+The step-2b premise ("the bearer lies at the paws' natural reach, as at L0/T0") does not hold after a quarter turn.
+The bearer would have to run across the mole, but it runs along its forward axis.
+
+**Options put to Brendan** (the packet's README):
+
+1. **Side-on with a narrow stance.** New motion: the feet stepped in by at least 57 u, a stepped turn, and paws
+   re-placed on the 128 u top. Side by side, the float arm-to-arm gap falls to 2.6–8.6 u.
+2. **Recommended: a staging support.** The bearer is staged where the approved clips already reach from ADR 1209's
+   310 u station: the L0/T0 station-relative section, 74–202 u past T_{k−1}'s edge. The clips apply verbatim with no
+   turn. This is new structure data.
+3. **Two treads up** (T_{k−2}, yaw 0). The near face is 553 u ahead and the paws reach at most 576 u: not
+   recommended.
+
+**Note for ADR 1209 step 5.** The descent's end pose on T_{k−1} (root far + 169) reaches into the staged bearer.
+So the bearer is delivered after the fitter arrives, in any layout.
 
 ## Step 3 — native capture
 

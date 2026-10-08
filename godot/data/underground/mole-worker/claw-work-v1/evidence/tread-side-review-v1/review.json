@@ -1,0 +1,16 @@
+{
+  "renderer_sha256": "1ff74164e7c6e333c45667997a7a532638dbc35e2bf548c3716ebdf984771fe2",
+  "station_sha256": "0923f3c4cddc0dd1c30126d71841537b8005c0569928519cf8aea3cb1b9178f5",
+  "images_sha256": {
+    "tread-t3": {
+      "overview.png": "4566b4c0d0ef3098657a98a0758f937de2268489e8eb3cdb19cf98f587be5660",
+      "hands.png": "7dcf314fb5a679a2d3c193f36098818e895a297450b5803c42eb000cffe4adf8",
+      "motion.png": "e7fd32dbc9327983644d86953726b62c6f06cfc879709d4de8eae1b9900e5634"
+    },
+    "sill-t6": {
+      "overview.png": "8b4d6a360bf95544af8c59eb51e7f8ca44f0790dfb206d99e94271cd347f4a85",
+      "hands.png": "8a63e83b1303aa9c4e09543adcbff8977b91aa23226d9ddac68753fc95d9da2e",
+      "motion.png": "7c7cfb67f96f83bd9d36cd34bb43a5519e3460a82432be81668c2b37d3915302"
+    }
+  }
+}

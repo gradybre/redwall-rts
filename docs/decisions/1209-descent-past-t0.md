@@ -397,3 +397,18 @@ The paw cannot seat a tread from the 310 u station: the arms meet the legs (ADR 
 **side-on fitting**. On T_{k−1}, the mole turns a quarter turn and stands beside T_k's bearer, so the bearer sits at
 the paws' natural reach. Each tread gets a new side-on station with footing, riser-clearance and turn proofs, done
 with step 5's reposition. The station 310 u behind the far edge remains the descent's arrival point.
+
+### Step 5 / side-on station (2026-10-07): refused, stopped for Brendan's choice
+
+ADR 1217 step 2c derived the side-on station from this plan's tread fixture and proved it with the approved paw clips.
+It does not exist on a 512 u tread:
+
+- **Footing.** The feet's exact lateral span is at least 568.68 u, wider than the tread is deep.
+- **Paws.** The 256 u paw spread straddles the turned bearer's 128 u top, so at most one paw lands on it.
+- **The T6 sill** fails the same way.
+
+So no side-on reposition, turn or step-back was authored. The options (a narrow side-on stance, a staging support at
+the L0/T0 station-relative section, or two treads up) and the packet are in ADR 1217 step 2c.
+
+**For step 5 in any layout:** the descent's end pose on T_{k−1} (root far + 169) reaches far + 0.7 below 128 u,
+inside the staged bearer. The bearer must therefore arrive after the fitter.

@@ -457,16 +457,19 @@ func test_a_cart_hauls_four_baskets_at_once() -> void:
 	rig.model.group_keep[0] = 0
 	assert_true(rig.model.add_cart(0), "a cart")
 	assert_false(rig.model.add_cart(0), "only one")
+	assert_true(rig.model.add_cart(1), "the east orchard's cart too")
 	assert_true(rig.pantry.add_into(Catalog.ITEM_APPLE, 45000, stand, _read), "apples at the baskets")
 	assert_equal(rig.jobs.order(JobsScript.K_HAUL, 0, -1, PackedInt32Array([2])), "", "ordered")
 	var j: int = rig.jobs.find(JobsScript.K_HAUL, 0)
-	var out: Array[int] = [JobsScript.NONE]
+	var out: Array[int] = [JobsScript.NONE, JobsScript.NONE]
 	assert_true(_run(rig, func() -> bool:
 		out[0] = maxi(out[0], rig.jobs.cart_out(0))
+		out[1] = maxi(out[1], rig.jobs.cart_out(1))
 		return rig.pantry.milli_at(Catalog.ITEM_APPLE, CELLAR_AT) > 0), "hauled")
 	assert_equal(rig.pantry.milli_at(Catalog.ITEM_APPLE, CELLAR_AT), 40000, "a cart's load")
 	assert_equal(rig.pantry.milli_at(Catalog.ITEM_APPLE, stand), 5000, "the rest at the baskets")
 	assert_equal(out[0], 2, "pushed by its hauler")
+	assert_equal(out[1], JobsScript.NONE, "the east orchard's cart stays at its baskets")
 	assert_false(rig.jobs.is_live(j), "one trip")
 	assert_equal(rig.jobs.cart_out(0), JobsScript.NONE, "back at the baskets")
 	assert_equal(rig.pantry.stored_total_milli(Catalog.ITEM_APPLE), 45000, "the ledger counts it once")
@@ -691,6 +694,7 @@ func test_one_site_takes_one_move() -> void:
 	assert_true(model.move_site_free(2, 3), "for its own move")
 	assert_false(model.move_site_free(0, 3), "not for another")
 	assert_false(model.move_site_free(-1, 3), "nor for no site")
+	assert_false(ModelScript.new().move_site_free(3, 3), "never onto the site it comes from, even an empty one")
 	assert_equal(model.move_options(0), ModelScript.NONE, "no other site free")
 
 
@@ -727,3 +731,33 @@ func test_a_work_spot_is_clear_of_the_boulder_in_east_site_2() -> void:
 		assert_true(spot.distance_to(Vector2(circle.x, circle.z)) >= circle.y, "clear of %s" % circle)
 	assert_equal(rig.jobs.trunk_spot(2, 2), rig.jobs.tree_spot(2), "east site 1: the first choice is clear")
 	assert_equal(rig.jobs.trunk_spot(3, JobsScript.NONE), preferred, "nobody: the first choice")
+
+
+func test_a_cart_takes_its_lot_not_the_whole_stand() -> void:
+	"""Two lots of apples at the baskets (15 U, then 30 U) and only 20 U of room anywhere: the haul holds room for the
+	oldest lot's 15 U it will carry -- not a cart's 40 U it cannot hold -- and carries it all."""
+	var rig := _rig(APPLE_DAY)
+	var stand: int = _stand(rig, 0)
+	rig.model.group_keep[0] = 0
+	rig.model.add_cart(0)
+	for at: int in rig.pantry.storage.count():
+		if not rig.pantry.storage.is_staging(at):
+			assert_true(rig.pantry.add_into(Catalog.ITEM_PEAR, rig.pantry.room_milli_of(at) - 20000, at, _read), "filled")
+	assert_true(rig.pantry.add_into(Catalog.ITEM_APPLE, 15000, stand, _read), "a first lot")
+	assert_true(rig.pantry.add_into(Catalog.ITEM_APPLE, 30000, stand, _read), "a second")
+	assert_equal(rig.jobs.order(JobsScript.K_HAUL, 0, -1, PackedInt32Array([2])), "", "ordered")
+	var j: int = rig.jobs.find(JobsScript.K_HAUL, 0)
+	assert_true(_run(rig, func() -> bool: return rig.jobs.carrying(j)), "loaded")
+	assert_equal(rig.jobs.load_milli[j], 15000, "the first lot, whole")
+
+
+func test_a_lifted_sapling_is_not_tended() -> void:
+	"""A tending finishing while its sapling is out of the ground for its move records no care."""
+	var rig := _rig(3)
+	_sapling(rig.model, 2, 3, 2)
+	rig.model.set_lifted(2, true)
+	assert_equal(rig.jobs.call(&"_tended", 2), "", "nothing said")
+	assert_false(rig.model.tended_today(2), "no care recorded")
+	rig.model.set_lifted(2, false)
+	rig.jobs.call(&"_tended", 2)
+	assert_true(rig.model.tended_today(2), "in the ground: tended")

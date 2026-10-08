@@ -119,6 +119,7 @@ Every row was checked against the record named.
 | Crop and ingredient "Uses" | Fix the crop card Uses gaps (roots → pickles, barley → ale, apples → cider and vinegar) and every other ingredient feeding a new or earlier row (honey → jam, nuts → cheese, ...), derived from the recipe rows so it cannot drift | 1625 (follow-up section) |
 | Pickles and the follow-up's points | **Exclude potatoes from pickles**: the pickles row takes onions and the other roots, never potato (a recipe change in the row; the derived Uses follow). Kept as built: the apple's uses live in the field guide (no crop card), and the cordial is listed twice for honey and berries (dish and brewery row) | 1625 ("Brendan's ruling on the follow-up") |
 | Q-D7, orchard remainders (RG-Y) | (a), "Both, agent proposes numbers": a sapling can be moved once, with a delay of some days; carts are a haul tool for harvest groups. The numbers (the delay, the cart's load and costs) are the lane's PROVISIONAL proposals, put to him | 1721 (`feat/demo-orchard-outings`; relayed by the coordinator) |
+| RG-Y's proposals (1721 P1–P12) | All twelve approved, each as option (a), provisional, as built: the 12-day settling, a sapling's first 24 days, the move's 20 + 40 WU and compost 4 U, a 40 U cart at walking pace for wood 4 U and 60 WU, the fresh-table share, the beech hollow protected, the 10% grove reserve, home before dark, one 8 U carry kit, the lead in the news and note only, the latest place note | 1721 (relayed by the coordinator) |
 
 ## Standing rules (not dated rulings)
 

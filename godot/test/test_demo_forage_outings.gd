@@ -382,8 +382,10 @@ func test_rain_and_skill_change_the_daylight_cap() -> void:
 	assert_true(skilled < wpu, "FORAGE 20 works faster")
 	assert_equal(t.daylight_cap_milli(NUTS, 20), Rules.gatherable_milli(left, skilled, 800), "by the forager's skill")
 	assert_true(t.daylight_refusal(NUTS).is_empty(), "15:00 still leaves time")
-	rig.calendar.tick = tick_at(SUMMER_DAY, 20) - 2 * t.walk_home_ticks(NUTS) + 10
-	assert_true(t.daylight_refusal(NUTS).contains("too late"), "a round trip no longer fits")
+	rig.calendar.tick = tick_at(SUMMER_DAY, 20) - 2 * t.walk_home_ticks(NUTS) - 3
+	assert_true(t.daylight_refusal(NUTS).contains("too late"), "the walks fit, but not the least worth gathering")
+	rig.calendar.tick = tick_at(SUMMER_DAY, 20) - 2 * t.walk_home_ticks(NUTS) - 60
+	assert_equal(t.daylight_refusal(NUTS), "", "the walks and the least worth gathering fit")
 
 
 func test_the_grove_reserve_holds_at_the_claim() -> void:

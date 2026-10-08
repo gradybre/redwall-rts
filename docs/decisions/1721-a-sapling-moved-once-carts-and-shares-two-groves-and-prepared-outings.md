@@ -1,6 +1,6 @@
 # 1721 — A sapling moved once, carts and shares, two groves, and prepared gathering outings
-Date: 2026-10-07 · Status: Accepted (engineering); Q-D7 ruled by Brendan on 2026-10-07; **every number below is a
-PROVISIONAL PROPOSAL** put to him
+Date: 2026-10-07 · Status: Accepted; Q-D7 ruled by Brendan on 2026-10-07; **PROPOSALS 1–12 approved by Brendan on
+2026-10-07, each as option (a), provisional, as built** (see "Brendan's rulings")
 
 **Numbering.** BACKLOG.md's RG-Y packet assigns 1411–1420, but a parallel digging branch uses 0991–1217 and its range
 grows (docs/handoff/README.md §3.6), so the coordinator gave this lane **1721–1729**. 1721 is free on every local and
@@ -117,6 +117,14 @@ outing, ECO-015's reserve and more groves), built as the smallest sensible behav
     sets the party's work rate. *Recommendation: (a).*
 12. **The place note keeps only the latest trip.** *Options:* (a) as built; (b) one note a season. *Recommendation: (a).*
 
+## Brendan's rulings (2026-10-07)
+
+Relayed by the coordinator: **all twelve proposals approved, each as option (a), provisional, as built** -- the 12-day
+settling, a sapling as a planted tree's first 24 days, lift 20 WU + replant 40 WU + compost 4 U, a 40 U cart at walking
+pace, a cart for wood 4 U and 60 WU (rope after Q-D3), the fresh-table share, the beech hollow protected from the start,
+the 10% grove reserve, home before dark at 20:00, one carry kit of 8 U, a lead named in the news and the note only, and
+the place note keeping the latest trip. The numbers stay PROVISIONAL (tunable after a balance run).
+
 ## Shared files touched (additive hooks)
 
 | File | Hook |
@@ -128,9 +136,38 @@ added (the move and the cart are orchard job kinds on the existing board), so no
 `farm_catalog.gd` is renumbered. **No key is added.** Nothing under `scripts/core/`, `demo/burrow/`, `demo/tunnel/`,
 `demo/cast/` or the settlement UI is edited (they are read and called only), nor `preserve/*` or `kitchen/meal_rules.gd`.
 
+## The independent review and what it changed
+
+Two `code-reviewer` runs on the diff (one long-running, one rerun when its result was late; both waited for). **No
+CRITICAL.** One **HIGH**, fixed: a move opened through the generic order had no site reserved, and its replanting took
+the compost before `move_tree` refused -- 4 U lost. Now only Move sapling (`order_move`) opens a move
+(`_reserved_move_refusal`), and `replant_refusal` -- every check `move_tree` makes, the store's planting preview among
+them -- runs before the compost is taken; tested. **MEDIUMs**, all fixed: a move could take a site a planting job was
+working (`move_target` skips it); tests added for the daylight cap through a real claim, the rain and the skill in it,
+the grove reserve at the claim, the chill carried by a move, the board-full rollback of `order_move`, one site for one
+move, each grove's own trees, and the village's wiring of the reserve (the live harness); three functions split under
+30 lines (`_complete`, `_result_of`, `_claim_share`; the two UI tests back to master's lengths). **LOWs** fixed:
+`follow_carts` statically typed and writing the cart only when it moves; `is_move_dest` and the share's steps use the
+packed arrays' own `has`/`find`; a cart's load sized by the lot it takes; a sapling lifted for its move is never tended;
+a sapling lifted on its 23rd day is still replanted (its age is checked when ordered and lifted); `move_tree` checks the
+store's planting and puts the tree back should it ever refuse; `_settle` only after a day the store applied; the Move
+button only for a selected site; the turned-back count shown in the trip's line; the job's name "Move" (no doubled
+article in the news). **LOWs answered, not changed:** the walk home is estimated from the village square and the note's
+time out from the authorisation (planning figures, ECO-014's "likely travel"); the hives suite's "no room left held"
+check now subtracts room held by jobs still live (the extra grove's observation takes a resident, so a berry picking can
+be mid-way when the check runs -- room held by a finished job is still caught).
+
+**What the review led to besides: east site 2's work spot.** A move given up with "the way there stayed blocked" (seen
+once in the live harness) traced to the world: a mossy boulder from the woods' scatter stands inside east site 2's block,
+and the orchard's work spot for that tree (`tree_spot`, 1.5 m toward the stand, decision 0671) lay 0.48 m inside it --
+for a planting, a tending or a harvest there as much as a move. A tree's work spot is now `trunk_spot`: the first choice
+when a resident may stand there (unchanged for the other three sites), else the first spot round the trunk an eighth of a
+turn either way. Tested against the real woods' obstacles, with a move replanting there. The boulder itself (inside a
+planting block) is the world layout's, not this lane's: noted for the coordinator.
+
 ## Gates
 
-(See the section below, filled in when the gates ran.)
+(Filled in below when the gates ran.)
 
 ## Source
 

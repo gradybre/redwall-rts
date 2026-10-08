@@ -147,10 +147,9 @@ static func seat_share_milli(total: int, party: int, seat: int, kit: bool) -> in
 
 static func daylight_ticks(tick_of_day: int) -> int:
 	"""Calendar ticks from `tick_of_day` (ticks since midnight) to dusk: 0 at night (dusk to dawn)."""
-	var dusk: int = DUSK_HOUR * SimClock.TICKS_PER_HOUR
-	if tick_of_day < DAWN_HOUR * SimClock.TICKS_PER_HOUR or tick_of_day >= dusk:
+	if tick_of_day < DAWN_HOUR * SimClock.TICKS_PER_HOUR:
 		return 0
-	return dusk - tick_of_day
+	return maxi(0, DUSK_HOUR * SimClock.TICKS_PER_HOUR - tick_of_day)
 
 
 static func walk_ticks(metres: float) -> int:

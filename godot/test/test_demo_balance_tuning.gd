@@ -295,6 +295,11 @@ func test_the_dried_fish_is_kept_only_while_rations_wait_on_it_alone() -> void:
 	assert_equal(f.tables.j_recipe[j], Recipes.R_RATION, "the rations' job")
 	f.tables.j_started[j] = 1
 	assert_equal(f.ration_keep_milli(Catalog.CAT_DRIED_FISH), 1000, "started, its dried fish taken: the next is kept")
+	var dry := _fishery_with(Catalog.ITEM_NUTS, 1000)
+	assert_true(dry.pantry.add_into(Catalog.ITEM_FLOUR, 2000, 0, _read) and dry.pantry.add_into(Catalog.FIRST_CATCH,
+		4000, 0, _read), "nuts, flour and fish")
+	assert_equal(dry.order_batch(Recipes.R_DRY_FISH, PackedInt32Array()), "", "a Dry fish batch queued")
+	assert_equal(dry.ration_keep_milli(Catalog.CAT_DRIED_FISH), 1000, "another recipe's queued batch: still kept")
 	var no_nuts := _fishery_with(Catalog.ITEM_DRIED_FISH, 2000)
 	assert_true(no_nuts.pantry.add_into(Catalog.ITEM_FLOUR, 2000, 0, _read), "flour, but no nuts")
 	assert_equal(no_nuts.ration_keep_milli(Catalog.CAT_DRIED_FISH), 0, "flour without nuts: nothing kept")

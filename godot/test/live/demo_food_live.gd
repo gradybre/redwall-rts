@@ -340,6 +340,8 @@ func _the_cordial_is_a_table_drink() -> void:
 		(fishery.get("spare_grain") as Callable).is_valid() and (fishery.get("free_spare_grain") as Callable).is_valid()
 		and int(fishery.call(&"grain_available_milli")) == int(fishery.get("takes").call(&"free_milli_of_crop",
 		fishery.get("pantry"), 3)) + int(kitchen.call(&"beyond_next_meal_milli", 3)))
+	_check("the mill's grain pair is bound to grain", (fishery.get("spare_grain") as Callable).get_bound_arguments()
+		== [3] and (fishery.get("free_spare_grain") as Callable).get_bound_arguments() == [3])
 	var grain_spare: Callable = fishery.get("spare_grain")
 	var grain_give: Callable = fishery.get("free_spare_grain")
 	fishery.call(&"bind_spare_grain", func() -> int: return 3000, func(_m: int) -> int: return 0)

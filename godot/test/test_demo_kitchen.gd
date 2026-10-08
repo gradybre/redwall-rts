@@ -1980,6 +1980,51 @@ func test_a_raw_meal_eats_what_spoils_first_and_a_whole_kept_lot_counts_as_whole
 		[Catalog.ITEM_DRIED_FISH, 300], "the 0.3 U lot, within the 0.5 U beyond the kept unit, eaten whole")
 
 
+## Food kept per category for `_raw_of`'s raw meal (the review of b21acaf8's boundary tests).
+var _keeps: Dictionary = {}
+
+
+func _keep_of(category: int) -> int:
+	"""What `_keeps` keeps of `category` (0: nothing)."""
+	return int(_keeps.get(category, 0))
+
+
+func _raw_of(stock: Array, keeps: Dictionary) -> Array:
+	"""Stock the [item, milli] pairs in order, keep `keeps`, and reserve one raw meal: [item, milli], or [] for none."""
+	var v := _village(4, tick_at(1, 10))
+	for pair: Array in stock:
+		_stock(v, int(pair[0]), int(pair[1]))
+	_open(v)
+	_keeps = keeps
+	v.kitchen.raw_keep = _keep_of
+	if not v.kitchen._reserve_raw(0):
+		return []
+	return [v.kitchen._raw_item[0], v.kitchen.takes.live_milli(v.pantry, v.kitchen._raw_take[0])]
+
+
+func test_a_kept_lot_is_whole_when_its_room_covers_it_or_a_meal() -> void:
+	"""`_raw_lot`'s boundary (the review of b21acaf8): with 1 U of dried fish kept, a lot is whole when what is beyond
+	the kept unit covers the lot itself (exactly, or a small lot) or a full meal (1.666 U), though less than the lot."""
+	var dried: int = Catalog.ITEM_DRIED_FISH
+	var nuts: int = Catalog.ITEM_NUTS
+	var kept: Dictionary = {Catalog.CAT_DRIED_FISH: 1000}
+	assert_equal(_raw_of([[dried, 1000], [dried, 1000], [nuts, 3000]], kept), [dried, 1000], "room equal to the lot")
+	assert_equal(_raw_of([[dried, 700], [dried, 1600], [nuts, 3000]], kept), [dried, 700], "a small lot within the room")
+	assert_equal(_raw_of([[dried, 3000], [nuts, 3000]], kept), [dried, KitchenScript._raw_want(dried)],
+		"room (2 U) past a meal, though short of the lot (3 U): a whole meal")
+
+
+func test_no_room_is_never_chosen_and_the_short_lot_that_spoils_first_is() -> void:
+	"""A lot whose category has nothing beyond its keep is never a meal, even stocked first; among lots the keeps cut
+	short, the one that spoils first (berries, 48 h) is eaten, though the dried fish was stocked first."""
+	var both: Dictionary = {Catalog.CAT_DRIED_FISH: 1000, Catalog.CAT_NUTS: 2000}
+	assert_equal(_raw_of([[Catalog.ITEM_DRIED_FISH, 1000], [Catalog.ITEM_NUTS, 2500]], both), [Catalog.ITEM_NUTS, 500],
+		"no room for the dried fish: the nuts beyond their keep")
+	var shorts: Dictionary = {Catalog.CAT_DRIED_FISH: 1000, Catalog.CAT_BERRIES: 1000}
+	assert_equal(_raw_of([[Catalog.ITEM_DRIED_FISH, 1500], [Catalog.ITEM_BERRIES, 1500]], shorts),
+		[Catalog.ITEM_BERRIES, 500], "both cut short: the berries spoil first")
+
+
 func test_a_raw_meal_leaves_the_rations_dried_fish() -> void:
 	"""Brendan's F5 (a) (decision 1740): with 1 U of dried fish kept, a hungry resident eats raw only the dried fish
 	beyond it, and none when there is none beyond; other food is not kept; unbound, all of it may be eaten."""

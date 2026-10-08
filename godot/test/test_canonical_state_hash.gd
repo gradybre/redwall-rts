@@ -1204,7 +1204,7 @@ func test_entry_progress_is_one_bounded_section_six_record() -> void:
 	var owner: Dictionary = _owner_of(_registry(), 6, "underground_entry_progress")
 	assert_equal(int(owner["owner_schema_version"]), 1, "new owner begins at schema1")
 	var fields: Array = owner["fields"]
-	assert_equal(int(fields[1]["shape"]["max_count"]), 2559, "Progress.MAX_WIRE_BYTES")
+	assert_equal(int(fields[1]["shape"]["max_count"]), 4507, "Progress.MAX_WIRE_BYTES (ADR1229 increment 6b)")
 	assert_equal(String(fields[1]["shape"]["count_field"]), "progress_length", "length-prefixed")
 	assert_equal([bool(fields[0]["hash"]), bool(fields[1]["hash"]), bool(fields[2]["hash"]), bool(fields[3]["hash"])],
 		[true, true, false, false], "the record is hashed once; the queue inside it is not hashed again")

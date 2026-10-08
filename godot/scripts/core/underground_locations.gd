@@ -366,6 +366,14 @@ var _phase_stage: int = -1
 var _base_geometry_revision: int = 0
 var _target_geometry_revision: int = 0
 var _sealed: bool = false
+## ADR1229 increment 6b: inside one installed-witness pass (no observer runs in it), the installed prisms of one
+## Placement row's paid prefix are derived once and shared by every record of that pass. Key [pass, row,
+## generation, prefix, part count]; the pass number changes at every pass, so nothing survives one.
+var _prism_boxes: PackedInt32Array = PackedInt32Array() # Sized at configure.
+var _prism_key: PackedInt64Array = PackedInt64Array() # Sized at configure.
+var _witness_pass: int = 0
+var _in_witness_pass: bool = false
+var _sources_pass: int = 0 # ADR1229 increment 6b: the witness pass whose installed sources were proved current.
 var _remaining: int = 0
 var _snapshot: Space.Snapshot = null
 var _region: Owner.Region = Owner.Region.new()
@@ -432,6 +440,8 @@ func _allocate_banks(capacity: int, arena_bytes: int) -> void:
 	@warning_ignore("integer_division") var surplus: int = (arena_bytes - 228 * capacity - 256) / AIR_ARENA_BYTES_PER_SLOT
 	_air_slots = mini(MAX_AIR_SLOTS, surplus)
 	_air_box.resize(6)
+	_prism_boxes.resize(6 * ConnectorCatalog.MAX_PARTS)
+	_prism_key.resize(5)
 	_live.allocate(capacity, _air_slots)
 	_stage.allocate(capacity, _air_slots)
 
@@ -2291,9 +2301,10 @@ static func installed_prism_into(issuer: RefCounted, row: int, ordinal: int, out
 
 func _installed_surface_site(record: Record, physical: Sites) -> Vector2i:
 	"""A real installed prism and exact Catalog datum may locate its paid lower cube; arbitrary y-minus-one cannot."""
-	if physical == null or _installation == null or _installation.issuer == null or not _spend(1024): return NULL_REF
+	if physical == null or _installation == null or _installation.issuer == null or not _spend(_sources_charge()):
+		return NULL_REF
 	var issuer: RefCounted = _installation.issuer.get_ref()
-	if not _installed_sources_current(issuer): return NULL_REF
+	if not _pass_sources_current(issuer): return NULL_REF
 	if _installation_active() and installation_scope_refusal(self, _installation) != &"": return NULL_REF
 	var found: Vector2i = NULL_REF
 	var matches: int = 0
@@ -2313,7 +2324,21 @@ func _installed_surface_site(record: Record, physical: Sites) -> Vector2i:
 		if site != NULL_REF:
 			found = site
 			matches += 1
-	return found if matches == 1 and _installed_sources_current(issuer) else NULL_REF
+	return found if matches == 1 and _pass_sources_current(issuer) else NULL_REF
+
+
+func _sources_charge() -> int:
+	"""The source proof's charge: 1024, or 16 once this witness pass has proved the sources current (ADR1229)."""
+	return 16 if _in_witness_pass and _sources_pass == _witness_pass else 1024
+
+
+func _pass_sources_current(issuer: RefCounted) -> bool:
+	"""`_installed_sources_current`, proved once per witness pass: no observer runs inside a pass, so its verdict
+	holds for the rest of that pass (ADR1229 increment 6b). Outside a pass, and in each new pass, it is re-derived."""
+	if _in_witness_pass and _sources_pass == _witness_pass: return true
+	var current: bool = _installed_sources_current(issuer)
+	if current and _in_witness_pass: _sources_pass = _witness_pass
+	return current
 
 
 func _record_paid_site(record: Record, physical: Sites) -> Vector2i:
@@ -2330,7 +2355,7 @@ func _installed_record_kind(record: Record) -> int:
 	"""Derive the witness from current immutable LANDING geometry; no saved flag or cube-height inference applies."""
 	if _installation == null: return 0
 	var issuer: RefCounted = _installation.issuer.get_ref() if _installation.issuer != null else null
-	if issuer == null or not _spend(1024): return -1
+	if issuer == null or not _spend(_sources_charge()): return -1
 	var matches: int = 0
 	var current: bool = false
 	for row: int in issuer._capacity:
@@ -2340,7 +2365,7 @@ func _installed_record_kind(record: Record) -> int:
 		if issuer._live.i32[issuer.ROOM_SLOT * issuer._capacity + row] != record.room.x \
 				or issuer._live.i32[(issuer.ROOM_SLOT + 1) * issuer._capacity + row] != record.room.y: continue
 		if not current:
-			if not _installed_sources_current(issuer): return -1
+			if not _pass_sources_current(issuer): return -1
 			current = true
 		if not _installed_row_source(issuer, row, record.room): return -1
 		var count: int = _installed_landing_count(issuer, row, record)
@@ -2423,18 +2448,43 @@ func _installed_row_source(p: RefCounted, row: int, room: Vector2i) -> bool:
 func _installed_row_site(issuer: RefCounted, row: int, prefix: int, record: Record, physical: Sites) -> Vector2i:
 	"""The exact stored FLOOR_DATUM must equal one authored landing of this full live Placement."""
 	if not _installed_row_source(issuer, row, record.room) or _installed_landing_count(issuer, row, record) != 1: return NULL_REF
+	var parts: int = _installed_prefix_prisms(issuer, row, prefix)
+	if parts < 0: return NULL_REF
 	var found: Vector2i = NULL_REF
+	for index: int in parts:
+		if not _spend(4): return NULL_REF
+		for axis: int in 6: _region.box[axis] = _prism_boxes[index * 6 + axis]
+		if _region.box[4] != record.point.y or record.point.x < _region.box[0] or record.point.x >= _region.box[3] \
+				or record.point.z < _region.box[2] or record.point.z >= _region.box[5]: continue
+		var site: Vector2i = _installed_part_site(record, physical)
+		if site == NULL_REF or (found != NULL_REF and found != site): return NULL_REF
+		found = site
+	return found
+
+
+func _installed_prefix_prisms(issuer: RefCounted, row: int, prefix: int) -> int:
+	"""The installed prisms of the row's paid prefix in `_prism_boxes`, in part order; their count, or -1 when one
+	is not a complete prism or the budget is spent. ADR1229: shared by every record of one witness pass."""
+	var generation: int = issuer._live.i32[row]
+	if _in_witness_pass and _prism_key[0] == _witness_pass and _prism_key[1] == row and _prism_key[2] == generation \
+			and _prism_key[3] == prefix:
+		return int(_prism_key[4])
+	_prism_key[0] = 0
+	var at: int = 0
 	for group: int in prefix:
 		var part_first: int = issuer._assemblies._first_part[group]
 		for part: int in range(part_first, part_first + issuer._assemblies._part_count[group]):
-			if not _spend(96): return NULL_REF
-			if installed_prism_into(issuer, row, part, _region.box) != &"": return NULL_REF
-			if _region.box[4] != record.point.y or record.point.x < _region.box[0] or record.point.x >= _region.box[3] \
-					or record.point.z < _region.box[2] or record.point.z >= _region.box[5]: continue
-			var site: Vector2i = _installed_part_site(record, physical)
-			if site == NULL_REF or (found != NULL_REF and found != site): return NULL_REF
-			found = site
-	return found
+			if not _spend(96) or at >= ConnectorCatalog.MAX_PARTS: return -1
+			if installed_prism_into(issuer, row, part, _region.box) != &"": return -1
+			for axis: int in 6: _prism_boxes[at * 6 + axis] = _region.box[axis]
+			at += 1
+	if _in_witness_pass:
+		_prism_key[0] = _witness_pass
+		_prism_key[1] = row
+		_prism_key[2] = generation
+		_prism_key[3] = prefix
+		_prism_key[4] = at
+	return at
 
 
 func _installed_landing_count(issuer: RefCounted, row: int, record: Record) -> int:
@@ -2494,6 +2544,15 @@ func _installed_witnesses_refusal() -> StringName:
 	ADR1229: a pass resolves each Room's source once (a Room's Locations follow one another's resolution within
 	the same synchronous pass), so the descent's many stops on one Room do not each re-scan the sources."""
 	if _installation == null: return &""
+	_witness_pass += 1
+	_in_witness_pass = true
+	var code: StringName = _derive_witnesses()
+	_in_witness_pass = false
+	return code
+
+
+func _derive_witnesses() -> StringName:
+	"""One complete witness pass over every staged installed record."""
 	if not _spend(64): return &"LOCATION_OPERATION_BUDGET"
 	var physical: Sites = _physical()
 	var resolved: Vector2i = NULL_REF

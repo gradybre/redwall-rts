@@ -20,6 +20,9 @@ const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const ContactPath := preload("res://scripts/core/underground_entry_contact_path.gd")
 const Hauler := preload("res://scripts/core/underground_entry_hauler.gd")
 const Progress := preload("res://scripts/core/underground_entry_progress.gd")
+const StairPath := preload("res://scripts/core/underground_entry_stair_path.gd")
+const Tread := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/tread_geometry.gd")
+const StairPins := preload("res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const OPERATIONS: Array[int] = [Contract.OP_BRACE, Contract.OP_CUT, Contract.OP_FINISH]
 const STAGE_OPEN: int = 0
@@ -696,7 +699,8 @@ func configure_installation(paid: Installer.Paid, ordinal: int) -> StringName:
 	if _owners.frontier.installation_into(ordinal, install) != &"": return REFUSE_PLAN
 	var before: int = _tasks.size()
 	var code: StringName = _append_episodes(ordinal) if ordinal > 0 else &""
-	if code != &"" or _tasks[_tasks.size() - 1].install_ordinal >= 0:
+	# ADR1229: a tread after the first follows the previous tread directly; no cut is planned between them.
+	if code != &"" or (_tasks[_tasks.size() - 1].install_ordinal >= 0 and not Tread.is_tread(install[0] - 1)):
 		_tasks.resize(before)
 		return REFUSE_PLAN
 	var step: Task = Task.new()
@@ -714,7 +718,8 @@ func _begin_installation(ordinal: int) -> StringName:
 	if _owners.frontier.installation_into(ordinal, install) != &"": return REFUSE_PLAN
 	var plan: Installer.Plan = _installation_plan(ordinal, install)
 	if plan == null: return REFUSE_PLAN
-	var code: StringName = _connect_contact(install, plan)
+	var code: StringName = _station_paths.call(plan.station) if _station_paths.is_valid() else &""
+	if code == &"": code = _connect_contact(install, plan)
 	if code != &"": return code
 	_installer = Installer.new()
 	_last_install_stage = -1
@@ -757,8 +762,11 @@ func _plan_arrival(install: PackedInt32Array, plan: Installer.Plan) -> bool:
 
 
 func _finish_plan(plan: Installer.Plan) -> Installer.Plan:
-	"""The worker leaves the preceding cut on its profile; only L0's START retires episodes 0 and 1 (ADR1191)."""
-	var last: Task = _tasks[_index - 1]
+	"""The worker leaves the preceding cut on its profile; only L0's START retires episodes 0 and 1 (ADR1191).
+	ADR1229: a tread following a tread walks to M on the last cut's profile too (an installation step has none)."""
+	var at: int = _index - 1
+	while at > 0 and _tasks[at].install_ordinal >= 0: at -= 1
+	var last: Task = _tasks[at]
 	plan.walk_profile = last.travel_profile
 	plan.walk_revision = last.travel_revision
 	var profiles: RefCounted = _owners.profiles
@@ -768,11 +776,62 @@ func _finish_plan(plan: Installer.Plan) -> Installer.Plan:
 	if plan.ordinal == 0:
 		plan.retired_first = _tasks[0].station
 		plan.retired_second = _tasks[OPERATIONS.size()].station
-	return plan if plan.station != NULL_REF and plan.material != NULL_REF else null
+	if plan.station == NULL_REF or plan.material == NULL_REF: return null
+	return plan if _plan_stairs(plan) else null
+
+
+func _stops() -> StairPath.Stops:
+	"""ADR1229: every live installed stair stop of the mounted bundle, by kind and level."""
+	var stops: StairPath.Stops = StairPath.Stops.new()
+	var endpoint: PackedInt32Array = PackedInt32Array()
+	endpoint.resize(Frontier.row_fields(Frontier.ENDPOINT))
+	for selector: int in _owners.frontier.row_count(Frontier.ENDPOINT, _owners.frontier.content_revision()):
+		if _owners.frontier.endpoint_into(selector, endpoint) != &"" or endpoint[0] != Frontier.INSTALLED_CONTACT: continue
+		var kind: Vector2i = StairPath.classify(Vector3i(endpoint[4], endpoint[5], endpoint[6]))
+		var handle: Vector2i = _resolve_endpoint(_placement.x, selector) if kind.x >= 0 else NULL_REF
+		if handle != NULL_REF: StairPath.record(stops, kind, handle)
+	return stops
+
+
+func _plan_stairs(plan: Installer.Plan) -> bool:
+	"""ADR1229: a tread order walks down from the crossing arrival (walk-in step, step forward, descent to the stop
+	above the station), retracts that stop at FUND, and from a previous tread station first climbs back to the
+	crossing arrival (step forward, half-turn, ascent, approach). Any other order has none of these."""
+	if not Tread.is_tread(plan.ordinal): return true
+	var stops: StairPath.Stops = _stops()
+	var level: int = plan.ordinal - 2
+	if plan.arrival != stops.x or stops.s[level + 1] != plan.station: return false
+	plan.downs = _legs([stops.p, StairPins.CLAW_APPROACH_ROWS[0], stops.a[0], StairPins.CLAW_STEP_FORWARD_ROW,
+		stops.a[level + 1], StairPins.CLAW_DESCENT_ROW])
+	plan.retract = stops.a[level + 1]
+	var here: Vector2i = _owners.routes._resident_pair(Routes.R_LOCATION_SLOT,
+		_owners.residents.directory().get_typed_row(_crew.worker))
+	var from: int = stops.s.find(here) - 1
+	if here != NULL_REF and from >= 0:
+		plan.ups = _legs([stops.a[from + 1], StairPins.CLAW_STEP_FORWARD_ROW, stops.u[from + 1], StairPins.CLAW_TURN_ROW,
+			stops.u[0], StairPins.CLAW_ASCENT_ROW, stops.x, StairPins.CLAW_APPROACH_ROWS[2]])
+	return not plan.downs.is_empty() and plan.retract != NULL_REF
+
+
+func _legs(pairs: Array) -> PackedInt64Array:
+	"""[target, profile] pairs as [slot, generation, profile, revision] rows; empty when a target is not live."""
+	var rows: PackedInt64Array = PackedInt64Array()
+	var profiles: RefCounted = _owners.profiles
+	for at: int in range(0, pairs.size(), 2):
+		var target: Vector2i = pairs[at]
+		if target == NULL_REF: return PackedInt64Array()
+		var profile: int = pairs[at + 1]
+		rows.append_array(PackedInt64Array([target.x, target.y, profile,
+			profiles._live.quantities[Profiles.L_REVISION * profiles._profile_capacity + profile]]))
+	return rows
 
 
 func _connect_contact(install: PackedInt32Array, plan: Installer.Plan) -> StringName:
-	"""A station on an installed contact has no route edge yet: publish M <-> (arrival <->) contact via WorldRoutes."""
+	"""A station on an installed contact has no route edge yet: publish M <-> (arrival <->) contact via WorldRoutes.
+	ADR1229: a tread station is reached down the stair: every stair edge between live stops is published instead."""
+	if Tread.is_tread(plan.ordinal):
+		return StairPath.publish(_owners.binding, _owners.routes, _paid.budget, _owners.binding._owner(),
+			_owners.locations, _stops(), _content)
 	var station: PackedInt32Array = PackedInt32Array()
 	station.resize(Frontier.row_fields(Frontier.STATION))
 	var endpoint: PackedInt32Array = PackedInt32Array()

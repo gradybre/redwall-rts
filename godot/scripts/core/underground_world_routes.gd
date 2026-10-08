@@ -1977,7 +1977,8 @@ func _actor_admission_refusal(location: Vector2i, selection: Profiles.Selection)
 	if _endpoint.world != _domain._world or _endpoint.geometry_revision != _owner().revision() \
 			or _endpoint.point != point:
 		return &"WORLD_ROUTE_ENDPOINT_STALE"
-	if _stair_row(selection.profile_id): return _stair_occupancy_refusal(point, selection.worker)
+	if _stair_row(selection.profile_id) or _tread_tap(selection):
+		return _stair_occupancy_refusal(point, selection.worker)
 	for ordinal: int in _descriptor.box_count:
 		code = _profile_box_into(ordinal, _body)
 		if code == &"":
@@ -1985,6 +1986,14 @@ func _actor_admission_refusal(location: Vector2i, selection: Profiles.Selection)
 		if code != &"":
 			return code
 	return &""
+
+
+func _tread_tap(selection: Profiles.Selection) -> bool:
+	"""ADR1229: the tread fitting tap (row 64) stands on a tread station, whose stop records only its footing; its
+	motion among the tread fixture is proved by the installation's Contacts and its certified tap, as a stair row's by
+	its edge, so admission here is the occupancy and exclusion check alone."""
+	return _routes()._stair_motion != null and selection.profile_id == Routes.Stair.Pins.CLAW_TREAD_TAP_ROW \
+		and Routes.Claw2.owns(_profiles, selection.profile_id)
 
 
 func _assembly_admission(location: Vector2i, selection: Profiles.Selection) -> StringName:

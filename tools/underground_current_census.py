@@ -92,7 +92,7 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "dc8ebdea728a436d2393e7df2bdf94feae83a09d64f9c6cfb27fce27658c3e42"
+REVIEWED_SHA = "610a8f8d0670e347079d1e7caea66ca93d60d4ad4bddd5e7bec0aec1b03ecd8c"
 # ADR1217 step 5: the runtime Frontier is the claw bundle's (same row census as qualified-stone-v5's).
 # ADR1229: the mounted T1-T6 bundle's Frontier (ADR1217 step 5 mounted qualified-claw-v6's).
 FRONTIER = Path("godot/data/underground/first-entry-prefix-v1/qualified-stairs-v8/frontier.ugfront")
@@ -157,7 +157,16 @@ def locations_controls(memory, index: dict) -> dict:
             and members.get("_contact_retirement") == "ContactRetirementContext"
             and members.get("_air_box") == "PackedInt32Array", "Locations control members")
     require(re.findall(r"^\t_air_box\.resize\((\d+)\)$", source, re.M) == ["6"], "ADR1215 air scratch box")
-    numeric = sum(WIDTH[kind] for kind in added.values()) + 4 * 6
+    # ADR1229 increment 6b: the witness pass's prism cache (six int32 per Catalog part), its five-word key and the
+    # pass counters.
+    passes = {"_witness_pass": "int", "_in_witness_pass": "bool", "_sources_pass": "int"}
+    require(all(members.get(name) == kind for name, kind in passes.items())
+            and members.get("_prism_boxes") == "PackedInt32Array" and members.get("_prism_key") == "PackedInt64Array"
+            and re.findall(r"^\t_prism_boxes\.resize\((.+)\)$", source, re.M) == ["6 * ConnectorCatalog.MAX_PARTS"]
+            and re.findall(r"^\t_prism_key\.resize\((\d+)\)$", source, re.M) == ["5"], "ADR1229 witness-pass cache")
+    parts = memory.resolve(index, "underground_connector_catalog", "MAX_PARTS")
+    numeric = sum(WIDTH[kind] for kind in added.values()) + 4 * 6 \
+        + sum(WIDTH[kind] for kind in passes.values()) + 4 * 6 * parts + 8 * 5
     context = packet(memory, index, relative, "ContactRetirementContext")
     return {"carry_and_air_controls_bytes": numeric, "contact_retirement_context_numeric_bytes": context,
             "bytes": numeric + context,
@@ -226,7 +235,7 @@ ENTRY_HAULER = {"_o": "RefCounted", "_crew": "RefCounted", "_project": "Vector2i
 ENTRY_INSTALLER = {"_o": "RefCounted", "_crew": "RefCounted", "_paid": "Paid", "_plan": "Plan", "_content": "int",
                    "_stage": "int", "_project": "Vector2i", "_job": "int", "_accepted_mwu": "int",
                    "_math": "IntMath.IntResult", "_actor": "Routes.Actor", "_quote": "Modular.Quote",
-                   "_hauler": "Hauler", "_haul_mwu": "int", "_haul_trips": "int"}
+                   "_hauler": "Hauler", "_haul_mwu": "int", "_haul_trips": "int", "_stair_leg": "int"}
 STATELESS = ("underground_entry_composition", "underground_entry_site", "underground_entry_contact_path",
              "underground_entry_contact_retirement", "underground_entry_work_area", "underground_entry_progress")
 PROGRESS_TERMS = ("HEADER_BYTES", "RUNTIME_FIXED_BYTES", "CREW_BYTES", "FOREMAN_FIXED_BYTES", "INSTALLER_FIXED_BYTES",
@@ -240,11 +249,12 @@ def entry_progress(memory, index: dict) -> dict:
     source = module(index, CORE + "underground_entry_progress.gd").text
     formula = ("const MAX_WIRE_BYTES: int = HEADER_BYTES + RUNTIME_FIXED_BYTES + MAX_ENDPOINTS * 8 + CREW_BYTES + FOREMAN_FIXED_BYTES \\\n"
                "\t+ MAX_TASKS * TASK_BYTES + INSTALLER_FIXED_BYTES + MAX_QUOTE_LINES * QUOTE_LINE_BYTES \\\n"
-               "\t+ HAULER_FIXED_BYTES + MAX_QUEUE * 4 + MAX_LEGS * LEG_BYTES\n")
+               "\t+ HAULER_FIXED_BYTES + MAX_QUEUE * 4 + MAX_LEGS * LEG_BYTES + 2 * MAX_STAIR_LEGS * LEG_BYTES\n")
     require(formula in source, "entry progress wire bound formula")
     const = lambda name: int(re.search(r"^const " + name + r": int = (\d+)\b", source, re.M).group(1))
     wire = sum(const(name) for name in PROGRESS_TERMS) + 8 * const("MAX_ENDPOINTS") + const("MAX_TASKS") * const("TASK_BYTES") \
-        + const("MAX_QUOTE_LINES") * const("QUOTE_LINE_BYTES") + 4 * const("MAX_QUEUE") + const("MAX_LEGS") * const("LEG_BYTES")
+        + const("MAX_QUOTE_LINES") * const("QUOTE_LINE_BYTES") + 4 * const("MAX_QUEUE") + const("MAX_LEGS") * const("LEG_BYTES") \
+        + 2 * const("MAX_STAIR_LEGS") * const("LEG_BYTES")
     packets = packet(memory, index, CORE + "underground_entry_progress.gd", "Writer") \
         + packet(memory, index, CORE + "underground_entry_progress.gd", "Reader")
     return {"max_wire_bytes": wire, "images": 2, "packet_numeric_bytes": packets, "bytes": 2 * wire + packets}
@@ -262,7 +272,9 @@ def entry_chain(memory, index: dict) -> dict:
     require("const BRACE_WOOD_MILLI: int = 250" in contract and "const BRACE_STONE_MILLI: int = 250" in contract
             and "Grip.QUANTITY_MILLI" in hauler, "haul queue bound: one whole unit per BRACE input line")
     # ADR1210: ceil(250/1000) wood + stone units; ADR1219 adds the arrival leg before the retreat and storage legs.
-    queue, legs = 2, 3
+    # ADR1229 increment 6b: a tread order's haul climbs four stair legs before M (Progress.MAX_LEGS).
+    queue, legs = 2, memory.resolve(index, "underground_entry_progress", "MAX_LEGS")
+    stair_legs = memory.resolve(index, "underground_entry_progress", "MAX_STAIR_LEGS")
     counts = frontier_counts()
     endpoints = memory.resolve(index, "underground_entry_work_area", "ENDPOINTS")
     tasks = 3 * counts["EPISODE"] + counts["INSTALL"]
@@ -278,6 +290,8 @@ def entry_chain(memory, index: dict) -> dict:
         "foreman_tasks": tasks * packet(memory, index, CORE + "underground_entry_foreman.gd", "Task"),
         "installer_numeric": memory.numeric_fields(installer, "") + result + actor,
         "installer_plan": packet(memory, index, CORE + "underground_entry_installer.gd", "Plan"),
+        # ADR1229 increment 6b: the plan's down and up stair legs, [slot, generation, profile, revision] int64 rows.
+        "installer_stair_legs": 2 * stair_legs * 4 * 8,
         "installer_quote": memory.payload(quote["columns"]) + quote["numeric_control_bytes"],
         # The foreman and the installer each retain one Hauler; both are charged.
         "haulers": 2 * (memory.numeric_fields(hauler, "") + actor + 4 * queue)

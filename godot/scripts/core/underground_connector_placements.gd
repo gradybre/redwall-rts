@@ -2258,8 +2258,9 @@ func workpiece_refusal(context: Locations.InstallationContext) -> StringName:
 	return code
 
 
-func prepared_workpiece_leaf_refusal(context: Locations.InstallationContext) -> StringName:
-	"""After all observations, only the original actual workpiece, candidate banks and exact lease may settle."""
+func prepared_workpiece_leaf_refusal(context: Locations.InstallationContext, witnesses: bool = true) -> StringName:
+	"""After all observations, only the original actual workpiece, candidate banks and exact lease may settle.
+	ADR1229: `witnesses` false is a per-observation closure (Contacts), followed by ConnectorWork's complete leaf."""
 	if context != _context or (_prepared_action != Contract.START and _prepared_action != Contract.CANCEL): return REFUSE_ORDER
 	var actual: Workpieces = _actual_workpieces()
 	var code: StringName = _workpiece_context_leaf(actual)
@@ -2268,7 +2269,7 @@ func prepared_workpiece_leaf_refusal(context: Locations.InstallationContext) -> 
 	if code == &"": code = _workpiece_obstacle_leaf(actual)
 	if code == &"": code = WorldRoutes.workpiece_occupancy_refusal(_world_routes, actual._bounds,
 		WorldRoutes.workpiece_occupancy_checks(_world_routes))
-	return _prepared_geometry_leaf() if code == &"" else code
+	return _prepared_geometry_leaf(witnesses) if code == &"" else code
 
 
 func _workpiece_obstacle_leaf(actual: Workpieces) -> StringName:

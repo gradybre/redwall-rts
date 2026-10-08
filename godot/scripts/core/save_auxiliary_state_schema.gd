@@ -52,7 +52,7 @@ const REGISTRY_VERSION: int = 16
 const OWNER_COUNT: int = 25
 const FIELD_COUNT: int = 182
 const EMPTY_SECTION_BYTES: int = 12446410
-const MAX_SECTION_BYTES: int = 24992144
+const MAX_SECTION_BYTES: int = 24994092
 
 const OWNER_KEYS: Array[String] = [
 	"buildings", "command_dispatch", "construction_extension", "construction_paid_ledger",
@@ -144,7 +144,7 @@ const RULE_VALUES: Array[int] = [
 	8192, 1, 1, 1, 1024, 1024, 1024, 1024, 1024, 8192, 8192, 8192, 8192, 1, 1, 1, 16384, 16384,
 	16384, 16384, 81920, 81920, 81920, 81920, 81920, 81920, 81920, 81920, 81920, 82944, 82944,
 	82944, 82944, 82944, 82944, 82944, 8192, 8192, 8192, 8192, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 262144, 262144, 1024, 1, 74, 1, 43776, 1, 5436, 1, 2559, 1, 8, 1,
+	0, 0, 0, 0, 0, 0, 0, 0, 262144, 262144, 1024, 1, 74, 1, 43776, 1, 5436, 1, 4507, 1, 8, 1,
 	110464, 1, 1, 32, 1, 320608, 1, 84184,
 ]
 

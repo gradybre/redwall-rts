@@ -8676,7 +8676,7 @@
      "source_member": "capture",
      "shape": {
       "count_field": "progress_length",
-      "max_count": 2559,
+      "max_count": 4507,
       "order": "adr1218_v1_wire"
      },
      "scalar": false,

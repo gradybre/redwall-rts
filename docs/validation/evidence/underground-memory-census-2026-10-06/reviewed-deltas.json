@@ -688,6 +688,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "ADR 1227: PRESENT_DATUM_CHECKS 15 and PRESENT_REGION_CHECKS 11 are check-charge constants; no retained storage"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "ADR1229 increment 6b: the tread-station stair reach (StairPath.Stops, one per resolution, and the leg list), the per-region tread body proof and the step-forward retreat; cold-path caller allocations only, inside the existing Contacts control and fragment banks, no retained member"
     }
    ],
    "delta": {
@@ -727,8 +732,11 @@
      ]
     ],
     "allocation_sites": {
-     "=[": 1,
-     "PackedInt32Array(": 1,
+     "([": 4,
+     ".new(": 2,
+     "=[": 2,
+     "PackedInt32Array(": 3,
+     "range(": 3,
      "return[": 1
     }
    }
@@ -788,6 +796,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "ADR 1228: one bool, _loading_rows, true only inside a cold load's row re-proof; logical byte inside the existing carry-control packet"
+    },
+    {
+     "bytes": 6201,
+     "carried_by": "new contribution",
+     "store": "ADR1229 increment 6b: the installed-witness pass's prism cache (_prism_boxes, 6 x Catalog.MAX_PARTS int32 = 6,144 B; _prism_key, 5 int64) and its counters (_witness_pass, _sources_pass, _in_witness_pass): within one synchronous pass the paid prefix's prisms and the source verdict are derived once and shared by every record; nothing survives a pass; never saved"
     }
    ],
    "delta": {
@@ -817,12 +830,34 @@
       "ContactRetirementContext"
      ],
      [
+      "_in_witness_pass",
+      "bool"
+     ],
+     [
       "_loading_rows",
       "bool"
+     ],
+     [
+      "_prism_boxes",
+      "PackedInt32Array"
+     ],
+     [
+      "_prism_key",
+      "PackedInt64Array"
+     ],
+     [
+      "_sources_pass",
+      "int"
+     ],
+     [
+      "_witness_pass",
+      "int"
      ]
     ],
     "resizes_added": [
      "_air_box.resize(6)",
+     "_prism_boxes.resize(6 * ConnectorCatalog.MAX_PARTS)",
+     "_prism_key.resize(5)",
      "air.resize(6 * MAX_AIR_EXTRA)",
      "air.resize(AIR_FIELDS * air_slots)"
     ],
@@ -1153,7 +1188,8 @@
      ".duplicate(": 1,
      ".new(": 1,
      "=[": 1,
-     "PackedInt32Array(": 3,
+     "PackedInt32Array(": 4,
+     "PackedInt64Array(": 1,
      "in[": -1,
      "range(": 2
     }

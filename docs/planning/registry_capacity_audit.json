@@ -4,7 +4,7 @@
   "audit_schema_version": 2,
   "audited_registry": {
     "path": "docs/planning/canonical_state_registry.json",
-    "registry_canonical_json_sha256": "1522b429f449a47112e6635c87d66f55f4122ffbe239f561ba015e10007cfb6b",
+    "registry_canonical_json_sha256": "bb6d2c083b51073ff3470bb918c98e1d4925bf40bb53b2e688935be06701a160",
     "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-08-UG2",
     "registry_version": 16
   },

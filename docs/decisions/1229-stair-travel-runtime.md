@@ -109,6 +109,8 @@ columns. A new column would be a declared schema change with its own record.
   below (§ Increment 3).
 - **Increment 4 (content 10's handling layer), done.** Below (§ Increment 4).
 - **Increment 5 (the T1-T6 bundle, create-only), done.** Below (§ Increment 5).
+- **Increment 6a (content 10 and the bundle mounted), done.** Below (§ Increment 6a).
+- **Increment 6b (down the stair: T1-T6 installed by the live chain), done.** Below (§ Increment 6b).
 
 ## Increment 3 — the stair program and stair edges in Routes and WorldRoutes (2026-10-08)
 
@@ -265,3 +267,91 @@ The descent past T0 is increment 6b.
      Contacts, still runs the complete leaf. A witness pass also resolves each Room's source once.
 - **Memory.** The census charges the claw stair tables (9,580 B per Session) as a new retained row and the larger
   entry plan (+5,680 B). Content 10's Profile bank adds 3,052 B inside the PROFILE_BYTES joint.
+
+## Increment 6b — the live chain builds the descent down the stair (2026-10-08)
+
+After T0 the foreman plans all eight installations. The crew cuts the descent's eight cubes from the surface, then
+installs T1-T6, each from the tread above. On the flexible schedule the live `run_tick` chain finishes on tick
+13,690 with every group installed once:
+
+- ledger `[50 tasks, 126,000 cut mWU, 19 hauled units, 116,000 install mWU, 8 INSTALLED]`;
+- then the entry raises G9 at the Kitchen: `ENTRY_KITCHEN_UNBUILT` (DEC-054) replaces ADR 1227's
+  `ENTRY_DESCENT_UNBUILT`.
+
+### What was built
+
+- **The stair path publisher** (`underground_entry_stair_path.gd`, stateless). It finds the installed stair stops
+  by their source points: X, the crossing arrival on L0; then P, A, S and U on L0 and on each standing tread. It
+  publishes, in one WorldRoutes publication, every stair edge whose two stops are live. Each edge is exactly one
+  approved motion's span: approach, step forward/back, descent, half-turn, ascent and the yaw-32768 approach.
+- **Retracting a stop.** A pending tread bearer is staged where the arrival stop of the tread above stands (ADR
+  1209 step 5). At FUND the installer removes that stop, its edges and the climb from the stop its half-turn
+  reaches. The tread's commit re-creates the stop (`_timber_new_locations` also creates the tread above's missing
+  selectors).
+- **The installer.** A tread order walks M → X on the material profile, then down the stair:
+  1. walk-in, step forward, one descent per tread;
+  2. a step back onto the station.
+
+  From a previous tread station, the haul's first legs are the climb back to X: step forward, half-turn, ascents,
+  approach. The plan's leg lists, the retracted stop and the down-leg cursor are in the record:
+  `INSTALLER_FIXED_BYTES` 165 → 185, `MAX_LEGS` 3 → 5, two lists of at most `MAX_STAIR_LEGS` = 4 legs.
+- **The foreman.**
+  - It plans T1-T6 directly after one another; a tread's walk to M keeps the last cut's travel profile.
+  - It asks the runtime for station paths before each installation. The descent cuts' paths close once the crew
+    has left them, so the stair edges take their place in every later requalification.
+- **Contacts.**
+  - A tread station admits the tread fitting row (`CONTACT_TREAD_FIT`, DEC-058).
+  - Its body is proved against the actual Regions: void, the station Room's own timber, the order's own piece
+    and exterior air.
+  - It is reached by a static per-leg edge certificate check down and back up the stair. A graph search per leg
+    would charge the Location census each time.
+  - The worker leaves the station by the step forward.
+- **Routes and WorldRoutes.**
+  - A stair crossing past the start deck's far edge is contained in the end deck's section.
+  - The tread fitting tap is admitted at a tread station by occupancy alone, as a stair row is: its motion is
+    proved by the installation's Contacts and its certified tap.
+- **Locations: the installed-witness pass shares work within itself.** Every closure of an installation re-derives
+  every installed witness after its observers. One installation runs about eleven such passes. Each record's
+  surface-site proof charged a full installed-sources proof (1,024) and 96 per paid-prefix part. At T2 that was
+  87,324 per pass, and the T2 commit ran out of `LOCATION_OPERATION_BUDGET`.
+  - A pass is synchronous and runs no observer. Within one pass, the sources verdict is now proved once (then 16
+    per record), and the paid prefix's installed prisms are derived once into `_prism_boxes` (then 4 per part per
+    record).
+  - The pass number changes at every pass, so nothing survives one: each pass, including the final one after the
+    last observer, still re-derives everything from current columns.
+  - A memo across passes was tried first and rejected. Two adversarial suites in `test_underground_entry_bindings.gd`
+    change a paid Site or the profile bank inside the last observer, and they caught it.
+  - Census: 6,201 B of controls (6 × `Catalog.MAX_PARTS` int32 plus the key and counters). No budget was raised.
+
+### Engineering findings (recorded so they are not undone)
+
+1. **Fragment banks at T3.** T3's handling body meets the trench's thin void slabs (64 u layers under the timber)
+   and T2's timber. Subtracting them in Region order overflowed the fixed 32-fragment bank, and the order refused
+   `ASSEMBLY_PHYSICAL_BUDGET`. The paw certificate now subtracts the void first and the timber second. After each
+   subtraction it merges fragments that share two axis intervals and abut on the third. The union is unchanged,
+   and so are the bank size and the budget. T1-T6 all prove.
+2. **The section-6 bound of the progress record was stale since 6a.** `progress_record`'s `max_count` stayed 2,559
+   (ADR 1218) while `Progress.MAX_WIRE_BYTES` grew to 4,287 in 6a. A mid-descent record (3,166-3,363 B) then
+   could not be saved. It is now `MAX_WIRE_BYTES` = 4,507 in the canonical registry, the generated section-6
+   schema and the capacity audit.
+3. **The live chain cannot finish the descent on the default schedule.** It starts at 06:00 with hunger and rest
+   both 7,500. Measured:
+   - the 18:00-20:00 SOCIAL hours pause it at a resting point for 1,468 ticks;
+   - at 22:00 it pauses again;
+   - the crew holds the entry Job and is never put to sleep or fed, so rest only decays: 375/h, 0 by tick 15,000.
+     The chain then waits for ever.
+
+   The suites therefore run the whole descent on the flexible template (GDD 5.3, every hour ANYTHING). Its rest
+   is still 655 at the finish, above REQ-SET-015's 500. Brendan's decision on this: "Reduce time to build them
+   greatly". The measured breakdown and the proposal are in § Build time below.
+
+### Tests
+
+- `test_underground_host.gd`:
+  - the prefix suites stop at the end of the prefix (task 20, tick 4,670, the same ledger), and the chain runs on;
+  - `test_the_live_chain_builds_the_descent_down_the_stair_to_the_sill` runs the whole descent: tick 13,690, the
+    ledger above, G9 at the Kitchen, re-raised by a finished entry.
+- `test_underground_paid_assembly_handling.gd`: the record offsets include the stair plan.
+- `test_save_section_auxiliary.gd` and `test_canonical_state_hash.gd`: the new `max_count`.
+- Census, registry (`underground_entry_stair_path.gd`, `_prism_boxes`, `_prism_key`), consumer pins (Contacts, Routes,
+  WorldRoutes) and the capacity audit follow.

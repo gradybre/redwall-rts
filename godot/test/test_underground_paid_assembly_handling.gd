@@ -992,7 +992,7 @@ const AT_CONTENT: int = 54
 const AT_TASKS: int = 74
 const AT_CURSOR: int = AT_TASKS + 20 * Progress.TASK_BYTES # index, stage, stage ticks, Job slot, Job ref, code
 const AT_INSTALLER: int = AT_CURSOR + 24 + Progress.CODE_BYTES + 88 + 32 + 1 # ledgers, ADR1219 arrival, presence flag
-const AT_INSTALLER_PROJECT: int = AT_INSTALLER + 108 + 8 + 4
+const AT_INSTALLER_PROJECT: int = AT_INSTALLER + 108 + 16 + 8 + 4 # ADR1229: +16, two empty stair leg lists and the stop
 const AT_INSTALLER_JOB_REF: int = AT_INSTALLER_PROJECT + 8 + 4
 
 

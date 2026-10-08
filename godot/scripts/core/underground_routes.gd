@@ -3076,8 +3076,7 @@ func _stair_transit_refusal(row: int, edge: Vector2i) -> StringName:
 	"""ADR1229: mid-crossing the pose is the program's presented key: the root track, or the step's straight share."""
 	var program: int = _stair_motion.program_of(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]) \
 		if _stair_motion != null else -1
-	if program < 0 or _edge_i32(_live, E_PATH_COUNT, edge.x) != 2 \
-			or _edge_pair(_live, E_SECTION_SLOT, edge.x) != _resident_pair(R_SECTION_SLOT, row):
+	if program < 0 or _edge_i32(_live, E_PATH_COUNT, edge.x) != 2 or not _stair_section_held(row, edge):
 		return &"ROUTE_PROGRESS_STALE"
 	@warning_ignore("integer_division") var key: int = (_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] & I32_MAX) / Stair.ONE
 	var first: Vector3i = _vertex(edge.x, 0)
@@ -3088,6 +3087,13 @@ func _stair_transit_refusal(row: int, edge: Vector2i) -> StringName:
 		@warning_ignore("integer_division") var done: int = length * key / Stair.STEP_CLIP_INTERVALS
 		pose = _interpolate(first, second, done, length)
 	return &"" if pose == Vector3i(_pose.x, _pose.y, _pose.z) else &"ROUTE_ACTOR_POSITION_DRIFT"
+
+
+func _stair_section_held(row: int, edge: Vector2i) -> bool:
+	"""ADR1229: mid-crossing the actor is in the edge's start-deck section or, past its far edge, the end deck's."""
+	var held: Vector2i = _resident_pair(R_SECTION_SLOT, row)
+	if held == _edge_pair(_live, E_SECTION_SLOT, edge.x): return true
+	return _locations.read_location_into(_edge_pair(_live, E_TO_SLOT, edge.x), _second) == &"" and held == _second.section
 
 
 func _vertex(row: int, ordinal: int) -> Vector3i:
@@ -3561,17 +3567,32 @@ func _read_motion_containment() -> StringName:
 		_step.section = _second.section
 		_step.level = _second.level
 		return &""
-	_in_callback = true
-	_callback_reentered = false
-	var code: StringName = _bindings.transit_region_into(_step.section, _step.segment, _step.point, _section)
-	_in_callback = false
-	if _callback_reentered:
-		return &"ROUTE_CALLBACK_REENTRY"
+	var code: StringName = _transit_into(_step.section)
+	if code == &"WORLD_ROUTE_SECTION_CONTAINMENT" and Stair.owns(_profiles, _selection.profile_id):
+		code = _stair_lower_transit()
 	if code != &"":
 		return code
 	_step.room = _section.owner if _ids.get_kind(_section.owner) == Directory.KIND_ROOM else NULL_REF
 	_step.level = _section.level
 	return &"" if _section.role == Space.FLOOR_DATUM else &"ROUTE_SECTION_STALE"
+
+
+func _transit_into(section: Vector2i) -> StringName:
+	"""One provider containment read of the current step point in `section`."""
+	_in_callback = true
+	_callback_reentered = false
+	var code: StringName = _bindings.transit_region_into(section, _step.segment, _step.point, _section)
+	_in_callback = false
+	return &"ROUTE_CALLBACK_REENTRY" if _callback_reentered else code
+
+
+func _stair_lower_transit() -> StringName:
+	"""ADR1229: a stair edge joins two decks, each with its own landing section; once its pose has crossed out of the
+	start deck's section it is contained in the end deck's (the two decks meet at the start deck's far edge)."""
+	var code: StringName = _locations.read_location_into(_edge_pair(_live, E_TO_SLOT, _step.edge.x), _second)
+	if code == &"": code = _transit_into(_second.section)
+	if code == &"": _step.section = _second.section
+	return code
 
 
 func _final_motion_refusal(row: int) -> StringName:

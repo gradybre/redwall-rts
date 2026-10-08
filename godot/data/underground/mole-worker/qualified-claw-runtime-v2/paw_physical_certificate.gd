@@ -222,21 +222,65 @@ static func _tread_volume(b: RefCounted, g: RefCounted, contacts: RefCounted, ta
 
 
 static func _tread_regions(b: RefCounted, g: RefCounted, fragments: RefCounted, target: int, room: Vector2i) -> StringName:
-	"""Void and the Room's own SUPPORT cover the body; floor metadata and access are inert; anything else blocks."""
+	"""Void and the Room's own SUPPORT cover the body; floor metadata and access are inert; anything else blocks.
+	ADR1229: the trench's void cubes are subtracted first and the timber second, so the exact remainder stays within
+	the fixed fragment banks however many treads stand nearby (the union is the same in either order)."""
+	for pass_void: bool in [true, false]:
+		var code: StringName = _tread_pass(b, g, fragments, target, room, pass_void)
+		if code != &"": return code
+	return &""
+
+
+static func _tread_pass(b: RefCounted, g: RefCounted, fragments: RefCounted, target: int, room: Vector2i,
+		pass_void: bool) -> StringName:
+	"""One pass over the Regions: the void pass also refuses foreign matter; the timber pass subtracts only timber."""
 	var owner: Owner = g._owner
 	for row: int in owner._region_capacity:
 		if not Parent._spend(g, 1): return BUDGET
 		if owner._r_present[row] == 0 or row == target: continue
 		Parent._region_into(owner, row, b._scratch)
-		if not Space.overlaps(b._bounds, b._scratch): continue
+		if not Space.overlaps(b._bounds, b._scratch) or Parent.own_room_marker(owner, row, room): continue
 		var role: int = owner._r_role[row]
 		var own: bool = role == Space.SUPPORT and owner._r_claim_kind[row] == Owner.CLAIM_NONE \
 			and Vector2i(owner._r_owner_slot[row], owner._r_owner_generation[row]) == room
-		if role == Space.SUPPORTED_VOID or own:
-			if not Parent._subtract(fragments, b._scratch, g): return BUDGET
-		elif role != Space.FLOOR_DATUM and role != Space.PROTECTED_ACCESS:
+		if (role == Space.SUPPORTED_VOID and pass_void) or (own and not pass_void):
+			if not Parent._subtract(fragments, b._scratch, g) or not _coalesce(fragments, g): return BUDGET
+		elif pass_void and not own and role != Space.SUPPORTED_VOID and role != Space.FLOOR_DATUM \
+				and role != Space.PROTECTED_ACCESS:
 			return &"ASSEMBLY_FOREIGN_SOLID"
 	return &""
+
+
+static func _coalesce(f: RefCounted, g: RefCounted) -> bool:
+	"""ADR1229: merge remainder fragments that share two axis intervals and touch on the third, until none do. The
+	union is unchanged; the trench's thin void slabs otherwise leave more pieces than the fixed banks hold."""
+	var merged: bool = true
+	while merged:
+		merged = false
+		for i: int in f.count:
+			for j: int in range(i + 1, f.count):
+				if not Parent._spend(g, 1): return false
+				if not _join(f.first, i, j): continue
+				f.count -= 1
+				for axis: int in 6: f.first[j * 6 + axis] = f.first[f.count * 6 + axis]
+				merged = true
+				break
+			if merged: break
+	return true
+
+
+static func _join(boxes: PackedInt32Array, i: int, j: int) -> bool:
+	"""Grow box i over box j when they equal on two axes and abut on the third."""
+	var free: int = -1
+	for axis: int in 3:
+		if boxes[i * 6 + axis] == boxes[j * 6 + axis] and boxes[i * 6 + axis + 3] == boxes[j * 6 + axis + 3]: continue
+		if free >= 0: return false
+		free = axis
+	if free < 0 or (boxes[i * 6 + free + 3] != boxes[j * 6 + free] and boxes[j * 6 + free + 3] != boxes[i * 6 + free]):
+		return false
+	boxes[i * 6 + free] = mini(boxes[i * 6 + free], boxes[j * 6 + free])
+	boxes[i * 6 + free + 3] = maxi(boxes[i * 6 + free + 3], boxes[j * 6 + free + 3])
+	return true
 
 
 static func _box_into(selection: Profiles.Selection, part: int, out: PackedInt32Array) -> StringName:

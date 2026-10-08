@@ -160,9 +160,21 @@ static func open_deep_paths(binding: WorldRoutes, routes: Routes, budget: Budget
 	var lease: int = budget.acquire(Budget.COLD_BYTES)
 	if lease <= 0: return &"ENTRY_WORK_AREA_LEASE"
 	var begun: Routes.Result = binding.begin_prepare(lease)
-	var code: StringName = _stage_retirements(routes, begun.token, published) if begun.error == &"" else begun.error
+	var code: StringName = _stage_retirements(routes, begun.token, published, DONE_WORK) if begun.error == &"" \
+		else begun.error
 	if code == &"":
 		code = _stage_pairs(routes, begun.token, origin, published, owner, content_revision, DEEP_STORAGE, DEEP_WORK)
+	return _finish_batch(binding, budget, lease, begun.token, code)
+
+
+static func close_deep_paths(binding: WorldRoutes, routes: Routes, budget: Budget, published: Published) -> StringName:
+	"""ADR1229: once the descent's cuts are done and the crew has left them, their paths retire too, so the stair's
+	edges take their place in every later requalification."""
+	var lease: int = budget.acquire(Budget.COLD_BYTES)
+	if lease <= 0: return &"ENTRY_WORK_AREA_LEASE"
+	var begun: Routes.Result = binding.begin_prepare(lease)
+	var code: StringName = _stage_retirements(routes, begun.token, published, DEEP_WORK) if begun.error == &"" \
+		else begun.error
 	return _finish_batch(binding, budget, lease, begun.token, code)
 
 
@@ -196,22 +208,22 @@ static func _stage_pairs(routes: Routes, token: int, origin: Vector3i, published
 	return &""
 
 
-static func _stage_retirements(routes: Routes, token: int, published: Published) -> StringName:
-	"""Remove every live path that starts or ends at one of the done T0 cut stations."""
+static func _stage_retirements(routes: Routes, token: int, published: Published, stations: Array[int]) -> StringName:
+	"""Remove every live path that starts or ends at one of the given (done) cut stations."""
 	var edge: Routes.Edge = Routes.Edge.new()
 	for row: int in routes._edge_capacity:
 		if routes._live.present[row] != 1: continue
 		var ref: Vector2i = Vector2i(row, routes._live.fields[Routes.E_GENERATION * routes._edge_capacity + row])
 		var code: StringName = routes.edge_metadata_into(ref, edge)
-		if code == &"" and (_done_station(published, edge.from_location) or _done_station(published, edge.to_location)):
+		if code == &"" and (_listed(published, stations, edge.from_location) or _listed(published, stations, edge.to_location)):
 			code = routes.stage_remove(token, ref)
 		if code != &"": return code
 	return &""
 
 
-static func _done_station(published: Published, location: Vector2i) -> bool:
-	"""One of the four T0 cut stations."""
-	for index: int in DONE_WORK:
+static func _listed(published: Published, stations: Array[int], location: Vector2i) -> bool:
+	"""One of the given work-area stations."""
+	for index: int in stations:
 		if published.endpoints[index] == location: return true
 	return false
 

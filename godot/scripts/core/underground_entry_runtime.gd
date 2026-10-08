@@ -27,9 +27,11 @@ const REFUSE_NO_IDLE_MOLE: StringName = &"ENTRY_CREW_NO_IDLE_MOLE"
 const REFUSE_SURFACE_ARRIVAL: StringName = &"ENTRY_SURFACE_ARRIVAL_MISSING"
 const REFUSE_CREW_LOST: StringName = &"ENTRY_CREW_LOST"
 const REFUSE_NO_REPLACEMENT: StringName = &"ENTRY_CREW_NO_REPLACEMENT"
-## ADR1227: the prefix is done and nothing past T0 is planned; the next room needs the descent (ADR 1209 stairs).
-const REFUSE_DESCENT_UNBUILT: StringName = &"ENTRY_DESCENT_UNBUILT"
-const INSTALLATIONS: int = 2 # The first-entry prefix: L0, then the T0 cuts and T0 (ADR1202).
+## ADR1229 (DEC-054): the descent is built to the sill; the next room is the Kitchen, dug to reachable height, whose
+## plan is not built yet (ADR1227's ENTRY_DESCENT_UNBUILT is retired with G9's move).
+const REFUSE_KITCHEN_UNBUILT: StringName = &"ENTRY_KITCHEN_UNBUILT"
+## ADR1229: L0, the T0 cuts and T0 (ADR1202), the descent's cuts and T1, then T2-T6 down the stair.
+const INSTALLATIONS: int = 8
 const STEP_NONE: int = 0
 const STEP_SITE: int = 1
 const STEP_PUBLISHED: int = 2
@@ -41,7 +43,7 @@ const STEP_DONE: int = 7
 ## ADR1197 gap rows; an alert names the row that, once built, clears it.
 const GAPS: Dictionary = {
 	&"ENTRY_SITE_NONE_FOUND": "G1/G2 no surveyed entry site near the settlement",
-	&"ENTRY_DESCENT_UNBUILT": "G9 the first-entry prefix is built; the descent past T0 (ADR 1209 stairs, then the Kitchen dug to reachable height, DEC-054) is not planned yet (ADR 1227)",
+	&"ENTRY_KITCHEN_UNBUILT": "G9 the entry and its descent to the sill are built (ADR 1229); the Kitchen, dug to reachable height (DEC-054), is not planned yet",
 	&"ENTRY_CREW_NO_IDLE_MOLE": "G6 no living adult mole is free: every one holds another Job (or a tool, which the claw and paw rows do not take; DEC-052)",
 	&"ROUTE_UNREGISTERED_RESIDENT_NEAR": "G5 a resident outside the entry crew stands within reach of the work area (surface Movement does not route residents around it yet; ADR 1219)",
 	&"ENTRY_SURFACE_ARRIVAL_MISSING": "G5 the crew mole has no surface pose to walk from, or could not be placed on the stair-top anchor (ADR 1219)",
@@ -119,7 +121,7 @@ func start(session: RefCounted, near: Vector3i) -> StringName:
 	if code == &"" and _step < STEP_CREW: code = _select_crew(o)
 	if code == &"" and _step < STEP_RUNNING: code = _plan_foreman(o)
 	if code == &"" and _step == STEP_RUNNING and _foreman.error() != &"": code = _foreman.error()
-	if code == &"" and _step == STEP_DONE: code = REFUSE_DESCENT_UNBUILT
+	if code == &"" and _step == STEP_DONE: code = REFUSE_KITCHEN_UNBUILT
 	return _stop(code) # ADR1227: a successful attempt clears the previous attempt's refusal.
 
 
@@ -144,7 +146,7 @@ func advance(tick: int) -> StringName:
 	if code != &"": return _stop(code)
 	if not _foreman.is_done(): return &""
 	_step = STEP_DONE
-	return _stop(REFUSE_DESCENT_UNBUILT) # ADR1227: raised once, on the finishing tick (G9).
+	return _stop(REFUSE_KITCHEN_UNBUILT) # ADR1227/1229: raised once, on the finishing tick (G9).
 
 
 func _halt(code: StringName) -> StringName:
@@ -339,11 +341,17 @@ func _plan_foreman(o: RefCounted) -> StringName:
 
 func _station_paths(station: Vector2i) -> StringName:
 	"""ADR1229: the descent's cut stations get their paths (and the done T0 stations lose theirs) just before the
-	first of them is worked; derived from the live graph, so a restored chain asks the same question."""
+	first of them is worked, and lose them once a later step starts with the crew off them; derived from the live
+	graph and the crew's Location, so a restored chain asks the same question."""
 	var o: Foreman.Owners = _foreman._owners
-	if not WorkArea.is_deep_station(_published, station) or WorkArea.deep_paths_open(o.routes, _published): return &""
-	return WorkArea.open_deep_paths(o.binding, o.routes, _foreman._paid.budget, o.binding._owner(), _origin, _published,
-		o.profiles.content_revision())
+	var open: bool = WorkArea.deep_paths_open(o.routes, _published)
+	if WorkArea.is_deep_station(_published, station):
+		return &"" if open else WorkArea.open_deep_paths(o.binding, o.routes, _foreman._paid.budget, o.binding._owner(),
+			_origin, _published, o.profiles.content_revision())
+	var here: Vector2i = o.routes._resident_pair(Foreman.Routes.R_LOCATION_SLOT, _worker_row) if _worker_row >= 0 \
+		else NULL_REF
+	if not open or WorkArea.is_deep_station(_published, here): return &""
+	return WorkArea.close_deep_paths(o.binding, o.routes, _foreman._paid.budget, _published)
 
 
 func _foreman_owners(o: RefCounted) -> Foreman.Owners:

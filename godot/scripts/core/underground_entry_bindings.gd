@@ -9,6 +9,7 @@ const Placements := preload("res://scripts/core/underground_connector_placements
 const ConnectorCatalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
 const Routes := preload("res://scripts/core/underground_routes.gd")
+const Tread := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/tread_geometry.gd")
 const Connectors := preload("res://scripts/core/room_connectors.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const ENTRY_FIXED_BYTES: int = 4096
@@ -1777,15 +1778,20 @@ func _timber_refresh_locations(token: int) -> StringName:
 
 
 func _timber_new_locations(token: int) -> StringName:
-	"""Only immutable installed selectors for the just-paid group receive complete physically qualified records."""
+	"""Only immutable installed selectors for the just-paid group receive complete physically qualified records.
+	ADR1229: a tread's commit also re-creates the stops of the tread above that its pending bearer retracted."""
 	for endpoint: int in _entry_frontier._header[8 + Frontier.ENDPOINT]:
 		if not _entry_spend(32): return REFUSE_MASK_BUDGET
 		if _entry_frontier._field(Frontier.ENDPOINT, endpoint, 0) != Frontier.INSTALLED_CONTACT \
-				or _entry_frontier._field(Frontier.ENDPOINT, endpoint, 1) != _timber_assembly: continue
+				or not _timber_selector_due(_entry_frontier._field(Frontier.ENDPOINT, endpoint, 1)): continue
 		var prior: int = _timber_prior_contact(endpoint)
 		if prior < 0: return REFUSE_MASK_BUDGET
 		if prior > 0: continue
 		var code: StringName = _timber_landing_into(endpoint)
+		var live: int = _timber_live_contact() if code == &"" and \
+			_entry_frontier._field(Frontier.ENDPOINT, endpoint, 1) != _timber_assembly else 0
+		if live < 0: return REFUSE_MASK_BUDGET
+		if live > 0: continue
 		if code == &"": _entry_contact.section = _timber_datum_ref()
 		if code == &"" and _entry_contact.section == Vector2i(-3, 0): return REFUSE_MASK_BUDGET
 		if code != &"" or _entry_contact.section.x < 0: return REFUSE_TIMBER_CONTACT
@@ -1796,14 +1802,36 @@ func _timber_new_locations(token: int) -> StringName:
 	return &""
 
 
+func _timber_selector_due(assembly: int) -> bool:
+	"""The committing group's own selectors, and (ADR1229) a tread's commit also the tread above's."""
+	return assembly == _timber_assembly or (assembly == _timber_assembly - 1 and Tread.is_tread(_timber_assembly))
+
+
+func _timber_live_contact() -> int:
+	"""ADR1229: 1 when a live Location already holds `_entry_contact`'s point and role in its Room, 0 when none does
+	(a retracted stop), -1 when the check budget is spent. One check per slot, sixteen per live row."""
+	var locations: Locations = _entry_placements._locations
+	if not _entry_spend(locations._capacity): return -1
+	for row: int in locations._capacity:
+		if locations._live.present[row] != 1: continue
+		if not _entry_spend(16): return -1
+		if locations._get32(locations._live, Locations.ROLE, row) == _entry_contact.role \
+				and locations._ref_at(locations._live, Locations.ROOM_SLOT, row) == _entry_contact.room \
+				and Vector3i(locations._get32(locations._live, Locations.X, row), locations._get32(locations._live,
+				Locations.Y, row), locations._get32(locations._live, Locations.Z, row)) == _entry_contact.point:
+			return 1
+	return 0
+
+
 func _timber_prior_contact(endpoint: int) -> int:
 	"""ADR1202 split landing: 1 when an earlier selector of this group names the same datum, role and point.
 	Such selectors are one physical Location on several travel profiles; the first one sizes and creates it.
 	-1 when the check budget is spent, else 0."""
+	var assembly: int = _entry_frontier._field(Frontier.ENDPOINT, endpoint, 1)
 	for prior: int in endpoint:
 		if not _entry_spend(8): return -1
 		if _entry_frontier._field(Frontier.ENDPOINT, prior, 0) != Frontier.INSTALLED_CONTACT \
-				or _entry_frontier._field(Frontier.ENDPOINT, prior, 1) != _timber_assembly: continue
+				or _entry_frontier._field(Frontier.ENDPOINT, prior, 1) != assembly: continue
 		var same: bool = true
 		for field: int in range(2, 7):
 			same = same and _entry_frontier._field(Frontier.ENDPOINT, prior, field) \

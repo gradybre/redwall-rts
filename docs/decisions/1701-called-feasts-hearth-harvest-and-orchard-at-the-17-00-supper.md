@@ -155,18 +155,20 @@ P4 (a), P5 (a), P6 (b), P7 (a), P8 (b), P9 (a). What they required:
 
 ## Tests and gates
 
-- **Suites**: `test_demo_feasts.gd` (27 tests: the numbers, SET-AMEND-001's E = 12/13, Q-D11's hour and the interval,
+- **Suites**: `test_demo_feasts.gd` (31 tests, after P6 (b): its supper's own food counted, for another dish's meal,
+  not once a batch is cooked or at the cauldron, and the regatta menu's nut loaf; the numbers, SET-AMEND-001's E = 12/13, Q-D11's hour and the interval,
   every refusal in order with REQ-SET-101's food and fuel halves and the override, holding, cancelling before and during
   cooking, a feast the kitchen had not planned yet, every theme cooked and eaten on real brains, the lapse, the tally's
   courses, the beverage's partial pour, cider, the buffs and the cold, the regatta's hooks, the words and the panel);
+  `test_demo_regatta.gd` gains the regatta counting its day's supper (its preview, its free beans, the hold topped up);
   `test_demo_feast_live.gd` (the live harness at both sizes); `test_demo_dishes.gd` (24 rows, 20 distinct, the four new
   §5.7 rows exact, GDD_OWN); `test_demo_crop_roles.gd` (peas now feed the nut roast too).
-- **The full suite, CI-style** (assets moved aside, `godot/.godot` deleted, re-imported, `./tools/run_tests.sh`), after
-  the merge of `origin/master` (#234) and the cider change:
-  `ok: 9328 tests, 650487 assertions, 0 failures.` ·
+- **The full suite, CI-style** (assets moved aside, `godot/.godot` deleted, re-imported, `./tools/run_tests.sh`), on
+  the final tree (after merging #235 and building P6 (b)):
+  `ok: 9344 tests, 650624 assertions, 0 failures.` ·
   `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 371 tolerated; leaked at exit: 0 object(s), 0 resource(s)` ·
   `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).`
-- **Analyzer**: `python3 tools/gdscript_warnings.py --max 0`: `0 GDScript warning(s) in 0 of 1063 file(s)`.
+- **Analyzer**: `python3 tools/gdscript_warnings.py --max 0`: `0 GDScript warning(s) in 0 of 1065 file(s)` (its own `--port 6117`).
 - **Contracts**: every check in CI's contracts group passes (decision_numbers 338 records, ready07_arithmetic,
   merge_gate, setting_contract, dispatch_plan, astra_inbox, the save registry handoff, the canonical state table, the
   cycle 1–3 handoffs, the registry capacity audit, the component columns schema, lane_notes, the movement checks,
@@ -176,8 +178,9 @@ P4 (a), P5 (a), P6 (b), P7 (a), P8 (b), P9 (a). What they required:
   feast_at_supper,feasts_panel_after}_{1280x720,1920x1080}.png` -- the panel in the window clear of the side panels,
   the plan and its refusal, Call held, the hall's tables at supper, and the tally ("9 of 9 shared it ... Shared Warmth
   for 48 h"; the cold's gain at 750).
-- **Mutation**: 81 mutants, **81 killed** -- 78 on the rules, menu, buffs, cold, plan, tally, kitchen hooks, regatta
-  hooks and dish rows against `test_demo_feasts.gd` + `test_demo_dishes.gd` (a mutant also dies on any unexpected
+- **Mutation**: 100 mutants, **100 killed** -- 97 on the rules, menu, buffs, cold, plan, tally, kitchen hooks, regatta
+  hooks, dish rows, P6 (b)'s kitchen read and its feast and regatta callers against `test_demo_feasts.gd` +
+  `test_demo_dishes.gd` + `test_demo_regatta.gd` (a mutant also dies on any unexpected
   diagnostic or leak), and 3 on the village wiring (the cold's gain, the Feast command, M4's binding) against the live
   harness. **SURVIVED_MUTANTS: none.**
 - **Independent review** (the `code-reviewer` agent, waited for): no CRITICAL. **H1** (a feast cancelled during the
@@ -192,6 +195,18 @@ P4 (a), P5 (a), P6 (b), P7 (a), P8 (b), P9 (a). What they required:
   leaves the cold at full rate (fixed); `fuel_days_milli`'s docstring (fixed); the cold's factor lags its setter by one
   frame (accepted: presentation, a frame of 48 h); the panel's 4 Hz refresh recomputes the plan (accepted: only while
   open); the regatta's Shared Warmth ignores a called Hearth feast's (safe: the 72-h interval outlasts the 48-h buff).
+
+- **Second and third reviews** (P6 (b) and P9 (a), `code-reviewer`, waited for): no CRITICAL or HIGH. Fixed: the
+  regatta half of P6 (b) built (MEDIUM 1); REQ-SET-103 reads "begins at 17:00", with its waves and the WORK-hour
+  overlap noted and the latter left to Q-D14 (MEDIUM 2); every "deviation" now reads "amended by DEC-058" (MEDIUM 3);
+  the beverage, the regatta's herb and its drinks count free food alone; DEC-058 placed after the DEC-040
+  follow-through and credited as relayed; the ART-NEXT anchor and sheet; the regatta's hold card names its supper; the
+  tests the reviews asked for. Answered: the feast's beverage check and the hold card's ordering are equivalent today
+  (no ordinary meal takes herbs or mead; the panel builds the preview first) and are pinned in code and words; the
+  plan's "free" figures include the supper's held food for that supper's own feast (kept as "free": it is free to
+  that feast, which replaces the meal); when `feat/demo-balance-tuning` lets the
+  hotpot take roots, the regatta's cabbage check may under-count (refuse more often), never over-commit -- re-check at
+  that merge.
 
 ## Source
 

@@ -61,6 +61,15 @@ existing **occasion** (decision 0438's API, both courses), served at 17:00, tall
   packet's pitfall: the regatta published it but nothing read it. Abundant Tables' work +5% is a factor ("feast", 1050)
   on the village's work pace (`work_pace.gd add_factor`). Mood +400, purpose +20%, social decay −20% and the two extra
   newcomers are shown, not applied: the demo models no mood, purpose or social need and no arrivals.
+- **Cider beside the mead** (Brendan's ruling of 2026-10-07, relayed by the coordinator: balance proposal 1731 P3,
+  option (a), "the Harvest and Orchard feasts pour mead and cider under the mead rule (no intoxication, no Shared
+  Warmth effect)"; the balance rerun had found mead brewed at 52–60 U a year and never poured, the regatta being its
+  only sink). The Harvest and Orchard feasts pour their required mead ceil(E/4) U and also the brewery's **cider**,
+  ceil(E/4) U, reserved at confirmation when all of it is free, poured proportionally to attended/E, the rest given back
+  -- the regatta's own handling of its drinks (decision 1621) under **the mead rule** (Brendan's ruling on DEC-007,
+  decision 1625: a feast or table drink only, no intoxication, no effect on a buff). Cider is never required; its
+  quantity is decision 1625's PROVISIONAL ceil(E/4). Ale and the cordial are not poured at called feasts (the ruling
+  names mead and cider).
 - **M4's "12 completed feasts"** is bound (`goal_book.gd bind_measure`; 0901 left it unbound): the called feasts
   completed plus the regatta's `feasts_served`.
 
@@ -97,9 +106,10 @@ behind the existing Feast command.
 - **P2. A called feast needs every course.** Built: the plan is refused naming what is short (REQ-SET-100: "complete
   ingredient/portion requirements"); the regatta keeps your 2026-10-01 ruling to hold with a missing course. (a) as
   built; (b) called feasts follow the regatta's rule (held, no buff). Recommendation: (a).
-- **P3. Drinks at a called Hearth feast.** Built: only the Hearth row's infusion; the regatta alone pours mead and the
-  cordial (decision 1621) and, once #234 lands, ale and cider. (a) as built; (b) pour whatever the brewery has at every
-  feast, as the regatta does. Recommendation: (a).
+- **P3. Drinks at a called Hearth feast.** Built: the Harvest and Orchard feasts pour mead and cider (your ruling, above);
+  a called Hearth feast pours only its row's infusion, while the regatta's Hearth feast pours mead, the cordial, ale and
+  cider (decisions 1621, 1625). (a) as built; (b) a called Hearth feast pours mead and cider too. Recommendation: (a),
+  keeping the Hearth row as the GDD writes it; (b) is a one-line change.
 - **P4. What "completed" means** for M4 and the 72-h interval. Built: at least one resident ate the main course (your
   "Regatta day" reading). (a) as built; (b) only feasts that earned their buff. Recommendation: (a).
 - **P5. REQ-SET-106 (a critical emergency pauses serving).** Not built: the demo's threats do not interrupt meals.
@@ -118,7 +128,43 @@ behind the existing Feast command.
 
 ## Tests and gates
 
-GATES_PLACEHOLDER
+- **Suites**: `test_demo_feasts.gd` (27 tests: the numbers, SET-AMEND-001's E = 12/13, Q-D11's hour and the interval,
+  every refusal in order with REQ-SET-101's food and fuel halves and the override, holding, cancelling before and during
+  cooking, a feast the kitchen had not planned yet, every theme cooked and eaten on real brains, the lapse, the tally's
+  courses, the beverage's partial pour, cider, the buffs and the cold, the regatta's hooks, the words and the panel);
+  `test_demo_feast_live.gd` (the live harness at both sizes); `test_demo_dishes.gd` (24 rows, 20 distinct, the four new
+  §5.7 rows exact, GDD_OWN); `test_demo_crop_roles.gd` (peas now feed the nut roast too).
+- **The full suite, CI-style** (assets moved aside, `godot/.godot` deleted, re-imported, `./tools/run_tests.sh`), after
+  the merge of `origin/master` (#234) and the cider change:
+  `ok: 9328 tests, 650487 assertions, 0 failures.` ·
+  `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 371 tolerated; leaked at exit: 0 object(s), 0 resource(s)` ·
+  `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).`
+- **Analyzer**: `python3 tools/gdscript_warnings.py --max 0`: `0 GDScript warning(s) in 0 of 1063 file(s)`.
+- **Contracts**: every check in CI's contracts group passes (decision_numbers 338 records, ready07_arithmetic,
+  merge_gate, setting_contract, dispatch_plan, astra_inbox, the save registry handoff, the canonical state table, the
+  cycle 1–3 handoffs, the registry capacity audit, the component columns schema, lane_notes, the movement checks,
+  state_registry_coverage, ui_refinement_contract).
+- **Live harness** `test/live/demo_feast_live.gd`, assets staged: `LIVE-SUMMARY 18 0` at 1280x720 and 1920x1080, headless
+  and windowed. Frames looked at: `scratchpad/feast_check/{feasts_panel_open,feasts_panel_ready,feasts_panel_called,
+  feast_at_supper,feasts_panel_after}_{1280x720,1920x1080}.png` -- the panel in the window clear of the side panels,
+  the plan and its refusal, Call held, the hall's tables at supper, and the tally ("9 of 9 shared it ... Shared Warmth
+  for 48 h"; the cold's gain at 750).
+- **Mutation**: 81 mutants, **81 killed** -- 78 on the rules, menu, buffs, cold, plan, tally, kitchen hooks, regatta
+  hooks and dish rows against `test_demo_feasts.gd` + `test_demo_dishes.gd` (a mutant also dies on any unexpected
+  diagnostic or leak), and 3 on the village wiring (the cold's gain, the Feast command, M4's binding) against the live
+  harness. **SURVIVED_MUTANTS: none.**
+- **Independent review** (the `code-reviewer` agent, waited for): no CRITICAL. **H1** (a feast cancelled during the
+  15:00–17:00 cooking window gave back nothing while the kitchen kept cooking) -- fixed: a feast may be cancelled only
+  until the kitchen starts cooking it, with a test. **H2** (five gates a mutant could break silently) -- fixed with
+  tests: the unplanned feast's cancel, the INTERVAL refusal through `refusal`/`hold`, REQ-SET-101's fuel half, the lapse
+  path, the occasion and takes let go after the tally. MEDIUMs: **M1** the live harness now asserts the buff before the
+  cold (fixed); **M2** a held feast's preview no longer takes its service wood twice (fixed); the HUD's Ready food still
+  counts a held feast's reserved food, as it counted the regatta's -- declared here, left to the HUD's owner; **M3** the
+  tally and settle mirror the regatta's rather than sharing a helper, to keep `regatta.gd` and `regatta_menu.gd` out of
+  #234's way -- a refactor for a later lane. LOWs: the override resets on a new theme or day (fixed); `_exit_tree`
+  leaves the cold at full rate (fixed); `fuel_days_milli`'s docstring (fixed); the cold's factor lags its setter by one
+  frame (accepted: presentation, a frame of 48 h); the panel's 4 Hz refresh recomputes the plan (accepted: only while
+  open); the regatta's Shared Warmth ignores a called Hearth feast's (safe: the 72-h interval outlasts the 48-h buff).
 
 ## Source
 

@@ -935,7 +935,7 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---|---|---|:-:|---|---|
-| FieldPolicy saved validation bridge | -- | -- | -- | -- | 3 | -- | Pure owner3 bridge, FIELD-POLICY-S4-VALIDATE-R01v1/ADR0179. No mutable authoritative state or live owner construction. Caller44288 + coldColumnsdefaults44288 + three128i32OPENcount scratch1536 =90112logicalpackedbytes within6417408stream allowance, not measuredRSS. Closed/inactive/stale history preserved; same-file Directory/Forage/Farming bindings and bulk restoration remain FIELD-POLICY-SAVED-BINDINGS. |
+| FieldPolicy saved validation bridge | -- | -- | -- | -- | 3 | -- | Pure owner3 bridge, FIELD-POLICY-S4-VALIDATE-R01v1/ADR0179. No mutable authoritative state or live owner construction. Caller44288 + coldColumnsdefaults44288 + three128i32OPENcount scratch1536 =90112logicalpackedbytes within6417408stream allowance, not measuredRSS. Closed/inactive/stale history preserved; same-file Directory/Forage/Farming bindings remain FIELD-POLICY-SAVED-BINDINGS. Bulk capture/apply exist (ADR 1222 step 2): `FieldPolicy.copy_columns_into()`/`restore_columns()` over the twenty columns, judged by the same `columns_refusal()`, nothing written on refusal; the ten `_*_count` diagnostics, `_math` and `_calendar` are category 3 and untouched; the bridge's `capture_into()`/`apply()`. `_last_column_refusal` is a category-3 diagnostic. |
 
 ### `godot/scripts/core/save_owner_residents.gd`
 

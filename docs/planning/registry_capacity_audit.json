@@ -17,7 +17,7 @@
       "excavation_inventory": "e69e83b0fa3851f7408b574fec44b0978d048fb759eb90b458492ac81d15c001",
       "excavation_sites": "69797b79377bf5b5b3a055126d065304668c3415460863ef958fbef72385eb74",
       "farming": "3a8db3515288193f78ca52a6838eba235db4b07d4d40a036131ed17cf46f1539",
-      "field_policy": "85244828684645cf56eeba68c0c083718376ab67fbdf4a144a4fa99ac5b0e42d",
+      "field_policy": "5c0e8ec679d6f43b0359d9aaaa30da1b053cc4e994995c53e1a31f5c8fa3cf75",
       "fishing": "81194d0e481e563703024e2f84b216fcb2fb25db8e8400af46db140d2dfcd478",
       "forage": "fbc941117ee084e80998c91510ee7ff4a320a265c6a4c16fcee8134fd5fa115f",
       "gear": "aeed59191a5e06fbd6e8b4bccf93d9b991ff9a73e2a1229afa1f2ed0cc6972ea",
@@ -4059,7 +4059,7 @@
       "parsed_expression": "FIELD_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:244 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4071,7 +4071,7 @@
       "source_module": "field_policy",
       "source_relation": "eq",
       "source_resize_expression": "FIELD_CAPACITY",
-      "source_resize_line": 528,
+      "source_resize_line": 534,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -4083,7 +4083,7 @@
       "parsed_expression": "FIELD_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:244 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4095,7 +4095,7 @@
       "source_module": "field_policy",
       "source_relation": "eq",
       "source_resize_expression": "FIELD_CAPACITY",
-      "source_resize_line": 522,
+      "source_resize_line": 528,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -4107,7 +4107,7 @@
       "parsed_expression": "FIELD_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:244 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4119,7 +4119,7 @@
       "source_module": "field_policy",
       "source_relation": "eq",
       "source_resize_expression": "FIELD_CAPACITY",
-      "source_resize_line": 523,
+      "source_resize_line": 529,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -4131,8 +4131,8 @@
       "parsed_expression": "FIELD_CAPACITY * ROTATION_LENGTH",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128",
-        "ROTATION_LENGTH -> godot/scripts/core/field_policy.gd:244 `const ROTATION_LENGTH = 3` = 3"
+        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:244 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128",
+        "ROTATION_LENGTH -> godot/scripts/core/field_policy.gd:246 `const ROTATION_LENGTH = 3` = 3"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4144,7 +4144,7 @@
       "source_module": "field_policy",
       "source_relation": "eq",
       "source_resize_expression": "FIELD_CAPACITY * ROTATION_LENGTH",
-      "source_resize_line": 524,
+      "source_resize_line": 530,
       "source_value": 384,
       "status": "proved_equality"
     },
@@ -4156,7 +4156,7 @@
       "parsed_expression": "FIELD_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:244 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4168,7 +4168,7 @@
       "source_module": "field_policy",
       "source_relation": "eq",
       "source_resize_expression": "FIELD_CAPACITY",
-      "source_resize_line": 525,
+      "source_resize_line": 531,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -4180,7 +4180,7 @@
       "parsed_expression": "FIELD_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:244 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4192,7 +4192,7 @@
       "source_module": "field_policy",
       "source_relation": "eq",
       "source_resize_expression": "FIELD_CAPACITY",
-      "source_resize_line": 526,
+      "source_resize_line": 532,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -4204,7 +4204,7 @@
       "parsed_expression": "FIELD_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:244 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4216,7 +4216,7 @@
       "source_module": "field_policy",
       "source_relation": "eq",
       "source_resize_expression": "FIELD_CAPACITY",
-      "source_resize_line": 527,
+      "source_resize_line": 533,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -4228,7 +4228,7 @@
       "parsed_expression": "FIELD_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:244 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4240,7 +4240,7 @@
       "source_module": "field_policy",
       "source_relation": "eq",
       "source_resize_expression": "FIELD_CAPACITY",
-      "source_resize_line": 529,
+      "source_resize_line": 535,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -4252,7 +4252,7 @@
       "parsed_expression": "FIELD_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:244 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4264,7 +4264,7 @@
       "source_module": "field_policy",
       "source_relation": "eq",
       "source_resize_expression": "FIELD_CAPACITY",
-      "source_resize_line": 530,
+      "source_resize_line": 536,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -4276,7 +4276,7 @@
       "parsed_expression": "FIELD_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:244 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4288,7 +4288,7 @@
       "source_module": "field_policy",
       "source_relation": "eq",
       "source_resize_expression": "FIELD_CAPACITY",
-      "source_resize_line": 531,
+      "source_resize_line": 537,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -4300,7 +4300,7 @@
       "parsed_expression": "FIELD_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:244 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4312,7 +4312,7 @@
       "source_module": "field_policy",
       "source_relation": "eq",
       "source_resize_expression": "FIELD_CAPACITY",
-      "source_resize_line": 532,
+      "source_resize_line": 538,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -4324,7 +4324,7 @@
       "parsed_expression": "FIELD_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:244 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4336,7 +4336,7 @@
       "source_module": "field_policy",
       "source_relation": "eq",
       "source_resize_expression": "FIELD_CAPACITY",
-      "source_resize_line": 533,
+      "source_resize_line": 539,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -4348,7 +4348,7 @@
       "parsed_expression": "FIELD_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:244 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4360,7 +4360,7 @@
       "source_module": "field_policy",
       "source_relation": "eq",
       "source_resize_expression": "FIELD_CAPACITY",
-      "source_resize_line": 534,
+      "source_resize_line": 540,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -4372,7 +4372,7 @@
       "parsed_expression": "FIELD_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:244 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4384,7 +4384,7 @@
       "source_module": "field_policy",
       "source_relation": "eq",
       "source_resize_expression": "FIELD_CAPACITY",
-      "source_resize_line": 535,
+      "source_resize_line": 541,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -4396,7 +4396,7 @@
       "parsed_expression": "FIELD_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:244 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4408,7 +4408,7 @@
       "source_module": "field_policy",
       "source_relation": "eq",
       "source_resize_expression": "FIELD_CAPACITY",
-      "source_resize_line": 536,
+      "source_resize_line": 542,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -4420,7 +4420,7 @@
       "parsed_expression": "FIELD_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:244 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4432,7 +4432,7 @@
       "source_module": "field_policy",
       "source_relation": "eq",
       "source_resize_expression": "FIELD_CAPACITY",
-      "source_resize_line": 537,
+      "source_resize_line": 543,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -4444,7 +4444,7 @@
       "parsed_expression": "FIELD_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:244 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4456,7 +4456,7 @@
       "source_module": "field_policy",
       "source_relation": "eq",
       "source_resize_expression": "FIELD_CAPACITY",
-      "source_resize_line": 538,
+      "source_resize_line": 544,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -4468,7 +4468,7 @@
       "parsed_expression": "PLOT_CAPACITY",
       "proof_chain": [
         "FarmingScript.FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096",
-        "PLOT_CAPACITY -> godot/scripts/core/field_policy.gd:246 `const PLOT_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096"
+        "PLOT_CAPACITY -> godot/scripts/core/field_policy.gd:248 `const PLOT_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4480,7 +4480,7 @@
       "source_module": "field_policy",
       "source_relation": "eq",
       "source_resize_expression": "PLOT_CAPACITY",
-      "source_resize_line": 544,
+      "source_resize_line": 550,
       "source_value": 4096,
       "status": "proved_equality"
     },
@@ -4492,7 +4492,7 @@
       "parsed_expression": "PLOT_CAPACITY",
       "proof_chain": [
         "FarmingScript.FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096",
-        "PLOT_CAPACITY -> godot/scripts/core/field_policy.gd:246 `const PLOT_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096"
+        "PLOT_CAPACITY -> godot/scripts/core/field_policy.gd:248 `const PLOT_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4504,7 +4504,7 @@
       "source_module": "field_policy",
       "source_relation": "eq",
       "source_resize_expression": "PLOT_CAPACITY",
-      "source_resize_line": 545,
+      "source_resize_line": 551,
       "source_value": 4096,
       "status": "proved_equality"
     },
@@ -4516,7 +4516,7 @@
       "parsed_expression": "PLOT_CAPACITY",
       "proof_chain": [
         "FarmingScript.FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096",
-        "PLOT_CAPACITY -> godot/scripts/core/field_policy.gd:246 `const PLOT_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096"
+        "PLOT_CAPACITY -> godot/scripts/core/field_policy.gd:248 `const PLOT_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4528,7 +4528,7 @@
       "source_module": "field_policy",
       "source_relation": "eq",
       "source_resize_expression": "PLOT_CAPACITY",
-      "source_resize_line": 546,
+      "source_resize_line": 552,
       "source_value": 4096,
       "status": "proved_equality"
     },

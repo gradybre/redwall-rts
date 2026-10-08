@@ -24,6 +24,10 @@
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/modular_projects.gd-c6bd313698be.txt",
       "sha256": "c6bd313698bee47685f7404c347a94852cee18efd2557109c8c673dc3467ada8"
     },
+    "godot/scripts/core/resource_nodes.gd": {
+      "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/resource_nodes.gd-d225ad67828e.txt",
+      "sha256": "d225ad67828e0acb4d6f2877fda6da0ccc0c1c6d728ce362d7573348692ae3de"
+    },
     "godot/scripts/core/transforms.gd": {
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/transforms.gd-7534a10b6043.txt",
       "sha256": "7534a10b6043aecb5183a8f791b7a6bf443a1462e44be174bb8c83e9ff2d4aaa"

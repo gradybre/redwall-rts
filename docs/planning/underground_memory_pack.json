@@ -41229,6 +41229,7 @@
       "godot/data/underground/mole-worker/work-step-v1/source_program.gd",
       "godot/scripts/core/jobs.gd",
       "godot/scripts/core/modular_projects.gd",
+      "godot/scripts/core/resource_nodes.gd",
       "godot/scripts/core/transforms.gd",
       "godot/scripts/core/underground_budget.gd",
       "godot/scripts/core/underground_connector_catalog.gd",
@@ -41717,6 +41718,89 @@
         ],
         "delta": {}
       },
+      "godot/scripts/core/resource_nodes.gd": {
+        "charges": [
+          {
+            "bytes": 344064,
+            "carried_by": "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "section-4 capture/apply: one Columns image plus one FramedOwner of 172,032 value bytes each"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_last_column_refusal",
+              "StringName"
+            ]
+          ],
+          "resizes_added": [
+            "capacity_milli.resize(RESOURCE_NODE_CAPACITY)",
+            "exhausted.resize(RESOURCE_NODE_CAPACITY)",
+            "planted_day.resize(RESOURCE_NODE_CAPACITY)",
+            "present.resize(RESOURCE_NODE_CAPACITY)",
+            "quantity_milli.resize(RESOURCE_NODE_CAPACITY)",
+            "ref_generation.resize(RESOURCE_NODE_CAPACITY)",
+            "ref_slot.resize(RESOURCE_NODE_CAPACITY)",
+            "regrow_days.resize(RESOURCE_NODE_CAPACITY)",
+            "resource_id.resize(RESOURCE_NODE_CAPACITY)",
+            "tile.resize(RESOURCE_NODE_CAPACITY)"
+          ],
+          "classes": {
+            "Columns": [
+              null,
+              [
+                [
+                  "capacity_milli",
+                  "PackedInt64Array"
+                ],
+                [
+                  "exhausted",
+                  "PackedByteArray"
+                ],
+                [
+                  "planted_day",
+                  "PackedInt32Array"
+                ],
+                [
+                  "present",
+                  "PackedByteArray"
+                ],
+                [
+                  "quantity_milli",
+                  "PackedInt64Array"
+                ],
+                [
+                  "ref_generation",
+                  "PackedInt32Array"
+                ],
+                [
+                  "ref_slot",
+                  "PackedInt32Array"
+                ],
+                [
+                  "regrow_days",
+                  "PackedInt32Array"
+                ],
+                [
+                  "resource_id",
+                  "PackedInt32Array"
+                ],
+                [
+                  "tile",
+                  "PackedInt32Array"
+                ]
+              ]
+            ]
+          },
+          "allocation_sites": {
+            ".duplicate(": 10,
+            "PackedByteArray(": 2,
+            "PackedInt32Array(": 6,
+            "PackedInt64Array(": 2,
+            "range(": 1
+          }
+        }
+      },
       "godot/scripts/core/transforms.gd": {
         "charges": [
           {
@@ -41879,6 +41963,16 @@
             "bytes": 0,
             "carried_by": "none",
             "store": "no retained-storage change"
+          }
+        ],
+        "delta": {}
+      },
+      "godot/scripts/core/underground_entry_world_bindings.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1225: one rebinding predicate for a replacement crew; no member, packet or resize"
           }
         ],
         "delta": {}
@@ -43453,23 +43547,13 @@
             ]
           ]
         }
-      },
-      "godot/scripts/core/underground_entry_world_bindings.gd": {
-        "charges": [
-          {
-            "bytes": 0,
-            "carried_by": "none",
-            "store": "ADR 1225: one rebinding predicate for a replacement crew; no member, packet or resize"
-          }
-        ],
-        "delta": {}
       }
     },
     "charged_by_carrier": {
       "PROFILE_BYTES joint (motion census, 257,308 of 262,144)": 8676,
       "Profiles CONTROL_RESERVE (load-time, released)": 432,
       "none": 0,
-      "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)": 6413312,
+      "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)": 6757376,
       "joint pack (the reserve is a pack contribution)": 256,
       "BINDINGS_AND_GROWTH_BYTES (fully assigned, 524,544)": 256,
       "none (new)": 74,

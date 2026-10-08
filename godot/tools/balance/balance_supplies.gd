@@ -9,8 +9,8 @@ extends RefCounted
 ##            while heat is demanded (its NO_DEMAND, -1, is left out, so a season's figures are its heated days'); the
 ##            hall's tier at the close (hall_projects.gd `tier`: the hall burns at x0.75 once it is 2, decision 1652);
 ##   apiary   apiary_model.gd's books (decision 1601) -- honey made = in the hives + released to the baskets + put by as
-##            winter feed from the hive + lost to wildlife; feed put by (from the hive and from the pantry) = feed in the
-##            hives + eaten by the bees; wax made; missed service days -- each day's movement; the weakest hive's
+##            winter feed from the hive + lost to wildlife; feed put by (from the hive and from the pantry) = feed in
+##            the hives + eaten by the bees; wax made; missed service days -- each day's movement; the weakest hive's
 ##            strength, the honey and the feed in the hives at the close; the days any hive stood abandoned.
 ## Every part may be missing (null): it then reads nothing.
 

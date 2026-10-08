@@ -644,7 +644,7 @@ func _stock(fishery: FakeFishery, item: int, milli: int) -> void:
 
 func test_the_stores_round_orders_every_recipe_the_stations_take_and_counts_the_rest() -> void:
 	"""Decision 1731: each recipe row the fishery would take gets a batch, in the table's order; a refused row is counted
-	under "Not ordered" with the fishery's code; nothing is milled or foraged with no dried fish."""
+	under "Not ordered" with the fishery's code; nothing is milled without dried fish; one forager goes for the cheese."""
 	var fishery := FakeFishery.new()
 	var policy := _provisioner(fishery)
 	var trips := FakeTrips.new()
@@ -699,19 +699,24 @@ func test_the_runner_accepts_the_provisioning_policy() -> void:
 	assert_true("provisioning" in RunScript.POLICIES, "listed")
 
 
-
 func test_a_row_waits_on_one_input_only_when_every_other_is_free() -> void:
 	"""Decision 1731: `waits_only_on` -- the category short and every other input free (one milli-U either side)."""
 	var fishery := FakeFishery.new()
 	var policy := _provisioner(fishery)
 	assert_true(policy.waits_only_on(Recipes.R_CHEESE, Catalog.CAT_NUTS), "nut cheese with no nuts: waits on nuts alone")
-	assert_false(policy.waits_only_on(Recipes.R_MEAD, Catalog.CAT_NUTS), "mead takes no nuts")
+	_stock(fishery, Catalog.ITEM_HONEY, 10000)
+	assert_false(policy.waits_only_on(Recipes.R_MEAD, Catalog.CAT_NUTS), "mead, its honey there, takes no nuts")
 	assert_false(policy.waits_only_on(Recipes.R_RATION, Catalog.CAT_NUTS), "rations lack their flour and dried fish too")
 	_stock(fishery, Catalog.ITEM_FLOUR, _ration_need(Catalog.CAT_FLOUR))
 	_stock(fishery, Catalog.ITEM_DRIED_FISH, _ration_need(Catalog.CAT_DRIED_FISH) - 1)
 	assert_false(policy.waits_only_on(Recipes.R_RATION, Catalog.CAT_NUTS), "dried fish one milli-U short: not nuts alone")
 	_stock(fishery, Catalog.ITEM_DRIED_FISH, 1)
 	assert_true(policy.waits_only_on(Recipes.R_RATION, Catalog.CAT_NUTS), "flour and dried fish there: nuts alone")
+	var take: int = fishery.takes.new_take()
+	assert_true(fishery.takes.reserve_into(fishery.pantry, take, Catalog.CAT_DRIED_FISH, 1, 0, IntMath.IntResult.new()),
+		"a meal holds one milli-U of the dried fish")
+	assert_false(policy.waits_only_on(Recipes.R_RATION, Catalog.CAT_NUTS), "held food is not free: not nuts alone")
+	assert_false(policy.ration_input_free(Catalog.CAT_DRIED_FISH), "nor is the dried fish free")
 	_stock(fishery, Catalog.ITEM_NUTS, _ration_need(Catalog.CAT_NUTS))
 	assert_false(policy.waits_only_on(Recipes.R_RATION, Catalog.CAT_NUTS), "nuts at the need: nothing waits")
 
@@ -744,6 +749,30 @@ func test_one_forager_goes_for_nuts_while_a_batch_waits_on_them() -> void:
 	assert_false(policy.wants_nuts(), "every batch's nuts there: not wanted")
 	policy._stores_round()
 	assert_equal(trips.asked.size(), 1, "none sent")
+	var take: int = fishery.takes.new_take()
+	assert_true(fishery.takes.reserve_into(fishery.pantry, take, Catalog.CAT_NUTS, 1, 0, IntMath.IntResult.new()),
+		"a meal holds one milli-U of the nuts")
+	assert_true(policy.wants_nuts(), "held nuts are not free: wanted again")
+
+
+func test_nuts_are_not_wanted_for_a_cheese_that_could_not_be_ordered() -> void:
+	"""A cheese batch already waiting, or every crock taken, is not a batch waiting on nuts (the review of beb3bb3b)."""
+	var fishery := FakeFishery.new()
+	var policy := _provisioner(fishery)
+	assert_true(policy.could_order(Recipes.R_CHEESE) and policy.wants_nuts(), "no nuts, a free crock: wanted")
+	var t: FisheryTables = fishery.tables
+	t.j_live[0] = 1
+	t.j_kind[0] = FisheryTables.KIND_DRY
+	t.j_recipe[0] = Recipes.R_CHEESE
+	assert_false(policy.could_order(Recipes.R_CHEESE), "a cheese batch waiting")
+	assert_false(policy.wants_nuts(), "so its nuts are not wanted (rations lack their dried fish)")
+	t.j_live[0] = 0
+	var first: int = Recipes.STATION_FIRST_SLOT[Recipes.STATION_TABLE]
+	for slot: int in range(first, first + Recipes.STATION_SLOTS[Recipes.STATION_TABLE]):
+		t.s_state[slot] = FisheryTables.SLOT_CURING
+	assert_false(policy.could_order(Recipes.R_CHEESE), "every crock taken")
+	assert_false(policy.wants_nuts(), "no crock: not wanted")
+	assert_true(policy.could_order(Recipes.R_RATION), "a batch row needs no slot")
 
 
 func test_flour_is_ground_only_once_rations_lack_nothing_else() -> void:

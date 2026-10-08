@@ -7,13 +7,17 @@ extends "res://tools/balance/light_touch_policy.gd"
 ##
 ## THE STORES ROUND (06:00, after the light-touch rounds):
 ##   nuts     one forager sent when a batch waits on nuts alone, no foraging trip is out and the woods allow it
-##            (forage_trips.gd `trip_refusal`) -- nuts come only from a trip. A batch waits on nuts alone when its nuts
-##            are short and every other input is free (no planned meal holds it): the nut cheese (decision 1625), or any
-##            row like it; and rations once their dried fish is free (their flour is ground after the nuts, below);
+##            (forage_trips.gd `trip_refusal`) -- nuts come only from a trip. A batch waits on nuts alone when its
+##            nuts are short and every other input is free (no planned meal holds it), and it could be ordered (none of
+##            its row waiting, a free slot for a passive row): the nut cheese (decision 1625), or any row like it; and
+##            rations once their dried fish is free (their flour is ground after the nuts, below). Nuts are named by
+##            their category in the recipe table; a row that named them by an item selector would not be seen here.
+##            The trips add food (nuts are raw-edible, and dishes take them) and take a forager off the board: read
+##            the "Forage (nuts)" count with the food figures;
 ##   flour    rations' inputs are gathered in their chain's order, each only once every input before it is free, so
-##            nothing is taken for a batch that cannot be made: dried fish from the rack's own row (below), then the nuts
-##            (above), then one mill batch when the free flour is short and the mill takes it (`mill_refusal`). The mill
-##            grinds grain the kitchen would cook, so it waits until a batch of rations is otherwise possible;
+##            nothing is taken for a batch that cannot be made: dried fish from the rack's own row (below), then the
+##            nuts (above), then one mill batch when the free flour is short and the mill takes it (`mill_refusal`).
+##            The mill grinds grain the kitchen would cook, so it waits until a batch of rations is otherwise possible;
 ##   recipes  every row of the stations' recipe table (preserve_rules.gd, in its own order: dried fish, dried fruit,
 ##            rations, mead, cordial, and whatever rows are appended after them) gets a batch ordered when the fishery
 ##            would take it (`batch_refusal` is empty) and no batch of that row is waiting to be worked. A passive batch
@@ -79,9 +83,17 @@ func wants_nuts() -> bool:
 	if ration_input_free(Catalog.CAT_DRIED_FISH) and not ration_input_free(Catalog.CAT_NUTS):
 		return true
 	for recipe: int in Recipes.RECIPE_COUNT:
-		if waits_only_on(recipe, Catalog.CAT_NUTS):
+		if could_order(recipe) and waits_only_on(recipe, Catalog.CAT_NUTS):
 			return true
 	return false
+
+
+func could_order(recipe: int) -> bool:
+	"""Whether a batch of `recipe` could be ordered but for its inputs: none of its row waiting, and a free slot or vat
+	for a passive row."""
+	if open_batches(recipe) > 0:
+		return false
+	return not Recipes.is_passive(recipe) or _fishery.free_slot(Recipes.STATION[recipe]) >= 0
 
 
 func waits_only_on(recipe: int, category: int) -> bool:

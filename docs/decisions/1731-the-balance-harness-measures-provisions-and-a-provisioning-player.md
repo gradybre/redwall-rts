@@ -165,9 +165,28 @@ its own (1601), so `hands_off` exercises it.
   - one forager for nuts while a batch waits on them, and none once the largest need is met, a trip is out, or the
     woods refuse;
   - flour is ground only once rations lack nothing else.
-- **Focused suite:** `32 test(s), 154 assertion(s), 0 failure(s)`, 0 unexpected, 0 leaked.
-- **Mutation:** 11 mutants on the new logic, 10 killed.
+- **Focused suite** (after the review below): `33 test(s), 166 assertion(s), 0 failure(s)`, 0 unexpected, 0 leaked.
+- **Mutation:** 11 mutants on the new logic, 10 killed; then 5 on the review's fixes, all killed.
   - **The survivor** removes the rations branch of `wants_nuts`. It is equivalent under the current table: the cheese
     takes more nuts (2 U) than rations (1 U) and no other food, so whenever rations wait on nuts the cheese does too.
     The branch is kept, so that rations do not depend on the cheese row existing.
   - **A second survivor** showed an `!= R_RATION` exclusion was redundant; it was removed.
+  - **The reviewer's own run** found one more equivalent mutant, dropping the dried-fish condition from that same rations
+    branch, for the same reason.
+
+### Review of `beb3bb3b` (independent `code-reviewer`, waited for)
+
+- **No CRITICAL or HIGH.**
+- **Selectors confirmed safe.** `SELECT_ITEMS` is `1 << 62`, so no selector can equal `CAT_NUTS`.
+- **MEDIUM, the forager went out when the cheese could not be ordered** (a batch already waiting, or every crock taken).
+  **Fixed**: `could_order(recipe)` gates `wants_nuts`. The header now says plainly that the trips add food and take a
+  forager off the board, so the "Forage (nuts)" count should be read with the food figures.
+- **MEDIUM, no test reserved food**, so "free (no planned meal holds it)" was untested: replacing the takes with a fresh
+  one survived. **Fixed**: two reservation assertions, and that mutant is now killed.
+- **LOWs:**
+  - **Fixed:** the mead assertion now stocks honey first; a stale docstring; two lines over 120 characters; blank lines.
+  - **Documented, not changed:**
+    - Nuts named by an item selector would not be seen. The header says nuts are named by category.
+    - The mill check runs before the recipe loop. With 2–2.9 U of free nuts, the mill can grind for rations in the same
+      round that the cheese reserves 2 U, which delays the rations until the next trip. Nothing is lost: the flour stays
+      free for the kitchen.

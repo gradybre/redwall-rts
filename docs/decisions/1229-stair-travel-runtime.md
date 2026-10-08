@@ -108,6 +108,7 @@ columns. A new column would be a declared schema change with its own record.
 - **Increment 3 (stair program, stair tables, Routes and WorldRoutes), done.** Details and the engineering choices
   below (§ Increment 3).
 - **Increment 4 (content 10's handling layer), done.** Below (§ Increment 4).
+- **Increment 5 (the T1-T6 bundle, create-only), done.** Below (§ Increment 5).
 
 ## Increment 3 — the stair program and stair edges in Routes and WorldRoutes (2026-10-08)
 
@@ -188,3 +189,39 @@ the yaw-0 seating tap 52 is the step forward. So the layer now reads every row u
   the exact anchor-and-patch contact, and an episode with no bearing under it (the seventh row, D2).
 - Tests: `test_claw_tread_programs.gd` (5). The routes, world routes, contacts, first prefix, haul grip and hauled
   assembly suites pass unchanged on content 9.
+
+## Increment 5 — the T1–T6 bundle `qualified-stairs-v7` (create-only, 2026-10-08)
+
+`first-entry-prefix-v1/publish_qualified_stairs.py` writes `qualified-stairs-v7/` from pinned inputs only: the ADR
+1209 prefix spec, `qualified-claw-v6`, content 10's profile image and ground caps. Its docstring lists every table.
+In short:
+
+- **Structure:**
+  - 52 parts in eight assemblies (L0, T0, T1–T5, the T6 sill with 64 u bearers and no posts);
+  - natural bearings under every post and the sill's bearers;
+  - a LANDING per standing deck;
+  - paces are content 10's 26 ground caps, then DEC-050's rows on variant 0: 53 and 54 at 528 u/s, 55 at 116 u/s.
+- **Bills and workpieces:**
+  - T0's bill per tread (D3);
+  - L0/T0 on paw row 65;
+  - each tread's staged left bearer on row 66, by `TreadGeometry`.
+- **Frontier, revision 6:**
+  - claw-v6's rows with content 10's row ids (52→57, 53→58, 57→62);
+  - eight more cube episodes for rows 4–7 from surface stations at ±1,430 u (D2's seventh row has no bearing);
+  - the stair stops on L0 and T0–T5 (arrival 169, station 310 WORK on row 64, ascent start 343);
+  - the crossing arrival (0, 0, −664) on the yaw-32768 approach 45;
+  - an INSTALL row per tread at its station on the tread above.
+- **Two engineering findings:**
+  - Content 10's published `ground-pace.ugconn` names content 9's claw image (v1) in its header digest, so it cannot
+    link to a structure bound to the v2 image. The published file is not edited. No runtime reads it (the
+    structure carries the caps), so the bundle's copy carries the v2 digest and every row stays byte for byte
+    (`rebound_ground`, tested).
+  - The entry source formatter (`entry_source_constants.py`) required the structure's paces to equal the ground
+    caps. It now admits the caps followed by authored connector rows (family ≥ 0, RATE_AUTHORED, rate ≥ 1). Any
+    changed cap is still GROUND_SOURCE (tested).
+- **Not active.** The mounted Session still runs `qualified-claw-v6`. The work area's eight new cut stations, the
+  stair-stop Location bounds and the stair path helper land with activation (increment 6).
+- **Tests:**
+  - `test_underground_stairs_bundle_source.gd` (3): the actual Catalog, Recipes, Assemblies and Frontier readers
+    over content 10;
+  - `test_publish_qualified_stairs.py` (5).

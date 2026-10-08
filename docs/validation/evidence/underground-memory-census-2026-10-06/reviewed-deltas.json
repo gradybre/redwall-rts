@@ -325,9 +325,9 @@
   "godot/scripts/core/movement.gd": {
    "charges": [
     {
-     "bytes": 65536,
+     "bytes": 102400,
      "carried_by": "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
-     "store": "section-4 capture/apply: one Columns image plus one FramedOwner of 32,768 value bytes each"
+     "store": "section-4 capture/apply: one Columns image plus one FramedOwner of 32,768 value bytes each; section-9 cursors: one 18,432-byte block plus its Record copy"
     }
    ],
    "delta": {
@@ -337,8 +337,17 @@
       "StringName"
      ]
     ],
+    "int_constants_added": [
+     [
+      "CURSOR_COLUMN_COUNT",
+      "9"
+     ]
+    ],
     "allocation_sites": {
-     ".duplicate(": 16
+     ".duplicate(": 16,
+     ".slice(": 9,
+     "PackedInt32Array(": 1,
+     "return[": 1
     }
    }
   },

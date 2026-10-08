@@ -1541,3 +1541,92 @@ static func _columns_target_is_centre(image: Columns, row: int, cell: int) -> St
 	if image.next_z[row] != SpatialWorld.cell_centre_z_units(cell):
 		return REFUSE_COLUMN_STATE
 	return REFUSE_NONE
+
+
+# --- ARCH-SAVE-002 section 9 cursor columns and the section 2 profile revisions (ADR 1222) -------
+#
+# Section 9's `movement` block is the nine route-cursor columns, `MOTION_CAPACITY` rows each, in
+# the registry's ordinal order (owner id, request, route generation, index, profile id, profile
+# revision, mode, load, destination revision) -- `save_section_navigation.gd`'s MOV_* layout, so a
+# block here is exactly that Record's `movement` array. A DETACHED row is the exact value
+# `_detach_cursor()` writes. An ATTACHED row names a navigation request, so it restores only into a
+# store bound to a Navigation whose descriptor carries the same route generation; production binds
+# none, so an attached row refuses COLUMN_CURSOR (DEC-055 Q9) rather than restoring a dangling one.
+# `movement._profile_revision` is section 2 state with no carrier yet (ADR 1222's table): a save
+# refuses once any profile has been revised past PROFILE_FIRST_REVISION.
+
+const CURSOR_COLUMN_COUNT: int = 9
+const REFUSE_COLUMN_CURSOR: StringName = &"COLUMN_CURSOR"
+const REFUSE_UNSUPPORTED_PROFILE: StringName = &"SAVE_UNSUPPORTED_STATE"
+
+
+func copy_cursor_columns_into(out: PackedInt32Array) -> bool:
+	"""Snapshot the nine cursor columns column-major into a CURSOR_COLUMN_COUNT x 512 buffer."""
+	if out.size() != CURSOR_COLUMN_COUNT * MOTION_CAPACITY:
+		_last_column_refusal = REFUSE_COLUMN_SHAPE
+		return false
+	out.clear()
+	for column: PackedInt32Array in _cursor_columns():
+		out.append_array(column)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func _cursor_columns() -> Array[PackedInt32Array]:
+	"""The nine live cursor columns in ordinal order (shared, never handed out)."""
+	return [_cursor_owner_id, _cursor_request, _cursor_route_generation, _cursor_index,
+		_cursor_profile_id, _cursor_profile_revision, _cursor_mode, _cursor_load_g,
+		_cursor_destination_revision]
+
+
+func restore_cursor_columns(block: PackedInt32Array) -> bool:
+	"""Install the nine cursor columns once every row proves detached or bound. False: no write."""
+	var code: StringName = _cursor_block_refusal(block)
+	if code != REFUSE_NONE:
+		_last_column_refusal = code
+		return false
+	_cursor_owner_id = block.slice(0, MOTION_CAPACITY)
+	_cursor_request = block.slice(MOTION_CAPACITY, 2 * MOTION_CAPACITY)
+	_cursor_route_generation = block.slice(2 * MOTION_CAPACITY, 3 * MOTION_CAPACITY)
+	_cursor_index = block.slice(3 * MOTION_CAPACITY, 4 * MOTION_CAPACITY)
+	_cursor_profile_id = block.slice(4 * MOTION_CAPACITY, 5 * MOTION_CAPACITY)
+	_cursor_profile_revision = block.slice(5 * MOTION_CAPACITY, 6 * MOTION_CAPACITY)
+	_cursor_mode = block.slice(6 * MOTION_CAPACITY, 7 * MOTION_CAPACITY)
+	_cursor_load_g = block.slice(7 * MOTION_CAPACITY, 8 * MOTION_CAPACITY)
+	_cursor_destination_revision = block.slice(8 * MOTION_CAPACITY, 9 * MOTION_CAPACITY)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func _cursor_block_refusal(block: PackedInt32Array) -> StringName:
+	"""Shape, then each row the exact detached value or bound to this store's navigation."""
+	if block.size() != CURSOR_COLUMN_COUNT * MOTION_CAPACITY:
+		return REFUSE_COLUMN_SHAPE
+	for row: int in MOTION_CAPACITY:
+		var request: int = block[MOTION_CAPACITY + row]
+		if request == NO_REQUEST:
+			if not _cursor_row_is_detached(block, row):
+				return REFUSE_COLUMN_CURSOR
+		elif _navigation == null or request < 0 \
+				or _navigation.route_generation_of(_navigation.request_route_id(request)) \
+					!= block[2 * MOTION_CAPACITY + row]:
+			return REFUSE_COLUMN_CURSOR
+	return REFUSE_NONE
+
+
+static func _cursor_row_is_detached(block: PackedInt32Array, row: int) -> bool:
+	"""The exact row `_detach_cursor()` leaves, read column-major out of `block`."""
+	var expected: PackedInt32Array = PackedInt32Array([NO_OWNER_ID, NO_REQUEST, 0, 0, NO_PROFILE,
+		0, NO_MODE, 0, 0])
+	for column: int in CURSOR_COLUMN_COUNT:
+		if block[column * MOTION_CAPACITY + row] != expected[column]:
+			return false
+	return true
+
+
+func profile_revision_refusal() -> StringName:
+	"""SAVE_UNSUPPORTED_STATE once any profile is revised; section 2 has no carrier for it."""
+	for profile: int in PROFILE_COUNT:
+		if _profile_revision[profile] > PROFILE_FIRST_REVISION:
+			return REFUSE_UNSUPPORTED_PROFILE
+	return REFUSE_NONE

@@ -407,3 +407,40 @@ func test_null_and_misshaped_inputs_refuse_without_writing() -> void:
 	assert_false(target.copy_columns_into(short), "a short output buffer refuses")
 	assert_false(target.restore_columns(null), "null columns refuse")
 	assert_true(_b_image(target).equals(before), "nothing was written")
+
+
+# --- ADR 1222: the section 9 cursor columns and the section 2 profile revision gate ---------------
+
+func _b_cursors(owner: Owner) -> PackedInt32Array:
+	"""The nine cursor columns through the bulk reader."""
+	var block: PackedInt32Array = PackedInt32Array()
+	block.resize(Owner.CURSOR_COLUMN_COUNT * Owner.MOTION_CAPACITY)
+	assert_true(owner.copy_cursor_columns_into(block), "cursor copy succeeds")
+	return block
+
+
+func test_detached_cursors_round_trip_and_corruption_refuses_unwritten() -> void:
+	"""Idle rows restore exactly; a half-detached row and a dangling request each refuse."""
+	var source: Owner = _b_live_store()
+	var block: PackedInt32Array = _b_cursors(source)
+	var target: Owner = Owner.new(_b_directory, _b_world, _b_navigation, _b_transforms, _b_residents)
+	assert_true(target.restore_cursor_columns(block), "detached rows restore")
+	assert_equal(_b_cursors(target), block, "byte-identical cursor columns")
+	var half: PackedInt32Array = block.duplicate()
+	half[Owner.MOTION_CAPACITY * 7] = 5
+	assert_false(target.restore_cursor_columns(half), "a load on a detached row refuses")
+	assert_equal(target.last_column_refusal(), Owner.REFUSE_COLUMN_CURSOR, "its code")
+	var dangling: PackedInt32Array = block.duplicate()
+	dangling[Owner.MOTION_CAPACITY] = 0
+	dangling[2 * Owner.MOTION_CAPACITY] = 999
+	assert_false(target.restore_cursor_columns(dangling), "a request whose route moved refuses")
+	assert_false(target.restore_cursor_columns(PackedInt32Array([1])), "a short block refuses")
+	assert_equal(_b_cursors(target), block, "no refusal wrote a cursor")
+
+
+func test_a_revised_profile_refuses_the_save_until_section_two_carries_it() -> void:
+	"""Published revisions are saveable; one revision past the first is SAVE_UNSUPPORTED_STATE."""
+	var source: Owner = _b_live_store()
+	assert_equal(source.profile_revision_refusal(), Owner.REFUSE_NONE, "fresh profiles")
+	assert_true(source.revise_profile(0), "revise the mouse profile")
+	assert_equal(source.profile_revision_refusal(), &"SAVE_UNSUPPORTED_STATE", "now unsupported")

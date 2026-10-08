@@ -577,6 +577,7 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 | StarterGroundProfile revisions | `_profile_revision` | 4 | `PROFILE_COUNT` = 4 | `0` when nothing is published at that id | 1 | §2 CATALOG_IDS | Decision 0083. NOT derivable, unlike the five columns above: `revise_profile()` advances it, and every travelling resident's `_cursor_profile_revision` is compared against it every tick. A load that reset it to `PROFILE_FIRST_REVISION` would silently re-validate journeys whose profile had been withdrawn. |
 | Movement scratch | -- | -- | -- | -- | 3 | -- | `_scratch`, `_pose`, `_travelling_count`, `_last_refusal`, the `_step_position`/`_step_budget`/`_here_x`/`_here_z` per-tick scalars and the five collaborator handles. |
 
+| Save cursor and profile gates | -- | -- | -- | `REFUSE_NONE` | 3 | -- | ADR 1222. `copy_cursor_columns_into()`/`restore_cursor_columns()` move the nine section 9 cursor columns column-major (the section 9 Record's `movement` layout). A detached row must be the exact value `_detach_cursor()` writes; an attached row restores only when this store is bound to a Navigation whose descriptor carries the saved route generation, so with no production Navigation it refuses COLUMN_CURSOR. `profile_revision_refusal()` reports SAVE_UNSUPPORTED_STATE once a profile is revised past its first revision, because section 2 has no carrier for `_profile_revision` yet. |
 ### `godot/scripts/core/navigation.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

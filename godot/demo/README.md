@@ -2816,6 +2816,10 @@ Brendan's rulings of 2026-10-07 on the balance rerun's proposals (decision 1731;
   meal's, an occasion's, a meal cooked or cooking, or fish in the cook's hand.
 - **Grain for the mill** (1741, F6). The mill may take grain planned for meals beyond the next under the same rule
   (`kitchen.gd beyond_next_meal_milli` / `release_beyond_next_meal` by category; `fishery.gd grain_available_milli`).
+- **The ration reserve** (1742, F7 (b)). While the rations owned are below the target (the GDD's WorldPolicy
+  `ration_reserve_milli`; the demo sets a PROVISIONAL 6 U), `preserve/ration_reserve.gd` holds one batch's dried fish,
+  nuts and flour (or a mill batch's grain) back from the kitchen and raw eating. `fishery.gd release_ration_reserve` is
+  §5.10's emergency release.
 - **The rations' dried fish** (1740, F5 (a)). A raw meal leaves the dried fish one batch of rations takes, 1 U
   (`kitchen.gd` FOOD KEPT FROM RAW EATING, bound to `fishery.gd ration_keep_milli`), only while a batch could be made
   but for it (`rations_wait_on_dried_fish`, a PROPOSAL). The kitchen may still cook it.

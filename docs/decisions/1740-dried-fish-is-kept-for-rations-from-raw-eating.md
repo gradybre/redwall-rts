@@ -141,3 +141,12 @@ Staged provisioning, 9 residents, 3 seeds (the report's follow-up section, "F5 a
   from F5 (b): the rack takes more fish from the meals.
 - **New questions for Brendan:** F7 (rations and the player) and F8 (this keep's condition) are in the report. F9
   (the nuts clause) is above.
+
+## Brendan's rulings on F7–F9 (2026-10-08)
+
+- **F9 (c), accept.** Under hunger the keep may switch off through its nuts clause.
+- **F8: not ruled separately.** The conditional keep stays this record's PROPOSAL.
+- **F7 (b): a ration reserve,** decision 1742. Where a reserve target is set, as the demo village sets one, the reserve
+  does this keep's work: it holds the next batch's dried fish from raw eating unconditionally, with its other inputs.
+  The keep then keeps nothing, and it keeps nothing while the reserve is released (1742's review). It stays bound for a
+  village with no target, the GDD's default.

@@ -172,6 +172,12 @@ extends Node3D
 ## season" brings winter. `_build_winter()` wires it after the woods (its firewood) and the kitchen (its cooking wood);
 ## `_build_work()` hands it the work board.
 ##
+## THE CALLED FEASTS (decision 1701, demo/feast/; feature #9, review SOC-023): the GDD's Hearth, Harvest and Orchard
+## feasts called by the player for one of the next suppers (Brendan's ruling on Q-D11: every feast at the 17:00 supper),
+## refused truthfully under REQ-SET-101, cooked as the kitchen's occasion, tallied, their buffs reaching the winter's cold
+## and the work pace. `_build_feasts()` wires it last, over the kitchen, the regatta, the winter, the hall and the people;
+## the HUD's Feast command opens its panel, and M4's "12 completed feasts" reads its count.
+##
 ## THE HALL (decision 0771, demo/hall/): the community hall grows in Brendan's adopted two stages -- the hall the village
 ## starts with, then its one tier-2 upgrade (REQ-SET-136) -- and up to four banners, each carried in and built by the
 ## residents through the work board; clicking the hall opens its panel, and from it the village tapestry, whose
@@ -304,6 +310,7 @@ const HearthFuelScript := preload("res://demo/winter/hearth_fuel.gd")
 const HallScript := preload("res://demo/hall/demo_hall.gd")
 const WildlifeScript := preload("res://demo/wildlife/wildlife_view.gd")
 const WeatherFxScript := preload("res://demo/weather/weather_fx.gd")
+const FeastsScript := preload("res://demo/feast/demo_feasts.gd")
 const TapestryScript := preload("res://demo/hall/tapestry.gd")
 const CareScript := preload("res://demo/infirmary/demo_care.gd")
 const OrchardScript := preload("res://demo/orchard/demo_orchard.gd")
@@ -420,6 +427,8 @@ var _hall: HallScript = null
 var _wildlife: WildlifeScript = null
 ## The livelier weather (demo/weather/weather_fx.gd, decision 1632): lightning, the storm's work factor, event notices.
 var _weather_fx: WeatherFxScript = null
+## The called feasts (demo/feast/, decision 1701).
+var _feasts: FeastsScript = null
 var _care: CareScript = null
 ## Feature #22 (decision 0681): the foraging trips.
 var _forage: ForageNodeScript = null
@@ -476,6 +485,7 @@ func _ready() -> void:
 	_build_hall()
 	_build_wildlife()
 	_build_weather_fx()
+	_build_feasts()
 	_skin_hud.call_deferred()
 	add_child(WindowKeysScript.new())
 	_hold_restart_open()
@@ -491,6 +501,26 @@ func _build_wildlife() -> void:
 	_wildlife = WildlifeScript.new()
 	add_child(_wildlife)
 	_wildlife.wire(_services, _cast as DemoCastScript, _prewarm)
+
+
+func _build_feasts() -> void:
+	"""THE CALLED FEASTS (see the header): over the kitchen, the regatta, the winter, the hall's seats and the people;
+	the Feast command opens its panel, which the selection's cards, the guide and the people card give way to (as the
+	hall's); M4's "12 completed feasts" reads its count (goal_book.gd `bind_measure`)."""
+	_feasts = FeastsScript.new()
+	add_child(_feasts)
+	_feasts.wire(_services, _cast as DemoCastScript, _kitchen.kitchen, _regatta, _winter, _hall.gathering_seats)
+	_feasts.bind_people(_people.share_feast)
+	_feasts.take_feast_command(_shell())
+	_cards.hide_while(_feasts.panel.is_open)
+	_guide.card.hide_while(_feasts.panel.is_open)
+	_people_card.hide_while(_feasts.panel.is_open)
+	_guide.goals.book.bind_measure(&"m4_hearth_charter", &"feasts", _feasts.feasts_completed)
+
+
+func feasts() -> FeastsScript:
+	"""The village's called feasts (demo/feast/demo_feasts.gd)."""
+	return _feasts
 
 
 func _build_weather_fx() -> void:
@@ -1859,6 +1889,7 @@ func _add_planning() -> void:
 	_time.add_planning("the Residents list", _workspace_open)
 	_time.add_planning("the heating fuel breakdown", func() -> bool: return _fuel_panel.visible)
 	_time.add_planning("the hall", _hall.is_open)
+	_time.add_planning("the feasts", _feasts.panel.is_open)
 
 
 func _workspace_open() -> bool:

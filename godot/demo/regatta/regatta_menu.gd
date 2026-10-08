@@ -5,7 +5,7 @@ extends RefCounted
 ##
 ## THE SECOND COURSE: ceil(E/3) batches of `nut_loaf` (flour 2, nuts 2, water 1 -> 3 x 2600 NP, 24 WU, 72 h). At
 ## confirmation, when the pantry holds every batch's flour and nuts free, both are RESERVED in the regatta's own take
-## beside the main course's beans and cabbage, and the kitchen cooks the loaves once the hotpot is done (kitchen.gd AN
+## beside the main course's beans and greens or roots, and the kitchen cooks the loaves once the hotpot is done (kitchen.gd AN
 ## OCCASION's second course); each guest eats one portion of each course (§5.7).
 ## THE WARM INFUSION: water ceil(E/4) U + herb 0.25 x ceil(E/12) U, "prepared during service from its reserved
 ## water/herb; it has no stored output item or extra work". At confirmation, when both are there, the herb is reserved
@@ -65,6 +65,11 @@ var drink_take: int = 0
 var drinks_planned: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
 var drinks_poured_milli: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
 
+## THE SUPPER'S OWN FOOD (Brendan's ruling on decision 1701 P6, 2026-10-07): the kitchen's meal key of the supper the
+## regatta plans its feast for (-1: none), set by the regatta (regatta.gd `count_supper`); the food that supper's
+## ordinary meal holds counts as free to the feast it becomes (kitchen.gd `held_for_meal_milli`).
+var supper_key: int = -1
+
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 
 
@@ -79,14 +84,24 @@ func _free(category: int) -> int:
 	return kitchen.takes.free_milli_of_crop(kitchen.pantry, category) if kitchen != null else 0
 
 
+func _course_free(category: int) -> int:
+	"""A course's input: its free food and what the feast's own supper holds (THE SUPPER'S OWN FOOD) -- the second
+	course only, which the kitchen tops up at adoption; the infusion's herb and the drinks are never topped up, so they
+	count free food alone."""
+	if kitchen == null:
+		return 0
+	var held: int = kitchen.held_for_meal_milli(supper_key, category) if supper_key >= 0 else 0
+	return _free(category) + held
+
+
 func free_flour() -> int:
-	"""Flour nobody has set aside."""
-	return _free(Catalog.CAT_FLOUR)
+	"""Flour nobody has set aside (with the supper's own: the nut loaf's)."""
+	return _course_free(Catalog.CAT_FLOUR)
 
 
 func free_nuts() -> int:
-	"""Nuts nobody has set aside."""
-	return _free(Catalog.CAT_NUTS)
+	"""Nuts nobody has set aside (with the supper's own: the nut loaf's)."""
+	return _course_free(Catalog.CAT_NUTS)
 
 
 func free_herb() -> int:

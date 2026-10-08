@@ -352,6 +352,8 @@ var _dish_taste: PackedInt32Array = PackedInt32Array()
 ## THE READY-FOOD ESTIMATE's scratch (`_estimate`): food by category, and batches by dish -- reused, never reallocated
 ## once sized.
 var _pool: PackedInt64Array = PackedInt64Array()
+## Food taken out of the estimate's pool by category (`days_of_meals_after_milli`; empty: nothing).
+var _set_aside: PackedInt64Array = PackedInt64Array()
 var _estimated: PackedInt32Array = PackedInt32Array()
 ## The Kitchen tab's waiting dishes, built on first read (`waiting_text`).
 var _waiting_cache: String = ""
@@ -911,7 +913,7 @@ func _start_batch() -> bool:
 	var dish: int = _dish_now(s)
 	if not _consume_batch_food(s, dish):
 		return false
-	var water_taken: bool = stores.take_water(Rules.WATER_MILLI[dish])
+	var water_taken: bool = Rules.WATER_MILLI[dish] == 0 or stores.take_water(Rules.WATER_MILLI[dish])
 	if not (stores.take_wood(Rules.WOOD_MILLI_PER_BATCH) and water_taken):
 		push_error("kitchen: a batch's water or wood was gone after can_start_batch found it")
 	consumed_food_milli += Rules.batch_food_milli(dish)
@@ -2594,6 +2596,8 @@ func _estimate() -> void:
 	_pool.fill(0)
 	for item: int in Catalog.PANTRY_ITEM_COUNT:
 		_pool[Catalog.category_of(item)] += pantry.milli_of(item)
+	for category: int in mini(_set_aside.size(), _pool.size()):
+		_pool[category] = maxi(0, _pool[category] - _set_aside[category])
 	_estimated.resize(Rules.DISH_COUNT)
 	_estimated.fill(0)
 	@warning_ignore("integer_division")
@@ -2659,6 +2663,27 @@ func days_of_meals_milli() -> int:
 		return 0
 	var portions: int = store.portions() + (Rules.PORTIONS_PER_BATCH[_wip_dish] if _wip_key != FREE else 0)
 	@warning_ignore("integer_division") return (portions + cookable_portions()) * 1000 / daily
+
+
+func days_of_meals_after_milli(set_aside: PackedInt64Array) -> int:
+	"""REQ-SET-101's ready food AFTER A FEAST (decision 1701): the HUD's Ready food with `set_aside` -- milli-U by
+	category, the feast's reservation -- taken out of the pantry's pool first ("locked feast reservations" are not
+	food-days, GDD §5.8). The caller's array is read, never kept."""
+	_set_aside = set_aside
+	var days: int = days_of_meals_milli()
+	_set_aside = PackedInt64Array()
+	return days
+
+
+func held_for_meal_milli(key: int, selector: int) -> int:
+	"""Selector `selector`'s food the planned ordinary meal `key` holds, which an occasion set on that meal would take
+	over (`_adopt_occasion` lets it go and tops the occasion's courses up from it): what a feast called for that supper may
+	count as its own (decision 1701, Brendan's ruling on its P6). 0 when the meal is not planned, already an occasion's,
+	or has a batch cooked or at the cauldron (nothing cooked is undone)."""
+	var s: int = _slot_index_of(key)
+	if s < 0 or _slot_cooked[s] > 0 or _wip_key == key or _slot_take[s] == occasion_take:
+		return 0
+	return takes.live_milli(pantry, _slot_take[s], -1, selector)
 
 
 func ledger_lines() -> PackedStringArray:

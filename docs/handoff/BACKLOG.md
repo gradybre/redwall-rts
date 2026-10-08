@@ -673,7 +673,7 @@ open question. The first lane of each packet records the approval in its decisio
 - **Depends on:** HIVES and BREW for Harvest and Orchard themes (mead, honey); DAYPLAN if the feast hour moves.
 - **Files:** `demo/regatta/*` (shared feast machinery), `kitchen.gd`, `goals/*` (M4 `feasts`), `winter/cold_exposure.gd`.
   Conflicts: PRESERVE, BREW, RG-W (`kitchen.gd`), HALL-FUEL (fuel-days).
-- **Decisions:** 1261–1270.
+- **Decisions:** 1261–1270, superseded by **1701–1709** (the digging branch uses 0991–1217; README §3.6). Built: 1701.
 - **Acceptance:** a Hearth feast can be called, is refused truthfully under REQ-SET-101, serves its waves, and its
   buff reaches the residents; the other themes cook when their ingredients exist and say "needs X" otherwise.
 - **Pitfalls:**
@@ -683,7 +683,7 @@ open question. The first lane of each packet records the approval in its decisio
     reads it: wire it.
   - M4's `feasts` goal is not bound (0901).
   - 0438 records SOC-024 (several feast forms; separate verdicts instead of the GDD's 80% rule) as NOT adopted.
-- **Open:** Q-D11 (general feast hour: the GDD's 18:00, or the regatta's 17:00 supper).
+- **Open:** none. Q-D11 is CLOSED: "All at 17:00 supper" (Brendan, 2026-10-07; decision 1701).
 
 <a id="skills"></a>
 ## SKILLS — Skills (#23)
@@ -1335,6 +1335,16 @@ Brendan put these on the backlog. Building any of them needs his go-ahead first.
 | UX-032 | A few named voices | 0493: backlog |
 | Crowd rendering past 24 residents | The crowd presentation path (Codex R07's second half; scale-test hot spot 3); capacity limits (POI slots, seats, beds, hall door places, roster pool, overlay marks) | Brendan 2026-10-01/02: "route work now, crowd later"; "crowd path + capacity limits NOT now" (tracker; the perf doc says "deferred by Brendan") |
 | Canopy access, ECO-042 | Trunk and ladder routes into the canopy | 0493 row AA: waits on MOVE-G01–05 |
+
+<a id="art-next"></a>
+## ART-NEXT — The next costed art list (nothing approved, nothing spent)
+
+Paid generation is by request (README §3.8, decision 0961): put this list to Brendan, itemised and costed, and
+generate nothing until he approves it and a cap. Add each new art need here as it is found, with its key and source.
+
+| Item | Key(s) | Why | Style and cost | Source |
+|---|---|---|---|---|
+| The feasts' four new courses | `dish_feast_fish`, `dish_berry_tart`, `dish_nut_roast`, `dish_orchard_crumble` | They show the fallback swatch in the Pantry and the guide (no dish art) | The 3D-render item-icon style (ART-LOCK-001 as amended, 0971); one `nano-banana-2` image-to-image 3×3 sheet conditioned on pass 1's `sheet_foods_a`, as 0972's was: **about 6 credits** (0972's sheet cost 6; suggested cap 12). Five spare cells for other waiting dishes | Decision 1701 P8 (b), approved by Brendan 2026-10-07 |
 
 # Not chosen: do not build
 

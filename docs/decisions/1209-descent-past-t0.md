@@ -432,3 +432,47 @@ and is stopped for review.
 - the bearer delivered after the fitter arrives (step 2c note).
 
 **Brendan (2026-10-08): candidate b approved**, and the same motion serves the T6 sill (no lower sill program).
+
+## Step 5 — arrival at the tread station, and the delivery order (2026-10-08)
+
+### The 141 u step back (no new motion)
+
+`claw-work-v1/prove_tread_step_back.py` builds the step from the descent's end (far + 169) to the tread station
+(far + 310). Both distances are derived: the accepted descent's end against T0's far edge, and `STATION_D`.
+
+**Recipe.** It is ADR 1164's finite short step, unchanged, on the approved claw walk:
+
+- 2 movement ticks at the adopted 3,277 u/s;
+- the keys are READY → walk 0 → 43 → 42 → READY, walked backward from key 0 on the 44-key linear loop;
+- no key is authored.
+
+**Proofs.** Each interval is proved with the root anywhere on the 141 u path:
+
+- **World:** every triangle against ADR 1209's tread fixture without the bearer, plus the trench walls, with every
+  solid swept along the path;
+- **Support:** sole support on the deck, shrunk by the path;
+- **Self-clearance:** every pairing, no exception.
+
+All clear. The record is `evidence/tread-step-back-v1/`, and `test_tread_step_back.py` holds 4 tests.
+
+**Recorded property of the approved family.** The two READY fades keep both feet over the deck and penetrate
+nothing, but they carry no single-vertex stance-contact witness. No READY↔walk fade of the approved tool-free
+family has one: no walk key shares a foot vertex within 1 u of the floor with READY (best 1.53 u at key 7, 6.91 u at
+key 0). Rows 43–50 fade through the same blends. Every other interval carries the witness.
+
+### Sequence rule for the foreman: deliver the bearer after the fitter arrives
+
+The descent's end pose on T_{k−1} reaches into the staged bearer (step 2c note), and the step back was proved
+without it. So for each tread k the foreman orders the work as follows:
+
+1. Descend onto T_{k−1}.
+2. Step back to the tread station.
+3. Only then deliver and stage T_k's bearer.
+4. Handle and fit it (DEC-058, candidate b).
+5. Ascend.
+
+It is carried by the episode order of the T1–T6 Frontier successor and enforced by the foreman when it continues
+past T0.
+
+**Still open for the ascent.** The accepted ascent starts 343 u behind the far edge (`ASCENT_START`), 33 u behind
+the station. That second short step is proved with the stair gaits (M7).

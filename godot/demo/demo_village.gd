@@ -195,6 +195,7 @@ extends Node3D
 
 const DemoManifestScript := preload("res://demo/demo_manifest.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
+const RationReserveScript := preload("res://demo/preserve/ration_reserve.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoCameraScript := preload("res://demo/camera/demo_camera.gd")
@@ -852,6 +853,8 @@ func _build_fishery() -> void:
 	_fishery.fishery.bind_spare_grain(_kitchen.kitchen.beyond_next_meal_milli.bind(FarmingScript.CROP_GRAIN),
 		_kitchen.kitchen.release_beyond_next_meal.bind(FarmingScript.CROP_GRAIN))
 	_kitchen.kitchen.raw_keep = _fishery.fishery.ration_keep_milli
+	_fishery.fishery.ration_reserve.kitchen_give = _kitchen.kitchen.release_beyond_next_meal
+	_fishery.fishery.ration_reserve.target_milli = RationReserveScript.DEMO_TARGET_MILLI
 
 
 func fishery() -> FisheryNodeScript:

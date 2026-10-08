@@ -35,6 +35,7 @@ const TaskRecord := preload("res://demo/work/work_task.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 const FieldGuideScript := preload("res://demo/guide/field_guide.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
+const RationReserveScript := preload("res://demo/preserve/ration_reserve.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
 
 const DT: float = 0.1
@@ -568,3 +569,80 @@ func test_a_kitchen_that_gives_no_grain_back_refuses_the_mill() -> void:
 	assert_true(short.fishery.mill_refusal().contains("or the kitchen holds beyond its next meal"), "the kitchen named")
 	assert_equal(short.fishery.refused_code, "NO_GRAIN", "one milli-U short in all")
 	assert_true(little.asked.is_empty(), "nothing asked of the kitchen")
+
+
+# --- the ration reserve (decision 1742) --------------------------------------------------------------------------
+
+func _reserve_rig(stock: Array) -> Rig:
+	"""A rig whose fishery keeps the demo's ration reserve (6 U), stocked with the [item, milli] pairs, water in the
+	butt, and the reserve topped up."""
+	var rig := _rig()
+	for pair: Array in stock:
+		assert_true(rig.pantry.add_into(int(pair[0]), int(pair[1]), 0, _read), "stocked")
+	_services.stores.water_milli_u = 5000
+	rig.fishery.ration_reserve.target_milli = RationReserveScript.DEMO_TARGET_MILLI
+	rig.fishery.top_up_ration_reserve()
+	return rig
+
+
+func test_rations_are_packed_from_what_the_reserve_holds() -> void:
+	"""Brendan's F7 (b) (decision 1742): with every input held by the ration reserve and none free, the rations' refusal
+	counts the held food, the order takes it from the reserve, and the batch packing counts toward the target (so the
+	reserve does not draw a second batch's food while the first is on the board -- here none is left to draw)."""
+	var rig := _reserve_rig([[Catalog.ITEM_FLOUR, 2000], [Catalog.ITEM_DRIED_FISH, 1000], [Catalog.ITEM_NUTS, 1000]])
+	var f: FisheryScript = rig.fishery
+	for category: int in [Catalog.CAT_FLOUR, Catalog.CAT_DRIED_FISH, Catalog.CAT_NUTS]:
+		assert_equal(rig.takes.free_milli_of_crop(rig.pantry, category), 0, "category %d all held" % category)
+	assert_equal(f.batch_refusal(Recipes.R_RATION), "", "the held food counts for rations")
+	assert_equal(f.order_batch(Recipes.R_RATION, PackedInt32Array()), "", "ordered")
+	var j: int = f.tables.job_count() - 1
+	assert_equal(rig.takes.live_milli(rig.pantry, f.tables.j_take[j]), Recipes.food_in_milli(Recipes.R_RATION),
+		"the batch holds its 4 U")
+	assert_equal(f.ration_reserve.held_milli(Catalog.CAT_FLOUR), 0, "the reserve gave it")
+	assert_equal(f.rations_owned_milli(), Recipes.OUT_MILLI[Recipes.R_RATION], "the batch's 3 U count as owned")
+
+
+func test_only_the_rations_count_the_reserve_s_food() -> void:
+	"""The reserve's nuts are the rations': the nut cheese counts only the free nuts."""
+	var rig := _reserve_rig([[Catalog.ITEM_NUTS, 3000]])
+	var f: FisheryScript = rig.fishery
+	var cheese_nuts: int = -1
+	for k: int in Recipes.IN_COUNT[Recipes.R_CHEESE]:
+		if Recipes.IN_CATEGORY[Recipes.IN_FIRST[Recipes.R_CHEESE] + k] == Catalog.CAT_NUTS:
+			cheese_nuts = Recipes.IN_FIRST[Recipes.R_CHEESE] + k
+	var ration_nuts: int = -1
+	for k: int in Recipes.IN_COUNT[Recipes.R_RATION]:
+		if Recipes.IN_CATEGORY[Recipes.IN_FIRST[Recipes.R_RATION] + k] == Catalog.CAT_NUTS:
+			ration_nuts = Recipes.IN_FIRST[Recipes.R_RATION] + k
+	assert_equal(f.input_available_milli(cheese_nuts), 2000, "the cheese: the 2 U free")
+	assert_equal(f.input_available_milli(ration_nuts), 3000, "the rations: free and held")
+
+
+func test_the_mill_grinds_the_reserve_s_grain_and_the_reserve_holds_the_flour() -> void:
+	"""With no flour, the reserve holds a mill batch's grain (3 U), so none is free; the mill counts it and takes it
+	from the reserve first; the flour stored is held at once (before the kitchen's next hour could plan it)."""
+	var rig := _reserve_rig([[WHEAT, 3000]])
+	var f: FisheryScript = rig.fishery
+	assert_equal(f.ration_reserve.held_milli(FarmingScript.CROP_GRAIN), Rules.MILL_IN_MILLI, "a mill batch's grain")
+	assert_equal(f.mill_refusal(), "", "the mill counts it")
+	assert_equal(f.order_mill(PackedInt32Array()), "", "ordered")
+	assert_equal(f.ration_reserve.held_milli(FarmingScript.CROP_GRAIN), 0, "the reserve gave it")
+	assert_equal(rig.takes.live_milli(rig.pantry, f.tables.j_take[f.tables.job_count() - 1]), Rules.MILL_IN_MILLI,
+		"the mill batch holds it")
+	assert_true(rig.pantry.add_into(Catalog.ITEM_FLOUR, 3000, 0, _read), "the flour, stored")
+	f._book_stored(Catalog.ITEM_FLOUR, 3000)
+	assert_equal(f.ration_reserve.held_milli(Catalog.CAT_FLOUR), 2000, "held as it is stored")
+
+
+func test_the_emergency_action_releases_the_reserve() -> void:
+	"""§5.10's "release ordinary production food reserves" (REQ-SET-146, never taken by itself): everything held goes
+	free; restored, the reserve gathers again."""
+	var rig := _reserve_rig([[Catalog.ITEM_DRIED_FISH, 1000]])
+	var f: FisheryScript = rig.fishery
+	assert_equal(f.ration_reserve.held_milli(Catalog.CAT_DRIED_FISH), 1000, "held")
+	var revision: int = f.revision
+	f.release_ration_reserve(true)
+	assert_equal(rig.takes.free_milli_of_crop(rig.pantry, Catalog.CAT_DRIED_FISH), 1000, "released: free")
+	assert_true(f.revision > revision, "the panels learn")
+	f.release_ration_reserve(false)
+	assert_equal(f.ration_reserve.held_milli(Catalog.CAT_DRIED_FISH), 1000, "restored: held again")

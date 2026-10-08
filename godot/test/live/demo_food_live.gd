@@ -342,6 +342,10 @@ func _the_cordial_is_a_table_drink() -> void:
 		fishery.get("pantry"), 3)) + int(kitchen.call(&"beyond_next_meal_milli", 3)))
 	_check("the mill's grain pair is bound to grain", (fishery.get("spare_grain") as Callable).get_bound_arguments()
 		== [3] and (fishery.get("free_spare_grain") as Callable).get_bound_arguments() == [3])
+	var reserve: RefCounted = fishery.get("ration_reserve")
+	_check("the village keeps a ration reserve of 6 U, drawing on the kitchen's later meals (decision 1742)",
+		int(reserve.get("target_milli")) == 6000 and (reserve.get("kitchen_give") as Callable).is_valid()
+		and int(reserve.get("take")) != 0)
 	var grain_spare: Callable = fishery.get("spare_grain")
 	var grain_give: Callable = fishery.get("free_spare_grain")
 	fishery.call(&"bind_spare_grain", func() -> int: return 3000, func(_m: int) -> int: return 0)

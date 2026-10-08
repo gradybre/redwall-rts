@@ -17,7 +17,8 @@ extends "res://tools/balance/light_touch_policy.gd"
 ##   flour    rations' inputs are gathered in their chain's order, each only once every input before it is free, so
 ##            nothing is taken for a batch that cannot be made: dried fish from the rack's own row (below), then the
 ##            nuts (above), then one mill batch when the free flour is short and the mill takes it (`mill_refusal`).
-##            The mill grinds grain the kitchen would cook, so it waits until a batch of rations is otherwise possible;
+##            The mill grinds grain the kitchen would cook, so it waits until a batch of rations is otherwise possible.
+##            Food the ration reserve holds for rations (decision 1742) counts as theirs, as the panel's refusals do;
 ##   recipes  every row of the stations' recipe table (preserve_rules.gd, in its own order: dried fish, dried fruit,
 ##            rations, mead, cordial, and whatever rows are appended after them) gets a batch ordered when the fishery
 ##            would take it (`batch_refusal` is empty) and no batch of that row is waiting to be worked. A passive batch
@@ -111,12 +112,13 @@ func waits_only_on(recipe: int, category: int) -> bool:
 
 
 func ration_input_free(category: int) -> bool:
-	"""Whether the pantry holds, free of every reservation, what a batch of rations takes of `category` (true for a
-	category rations do not take)."""
+	"""Whether the pantry holds, free of every reservation or held for rations by the ration reserve (decision 1742),
+	what a batch of rations takes of `category` (true for a category rations do not take)."""
 	for k: int in Recipes.IN_COUNT[Recipes.R_RATION]:
 		var input: int = Recipes.IN_FIRST[Recipes.R_RATION] + k
 		if Recipes.IN_CATEGORY[input] == category:
-			return _fishery.takes.free_milli_of_crop(_fishery.pantry, category) >= Recipes.IN_MILLI[input]
+			return _fishery.takes.free_milli_of_crop(_fishery.pantry, category) \
+				+ _fishery.ration_reserve.held_milli(category) >= Recipes.IN_MILLI[input]
 	return true
 
 

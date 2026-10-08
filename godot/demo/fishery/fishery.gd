@@ -65,6 +65,7 @@ const SimClock := preload("res://scripts/core/sim_clock.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const Text := preload("res://demo/fishery/fishery_text.gd")
 const Recipes := preload("res://demo/preserve/preserve_rules.gd")
+const RationReserveScript := preload("res://demo/preserve/ration_reserve.gd")
 const RollsScript := preload("res://demo/fishery/fishing_rolls.gd")
 const PlanScript := preload("res://demo/fishery/catch_plan.gd")
 const StewardScript := preload("res://demo/fishery/fishery_stewardship.gd")
@@ -178,6 +179,9 @@ var free_spare_fish: Callable = Callable()
 ## mill batch counts only the free grain.
 var spare_grain: Callable = Callable()
 var free_spare_grain: Callable = Callable()
+## THE RATION RESERVE (decision 1742; preserve/ration_reserve.gd): one batch of rations' inputs held back while the
+## rations owned are below its target -- 0 unless the village sets one.
+var ration_reserve: RationReserveScript = RationReserveScript.new()
 var calendar: CalendarScript = null
 var weather: DemoWeatherScript = null
 var map: WaterMapScript = null
@@ -242,6 +246,7 @@ func configure(p_cast: DemoCastScript, water_driver: Driver, p_pantry: PantryScr
 	pantry = p_pantry
 	takes = p_takes
 	stores = p_stores
+	ration_reserve.configure(p_pantry, p_takes)
 	calendar = p_calendar
 	weather = p_weather
 	map = water_map
@@ -330,10 +335,13 @@ func _follow_hours() -> void:
 	if calendar == null or weather == null:
 		return
 	var hour: int = calendar.hour_index()
+	if _hour_seen >= hour:
+		return
 	while _hour_seen < hour:
 		_hour_seen += 1
 		if ice.advance_hour(weather.day_temperature_tenths()):
 			_on_ice_changed()
+	top_up_ration_reserve()
 
 
 func _on_ice_changed() -> void:
@@ -1273,8 +1281,10 @@ func _book_stored(item: int, milli: int) -> void:
 			landed_milli += milli
 		Catalog.CAT_DRIED_FISH:
 			dried_stored_milli += milli
+			top_up_ration_reserve()
 		Catalog.CAT_FLOUR:
 			milled_stored_milli += milli
+			top_up_ration_reserve()
 		Catalog.CAT_DRIED_FRUIT, Catalog.CAT_RATION, Catalog.CAT_JAM, Catalog.CAT_CHEESE, Catalog.CAT_PICKLES:
 			preserves_stored_milli += milli
 	revision += 1
@@ -1906,6 +1916,39 @@ func bind_spare_grain(spare: Callable, give: Callable) -> void:
 	free_spare_grain = give
 
 
+func top_up_ration_reserve() -> void:
+	"""THE RATION RESERVE gathers or lets go (preserve/ration_reserve.gd `top_up`): each game hour, and whenever flour
+	or dried fish is stored, so that the kitchen's next hour does not plan it first."""
+	if pantry != null:
+		ration_reserve.top_up(rations_owned_milli(), _hour_seen)
+
+
+func rations_owned_milli() -> int:
+	"""The rations the village owns, milli-U: those in store and those a live batch is packing (THE RATION RESERVE
+	counts both against its target, so a batch on the board does not draw a second batch's inputs early)."""
+	var packing: int = 0
+	for j: int in Tables.MAX_JOBS:
+		if tables.j_live[j] == 1 and tables.j_kind[j] == Tables.KIND_BATCH and tables.j_recipe[j] == Recipes.R_RATION:
+			packing += Recipes.OUT_MILLI[Recipes.R_RATION]
+	return pantry.milli_of(Catalog.ITEM_RATION) + packing
+
+
+func release_ration_reserve(on: bool) -> void:
+	"""§5.10's emergency action "release ordinary production food reserves" (REQ-SET-146: offered, never taken by
+	itself): `on` lets everything the ration reserve holds go free at once; off, it gathers again."""
+	ration_reserve.released = on
+	top_up_ration_reserve()
+	revision += 1
+
+
+func _take_from_reserve(recipe: int) -> void:
+	"""Before a batch of rations sets its food aside: what the ration reserve holds for it, let go so the batch takes it
+	(THE RATION RESERVE)."""
+	for k: int in Recipes.IN_COUNT[recipe]:
+		var input: int = Recipes.IN_FIRST[recipe] + k
+		ration_reserve.give(Recipes.IN_CATEGORY[input], Recipes.IN_MILLI[input], _hour_seen)
+
+
 func ration_keep_milli(category: int) -> int:
 	"""THE RATIONS' DRIED FISH (decision 1740; Brendan's ruling of 2026-10-08 on 1739's F5 (a)): what raw eaters must
 	leave of `category` -- for dried fish, the dried fish one batch of rations takes (§5.7 `ration`), and only while a
@@ -1943,7 +1986,8 @@ func grain_available_milli() -> int:
 	"""What a mill batch may take: the grain nobody has set aside, and what the kitchen holds for meals beyond its next
 	one (decision 1741)."""
 	var free: int = takes.free_milli_of_crop(pantry, FarmingScript.CROP_GRAIN)
-	return free + (int(spare_grain.call()) if spare_grain.is_valid() else 0)
+	var reserved: int = ration_reserve.held_milli(FarmingScript.CROP_GRAIN)
+	return free + reserved + (int(spare_grain.call()) if spare_grain.is_valid() else 0)
 
 
 func input_available_milli(input: int) -> int:
@@ -1951,7 +1995,14 @@ func input_available_milli(input: int) -> int:
 	holds for meals beyond its next one (decision 1739)."""
 	var category: int = Recipes.IN_CATEGORY[input]
 	var free: int = takes.free_milli_of_crop(pantry, category)
-	return free + (int(spare_fish.call()) if category == Catalog.CAT_FISH and spare_fish.is_valid() else 0)
+	var reserved: int = ration_reserve.held_milli(category) if _is_ration_input(input) else 0
+	return free + reserved + (int(spare_fish.call()) if category == Catalog.CAT_FISH and spare_fish.is_valid() else 0)
+
+
+func _is_ration_input(input: int) -> bool:
+	"""Whether recipe input `input` is one of the rations' (THE RATION RESERVE holds those for them)."""
+	return input >= Recipes.IN_FIRST[Recipes.R_RATION] and input < Recipes.IN_FIRST[Recipes.R_RATION] \
+		+ Recipes.IN_COUNT[Recipes.R_RATION]
 
 
 func _take_spare_fish(recipe: int) -> String:
@@ -2013,6 +2064,8 @@ func order_batch(recipe: int, members: PackedInt32Array) -> String:
 	var short: String = _take_spare_fish(recipe)
 	if not short.is_empty():
 		return short
+	if recipe == Recipes.R_RATION:
+		_take_from_reserve(recipe)
 	var passive: bool = Recipes.is_passive(recipe)
 	var j: int = tables.open_job(Tables.KIND_DRY if passive else Tables.KIND_BATCH, PROG_DRY if passive else PROG_MILL,
 		NONE)
@@ -2074,6 +2127,9 @@ func order_mill(members: PackedInt32Array) -> String:
 	var why: String = mill_refusal()
 	if not why.is_empty():
 		return why
+	var grain_free: int = takes.free_milli_of_crop(pantry, FarmingScript.CROP_GRAIN)
+	if grain_free < Rules.MILL_IN_MILLI:
+		ration_reserve.give(FarmingScript.CROP_GRAIN, Rules.MILL_IN_MILLI - grain_free, _hour_seen)
 	if free_spare_grain.is_valid() and not _ask_kitchen(FarmingScript.CROP_GRAIN, Rules.MILL_IN_MILLI, free_spare_grain):
 		return _refuse("NO_GRAIN", "the kitchen could not give the grain it held beyond its next meal",
 			"Farm ▸ Harvest wheat, barley or oats")

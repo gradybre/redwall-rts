@@ -747,7 +747,7 @@ func dry_card(members: PackedInt32Array) -> CardScript:
 	"""Dry fish's card: `fishery.dry_refusal`, §5.7's dry_fish (fish 4 -> dried fish 3, 24 WU + 12 h)."""
 	_card.reset("Dry fish on the smoking rack")
 	var why: String = fishery.dry_refusal()
-	_card.add_cost("Fresh fish", fishery.takes.free_milli_of_crop(fishery.pantry, Catalog.CAT_FISH), Rules.DRY_IN_MILLI)
+	_card.add_cost("Fresh fish", fishery.input_available_milli(Recipes.IN_FIRST[Recipes.R_DRY_FISH]), Rules.DRY_IN_MILLI)
 	_card.result = "%s of dried fish (keeps 720 h; eaten as it is) after 12 game hours on the rack" % Text.units(Rules.DRY_OUT_MILLI)
 	_card.prerequisites.append("a free rack slot (4); the fish that spoils first is taken")
 	if not why.is_empty():

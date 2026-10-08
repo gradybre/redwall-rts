@@ -16,16 +16,23 @@ kitchen plans two days of meals ahead and reserves every fish for them, so the r
   - `fish_beyond_next_meal_milli()`: the fish still in store that the takes of meals beyond the next one hold.
   - `release_fish_beyond_next_meal(milli)`: gives up to `milli` of that fish back to the pantry, free, from the latest
     meal holding fish first.
-  - **Which meals are protected** (`_rack_may_take`): the next meal is the later of the earliest planned meal and the
-    meal being served now. The rack never takes from it, from an occasion's meal (the feast), from a meal with a batch
-    cooked or at the cauldron, or from fish already fetched or in hand.
-  - **The meal that gave fish up** tops itself up again from what is free (THE CHOICE, unchanged).
+  - **Which meals are protected** (`_rack_may_take`, `_next_meal_for_rack`):
+    - the next meal: the later of the earliest planned meal and the meal the **calendar** is serving now (read from the
+      calendar, so an hour the kitchen has not yet run cannot expose it);
+    - an occasion's meal (the feast);
+    - a meal with a batch cooked or at the cauldron;
+    - fish already fetched, in hand or at the kitchen.
+  - **The meal that gave fish up** tops itself up again from what is free at the kitchen's next hour (THE CHOICE,
+    unchanged). Never inside the release: topping up there could take back the freed fish before the rack sets it
+    aside.
 - **The fishery** (`fishery.gd`):
   - `bind_spare_fish(spare, give)`.
   - `input_available_milli(input)`: what a batch may take, which for fish is the free fish plus the kitchen's beyond
     the next meal. Dry fish's refusal and its card use it.
   - `order_batch` first asks the kitchen for exactly what the free fish lacks (`_take_spare_fish`), then sets its food
-    aside as before.
+    aside as before. If the free fish is still short afterwards, the order is refused NO_FISH and opens nothing:
+    never a short batch (ARCH-AUTH-003).
+  - The Dry fish card (`dry_card`) counts the same fish as the refusal.
   - Only fish inputs ever ask, and unbound the fishery counts the free fish only.
 - **The village** (`demo_village.gd`, one call in `_build_fishery`) binds the kitchen's two functions to the fishery.
 
@@ -36,26 +43,64 @@ touching no existing line.
 
 - `test_demo_kitchen.gd`, with every planned meal holding fish:
   - the rack may take only what the meals beyond the next one hold;
-  - giving it up takes the latest fish meal's first, never more than is beyond, and never the next meal's;
-  - the kitchen's revision moves;
-  - an occasion's meal keeps its fish.
+  - giving it up takes the latest fish meal's first, never more than is beyond, never the next meal's, and moves the
+    kitchen's revision;
+  - an occasion's meal keeps its fish;
+  - a later meal cooked, cooking, or with its fish fetched (in hand, then at the kitchen) keeps its fish, however much is
+    asked;
+  - the next meal is read from the calendar itself (at supper's end before the kitchen has run, tomorrow's breakfast
+    keeps its fish), and the earliest planned meal is protected whatever the hour reads;
+  - a slot with no take counts nothing.
 - `test_demo_preserve.gd`, with the kitchen's side as Callables over a real take:
-  - 1 U free and 3 U beyond the next meal make a batch, the kitchen is asked for exactly 3 U, and the batch holds 4 U;
+  - 1 U free and 3 U beyond the next meal make a batch, and the kitchen is asked for exactly 3 U;
   - free fish enough asks nothing;
-  - one milli-U short in all is refused NO_FISH and asks nothing;
-  - unbound counts the free fish only;
-  - a fruit batch never asks for fish.
-- Mutation: 8 mutants, 8 killed:
-  - the release order;
-  - `>` as `>=` for the next meal;
-  - the occasion guard;
-  - the revision;
-  - the spare in the count;
-  - the exact amount asked;
-  - the order not asking;
-  - the fish-only filter.
-  The revision and the fish-only filter first survived; an assertion was added for each.
+  - one milli-U short in all is refused, and unbound counts the free fish only;
+  - a fruit batch never asks for fish, and only a fish input counts the kitchen's fish;
+  - a kitchen that gives nothing back gets the order refused NO_FISH with nothing opened.
+- `test/live/demo_food_live.gd`: the built village binds the kitchen to the rack, and the Dry fish card counts the
+  kitchen's fish.
+- **Mutation:** 19 mutants run against these suites; 18 killed. The survivor:
+  - **What it was:** dropping `_slot_take[s] != 0`.
+  - **Why it survived:** the guard was redundant, since take ids start at 1 and take 0 holds no entries.
+  - **What was done:** the guard was removed. Its test stays, and pins the behaviour.
+- **The first test set was weak.** The review of `f86d79c2` found 10 of 12 mutants surviving. Every test above beyond
+  the first five was written against those survivors.
 
-## The measurement
+## Review (independent `code-reviewer` on `f86d79c2`, waited for)
 
-One staged provisioning rerun, 3 seeds, is in the report's follow-up section ("Fish for the rack").
+- **H1, fixed.** The Dry fish card went through `dry_card`, not `batch_card`, and still showed only the free fish.
+- **H2, fixed.** The guards were untested. See Tests.
+- **M1, fixed.** "The meal being served" read the kitchen's last hour; it now reads the calendar.
+- **M3.**
+  - **Recorded:** the top-up waits for the kitchen's next hour, by design.
+  - **Fixed:** the wording of this record.
+- **M4, fixed.** A short give-back is now a refusal.
+- **LOWs, fixed.**
+  - The earliest meal is computed once per call.
+  - The section moved after `cookable_portions`.
+  - The test's job index.
+- **M2, a question for Brendan** (open; nothing built on it).
+  - **What happens now.** At the 06:00 round breakfast is the next meal, so today's supper counts as "beyond the next
+    meal" and is open to the rack. The same holds during supper's serving for tomorrow's breakfast.
+  - **Whether it fits the ruling.** This follows the ruling's wording, but Brendan may have meant only later days'
+    meals.
+  - **Options:**
+    - (a) as built;
+    - (b) only meals of a later day.
+  - **Recommendation:** (a), which is the ruling as worded; the measurement below shows the next point matters more.
+
+## The measurement (staged; 3 seeds; the report's follow-up section, "Fish for the rack")
+
+Provisioning rerun on `f86d79c2`; the review's fixes after it change nothing at the 06:00 round: **rations still never made; Dry fish refused NO_FISH on 47 of 48 mornings; missed
+meals unchanged** (190–226 against 210–225). The same at `--fish-high 12`.
+
+**Why.** The cook fetches the day's food for the next day as soon as it is reserved. Logged hour by hour (seed 1,
+fish-high 12):
+- **When fish lands** (12:00 or 13:00), the kitchen reserves it for meals beyond the next: 6–8 U of spare fish for that
+  hour.
+- **Within the hour** the cook fetches it to the kitchen, and the spare is 0 again.
+- **At the 06:00 round,** when the scripted player orders preserving, the later meals' fish is at the kitchen
+  (8 U on day 3). That is never the rack's under this ruling, which takes only fish still in its store.
+
+So the rule works as ruled, but its window is about one game hour after each catch. A further question for Brendan is in
+the report.

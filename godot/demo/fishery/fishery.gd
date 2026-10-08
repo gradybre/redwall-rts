@@ -1904,9 +1904,9 @@ func input_available_milli(input: int) -> int:
 	return free + (int(spare_fish.call()) if category == Catalog.CAT_FISH and spare_fish.is_valid() else 0)
 
 
-func _take_spare_fish(recipe: int) -> void:
+func _take_spare_fish(recipe: int) -> bool:
 	"""Before a batch sets its food aside: the fish it lacks beyond the free fish, given back by the kitchen's meals
-	beyond the next (decision 1739)."""
+	beyond the next (decision 1739). False -- and the batch refused NO_FISH -- when the fish is still short after."""
 	for k: int in Recipes.IN_COUNT[recipe]:
 		var input: int = Recipes.IN_FIRST[recipe] + k
 		if Recipes.IN_CATEGORY[input] != Catalog.CAT_FISH or not free_spare_fish.is_valid():
@@ -1914,6 +1914,11 @@ func _take_spare_fish(recipe: int) -> void:
 		var short: int = Recipes.IN_MILLI[input] - takes.free_milli_of_crop(pantry, Catalog.CAT_FISH)
 		if short > 0:
 			free_spare_fish.call(short)
+		if takes.free_milli_of_crop(pantry, Catalog.CAT_FISH) < Recipes.IN_MILLI[input]:
+			_refuse(Recipes.IN_CODE[input], "the kitchen could not give the fish it held beyond its next meal",
+				Recipes.IN_FIX[input])
+			return false
+	return true
 
 
 func _inputs_refusal(recipe: int) -> String:
@@ -1923,9 +1928,11 @@ func _inputs_refusal(recipe: int) -> String:
 		var input: int = Recipes.IN_FIRST[recipe] + k
 		var free: int = input_available_milli(input)
 		if free < Recipes.IN_MILLI[input]:
-			return _refuse(Recipes.IN_CODE[input], "the stores hold %s of %s nobody has set aside; a batch takes %s" % [
-				Text.units(free), Recipes.category_words(Recipes.IN_CATEGORY[input]), Text.units(Recipes.IN_MILLI[input])],
-				Recipes.IN_FIX[input])
+			var whose: String = " or the kitchen holds beyond its next meal" if Recipes.IN_CATEGORY[input] == Catalog.CAT_FISH \
+				and spare_fish.is_valid() else ""
+			return _refuse(Recipes.IN_CODE[input], "the stores hold %s of %s nobody has set aside%s; a batch takes %s" % [
+				Text.units(free), Recipes.category_words(Recipes.IN_CATEGORY[input]), whose,
+				Text.units(Recipes.IN_MILLI[input])], Recipes.IN_FIX[input])
 	return ""
 
 
@@ -1948,7 +1955,8 @@ func order_batch(recipe: int, members: PackedInt32Array) -> String:
 	var why: String = batch_refusal(recipe)
 	if not why.is_empty():
 		return why
-	_take_spare_fish(recipe)
+	if not _take_spare_fish(recipe):
+		return "the kitchen could not give the fish it held beyond its next meal"
 	var passive: bool = Recipes.is_passive(recipe)
 	var j: int = tables.open_job(Tables.KIND_DRY if passive else Tables.KIND_BATCH, PROG_DRY if passive else PROG_MILL,
 		NONE)

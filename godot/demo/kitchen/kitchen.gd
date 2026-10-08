@@ -2528,45 +2528,6 @@ func cookable_batches() -> int:
 	return total
 
 
-# --- the rack's fish (decision 1739) --------------------------------------------------------------------------
-
-## FISH FOR THE RACK (decision 1739; Brendan's ruling of 2026-10-08 on the balance rerun's F3 (a)): the smoking rack's
-## Dry fish may take fish the kitchen has planned for a meal BEYOND the next one -- never the next meal's (the earliest
-## planned, or the one being served), never an occasion's, never a meal with a batch cooked or at the cauldron, and
-## only fish still in its store. The kitchen plans two days ahead and had reserved every fish, so the rack never got
-## any. A meal that gives fish up tops itself up again from what is free (THE CHOICE).
-
-func fish_beyond_next_meal_milli() -> int:
-	"""The fish, milli-U, the kitchen holds in store for meals beyond the next (see FISH FOR THE RACK)."""
-	var total: int = 0
-	for s: int in MAX_SLOTS:
-		if _rack_may_take(s):
-			total += takes.live_milli(pantry, _slot_take[s], TakesScript.AT_STORE, Catalog.CAT_FISH)
-	return total
-
-
-func release_fish_beyond_next_meal(milli: int) -> int:
-	"""Give the rack up to `milli` of the fish held for meals beyond the next, the latest meal's first (see FISH FOR
-	THE RACK). How much was given back to the pantry, free."""
-	var left: int = milli
-	for k: int in range(_slot_order.size() - 1, -1, -1):
-		var s: int = _slot_order[k]
-		if left > 0 and _rack_may_take(s):
-			var held: int = takes.live_milli(pantry, _slot_take[s], TakesScript.AT_STORE, Catalog.CAT_FISH)
-			left -= takes.release_milli(pantry, _slot_take[s], mini(left, held), _hour_seen, Catalog.CAT_FISH)
-	if left < milli:
-		revision += 1
-	return milli - left
-
-
-func _rack_may_take(s: int) -> bool:
-	"""Whether slot `s`'s meal is beyond the next one and the rack may take its fish (see FISH FOR THE RACK)."""
-	var key: int = _slot_key[s]
-	var next: int = maxi(_earliest_key(), _first_key(_hour_seen))
-	return key != FREE and key > next and key != occasion_key and key != _wip_key and _slot_cooked[s] == 0 \
-		and _slot_take[s] != 0
-
-
 func cookable_portions() -> int:
 	"""The portions `cookable_batches` cook, each dish at its own PORTIONS_PER_BATCH (a stew or a hotpot makes 3)."""
 	_estimate()
@@ -2574,6 +2535,53 @@ func cookable_portions() -> int:
 	for dish: int in Rules.DISH_COUNT:
 		total += _estimated[dish] * Rules.PORTIONS_PER_BATCH[dish]
 	return total
+
+
+# --- the rack's fish (decision 1739) --------------------------------------------------------------------------
+
+## FISH FOR THE RACK (decision 1739; Brendan's ruling of 2026-10-08 on the balance rerun's F3 (a)): the smoking rack's
+## Dry fish may take fish the kitchen has planned for a meal BEYOND the next one -- never the next meal's (the earliest
+## planned, or the one the calendar is serving now, read from the calendar itself so an hour the kitchen has not yet
+## run is not missed), never an occasion's, never a meal with a batch cooked or at the cauldron, and only fish still in
+## its store (none fetched, in hand or at the kitchen). The kitchen plans two days ahead and had reserved every fish,
+## so the rack never got any. A meal that gives fish up tops itself up again from what is free at the kitchen's next
+## hour (THE CHOICE) -- never here: topping up now could take back the fish just freed before the rack sets it aside.
+
+func fish_beyond_next_meal_milli() -> int:
+	"""The fish, milli-U, the kitchen holds in store for meals beyond the next (see FISH FOR THE RACK)."""
+	var next: int = _next_meal_for_rack()
+	var total: int = 0
+	for s: int in MAX_SLOTS:
+		if _rack_may_take(s, next):
+			total += takes.live_milli(pantry, _slot_take[s], TakesScript.AT_STORE, Catalog.CAT_FISH)
+	return total
+
+
+func release_fish_beyond_next_meal(milli: int) -> int:
+	"""Give the rack up to `milli` of the fish held in store for meals beyond the next, the latest meal's first (see FISH
+	FOR THE RACK; never a top-up here). How much was given back to the pantry, free."""
+	var next: int = _next_meal_for_rack()
+	var left: int = milli
+	for k: int in range(_slot_order.size() - 1, -1, -1):
+		var s: int = _slot_order[k]
+		if left > 0 and _rack_may_take(s, next):
+			var held: int = takes.live_milli(pantry, _slot_take[s], TakesScript.AT_STORE, Catalog.CAT_FISH)
+			left -= takes.release_milli(pantry, _slot_take[s], mini(left, held), _hour_seen, Catalog.CAT_FISH)
+	if left < milli:
+		revision += 1
+	return milli - left
+
+
+func _next_meal_for_rack() -> int:
+	"""The next meal the rack never takes from: the later of the earliest planned and the one the calendar is serving."""
+	var hour: int = calendar.hour_index() if calendar != null else _hour_seen
+	return maxi(_earliest_key(), _first_key(hour))
+
+
+func _rack_may_take(s: int, next: int) -> bool:
+	"""Whether slot `s`'s meal is beyond `next` and the rack may take its fish (see FISH FOR THE RACK)."""
+	var key: int = _slot_key[s]
+	return key != FREE and key > next and key != occasion_key and key != _wip_key and _slot_cooked[s] == 0
 
 
 func _estimate() -> void:

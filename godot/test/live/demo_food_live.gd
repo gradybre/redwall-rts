@@ -319,6 +319,17 @@ func _the_cordial_is_a_table_drink() -> void:
 	var card: String = _flat((panel.call(&"button", &"make_cordial") as Button).tooltip_text)
 	_check("the cordial card: 240 h, poured at supper", card.contains("keeps 240 h") and card.contains("poured at supper"),
 		card.replace("\n", " / "))
+	var fishery: RefCounted = _village.get("_fishery").get("fishery")
+	_check("the rack reads the kitchen's fish beyond its next meal (decision 1739)",
+		(fishery.get("spare_fish") as Callable).is_valid() and (fishery.get("free_spare_fish") as Callable).is_valid())
+	var spare: Callable = fishery.get("spare_fish")
+	var give: Callable = fishery.get("free_spare_fish")
+	fishery.call(&"bind_spare_fish", func() -> int: return 3000, func(_m: int) -> int: return 0)
+	var dry: RefCounted = _village.get("_fishery").call(&"dry_card", PackedInt32Array())
+	var have: int = int((dry.get("cost_have") as PackedInt64Array)[0])
+	var expected: int = int(fishery.call(&"input_available_milli", Recipes.IN_FIRST[Recipes.R_DRY_FISH]))
+	_check("the Dry fish card counts the kitchen's fish too", have == expected and have >= 3000, "%d of %d" % [have, expected])
+	fishery.call(&"bind_spare_fish", spare, give)
 	var drink: RefCounted = _village.call(&"kitchen").get("table_drink")
 	_check("the table drink watches the kitchen", drink != null and drink.get("_kitchen") != null)
 

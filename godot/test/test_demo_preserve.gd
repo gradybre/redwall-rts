@@ -431,7 +431,7 @@ func test_dry_fish_takes_the_kitchen_s_fish_beyond_its_next_meal() -> void:
 	assert_equal(f.order_batch(Recipes.R_DRY_FISH, PackedInt32Array()), "", "ordered")
 	assert_equal(kitchen.asked, [3000] as Array[int], "the kitchen asked for exactly what was lacking")
 	var j: int = f.tables.job_count() - 1
-	assert_equal(rig.takes.live_milli(rig.pantry, f.tables.j_take[0]), Rules.DRY_IN_MILLI, "the batch holds its 4 U (job %d)" % j)
+	assert_equal(rig.takes.live_milli(rig.pantry, f.tables.j_take[j]), Rules.DRY_IN_MILLI, "the batch holds its 4 U")
 	assert_equal(kitchen.held(), 0, "the kitchen gave its 3 U")
 
 
@@ -465,3 +465,40 @@ func test_dry_fish_leaves_the_kitchen_alone_when_free_fish_will_do_or_too_little
 	fruit.fishery.bind_spare_fish(spare.held, spare.give)
 	fruit.fishery._take_spare_fish(Recipes.R_DRY_FRUIT)
 	assert_true(spare.asked.is_empty(), "a fruit batch short of fruit never asks the kitchen for fish")
+
+
+
+## A kitchen that says it holds fish beyond its next meal but gives none back (the review's M4).
+class StingyFish extends RefCounted:
+	func held() -> int:
+		"""Claims 3 U."""
+		return 3000
+
+	func give(_milli: int) -> int:
+		"""Gives nothing."""
+		return 0
+
+
+func test_a_kitchen_that_gives_no_fish_back_refuses_the_batch() -> void:
+	"""The count said there was fish, but the kitchen gave none back: the order is refused NO_FISH and opens nothing --
+	never a short batch (ARCH-AUTH-003; the review of f86d79c2)."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	rig.pantry.add_into(Catalog.FIRST_CATCH, 1000, 0, _read)
+	var stingy := StingyFish.new()
+	f.bind_spare_fish(stingy.held, stingy.give)
+	assert_equal(f.batch_refusal(Recipes.R_DRY_FISH), "", "the count passes")
+	assert_false(f.order_batch(Recipes.R_DRY_FISH, PackedInt32Array()).is_empty(), "the order refused")
+	assert_equal(f.refused_code, "NO_FISH", "for fish")
+	assert_equal(f.tables.job_count(), 0, "nothing opened")
+
+
+func test_only_a_fish_input_counts_the_kitchen_s_fish() -> void:
+	"""With the kitchen holding fish beyond its next meal, the dry fruit's fruit is still only the free fruit."""
+	var rig := _rig()
+	rig.pantry.add_into(Catalog.FIRST_CATCH, 3000, 0, _read)
+	rig.pantry.add_into(APPLE, 1000, 0, _read)
+	var kitchen := _kitchen_fish(rig, 3000)
+	assert_equal(rig.fishery.input_available_milli(Recipes.IN_FIRST[Recipes.R_DRY_FRUIT]), 1000, "fruit: the free fruit only")
+	assert_equal(rig.fishery.input_available_milli(Recipes.IN_FIRST[Recipes.R_DRY_FISH]), kitchen.held(),
+		"fish: the kitchen's 3 U too")

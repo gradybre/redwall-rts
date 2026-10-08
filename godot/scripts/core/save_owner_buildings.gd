@@ -1,10 +1,14 @@
 extends RefCounted
 ## Owner 0 (`buildings`) column validation bridge (BUILDINGS-S4-VALIDATE-R01 v1, ADR 0183).
 ##
-## ONE PUBLIC ENTRY POINT. `framed_refusal()` judges one already framed section 4 owner block
-## against the Buildings store's own cold column predicate and returns a `SaveHeader.Refusal`.
-## It constructs no live Buildings store, BuildingDefinitions catalog or EntityDirectory, reads
-## no clock, takes no callback, captures nothing, restores nothing and writes no diagnostic.
+## `framed_refusal()` judges one already framed section 4 owner block against the Buildings
+## store's own cold column predicate and returns a `SaveHeader.Refusal`. It constructs no live
+## Buildings store, BuildingDefinitions catalog or EntityDirectory, reads no clock, takes no
+## callback, captures nothing, restores nothing and writes no diagnostic.
+##
+## ADR 1222 step 3 adds the JOINT pair at the end of this file: `capture_into()` / `apply()` move
+## the section 4 record, the section 5 Block and the section 6 flag Block through ONE
+## `Buildings.copy_columns_into()` / `restore_columns()` call, so the three never half-apply.
 ##
 ## GATE ORDER:
 ##   1. a null record                   -> SAVE_COMPONENT_SHAPE
@@ -35,8 +39,9 @@ extends RefCounted
 ## SECTION 4 IS NOT SECTIONS 1 OR 5. Local acceptance is not publication: Directory self
 ## identity, section 5 parent/child chains, the room tile arena, kind counts, section 1 tile
 ## maps and overlap, mask equality, construction and user links, the loaded tick and common file
-## provenance all remain BUILDINGS-SAVED-BINDINGS obligations, and Buildings bulk capture and
-## apply do not exist. Gameplay occupancy policy and live construction are separate contracts.
+## provenance all remain BUILDINGS-SAVED-BINDINGS obligations of `framed_refusal()` alone; the
+## joint `apply()` adds the section 5 chains, arena, masks and Directory resolution through
+## `Buildings.restore_columns()`. Gameplay occupancy policy and live construction are separate.
 ##
 ## ONLY FOUR DIRECT PRELOADS. Catalog, BuildingDefinitions and EntityDirectory are reached
 ## through the existing Buildings preloads, so this file adds no second path to a catalog.
@@ -47,6 +52,10 @@ const Buildings := preload("res://scripts/core/buildings.gd")
 const Schema := preload("res://scripts/core/save_component_columns_schema.gd")
 const Section := preload("res://scripts/core/save_section_component_columns.gd")
 const SaveHeader := preload("res://scripts/core/save_header.gd")
+const ChildSection := preload("res://scripts/core/save_section_child_arenas.gd")
+const ChildSchema := preload("res://scripts/core/save_child_arenas_schema.gd")
+const AuxSection := preload("res://scripts/core/save_section_auxiliary.gd")
+const AuxSchema := preload("res://scripts/core/save_auxiliary_state_schema.gd")
 
 ## The section-local owner this bridge accepts, and the compiled metadata it demands of it.
 const OWNER_INDEX: int = 0
@@ -201,22 +210,9 @@ const SOURCE_TIER_TWO_TYPE_IDS: Array[int] = [5, 12, 23, 29]
 
 static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
 	"""Judge one framed owner 0 block against the Buildings store's own cold column rules."""
-	if record == null:
-		return _refuse(Section.REFUSE_SHAPE,
-			"no framed owner was supplied for owner %d ('%s')" % [OWNER_INDEX, OWNER_KEY])
-	if record.owner != OWNER_INDEX:
-		return _refuse(Section.REFUSE_OWNER,
-			"owner %d was supplied where owner %d ('%s') is required"
-				% [record.owner, OWNER_INDEX, OWNER_KEY])
-	var schema: SaveHeader.Refusal = Schema.schema_refusal()
-	if not schema.is_ok():
-		return schema
-	var metadata: SaveHeader.Refusal = _metadata_refusal()
-	if not metadata.is_ok():
-		return metadata
-	var shape: SaveHeader.Refusal = Section.owner_shape_refusal(record)
-	if not shape.is_ok():
-		return shape
+	var preflight: SaveHeader.Refusal = _record_preflight(record)
+	if not preflight.is_ok():
+		return preflight
 	var columns: Buildings.Columns = Buildings.Columns.new(false)
 	_project_columns(record, columns)
 	var code: StringName = Buildings.columns_refusal(columns)
@@ -616,3 +612,168 @@ static func _refuse(code: StringName, detail: String) -> SaveHeader.Refusal:
 static func _accept() -> SaveHeader.Refusal:
 	"""The accepted result: an empty code and no detail."""
 	return SaveHeader.Refusal.new(SaveHeader.REFUSE_NONE, "")
+
+
+# --- ADR 1222 step 3: the joint section 4 + 5 + section-6-flag capture/apply pair ----------------
+
+## A capture or apply called without a live store.
+const REFUSE_NULL_STORE: StringName = &"SAVE_COMPONENT_NULL_STORE"
+## A section 5 or section 6 block that is missing, another owner's, or misshaped.
+const REFUSE_BLOCK_SHAPE: StringName = &"SAVE_BUILDINGS_BLOCK_SHAPE"
+## The section-5 owner index of `buildings` and the section-6 owner index of `buildings`.
+const CHILD_OWNER_INDEX: int = 0
+const AUX_OWNER_INDEX: int = 0
+## Section 6 ordinals of the two Buildings flag columns.
+const AUX_R_SPATIAL_KIND: int = 0
+const AUX_F_INSTALLED: int = 1
+
+
+static func blocks_refusal(record: Section.FramedOwner, links: ChildSection.Block,
+		flags: AuxSection.Block) -> SaveHeader.Refusal:
+	"""The section 4 record passes gates 1-5; both other blocks are this owner's, well shaped."""
+	var framed: SaveHeader.Refusal = _record_preflight(record)
+	if not framed.is_ok():
+		return framed
+	if links == null or links.owner != CHILD_OWNER_INDEX \
+			or ChildSchema.OWNER_KEYS[CHILD_OWNER_INDEX] != OWNER_KEY or links.shape_detail() != "":
+		return _refuse(REFUSE_BLOCK_SHAPE, "a well-shaped section 5 '%s' block is required"
+			% OWNER_KEY)
+	if flags == null or flags.owner != AUX_OWNER_INDEX \
+			or AuxSchema.OWNER_KEYS[AUX_OWNER_INDEX] != OWNER_KEY or flags.shape_detail() != "":
+		return _refuse(REFUSE_BLOCK_SHAPE, "a well-shaped section 6 '%s' block is required"
+			% OWNER_KEY)
+	return _accept()
+
+
+static func _record_preflight(record: Section.FramedOwner) -> SaveHeader.Refusal:
+	"""Gates 1-5 of `framed_refusal()`, without the column predicate."""
+	if record == null:
+		return _refuse(Section.REFUSE_SHAPE,
+			"no framed owner was supplied for owner %d ('%s')" % [OWNER_INDEX, OWNER_KEY])
+	if record.owner != OWNER_INDEX:
+		return _refuse(Section.REFUSE_OWNER,
+			"owner %d was supplied where owner %d ('%s') is required"
+				% [record.owner, OWNER_INDEX, OWNER_KEY])
+	var schema: SaveHeader.Refusal = Schema.schema_refusal()
+	if not schema.is_ok():
+		return schema
+	var metadata: SaveHeader.Refusal = _metadata_refusal()
+	if not metadata.is_ok():
+		return metadata
+	return Section.owner_shape_refusal(record)
+
+
+static func capture_into(store: Buildings, record: Section.FramedOwner,
+		links: ChildSection.Block, flags: AuxSection.Block) -> SaveHeader.Refusal:
+	"""Capture all three halves once, then judge the written section-4 record."""
+	var target: SaveHeader.Refusal = blocks_refusal(record, links, flags)
+	if not target.is_ok():
+		return target
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no Buildings store was supplied")
+	var columns: Buildings.Columns = Buildings.Columns.new()
+	var image: Buildings.Links = Buildings.Links.new()
+	if not store.copy_columns_into(columns, image):
+		return _refuse(store.last_column_refusal(), "%scapture refused with %s"
+			% [COLUMN_DETAIL_PREFIX, String(store.last_column_refusal())])
+	if not (_write_building_fields(columns, record) and _write_child_fields(columns, record)):
+		return _refuse(Section.REFUSE_SHAPE, "%scapture could not write a column"
+			% COLUMN_DETAIL_PREFIX)
+	var written: SaveHeader.Refusal = _write_links(image, links, flags)
+	if not written.is_ok():
+		return written
+	return framed_refusal(record)
+
+
+static func apply(record: Section.FramedOwner, links: ChildSection.Block,
+		flags: AuxSection.Block, store: Buildings) -> SaveHeader.Refusal:
+	"""Install sections 4, 5 and the section-6 flags in one `restore_columns()` call."""
+	var target: SaveHeader.Refusal = blocks_refusal(record, links, flags)
+	if not target.is_ok():
+		return target
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no Buildings store was supplied")
+	var columns: Buildings.Columns = Buildings.Columns.new(false)
+	_project_columns(record, columns)
+	var image: Buildings.Links = Buildings.Links.new()
+	_read_links(links, flags, image)
+	if not store.restore_columns(columns, image):
+		return _refuse(store.last_column_refusal(), "%srestore refused with %s"
+			% [COLUMN_DETAIL_PREFIX, String(store.last_column_refusal())])
+	return _accept()
+
+
+static func _write_building_fields(c: Buildings.Columns, r: Section.FramedOwner) -> bool:
+	"""Ordinals 0..11: the three presence flags and the Building columns."""
+	return (r.set_u8(FIELD_B_PRESENT, c.b_present) and r.set_u8(FIELD_R_PRESENT, c.r_present)
+		and r.set_u8(FIELD_F_PRESENT, c.f_present) and r.set_i32(FIELD_B_TYPE_ID, c.b_type_id)
+		and r.set_i32(FIELD_B_TIER, c.b_tier) and r.set_i32(FIELD_B_ORIGIN_TILE, c.b_origin_tile)
+		and r.set_i32(FIELD_B_ROTATION, c.b_rotation) and r.set_i32(FIELD_B_STATE, c.b_state)
+		and r.set_i32(FIELD_B_CONDITION, c.b_condition)
+		and r.set_i32(FIELD_B_CONSTRUCTION_SLOT, c.b_construction_slot)
+		and r.set_i32(FIELD_B_CONSTRUCTION_GENERATION, c.b_construction_generation)
+		and r.set_i32(FIELD_B_INTERIOR_ID, c.b_interior_id))
+
+
+static func _write_child_fields(c: Buildings.Columns, r: Section.FramedOwner) -> bool:
+	"""Ordinals 12..28: the Room and Furniture columns."""
+	return (r.set_i32(FIELD_R_TYPE, c.r_type)
+		and r.set_i32(FIELD_R_BUILDING_SLOT, c.r_building_slot)
+		and r.set_i32(FIELD_R_BUILDING_GENERATION, c.r_building_generation)
+		and r.set_i32(FIELD_R_TILE_OFFSET, c.r_tile_offset)
+		and r.set_i32(FIELD_R_TILE_COUNT, c.r_tile_count)
+		and r.set_i32(FIELD_R_TEMPERATURE_TENTHS, c.r_temperature_tenths)
+		and r.set_i32(FIELD_R_FURNITURE_MASK, c.r_furniture_mask)
+		and r.set_i32(FIELD_R_OCCUPANTS, c.r_occupants) and r.set_u8(FIELD_R_VALID, c.r_valid)
+		and r.set_i32(FIELD_F_TYPE_ID, c.f_type_id)
+		and r.set_i32(FIELD_F_ROOM_SLOT, c.f_room_slot)
+		and r.set_i32(FIELD_F_ROOM_GENERATION, c.f_room_generation)
+		and r.set_i32(FIELD_F_ORIGIN_TILE, c.f_origin_tile)
+		and r.set_i32(FIELD_F_ROTATION, c.f_rotation)
+		and r.set_i32(FIELD_F_USER_SLOT, c.f_user_slot)
+		and r.set_i32(FIELD_F_USER_GENERATION, c.f_user_generation)
+		and r.set_i32(FIELD_F_CONDITION, c.f_condition))
+
+
+static func _link_columns(image: Buildings.Links) -> Array[PackedInt32Array]:
+	"""The fifteen section 5 columns in that section's ordinal order (shared, not copied)."""
+	return [image.b_ref_slot, image.b_ref_generation, image.b_room_head, image.b_room_count,
+		image.r_ref_slot, image.r_ref_generation, image.r_building_next, image.r_building_prev,
+		image.r_furniture_head, image.r_furniture_count, image.f_ref_slot, image.f_ref_generation,
+		image.f_room_next, image.f_room_prev, image.room_tile_id]
+
+
+static func _write_links(image: Buildings.Links, links: ChildSection.Block,
+		flags: AuxSection.Block) -> SaveHeader.Refusal:
+	"""Write the fifteen section 5 columns and the two section 6 flags through checked setters."""
+	var columns: Array[PackedInt32Array] = _link_columns(image)
+	for ordinal: int in columns.size():
+		var refusal: SaveHeader.Refusal = links.set_i32_column(ordinal, columns[ordinal])
+		if not refusal.is_ok():
+			return refusal
+	var spatial: SaveHeader.Refusal = flags.set_u8_column(AUX_R_SPATIAL_KIND, image.r_spatial_kind)
+	if not spatial.is_ok():
+		return spatial
+	return flags.set_u8_column(AUX_F_INSTALLED, image.f_installed)
+
+
+static func _read_links(links: ChildSection.Block, flags: AuxSection.Block,
+		image: Buildings.Links) -> void:
+	"""Decode both blocks into `image`, assigning every member by name (fresh arrays)."""
+	image.b_ref_slot = links.i32_column(0)
+	image.b_ref_generation = links.i32_column(1)
+	image.b_room_head = links.i32_column(2)
+	image.b_room_count = links.i32_column(3)
+	image.r_ref_slot = links.i32_column(4)
+	image.r_ref_generation = links.i32_column(5)
+	image.r_building_next = links.i32_column(6)
+	image.r_building_prev = links.i32_column(7)
+	image.r_furniture_head = links.i32_column(8)
+	image.r_furniture_count = links.i32_column(9)
+	image.f_ref_slot = links.i32_column(10)
+	image.f_ref_generation = links.i32_column(11)
+	image.f_room_next = links.i32_column(12)
+	image.f_room_prev = links.i32_column(13)
+	image.room_tile_id = links.i32_column(14)
+	image.r_spatial_kind = flags.u8_column(AUX_R_SPATIAL_KIND)
+	image.f_installed = flags.u8_column(AUX_F_INSTALLED)

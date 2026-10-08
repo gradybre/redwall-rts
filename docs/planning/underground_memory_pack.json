@@ -6826,7 +6826,7 @@
     },
     "source_sha256": {
       "godot/scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
-      "godot/scripts/core/buildings.gd": "e893b278f8b1f35e6e8f6e3971e8ade136662a0d3f1f5b619042d18e17506fcd",
+      "godot/scripts/core/buildings.gd": "ac3ba6dcb74c6f6509dd685632bdf9f035fef1fdc60ef7abfb84d30c771e1bdc",
       "godot/scripts/core/construction.gd": "79e7d48217219eedc0925ae878a7a59318fc48086f04167a732e433964aecaa9",
       "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310",
       "godot/scripts/core/inventory.gd": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
@@ -41227,6 +41227,7 @@
       "godot/data/underground/mole-worker/qualified-step-v4/catalog_source.gd",
       "godot/data/underground/mole-worker/qualified-step-v4/manifest.json",
       "godot/data/underground/mole-worker/work-step-v1/source_program.gd",
+      "godot/scripts/core/buildings.gd",
       "godot/scripts/core/construction.gd",
       "godot/scripts/core/excavation_sites.gd",
       "godot/scripts/core/jobs.gd",
@@ -41692,6 +41693,128 @@
         ],
         "delta": {}
       },
+      "godot/scripts/core/buildings.gd": {
+        "charges": [
+          {
+            "bytes": 10496000,
+            "carried_by": "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "sections 4+5+6-flag capture/apply: one Columns (3,298,304) and one Links (1,884,160) image plus the matching FramedOwner and section 5/6 blocks, and 131,072 bytes of cold validator bitmaps"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_last_column_refusal",
+              "StringName"
+            ]
+          ],
+          "resizes_added": [
+            "b_ref_generation.resize(BUILDING_CAPACITY)",
+            "b_ref_slot.resize(BUILDING_CAPACITY)",
+            "b_room_count.resize(BUILDING_CAPACITY)",
+            "b_room_head.resize(BUILDING_CAPACITY)",
+            "covered.resize(ROOM_TILE_LINK_CAPACITY)",
+            "f_installed.resize(FURNITURE_CAPACITY)",
+            "f_ref_generation.resize(FURNITURE_CAPACITY)",
+            "f_ref_slot.resize(FURNITURE_CAPACITY)",
+            "f_room_next.resize(FURNITURE_CAPACITY)",
+            "f_room_prev.resize(FURNITURE_CAPACITY)",
+            "r_building_next.resize(ROOM_CAPACITY)",
+            "r_building_prev.resize(ROOM_CAPACITY)",
+            "r_furniture_count.resize(ROOM_CAPACITY)",
+            "r_furniture_head.resize(ROOM_CAPACITY)",
+            "r_ref_generation.resize(ROOM_CAPACITY)",
+            "r_ref_slot.resize(ROOM_CAPACITY)",
+            "r_spatial_kind.resize(ROOM_CAPACITY)",
+            "room_tile_id.resize(ROOM_TILE_LINK_CAPACITY)",
+            "seen.resize(FURNITURE_CAPACITY)",
+            "seen.resize(ROOM_CAPACITY)",
+            "seen.resize(TILE_COUNT)"
+          ],
+          "classes": {
+            "Links": [
+              null,
+              [
+                [
+                  "b_ref_generation",
+                  "PackedInt32Array"
+                ],
+                [
+                  "b_ref_slot",
+                  "PackedInt32Array"
+                ],
+                [
+                  "b_room_count",
+                  "PackedInt32Array"
+                ],
+                [
+                  "b_room_head",
+                  "PackedInt32Array"
+                ],
+                [
+                  "f_installed",
+                  "PackedByteArray"
+                ],
+                [
+                  "f_ref_generation",
+                  "PackedInt32Array"
+                ],
+                [
+                  "f_ref_slot",
+                  "PackedInt32Array"
+                ],
+                [
+                  "f_room_next",
+                  "PackedInt32Array"
+                ],
+                [
+                  "f_room_prev",
+                  "PackedInt32Array"
+                ],
+                [
+                  "r_building_next",
+                  "PackedInt32Array"
+                ],
+                [
+                  "r_building_prev",
+                  "PackedInt32Array"
+                ],
+                [
+                  "r_furniture_count",
+                  "PackedInt32Array"
+                ],
+                [
+                  "r_furniture_head",
+                  "PackedInt32Array"
+                ],
+                [
+                  "r_ref_generation",
+                  "PackedInt32Array"
+                ],
+                [
+                  "r_ref_slot",
+                  "PackedInt32Array"
+                ],
+                [
+                  "r_spatial_kind",
+                  "PackedByteArray"
+                ],
+                [
+                  "room_tile_id",
+                  "PackedInt32Array"
+                ]
+              ]
+            ]
+          },
+          "allocation_sites": {
+            ".duplicate(": 46,
+            "PackedByteArray(": 6,
+            "PackedInt32Array(": 15,
+            "in[": 3,
+            "range(": 1
+          }
+        }
+      },
       "godot/scripts/core/construction.gd": {
         "charges": [
           {
@@ -42071,14 +42194,69 @@
           }
         ],
         "delta": {
-          "allocation_sites": {
-            ".duplicate(": 1,
-            ".new(": 1,
-            "=[": 1,
-            "PackedInt32Array(": 3,
-            "in[": -1,
-            "range(": 2
-          },
+          "members_added": [
+            [
+              "_air_box",
+              "PackedInt32Array"
+            ],
+            [
+              "_air_slots",
+              "int"
+            ],
+            [
+              "_carried_locations",
+              "int"
+            ],
+            [
+              "_carry_content",
+              "int"
+            ],
+            [
+              "_carry_geometry",
+              "bool"
+            ],
+            [
+              "_contact_retirement",
+              "ContactRetirementContext"
+            ]
+          ],
+          "resizes_added": [
+            "_air_box.resize(6)",
+            "air.resize(6 * MAX_AIR_EXTRA)",
+            "air.resize(AIR_FIELDS * air_slots)"
+          ],
+          "int_constants_added": [
+            [
+              "AIR_ARENA_BYTES_PER_SLOT",
+              "2 * AIR_SLOT_BYTES"
+            ],
+            [
+              "AIR_FIELDS",
+              "7"
+            ],
+            [
+              "AIR_SLOT_BYTES",
+              "4 * AIR_FIELDS"
+            ],
+            [
+              "MAX_AIR_EXTRA",
+              "3"
+            ],
+            [
+              "MAX_AIR_SLOTS",
+              "256"
+            ],
+            [
+              "SCHEMA",
+              "2"
+            ]
+          ],
+          "int_constants_removed": [
+            [
+              "SCHEMA",
+              "1"
+            ]
+          ],
           "classes": {
             "Bank": [
               [
@@ -42370,69 +42548,14 @@
               ]
             ]
           },
-          "int_constants_added": [
-            [
-              "AIR_ARENA_BYTES_PER_SLOT",
-              "2 * AIR_SLOT_BYTES"
-            ],
-            [
-              "AIR_FIELDS",
-              "7"
-            ],
-            [
-              "AIR_SLOT_BYTES",
-              "4 * AIR_FIELDS"
-            ],
-            [
-              "MAX_AIR_EXTRA",
-              "3"
-            ],
-            [
-              "MAX_AIR_SLOTS",
-              "256"
-            ],
-            [
-              "SCHEMA",
-              "2"
-            ]
-          ],
-          "int_constants_removed": [
-            [
-              "SCHEMA",
-              "1"
-            ]
-          ],
-          "members_added": [
-            [
-              "_air_box",
-              "PackedInt32Array"
-            ],
-            [
-              "_air_slots",
-              "int"
-            ],
-            [
-              "_carried_locations",
-              "int"
-            ],
-            [
-              "_carry_content",
-              "int"
-            ],
-            [
-              "_carry_geometry",
-              "bool"
-            ],
-            [
-              "_contact_retirement",
-              "ContactRetirementContext"
-            ]
-          ],
-          "resizes_added": [
-            "_air_box.resize(6)",
-            "air.resize(6 * MAX_AIR_EXTRA)",
-            "air.resize(AIR_FIELDS * air_slots)"
-          ]
+          "allocation_sites": {
+            ".duplicate(": 1,
+            ".new(": 1,
+            "=[": 1,
+            "PackedInt32Array(": 3,
+            "in[": -1,
+            "range(": 2
+          }
         }
       },
       "godot/scripts/core/underground_motion_catalog.gd": {
@@ -42486,9 +42609,10 @@
           }
         ],
         "delta": {
-          "allocation_sites": {
-            "PackedInt32Array(": 2
-          },
+          "resizes_added": [
+            "last_of.resize(_stage.header[3])",
+            "same_key.resize(_stage.header[3])"
+          ],
           "int_constants_added": [
             [
               "CONTACT_ASSEMBLY_PALM",
@@ -42503,10 +42627,9 @@
               "7"
             ]
           ],
-          "resizes_added": [
-            "last_of.resize(_stage.header[3])",
-            "same_key.resize(_stage.header[3])"
-          ]
+          "allocation_sites": {
+            "PackedInt32Array(": 2
+          }
         }
       },
       "godot/scripts/core/underground_room_bindings.gd": {
@@ -42555,10 +42678,25 @@
           }
         ],
         "delta": {
-          "allocation_sites": {
-            "PackedInt32Array(": 3,
-            "in[": 2
-          },
+          "resizes_added": [
+            "air.resize(MAX_STATIONS * AIR_BOXES * 6)"
+          ],
+          "int_constants_added": [
+            [
+              "AIR_BOXES",
+              "1 + Locations.MAX_AIR_EXTRA"
+            ],
+            [
+              "CONTROL_BYTES",
+              "9216"
+            ]
+          ],
+          "int_constants_removed": [
+            [
+              "CONTROL_BYTES",
+              "8192"
+            ]
+          ],
           "classes": {
             "Request": [
               [
@@ -42647,25 +42785,10 @@
               ]
             ]
           },
-          "int_constants_added": [
-            [
-              "AIR_BOXES",
-              "1 + Locations.MAX_AIR_EXTRA"
-            ],
-            [
-              "CONTROL_BYTES",
-              "9216"
-            ]
-          ],
-          "int_constants_removed": [
-            [
-              "CONTROL_BYTES",
-              "8192"
-            ]
-          ],
-          "resizes_added": [
-            "air.resize(MAX_STATIONS * AIR_BOXES * 6)"
-          ]
+          "allocation_sites": {
+            "PackedInt32Array(": 3,
+            "in[": 2
+          }
         }
       },
       "godot/scripts/core/underground_room_itinerary.gd": {
@@ -42870,9 +42993,6 @@
           }
         ],
         "delta": {
-          "allocation_sites": {
-            ".new(": 2
-          },
           "members_added": [
             [
               "_journal",
@@ -42882,7 +43002,10 @@
               "_location_journal",
               "Journal"
             ]
-          ]
+          ],
+          "allocation_sites": {
+            ".new(": 2
+          }
         }
       },
       "godot/scripts/core/underground_surface_anchor.gd": {
@@ -43627,9 +43750,6 @@
           }
         ],
         "delta": {
-          "allocation_sites": {
-            ".new(": 3
-          },
           "members_added": [
             [
               "_haul_planner",
@@ -43643,7 +43763,10 @@
               "_underground_entry",
               "UndergroundEntryRuntime"
             ]
-          ]
+          ],
+          "allocation_sites": {
+            ".new(": 3
+          }
         }
       }
     },
@@ -43651,7 +43774,7 @@
       "PROFILE_BYTES joint (motion census, 257,308 of 262,144)": 8676,
       "Profiles CONTROL_RESERVE (load-time, released)": 432,
       "none": 0,
-      "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)": 6822912,
+      "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)": 17318912,
       "joint pack (the reserve is a pack contribution)": 256,
       "BINDINGS_AND_GROWTH_BYTES (fully assigned, 524,544)": 256,
       "none (new)": 74,

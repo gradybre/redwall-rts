@@ -147,9 +147,9 @@ const BREW_ACTIONS: Array[StringName] = [&"brew_mead", &"make_cordial"]
 const PRESERVE_ACTIONS_2: Array[StringName] = [&"make_jam", &"make_cheese"]
 const PRESERVE_ACTIONS_3: Array[StringName] = [&"make_vinegar", &"make_pickles"]
 const RESERVE_ACTIONS: Array[StringName] = [&"reserve_fewer", &"reserve_more", &"reserve_release"]
-## The reserve's line is at least this many lines tall, so its row does not jump when the reserve is released or kept
-## again (the review of 72817b34).
-const RESERVE_LINES: int = 2
+## The reserve's line is at least this many lines tall -- its head, and what it holds (two lines at most) or that it
+## is released (one) -- so its row does not jump when the reserve is released or kept again (the review of 72817b34).
+const RESERVE_LINES: int = 3
 const BREW_ACTIONS_2: Array[StringName] = [&"brew_ale", &"make_cider"]
 const FERRY_ACTIONS: Array[StringName] = [&"ferry_gather", &"ferry_send", &"ferry_cancel"]
 const REGATTA_CHOICE_ACTIONS: Array[StringName] = [&"regatta_prev_day", &"regatta_next_day", &"regatta_host"]

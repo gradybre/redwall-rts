@@ -385,7 +385,7 @@ func _the_reserve_row() -> void:
 	_village.get("_fishery").get("fishery").call(&"top_up_ration_reserve")
 	var panel: CanvasLayer = _reserve_panel()
 	var text: String = panel.call(&"line", &"reserve")
-	_check("the reserve line says what it keeps and holds", text.begins_with("Ration reserve: keep 6.0 U of rations")
+	_check("the reserve line says what it keeps and holds", text.begins_with("Ration reserve: keep 6.0 U (")
 		and text.contains("1.0 U dried fish"), text.replace("\n", " / "))
 	for key: StringName in [&"reserve_fewer", &"reserve_more", &"reserve_release"]:
 		var button: Button = panel.call(&"button", key)
@@ -395,8 +395,8 @@ func _the_reserve_row() -> void:
 	_check("Release's card says what it frees", release.tooltip_text.contains("Frees") and not release.disabled,
 		release.tooltip_text.replace("\n", " / "))
 	var label: Label = (panel.get("_lines") as Dictionary)[&"reserve"]
-	_check("the reserve line holds two lines, so the row does not jump", label.get_line_height() > 0
-		and label.custom_minimum_size.y >= 2.0 * label.get_line_height(), str(label.custom_minimum_size.y))
+	_check("the reserve line holds three lines, so the row does not jump", label.get_line_height() > 0
+		and label.custom_minimum_size.y >= 3.0 * label.get_line_height(), str(label.custom_minimum_size.y))
 	_capture("reserve_row")
 
 
@@ -410,7 +410,7 @@ func _keep_more_pressed() -> void:
 	Keep fewer is clicked."""
 	_check("Keep more: 9 U", int(_reserve().get("target_milli")) == 9000, str(_reserve().get("target_milli")))
 	var line: String = _village.get("_waterplay").get("panel").call(&"line", &"reserve")
-	_check("the panel's own refresh shows it", line.begins_with("Ration reserve: keep 9.0 U"), line.replace("\n", " / "))
+	_check("the panel's own refresh shows it", line.begins_with("Ration reserve: keep 9.0 U ("), line.replace("\n", " / "))
 	_press(&"reserve_fewer")
 
 
@@ -424,7 +424,7 @@ func _release_pressed() -> void:
 	"""Released: nothing held, the line and the caption say so (the frame captured before the next press)."""
 	var panel: CanvasLayer = _reserve_panel()
 	_check("Release: released", bool(_reserve().get("released")))
-	_check("the line says released", String(panel.call(&"line", &"reserve")).contains("Released for an emergency"),
+	_check("the line says released", String(panel.call(&"line", &"reserve")).contains("Released: nothing held"),
 		panel.call(&"line", &"reserve"))
 	_check("the caption offers to keep them again",
 		(panel.call(&"button", &"reserve_release") as Button).text == "Keep food reserves again")

@@ -748,14 +748,14 @@ func test_release_shows_what_it_frees_then_frees_it_and_keeps_them_again() -> vo
 	var rig := _reserve_rig([[Catalog.ITEM_DRIED_FISH, 1000], [Catalog.ITEM_NUTS, 1000], [Catalog.ITEM_FLOUR, 2000]])
 	var node := _reserve_node(rig)
 	var held: String = "1.0 U dried fish, 1.0 U nuts, 2.0 U flour"
-	assert_equal(node.reserve_text(), "Ration reserve: keep 6.0 U of rations (0 U owned)\nHolding %s" % held, "the line")
+	assert_equal(node.reserve_text(), "Ration reserve: keep 6.0 U (0 U owned)\nHolding %s" % held, "the line")
 	var card: CardScript = node.release_card()
 	assert_true(card.is_ok() and card.result.begins_with("Frees %s at once" % held), card.result)
 	assert_equal(node.toggle_release(), "Food reserves released: %s free for the kitchen and the hungry" % held,
 		"the answer")
 	assert_true(node.fishery.ration_reserve.released, "released")
 	assert_equal(rig.takes.free_milli_of_crop(rig.pantry, Catalog.CAT_FLOUR), 2000, "the flour free")
-	assert_true(node.reserve_text().ends_with("\nReleased for an emergency: nothing held back until kept again"),
+	assert_true(node.reserve_text().ends_with("\nReleased: nothing held until kept again"),
 		node.reserve_text())
 	card = node.release_card()
 	assert_true(card.is_ok() and card.verb == DemoFisheryScript.KEEP_AGAIN_CAPTION, card.verb)
@@ -801,14 +801,14 @@ func test_after_a_release_the_line_card_and_answers_agree() -> void:
 	line counts the rations owned (M20)."""
 	var rig := _reserve_rig([[Catalog.ITEM_RATION, 3000]])
 	var node := _reserve_node(rig)
-	assert_true(node.reserve_text().begins_with("Ration reserve: keep 6.0 U of rations (3.0 U owned)"), node.reserve_text())
+	assert_true(node.reserve_text().begins_with("Ration reserve: keep 6.0 U (3.0 U owned)"), node.reserve_text())
 	node.toggle_release()
 	node.step_reserve(-1)
 	assert_equal(node.step_reserve(-1),
 		"Ration reserve: none — nothing is held back for rations (released: nothing is held until you keep them again)",
 		"the answer")
 	assert_true(node.reserve_text().begins_with(DemoFisheryScript.RESERVE_NONE)
-		and node.reserve_text().contains("Released for an emergency"), node.reserve_text())
+		and node.reserve_text().contains("Released: nothing held"), node.reserve_text())
 	assert_equal(node.release_card().result, DemoFisheryScript.KEEP_AGAIN_KEEP, "no reserve: the keep")
 	assert_true(node.step_reserve(1).ends_with("(released: nothing is held until you keep them again)"), "still released")
 	assert_equal(node.release_card().result, DemoFisheryScript.KEEP_AGAIN_RESERVE, "a reserve again")

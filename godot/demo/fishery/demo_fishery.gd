@@ -506,10 +506,10 @@ func held_words() -> String:
 func reserve_text() -> String:
 	"""The reserve's line, two lines: what it keeps and what the village owns; then released, what it holds, or nothing."""
 	var reserve: RationReserveScript = fishery.ration_reserve
-	var head: String = RESERVE_NONE if reserve.target_milli == 0 else "Ration reserve: keep %s of rations (%s owned)" \
+	var head: String = RESERVE_NONE if reserve.target_milli == 0 else "Ration reserve: keep %s (%s owned)" \
 		% [Text.units(reserve.target_milli), Text.units(fishery.rations_owned_milli())]
 	if reserve.released:
-		return "%s\nReleased for an emergency: nothing held back until kept again" % head
+		return "%s\nReleased: nothing held until kept again" % head
 	var held: String = held_words()
 	if reserve.target_milli == 0 and held.is_empty():
 		return head

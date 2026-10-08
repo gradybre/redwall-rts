@@ -2071,6 +2071,30 @@ func refresh_work_actor(worker: Vector2i, job: Vector2i, profile_id: int, profil
 		equipped_tool_hint, profile_id, profile_revision, content_revision)
 
 
+func hand_over_source_job(worker: Vector2i, job: Vector2i, next: Vector2i) -> StringName:
+	"""DEC-059 (P2): a source working for one Job hands its unchanged loop to the worker's next Job at the same
+	endpoint. The row, heading, source word and clock stay exactly as they are; only the Job changes, after the next
+	Job passes the complete admission proof a refresh runs (_qualify_actor_at) for the very same selection."""
+	var code: StringName = _actor_edit_refusal(worker)
+	if code != &"": return code
+	var row: int = _ids.get_typed_row(worker)
+	var profile: int = _motion.resident[R_PROFILE * RESIDENT_CAPACITY + row] if row >= 0 and row < RESIDENT_CAPACITY else -1
+	if profile < 0 or _resident_ref(row) != worker or next == job: return &"ROUTE_ACTOR_BUSY"
+	var held: int = _motion.resident_long[R_PROFILE_REVISION * RESIDENT_CAPACITY + row]
+	var content: int = _motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row]
+	code = source_work_leaf_refusal(self, worker, job, profile, held, content)
+	if code != &"": return code
+	_advancing = true
+	code = _qualify_actor_at(worker, next, _resident_pair(R_LOCATION_SLOT, row), Profiles.MODE_WORK,
+		_motion.resident[R_POSTURE * RESIDENT_CAPACITY + row], _motion.resident[R_FAMILY * RESIDENT_CAPACITY + row],
+		_resident_pair(R_TOOL_SLOT, row), profile, held, content)
+	_advancing = false
+	if code == &"" and (_selection.job != next or _selection.profile_id != profile):
+		code = &"ROUTE_ACTOR_PROFILE_DRIFT"
+	if code == &"": _set_resident_pair(R_JOB_SLOT, row, next)
+	return code
+
+
 func refresh_travel_actor(worker: Vector2i, job: Vector2i, profile_id: int, profile_revision: int,
 		content_revision: int, posture: int, family: int, equipped_tool_hint: Vector2i = NULL_REF) -> StringName:
 	"""Change direction only after the original canonical source has recovered to ready at a real endpoint."""

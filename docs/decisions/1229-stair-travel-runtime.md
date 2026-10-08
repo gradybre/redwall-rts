@@ -489,3 +489,40 @@ turn, ascend") and ADR 1202's material leg for T2–T6. ADR 1209 records the ame
   `3 × MAX_STAIR_LEGS`. `MAX_WIRE_BYTES` is 4,591, and the section-6 `max_count` follows. The census adds 296 B.
 - **Measured** (flexible schedule): T2–T6 take 251 ticks each, down from 636–876. The descent finishes on tick
   10,484 (12,474 after P3).
+
+## DEC-059 P2 — one claw entry and recovery a cube (2026-10-08)
+
+The prefix's cubes and the descent's are both affected.
+
+**What changes.** When a BRACE or CUT finishes, and the next step is the same cube's next phase at the same
+station on the same claw row (CUT or FINISH), the foreman no longer recovers the source to READY and re-enters. In
+the same tick it:
+
+1. settles the finished phase;
+2. opens the next phase and its BUILD Job, and assigns the crew;
+3. hands the working source to that Job (`Routes.hand_over_source_job`);
+4. runs the next phase's START as after an entry.
+
+A cube now has one entry and one recovery: the entry before its brace and the recovery after its finish.
+
+**Why no new motion.** Every phase of a cube uses its station's single claw dig row (`station[5]`), so the source
+is in the same row's WORK loop before and after.
+
+- **Nothing in the motion changes.** The row, endpoint, heading, source word and clock all stay as they are. The
+  loop simply continues, as it does between two Work ticks of one phase. No clip joins two motions.
+- **The proofs that run are the accepted ones.**
+  - `hand_over_source_job` requires the exact WORK tuple at rest on its endpoint (`source_work_leaf_refusal`).
+  - It runs the complete admission proof a refresh runs (`_qualify_actor_at`) for the next Job, and refuses if
+    the selection would change.
+  - The next phase's START then runs its usual physical worker proof.
+  - Settlement ran its own proofs with the source in WORK on the unchanged pose.
+- **Consumer pins** (Routes) are renewed.
+
+**The schedule.** A hand-over is skipped while the crew's hour forbids work. The source then recovers to READY at
+the station, the resting point, as before (ADR 1226). One consequence: while it works, a crew stops for a rest hour
+at a cube boundary (READY after FINISH), not at every phase. A cube is 4,230 milli-WU, under one 30-WU safe segment.
+
+**Measured.** The default schedule now applies; no flexible schedule is needed.
+
+- The prefix ends on tick 3,462. The whole entry ends on tick 8,348 (17:07), with `[50, 59,220, 19, 77,840, 8]`.
+- At the finish, hunger is 4,751 and rest 3,376: neither has reached its seek line.

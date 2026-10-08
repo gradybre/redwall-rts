@@ -32,8 +32,8 @@ const Contract := preload("res://scripts/core/excavation_contract.gd")
 ## 44-key loop, the walk-on past the blocked fade keys, the 32-tick dig and tap loops); every Work amount, bill and
 ## hauled unit is unchanged (DEC-052). ADR1229 increment 6b: the chain then carries on down the descent; these
 ## suites stop at the prefix (task PREFIX_TASKS), and one suite runs the whole descent to the sill.
-## DEC-059 (P3): 4670 -> 4382 with brace/cut/finish x 0.47.
-const DONE_TICK: int = 4382
+## DEC-059: 4670 -> 4382 with brace/cut/finish x 0.47 (P3) -> 3462 with one claw entry and recovery a cube (P2).
+const DONE_TICK: int = 3462
 ## [task index, cut Work mWU, hauled whole units, installation Work mWU, groups INSTALLED] at the end of the prefix:
 ## L0's twelve phases, T0's six cuts, both installations' fastening (32,000 + 12,000 mWU).
 const DONE_LEDGER: Array = [20, 25380, 9, 44000, 2] # DEC-059: six cubes x 4,230
@@ -41,7 +41,12 @@ const DONE_LEDGER: Array = [20, 25380, 9, 44000, 2] # DEC-059: six cubes x 4,230
 const PREFIX_TASKS: int = 20
 ## ADR1229 increment 6b: the whole descent on the flexible schedule (every hour ANYTHING, GDD 5.3), from the same
 ## start: the eight descent cubes (33,840 mWU since DEC-059), T1-T6 down the stair (6 x 5,640 mWU, one hauled unit each).
-const DESCENT_DONE_TICK: int = 10484 # DEC-059: P3 12,474, then P1 (treads chained down)
+## DEC-059: on the DEFAULT schedule since P2 (P3 12,474 and P1 10,484 were on the flexible one).
+const DESCENT_DONE_TICK: int = 8348
+## The default schedule's first work block ends at 18:00 (tick 9000); GDD 5.2 seek thresholds.
+const WORK_BLOCK_END: int = 9000
+const SEEK_HUNGER: int = 3500
+const SEEK_REST: int = 2500
 ## DEC-059 (P1): task 44 installs T1; every later tread is chained down from the one before.
 const FIRST_TREAD_TASK: int = 44
 const DESCENT_LEDGER: Array = [50, 59220, 19, 77840, 8] # DEC-059: 14 cubes x 4,230; 32,000 + 12,000 + 6 x 5,640
@@ -1608,20 +1613,13 @@ func test_a_crew_lost_while_handling_resumes_byte_identically_across_restores() 
 		assert_equal(restored[index], plain[index], "image %d is byte-identical after restores" % index)
 
 
-func _flexible(o: Session.Retirement.Owners, worker: Vector2i) -> void:
-	"""The crew keeps the flexible schedule (GDD 5.3: every hour ANYTHING), so the whole descent is one work period."""
-	var row: int = o.residents.directory().get_typed_row(worker)
-	var schedule: Schedule = o.jobs.schedule()
-	assert_true(schedule.assign_template(row, schedule.template_id_of(Schedule.TEMPLATE_FLEXIBLE_KEY).value).ok, "flexible")
-
-
 func test_the_live_chain_builds_the_descent_down_the_stair_to_the_sill() -> void:
 	"""ADR1229 increment 6b: past the prefix the crew cuts the descent's eight cubes from the surface, then installs
 	T1-T6, each from the tread above: it walks from M to the crossing arrival, down the stair (walk-in, step forward,
 	one descent per tread, step back onto the station), funds and fits the tread. DEC-059 (P1): T1 hauls every tread's wood to M,
 	and each later tread follows straight down from the one before (step forward, one descent, step back). Each group is installed exactly once; the foreman ends with G9 at the
 	Kitchen (DEC-054), and a finished entry re-raises it."""
-	var live: Array = _begin_live_entry(_flexible)
+	var live: Array = _begin_live_entry()
 	var o: Session.Retirement.Owners = live[0]
 	var entry: Settlement.UndergroundEntryRuntime = live[1]
 	_stage(o, entry._output, &"wood", 13000)
@@ -1642,6 +1640,10 @@ func test_the_live_chain_builds_the_descent_down_the_stair_to_the_sill() -> void
 	assert_equal(_done_ledger(o, entry._foreman), DESCENT_LEDGER, "eight groups and every cut with their exact Work, once")
 	assert_equal(o.construction.live_project_count(), 0, "every Project retired")
 	assert_equal(tick - 1, DESCENT_DONE_TICK, "the finishing tick")
+	assert_true(tick - 1 < WORK_BLOCK_END, "DEC-059: the whole entry is built inside the first work block")
+	var needs: RefCounted = o.jobs.needs()
+	assert_true(needs.need_of(row, 0).value > SEEK_HUNGER and needs.need_of(row, 1).value > SEEK_REST,
+		"and the crew never reached a seek threshold (no shift change was needed)")
 	assert_false(_host.begin_underground_entry(Vector3i(60 * 2048 + 512, 512, 50 * 2048 + 512)), "a finished entry")
 	assert_equal(_host.last_refusal(), Settlement.UndergroundEntryRuntime.REFUSE_KITCHEN_UNBUILT, "re-raises G9")
 

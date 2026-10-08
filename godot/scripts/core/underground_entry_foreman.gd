@@ -261,17 +261,23 @@ func _open(tick: int) -> StringName:
 	if paths != &"": return paths
 	var opened: RefCounted = _owners.sites.open_phase(task.site, task.operation)
 	if not opened.ok: return opened.error
-	if not _owners.construction.remaining_mwu_into(opened.ref, _math): return REFUSE_STATE
-	var made: RefCounted = _owners.jobs.create_job(Jobs.JOB_KIND_BUILD, 0, 0, _math.value, 0)
-	if not made.ok: return made.error
-	_job = made.value
+	var code: StringName = _create_phase_job(task, opened.ref)
+	if code != &"": return code
 	var ref: Vector2i = _owners.jobs.ref_of(_job)
-	var code: StringName = _bind_phase_job(task, opened.ref, ref)
 	var queue: PackedInt32Array = PackedInt32Array()
 	if code == &"": code = _phase_units(task, queue)
 	if code == &"" and not queue.is_empty(): return _begin_haul(task, opened.ref, queue, tick)
 	if code == &"": code = _assign()
 	return _place_actor(task, ref, tick) if code == &"" else code
+
+
+func _create_phase_job(task: Task, project: Vector2i) -> StringName:
+	"""The phase's BUILD Job for its whole remaining work, bound to its Project and Site."""
+	if not _owners.construction.remaining_mwu_into(project, _math): return REFUSE_STATE
+	var made: RefCounted = _owners.jobs.create_job(Jobs.JOB_KIND_BUILD, 0, 0, _math.value, 0)
+	if not made.ok: return made.error
+	_job = made.value
+	return _bind_phase_job(task, project, _owners.jobs.ref_of(_job))
 
 
 func _phase_units(task: Task, out: PackedInt32Array) -> StringName:
@@ -526,8 +532,40 @@ func _earn(tick: int) -> StringName:
 		if not worked.ok: return _rest_or(worked.error)
 		_accepted_mwu += worked.accepted_mwu
 		return &""
+	if _hands_over(): return _hand_over()
 	var code: StringName = _owners.routes.request_source_ready(_crew.worker, _owners.jobs.ref_of(_job))
 	if code == &"": _set_stage(STAGE_RECOVER)
+	return code
+
+
+func _hands_over() -> bool:
+	"""DEC-059 (P2): a finished BRACE or CUT whose next step is the same cube's next phase at the same station, on
+	the same claw row, keeps the source in WORK (one entry and one recovery per cube). Not while the crew's hour
+	forbids work: then it recovers to READY at the station, the resting point (ADR1226)."""
+	if _index + 1 >= _tasks.size(): return false
+	var task: Task = _tasks[_index]
+	var next: Task = _tasks[_index + 1]
+	return next.install_ordinal < 0 and task.install_ordinal < 0 and next.site == task.site \
+		and next.station == task.station and next.work_profile == task.work_profile \
+		and next.work_revision == task.work_revision and next.operation != Contract.OP_BRACE \
+		and not _owners.jobs.schedule().rests_now(_owners.residents.directory().get_typed_row(_crew.worker))
+
+
+func _hand_over() -> StringName:
+	"""DEC-059 (P2): settle the finished phase, open the next one and hand the working source to its Job in the same
+	tick; its START then runs as after an entry. Nothing moves: the loop goes on, on the same row and station."""
+	var task: Task = _tasks[_index]
+	var old: Vector2i = _owners.jobs.ref_of(_job)
+	var settled: RefCounted = _owners.sites.settle_phase(task.site)
+	if not settled.ok: return settled.error
+	_index += 1
+	task = _tasks[_index]
+	var opened: RefCounted = _owners.sites.open_phase(task.site, task.operation)
+	if not opened.ok: return opened.error
+	var code: StringName = _create_phase_job(task, opened.ref)
+	if code == &"": code = _assign()
+	if code == &"": code = _owners.routes.hand_over_source_job(_crew.worker, old, _owners.jobs.ref_of(_job))
+	if code == &"": _set_stage(STAGE_START)
 	return code
 
 

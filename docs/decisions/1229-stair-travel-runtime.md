@@ -35,7 +35,10 @@ The runtime cannot use any of it yet:
    them in the same activation. Content 9 stays published.
 4. **A stair row must not overlap a ground row's key** (`_overlap_keys`: same policy, key and yaw is ambiguous).
    The narrow approach is also WALK, source 4, yaw 0. Stair rows therefore carry a new policy,
-   **POLICY_STAIR = 8**. Profiles admits it only on YAW_EXACT WALK rows whose family mask names a connector family.
+   **POLICY_STAIR = 8** (descent, ascent) and **POLICY_STAIR_TURN = 9** (the half-turn, which would otherwise share
+   the descent's key and heading). Profiles admits them only on YAW_EXACT WALK rows, with no tool or cargo, whose
+   family mask names a connector family. The tread fitting row uses a new contact kind, **CONTACT_TREAD_FIT = 5**
+   (DEC-058): a source-work BUILD row with five roles and no point or patch, as CONTACT_HAUL_GRIP has none.
    This is a Profiles format extension with a negative test.
 
 ## Content 10 (create-only)
@@ -45,8 +48,8 @@ The runtime cannot use any of it yet:
   - **stair WALK rows on source 4, POLICY_STAIR, family mask 1:**
     - descent, yaw 0;
     - ascent, yaw 32768;
-    - turn, yaw 0 → 32768. The turn is one row whose program owns its heading table, with roles at both
-      cardinal ends.
+    - turn (POLICY_STAIR_TURN), yaw 0 → 32768. Its program owns the heading table; its boxes are the handoff
+      prover's exact interval enclosures.
   - **short steps on source 4:** step back as POLICY_SHORT_BACKWARD and step forward as POLICY_SHORT_FORWARD, yaw 0,
     ground (family −1). Their 141 u span is checked by the step program, as ADR 1164's 232 u was.
   - **tread fitting:** a WORK row on source 4 (yaw 0, INSTALL, `CONTACT_NONE` per DEC-058, roles from the
@@ -90,3 +93,15 @@ The runtime cannot use any of it yet:
 Increments 3–7 edit Routes, WorldRoutes, Profiles, the foreman, the installer and the hauler. The save-UI worker's
 files (UI and save) are not touched. Save byte-identity is kept by storing stair progress in the existing Routes
 columns. A new column would be a declared schema change with its own record.
+
+## Progress
+
+- **Increment 1 (Profiles), done.** `underground_profiles.gd` admits POLICY_STAIR (8), POLICY_STAIR_TURN (9) and
+  CONTACT_TREAD_FIT (5). `test_underground_profiles.gd`'s unknown-policy check now uses 10.
+- **Increment 2 (content 10), done.**
+  - `claw-work-v1/derive_stair_rows.py` derives the seven rows into `evidence/stair-rows-v1/rows.json`.
+  - `publish_claw_stairs_runtime.py` writes `qualified-claw-stairs-v11/` (create-only, revision 10): wire
+    `9791eb59…`, 67 rows, 547 boxes, 6 sources.
+  - `test_mole_claw_stairs_profiles.gd` loads it through the actual loader (6 tests, including three negative
+    edits); `test_publish_claw_stairs_runtime.py` holds 5 tests.
+  - It is not active: the catalog and Session still load content 9.

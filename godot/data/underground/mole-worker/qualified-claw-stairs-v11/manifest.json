@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "decision": [
+    "1229",
+    "1217",
+    "1209"
+  ],
+  "content_revision": 10,
+  "profile_count": 67,
+  "box_count": 547,
+  "source_count": 6,
+  "wire_sha256": "9791eb59b778cf9fe0b4c66dfd7181c58706abd6ed1a8e6a90a73daafa7f3317",
+  "wire_bytes": 22114,
+  "paired_bank_bytes": 44212,
+  "sources": {
+    "4": "b85f91952992fecfc4b0b89affb0b605b3d7c8e15b9c3e8f66ab03969efd6675",
+    "5": "9cdafc55914ba2ca25858d54ff1692df324c4e7eed019b04066b55de560bae3d"
+  },
+  "rows": {
+    "0-50": "content 9",
+    "51": "step back",
+    "52": "step forward",
+    "53": "descent (stair)",
+    "54": "ascent (stair)",
+    "55": "half-turn (stair)",
+    "56-63": "content 9's 51-58 (dig/tap)",
+    "64": "tread fitting (CONTACT_TREAD_FIT)",
+    "65": "content 9's 59 (paw handling)",
+    "66": "tread handling (source 5)"
+  },
+  "inputs": {
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/stair-rows-v1/rows.json": "4d8ec575798d6169503fd7d7cfea683698771054d0e02c7dbdb751aac8a1a525",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/native-claw-stairs-v1/claw/compiled/compilation.json": "3a4eab4778c834c96b532a1f66cdd3192d59b97e2f736c2c008e486ae79009ff",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/native-claw-stairs-v1/paw/compiled/compilation.json": "1bf1efab58d1f04f39b7b12adc751ba0eb7d82404f1de7f2bd5653dbb54b7ef4"
+  },
+  "ground_sha256": "e155bf5dfbbde5ddda7702b510d8e299ad8516154c69e024efb1a77f591bc081",
+  "ground_pace_profiles_added": [
+    51,
+    52
+  ],
+  "motion_sha256": "8055dd9bd31a48c71137470309bd5748e0d439a71f195aa0a5fcb0d26ca7f5d6",
+  "motion_inputs": {
+    "godot/data/underground/mole-worker/qualified-claw-approach-v10/motion.ugmotion": "be301fdbbd6c6718a880058cfe79eae9519f49d347f713863c5cae1eddea13d6",
+    "godot/data/underground/mole-worker/qualified-claw-stairs-v11/mole-worker.ugprof": "9791eb59b778cf9fe0b4c66dfd7181c58706abd6ed1a8e6a90a73daafa7f3317",
+    "godot/data/underground/mole-worker/publish_claw_stairs_runtime.py": "d1d1b64edaca79eb03cb88495c94e69d68101a9bc8dd2fa351450be8de3fbe80"
+  },
+  "runtime_admitted": false
+}

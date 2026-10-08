@@ -4223,7 +4223,7 @@
         "godot/scripts/core/inventory.gd": "92a00d390ba18f327c0de8992b8cef16966de86e742378f745440bf7dfb03824",
         "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
         "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
-        "godot/scripts/core/underground_profiles.gd": "64325eed6772207817a043220fe4db371fe5aa68a89fec60a287099ea589dfaf",
+        "godot/scripts/core/underground_profiles.gd": "4c0dc617ba04dc32b7580144129940028c035d65ad9217286838a56dfad7ae1b",
         "godot/scripts/core/underground_routes.gd": "95b2c8c5c3383592485b95ba7f6f4f5673d2fd0e62c49ae7da2f24361b6113c4",
         "godot/scripts/core/underground_world_routes.gd": "071ed8e39e11941a620e3bd29fb2e2c3773ee7a8e8de4c6b91071c5076cb2f34"
       }
@@ -42763,7 +42763,7 @@
           {
             "bytes": 336,
             "carried_by": "Profiles CONTROL_RESERVE (load-time, released)",
-            "store": "two load-time key-order scratch columns, one int per profile row (2 x 42 x 4)"
+            "store": "two load-time key-order scratch columns, one int per profile row (2 x 42 x 4); ADR 1229 adds three integer constants (POLICY_STAIR, POLICY_STAIR_TURN, CONTACT_TREAD_FIT) and no storage"
           }
         ],
         "delta": {
@@ -42781,8 +42781,20 @@
               "4"
             ],
             [
+              "CONTACT_TREAD_FIT",
+              "5"
+            ],
+            [
               "POLICY_ASSEMBLY_HANDLING",
               "7"
+            ],
+            [
+              "POLICY_STAIR",
+              "8"
+            ],
+            [
+              "POLICY_STAIR_TURN",
+              "9"
             ]
           ],
           "allocation_sites": {
@@ -44121,7 +44133,7 @@
     "godot/scripts/core/underground_motion_catalog.gd": "3fbfa3d858a4752751e8c0965e787d331956fcbf3bf8299bf08f2ca82d1f3195",
     "godot/scripts/core/underground_motion_clock.gd": "91e036e333a61cadd543a88833204fb26d7c93d3c83b7dabd822352ff276d7cd",
     "godot/scripts/core/underground_phase_structure.gd": "8ca9a827a4002f5ceaf73869548ea5cb61bcc39d0cc618deab33773aca4e2a7c",
-    "godot/scripts/core/underground_profiles.gd": "64325eed6772207817a043220fe4db371fe5aa68a89fec60a287099ea589dfaf",
+    "godot/scripts/core/underground_profiles.gd": "4c0dc617ba04dc32b7580144129940028c035d65ad9217286838a56dfad7ae1b",
     "godot/scripts/core/underground_room_world_bindings.gd": "d012c526a267fc7aecb365e7a6afa40d00d931f2b710b1122fc19705f556f8b1",
     "godot/scripts/core/underground_route_composition.gd": "a4ec922b891d57aa8494d5fc1c56767512294352db1860dea1e0dcbce185f71d",
     "godot/scripts/core/underground_routes.gd": "95b2c8c5c3383592485b95ba7f6f4f5673d2fd0e62c49ae7da2f24361b6113c4",

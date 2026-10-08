@@ -36,6 +36,8 @@ const CONTACT_ANCHOR_ONLY: int = 1
 const CONTACT_ANCHOR_AND_PATCH: int = 2
 const CONTACT_ASSEMBLY_PALM: int = 3
 const CONTACT_HAUL_GRIP: int = 4 # ADR1198: certified two-hand grip on the stock at S; no point/patch boxes.
+## ADR1229 / DEC-058: a tread is fitted by a general paw working motion; no certified point or patch is claimed.
+const CONTACT_TREAD_FIT: int = 5
 const MODE_STAND: int = 0
 const MODE_WALK: int = 1
 const MODE_CARRY: int = 2
@@ -67,6 +69,10 @@ const POLICY_SHORT_FORWARD: int = 4
 const POLICY_SHORT_BACKWARD: int = 5
 const POLICY_CANONICAL_GROUND: int = 6
 const POLICY_ASSEMBLY_HANDLING: int = 7
+## ADR1229: finite stair travel on a connector family (descent, ascent, half-turn); never automatic lookup.
+const POLICY_STAIR: int = 8
+## ADR1229: the stepped half-turn on a tread; a separate policy so it never shares a key with a stair gait.
+const POLICY_STAIR_TURN: int = 9
 # Field-major columns, not one record/object per profile.
 const F_SOURCE: int = 0
 const F_SPECIES: int = 1
@@ -393,7 +399,7 @@ func _validate_stage() -> StringName:
 
 func _profile_refusal(row: int, next_box: int) -> StringName:
 	"""Qualification is an explicit source certificate requirement, not inferred from positive bounds."""
-	if _stage.flags[row] != CERT_REQUIRED or _stage.flags[_profile_capacity + row] > POLICY_ASSEMBLY_HANDLING \
+	if _stage.flags[row] != CERT_REQUIRED or _stage.flags[_profile_capacity + row] > POLICY_STAIR_TURN \
 			or _long(_stage, row, L_REVISION) <= 0:
 		return &"PROFILE_CERTIFICATE_REQUIRED"
 	if _field(_stage, row, F_SOURCE) < 0 or _field(_stage, row, F_SOURCE) >= _stage.header[3] \
@@ -405,6 +411,9 @@ func _profile_refusal(row: int, next_box: int) -> StringName:
 	if policy != POLICY_AUTOMATIC and (_field(_stage, row, F_YAW_KIND) != (YAW_ALL if policy == POLICY_CANONICAL_GROUND else YAW_EXACT) \
 			or _field(_stage, row, F_YAW) % 16384 != 0 \
 			or mode != (MODE_WORK if policy == POLICY_SOURCE_WORK or policy == POLICY_ASSEMBLY_HANDLING else MODE_WALK)):
+		return &"PROFILE_POLICY_FORMAT"
+	if (policy == POLICY_STAIR or policy == POLICY_STAIR_TURN) and (_field(_stage, row, F_FAMILIES) == 0 or _field(_stage, row, F_TOOL) != -1 \
+			or _field(_stage, row, F_CARGO) != -1):
 		return &"PROFILE_POLICY_FORMAT"
 	var states: int = _field(_stage, row, F_STATES)
 	if mode < MODE_STAND or mode > MODE_CLIMB or states < 1 or states > 511 \
@@ -449,7 +458,7 @@ func _key_refusal(row: int) -> StringName:
 		return &"PROFILE_QUANTITY"
 	if _field(_stage, row, F_WORK_KIND) < -1 or _field(_stage, row, F_WORK_KIND) >= 12 \
 			or _field(_stage, row, F_CONTACT_KIND) < CONTACT_NONE \
-			or _field(_stage, row, F_CONTACT_KIND) > CONTACT_HAUL_GRIP:
+			or _field(_stage, row, F_CONTACT_KIND) > CONTACT_TREAD_FIT:
 		return &"PROFILE_WORK_IDENTITY"
 	if (_stage.flags[_profile_capacity + row] == POLICY_ASSEMBLY_HANDLING) \
 			!= (_field(_stage, row, F_CONTACT_KIND) == CONTACT_ASSEMBLY_PALM):
@@ -479,6 +488,8 @@ func _roles_refusal(profile: int, first: int, count: int) -> StringName:
 	var working: bool = _field(_stage, profile, F_MODE) == MODE_WORK
 	if _field(_stage, profile, F_CONTACT_KIND) == CONTACT_HAUL_GRIP:
 		return _haul_grip_roles_refusal(profile, working, mask, points + patches)
+	if _field(_stage, profile, F_CONTACT_KIND) == CONTACT_TREAD_FIT:
+		return _tread_fit_roles_refusal(profile, working, mask, points + patches)
 	if _stage.flags[_profile_capacity + profile] == POLICY_ASSEMBLY_HANDLING:
 		# Curved source contact is a separate certificate, never a made-up point,
 		# planar patch or productive stroke. Exact source matching remains required.
@@ -490,6 +501,15 @@ func _roles_refusal(profile: int, first: int, count: int) -> StringName:
 	if not working and (_field(_stage, profile, F_WORK_KIND) != -1 or _field(_stage, profile, F_CONTACT_KIND) != 0):
 		return &"PROFILE_WORK_IDENTITY"
 	return _contact_patch_refusal(profile, patches, point_row, patch_row)
+
+
+func _tread_fit_roles_refusal(profile: int, working: bool, mask: int, contact_boxes: int) -> StringName:
+	"""DEC-058: a source-work BUILD row with body, stance, recovery, approach and the paw stroke, and no planar
+	point or patch: the paws need not meet the bearer, so no contact is certified."""
+	return &"" if working and mask == 31 and contact_boxes == 0 \
+		and _stage.flags[_profile_capacity + profile] == POLICY_SOURCE_WORK \
+		and _field(_stage, profile, F_WORK_KIND) == Work.JobsScript.JOB_KIND_BUILD \
+		and _field(_stage, profile, F_TOOL) == -1 else &"PROFILE_ROLE_MISSING"
 
 
 func _haul_grip_roles_refusal(profile: int, working: bool, mask: int, contact_boxes: int) -> StringName:
@@ -578,14 +598,15 @@ static func selection_policy_leaf(actual: RefCounted, profile_id: int, profile_r
 			or profile_revision <= 0 or profile_revision != actual._live.quantities[L_REVISION * actual._profile_capacity + profile_id]:
 		return -1
 	var policy: int = actual._live.flags[actual._profile_capacity + profile_id]
-	return policy if policy <= POLICY_ASSEMBLY_HANDLING else -1
+	return policy if policy <= POLICY_STAIR_TURN else -1
 
 
 func query_travel_profile_into(worker: Vector2i, job: Vector2i, profile_id: int, profile_revision: int,
 		revision: int, posture: int, connector_family: int, equipped_tool_hint: Vector2i, out: Selection) -> StringName:
 	"""Explicit source travel still proves the actual current actor, Job, tool, cargo and orientation."""
 	var policy: int = selection_policy_leaf(self, profile_id, profile_revision, revision)
-	if policy < POLICY_READY_FORWARD or policy > POLICY_CANONICAL_GROUND or policy == POLICY_SOURCE_WORK:
+	if (policy < POLICY_READY_FORWARD or policy > POLICY_CANONICAL_GROUND or policy == POLICY_SOURCE_WORK) \
+			and policy != POLICY_STAIR and policy != POLICY_STAIR_TURN:
 		return &"PROFILE_TRAVEL_SELECTION_REQUIRED"
 	var code: StringName = _prepare_query(worker, job, MODE_WALK, posture, connector_family, equipped_tool_hint, out)
 	if code != &"":

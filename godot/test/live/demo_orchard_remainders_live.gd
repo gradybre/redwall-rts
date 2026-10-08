@@ -272,6 +272,11 @@ func _the_foraging_outing() -> void:
 	"""The Woods tab: the Foraging section's Kit and Lead buttons, and its trip card's home-by-dusk rule."""
 	_click(_centre(_zone().tab(DetailZone.PANEL_WOODS)))
 	var forage: Node = _village.call(&"forage")
+	var trips: RefCounted = forage.get("trips")
+	_check("the village wires the groves' reserve", int(trips.call(&"reserve_milli", 0)) > 0 \
+		and int(trips.call(&"reserve_milli", 1)) > 0 and int(trips.call(&"reserve_milli", 2)) == 0,
+		"nuts %s, mushrooms %s, herbs %s" % [trips.call(&"reserve_milli", 0), trips.call(&"reserve_milli", 1),
+		trips.call(&"reserve_milli", 2)])
 	forage.call(&"refresh_section")
 	var section: Control = forage.get("section")
 	var kit: Button = section.call(&"button", &"forage_kit")

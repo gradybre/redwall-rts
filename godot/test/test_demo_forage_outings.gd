@@ -225,6 +225,7 @@ func test_a_forager_turns_back_for_the_dark() -> void:
 	assert_true(rig.said[rig.said.size() - 1].contains("turned back") and rig.said[rig.said.size() - 1].contains("dusk"),
 		rig.said[rig.said.size() - 1])
 	assert_equal(t.note_line(HERBS), "", "a turned-back trip leaves no note")
+	assert_equal(t.t_turned[0], 1, "counted as turned back")
 
 
 func test_a_late_forager_gathers_only_what_daylight_allows() -> void:
@@ -275,6 +276,8 @@ func test_a_named_lead_is_in_the_news_and_the_note() -> void:
 	assert_true(_run(rig, func() -> bool: return t.trip_count() == 0), "home")
 	assert_true(rig.said[rig.said.size() - 1].contains("led by %s" % lead), rig.said[rig.said.size() - 1])
 	assert_true(t.note_line(HERBS).ends_with("led by %s" % lead), t.note_line(HERBS))
+	assert_true(t.note_ticks[HERBS] > 0, "how long it was out")
+	assert_true(t.note_line(HERBS).contains(" h ") and t.note_line(HERBS).contains(" min"), t.note_line(HERBS))
 	assert_equal(t.order_trip(HERBS, 1, PackedInt32Array([3])), "", "another, nobody named")
 	assert_true(_run(rig, func() -> bool: return t.trip_count() == 0), "home again")
 	assert_true(t.note_line(HERBS).contains("4.0 U of herbs") and not t.note_line(HERBS).contains("led by"),
@@ -340,3 +343,62 @@ func test_the_section_shows_the_outing() -> void:
 	node.on_action(SectionScript.ACTION_KIT)
 	assert_false(node.choice_kit, "and back")
 	node.free()
+
+
+
+func _near_the_spot(rig: Rig, kind_index: int) -> bool:
+	"""Run until seat 0's forager is within a metre of its spot, still walking out (bounded)."""
+	var t: TripsScript = rig.trips
+	return _run(rig, func() -> bool: return t.j_worker[0] >= 0 and t.j_step[0] == TripsScript.S_TO_SPOT \
+		and t.brain_of(t.j_worker[0]).position.distance_to(t.spot_at[kind_index]) < 1.0)
+
+
+func test_a_late_forager_claims_only_what_daylight_allows() -> void:
+	"""A forager arriving with 150 ticks of daylight past its walk home claims what it can gather in them (under its
+	basket, more than the least worth a trip): never a full basket walked home after dusk."""
+	var rig: Rig = _rig(SUMMER_DAY, 8)
+	var t: TripsScript = rig.trips
+	assert_equal(t.order_trip(NUTS, 1, PackedInt32Array([3])), "", "authorised")
+	assert_true(_near_the_spot(rig, NUTS), "nearly at the hazel brake")
+	rig.calendar.tick = tick_at(SUMMER_DAY, 20) - t.walk_home_ticks(NUTS) - 150
+	var cap: int = t.daylight_cap_milli(NUTS, 0)
+	assert_true(cap >= Rules.MIN_SHARE_MILLI and cap < 4000, "a capped share: %d" % cap)
+	assert_true(_run(rig, func() -> bool: return t.j_claimed[0] > 0 or t.j_live[0] == 0), "claimed")
+	assert_true(t.j_claimed[0] > 0 and t.j_claimed[0] <= cap, "within the daylight: %d of %d" % [t.j_claimed[0], cap])
+	assert_true(t.j_claimed[0] >= Rules.gatherable_milli(150 - 30, t.driver.work_per_u_wu(ForageCore.PATCH_NUTS, 0), 1000),
+		"about the cap (a few ticks pass): %d" % t.j_claimed[0])
+
+
+func test_rain_and_skill_change_the_daylight_cap() -> void:
+	"""Heavy rain slows the gathering to 80% (§5.10), so less fits before dusk; a skilled forager gathers more."""
+	var rig: Rig = _rig(SUMMER_DAY, 15)
+	var t: TripsScript = rig.trips
+	var left: int = t.daylight_left_ticks() - t.walk_home_ticks(NUTS)
+	var wpu: int = t.driver.work_per_u_wu(ForageCore.PATCH_NUTS, 0)
+	assert_equal(t.daylight_cap_milli(NUTS, 0), Rules.gatherable_milli(left, wpu, 1000), "a mild day")
+	t.weather.observe(1, 1, 15, 160, 0, WeatherCore.EVENT_HEAVY_RAIN)
+	assert_equal(t.daylight_cap_milli(NUTS, 0), Rules.gatherable_milli(left, wpu, 800), "heavy rain: 80%")
+	var skilled: int = t.driver.work_per_u_wu(ForageCore.PATCH_NUTS, 20)
+	assert_true(skilled < wpu, "FORAGE 20 works faster")
+	assert_equal(t.daylight_cap_milli(NUTS, 20), Rules.gatherable_milli(left, skilled, 800), "by the forager's skill")
+	assert_true(t.daylight_refusal(NUTS).is_empty(), "15:00 still leaves time")
+	rig.calendar.tick = tick_at(SUMMER_DAY, 20) - 2 * t.walk_home_ticks(NUTS) + 10
+	assert_true(t.daylight_refusal(NUTS).contains("too late"), "a round trip no longer fits")
+
+
+func test_the_grove_reserve_holds_at_the_claim() -> void:
+	"""A trip authorised before the reserve binds: at the spot its forager claims only what the reserve leaves."""
+	var rig: Rig = _rig()
+	var t: TripsScript = rig.trips
+	var permille: Array[int] = [0]
+	t.reserve_permille = func(at: Vector2) -> int: return permille[0] if OrchardRules.grove_of(at) == 0 else 0
+	assert_equal(t.order_trip(NUTS, 1, PackedInt32Array([3])), "", "authorised: 4 U asked")
+	assert_true(_near_the_spot(rig, NUTS), "nearly at the hazel brake")
+	var kind: int = ForageCore.PATCH_NUTS
+	var room: int = t.driver.stock_milli(kind) - t.driver.floor_milli(kind) - 2000
+	@warning_ignore("integer_division") var p: int = room * 1000 / t.driver.capacity_milli(kind)
+	permille[0] = p
+	var left: int = t.harvestable_milli(NUTS)
+	assert_true(left >= Rules.MIN_SHARE_MILLI and left < 4000, "the reserve leaves %d" % left)
+	assert_true(_run(rig, func() -> bool: return t.j_claimed[0] > 0 or t.j_live[0] == 0), "claimed")
+	assert_equal(t.j_claimed[0], left, "only what the reserve leaves")

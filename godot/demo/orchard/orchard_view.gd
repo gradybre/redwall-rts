@@ -42,6 +42,7 @@ const PropsScript := preload("res://demo/props/demo_props.gd")
 const Sizes := preload("res://demo/world/world_sizes.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
+const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
@@ -628,13 +629,15 @@ func follow_carts() -> void:
 		var who: int = _jobs.cart_out(group) if _jobs != null and _cast != null else -1
 		var at: Vector2 = Rules.CART_PARK_AT[group]
 		var yaw: float = CART_PARK_YAW
-		if who >= 0 and not _jobs.brain_of(who).underground:
-			var brain: RefCounted = _jobs.brain_of(who)
-			yaw = float(brain.get(&"yaw"))
-			at = brain.get(&"position") + Vector2(sin(yaw), cos(yaw)) * CART_AHEAD_M
-			yaw += PI * 0.5
-		cart.position = Vector3(at.x, 0.0, at.y)
-		cart.rotation.y = yaw
+		if who >= 0:
+			var brain: BrainScript = _jobs.brain_of(who)
+			if not brain.underground:
+				at = brain.position + Vector2(sin(brain.yaw), cos(brain.yaw)) * CART_AHEAD_M
+				yaw = brain.yaw + PI * 0.5
+		var place := Vector3(at.x, 0.0, at.y)
+		if cart.position != place or cart.rotation.y != yaw:
+			cart.position = place
+			cart.rotation.y = yaw
 
 
 func _show_held(who: int, key: StringName) -> void:

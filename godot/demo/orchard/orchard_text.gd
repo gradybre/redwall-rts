@@ -12,7 +12,7 @@ const HiveRules := preload("res://demo/hives/hive_rules.gd")
 const ForageRules := preload("res://demo/forage/forage_rules.gd")
 
 const KIND_NAMES: Array[String] = ["Tend", "Harvest", "Pick berries", "Haul baskets", "Plant", "Propagate", "Observe",
-	"Tend the bees", "Feed the bees", "Recolonise the hive", "Move the sapling", "Build a cart"]
+	"Tend the bees", "Feed the bees", "Recolonise the hive", "Move", "Build a cart"]
 const OTHER_JOB: String = "has another orchard job"
 const CANT_REACH: String = "can't reach it — %s"
 const NO_ROOM_HEAD: String = "no room"
@@ -36,6 +36,7 @@ const DEST_EITHER: String = "the kitchen pantry or any store"
 const HAS_CART: String = "the group has its cart already"
 const NO_WOOD: String = "a cart needs %s of wood (the stores hold %s)"
 const LIFTED: String = "it is out of the ground, on its way to its new site"
+const MOVE_THROUGH_ORDER: String = "a move is ordered with Move sapling, which speaks for its new site first"
 ## ECO-015's seasonal sightings: insects and the trees' own year (mammals and birds are never targets or pest icons).
 const SIGHTINGS: Array[String] = [
 	"bees working the catkins; the first beetles in the leaf litter",

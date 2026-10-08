@@ -337,7 +337,8 @@ func on_action(action: StringName) -> void:
 		&"protect":
 			model.set_grove_protected(shown_grove(), not model.is_grove_protected(shown_grove()))
 		&"move":
-			_answer(jobs.order_move(selected_id, _command.selected() if _command != null else PackedInt32Array()))
+			if selected_kind == SEL_SITE:
+				_answer(jobs.order_move(selected_id, _command.selected() if _command != null else PackedInt32Array()))
 		&"plan_apple", &"plan_pear":
 			_answer(Text.plant_words(model.add_plan(Rules.APPLE if action == &"plan_apple" else Rules.PEAR, selected_id)))
 		&"drop_plan":
@@ -359,7 +360,7 @@ func _cycle_policy(action: StringName) -> void:
 		&"timing":
 			model.group_timing[group] = (model.group_timing[group] + 1) % Rules.TIMING_NAMES.size()
 		&"dest":
-			var step: int = Array(Rules.FRESH_STEPS).find(model.group_fresh_pct[group])
+			var step: int = Rules.FRESH_STEPS.find(model.group_fresh_pct[group])
 			model.group_fresh_pct[group] = Rules.FRESH_STEPS[(step + 1) % Rules.FRESH_STEPS.size()]
 		&"keep":
 			var at: int = Array(Rules.KEEP_STEPS).find(model.group_keep[group])

@@ -258,6 +258,8 @@ func refusal(action: StringName, kind: int, id: int) -> String:
 			var plan: int = _model.plan_for_site(id)
 			return "" if plan != ModelScript.NONE and _model.plan_state[plan] == ModelScript.PLAN_WAITING \
 				else "its sapling is already growing: it goes on to this site"
+		&"move":
+			return _jobs.move_order_refusal(id)
 	var job: Vector3i = job_of(action, kind, id)
 	return _jobs.order_refusal(job.x, job.y, job.z) if job.x >= 0 else ""
 
@@ -331,16 +333,8 @@ func _result_of(action: StringName, kind: int, id: int) -> String:
 			return "About %s picked into the group's baskets" % Text.units(_model.expected_yield_milli(id))
 		&"pick":
 			return "A basket of up to %s of %s, as berries" % [Text.units(Rules.PICK_LOAD_MILLI), Text.BUSH_FRUIT[id]]
-		&"haul":
-			return "Up to %s carried on (%s; %d%% wanted on the fresh table)" % [Text.units(_model.haul_load_milli(id)),
-				"by handcart" if _model.has_cart(id) else "a basket", _model.group_fresh_pct[id]]
-		&"move":
-			var dest: int = _jobs.move_target(id)
-			return "Lifted and replanted at %s; it settles %d days before it grows again, and is never moved twice" % [
-				Rules.SITE_NAMES[dest] if dest >= 0 else "a free site", Rules.MOVE_SETTLE_DAYS]
-		&"cart":
-			return "A handcart at the baskets: each haul carries up to %s instead of %s" % [Text.units(Rules.CART_LOAD_MILLI),
-				Text.units(Rules.HAUL_LOAD_MILLI)]
+		&"haul", &"move", &"cart":
+			return _remainder_result(action, id)
 		&"plant_apple", &"plant_pear":
 			return "A new tree on this block (REQ-SET-081: see its first harvest above)"
 		&"plan_apple", &"plan_pear":
@@ -354,6 +348,20 @@ func _result_of(action: StringName, kind: int, id: int) -> String:
 		&"recolonize":
 			return "A swarm settles %d days after the work: the hive back at 80%% strength" % HiveRules.RECOLONIZE_WAIT_DAYS
 	return "" if kind >= 0 else ""
+
+
+func _remainder_result(action: StringName, id: int) -> String:
+	"""Decision 1721's results: a haul by basket or cart and its share, a move, a cart."""
+	match action:
+		&"haul":
+			return "Up to %s carried on (%s; %d%% wanted on the fresh table)" % [Text.units(_model.haul_load_milli(id)),
+				"by handcart" if _model.has_cart(id) else "a basket", _model.group_fresh_pct[id]]
+		&"move":
+			var dest: int = _jobs.move_target(id)
+			return "Lifted and replanted at %s; it settles %d days before it grows again, and is never moved twice" % [
+				Rules.SITE_NAMES[dest] if dest >= 0 else "a free site", Rules.MOVE_SETTLE_DAYS]
+	return "A handcart at the baskets: each haul carries up to %s instead of %s" % [Text.units(Rules.CART_LOAD_MILLI),
+		Text.units(Rules.HAUL_LOAD_MILLI)]
 
 
 func _costs_of(action: StringName) -> void:

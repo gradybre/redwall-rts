@@ -32,6 +32,7 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 const KitchenNode := preload("res://demo/kitchen/demo_kitchen.gd")
 const ForageRules := preload("res://demo/forage/forage_rules.gd")
+const ForestryScript := preload("res://demo/forestry/demo_forestry.gd")
 
 const DT: float = 0.1
 const MAX_FRAMES: int = 8000
@@ -102,17 +103,8 @@ static func _map() -> WaterMapScript:
 func _rig(day: int = 1) -> Rig:
 	"""test_demo_orchard.gd's rig: the cast on the real layout, a pantry with the kitchen's store, the stands and a cellar,
 	the calendar at 06:00 of `day`, mild weather, and the orchard, its news kept."""
-	var world: DemoWorldScript = _keep(DemoWorldScript.new()) as DemoWorldScript
-	var circles: Array[Vector3] = world.obstacles()
-	circles.append_array(WaterDressing.obstacles())
-	circles.append_array(WaterplayScript.land_obstacles())
-	circles.append_array(OrchardNode.land_obstacles())
-	var links := WaterplayScript.make_links(_map(), circles)
-	circles.append_array(links.band)
 	var rig := Rig.new()
-	rig.cast = _keep(DemoCastScript.new()) as DemoCastScript
-	rig.cast.build({}, world.points_of_interest(), circles, links.area)
-	rig.cast.set_bounds(WaterplayScript.walk_bounds(world.bounds()))
+	rig.cast = _cast()
 	var storage := StorageScript.new(DemoFarmScript.store_position(rig.cast))
 	storage.add_provider(KitchenNode.pantry_provider())
 	storage.add_provider(OrchardNode.stand_provider())
@@ -130,6 +122,23 @@ func _rig(day: int = 1) -> Rig:
 	rig.jobs.set_compost(rig.compost_left, rig.take_compost)
 	rig.jobs.say = rig.say
 	return rig
+
+
+func _cast() -> DemoCastScript:
+	"""The placeholder cast on the real layout, walking round the water's band, the orchard's obstacles and the woods'
+	(a world boulder lies in east site 2's block, as in the village)."""
+	var world: DemoWorldScript = _keep(DemoWorldScript.new()) as DemoWorldScript
+	var circles: Array[Vector3] = world.obstacles()
+	circles.append_array(world.woods_obstacles(40.0))
+	circles.append_array(WaterDressing.obstacles())
+	circles.append_array(WaterplayScript.land_obstacles())
+	circles.append_array(OrchardNode.land_obstacles())
+	var links := WaterplayScript.make_links(_map(), circles)
+	circles.append_array(links.band)
+	var cast: DemoCastScript = _keep(DemoCastScript.new()) as DemoCastScript
+	cast.build({}, world.points_of_interest(), circles, links.area)
+	cast.set_bounds(WaterplayScript.walk_bounds(world.bounds()))
+	return cast
 
 
 static func _cellar() -> Array:
@@ -304,12 +313,13 @@ func test_a_moved_tree_keeps_its_state_and_settles() -> void:
 	health still §5.6's (untended spring days -100); then it grows again."""
 	var model := ModelScript.new()
 	_sapling(model, 2, 1, 5)
-	model.store.restore_orchard_state(model.site_ref[2], 5, 9000, 0, true, false)
+	model.store.restore_orchard_state(model.site_ref[2], 5, 9000, 4, true, false)
 	assert_true(model.reserve_move(2, 3), "reserved")
 	assert_true(model.move_tree(2, 6), "moved")
 	assert_false(model.has_tree(2), "the old site empty")
 	assert_equal([model.species_of(3), model.age_of(3), model.health_of(3)], [Rules.APPLE, 5, 9000], "its state")
 	assert_true(model.tended_today(3), "today's care carried")
+	assert_equal(model.store.chill_days_of(model.slot_of(3)).value, 4, "this winter's chill carried")
 	assert_equal([model.moved[3], model.settle_days[3], model.planted_day[3]], [1, Rules.MOVE_SETTLE_DAYS, 1], "settling")
 	assert_equal([model.moved[2], model.settle_days[2], model.move_dest[2]], [0, 0, ModelScript.NONE], "the old site cleared")
 	assert_equal(model.store.orchard_count(), 3, "one row moved, none added")
@@ -609,8 +619,9 @@ func test_the_view_draws_carts_rings_and_a_lifted_sapling() -> void:
 	model.set_lifted(2, true)
 	view.refresh(false)
 	assert_false(view.tree_node(2).visible, "lifted: its block empty")
-	for j: int in JobsScript.MAX_JOBS:
-		assert_equal(view.held_key(j), &"", "nothing held without a worker")
+	model.set_lifted(2, false)
+	view.refresh(false)
+	assert_true(view.tree_node(2).visible, "set back: drawn again")
 
 
 func test_the_node_orders_a_move_and_steps_the_share() -> void:
@@ -629,3 +640,90 @@ func test_the_node_orders_a_move_and_steps_the_share() -> void:
 	node.on_action(&"dest")
 	assert_equal(node.model.group_fresh_pct[1], 25, "a quarter")
 	assert_equal(node.panel.button(&"dest").text, "Share: fresh 25%", "on its button")
+
+
+# --- review fixes (decision 1721's review) ---------------------------------------------------------------------------------
+
+func test_a_move_is_opened_only_with_its_site_spoken_for() -> void:
+	"""The generic order refuses a move with no reserved site (only Move sapling opens one), so a replanting never takes
+	compost for a move it would refuse; `replant_refusal` makes every check `move_tree` does."""
+	var rig := _rig(3)
+	_sapling(rig.model, 2, 3, 2)
+	assert_equal(rig.jobs.order(JobsScript.K_MOVE, 2, -1, PackedInt32Array([3])), Text.MOVE_THROUGH_ORDER, "refused")
+	assert_equal(rig.jobs.count_of(JobsScript.K_MOVE, JobsScript.NONE), 0, "no job")
+	assert_equal(rig.model.replant_refusal(2, 3), ModelScript.REFUSE_NO_MOVE_SITE, "no site reserved")
+	assert_equal(rig.model.replant_refusal(-1, 3), ModelScript.REFUSE_NO_MOVE_SITE, "no site")
+	assert_true(rig.model.reserve_move(2, 3), "reserved")
+	assert_equal(rig.model.replant_refusal(2, 3), "", "may be replanted")
+	rig.model.store.restore_orchard_state(rig.model.site_ref[2], Rules.HALF_YEAR_DAYS, Hive.HEALTH_MAX, 0, false, false)
+	assert_equal(rig.model.replant_refusal(2, 3), "", "a sapling lifted on its last day is still replanted")
+	assert_equal(rig.compost, 40000, "nothing taken")
+
+
+func test_a_move_never_takes_a_site_a_planting_works() -> void:
+	"""A planting ordered on the last free site: the move finds no site rather than taking it from under the planting."""
+	var rig := _rig(3)
+	_sapling(rig.model, 2, 3, 2)
+	assert_equal(rig.jobs.order(JobsScript.K_PLANT, 3, Rules.PEAR, PackedInt32Array()), "", "a planting on east site 2")
+	assert_equal(rig.jobs.move_target(2), JobsScript.NONE, "no site for the move")
+	assert_true(rig.jobs.order_move(2, PackedInt32Array()).contains("no free site"), "refused in words")
+	assert_false(rig.model.is_move_dest(3), "the planting's site untouched")
+
+
+func test_a_full_board_leaves_no_site_spoken_for() -> void:
+	"""The board full: Move sapling is refused and gives its site back (nothing left reserved with no job to free it)."""
+	var rig := _rig(3)
+	_sapling(rig.model, 2, 3, 2)
+	var kinds: PackedInt32Array = [JobsScript.K_TEND, JobsScript.K_HARVEST, JobsScript.K_PICK, JobsScript.K_OBSERVE]
+	for k: int in kinds:
+		for t: int in 4:
+			rig.jobs.open_into(k, t, JobsScript.ORIGIN_ROUTINE, _read)
+	assert_equal(Array(rig.jobs.live).count(1), JobsScript.MAX_JOBS, "the board full")
+	assert_equal(rig.jobs.order_move(2, PackedInt32Array()), Text.BOARD_FULL, "refused")
+	assert_false(rig.model.is_move_dest(3), "its site given back")
+
+
+func test_one_site_takes_one_move() -> void:
+	"""A site spoken for by one move is free for that move only."""
+	var model := ModelScript.new()
+	_sapling(model, 2, 1, 2)
+	assert_true(model.reserve_move(2, 3), "reserved")
+	assert_true(model.move_site_free(2, 3), "for its own move")
+	assert_false(model.move_site_free(0, 3), "not for another")
+	assert_false(model.move_site_free(-1, 3), "nor for no site")
+	assert_equal(model.move_options(0), ModelScript.NONE, "no other site free")
+
+
+func test_each_grove_counts_its_own_trees() -> void:
+	"""`grove_trees_standing`: the woods' trees in each grove (the North hollow's and the beech hollow's two beeches)."""
+	var world := _keep(DemoWorldScript.new()) as DemoWorldScript
+	var circles: Array[Vector3] = world.obstacles()
+	circles.append_array(ForestryScript.extra_obstacles(world))
+	var cast: DemoCastScript = _keep(DemoCastScript.new()) as DemoCastScript
+	cast.build({}, world.points_of_interest(), circles)
+	cast.set_bounds(world.bounds())
+	var forestry: ForestryScript = _keep(ForestryScript.new()) as ForestryScript
+	forestry.configure(world, cast, null, null, _services, IntMath.IntResult.new(true, 60, ""))
+	var node := _keep(OrchardNode.new()) as OrchardNode
+	node.set_woods(forestry.stand)
+	assert_true(node.grove_trees_standing(0) >= 2, "the North hollow: %d" % node.grove_trees_standing(0))
+	assert_equal(node.grove_trees_standing(1), 2, "the beech hollow's two beeches")
+
+
+func test_a_work_spot_is_clear_of_the_boulder_in_east_site_2() -> void:
+	"""East site 2's block holds a world boulder where its tree's first-choice work spot (toward the stand) would be:
+	the spot is found round the trunk instead, clear of every obstacle, and a move replants there."""
+	var rig := _rig(3)
+	var world := _keep(DemoWorldScript.new()) as DemoWorldScript
+	var preferred: Vector2 = rig.jobs.tree_spot(3)
+	var blocked: bool = false
+	for circle: Vector3 in world.woods_obstacles(40.0):
+		blocked = blocked or preferred.distance_to(Vector2(circle.x, circle.z)) < circle.y
+	assert_true(blocked, "the first choice lies in the boulder")
+	var spot: Vector2 = rig.jobs.trunk_spot(3, 2)
+	assert_true(spot != preferred, "another spot round the trunk")
+	assert_almost_equal(spot.distance_to(Rules.site_centre_m(3)), JobsScript.TRUNK_REACH_M, "at the trunk's reach")
+	for circle: Vector3 in world.woods_obstacles(40.0):
+		assert_true(spot.distance_to(Vector2(circle.x, circle.z)) >= circle.y, "clear of %s" % circle)
+	assert_equal(rig.jobs.trunk_spot(2, 2), rig.jobs.tree_spot(2), "east site 1: the first choice is clear")
+	assert_equal(rig.jobs.trunk_spot(3, JobsScript.NONE), preferred, "nobody: the first choice")

@@ -490,13 +490,18 @@ func test_a_card_says_the_verb_the_refusal_the_cost_and_the_work() -> void:
 	assert_true(cards.jobs_line().contains("0"), cards.jobs_line())
 	assert_true(cards.nursery_text().contains("2 apple, 2 pear"), "the grant")
 	assert_true(cards.grove_text(0).contains("never felled"), "protected")
-	assert_true(cards.grove_text(0).contains("leave its nuts a reserve"), cards.grove_text(0))
-	assert_true(cards.grove_text(1).contains("leave its mushrooms a reserve"), cards.grove_text(1))
 	assert_true(cards.policy_tip(&"timing", 0).contains("As each ripens"), "the timing's card")
 	assert_true(cards.policy_tip(&"protect", -1).contains("firewood"), "the grove's card")
 	assert_equal(cards.keep_word(0), "4.0 U", "the old orchard keeps one sapling's fruit")
 	assert_equal(cards.dest_word(1), "fresh 0%", "the east orchard's fresh-table share")
 	assert_equal(cards.timing_word(-1), "", "no group")
+
+
+func test_each_grove_says_its_forage_reserve() -> void:
+	"""Decision 1721: each grove's readout names the kind its foraging trips leave a reserve of."""
+	var cards := _cards(1)
+	assert_true(cards.grove_text(0).contains("leave its nuts a reserve"), cards.grove_text(0))
+	assert_true(cards.grove_text(1).contains("leave its mushrooms a reserve"), cards.grove_text(1))
 
 
 # --- the drawing -------------------------------------------------------------------------------------------------------------
@@ -601,6 +606,25 @@ func test_a_click_picks_the_nearest_orchard_thing() -> void:
 	assert_equal(node.grove_reserve_permille(Vector2.ZERO), 0, "no grove: no reserve")
 
 
+func test_the_share_steps_round_and_each_grove_toggles() -> void:
+	"""Decision 1721: the share steps 0-25-50-75-100 and round; the toggle sets the selected grove (the North hollow
+	when none is), and the grove section shows it."""
+	var node := _node()
+	node.select(OrchardNode.SEL_SITE, 0)
+	for k: int in 4:
+		node.on_action(&"dest")
+	assert_equal(node.model.group_fresh_pct[0], 100, "all to the kitchen")
+	node.on_action(&"dest")
+	assert_equal(node.model.group_fresh_pct[0], 0, "and round to none")
+	node.on_action(&"protect")
+	assert_false(node.model.is_grove_protected(0), "the North hollow's lifted")
+	assert_true(node.model.is_grove_protected(1), "the beech hollow's kept")
+	node.select(OrchardNode.SEL_GROVE, 1)
+	node.on_action(&"protect")
+	assert_false(node.model.is_grove_protected(1), "the selected grove's toggled")
+	assert_equal(node.panel.line(&"grove_title"), "The beech hollow", "the grove section shows the selected grove")
+
+
 func test_the_panel_buttons_step_the_policies_and_the_plans() -> void:
 	"""`on_action`: timing, destination and the nursery's share stepped for the selection's group; the grove's toggle;
 	a plan made and dropped; a selection fills the panel."""
@@ -613,22 +637,12 @@ func test_the_panel_buttons_step_the_policies_and_the_plans() -> void:
 	assert_equal(node.model.group_timing[0], Rules.TIMING_STAGGERED, "and back")
 	node.on_action(&"dest")
 	assert_equal(node.model.group_fresh_pct[0], 25, "a quarter to the fresh table")
-	for k: int in 3:
-		node.on_action(&"dest")
-	assert_equal(node.model.group_fresh_pct[0], 100, "all to the kitchen")
-	node.on_action(&"dest")
-	assert_equal(node.model.group_fresh_pct[0], 0, "and round to none")
 	node.on_action(&"keep")
 	assert_equal(node.model.group_keep[0], Rules.KEEP_STEPS[2], "8 U kept")
 	node.on_action(&"keep")
 	assert_equal(node.model.group_keep[0], Rules.KEEP_STEPS[0], "none kept")
 	node.on_action(&"protect")
 	assert_false(node.model.is_grove_protected(0), "the North hollow's protection lifted (no grove selected)")
-	assert_true(node.model.is_grove_protected(1), "the beech hollow's kept")
-	node.select(OrchardNode.SEL_GROVE, 1)
-	node.on_action(&"protect")
-	assert_false(node.model.is_grove_protected(1), "the selected grove's toggled")
-	assert_equal(node.panel.line(&"grove_title"), "The beech hollow", "the grove section shows the selected grove")
 	node.select(OrchardNode.SEL_SITE, 2)
 	node.on_action(&"plan_pear")
 	assert_equal(node.model.plan_species[node.model.plan_for_site(2)], Rules.PEAR, "a pear planned")

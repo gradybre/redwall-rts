@@ -102,6 +102,8 @@ const MAX_TARGETS: int = 8
 const ARRIVE_M: float = 0.6
 ## Where a worker stands to work a tree: this far from its trunk, toward its stand.
 const TRUNK_REACH_M: float = 1.5
+## The directions round a trunk a work spot is looked for in (an eighth of a turn apart).
+const TRUNK_DIRECTIONS: int = 8
 const FREE_SPOT_RINGS: int = 4
 const FREE_SPOT_STEP_M: float = 0.45
 const MAX_TRIES: int = 3
@@ -469,6 +471,48 @@ func stand_location(group: int) -> int:
 	return _read.value
 
 
+func _spot_for(j: int, step: int, who: int) -> Vector2:
+	"""Where `who` stands for job `j`'s `step`: the free spot (`_free_spot`) at its place -- at a tree, its first
+	standable spot round the trunk (`trunk_spot`)."""
+	var site: int = _tree_site(j, step)
+	return _free_spot(trunk_spot(site, who) if site != NONE else place_of(j, step), who)
+
+
+func _tree_site(j: int, step: int) -> int:
+	"""The site whose tree job `j`'s `step` is worked at (NONE: not at a tree): its target's, or a move's new site."""
+	var at_target: bool = step == S_GO or step == S_WORK
+	match kind[j]:
+		K_TEND, K_HARVEST, K_PLANT:
+			return target[j] if at_target else NONE
+		K_MOVE:
+			return target[j] if at_target else model.move_dest[target[j]]
+	return NONE
+
+
+func trunk_spot(site: int, who: int) -> Vector2:
+	"""Where to work `site`'s tree, TRUNK_REACH_M from its trunk: `tree_spot` (toward the group's stand) when a resident
+	may stand there, else the first such spot round the trunk either way an eighth at a time (decision 1721's review: a
+	world boulder lies in east site 2's block, on its first choice); `tree_spot` with no cast or none standable."""
+	var first: Vector2 = tree_spot(site)
+	if who == NONE or _cast == null or _standable(first, who):
+		return first
+	var centre: Vector2 = Rules.site_centre_m(site)
+	var toward: float = (first - centre).angle()
+	for k: int in range(1, TRUNK_DIRECTIONS):
+		@warning_ignore("integer_division") var turn: int = (k + 1) / 2 * (1 if k % 2 == 1 else -1)
+		var spot: Vector2 = centre + Vector2.from_angle(toward + TAU * turn / TRUNK_DIRECTIONS) * TRUNK_REACH_M
+		if _standable(spot, who):
+			return spot
+	return first
+
+
+func _standable(spot: Vector2, who: int) -> bool:
+	"""Whether `who` could stand at `spot` (clear of the obstacles and the bounds; reachability is `_free_spot`'s)."""
+	var brain: BrainScript = brain_of(who)
+	return CastOrdersScript.spot_ok(_cast.space(), spot, brain.radius, _cast.bounds(), PackedVector3Array(), _no_spots,
+		spot)
+
+
 func _free_spot(at: Vector2, who: int) -> Vector2:
 	"""A spot at `at` resident `who` can stand on and reach -- `at`, else the nearest on rings round it clear of anyone
 	standing still (the fishery's rule, decision 0361); `at` when none is free."""
@@ -493,8 +537,7 @@ func first_site(j: int, job_serial: int) -> Vector2:
 	"""Where a new worker of job `j` walks first: a set-down load's spot, else its current step's place."""
 	if not is_job(j, job_serial):
 		return Vector2.ZERO
-	var at: Vector2 = load_at[j] if load_at[j].is_finite() else place_of(j, step_of(j))
-	goal[j] = _free_spot(at, worker[j])
+	goal[j] = _free_spot(load_at[j], worker[j]) if load_at[j].is_finite() else _spot_for(j, step_of(j), worker[j])
 	return goal[j]
 
 
@@ -597,7 +640,7 @@ func _begin_step(j: int, brain: BrainScript) -> void:
 		return
 	at_work[j] = 0
 	if step == S_GO or step == S_CARRY:
-		goal[j] = _free_spot(place_of(j, step), brain.index)
+		goal[j] = _spot_for(j, step, brain.index)
 		issued[j] = 1
 		if step == S_CARRY:
 			brain.task_carry_to(goal[j])
@@ -719,7 +762,7 @@ func _work_frame(j: int, brain: BrainScript, delta: float) -> void:
 	"""At the work: standing at its place (off it, it walks back and nothing is credited), facing it, its clip on."""
 	if not brain.arrived_near(goal[j], ARRIVE_M):
 		at_work[j] = 0
-		goal[j] = _free_spot(place_of(j, step_of(j)), brain.index)
+		goal[j] = _spot_for(j, step_of(j), brain.index)
 		issued[j] = 1
 		brain.task_walk_to(goal[j])
 		return
@@ -973,7 +1016,7 @@ func _hold_destination(j: int) -> String:
 	if chosen == NONE:
 		return Text.NOTHING_TO_HAUL
 	var item: int = pantry.lot_item(chosen)
-	var above: int = _above_keep(group, item)
+	var above: int = mini(_above_keep(group, item), pantry.lot_milli(chosen))
 	var milli: int = mini(model.haul_load_milli(group), above)
 	if not _hold_either(group, item, milli) and not (milli > Rules.HAUL_LOAD_MILLI
 			and _hold_either(group, item, mini(Rules.HAUL_LOAD_MILLI, above))):
@@ -1070,11 +1113,17 @@ func _complete(j: int) -> String:
 			return _fed(t)
 		K_RECOLONIZE:
 			return _recolonize_paid(t)
-		K_MOVE:
-			model.set_lifted(t, true)
-			revision += 1
-		K_CART:
-			return _cart_built(t)
+		K_MOVE, K_CART:
+			return _remainder_done(j)
+	return ""
+
+
+func _remainder_done(j: int) -> String:
+	"""Decision 1721's work done: a move's lifting (the sapling out of the ground, in its mover's arms), or a cart built."""
+	if kind[j] == K_CART:
+		return _cart_built(target[j])
+	model.set_lifted(target[j], true)
+	revision += 1
 	return ""
 
 
@@ -1113,7 +1162,10 @@ func _take_compost_milli(milli: int) -> bool:
 
 
 func _tended(site: int) -> String:
-	"""A tree tended: §5.6's care recorded for today, a drought's 2 U of water paid from the butt."""
+	"""A tree tended: §5.6's care recorded for today, a drought's 2 U of water paid from the butt -- not a sapling lifted
+	meanwhile for its move (decision 1721)."""
+	if model.lifted[site] == 1:
+		return ""
 	if drought() and stores != null and not stores.take_water(Hive.CARE_DROUGHT_WATER_MILLI):
 		return Text.DROUGHT_DRY % Text.tree_name(model, site)
 	model.record_tending(site)
@@ -1362,7 +1414,7 @@ func order_refusal(job_kind: int, job_target: int, job_species: int) -> String:
 		K_SERVICE, K_FEED, K_RECOLONIZE:
 			return hive_refusal(job_kind, job_target)
 		K_MOVE:
-			return move_order_refusal(job_target)
+			return _reserved_move_refusal(job_target)
 		K_CART:
 			return cart_refusal(job_target)
 		K_OBSERVE:
@@ -1449,10 +1501,16 @@ func doing_text(j: int, job_serial: int) -> String:
 # --- moving a sapling and building a cart (decision 1721) ---------------------------------------------------------------------
 
 func move_target(site: int) -> int:
-	"""Where a move of `site`'s sapling goes: its move's site once ordered, else the first free site (NONE: none)."""
+	"""Where a move of `site`'s sapling goes: its move's site once ordered, else the first free site no planting is
+	working on (NONE: none)."""
 	if not Rules.is_site(site):
 		return NONE
-	return model.move_dest[site] if model.move_dest[site] != NONE else model.move_options(site)
+	if model.move_dest[site] != NONE:
+		return model.move_dest[site]
+	for dest: int in Rules.SITE_COUNT:
+		if model.move_site_free(site, dest) and find(K_PLANT, dest) == NONE:
+			return dest
+	return NONE
 
 
 func move_order_refusal(site: int) -> String:
@@ -1464,6 +1522,13 @@ func move_order_refusal(site: int) -> String:
 	if why.is_empty() and _compost() < Rules.MOVE_COMPOST_MILLI:
 		return Text.NO_COMPOST % Text.units(Rules.MOVE_COMPOST_MILLI)
 	return why
+
+
+func _reserved_move_refusal(site: int) -> String:
+	"""A move job is opened only for a move already spoken for (`order_move` reserves its site first): else why not."""
+	if not Rules.is_site(site) or model.move_dest[site] == NONE:
+		return Text.MOVE_THROUGH_ORDER
+	return move_order_refusal(site)
 
 
 func order_move(site: int, members: PackedInt32Array) -> String:
@@ -1481,17 +1546,19 @@ func order_move(site: int, members: PackedInt32Array) -> String:
 
 
 func _replanted(j: int) -> String:
-	"""A move's replanting done: its compost taken now (all or none) and the tree moved (orchard_model.gd `move_tree`);
-	refused, the sapling is set back where it came from."""
+	"""A move's replanting done: every check `move_tree` makes (its reserved site, the store's planting preview) made
+	FIRST, then its compost taken (all or none) and the tree moved; refused, the sapling is set back where it came from
+	and nothing is taken. Its age was checked when it was ordered and lifted, not again here."""
 	var site: int = target[j]
 	var dest: int = model.move_dest[site]
-	var why: String = move_order_refusal(site)
-	if not why.is_empty() or not _take_compost_milli(Rules.MOVE_COMPOST_MILLI):
+	var why: String = Text.move_words(model.replant_refusal(site, today()))
+	if why.is_empty() and not _take_compost_milli(Rules.MOVE_COMPOST_MILLI):
+		why = Text.NO_COMPOST % Text.units(Rules.MOVE_COMPOST_MILLI)
+	if why.is_empty() and not model.move_tree(site, today()):
+		why = Text.move_words(ModelScript.REFUSE_NO_MOVE_SITE)
+	if not why.is_empty():
 		model.set_lifted(site, false)
-		return Text.cannot(self, j, why if not why.is_empty() else Text.NO_COMPOST % Text.units(Rules.MOVE_COMPOST_MILLI))
-	if not model.move_tree(site, today()):
-		model.set_lifted(site, false)
-		return Text.cannot(self, j, Text.move_words(ModelScript.REFUSE_NO_MOVE_SITE))
+		return Text.cannot(self, j, why)
 	return Text.moved(model, dest)
 
 

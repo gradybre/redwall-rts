@@ -415,8 +415,7 @@ func close_day(day: int, temperature_tenths: int) -> void:
 	"""Midnight: day `day` is over at `temperature_tenths` (its weather): every tree's §5.6 day, the hedge's regrowth for
 	tomorrow's season, the nursery's ready saplings. `today_hint` moves to the day that begins."""
 	for site: int in Rules.SITE_COUNT:
-		if has_tree(site):
-			store.apply_orchard_day(site_ref[site], day, temperature_tenths)
+		if has_tree(site) and store.apply_orchard_day(site_ref[site], day, temperature_tenths).ok:
 			_settle(site)
 	if Hive.year_of_day(day + 1) != Hive.year_of_day(day):
 		group_hauled_milli.fill(0)
@@ -492,31 +491,47 @@ static func season_index_of_day(day: int) -> int:
 
 func is_move_dest(site: int) -> bool:
 	"""Whether a move is bringing a sapling to `site` (it is spoken for)."""
-	return Array(move_dest).has(site)
+	return move_dest.has(site)
+
+
+func move_site_free(site: int, dest: int) -> bool:
+	"""Whether `dest` is free for the move from `site`: another site, empty, promised to no plan and to no other move."""
+	if not Rules.is_site(dest) or dest == site or has_tree(dest) or plan_for_site(dest) != NONE:
+		return false
+	return not is_move_dest(dest) or (Rules.is_site(site) and move_dest[site] == dest)
 
 
 func move_options(site: int) -> int:
-	"""The first site a sapling on `site` may be moved to (NONE: none): empty, not promised to a plan or another move."""
+	"""The first site a sapling on `site` may be moved to (NONE: none)."""
 	for dest: int in Rules.SITE_COUNT:
-		if dest != site and not has_tree(dest) and plan_for_site(dest) == NONE and not is_move_dest(dest):
+		if move_site_free(site, dest):
 			return dest
 	return NONE
 
 
-func move_refusal(site: int, dest: int) -> String:
+func move_refusal(site: int, dest: int, check_age: bool = true) -> String:
 	"""Why the tree on `site` may not be moved to `dest` ("" when it may): a sapling (a planted tree in its first
-	half-year), never moved before, to an empty site nothing else is promised to."""
+	half-year: checked when it is ordered and lifted, not at its replanting), never moved before, to a free site."""
 	if not has_tree(site):
 		return REFUSE_NOT_ELIGIBLE
-	if inherited[site] == 1 or not Rules.is_movable_age(age_of(site)):
+	if inherited[site] == 1 or (check_age and not Rules.is_movable_age(age_of(site))):
 		return REFUSE_NOT_A_SAPLING
 	if moved[site] == 1:
 		return REFUSE_MOVED_ONCE
-	if not Rules.is_site(dest) or dest == site or has_tree(dest) or plan_for_site(dest) != NONE:
+	return "" if move_site_free(site, dest) else REFUSE_NO_MOVE_SITE
+
+
+func replant_refusal(site: int, day: int) -> String:
+	"""Why the move from `site` may not be replanted on its reserved site on `day` ("" when it may): every check
+	`move_tree` makes, the store's planting preview among them, so nothing is taken for a replanting it would refuse."""
+	var dest: int = move_dest[site] if Rules.is_site(site) else NONE
+	if dest == NONE:
 		return REFUSE_NO_MOVE_SITE
-	if is_move_dest(dest) and move_dest[site] != dest:
-		return REFUSE_NO_MOVE_SITE
-	return ""
+	var why: String = move_refusal(site, dest, false)
+	if not why.is_empty():
+		return why
+	var origin: Vector2i = Rules.SITE_ORIGIN[dest]
+	return "" if store.preview_planting(origin.x, origin.y, species_of(site), day).ok else REFUSE_NO_MOVE_SITE
 
 
 func reserve_move(site: int, dest: int) -> bool:
@@ -547,20 +562,33 @@ func set_lifted(site: int, on: bool) -> void:
 func move_tree(site: int, day: int) -> bool:
 	"""Replant the tree on `site` at its move's destination on `day`: the store's row removed and planted again there
 	with its §4.2 state carried over, moved once, settling MOVE_SETTLE_DAYS. False (nothing changed) when refused."""
-	var dest: int = move_dest[site]
-	if not move_refusal(site, dest).is_empty():
+	if not replant_refusal(site, day).is_empty():
 		return false
 	var slot: int = slot_of(site)
 	var state := PackedInt32Array([species_of(site), age_of(site), health_of(site), store.chill_days_of(slot).value,
 		1 if store.is_tended_today(slot) else 0, 1 if store.is_harvested_year(slot) else 0])
-	var origin: Vector2i = Rules.SITE_ORIGIN[dest]
-	if not store.preview_planting(origin.x, origin.y, state[0], day).ok:
-		return false
+	var dest: int = move_dest[site]
 	store.remove_orchard(site_ref[site])
-	var made: Hive.OpResult = store.plant_orchard(origin.x, origin.y, state[0], day)
-	store.restore_orchard_state(made.ref, state[1], state[2], state[3], state[4] == 1, state[5] == 1)
+	var made: Hive.OpResult = _replant_row(dest, site, state, day)
+	if not made.ok:
+		return false
 	_carry_columns(site, dest, made.ref)
 	return true
+
+
+func _replant_row(dest: int, site: int, state: PackedInt32Array, day: int) -> Hive.OpResult:
+	"""The moved tree's row planted on `dest` with its `state` (species, age, health, chill, tended, harvested); should
+	the store refuse (never after its preview passed), planted back on `site` with that state, and the refusal returned."""
+	var origin: Vector2i = Rules.SITE_ORIGIN[dest]
+	var made: Hive.OpResult = store.plant_orchard(origin.x, origin.y, state[0], day)
+	if not made.ok:
+		var home: Vector2i = Rules.SITE_ORIGIN[site]
+		var back: Hive.OpResult = store.plant_orchard(home.x, home.y, state[0], day)
+		site_ref[site] = back.ref
+		store.restore_orchard_state(back.ref, state[1], state[2], state[3], state[4] == 1, state[5] == 1)
+		return made
+	store.restore_orchard_state(made.ref, state[1], state[2], state[3], state[4] == 1, state[5] == 1)
+	return made
 
 
 func _carry_columns(site: int, dest: int, ref: Vector2i) -> void:

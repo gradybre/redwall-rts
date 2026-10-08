@@ -859,6 +859,13 @@ func _claim_share(j: int, brain: BrainScript) -> String:
 	if amount < Rules.MIN_SHARE_MILLI:
 		_turned_back = true
 		return "too little daylight left to gather and be home by dusk (%02d:00)" % Rules.DUSK_HOUR
+	return _hold_and_claim(j, k, amount, brain)
+
+
+func _hold_and_claim(j: int, k: int, amount: int, brain: BrainScript) -> String:
+	"""Seat `j`'s room held for `amount` of kind index `k` and its claim opened on the basin: "" when both are, else why
+	not (nothing left held)."""
+	var kind: int = Rules.KINDS[k]
 	if not pantry.reserve_near_into(item_of(k), amount, brain.surface_point(), _read):
 		_room_short = true
 		return "no store has room for %s of %s — make room in the Pantry (K)" % [Rules.units_text(amount), Rules.KIND_WORDS[k]]
@@ -1037,8 +1044,10 @@ func trip_line(t: int) -> String:
 	var out: int = 0
 	for j: int in Rules.MAX_JOBS:
 		out += 1 if j_live[j] == 1 and j_trip[j] == t and j_worker[j] != NONE else 0
-	return "%s from %s: %d foragers (%d out), %s asked, %s home%s" % [Rules.KIND_WORDS[k].capitalize(), Rules.SPOT_NAMES[k],
-		t_party[t], out, Rules.units_text(t_asked[t]), Rules.units_text(t_got[t]), outing_words(t)]
+	var turned: String = " · %d turned back for the dark" % t_turned[t] if t_turned[t] > 0 else ""
+	return "%s from %s: %d foragers (%d out), %s asked, %s home%s%s" % [Rules.KIND_WORDS[k].capitalize(),
+		Rules.SPOT_NAMES[k], t_party[t], out, Rules.units_text(t_asked[t]), Rules.units_text(t_got[t]), outing_words(t),
+		turned]
 
 
 func status_line() -> String:

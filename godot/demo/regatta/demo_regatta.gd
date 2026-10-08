@@ -235,7 +235,7 @@ func hold_card() -> CardScript:
 	regatta.count_supper(regatta.choice_day)
 	var e: int = regatta.residents()
 	_card.add_cost("Beans", regatta.free_beans(), regatta.main_food_milli(e))
-	_card.add_cost("Cabbage", regatta.free_cabbage(), regatta.main_food_milli(e))
+	_card.add_cost(_sentence_case(RegattaScript.main_greens_words()), regatta.free_greens(), regatta.main_food_milli(e))
 	_card.add_cost("Wood", services.stores.wood_milli_u, Rules.service_wood_milli(e))
 	_card.result = "The race at %02d:00, the %s feast at supper for %d; remembered in the chronicle" % [Rules.RACE_HOUR,
 		Rules.THEME_NAME, e]
@@ -248,6 +248,11 @@ func hold_card() -> CardScript:
 		return _card
 	_card.who = "Host: %s; %s" % [regatta.name_of(regatta.choice_host), regatta.race_words(regatta.crews_for(regatta.choice_host))]
 	return _card
+
+
+static func _sentence_case(words: String) -> String:
+	"""'greens or roots' -> 'Greens or roots' (a card's cost name)."""
+	return words.substr(0, 1).to_upper() + words.substr(1)
 
 
 func _menu_now(e: int) -> String:

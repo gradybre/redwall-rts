@@ -153,6 +153,26 @@ P4 (a), P5 (a), P6 (b), P7 (a), P8 (b), P9 (a). What they required:
   one icon sheet, about 6 credits). Nothing was spent.
 - P1–P5 and P7 approve what was built.
 
+## After #238 (the balance tuning, decisions 1732–1737)
+
+Merged 2026-10-08; the README's two new sections (this lane's and the tuning's) kept side by side.
+
+- **The hotpot's greens or roots (decision 1735's seam, fixed here).** The regatta's main course now checks and reserves
+  the recipe book's own selectors (`regatta.gd main_beans`/`main_greens`, `input_selector(DISH_BEAN_HOTPOT, 0/1)`),
+  never the cabbage row: `free_cabbage` became `free_greens`, its refusal `NO_GREENS` ("the main course needs 6.0 U of
+  greens or roots"), and the card and preview use the book's words. The called feasts already read every input through
+  `input_selector` (feast_menu.gd), so they needed no change; tests now show beans and carrots alone holding and
+  cooking a Hearth feast and holding a regatta. Known limit: the post-feast ready-food figure sets a cross-category
+  input aside under its first category (greens), while the kitchen's estimate pools it greens first then roots -- so
+  with no greens in store the figure after a feast is a little high. Left as is (display; the reservation is exact).
+- **The table drink (decision 1733) skips a called feast's supper**: it skips any occasion's supper by the kitchen's
+  `occasion_key`, which a called feast sets; a test runs a Hearth feast with cordial in store and finds none poured at
+  it. The Harvest and Orchard feasts pour mead and cider, never the cordial, so nothing is poured twice. (Noted for 1733's
+  owner: a feast cancelled before its supper leaves its key in the drink's memory, so that ordinary supper pours no
+  cordial.)
+- **A portion and a half (1732)** changes the kitchen's daily portions; the fuel-days fallback reads
+  `daily_portions()`, and its tests now compute from it.
+
 ## Tests and gates
 
 - **Suites**: `test_demo_feasts.gd` (31 tests, after P6 (b): its supper's own food counted, for another dish's meal,

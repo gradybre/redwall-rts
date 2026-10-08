@@ -33,6 +33,7 @@ const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const ColdScript := preload("res://demo/winter/cold_exposure.gd")
 const FuelScript := preload("res://demo/winter/hearth_fuel.gd")
 const WorkPaceScript := preload("res://demo/work/work_pace.gd")
+const TableDrinkScript := preload("res://demo/kitchen/table_drink.gd")
 
 const DT: float = 1.0 / 30.0
 const STORE_AT: Vector2 = Vector2(8.5, 0.5)
@@ -353,15 +354,18 @@ func test_fuel_days_after_are_the_winters() -> void:
 	"""§5.8's fuel-days after the feast: the wood left over the hearths' heating demand plus the cooking mean; before a
 	day of cooking is kept, the kitchen's batches (0.1 U for every two portions)."""
 	var v: Village = _village()
-	assert_equal(v.feast.fuel_days_after_milli(6000), 10000, "6 U over 0.6 U a day of cooking: 10 days")
+	var cooking: int = RegattaRules.ceil_div(v.kitchen.daily_portions(), 2) * MealRules.WOOD_MILLI_PER_BATCH
+	@warning_ignore("integer_division") var kitchen_days: int = 6000 * 1000 / cooking
+	assert_equal(v.feast.fuel_days_after_milli(6000), kitchen_days, "6 U over the day's batches at 0.1 U each")
 	assert_equal(v.feast.fuel_days_after_milli(-50), 0, "none left")
 	var fuel := FuelScript.new()
 	v.feast.fuel = fuel
-	assert_equal(v.feast.fuel_days_after_milli(6000), 10000, "no hearth burning, no cooking kept: the kitchen's")
+	assert_equal(v.feast.fuel_days_after_milli(6000), kitchen_days, "no hearth burning, no cooking kept: the kitchen's")
 	fuel.set_hearth(0, true)
 	fuel.day_rate_milli = 4000
 	assert_equal(fuel.heating_day_milli(), 4000, "a hearth burning 4 U a day")
-	assert_equal(v.feast.fuel_days_after_milli(6000), 1304, "6 U over 4 U of heat and 0.6 U of cooking")
+	@warning_ignore("integer_division") var heated_days: int = 6000 * 1000 / (4000 + cooking)
+	assert_equal(v.feast.fuel_days_after_milli(6000), heated_days, "6 U over 4 U of heat and the day's cooking")
 	assert_equal(v.feast.wood_after_milli(Rules.HEARTH, RESIDENTS), v.stores.wood_milli_u - 1000 - 4 * 100,
 		"the service and 4 batches")
 
@@ -703,6 +707,45 @@ func test_the_regattas_second_course_counts_the_suppers_flour() -> void:
 	var free: int = regatta_menu.free_flour()
 	regatta_menu.supper_key = key
 	assert_equal(regatta_menu.free_flour(), free + held, "the nut loaf's flour counts the supper's")
+
+
+func test_the_hotpot_takes_roots_when_there_are_no_greens() -> void:
+	"""Decision 1735: the hotpot's second input is greens or roots, so a Hearth feast's main course is made from beans
+	and carrots alone -- checked, held and cooked."""
+	var v: Village = _village()
+	_stock(v, PEA, 8000)
+	_stock(v, CARROT, 8000)
+	_stock(v, Catalog.ITEM_FLOUR, 60000)
+	_stock(v, Catalog.ITEM_NUTS, 8000)
+	_stock(v, Catalog.ITEM_HERB, 1000)
+	var hotpot: int = MealRules.DISH_BEAN_HOTPOT
+	assert_equal(MenuScript.input_word(hotpot, 1), "greens or roots", "the book's words")
+	for line: String in v.feast.menu.shortfalls(Rules.HEARTH, RESIDENTS):
+		assert_false(line.contains("greens"), "roots satisfy it: %s" % line)
+	assert_equal(v.feast.hold(Rules.HEARTH, DAY, 1, true), "", "held")
+	var f: FeastScript = v.feast
+	assert_true(_run(v, func() -> bool: return f.state == FeastScript.ST_IDLE, 30000), "tallied (%s)" % Words.status_line(f))
+	assert_equal(_cooked(v, hotpot), 2, "two hotpots from beans and carrots")
+
+
+func test_a_feast_supper_pours_no_table_cordial() -> void:
+	"""Decision 1733's table drink skips an occasion's supper: a called feast is one (the kitchen's occasion), so the
+	cordial in store is not poured at it (the Hearth feast pours its infusion; the cordial is never poured twice)."""
+	var v: Village = _village()
+	_stock_everyday(v)
+	_stock_theme(v, Rules.HEARTH)
+	_stock(v, Catalog.ITEM_CORDIAL, 4000)
+	var drink := TableDrinkScript.new()
+	drink.bind(v.kitchen)
+	assert_equal(v.feast.hold(Rules.HEARTH, DAY, 1, true), "", "held")
+	var f: FeastScript = v.feast
+	assert_true(_run(v, func() -> bool:
+		drink.update()
+		return f.state == FeastScript.ST_IDLE, 30000), "tallied (%s)" % Words.status_line(f))
+	drink.update()
+	assert_true(f.attendees.size() > 0, "the feast was eaten: %s" % f.last_line)
+	assert_equal([drink.pours, drink.poured_milli], [0, 0], "no table cordial at the feast's supper")
+	assert_equal(v.pantry.milli_of(Catalog.ITEM_CORDIAL), 4000, "the cordial untouched")
 
 
 # --- the buffs -------------------------------------------------------------------------------------------------------

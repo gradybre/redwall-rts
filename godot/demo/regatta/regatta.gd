@@ -8,7 +8,7 @@ extends RefCounted
 ## PLANNING (`preview`, `hold`, `skip`): the season it is for (the first summer, then each season), the day (that season's
 ## days from tomorrow), the host (any resident), and the preview -- the feast's numbers as the GDD states them, what the
 ## village can and cannot serve, the reserves after it, the staffing and seats, the race's crews -- refusing what is
-## invalid (a host who races or cooks, fewer than two helms, too few beans or cabbage, too little wood, too few hands,
+## invalid (a host who races or cooks, fewer than two helms, too few beans or greens-or-roots, too little wood, too few hands,
 ## the reserves under 3 days without the player's override). Held, the main course's food is RESERVED at once in a take
 ## the kitchen then cooks from (kitchen.gd AN OCCASION), and the service wood is set aside from the stores; both go back
 ## untouched if it is skipped before the feast. Held or skipped, the season is done: once a season.
@@ -332,14 +332,30 @@ func count_supper(day: int) -> void:
 	menu.supper_key = Rules.feast_key(day) if state == ST_IDLE and day >= 0 and kitchen != null else -1
 
 
+static func main_beans() -> int:
+	"""The main course's first input as the recipe book's bean hotpot takes it: beans."""
+	return MealRules.input_selector(MealRules.DISH_BEAN_HOTPOT, 0)
+
+
+static func main_greens() -> int:
+	"""Its second, greens or roots through one cross-category selector (decision 1735), never retyped here."""
+	return MealRules.input_selector(MealRules.DISH_BEAN_HOTPOT, 1)
+
+
+static func main_greens_words() -> String:
+	"""What a recipe calls the second input: "greens or roots"."""
+	return MealRules.IN_WORDS[MealRules.INPUT_FIRST[MealRules.DISH_BEAN_HOTPOT] + 1]
+
+
 func free_beans() -> int:
 	"""Beans in the pantry nobody has set aside, milli-U (with the planned supper's own: `count_supper`)."""
-	return _free_with_supper(FarmingScript.CROP_BEANS)
+	return _free_with_supper(main_beans())
 
 
-func free_cabbage() -> int:
-	"""The cabbage row in the pantry nobody has set aside, milli-U (with the planned supper's own)."""
-	return _free_with_supper(FarmingScript.CROP_CABBAGE)
+func free_greens() -> int:
+	"""The hotpot's second input -- greens or roots (decision 1735) -- nobody has set aside, milli-U (with the planned
+	supper's own)."""
+	return _free_with_supper(main_greens())
 
 
 func _free_with_supper(crop: int) -> int:
@@ -349,7 +365,7 @@ func _free_with_supper(crop: int) -> int:
 
 
 func main_food_milli(eligible_now: int) -> int:
-	"""Beans (and, the same, cabbage) the main course takes: ceil(E/3) batches of bean_hotpot."""
+	"""Beans (and, the same, greens or roots) the main course takes: ceil(E/3) batches of bean_hotpot."""
 	return Rules.main_batches(eligible_now) * MealRules.INPUT_MILLI[MealRules.DISH_BEAN_HOTPOT]
 
 
@@ -360,7 +376,7 @@ func daily_wood_milli() -> int:
 
 
 func food_days_milli() -> int:
-	"""Ready food (the HUD's days of meals, thousandths): the feast's beans and cabbage are outside it, so it is the
+	"""Ready food (the HUD's days of meals, thousandths): the feast's beans and greens are outside it, so it is the
 	figure the feast leaves; the feasts' figure when bound (ONE FEAST AMONG OTHERS)."""
 	if food_days_after.is_valid():
 		return int(food_days_after.call(residents()))
@@ -418,7 +434,7 @@ func _plan_refusal(day: int, host: int) -> String:
 
 func _feast_refusal(with_override: bool, day: int = NONE) -> String:
 	"""The feast's half: no other feast planned or started within 72 h of `day` (ONE FEAST AMONG OTHERS), the main
-	course's beans and cabbage free, the service wood, the seats, and REQ-SET-101's reserves -- refused under 3 days
+	course's beans and greens or roots free, the service wood, the seats, and REQ-SET-101's reserves -- refused under 3 days
 	unless overridden."""
 	var e: int = residents()
 	var clash: String = String(feast_clash.call(day)) if feast_clash.is_valid() else ""
@@ -428,9 +444,9 @@ func _feast_refusal(with_override: bool, day: int = NONE) -> String:
 	if free_beans() < need:
 		return _refuse("NO_BEANS", "the main course (bean hotpot x%d) needs %s of beans; the pantry has %s free" % [
 			Rules.main_batches(e), _units(need), _units(free_beans())], "plant peas or broad beans")
-	if free_cabbage() < need:
-		return _refuse("NO_CABBAGE", "the main course needs %s of cabbage; the pantry has %s free" % [_units(need),
-			_units(free_cabbage())], "plant cabbage, lettuce, spinach, leek or celery")
+	if free_greens() < need:
+		return _refuse("NO_GREENS", "the main course needs %s of %s; the pantry has %s free" % [_units(need), main_greens_words(),
+			_units(free_greens())], "plant cabbage, lettuce, spinach, leek or celery, or any root")
 	if stores.wood_milli_u < Rules.service_wood_milli(e):
 		return _refuse("NO_WOOD", "the feast's service needs %s of wood" % _units(Rules.service_wood_milli(e)), "Woods ▸")
 	if kitchen != null and kitchen.places.seats.size() < Rules.seats_needed(e):
@@ -461,9 +477,9 @@ func preview_lines(day: int, host: int) -> PackedStringArray:
 	var lines := PackedStringArray()
 	lines.append("%s: the %s feast for %d (every resident), at the day's supper; hosted by %s" % [day_text(day),
 		Rules.THEME_NAME, e, name_of(host)])
-	lines.append("Main: bean hotpot x%d (%d portions): beans %s (free %s), cabbage %s (free %s), water %s" % [
+	lines.append("Main: bean hotpot x%d (%d portions): beans %s (free %s), %s %s (free %s), water %s" % [
 		Rules.main_batches(e), Rules.main_batches(e) * MealRules.PORTIONS_PER_BATCH[MealRules.DISH_BEAN_HOTPOT],
-		_units(main_food_milli(e)), _units(free_beans()), _units(main_food_milli(e)), _units(free_cabbage()),
+		_units(main_food_milli(e)), _units(free_beans()), main_greens_words(), _units(main_food_milli(e)), _units(free_greens()),
 		_units(Rules.main_batches(e) * MealRules.WATER_MILLI[MealRules.DISH_BEAN_HOTPOT])])
 	lines.append_array(menu.preview_lines(e))
 	lines.append("Seats %d of %d needed · service wood %s set aside now · staffing: %s" % [
@@ -511,8 +527,8 @@ func hold(day: int, host: int, with_override: bool) -> String:
 	take = kitchen.takes.new_take()
 	var need: int = main_food_milli(eligible)
 	var at_hour: int = calendar.hour_index() if calendar != null else 0
-	kitchen.takes.reserve_into(kitchen.pantry, take, FarmingScript.CROP_BEANS, need, at_hour, _read)
-	kitchen.takes.reserve_into(kitchen.pantry, take, FarmingScript.CROP_CABBAGE, need, at_hour, _read)
+	kitchen.takes.reserve_into(kitchen.pantry, take, main_beans(), need, at_hour, _read)
+	kitchen.takes.reserve_into(kitchen.pantry, take, main_greens(), need, at_hour, _read)
 	menu.reserve(take, eligible, at_hour)
 	menu.supper_key = -1
 	wood_held_milli = Rules.service_wood_milli(eligible)

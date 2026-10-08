@@ -188,12 +188,12 @@ Merged 2026-10-08; the README's two new sections (this lane's and the tuning's) 
   `test_demo_feast_live.gd` (the live harness at both sizes); `test_demo_dishes.gd` (24 rows, 20 distinct, the four new
   §5.7 rows exact, GDD_OWN); `test_demo_crop_roles.gd` (peas now feed the nut roast too).
 - **The full suite, CI-style** (assets moved aside, `godot/.godot` deleted, re-imported, `./tools/run_tests.sh`), on
-  the final tree (P6 (b) built, then `origin/master` merged again with #236 fishing and #237 orchard outings, at
-  41af65cb):
-  `ok: 9429 tests, 653249 assertions, 0 failures.` ·
+  the final tree (P6 (b) built; `origin/master` merged with #236, #237 and #238; the hotpot seam and its reserves
+  fix, at ed698299):
+  `ok: 9456 tests, 653580 assertions, 0 failures.` ·
   `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 373 tolerated; leaked at exit: 0 object(s), 0 resource(s)` ·
   `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).`
-- **Analyzer**: `python3 tools/gdscript_warnings.py --max 0`: `0 GDScript warning(s) in 0 of 1073 file(s)` (its own `--port 6117`), on 41af65cb.
+- **Analyzer**: `python3 tools/gdscript_warnings.py --max 0`: `0 GDScript warning(s) in 0 of 1076 file(s)` (its own `--port 6117`), on ed698299.
 - **Contracts**: every check in CI's contracts group passes (decision_numbers 338 records, ready07_arithmetic,
   merge_gate, setting_contract, dispatch_plan, astra_inbox, the save registry handoff, the canonical state table, the
   cycle 1–3 handoffs, the registry capacity audit, the component columns schema, lane_notes, the movement checks,
@@ -203,7 +203,7 @@ Merged 2026-10-08; the README's two new sections (this lane's and the tuning's) 
   feast_at_supper,feasts_panel_after}_{1280x720,1920x1080}.png` -- the panel in the window clear of the side panels,
   the plan and its refusal, Call held, the hall's tables at supper, and the tally ("9 of 9 shared it ... Shared Warmth
   for 48 h"; the cold's gain at 750).
-- **Mutation**: 100 mutants, **100 killed** -- 97 on the rules, menu, buffs, cold, plan, tally, kitchen hooks, regatta
+- **Mutation**: 110 mutants, **110 killed** -- 107 on the rules, menu, buffs, cold, plan, tally, kitchen hooks, regatta
   hooks, dish rows, P6 (b)'s kitchen read and its feast and regatta callers against `test_demo_feasts.gd` +
   `test_demo_dishes.gd` + `test_demo_regatta.gd` (a mutant also dies on any unexpected
   diagnostic or leak), and 3 on the village wiring (the cold's gain, the Feast command, M4's binding) against the live
@@ -232,6 +232,16 @@ Merged 2026-10-08; the README's two new sections (this lane's and the tuning's) 
   that feast, which replaces the meal); when `feat/demo-balance-tuning` lets the
   hotpot take roots, the regatta's cabbage check may under-count (refuse more often), never over-commit -- re-check at
   that merge.
+
+- **Fourth and fifth reviews** (after #238; `code-reviewer`, waited for). The fourth found one HIGH, the roots
+  reserves figure above -- fixed in ed698299 with a regression test -- and MEDIUM wording ("cabbage" in the guide's
+  regatta entry and the README), fixed. The fifth, on that fix: no CRITICAL or HIGH; its MEDIUM, the static
+  `add_course` now used only by the Orchard numbers test, is answered: it stays as the plain one-category primitive
+  that test pins (SET-AMEND-001's E = 12 roast); the courses go through `add_course_drawn`, whose one-category branch
+  the feasts' full-day tests cover. Its LOWs are recorded: the projection draws greens before roots as the kitchen's
+  estimate does, while the hold reserves whichever lot spoils first (usually greens, at 144 h against 240 h), so the
+  preview's figure can differ a little from the hold's; and a later single-category greens or roots course would not
+  move the hotpot's draw (no theme has one).
 
 ## Source
 

@@ -1000,3 +1000,29 @@ Date: 2026-10-07. The live entry now digs with claws and seats by paw. No publis
 
 - The treads' side-on paw seating (step 2b, Brendan's decision above) is not part of this switch.
 - `ENTRY_DESCENT_UNBUILT`: the descent past T0 is unchanged by this step.
+
+## M7 — tool-free stair gaits (authored; stopped for Brendan's review)
+
+`claw-work-v1/author_claw_stairs.py` re-runs the accepted stair authors on the approved tool-free ready (corrected
+stand key 8), with the same recipe values as `stair-descent-v7` case 0 and `stair-motion-v15` case 0. The legs,
+feet and root tracks are the accepted ones. The upper body is the tool-free ready.
+
+**The one adjustment.** The right upper arm gets step 1c's outward swing, **3°**, eased over 15 keys, so the ready
+endpoints are exact. Bisection gave 3; 2 fails, because the right leg's lift brushes the hanging paw. The left
+arm needs none.
+
+**Proofs** (the accepted provers; only the body+tool part census is replaced by a one-body check, as
+`_WiderPoseInput` replaced a domain guard). All clear:
+
+- two-deck terrain: descent 674 pairs, ascent 781;
+- the flight L0 ↔ T5: 4,044 and 4,686 pairs;
+- the bottom T5 → T6 → floor: 1,348 pairs;
+- self-clearance for both gaits.
+
+The pair counts equal the pick-era proofs'.
+
+- Record: `evidence/claw-stairs-v1/`; packet: `evidence/claw-stairs-review-v1/`.
+- `render_claw_stairs.py` renders the images; `test_claw_stairs.py` holds 5 tests.
+
+**Next new motion:** the tool-free half-turn on a tread. An in-place turn leaves the deck past 71°, so ADR 1142's
+stepped half-turn must be re-derived.

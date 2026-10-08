@@ -6,7 +6,9 @@ extends RefCounted
 ##         --seed 1 --policy hands_off --days 48 --out /abs/run.json [--csv /abs/run.csv] [--hours N] [--fps 30]
 ##
 ## --policy hands_off     the default crews and the automatic work board; nobody orders anything;
-##          light_touch   the scripted player of light_touch_policy.gd queues sensible work each morning.
+##          light_touch   the scripted player of light_touch_policy.gd queues sensible work each morning;
+##          provisioning  light_touch's player plus its preserving, brewing and milling (provisioning_policy.gd,
+##                        decision 1731).
 ## --days N               run to the start of calendar day N (day 0 is Spring 1; the demo opens at 06:00 on it);
 ##                        48 is a year. --hours N instead runs N game hours from the start (a short check).
 ## --seed N               the run's seed (see SEEDS). The same seed and policy give the same numbers.
@@ -62,11 +64,17 @@ const LabourScript := preload("res://tools/balance/balance_labour.gd")
 const FarmWatchScript := preload("res://tools/balance/balance_farm_watch.gd")
 const EventsWatchScript := preload("res://tools/balance/balance_events.gd")
 const PolicyScript := preload("res://tools/balance/light_touch_policy.gd")
+const ProvisioningScript := preload("res://tools/balance/provisioning_policy.gd")
+const SuppliesScript := preload("res://tools/balance/balance_supplies.gd")
+const WinterScript := preload("res://demo/winter/demo_winter.gd")
+const OrchardScript := preload("res://demo/orchard/demo_orchard.gd")
+const HallScript := preload("res://demo/hall/demo_hall.gd")
+const ForageNodeScript := preload("res://demo/forage/demo_forage.gd")
 const Rollup := preload("res://tools/balance/balance_rollup.gd")
 const Csv := preload("res://tools/balance/balance_csv.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 
-const POLICIES: Array[String] = ["hands_off", "light_touch"]
+const POLICIES: Array[String] = ["hands_off", "light_touch", "provisioning"]
 const FLAGS: Array[String] = ["--seed", "--policy", "--days", "--hours", "--out", "--csv", "--fps"]
 const SPEED: int = 4
 ## The run stops with an error when the demo has not opened by this frame, or stays paused this many frames.
@@ -109,6 +117,7 @@ var _food: FoodScript = FoodScript.new()
 var _labour: LabourScript = LabourScript.new()
 var _farm_watch: FarmWatchScript = FarmWatchScript.new()
 var _events: EventsWatchScript = EventsWatchScript.new()
+var _supplies: SuppliesScript = SuppliesScript.new()
 var _policy: PolicyScript = null
 var _frame: int = 0
 var _started: bool = false
@@ -289,7 +298,7 @@ func _apply_seed(farm: DemoFarmScript) -> void:
 
 
 func _bind_watchers(farm: DemoFarmScript) -> void:
-	"""Every watcher on its subsystem, and the light-touch player when it is this run's policy."""
+	"""Every watcher on its subsystem, and the scripted player (light-touch or provisioning) when the policy has one."""
 	var services: ServicesScript = _village.call(&"services") as ServicesScript
 	var fishery: FisheryNodeScript = _village.call(&"fishery") as FisheryNodeScript
 	_food.bind(_kitchen, farm.pantry, fishery.fishery)
@@ -303,9 +312,25 @@ func _bind_watchers(farm: DemoFarmScript) -> void:
 	var works: WorksScript = command.tunnels().ext.works
 	var rescue: RefCounted = (_village.call(&"waterplay") as WaterplayScript).rescue
 	_events.bind(services.stores, services.incidents, works.events, rescue)
+	_bind_supplies()
 	if _policy_name == "light_touch":
 		_policy = PolicyScript.new()
+	elif _policy_name == "provisioning":
+		var provisioner: ProvisioningScript = ProvisioningScript.new()
+		var forage: ForageNodeScript = _village.call(&"forage") as ForageNodeScript
+		provisioner.bind_forage(forage.trips if forage != null else null)
+		_policy = provisioner
+	if _policy != null:
 		_policy.bind(farm, _village.call(&"forestry") as ForestryScript, fishery.fishery, services.stores)
+
+
+func _bind_supplies() -> void:
+	"""The supplies watch on the winter's hearths, the orchard's apiary and the hall's projects (decision 1731)."""
+	var winter: WinterScript = _village.call(&"winter") as WinterScript
+	var orchard: OrchardScript = _village.call(&"orchard") as OrchardScript
+	var hall: HallScript = _village.call(&"hall") as HallScript
+	_supplies.bind(winter.fuel if winter != null else null, orchard.model.apiary if orchard != null else null,
+		hall.projects if hall != null else null)
 
 
 func _time_control() -> TimeControlScript:
@@ -366,6 +391,7 @@ func _close_day(day: int, partial: bool) -> void:
 	record.merge(_labour.close_day())
 	record.merge(_farm_watch.close_day(season, season_day))
 	record.merge(_events.close_day())
+	record.merge(_supplies.close_day())
 	record["orders"] = _policy.take_orders() if _policy != null else {}
 	_days.append(record)
 	print("BALANCE-DAY %d closed (frame %d)" % [day, _frame - _start_frame])

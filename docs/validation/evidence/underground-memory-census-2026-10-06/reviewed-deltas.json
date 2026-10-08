@@ -233,12 +233,49 @@
   "godot/scripts/core/construction.gd": {
    "charges": [
     {
-     "bytes": 0,
-     "carried_by": "none",
-     "store": "ADR 1217 step 5: the excavation START worker check accepts a tool-free (GATE_NOT_REQUIRED) BUILD Job; no member, packet or resize"
+     "bytes": 26210304,
+     "carried_by": "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+     "store": "sections 4+5+6 capture/apply: two Columns images (frozen and extension, 4,893,696 each) and one Ledger (3,317,760), plus the matching FramedOwner and section 5/6 blocks"
     }
    ],
-   "delta": {}
+   "delta": {
+    "members_added": [
+     [
+      "_last_column_refusal",
+      "StringName"
+     ]
+    ],
+    "resizes_added": [
+     "delivered_milli.resize(DELIVERED_CELLS)",
+     "paid_base_type.resize(CONSTRUCTION_CAPACITY)",
+     "paid_upgrade_mask.resize(CONSTRUCTION_CAPACITY)"
+    ],
+    "classes": {
+     "Ledger": [
+      null,
+      [
+       [
+        "delivered_milli",
+        "PackedInt64Array"
+       ],
+       [
+        "paid_base_type",
+        "PackedInt32Array"
+       ],
+       [
+        "paid_upgrade_mask",
+        "PackedInt32Array"
+       ]
+      ]
+     ]
+    },
+    "allocation_sites": {
+     ".duplicate(": 19,
+     "PackedInt32Array(": 2,
+     "PackedInt64Array(": 1,
+     "range(": 1
+    }
+   }
   },
   "godot/scripts/core/excavation_sites.gd": {
    "charges": [

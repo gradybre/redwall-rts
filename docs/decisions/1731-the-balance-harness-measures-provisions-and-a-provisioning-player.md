@@ -201,3 +201,24 @@ its own (1601), so `hands_off` exercises it.
     object(s), 0 resource(s)`
   - `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).`
 - **Analyzer:** `0 GDScript warning(s) in 0 of 1055 file(s)`.
+
+## Brendan's rulings (2026-10-07) on the balance report's proposals
+
+The proposals P1–P14 are in `docs/balance/2026-10-07-year-matrix-rerun.md` ("Tuning proposals"). Brendan's rulings were
+relayed by the coordinator.
+
+| # | Ruling | Who builds it |
+|---|---|---|
+| P1 | **(b)**: 1.5 portions per diner at each meal. **Not a third meal.** | `feat/demo-balance-tuning` (1732–1739) |
+| P2 | **Both (a) and (c)**: the cordial is poured at ordinary suppers as a table drink, and its shelf goes from 72 h to 240 h. In his words: "Approve both and have cordial keep longer as well". | `feat/demo-balance-tuning` |
+| P3 | **(a) + (b)**: the Harvest and Orchard feasts pour mead and cider; and the Brew order warns above two feasts' worth (6 U a drink). | (a) the FEAST lane; (b) `feat/demo-balance-tuning` |
+| P4 | Approved as recommended: **no change** to the hive's winter feed. | – |
+| P5 | **(a)**: the bean hotpot takes beans plus greens **or roots**. | `feat/demo-balance-tuning` |
+| P6 | Approved as recommended: **measure first**, rerunning provisioning with `FISH_STOCK_HIGH` at 12 U. | `feat/demo-balance-tuning` (a measurement run) |
+| P7 | **(a)**: show raw-edible stock beside Ready food ("eaten raw: N days"). | `feat/demo-balance-tuning` |
+| P8 | Approved as recommended: **no change** to the opening stone. | – |
+| P9 | **(a)**: `hungry_max_pct` stays 5%, marked unattainable until P1 has been measured. | `feat/demo-balance-tuning` (the threshold's reason) |
+| P10–P14 | Approved as recommended: **no change** to jam, nut cheese, ale, cider, vinegar or pickles. | – |
+
+The coordinator also assigned the game-side water fix noted in the report to `feat/demo-balance-tuning`:
+`order_batch` must **reserve** the butt's water, not only check it.

@@ -63,3 +63,19 @@ No new reserve. Decision 1122 already budgets the entry structure (384 B packet 
 overhead. `underground_world_retirement.gd` is a projected reviewed input, so its storage delta (the Owners class
 gains two members, 0 B charged) is recorded in `reviewed-deltas.json` and `REVIEWED_SHA` is re-pinned. The joint pack
 stays at 100,209,901 B.
+
+## Update (2026-10-07): past the assembly proof, the next gap is G13
+
+ADR 1219's reach rule now covers the assembly-handling proof (see the amendment in ADR 1219), so the L0 bill is
+delivered. The live chain still stops at tick 2575, now in the installation's paid FUND, with
+**`ENTRY_CONTACT_RETIREMENT_SOURCE`**.
+
+The cause is the contact-retirement scope's `_source_shapes()` (`underground_entry_contact_retirement_scope.gd`).
+It expects a Workpieces bank sized for the fixture, with 12 parts and 2 profile revisions. The live Session
+composes the bank at production capacity (`Placements.MAX_PLACEMENTS`, `Workpieces.MAX_ASSEMBLIES`), which gives
+1,536 parts and 256 revisions, so `_initial_source` refuses. The Frontier header and shapes, and the route edge
+capacity (1,536), all pass.
+
+This is recorded as ADR 1197 **G13** and not built here. The fix is to check the bank against its own configured
+capacities instead of fixture literals. The code is shared with genuine source-drift refusals, so it is not mapped
+to G13 in `GAPS`.

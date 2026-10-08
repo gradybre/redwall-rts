@@ -4224,7 +4224,7 @@
         "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
         "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
         "godot/scripts/core/underground_profiles.gd": "64325eed6772207817a043220fe4db371fe5aa68a89fec60a287099ea589dfaf",
-        "godot/scripts/core/underground_routes.gd": "81889129688023688e3204a8f1954dfe8cb62bbcd2e3df1bb83cbdf7b9e56fbc",
+        "godot/scripts/core/underground_routes.gd": "fe80bb4c0deeef9def4879cdaf1de7df8eab896b9b9f658812f18330d1493dba",
         "godot/scripts/core/underground_world_routes.gd": "ef4b85c7a04bad32b947876c86cc224968d452d8b1fe6e1475eeeb3cddbf9ec9"
       }
     },
@@ -43760,7 +43760,7 @@
     "godot/scripts/core/underground_profiles.gd": "64325eed6772207817a043220fe4db371fe5aa68a89fec60a287099ea589dfaf",
     "godot/scripts/core/underground_room_world_bindings.gd": "d012c526a267fc7aecb365e7a6afa40d00d931f2b710b1122fc19705f556f8b1",
     "godot/scripts/core/underground_route_composition.gd": "7ea85ba19ce0aaf91eb0bbaed74860a02f1e0290251b8e1616ce11a0e5f28497",
-    "godot/scripts/core/underground_routes.gd": "81889129688023688e3204a8f1954dfe8cb62bbcd2e3df1bb83cbdf7b9e56fbc",
+    "godot/scripts/core/underground_routes.gd": "fe80bb4c0deeef9def4879cdaf1de7df8eab896b9b9f658812f18330d1493dba",
     "godot/scripts/core/underground_session.gd": "3fcd2db0da172e162df5c3d0bd6cffd1c1b63684a5bc4fbdbedabecfc2d1f3a6",
     "godot/scripts/core/underground_space_authority.gd": "3377e00f509e833e618330237c65fa7a18aaf20a4876b5b16322bbdab7d4ec5b",
     "godot/scripts/core/underground_space_owner.gd": "c5aea1c3904c621552f67537f303799d51c7ab1adbe2478cef2fbdfd81e955d5",

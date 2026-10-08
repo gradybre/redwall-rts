@@ -136,3 +136,18 @@ charge; the motion query charges it explicitly.
   edge, so a body standing just outside could still overlap.
 - **Advance the Transform along a straight line each tick:** a second mover besides `movement.gd`, walking through
   whatever lies between.
+
+## Amendment (2026-10-07, after ADR 1224): the sixth proof
+
+ADR 1224's live run reached the paid L0 installation and stopped with `ROUTE_ASSEMBLY_ACTOR_UNBOUND`.
+`Routes._assembly_occupants_leaf`, the assembly-handling occupancy proof that the L0 delivery and handling run
+through, still required every living resident to be a route actor.
+
+It now applies the same rule as the other five proofs, through the same helper:
+- an unregistered living resident is checked with `unregistered_body_refusal`, at the handling actor's own root and
+  bounded by the whole current catalog extent;
+- the result is `ROUTE_UNREGISTERED_RESIDENT_NEAR` when within `UNREGISTERED_REACH_U`, and clear otherwise;
+- registered actors keep their exact body proof.
+
+The bound is the same over-refusing one. No new constant or state is added, and the leaf's existing
+16-checks-per-row charge covers the read.

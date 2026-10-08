@@ -2647,6 +2647,11 @@ static func _assembly_occupants_leaf(actual: RefCounted, mine: int) -> StringNam
 		if row == mine or actual._residents._present[row] != 1 or actual._residents._needs._present[row] != 1 \
 				or actual._residents._needs._health[row] <= 0: continue
 		var worker: Vector2i = Vector2i(actual._residents._ref_slot[row], actual._residents._ref_generation[row])
+		if _resident_ref_leaf(actual, row) == NULL_REF: # ADR1219 (sixth proof): unregistered = reach cube.
+			var missing: StringName = unregistered_body_refusal(actual, row,
+				Vector3i(actual._selection.x, actual._selection.y, actual._selection.z))
+			if missing != &"": return missing
+			continue
 		if _turn_directory_row(actual, worker, Directory.KIND_RESIDENT) != row \
 				or _resident_ref_leaf(actual, row) != worker: return &"ROUTE_ASSEMBLY_ACTOR_UNBOUND"
 		actual._remaining -= 512

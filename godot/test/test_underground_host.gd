@@ -23,9 +23,10 @@ const Jobs := preload("res://scripts/core/jobs.gd")
 const Needs := preload("res://scripts/core/needs.gd")
 const Schedule := preload("res://scripts/core/schedule.gd")
 const Contract := preload("res://scripts/core/excavation_contract.gd")
-## ADR1224: with the entry structure composed (G12) the live chain settles all twelve L0 phases and stops in the paid
-## L0 installation: the assembly-handling occupancy proof still requires every living resident to be a route actor.
-const NEXT_GAP: StringName = &"ROUTE_ASSEMBLY_ACTOR_UNBOUND"
+## ADR1224: with the entry structure composed (G12) the live chain settles all twelve L0 phases. ADR1219's reach rule now
+## covers the assembly-handling proof too, so the L0 bill is delivered; the paid FUND then stops in the contact
+## retirement scope, whose source-shape check expects a fixture-sized Workpieces bank (ADR1197 G13).
+const NEXT_GAP: StringName = &"ENTRY_CONTACT_RETIREMENT_SOURCE"
 ## The tick the uninterrupted live chain stops on (ADR1224), asserted by both the plain and the restored chain.
 const NEXT_GAP_TICK: int = 2575
 ## ADR1221: the live chain's route owners are cold-restored this often (ticks; prime).
@@ -818,8 +819,8 @@ func _assert_next_gap_stop(o: Session.Retirement.Owners, entry: Settlement.Under
 	next gap (NEXT_GAP)."""
 	assert_false(entry.is_running(), "stopped at the next remaining gap")
 	assert_equal(entry.error(), NEXT_GAP, "exact refusal")
-	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G5"), "named gap row")
 	var foreman: RefCounted = entry._foreman
+	assert_equal(foreman._installer.stage(), foreman.Installer.STAGE_FUND, "stopped in the paid FUND, after delivery")
 	assert_equal([foreman._index, foreman._tasks[12].install_ordinal, foreman.accepted_mwu(), foreman.haul_trips()],
 		[12, 0, 36000, 6], "every L0 phase settled with its exact Work, six whole units hauled, the L0 installation open")
 	assert_true(o.gear.is_equipped_record(entry.crew().tool) and o.gear.owner_of(entry.crew().tool) == worker,

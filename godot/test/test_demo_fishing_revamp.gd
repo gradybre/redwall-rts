@@ -604,7 +604,7 @@ func test_a_chosen_fish_closed_names_its_reopening_day() -> void:
 	for s: int in 3:
 		rig.driver.store().set_closed(rig.driver.habitat_ref_of_site(Driver.SITE_RUN), s, true)
 	why = rig.fishery.trip_refusal(Rules.METHOD_NET, Driver.SITE_RUN, PlanScript.PLAN_AUTO, PackedInt32Array())
-	assert_equal(rig.fishery.refused_code, "NO_FISH", "best catch with nothing legal: " + why)
+	assert_equal(rig.fishery.refused_code, "NO_LEGAL_FISH", "best catch with nothing legal: " + why)
 	why = rig.fishery.trip_refusal(Rules.METHOD_NET, Driver.SITE_RUN, 1, PackedInt32Array())
 	assert_true(why.contains("reopening not known"), "dace closed by its event bit: no invented date: " + why)
 	rig.driver.set_lake_frozen(true)

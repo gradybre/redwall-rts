@@ -415,7 +415,7 @@ func _no_fish_refusal(method: int, site: int) -> String:
 	var why: String = _water_refusal(method, site, 0)
 	if not why.is_empty() and not SPECIES_CODES.has(refused_code):
 		return why
-	return _refuse("NO_FISH", "no fish there may be fished now (each is closed, out of season or restocking)",
+	return _refuse("NO_LEGAL_FISH", "no fish there may be fished now (each is closed, out of season or restocking)",
 		"◀ ▶ another site or method")
 
 

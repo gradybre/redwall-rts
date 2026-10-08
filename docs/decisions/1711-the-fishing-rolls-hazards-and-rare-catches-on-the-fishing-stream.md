@@ -82,6 +82,24 @@ before this branch.
   only. A river station needs a new fixed route up the run and a validated draft. Not built; a small follow-up if
   wanted.
 
+## Effect on catch volume and the kitchen's reservations
+
+The balance rerun after #234 found the rack's dried fish refused (`NO_FISH`) on 47–48 of 48 mornings: the kitchen
+reserves fresh fish two days ahead (0421), so the rack never gets any, and rations are never made. This lane changes
+none of that arithmetic, and retunes nothing:
+- **Reservations:** untouched. The catch still holds its room before the cycle opens (0222) and lands as plain fish.
+- **The catch per cycle:** unchanged. The rare roll replaces a quarter of a catch; it adds nothing.
+- **Best catch:** picks the legal species with the largest expected catch, so a Best-catch trip lands the same as or
+  slightly more than a chosen-fish trip at the same water.
+- **Hazards:** take a fisher off work while hurt (net 12, boat 16 in 10000 cycles at skill 0): a negligible loss of
+  fishing hours.
+- **The morning run:** lands a trap's catch later in the day, never in a smaller amount.
+- **The refusal codes:** Best catch's "nothing legal" refusal is `NO_LEGAL_FISH`, deliberately not the rack's
+  `NO_FISH`, so the balance counts stay unambiguous.
+
+Whether fresh fish should be split between the kitchen and the rack is a kitchen-chain proposal, not this lane's
+(see P2's option (b) and the PRESERVE packet).
+
 ## Every number chosen here
 
 None beyond the GDD's: the rolls, chances, injuries and the 25% share are §5.4's. The seed is the demo world's
@@ -128,6 +146,33 @@ No CRITICAL findings. Every HIGH and MEDIUM was fixed, each with a test:
   - The restocking clause of the record line needs a stock in the latch, which takes many days of fishing to reach.
   - The village's wiring to `care_desk.hurt` is three lines, exercised by the live harnesses rather than a unit test.
 
-## Gates
+## Gates (2026-10-07, after merging origin/master with #234)
 
-See "Gates (2026-10-07)" below.
+- **The full suite, CI-style.** `godot/demo/assets` moved aside, `godot/.godot` deleted, `godot --headless --path
+  godot --editor --quit`, `./tools/run_tests.sh`, assets restored. It printed `ok: 9334 tests, 651771 assertions,
+  0 failures.` and `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 371 tolerated; leaked
+  at exit: 0 object(s), 0 resource(s)`. The `log:` line read 0 unexpected errors, 0 unexpected warnings, 0 leaked.
+- **The new suite.** `test_demo_fishing_revamp.gd`: 35 tests, 2100 assertions, 0 failures. With the fishery, care,
+  ferry, preserve, regatta, water, routes and kitchen suites: 639 tests, 0 failures, 0 leaks.
+- **The analyzer.** `python3 tools/gdscript_warnings.py --max 0 --port 6871` printed `0 GDScript warning(s) in 0 of
+  1057 file(s)`.
+  - A run on the default port 6018 reported 29–58 warnings ("Preload file … does not exist" for files that exist,
+    and warnings in untouched core files). Its editor had crashed and it reconnected to another lane's language server
+    on the shared port. **Use a private `--port` when several lanes run at once.**
+- **The contracts:** all pass. These include `decision_numbers.py` (340 records), `merge_gate.py`, `dispatch_plan.py
+  --validate`, `astra_inbox.py --check`, `lane_notes.py --check`, the registry, columns and movement checks,
+  `state_registry_coverage.py`, `setting_contract.py` and `ui_refinement_contract.py`.
+- **The live harnesses** (`LIVE-SUMMARY checks failures`), each at 1280x720 then 1920x1080:
+  - `demo_layout_live`: 159 0 and 232 0;
+  - `demo_input_live`: 198 0 and 206 0;
+  - `demo_care_live`: 37 0 at both sizes;
+  - `demo_routes_live`: 35 0 at both sizes.
+- **Frames:** the Water panel's Fishing section (Best catch's preview, the record, the stewardship row), captured at
+  1280x720 and 1920x1080 and looked at.
+- **Mutation testing:** 89 mutants over the new logic, run one at a time against the new suite. Every mutant ended
+  killed. Two kinds of survivor were fixed: boundary and seam survivors got exact tests (`settle`, the collection
+  tick, the stored draws, the boat crew term, the salmon calendar step); three survived because the code they mutated
+  was dead (an expected-catch guard, a pantry-item guard and a duplicate morning check), and that code was removed.
+  **SURVIVED_MUTANTS: none.**
+- **The review:** see above. **Commits** are on named paths only, with the diff scanned for credential-shaped strings
+  (one false positive: "ta*sk-d*riven").

@@ -375,6 +375,16 @@ These record the engineering choices made while building, step by step.
 
   Households keep their UNRESOLVED rows: there is no production instance, so a world never holds that state.
   The declaration grows by 1,115 bytes; the joint pack is 100,211,016 bytes (49,788,984 below DEC-053's gate).
+- **Step 8, capture.** `settlement_save_capture.gd` captures sections 1-14 from a `settlement_save_world.gd`
+  World binding; `settlement_save_owners.gd` dispatches every section 4, 5 and 6 owner to its bridge or adapter.
+  - **Absent owners.** Production composes no spatial map, field policy, injury store, event schedule or
+    Chronicle, and no movement until an underground Session mounts. The World binds fresh instances for them, so
+    their captures are the canonical empty images; a load must prove the incoming records equal a fresh capture.
+  - **Descriptor facts the rulings leave open.** Section 3 and section 10 are written at schema 1. Section 7's
+    row count is the sum of its six owners' primary counts, section 10's is its nine streams, section 14's its 512
+    name rows and section 15's is 1.
+  - **Underground owners.** Until step 10 they use `UnsupportedAdapter`, so a mounted world (or a bound spatial
+    inventory endpoint) refuses SAVE_UNSUPPORTED_STATE rather than losing state.
 - **Step 2, memory.** Every section-4 capture and apply makes a transient owner image. It is charged to "ADR 1222
   save/load working set" in the reviewed census deltas, and the 09.3 ledger owns the total. It is never resident
   between ticks.

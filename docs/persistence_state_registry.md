@@ -779,6 +779,24 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 |---|---|---:|---|---|:-:|---|---|
 | Section 6 owner adapters | -- | -- | -- | -- | 3 | -- | ADR 1222 step 4b. Stateless module of adapter classes, each bound to one live store with no state of its own: crop_weather and ecology latches, command_dispatch intents, the generic ColumnsAdapter (demolition_admissions, demolition_work, store_policy), HaulPlannerAdapter over ADR 1221's UHPL wire, and JointAdapter for blocks the buildings and construction joint bridges own. capture/validate/apply over one section 6 Block; apply writes nothing on refusal. Transient column copies only. |
 
+### `godot/scripts/core/settlement_save_capture.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Settlement save capture | -- | -- | -- | -- | 3 | -- | ADR 1222 step 8. Stateless static capture of sections 1-14 from a bound World into a SaveFile.Body, plus a caller-owned Staged set of the decoded-form records section 15's adapters read. Transient at a save boundary (ADR 1222 working set). |
+
+### `godot/scripts/core/settlement_save_owners.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Settlement save owner dispatch | -- | -- | -- | -- | 3 | -- | ADR 1222 steps 8-9. Stateless: which bridge or adapter moves each section 4, 5 and 6 owner, including the absent-owner rule and the underground UnsupportedAdapter probes. |
+
+### `godot/scripts/core/settlement_save_world.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Settlement save world binding | -- | -- | -- | -- | 3 | -- | ADR 1222 steps 8-9. One World object per save or load binding every store of a SettlementSystem and its GameManager, plus fresh instances of the owners production does not compose (spatial map, field policy, injury, event schedule, Chronicle, unmounted movement). Holds references only; the fresh instances are transient at the save or load boundary. |
+
 ### `godot/scripts/core/save_child_arenas_schema.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

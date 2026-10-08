@@ -23,6 +23,22 @@ were still in store at every year's end, while winter went hungry.
   greens before roots (`_draw_pool`). Beans with roots count as hotpots before the roots' own soup, as
   multi-input dishes always came first.
 
+## A seam left to the FEAST lane (the review of 7076a86d)
+
+- **The feast is still cabbage-only.** The regatta's Hearth feast cooks the bean hotpot as its main course, but
+  `demo/regatta/regatta.gd` (its reservation and its NO_CABBAGE refusal) and `demo_regatta.gd` still ask for the
+  cabbage row's greens.
+- **Not a regression.** The feast needed cabbage before this change too.
+- **Not edited here.** `regatta/*` is the FEAST lane's.
+- **The fix, for that lane:** reserve and check the dish's own selector, `meal_rules.gd input_selector(DISH_BEAN_HOTPOT,
+  1)`, so that the feast takes greens or roots like the everyday hotpot.
+
+Also recorded:
+- **Freshness.** The hotpot's `FRESHEST_HOURS` (`fresher_first`'s ranking) is the greens' 144 h, the shortest of its
+  categories, even when the hotpot is cooked from roots (240 h).
+- **Planning.** The harvest plan reads the rule's portion and a half (`portions_for` at its default), not a kitchen's
+  `portion_halves`.
+
 ## Tests
 
 `test_demo_dishes.gd`:

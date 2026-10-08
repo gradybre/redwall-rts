@@ -365,6 +365,10 @@ var _occasion_courses: PackedByteArray = PackedByteArray()
 var _seconds_at: PackedInt32Array = PackedInt32Array()
 ## Second helpings eaten (each also counted in `portions_eaten`).
 var seconds_eaten: int = 0
+## `_firsts_owed`'s count, and the calendar tick and meal it was taken for.
+var _owed: int = 0
+var _owed_tick: int = -1
+var _owed_key: int = FREE
 ## Half-portions a diner a meal (meal_rules.gd A PORTION AND A HALF A DINER): 3 by the ruling (decision 1732), and
 ## seconds only then; 2 is one portion a diner, no seconds -- what a suite about another mechanic sets to keep its
 ## scenario.
@@ -1612,11 +1616,23 @@ func _holds_seconds(i: int, key: int) -> bool:
 
 
 func _seconds_spare(key: int) -> bool:
-	"""Whether a portion of meal `key` is out beyond one for every resident still waiting for its first there."""
-	var waiting: int = 0
-	for j: int in _role.size():
-		waiting += 1 if _meal[j] == key and _role[j] != ROLE_NONE and not fed.had(j, key) else 0
-	return store.available(key) > waiting
+	"""Whether a portion of meal `key` is out beyond one for every resident who has not had it yet -- at the table or
+	not called yet (in the water, carrying, on duty, called next frame): a second never takes a first (decision 1732)."""
+	return store.available(key) > _firsts_owed(key)
+
+
+func _firsts_owed(key: int) -> int:
+	"""How many residents have not had meal `key` yet: counted once a calendar tick (a waiting diner asks every frame,
+	so a pass each time would be n x n a frame; within a tick the count only falls as residents eat, which keeps a
+	second's guard on the safe side)."""
+	var tick: int = calendar.tick if calendar != null else -1
+	if tick != _owed_tick or key != _owed_key:
+		_owed_tick = tick
+		_owed_key = key
+		_owed = 0
+		for j: int in _role.size():
+			_owed += 0 if fed.had(j, key) else 1
+	return _owed
 
 
 func _eat_seconds(i: int, dish: int) -> void:

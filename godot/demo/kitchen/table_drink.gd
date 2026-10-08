@@ -72,10 +72,11 @@ func _at_supper(final: KitchenScript.MealFinal) -> void:
 		return
 	var milli: int = mini(need_milli(final.diners.size()), _kitchen.takes.free_milli_of_crop(_kitchen.pantry,
 		Catalog.CAT_CORDIAL))
-	if milli <= 0:
+	var poured: int = _pour(milli) if milli > 0 else 0
+	if poured <= 0:
 		dry_suppers += 1
 		return
-	poured_milli += _pour(milli)
+	poured_milli += poured
 	pours += 1
 
 

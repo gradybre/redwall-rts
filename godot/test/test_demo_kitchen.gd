@@ -1675,3 +1675,40 @@ func test_a_second_helping_held_is_never_counted_twice() -> void:
 	assert_false(v.kitchen._holds_seconds(0, key), "an occasion's meal has no seconds")
 	v.kitchen._portion[0] = -1
 	v.kitchen.occasion_key = -1
+
+
+func test_a_resident_away_from_the_table_keeps_its_first_portion() -> void:
+	"""Food for four portions, and resident 1 held at the water through the serving (not called): the others eat, but
+	nobody takes a second while resident 1 is still owed its first -- it comes back and eats (the review of 7076a86d)."""
+	var v := _hearty(4, 4000, 0)
+	var breakfast: int = Rules.meal_key(1, Rules.MEAL_BREAKFAST)
+	v.brains[1].water_hold = true
+	_run(v, 4115)
+	v.brains[1].water_hold = false
+	_run(v, 12 * FRAMES_PER_HOUR, func() -> bool: return _everyone_had(v, breakfast) \
+		and v.kitchen._closed_key >= breakfast)
+	for i in v.brains.size():
+		assert_equal(v.kitchen.fed.last_outcome[i], FedScript.OUTCOME_ATE, "resident %d ate its first" % i)
+	assert_equal(v.kitchen.seconds_eaten, 0, "no second taken from a first")
+	assert_equal(v.kitchen.meal_without[v.kitchen.meal_keys.rfind(breakfast)], 0, "nobody went without")
+
+
+func test_a_second_helping_given_back_after_the_meal_is_not_going_without() -> void:
+	"""A diner holding a second helping when the meal has closed and its part ends (bed, an order) gives the portion
+	back: the meal's tally and its own outcome stay as they were -- it had eaten the meal."""
+	var v := _hearty(2, 4000, 0)
+	var breakfast: int = Rules.meal_key(1, Rules.MEAL_BREAKFAST)
+	_run(v, 9 * FRAMES_PER_HOUR)
+	var at: int = v.kitchen.meal_keys.rfind(breakfast)
+	assert_true(at >= 0 and v.kitchen._closed_key >= breakfast, "breakfast closed and tallied")
+	var lot: int = v.kitchen.store.reserve_one(breakfast, false)
+	assert_true(lot != -1, "a portion left to hold")
+	var who: int = 0 if v.kitchen._ate_first(0, breakfast) else 1
+	assert_true(v.kitchen._ate_first(who, breakfast), "resident %d ate its first" % who)
+	v.kitchen._portion[who] = lot
+	v.kitchen._meal[who] = breakfast
+	var before: Array = [v.kitchen.meal_ate[at], v.kitchen.meal_without[at]]
+	v.kitchen._clear_role(who)
+	assert_equal([v.kitchen.meal_ate[at], v.kitchen.meal_without[at]], before, "the tally unchanged")
+	assert_equal(v.kitchen.fed.last_outcome[who], FedScript.OUTCOME_ATE, "still ate")
+	assert_equal(v.kitchen._portion[who], -1, "the portion given back")

@@ -24,8 +24,15 @@ later food work."
   - **What it counts as:** its NP (`nourishment.gd eat`), one more in `portions_eaten`, and the new `seconds_eaten`.
   - **What it never touches:** the meal's event (`MealFinal.diners`), its tally (`meal_ate`), the variety history, and
     the outcome.
-  - **It is never taken from a first.** It is taken only while a portion is out beyond one for every resident still
-    waiting for a first at that meal (`_seconds_spare`).
+  - **It is never taken from a first.** It is taken only while a portion is out beyond one for every resident who has not
+    yet had that meal (`_seconds_spare`, `_firsts_owed`). That counts those not yet at the table too: in the water,
+    carrying, on duty, or called on a later frame.
+  - **The count is taken once a calendar tick.** A waiting diner asks every frame, so a pass over the residents each time
+    would cost n × n a frame. Within a tick the count only falls as residents eat, which keeps the guard on the safe
+    side.
+  - **A diner already counted.** One holding a second helping is never counted again among a meal's holders
+    (`_holding`), and does not go without if it gives the portion back after the meal ends (`_clear_role`,
+    `_holds_seconds`). `_ate_first` is the precise test: the resident's last recorded meal is this one, and it ate.
   - **Waiting for it.** A diner whose turn it is waits at the table while more of the meal is still to come, as a
     two-course occasion's diner waits for its other course. It leaves when nothing more is coming.
 - **No seconds at an occasion's meal.** The feast's courses are unchanged.
@@ -55,10 +62,25 @@ later food work."
 
 The FEAST lane edits `kitchen.gd` too. These are narrow, additive hooks, and none touches an occasion's code path.
 
+## Review (independent `code-reviewer` on 7076a86d, waited for)
+
+- **HIGH-1, fixed.** The guard counted only residents already at the table, so a second could take the first portion of
+  one held away (the reviewer reproduced it with a resident held at the water). It now counts everyone who has not had
+  the meal.
+- **HIGH-2, fixed.** The guard's pass over all residents ran for every waiting diner every frame: 11–17 ms a frame at
+  256 residents. It is now counted once a calendar tick.
+- **Found in this branch's own measurement.** The tally counted a diner holding its second helping twice (the year's
+  meals summed to 866 of 864). Fixed with `_holds_seconds` in `_holding` and `_clear_role`.
+- **MEDIUM, fixed.** Tests now cover the surviving mutants on the guard, the give-back, a cancelled batch's water and the
+  HUD stamp; each of those mutants is now killed.
+
 ## Tests
 
 `test_demo_kitchen.gd`:
 - four residents: 6 portions a meal, everyone fed, the two whose turn it is take seconds at each meal, 5400 NP a
   resident, one history entry and a tally of four a meal, the portions' books;
 - food for exactly one portion each: no seconds, and nobody goes without;
-- `portions_for` and `entitled_to_seconds` at their boundaries; an occasion and two halves have no seconds.
+- `portions_for` and `entitled_to_seconds` at their boundaries; an occasion and two halves have no seconds;
+- a resident held at the water through the serving keeps its first portion, and nobody takes a second;
+- a second helping held is never counted twice among the holders;
+- a second helping given back after the meal has closed leaves the tally and the outcome unchanged.

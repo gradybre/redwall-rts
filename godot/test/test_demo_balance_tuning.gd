@@ -169,6 +169,12 @@ func test_water_is_held_for_batches_ordered_and_not_yet_started() -> void:
 	fishery.tables.j_started[mead] = 1
 	fishery.tables.j_live[seat] = 0
 	assert_equal(fishery.water_held_milli(), Recipes.WATER_MILLI[Recipes.R_RATION], "the mead started: its water taken")
+	var second: int = _job(fishery, Tables.KIND_DRY, Recipes.R_MEAD, 0)
+	assert_equal(fishery.water_held_milli(), Recipes.WATER_MILLI[Recipes.R_RATION] + Recipes.WATER_MILLI[Recipes.R_MEAD],
+		"a second mead ordered")
+	fishery.tables.close_job(second)
+	assert_equal(fishery.water_held_milli(), Recipes.WATER_MILLI[Recipes.R_RATION],
+		"cancelled before it started: its water given back (close_job keeps its recipe and start flag)")
 
 
 func test_a_second_batch_cannot_be_ordered_against_water_already_held() -> void:

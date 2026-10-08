@@ -27,6 +27,13 @@ The evidence: all of it spoiled (48–56 U a year), because it kept 72 h and was
 - **The words.** `preserve_text.gd`: the guide's CORDIAL_USE ("A table drink: poured at every supper …") and the card's
   "poured at supper and at feasts".
 
+## Known limit (the review of 7076a86d)
+
+- **A skipped regatta.** A regatta planned and then skipped stays noted as an occasion, so its ordinary supper pours no
+  cordial that one evening.
+- **Why it is left.** Telling a skipped feast from a served one belongs to the FEAST lane's `regatta/*`.
+- **Fixed in the review:** `pours` and `dry_suppers` count what was actually poured.
+
 ## Tests
 
 `test_demo_balance_tuning.gd`:

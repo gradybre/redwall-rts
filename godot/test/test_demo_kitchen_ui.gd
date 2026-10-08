@@ -29,6 +29,7 @@ const SleepTaskScript := preload("res://demo/burrow/sleep_task.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const RawReserveScript := preload("res://demo/kitchen/raw_reserve.gd")
+const CountersScript := preload("res://demo/ui/demo_hud_counters.gd")
 const TakesScript := preload("res://demo/kitchen/ingredient_takes.gd")
 
 const OATS: int = 15
@@ -362,3 +363,19 @@ func test_the_raw_reserve_counts_what_ready_food_does_not_in_days() -> void:
 	assert_equal(reserve.hourly_days_milli(), 401, "the same game hour: not worked out again")
 	assert_equal(reserve.days_milli(), 617, "the figure itself moves: 20 000 NP")
 	assert_equal(RawReserveScript.new(null).days_milli(), 0, "no kitchen: 0")
+
+
+func test_the_raw_reserve_restamps_the_food_cell_each_game_hour() -> void:
+	"""The HUD's stamp carries the raw reserve, so the food cell and the ledger repaint when it changes -- at the next
+	game hour, not before (decision 1736); the food cell is among the stamped cells."""
+	var pantry := _pantry()
+	var kitchen := _kitchen(9, tick_at(1, 20), pantry, StoresScript.new())
+	var model := ModelScript.new()
+	model.bind_meals(kitchen)
+	var before: int = model.stamp()
+	pantry.add_into(Catalog.ITEM_BERRIES, 20000, 0, _read)
+	assert_equal(model.stamp(), before, "the same hour: the stamp holds")
+	kitchen._hour_seen += 1
+	assert_true(model.stamp() != before, "the next hour: the raw reserve restamps")
+	assert_true(CountersScript._stamped(ModelScript.CELL_FOOD), "the food cell repaints on a restamp")
+	assert_false(CountersScript._stamped(ModelScript.CELL_STONE), "the stone cell does not")

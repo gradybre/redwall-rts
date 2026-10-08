@@ -41,7 +41,9 @@ const DONE_LEDGER: Array = [20, 25380, 9, 44000, 2] # DEC-059: six cubes x 4,230
 const PREFIX_TASKS: int = 20
 ## ADR1229 increment 6b: the whole descent on the flexible schedule (every hour ANYTHING, GDD 5.3), from the same
 ## start: the eight descent cubes (33,840 mWU since DEC-059), T1-T6 down the stair (6 x 5,640 mWU, one hauled unit each).
-const DESCENT_DONE_TICK: int = 12474 # DEC-059 (P3)
+const DESCENT_DONE_TICK: int = 10484 # DEC-059: P3 12,474, then P1 (treads chained down)
+## DEC-059 (P1): task 44 installs T1; every later tread is chained down from the one before.
+const FIRST_TREAD_TASK: int = 44
 const DESCENT_LEDGER: Array = [50, 59220, 19, 77840, 8] # DEC-059: 14 cubes x 4,230; 32,000 + 12,000 + 6 x 5,640
 ## ADR1221: the live chain's route owners are cold-restored this often (ticks; prime).
 const ROUTE_RESTORE_EVERY: int = 23
@@ -1616,8 +1618,8 @@ func _flexible(o: Session.Retirement.Owners, worker: Vector2i) -> void:
 func test_the_live_chain_builds_the_descent_down_the_stair_to_the_sill() -> void:
 	"""ADR1229 increment 6b: past the prefix the crew cuts the descent's eight cubes from the surface, then installs
 	T1-T6, each from the tread above: it walks from M to the crossing arrival, down the stair (walk-in, step forward,
-	one descent per tread, step back onto the station), funds and fits the tread, and climbs back (step forward,
-	half-turn, ascents) for the next order. Each group is installed exactly once; the foreman ends with G9 at the
+	one descent per tread, step back onto the station), funds and fits the tread. DEC-059 (P1): T1 hauls every tread's wood to M,
+	and each later tread follows straight down from the one before (step forward, one descent, step back). Each group is installed exactly once; the foreman ends with G9 at the
 	Kitchen (DEC-054), and a finished entry re-raises it."""
 	var live: Array = _begin_live_entry(_flexible)
 	var o: Session.Retirement.Owners = live[0]
@@ -1625,9 +1627,14 @@ func test_the_live_chain_builds_the_descent_down_the_stair_to_the_sill() -> void
 	_stage(o, entry._output, &"wood", 13000)
 	_stage(o, entry._output, &"stone", 2000)
 	var tick: int = 1
+	var at_m: int = 0
+	var row: int = o.residents.directory().get_typed_row(live[2])
 	while entry.is_running() and tick < 20000:
 		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
+		if entry._foreman._index > FIRST_TREAD_TASK and o.routes._resident_pair(Session.Retirement.Routes.R_LOCATION_SLOT, row) \
+				== entry._published.endpoints[1]: at_m += 1
 		tick += 1
+	assert_equal(at_m, 0, "DEC-059 (P1): after T1 the fitter never goes back to M; T2-T6 follow straight down")
 	assert_equal(entry.step(), Settlement.UndergroundEntryRuntime.STEP_DONE, "the runtime finished the descent")
 	assert_equal(entry.error(), Settlement.UndergroundEntryRuntime.REFUSE_KITCHEN_UNBUILT, "and stopped at the Kitchen")
 	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G9"), "named gap row G9")

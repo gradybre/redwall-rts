@@ -33,6 +33,12 @@ const STAGE_REST: int = 11 # ADR1226 (REQ-SET-034): INSTALL recovers to READY an
 const STAGE_RESUME: int = 12 # DEC-057: the crew was lost; the replacement re-handles in place from its arrival.
 ## ADR1229: from the crossing arrival down the stair (walk-in step, step forward, descent) to the tread above.
 const STAGE_LEG_STAIRS: int = 13
+## DEC-059 (P1): from the previous tread's station straight down to this one (step forward, one descent).
+const STAGE_LEG_CHAIN: int = 14
+const Tread := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/tread_geometry.gd")
+## DEC-059 (P1): the first tread's haul brings every tread's wood to M at once (D3: each tread's bill is T0's).
+const FIRST_TREAD: int = 2
+const REFUSE_CHAIN_STOCK: StringName = &"ENTRY_INSTALLER_CHAIN_STOCK"
 const StairPath := preload("res://scripts/core/underground_entry_stair_path.gd")
 const Workpieces := preload("res://scripts/core/underground_connector_workpieces.gd")
 const Construction := preload("res://scripts/core/construction.gd")
@@ -77,6 +83,9 @@ class Plan extends RefCounted:
 	var downs: PackedInt64Array = PackedInt64Array()
 	var ups: PackedInt64Array = PackedInt64Array()
 	var retract: Vector2i = NULL_REF
+	## DEC-059 (P1): when the fitter stands on the previous tread's station, the legs straight down to the stop
+	## above this station (step forward, one descent); empty otherwise. M already holds this tread's wood.
+	var chain: PackedInt64Array = PackedInt64Array()
 
 
 var _o: RefCounted = null # The foreman's Owners packet.
@@ -154,6 +163,7 @@ func _run(tick: int) -> StringName:
 		STAGE_LEG_ARRIVAL: return _leg_arrival(tick)
 		STAGE_LEG_STATION: return _leg_station(tick)
 		STAGE_LEG_STAIRS: return _leg_stairs(tick)
+		STAGE_LEG_CHAIN: return _leg_chain(tick)
 		STAGE_FUND: return _fund(tick)
 		STAGE_HANDLE: return _handle(tick)
 		STAGE_INSTALL_ENTER: return _install_enter(tick)
@@ -174,6 +184,7 @@ func _open(tick: int) -> StringName:
 	if code != &"": return code
 	var queue: PackedInt32Array = PackedInt32Array()
 	code = _units(queue)
+	if code == &"" and not _plan.chain.is_empty(): return _open_chain(queue, tick)
 	# ADR1229: from a tread station the walk back up the stair is the haul's first legs (a walk-in when empty).
 	if code == &"" and (not queue.is_empty() or not _plan.ups.is_empty()): return _begin_haul(queue, tick)
 	if code != &"": return code
@@ -182,6 +193,19 @@ func _open(tick: int) -> StringName:
 	if not result.ok: return result.error
 	code = _travel(_plan.walk_profile, _plan.walk_revision, _plan.material, tick)
 	if code == &"": _stage = STAGE_LEG_MATERIAL
+	return code
+
+
+func _open_chain(queue: PackedInt32Array, tick: int) -> StringName:
+	"""DEC-059 (P1): the fitter takes the Job where it stands and walks straight down; M must already hold the bill
+	(the first tread's haul brought every tread's wood), so nothing is hauled and M is not visited."""
+	if not queue.is_empty(): return REFUSE_CHAIN_STOCK
+	var result: RefCounted = _o.jobs.assign_worker(_o.residents.directory().get_typed_row(_crew.worker), _job)
+	if not result.ok: return result.error
+	_stair_leg = 0
+	var first: Hauler.Leg = _plan_leg(_plan.chain, 0)
+	var code: StringName = _travel(first.profile, first.revision, first.target, tick) # Already facing down the stair.
+	if code == &"": _stage = STAGE_LEG_CHAIN
 	return code
 
 
@@ -208,9 +232,10 @@ func _units(out: PackedInt32Array) -> StringName:
 	if _o.delivery == null: return &""
 	var items: PackedInt32Array = PackedInt32Array()
 	var milli: PackedInt64Array = PackedInt64Array()
+	var batch: int = Tread.TREADS if _plan.ordinal == FIRST_TREAD else 1
 	for line: int in _quote.input_count:
 		items.append(_o.items.compiled_id(_quote.input_keys[line]))
-		milli.append(_quote.input_milli[line])
+		milli.append(_quote.input_milli[line] * batch)
 	return Hauler.units_into(_o, _crew.storage, items, milli, out)
 
 
@@ -288,16 +313,26 @@ func _leg_arrival(tick: int) -> StringName:
 func _leg_stairs(tick: int) -> StringName:
 	"""ADR1229: each source-ready arrival takes the next down leg; the last stop above the station steps back onto
 	it on the station's own approach row (the step back), facing down the stair as every down leg does."""
-	var leg: Hauler.Leg = _plan_leg(_plan.downs, 4 * _stair_leg)
+	return _walk_down(_plan.downs, tick)
+
+
+func _leg_chain(tick: int) -> StringName:
+	"""DEC-059 (P1): the same walk down, on the legs from the previous tread's station."""
+	return _walk_down(_plan.chain, tick)
+
+
+func _walk_down(rows: PackedInt64Array, tick: int) -> StringName:
+	"""One source-ready arrival per leg of `rows`, then the step back onto the station."""
+	var leg: Hauler.Leg = _plan_leg(rows, 4 * _stair_leg)
 	var arrived: int = _arrived(leg.target, leg.profile, leg.revision, tick)
 	if arrived < 0: return &"ENTRY_INSTALLER_ROUTE_HELD"
 	if arrived == 0: return &""
 	_stair_leg += 1
-	if 4 * _stair_leg >= _plan.downs.size():
+	if 4 * _stair_leg >= rows.size():
 		var code: StringName = _travel(_plan.approach_profile, _plan.approach_revision, _plan.station, tick)
 		if code == &"": _stage = STAGE_LEG_STATION
 		return code
-	var next: Hauler.Leg = _plan_leg(_plan.downs, 4 * _stair_leg)
+	var next: Hauler.Leg = _plan_leg(rows, 4 * _stair_leg)
 	return _travel(next.profile, next.revision, next.target, tick)
 
 
@@ -600,6 +635,7 @@ func _write_plan(w: Progress.Writer) -> void:
 	w.ref(_plan.retired_second)
 	_write_legs(w, _plan.downs)
 	_write_legs(w, _plan.ups)
+	_write_legs(w, _plan.chain)
 	w.ref(_plan.retract)
 
 
@@ -629,7 +665,7 @@ func read_state(r: Progress.Reader, owners: RefCounted, crew: RefCounted, paid: 
 	_paid = paid
 	_plan = _read_plan(r)
 	_content = r.i64()
-	_stage = r.ranged(STAGE_OPEN, STAGE_LEG_STAIRS)
+	_stage = r.ranged(STAGE_OPEN, STAGE_LEG_CHAIN)
 	_project = r.ref()
 	_job = r.i32()
 	var job: Vector2i = r.ref()
@@ -670,6 +706,7 @@ func _read_plan(r: Progress.Reader) -> Plan:
 	plan.retired_second = r.ref()
 	plan.downs = _read_legs(r)
 	plan.ups = _read_legs(r)
+	plan.chain = _read_legs(r)
 	plan.retract = r.ref()
 	return plan
 

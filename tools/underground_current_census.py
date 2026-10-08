@@ -250,12 +250,12 @@ def entry_progress(memory, index: dict) -> dict:
     source = module(index, CORE + "underground_entry_progress.gd").text
     formula = ("const MAX_WIRE_BYTES: int = HEADER_BYTES + RUNTIME_FIXED_BYTES + MAX_ENDPOINTS * 8 + CREW_BYTES + FOREMAN_FIXED_BYTES \\\n"
                "\t+ MAX_TASKS * TASK_BYTES + INSTALLER_FIXED_BYTES + MAX_QUOTE_LINES * QUOTE_LINE_BYTES \\\n"
-               "\t+ HAULER_FIXED_BYTES + MAX_QUEUE * 4 + MAX_LEGS * LEG_BYTES + 2 * MAX_STAIR_LEGS * LEG_BYTES\n")
+               "\t+ HAULER_FIXED_BYTES + MAX_QUEUE * 4 + MAX_LEGS * LEG_BYTES + 3 * MAX_STAIR_LEGS * LEG_BYTES\n")
     require(formula in source, "entry progress wire bound formula")
     const = lambda name: int(re.search(r"^const " + name + r": int = (\d+)\b", source, re.M).group(1))
     wire = sum(const(name) for name in PROGRESS_TERMS) + 8 * const("MAX_ENDPOINTS") + const("MAX_TASKS") * const("TASK_BYTES") \
         + const("MAX_QUOTE_LINES") * const("QUOTE_LINE_BYTES") + 4 * const("MAX_QUEUE") + const("MAX_LEGS") * const("LEG_BYTES") \
-        + 2 * const("MAX_STAIR_LEGS") * const("LEG_BYTES")
+        + 3 * const("MAX_STAIR_LEGS") * const("LEG_BYTES")
     packets = packet(memory, index, CORE + "underground_entry_progress.gd", "Writer") \
         + packet(memory, index, CORE + "underground_entry_progress.gd", "Reader")
     return {"max_wire_bytes": wire, "images": 2, "packet_numeric_bytes": packets, "bytes": 2 * wire + packets}
@@ -292,7 +292,7 @@ def entry_chain(memory, index: dict) -> dict:
         "installer_numeric": memory.numeric_fields(installer, "") + result + actor,
         "installer_plan": packet(memory, index, CORE + "underground_entry_installer.gd", "Plan"),
         # ADR1229 increment 6b: the plan's down and up stair legs, [slot, generation, profile, revision] int64 rows.
-        "installer_stair_legs": 2 * stair_legs * 4 * 8,
+        "installer_stair_legs": 3 * stair_legs * 4 * 8, # DEC-059: the chain list too
         "installer_quote": memory.payload(quote["columns"]) + quote["numeric_control_bytes"],
         # The foreman and the installer each retain one Hauler; both are charged.
         "haulers": 2 * (memory.numeric_fields(hauler, "") + actor + 4 * queue)

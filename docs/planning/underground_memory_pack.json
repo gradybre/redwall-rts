@@ -44253,12 +44253,12 @@
         "foreman_tasks": 3600,
         "installer_numeric": 229,
         "installer_plan": 136,
-        "installer_stair_legs": 256,
+        "installer_stair_legs": 384,
         "installer_quote": 184,
         "haulers": 760,
-        "progress_record": 9024
+        "progress_record": 9192
       },
-      "bytes": 14835,
+      "bytes": 15131,
       "frontier_counts": {
         "INSTALL": 8,
         "STATION": 22,
@@ -44333,11 +44333,11 @@
     "new_retained_bytes": {
       "geometry_journals": 4322,
       "locations_carry_and_retirement_controls": 6362,
-      "first_entry_runtime_chain": 14835,
+      "first_entry_runtime_chain": 15131,
       "cold_load_images": 196694,
       "claw_stair_tables": 9580
     },
-    "new_contribution_bytes": 231793,
+    "new_contribution_bytes": 232089,
     "runtime_qualified": false,
     "native_measured": false
   },
@@ -44349,7 +44349,7 @@
     "connector_workpieces": 29928,
     "guarded_haul_transfers": 3072,
     "connector_delivery": 4096,
-    "current_census_new_retained": 231793,
+    "current_census_new_retained": 232089,
     "space_banks_and_indexes": 1104160,
     "phase_proof_cache_and_candidate": 17724,
     "shared_geometry_cold_peak": 1048960,
@@ -44364,12 +44364,12 @@
     "LAYOUT_COLD_BYTES": 262144,
     "BINDINGS_AND_GROWTH_BYTES": 524544
   },
-  "new_mutable_and_reserved_bytes": 5255474,
+  "new_mutable_and_reserved_bytes": 5255770,
   "declaration_bytes": 25645,
   "declaration_delta_bytes": 4460,
-  "live_with_reserve_bytes": 100250311,
+  "live_with_reserve_bytes": 100250607,
   "gate_bytes": 150000000,
-  "headroom_bytes": 49749689,
+  "headroom_bytes": 49749393,
   "source_sha256": {
     "godot/scripts/core/construction.gd": "48a6d74a8e1e26e7959ac9af9046ca6dce014f0cfe3ab177de383bc34b980fa4",
     "godot/scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
@@ -44424,7 +44424,7 @@
     "godot/scripts/core/underground_world_routes.gd": "602f20d30812f4da61d624d3d42ade7eb1fe44729b751942b9d64dee1b4ee531",
     "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310"
   },
-  "registry_sha256": "efd9a2fef26c062918d11dc9580d654ec4bef6c564b7da0f52d8644c3653113a",
+  "registry_sha256": "a4190ded1406f501a7b4851f53f667f00a13031bba3063c62b639d46aec4d8fa",
   "limitations": [
     "Constructor limits alone are not joint runtime admission.",
     "Actual consumers must share the exact cold arena and charge nested coexistence before allocating.",

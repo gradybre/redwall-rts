@@ -24,8 +24,8 @@ const LEG_BYTES: int = 20
 const QUOTE_LINE_BYTES: int = 12
 const RUNTIME_FIXED_BYTES: int = 130
 const FOREMAN_FIXED_BYTES: int = 232
-## ADR1229: +20 for the stair plan (two leg counts, the retracted stop, the down-leg cursor).
-const INSTALLER_FIXED_BYTES: int = 185
+## ADR1229: +20 for the stair plan (two leg counts, the retracted stop, the down-leg cursor); DEC-059: +4, the chain count.
+const INSTALLER_FIXED_BYTES: int = 189
 const HAULER_FIXED_BYTES: int = 88
 ## ADR1229: L0's twelve phases, T0's six, the descent's twenty-four and eight installations are fifty steps.
 const MAX_TASKS: int = 64
@@ -33,13 +33,13 @@ const MAX_ENDPOINTS: int = 19 # ADR1229: the work area's endpoints (WorkArea.END
 const MAX_QUEUE: int = 8
 ## ADR1229: a tread order walks four legs up the stair before M.
 const MAX_LEGS: int = 5
-## ADR1229: each of a tread plan's down and up leg lists.
+## ADR1229: each of a tread plan's down, up and (DEC-059) chain leg lists.
 const MAX_STAIR_LEGS: int = 4
 const MAX_QUOTE_LINES: int = 4
 ## One haul at most is live: the foreman's (STAGE_HAUL) or its installation's, never both.
 const MAX_WIRE_BYTES: int = HEADER_BYTES + RUNTIME_FIXED_BYTES + MAX_ENDPOINTS * 8 + CREW_BYTES + FOREMAN_FIXED_BYTES \
 	+ MAX_TASKS * TASK_BYTES + INSTALLER_FIXED_BYTES + MAX_QUOTE_LINES * QUOTE_LINE_BYTES \
-	+ HAULER_FIXED_BYTES + MAX_QUEUE * 4 + MAX_LEGS * LEG_BYTES + 2 * MAX_STAIR_LEGS * LEG_BYTES
+	+ HAULER_FIXED_BYTES + MAX_QUEUE * 4 + MAX_LEGS * LEG_BYTES + 3 * MAX_STAIR_LEGS * LEG_BYTES
 const REFUSE_VERSION: StringName = &"ENTRY_SAVE_VERSION"
 const REFUSE_SHAPE: StringName = &"ENTRY_SAVE_SHAPE"
 const REFUSE_NONCANONICAL: StringName = &"ENTRY_SAVE_NONCANONICAL"

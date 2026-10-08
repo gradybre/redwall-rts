@@ -795,7 +795,8 @@ func _stops() -> StairPath.Stops:
 
 func _plan_stairs(plan: Installer.Plan) -> bool:
 	"""ADR1229: a tread order walks down from the crossing arrival (walk-in step, step forward, descent to the stop
-	above the station), retracts that stop at FUND, and from a previous tread station first climbs back to the
+	above the station) and retracts that stop at FUND. DEC-059 (P1): from the previous tread's station it walks
+	straight down instead (step forward, one descent); from any other tread station it first climbs back to the
 	crossing arrival (step forward, half-turn, ascent, approach). Any other order has none of these."""
 	if not Tread.is_tread(plan.ordinal): return true
 	var stops: StairPath.Stops = _stops()
@@ -807,7 +808,10 @@ func _plan_stairs(plan: Installer.Plan) -> bool:
 	var here: Vector2i = _owners.routes._resident_pair(Routes.R_LOCATION_SLOT,
 		_owners.residents.directory().get_typed_row(_crew.worker))
 	var from: int = stops.s.find(here) - 1
-	if here != NULL_REF and from >= 0:
+	if here != NULL_REF and from >= 0 and from == level - 1:
+		plan.chain = _legs([stops.a[level], StairPins.CLAW_STEP_FORWARD_ROW, stops.a[level + 1],
+			StairPins.CLAW_DESCENT_ROW]) # DEC-059 (P1): straight down from the previous tread's station.
+	elif here != NULL_REF and from >= 0:
 		plan.ups = _legs([stops.a[from + 1], StairPins.CLAW_STEP_FORWARD_ROW, stops.u[from + 1], StairPins.CLAW_TURN_ROW,
 			stops.u[0], StairPins.CLAW_ASCENT_ROW, stops.x, StairPins.CLAW_APPROACH_ROWS[2]])
 	return not plan.downs.is_empty() and plan.retract != NULL_REF

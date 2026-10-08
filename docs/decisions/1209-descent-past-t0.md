@@ -493,3 +493,17 @@ The tread episode is now:
 The half-turn is stopped for review (ADR 1217 step 5b).
 
 **Brendan (2026-10-08): the half-turn and the episode order are approved.**
+
+## Amendment (2026-10-08, DEC-059 P1): the treads are fitted in one pass down the stair
+
+Brendan approved a change to the per-tread order of the descent's installation (DEC-059, P1). Before, every tread
+was reached from M: walk down from the crossing arrival, fit, then step forward, half-turn and climb back up. Now:
+
+- T1's haul brings the wood of all six treads to M at once. D3 (T0's bill per tread) makes the six bills
+  identical, so the wood is unchanged.
+- T1 is reached from M as before.
+- Each later tread is reached from the station of the tread before it: step forward, one descent, step back
+  onto its station. M is not visited again.
+- The motions, stations, stops and paces are unchanged.
+
+Engineering record: [decision1229](1229-stair-travel-runtime.md) (§ DEC-059 P1).

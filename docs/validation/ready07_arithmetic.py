@@ -324,11 +324,11 @@ DECISION_1102_MUTABLE=2*(fund_shapes['_lost_milli'][0]*fund_shapes['_lost_milli'
 # MAX_WIRE_BYTES 4507), and the census adds the claw stair tables (9580) and the Locations witness-pass cache
 # (6201). All of it is one row; the earlier rows keep their historical figures.
 DECISION_1229_ADDED=underground_pack['contributions']['current_census_new_retained']-209524
-assert DECISION_1229_ADDED==22269
-assert '| Stair runtime: T1-T6 entry plan and record, claw stair tables, witness-pass cache | 1 | 22269 | 22269 |' in s
-ENTRY_CHAIN_BEFORE_1229=underground_pack['current_source_census']['first_entry_runtime']['bytes']-(14835-5128-3219)
+assert DECISION_1229_ADDED==22565
+assert '| Stair runtime: T1-T6 entry plan and record, claw stair tables, witness-pass cache | 1 | 22565 | 22565 |' in s
+ENTRY_CHAIN_BEFORE_1229=underground_pack['current_source_census']['first_entry_runtime']['bytes']-(15131-5128-3219)
 DECISION_1218_RECORD=5128
-assert underground_pack['current_source_census']['first_entry_runtime']['rows']['progress_record']-3896==DECISION_1218_RECORD
+assert underground_pack['current_source_census']['first_entry_runtime']['rows']['progress_record']-4064==DECISION_1218_RECORD
 assert '| First-entry progress record images | 1 | 5128 | 5128 |' in s
 # Decision1223: the entry runtime's one IntResult of dispatch read scratch grows the chain from 3210 to 3219 (+9).
 DECISION_1223_ADDED=ENTRY_CHAIN_BEFORE_1229-DECISION_1218_RECORD-3210
@@ -501,8 +501,8 @@ DECISION_1023_ADDED=DECISION_1023_RECORD+DECISION_1023_SCRATCH
 # decision 1023 adds one (39 -> 40); decision 1053 folds into Auxiliary payload and adds none.
 assert len(allocations)==60 and sum(allocations)==DECISION_1229_ADDED+DECISION_1217_PROFILE+DECISION_1221_IMAGES+DECISION_1223_ADDED+DECISION_1219_ADDED+DECISION_1218_RECORD+DECISION_1212_MUTABLE+DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED+DECISION_1023_ADDED+DECISION_1053_ADDED+DECISION_1066_ADDED+DECISION_1068_ADDED+DECISION_1071_MUTABLE+DECISION_1072_MUTABLE+DECISION_1102_MUTABLE+LATER_UNDERGROUND_MUTABLE
 payload=sum(allocations);reserve=8388608;candidate=payload-(3670016+2097152+262144+131072+55200+DECISION_0127_ADDED+DECISION_0169_ADDED);live=payload+reserve
-assert payload==91861703
-assert live==100250311 and candidate==85609938 and live+candidate==185860249
+assert payload==91861999
+assert live==100250607 and candidate==85610234 and live+candidate==185860841
 GATE=underground_pack['gate_bytes'] # REQ-SET-163 as amended by DEC-053 (supersedes DEC-051): 150 MB.
 assert GATE==150000000
 assert live==underground_pack['live_with_reserve_bytes']

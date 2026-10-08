@@ -467,3 +467,25 @@ since 6a, which is why `ready07_arithmetic.py` failed.
 - **Measured** (the live chain on the flexible schedule):
   - the prefix finishes on tick 4,382 (was 4,670), ledger `[20, 25,380, 9, 44,000, 2]`;
   - the whole descent finishes on tick 12,474 (was 13,690), ledger `[50, 59,220, 19, 77,840, 8]`.
+
+## DEC-059 P1 — the treads chained down the stair (2026-10-08)
+
+Brendan approved the change (DEC-059). It amends increment 5's per-tread episode order ("…install, step forward,
+turn, ascend") and ADR 1202's material leg for T2–T6. ADR 1209 records the amendment.
+
+- **The first tread's haul.** T1's quote is multiplied by `Tread.TREADS` when its missing units are counted, so
+  its haul brings all six treads' wood to M in one session. That is six trips, the same count as before. D3's
+  per-tread bills are identical.
+- **The chain.** `_plan_stairs` gives an order whose fitter stands on the previous tread's station a `chain`:
+  [A on that tread by the step forward, A on the next by one descent]. The installer then:
+  - takes the Job where the fitter stands and walks the chain (`STAGE_LEG_CHAIN` = 14);
+  - steps back onto the station;
+  - never visits M.
+
+  If M lacks the bill, it refuses `ENTRY_INSTALLER_CHAIN_STOCK` and hauls nothing.
+- **Other fitters.** A fitter that stands anywhere else keeps the full path from M. That covers a replacement
+  crew, and a restored record whose crew is elsewhere. A DEC-057 resume walks the full `downs` from M.
+- **Record.** The plan's chain list follows its up legs: `INSTALLER_FIXED_BYTES` 185 → 189, and the leg bound is
+  `3 × MAX_STAIR_LEGS`. `MAX_WIRE_BYTES` is 4,591, and the section-6 `max_count` follows. The census adds 296 B.
+- **Measured** (flexible schedule): T2–T6 take 251 ticks each, down from 636–876. The descent finishes on tick
+  10,484 (12,474 after P3).

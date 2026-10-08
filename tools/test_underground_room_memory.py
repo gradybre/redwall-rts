@@ -194,7 +194,7 @@ class RoomMemoryWitnessTests(unittest.TestCase):
         source = self.index["underground_route_composition"]
         # ADR1212: route composition is projected, so its constants and allocation sites are recounted by the
         # current census. A pure comparison edit (header[7] != N) is not storage and is not refused there.
-        for before, after in (("GROUND_PACE_COUNT: int = 24", "GROUND_PACE_COUNT: int = 16"),
+        for before, after in (("GROUND_PACE_COUNT: int = 29", "GROUND_PACE_COUNT: int = 16"),
                               ("var o: Retirement.Owners", "var scratch: Array = [1, 2]\n\tvar o: Retirement.Owners")):
             self.assertIn(before, source.text)
             changed = source._replace(text=source.text.replace(before, after, 1))

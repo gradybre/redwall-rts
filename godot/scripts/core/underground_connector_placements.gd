@@ -2621,8 +2621,10 @@ func completion_refusal(ref: Vector2i, project: Vector2i, assembly: int, origina
 
 
 func prepared_installation_leaf_refusal(ref: Vector2i, project: Vector2i, assembly: int,
-		original_token: int) -> StringName:
-	"""Close late recipe/contact observations with actual source and sealed companion state, never a callback."""
+		original_token: int, witnesses: bool = true) -> StringName:
+	"""Close late recipe/contact observations with actual source and sealed companion state, never a callback.
+	ADR1229: `witnesses` false skips only the installed-witness re-derivation, for a per-observation closure whose
+	caller's own final leaf is followed by a complete one (Contacts inside ConnectorWork's final funding leaf)."""
 	if original_token <= 0 or ref != _prepared_placement or project != _prepared_project \
 			or assembly != _prepared_assembly or original_token != _cold_token or not _done_project(project):
 		return REFUSE_ORDER
@@ -2632,17 +2634,17 @@ func prepared_installation_leaf_refusal(ref: Vector2i, project: Vector2i, assemb
 	if code == &"" and _prepared_action != Contract.COMMIT: code = REFUSE_ORDER
 	if code == &"" and _workpieces != null: code = _workpiece_context_leaf(_actual_workpieces())
 	if code == &"" and _workpieces != null: code = _workpiece_obstacle_leaf(_actual_workpieces())
-	return _prepared_geometry_leaf() if code == &"" else code
+	return _prepared_geometry_leaf(witnesses) if code == &"" else code
 
 
-func _prepared_geometry_leaf() -> StringName:
+func _prepared_geometry_leaf(witnesses: bool = true) -> StringName:
 	"""Common direct source/claim, endpoint and graph closure follows all actual physical observers."""
 	var code: StringName = Owner.generic_commit_refusal(_space, _space_token, _base_geometry_revision, _target_geometry_revision)
 	if code == &"":
 		code = _prepared_sources_leaf()
 	if code == &"":
 		code = Locations.installation_prepared_leaf_refusal(_locations, _context)
-	if code == &"":
+	if code == &"" and witnesses:
 		code = _locations._installed_witnesses_refusal()
 	return WorldRoutes.installation_prepared_leaf_refusal(_world_routes, _context) if code == &"" else code
 

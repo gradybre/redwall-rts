@@ -96,7 +96,8 @@ func test_structure_binds_the_claw_source_and_its_ground_caps() -> void:
 	var o: Session.Retirement.Owners = _session._retirement_owners
 	assert_equal(o.routes._live.edge_count, 0, "no route")
 	assert_equal(o.locations._live.count, 0, "no endpoint")
-	assert_equal(o.world_routes._catalog._live.header[8], Bundle.CONTENT_REVISION, "the mounted content is the claw bundle's")
+	assert_equal(o.world_routes._catalog._live.header[8], Session.Catalog.CONTENT_REVISION,
+		"ADR1229: the mounted content is content 10 (the T1-T6 bundle), not this historical claw bundle's")
 
 
 func test_frontier_loads_with_claw_stations_at_1430_and_mapped_travel() -> void:

@@ -36,8 +36,9 @@ const DONE_TICK: int = 4670
 const DONE_LEDGER: Array = [20, 54000, 9, 44000, 2]
 ## ADR1221: the live chain's route owners are cold-restored this often (ticks; prime).
 const ROUTE_RESTORE_EVERY: int = 23
-## ADR1218 runtime wire: header, step, code, origin, section, endpoint count and eleven endpoints, then M's container.
-const AT_RUNTIME_STORAGE: int = 12 + 4 + Progress.CODE_BYTES + 12 + 8 + 4 + 11 * 8
+## ADR1218 runtime wire: header, step, code, origin, section, endpoint count and the work area's endpoints (nineteen
+## since ADR1229), then M's container.
+const AT_RUNTIME_STORAGE: int = 12 + 4 + Progress.CODE_BYTES + 12 + 8 + 4 + EntryWorkArea.ENDPOINTS * 8
 ## ADR1219 walk ticks left, arrival yaw and H's anchor point follow M's and R's containers.
 const AT_RUNTIME_WALK: int = AT_RUNTIME_STORAGE + 16
 

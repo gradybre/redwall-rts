@@ -255,7 +255,7 @@ func _choose_site(session: RefCounted, o: RefCounted, near: Vector3i) -> StringN
 
 
 func _publish(session: RefCounted, o: RefCounted) -> StringName:
-	"""All eleven endpoints, then all 31 paths, through the real SurfaceAnchor and WorldRoutes."""
+	"""All nineteen endpoints, then every path, through the real SurfaceAnchor and WorldRoutes."""
 	var code: StringName = WorkArea.publish_locations(session.surface_anchor(), _origin, _published)
 	if code == &"": code = WorkArea.publish_paths(o.world_routes, o.routes, o.budget, o.space, _origin, _published,
 		o.profiles.content_revision())
@@ -329,11 +329,21 @@ func _plan_foreman(o: RefCounted) -> StringName:
 	if code == &"": code = foreman.plan_arrival(_published.endpoints[0])
 	if code == &"": code = _begin_walk(o.locations, o.transforms, o.residents, foreman.arrival_yaw())
 	if code != &"": return code
+	foreman.bind_station_paths(_station_paths)
 	_foreman = foreman
 	_jobs = o.jobs
 	_worker_row = o.residents.directory().get_typed_row(_crew.worker)
 	_step = STEP_RUNNING
 	return _bind_dispatcher(o)
+
+
+func _station_paths(station: Vector2i) -> StringName:
+	"""ADR1229: the descent's cut stations get their paths (and the done T0 stations lose theirs) just before the
+	first of them is worked; derived from the live graph, so a restored chain asks the same question."""
+	var o: Foreman.Owners = _foreman._owners
+	if not WorkArea.is_deep_station(_published, station) or WorkArea.deep_paths_open(o.routes, _published): return &""
+	return WorkArea.open_deep_paths(o.binding, o.routes, _foreman._paid.budget, o.binding._owner(), _origin, _published,
+		o.profiles.content_revision())
 
 
 func _foreman_owners(o: RefCounted) -> Foreman.Owners:
@@ -488,6 +498,7 @@ func _read_foreman(r: Progress.Reader, o: RefCounted) -> StringName:
 	_foreman = Foreman.new()
 	var code: StringName = _foreman.read_state(r, _foreman_owners(o), paid)
 	if code != &"": return code
+	_foreman.bind_station_paths(_station_paths)
 	if (_step == STEP_DONE) != _foreman.is_done(): return Progress.REFUSE_SHAPE
 	_crew = _foreman._crew
 	if _crew.storage != _storage or _crew.output != _output: return Progress.REFUSE_SHAPE

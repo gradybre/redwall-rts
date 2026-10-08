@@ -8,9 +8,10 @@ extends RefCounted
 const Routes := preload("res://scripts/core/underground_routes.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const MAGIC: int = 0x50544E45 # "ENTP"
-## ADR1227: 2 since a successful start clears the runtime's earlier refusal; a version-1 record is refused with
-## ENTRY_SAVE_VERSION (no migration before 1.0, DEC-055 item 1).
-const VERSION: int = 2
+## ADR1227: 2 since a successful start clears the runtime's earlier refusal. ADR1229: 3 since the work area publishes
+## nineteen endpoints (the descent's eight more cut stations) and the plan runs to T6. An earlier record is refused
+## with ENTRY_SAVE_VERSION (no migration before 1.0, DEC-055 item 1).
+const VERSION: int = 3
 const KIND_RUNTIME: int = 1
 const KIND_FOREMAN: int = 2
 const CODE_BYTES: int = 64 # A refusal code, ASCII, zero-padded.
@@ -25,12 +26,14 @@ const RUNTIME_FIXED_BYTES: int = 130
 const FOREMAN_FIXED_BYTES: int = 232
 const INSTALLER_FIXED_BYTES: int = 165
 const HAULER_FIXED_BYTES: int = 88
-const MAX_TASKS: int = 32
+## ADR1229: L0's twelve phases, T0's six, the descent's twenty-four and eight installations are fifty steps.
+const MAX_TASKS: int = 64
+const MAX_ENDPOINTS: int = 19 # ADR1229: the work area's endpoints (WorkArea.ENDPOINTS).
 const MAX_QUEUE: int = 8
 const MAX_LEGS: int = 3
 const MAX_QUOTE_LINES: int = 4
 ## One haul at most is live: the foreman's (STAGE_HAUL) or its installation's, never both.
-const MAX_WIRE_BYTES: int = HEADER_BYTES + RUNTIME_FIXED_BYTES + 11 * 8 + CREW_BYTES + FOREMAN_FIXED_BYTES \
+const MAX_WIRE_BYTES: int = HEADER_BYTES + RUNTIME_FIXED_BYTES + MAX_ENDPOINTS * 8 + CREW_BYTES + FOREMAN_FIXED_BYTES \
 	+ MAX_TASKS * TASK_BYTES + INSTALLER_FIXED_BYTES + MAX_QUOTE_LINES * QUOTE_LINE_BYTES \
 	+ HAULER_FIXED_BYTES + MAX_QUEUE * 4 + MAX_LEGS * LEG_BYTES
 const REFUSE_VERSION: StringName = &"ENTRY_SAVE_VERSION"

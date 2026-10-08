@@ -22,8 +22,9 @@ def build(index, baseline):
     executable = re.sub(r'#[^\n]*', '', executable)
     executable = '\n'.join(line.rstrip() for line in executable.splitlines() if line.strip())
     # ADR1212: renewed for the content-6 wire digest only (same-length String constant); ADR1217 step 5: renewed
-    # again for the content-9 motion wire digest only. Every other executable byte equals the reviewed 6a2cd35c one.
-    require(hashlib.sha256(executable.encode()).hexdigest() == '14f5b3571722cde3ca105ca5114e0e39a76fcd8c441df71fa021b548211fed4b',
+    # again for the content-9 motion wire digest only; ADR1229: again for the content-10 (v11) motion wire digest only.
+    # Every other executable byte equals the reviewed 6a2cd35c one.
+    require(hashlib.sha256(executable.encode()).hexdigest() == '21045caebc82d66c8e491d9e67a3feca9a7f09e156cda7774f15c266f3102282',
             'complete Clock executable changed; independently recount every allocation and frame')
 
     require(not re.search(r'^(?:static )?var |^class ', source, re.M), 'no retained fields or classes')

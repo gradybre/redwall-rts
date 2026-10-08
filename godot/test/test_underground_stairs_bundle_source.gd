@@ -1,7 +1,7 @@
 extends "res://test/framework/test_case.gd"
-## ADR 1229 increment 5: the T1-T6 bundle (`qualified-stairs-v7`) through the actual Catalog, Recipes, Assemblies and
-## Frontier readers, against content 10 loaded in a fixture Profiles store. Nothing here grants a Location, route or
-## Job, and the mounted Session still runs the claw bundle.
+## ADR 1229: the T1-T6 bundle (`qualified-stairs-v8`, increment 6; v7 lacked the seventh row's CUT group) through
+## the actual Catalog, Recipes, Assemblies and Frontier readers, against content 10 loaded in a fixture Profiles store.
+## The mounted Session runs this very bundle; nothing here grants a Location, route or Job.
 
 const Host := preload("res://scripts/systems/settlement_system.gd")
 const Session := preload("res://scripts/core/underground_session.gd")
@@ -11,9 +11,8 @@ const Assemblies := preload("res://scripts/core/underground_connector_assemblies
 const Recipes := preload("res://scripts/core/underground_connector_recipes.gd")
 const Frontier := preload("res://scripts/core/underground_entry_frontier.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v7/catalog_source.gd")
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v8/catalog_source.gd")
 const Pins := preload("res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd")
-const Claw := preload("res://data/underground/first-entry-prefix-v1/qualified-claw-v6/catalog_source.gd")
 const Tread := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/tread_geometry.gd")
 const CAPACITIES: Vector3i = Vector3i(67, 547, 6)
 
@@ -100,7 +99,8 @@ func test_structure_carries_the_flight_and_the_stair_paces() -> void:
 		assert_equal(pace.value, row.y, "DEC-050 rate of row %d" % row.x)
 	assert_equal(_assemblies._header[5], 8, "L0, T0..T6")
 	var o: Session.Retirement.Owners = _session._retirement_owners
-	assert_equal(o.world_routes._catalog._live.header[8], Claw.CONTENT_REVISION, "the mounted bundle is still the claw one")
+	assert_equal([o.world_routes._catalog._live.header[8], o.world_routes._catalog._live.digests.decode_s64(0)],
+		[Bundle.CONTENT_REVISION, Bundle.CATALOG_DIGEST_0], "the mounted structure is this bundle's")
 
 
 func test_frontier_loads_the_tread_installs_and_stops() -> void:

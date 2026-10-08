@@ -16,6 +16,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "ADR 1217 step 5: content 9 (60 rows, 517 boxes, 6 sources; paired bank 41,160 B, counted in the Motion/Profile joint under the raised PROFILE_BYTES); the six source digests are hashed through one 32-byte scratch and one PackedStringArray of the pinned digests"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "PROFILE_BYTES joint (motion census)",
+     "store": "ADR1229: content 10 (67 rows, 547 boxes, 6 sources; paired bank 44,212 B, +3,052 B over content 9) in the Motion/Profile joint, 262,128 of 278,528"
     }
    ],
    "delta": {
@@ -28,19 +33,19 @@
     "int_constants_added": [
      [
       "BOX_COUNT",
-      "517"
+      "547"
      ],
      [
       "CONTENT_REVISION",
-      "9"
+      "10"
      ],
      [
       "PAIRED_BANK_BYTES",
-      "41160"
+      "44212"
      ],
      [
       "PROFILE_COUNT",
-      "60"
+      "67"
      ],
      [
       "SOURCE_COUNT",
@@ -48,7 +53,7 @@
      ],
      [
       "WIRE_BYTES",
-      "20588"
+      "22114"
      ]
     ],
     "int_constants_removed": [
@@ -1165,13 +1170,18 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "ADR 1217 step 5: rebound to the content-9 motion wire (REVISION 9); tables unchanged"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "ADR1229: rebound to the content-10 motion wire (revision 10); banks and tables unchanged"
     }
    ],
    "delta": {
     "int_constants_added": [
      [
       "REVISION",
-      "9"
+      "10"
      ]
     ]
    }
@@ -1434,6 +1444,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "ADR 1217 step 5: the claw bundle's 24 ground caps (GROUND_PACE_COUNT 15 -> 24); the structure catalog is unchanged in size"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "ADR1229: GROUND_PACE_COUNT 24 -> 29 inside the Catalog fixed MAX_PACES bank; one StairMotion per route composition, lent to Routes, charged in the census claw_stair_tables row (9,580 B)"
     }
    ],
    "delta": {
@@ -1460,7 +1475,7 @@
      ],
      [
       "GROUND_PACE_COUNT",
-      "24"
+      "29"
      ],
      [
       "PROFILE_CONTENT_REVISION",
@@ -1494,6 +1509,7 @@
      ]
     ],
     "allocation_sites": {
+     ".new(": 1,
      "range(": -1
     }
    }
@@ -1694,13 +1710,18 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "ADR 1217 step 5: presentation constants for the claw and paw images and the v10 haul images (presentation memory, outside the simulation-owned gate); no simulation member, packet or resize"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "presentation (outside the REQ-SET-163 simulation gate)",
+     "store": "ADR1229: presentation constants for the v2 claw and paw images; no simulation member, packet or resize"
     }
    ],
    "delta": {
     "int_constants_added": [
      [
       "CLAW_PRESENTATION_BYTES",
-      "6906492"
+      "7551924"
      ],
      [
       "HANDLING_PRESENTATION_BYTES",
@@ -1712,7 +1733,7 @@
      ],
      [
       "PAW_PRESENTATION_BYTES",
-      "6567544"
+      "6641672"
      ],
      [
       "PRESENTATION_SET_BYTES",

@@ -15,10 +15,19 @@ const REFUSE_RETAINED: StringName = &"ENTRY_CONTACT_RETIREMENT_RETAINED"
 const REFUSE_WORKER: StringName = &"ENTRY_CONTACT_RETIREMENT_WORKER"
 const REFUSE_CAPACITY: StringName = &"ENTRY_CONTACT_RETIREMENT_CAPACITY"
 const SURFACE_ANCHOR: int = 0 # Mirrors underground_entry_frontier.gd; no Frontier preload (see header).
-## ADR1202 split landing: the accepted Frontier carries 14 ENDPOINT selectors (two installed arrival selectors).
-const ENDPOINTS: int = 14
-const SOURCE32: int = 6 + 18 + 72 + 24 + 14 + 90 + 7 * ENDPOINTS + ENDPOINTS + 114 + 12
-const SOURCE64: int = 14 + 32 + ENDPOINTS + 9 + 2 + 1
+## ADR1229: the accepted Frontier is the mounted T1-T6 bundle's (`qualified-stairs-v8`, its accessor's table census
+## INSTALL/STATION/CUT/BEARING/ENDPOINT/EPISODE = 8/22/6/38/44/14; ADR1202's claw bundle had 2/8/2/10/14/6). They size
+## the flattened source this scope replays, and _source_shapes refuses any other Frontier.
+const INSTALLS: int = 8
+const STATIONS: int = 22
+const CUTS: int = 6
+const BEARINGS: int = 38
+const ENDPOINTS: int = 44
+const EPISODES: int = 14
+const L0_EPISODES: int = 4 # The first-entry prefix's L0 cubes, all of prefix 0.
+## Capacities, Install, Station, rotation, Cut, Bearing, Endpoint plus travel, Episode, then the two workpiece rows.
+const SOURCE32: int = 6 + 9 * INSTALLS + 12 * STATIONS + 7 * CUTS + 9 * BEARINGS + 8 * ENDPOINTS + 19 * EPISODES + 12
+const SOURCE64: int = 14 + 4 * STATIONS + ENDPOINTS + 9 + 2 + 1
 const PIECES_SCRIPT: String = "res://scripts/core/underground_connector_workpieces.gd"
 const ROUTES_SCRIPT: String = "res://scripts/core/underground_routes.gd"
 const FRONTIER_SCRIPT: String = "res://scripts/core/underground_entry_frontier.gd"
@@ -185,7 +194,7 @@ func _initial_source() -> StringName:
 	var code: StringName = _pieces_script.source_leaf_refusal(_pieces, _placement, _project)
 	if code == &"": code = _frontier_script.source_leaf_refusal(_frontier)
 	if code != &"": return code
-	if not _source_shapes() or _frontier._header[8] != 2 or _frontier._header[13] != 6 \
+	if not _source_shapes() or _frontier._header[8] != INSTALLS or _frontier._header[13] != EPISODES \
 			or _routes._edge_capacity < 1 or _routes._edge_capacity > 1536:
 		return REFUSE_SOURCE
 	_project_row = _directory_row(_project, 1)
@@ -228,22 +237,22 @@ func _source_i32(index: int) -> int:
 	"""Flatten only the finite accepted source form; no source row is chosen by the caller."""
 	if index < 6: return _frontier._capacities[index]
 	index -= 6
-	if index < 18: return _frontier._install[index]
-	index -= 18
-	if index < 72: return _frontier._station[index]
-	index -= 72
-	if index < 24: return _frontier._rotation_profile[index]
-	index -= 24
-	if index < 14: return _frontier._cut[index]
-	index -= 14
-	if index < 90: return _frontier._bearing[index]
-	index -= 90
+	if index < 9 * INSTALLS: return _frontier._install[index]
+	index -= 9 * INSTALLS
+	if index < 9 * STATIONS: return _frontier._station[index]
+	index -= 9 * STATIONS
+	if index < 3 * STATIONS: return _frontier._rotation_profile[index]
+	index -= 3 * STATIONS
+	if index < 7 * CUTS: return _frontier._cut[index]
+	index -= 7 * CUTS
+	if index < 9 * BEARINGS: return _frontier._bearing[index]
+	index -= 9 * BEARINGS
 	if index < 7 * ENDPOINTS: return _frontier._endpoint[index]
 	index -= 7 * ENDPOINTS
 	if index < ENDPOINTS: return _frontier._travel_profile[index]
 	index -= ENDPOINTS
-	if index < 114: return _frontier._episode[index]
-	index -= 114 # ADR1224 G13: the two assemblies' six field-major part columns, at the bank's own capacity.
+	if index < 19 * EPISODES: return _frontier._episode[index]
+	index -= 19 * EPISODES # ADR1224 G13: the two assemblies' six field-major part columns, at the bank's own capacity.
 	@warning_ignore("integer_division") var field: int = index / 2
 	return _pieces._parts[field * _pieces._assembly_capacity + index % 2]
 
@@ -252,8 +261,8 @@ func _source_i64(index: int) -> int:
 	"""Include header, all directional work revisions, travel revisions and the separate handling source."""
 	if index < 14: return _frontier._header[index]
 	index -= 14
-	if index < 32: return _frontier._profile_revision[index]
-	index -= 32
+	if index < 4 * STATIONS: return _frontier._profile_revision[index]
+	index -= 4 * STATIONS
 	if index < ENDPOINTS: return _frontier._travel_revision[index]
 	index -= ENDPOINTS
 	if index < 9: return _pieces._header[index]
@@ -262,8 +271,8 @@ func _source_i64(index: int) -> int:
 
 func _capture_sites() -> StringName:
 	"""Resolve every required L0 cube to permanent real paid history, never manufacture a completed row."""
-	for episode: int in 4:
-		if _frontier._episode[7 * 6 + episode] != 0: return REFUSE_SOURCE
+	for episode: int in L0_EPISODES:
+		if _frontier._episode[7 * EPISODES + episode] != 0: return REFUSE_SOURCE
 		var key: int = _episode_key(episode)
 		var row: int = _find_site(key)
 		if row < 0: return REFUSE_HISTORY
@@ -280,11 +289,11 @@ func _episode_key(episode: int) -> int:
 	var cell: Vector3i = Vector3i.ZERO
 	var rotation: int = _placement_row[_placements.ROTATION]
 	for axis: int in 3:
-		var low: int = _frontier._episode[axis * 6 + episode]
+		var low: int = _frontier._episode[axis * EPISODES + episode]
 		if axis != 1:
-			var swapped: int = _frontier._episode[(2 if axis == 0 else 0) * 6 + episode]
-			var high: int = _frontier._episode[(axis + 3) * 6 + episode]
-			var swapped_high: int = _frontier._episode[(5 if axis == 0 else 3) * 6 + episode]
+			var swapped: int = _frontier._episode[(2 if axis == 0 else 0) * EPISODES + episode]
+			var high: int = _frontier._episode[(axis + 3) * EPISODES + episode]
+			var swapped_high: int = _frontier._episode[(5 if axis == 0 else 3) * EPISODES + episode]
 			low = low if rotation == 0 else (-swapped_high if axis == 0 else swapped) if rotation == 1 \
 				else -high if rotation == 2 else (swapped if axis == 0 else -swapped_high)
 		var delta: int = low + _placement_row[_placements.X + axis] - _sites._domain.datum_u[axis]
@@ -411,16 +420,16 @@ func _source_refusal() -> StringName:
 func _source_shapes() -> bool:
 	"""Check all finite source payload lengths before any static source leaf or indexed replay."""
 	return _frontier._capacities.size() == 6 and _frontier._header.size() == 14 \
-		and _frontier._capacities[0] == 2 and _frontier._capacities[1] == 8 \
-		and _frontier._capacities[2] == 2 and _frontier._capacities[3] == 10 \
-		and _frontier._capacities[4] == ENDPOINTS and _frontier._capacities[5] == 6 \
-		and _frontier._install.size() == 18 and _frontier._station.size() == 72 \
-		and _frontier._rotation_profile.size() == 24 and _frontier._cut.size() == 14 \
-		and _frontier._bearing.size() == 90 and _frontier._endpoint.size() == 7 * ENDPOINTS \
-		and _frontier._travel_profile.size() == ENDPOINTS and _frontier._episode.size() == 114 \
-		and _frontier._profile_revision.size() == 32 and _frontier._travel_revision.size() == ENDPOINTS \
+		and _frontier._capacities[0] == INSTALLS and _frontier._capacities[1] == STATIONS \
+		and _frontier._capacities[2] == CUTS and _frontier._capacities[3] == BEARINGS \
+		and _frontier._capacities[4] == ENDPOINTS and _frontier._capacities[5] == EPISODES \
+		and _frontier._install.size() == 9 * INSTALLS and _frontier._station.size() == 9 * STATIONS \
+		and _frontier._rotation_profile.size() == 3 * STATIONS and _frontier._cut.size() == 7 * CUTS \
+		and _frontier._bearing.size() == 9 * BEARINGS and _frontier._endpoint.size() == 7 * ENDPOINTS \
+		and _frontier._travel_profile.size() == ENDPOINTS and _frontier._episode.size() == 19 * EPISODES \
+		and _frontier._profile_revision.size() == 4 * STATIONS and _frontier._travel_revision.size() == ENDPOINTS \
 		and _frontier._digests.size() == 160 and _pieces._header.size() == 9 \
-		and _pieces._assembly_capacity >= 2 and _pieces._header[6] == 2 \
+		and _pieces._assembly_capacity >= INSTALLS and _pieces._header[6] == INSTALLS \
 		and _pieces._parts.size() == 6 * _pieces._assembly_capacity \
 		and _pieces._profile_revisions.size() == _pieces._assembly_capacity \
 		and _pieces._digests.size() == 160
@@ -542,34 +551,35 @@ func _same_selector(first: int, second: int) -> bool:
 
 func _station_uses(station: int, selector: int) -> bool:
 	"""A malformed source station is retained conservatively; it cannot authorize removal."""
-	return station < 0 or station >= 8 or _same_selector(_frontier._station[station], selector)
+	return station < 0 or station >= STATIONS or _same_selector(_frontier._station[station], selector)
 
 
 func _install_station(selector: int) -> bool:
 	"""ADR1191: the INSTALL station H overlaps its own pending bearer by design; the endpoint certificate,
-	not retirement, admits it. It is never a retirement candidate and never counts toward the pair."""
-	for install: int in 2:
-		var station: int = _frontier._install[install]
-		if station >= 0 and station < 8 and _same_selector(_frontier._station[station], selector): return true
+	not retirement, admits it. It is never a retirement candidate and never counts toward the pair. ADR1229: the
+	station is the row's field 1; the claw bundle's rows had assembly == station, which hid reading field 0."""
+	for install: int in INSTALLS:
+		var station: int = _frontier._install[INSTALLS + install] # Field 1, the station (field 0 is the assembly).
+		if station >= 0 and station < STATIONS and _same_selector(_frontier._station[station], selector): return true
 	return false
 
 
 func _unused_completed_selector(selector: int) -> bool:
 	"""No INSTALL, future phase, material or spoil alias may require a completed work contact."""
 	var used: bool = false
-	for install: int in 2:
-		if _station_uses(_frontier._install[install], selector) \
-				or _same_selector(_frontier._install[7 * 2 + install], selector) \
-				or _same_selector(_frontier._install[8 * 2 + install], selector): return false
-	for episode: int in 6:
-		if _same_selector(_frontier._episode[15 * 6 + episode], selector) \
-				or _same_selector(_frontier._episode[16 * 6 + episode], selector): return false
+	for install: int in INSTALLS:
+		if _station_uses(_frontier._install[INSTALLS + install], selector) \
+				or _same_selector(_frontier._install[7 * INSTALLS + install], selector) \
+				or _same_selector(_frontier._install[8 * INSTALLS + install], selector): return false
+	for episode: int in EPISODES:
+		if _same_selector(_frontier._episode[15 * EPISODES + episode], selector) \
+				or _same_selector(_frontier._episode[16 * EPISODES + episode], selector): return false
 		for field: int in range(8, 11):
-			if not _station_uses(_frontier._episode[field * 6 + episode], selector): continue
-			if episode >= 4: return false
+			if not _station_uses(_frontier._episode[field * EPISODES + episode], selector): continue
+			if episode >= L0_EPISODES: return false
 			used = true
-		if _same_selector(_frontier._episode[17 * 6 + episode], selector):
-			if episode >= 4: return false
+		if _same_selector(_frontier._episode[17 * EPISODES + episode], selector):
+			if episode >= L0_EPISODES: return false
 			used = true
 	return used
 

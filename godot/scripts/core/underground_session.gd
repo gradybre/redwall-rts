@@ -55,13 +55,14 @@ const HAUL_PRESENTATION_BYTES: int = 7486168
 const STONE_ACTOR_PATH: String = "res://data/underground/mole-worker/stand-walk-v2/evidence/native-haul-v10-stone/compiled/stone-handling.ugactor"
 const STONE_ACTOR_SHA: String = "1756932c3839c3dbf2d66a715f65f5dfea7861ddafdf7f5921687b821040e6e6"
 const STONE_PRESENTATION_BYTES: int = 7285004
-# ADR1217 step 5: the claw image (source 4, rows 42-58) and the paw-handling image (source 5, row 59).
-const CLAW_ACTOR_PATH: String = "res://data/underground/mole-worker/claw-work-v1/evidence/native-claw-split-v1/claw/compiled/claw.ugactor"
-const CLAW_ACTOR_SHA: String = "2b58852e0e39d3ae1c697ed5487081cead7ce80efc8a30662e469fd33059af5b"
-const CLAW_PRESENTATION_BYTES: int = 6906492
-const PAW_ACTOR_PATH: String = "res://data/underground/mole-worker/claw-work-v1/evidence/native-claw-split-v1/paw/compiled/paw-handling.ugactor"
-const PAW_ACTOR_SHA: String = "cbe80b76b3b9eb5fbd857865eac27b7a0c6f0fa251df53e52c471c457a865e2a"
-const PAW_PRESENTATION_BYTES: int = 6567544
+# ADR1229: content 10's v2 claw image (source 4, rows 42-64: the claw rows, the stair and short-step rows and the
+# tread fitting tap) and v2 paw image (source 5, rows 65/66). ADR1217 step 5 loaded the v1 pair (8 and 3 clips).
+const CLAW_ACTOR_PATH: String = "res://data/underground/mole-worker/claw-work-v1/evidence/native-claw-stairs-v1/claw/compiled/claw-stairs.ugactor"
+const CLAW_ACTOR_SHA: String = "b85f91952992fecfc4b0b89affb0b605b3d7c8e15b9c3e8f66ab03969efd6675"
+const CLAW_PRESENTATION_BYTES: int = 7551924
+const PAW_ACTOR_PATH: String = "res://data/underground/mole-worker/claw-work-v1/evidence/native-claw-stairs-v1/paw/compiled/paw-stairs.ugactor"
+const PAW_ACTOR_SHA: String = "9cdafc55914ba2ca25858d54ff1692df324c4e7eed019b04066b55de560bae3d"
+const PAW_PRESENTATION_BYTES: int = 6641672
 const PRESENTATION_SET_BYTES: int = PRESENTATION_BYTES + HANDLING_PRESENTATION_BYTES + HAUL_PRESENTATION_BYTES \
 	+ STONE_PRESENTATION_BYTES + CLAW_PRESENTATION_BYTES + PAW_PRESENTATION_BYTES
 const CONTROL_BYTES: int = 1024

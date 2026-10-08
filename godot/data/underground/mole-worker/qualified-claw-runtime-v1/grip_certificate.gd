@@ -5,12 +5,14 @@ extends RefCounted
 ## content revision and the two image digests renewed. Every row table, contact cell and station equation is that
 ## certificate's own. A content-6 bank keeps content 6's certificate unchanged (the dormant pick contents), so the
 ## certificate follows the loaded content. It supplies source identity and station geometry only, never a Job,
-## payment, route or World permission.
+## payment, route or World permission. ADR1229: content 10 keeps rows 0-50 and sources 0-3 of content 9 word for word
+## (`qualified-claw-stairs-v11` manifest), so its grip rows 32-41 are this certificate's too.
 
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Parent := preload("res://data/underground/mole-worker/qualified-stone-v7/grip_certificate.gd")
 const Pins := preload("res://data/underground/mole-worker/qualified-claw-approach-v10/catalog_source.gd")
 const CONTENT_REVISION: int = 9
+const STAIRS_CONTENT_REVISION: int = 10
 const FIRST: int = Parent.FIRST
 const LAST: int = Parent.LAST
 const QUANTITY_MILLI: int = Parent.QUANTITY_MILLI
@@ -20,7 +22,7 @@ const REFUSE_STATION: StringName = Parent.REFUSE_STATION
 
 
 static func uses(actual: Profiles) -> bool:
-	"""Content 9 with all ten certified rows: hauling in this content is grip hauling at a stand."""
+	"""Content 9 or 10 with all ten certified rows: hauling in these contents is grip hauling at a stand."""
 	if actual == null or actual._live == null or actual._loading or actual._live.header.size() != 4: return false
 	for row: int in range(FIRST, LAST + 1):
 		if profile_refusal(actual, row) != &"": return false
@@ -80,7 +82,7 @@ static func profile_refusal(actual: Profiles, row: int) -> StringName:
 		return Parent.profile_refusal(actual, row)
 	var family: int = family_of(row)
 	if actual == null or actual._live == null or actual._loading or actual._live.header.size() != 4 \
-			or actual._live.header[0] != CONTENT_REVISION or family < 0 \
+			or not _content_admitted(actual._live.header[0]) or family < 0 \
 			or row >= actual._live.header[1] or actual._live.header[3] <= 2 + family: return REFUSE_PROFILE
 	var capacity: int = actual._profile_capacity
 	var quantity: int = QUANTITY_MILLI if row == carry_of(family) or not is_load(row) else 0
@@ -92,6 +94,11 @@ static func profile_refusal(actual: Profiles, row: int) -> StringName:
 	for field: int in Profiles.I32_FIELDS:
 		if actual._live.fields[field * capacity + row] != Parent.word(row, field): return REFUSE_PROFILE
 	return &"" if Parent._boxes_match(actual, row) and _digest_matches(actual, family) else REFUSE_PROFILE
+
+
+static func _content_admitted(content: int) -> bool:
+	"""Content 9, or content 10, which carries content 9's grip rows and haul images unchanged (ADR1229)."""
+	return content == CONTENT_REVISION or content == STAIRS_CONTENT_REVISION
 
 
 static func _digest_matches(actual: Profiles, family: int) -> bool:

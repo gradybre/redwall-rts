@@ -9,15 +9,21 @@ const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
 const Movement := preload("res://scripts/core/movement.gd")
 const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
-## ADR1217 step 5: the claw first-entry bundle (content 9, Frontier on source 4, workpieces on source 5).
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-claw-v6/catalog_source.gd")
+## ADR1229: the T1-T6 first-entry bundle (content 10, Frontier on source 4, workpieces on source 5); ADR1217 step 5
+## mounted the claw bundle `qualified-claw-v6` (content 9).
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v8/catalog_source.gd")
+## ADR1229: the claw stair tables Routes samples for the stair and short-step rows 51-55.
+const StairMotion := preload("res://scripts/core/underground_stair_motion.gd")
+const MotionPins := preload("res://data/underground/mole-worker/qualified-claw-stair-motion-v1/catalog_source.gd")
 const PROFILE_CONTENT_REVISION: int = Bundle.CONTENT_REVISION
 # ADR1190/1195: the mounted graph selects the published first-entry structure, which carries the same
 # ground paces plus the L0/T0 regions; selecting it before the first WorldRoutes binding is final.
 const CATALOG_REVISION: int = Bundle.CATALOG_REVISION
 const CATALOG_PATH: String = Bundle.CATALOG_PATH
 const CATALOG_SHA: String = Bundle.CATALOG_SHA
-const GROUND_PACE_COUNT: int = 24 # ADR1200/1206/1217: content 6's fifteen, claw WALK 42 and the narrow claw rows 43-50.
+## ADR1200/1206/1217/1229: content 6's fifteen, claw WALK 42, the narrow claw rows 43-50 and the short steps 51/52 as
+## ground caps, then DEC-050's authored stair paces (descent 53, ascent 54, half-turn 55).
+const GROUND_PACE_COUNT: int = 29
 
 const CATALOG_DIGEST_0: int = Bundle.CATALOG_DIGEST_0
 const CATALOG_DIGEST_1: int = Bundle.CATALOG_DIGEST_1
@@ -114,9 +120,17 @@ static func _bind_profiles(session: RefCounted) -> StringName:
 	var o: Retirement.Owners = session._retirement_owners
 	var code: StringName = o.routes.bind_profiles(o.profiles, o.inventory, o.gear, o.carry,
 		o.work, o.reservations, o.piles)
+	if code == &"": code = _bind_stair_motion(o.routes)
 	if code != &"": return code
 	session._operations_prefix = 7
 	return _original_refusal(session)
+
+
+static func _bind_stair_motion(routes: Routes) -> StringName:
+	"""ADR1229: load the pinned claw stair tables once and lend them to this Session's Routes."""
+	var motion: StairMotion = StairMotion.new()
+	var code: StringName = motion.load_file(MotionPins.WIRE_PATH, MotionPins.WIRE_SHA)
+	return routes.bind_stair_motion(motion) if code == &"" else code
 
 
 static func _bind_approach(session: RefCounted) -> StringName:
@@ -138,6 +152,8 @@ static func complete_refusal(o: Retirement.Owners) -> StringName:
 	var code: StringName = RoomComposition.complete_refusal(o)
 	if code == &"": code = Retirement.route_constructor_refusal(o, 8)
 	if code == &"": code = _source_refusal(o)
+	if code == &"" and (o.routes._stair_motion == null or not o.routes._stair_motion.is_loaded()):
+		code = &"UNDERGROUND_ROUTE_COMPOSITION_SOURCE" # ADR1229: a complete graph samples the claw stair tables.
 	return code
 
 

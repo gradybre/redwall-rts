@@ -9,7 +9,7 @@ const WorkArea := preload("res://test/test_underground_entry_work_area.gd")
 const Prefix := preload("res://test/test_underground_first_prefix.gd")
 const WorkAreaSource := preload("res://scripts/core/underground_entry_work_area.gd")
 const Grip := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/grip_certificate.gd")
-const ClawPins := preload("res://data/underground/mole-worker/qualified-claw-approach-v10/catalog_source.gd")
+const ClawPins := preload("res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd")
 const Delivery := preload("res://scripts/core/underground_connector_delivery.gd")
 const Planner := preload("res://scripts/core/haul_planner.gd")
 const StorePolicy := preload("res://scripts/core/store_policy.gd")
@@ -108,7 +108,7 @@ func test_grip_facing_away_from_the_stock_refuses_loading() -> void:
 	if not _travel(job, WorkAreaSource.STAND_R, Profiles.MODE_WALK): return
 	var world: RefCounted = _probe._world
 	assert_equal(Prefix.WorldRoutes.turn_actor(world._binding, world._worker, job.ref, 0, Prefix.Space.MAX_CHECKS), &"", "turn to yaw 0")
-	assert_equal(world._routes.refresh_work_actor(world._worker, job.ref, 33, 1, Grip.CONTENT_REVISION, 0, -1, NULL_REF),
+	assert_equal(world._routes.refresh_work_actor(world._worker, job.ref, 33, 1, WorkArea.Bundle.CONTENT_REVISION, 0, -1, NULL_REF),
 		&"", "the yaw-0 grip row is selectable here")
 	assert_equal(_delivery.begin_load(job.ref), Delivery.REFUSE_ARRIVAL, "S is not at the certified offset")
 	assert_equal(world._jobs._state[job.value], Jobs.JOB_STATE_TRAVEL, "no WORK entered")
@@ -193,7 +193,7 @@ func test_switch_between_claw_source_and_automatic_rows_only_at_rest() -> void:
 		world._routes.read_actor_into(world._worker, actor)
 		if actor.location == _probe._endpoints[3] and actor.phase == Routes.PHASE_IDLE and actor.edge == NULL_REF: break
 	assert_true(Routes.source_ready_leaf_refusal(world._routes, world._worker, NULL_REF, ClawPins.CLAW_WALK_ROW, 1,
-		Grip.CONTENT_REVISION) != &"", "stopped on the station, still recovering")
+		WorkArea.Bundle.CONTENT_REVISION) != &"", "stopped on the station, still recovering")
 	assert_equal(world._routes.refresh_actor(world._worker, NULL_REF, Profiles.MODE_WALK, 0, -1, NULL_REF),
 		&"ROUTE_SOURCE_HANDOFF_REQUIRED", "never before the source is READY")
 
@@ -210,12 +210,12 @@ func test_switch_at_rest_reruns_the_full_admission_proof_both_ways() -> void:
 	assert_equal(actor.profile_id, 31, "the tool-free walk row")
 	var tool: Vector2i = _equip_tool()
 	assert_true(world._routes.refresh_travel_actor(world._worker, NULL_REF, ClawPins.CLAW_WALK_ROW, 1,
-		Grip.CONTENT_REVISION, 0, -1, tool) != &"", "the re-proof refuses the claw row with a tool in hand")
+		WorkArea.Bundle.CONTENT_REVISION, 0, -1, tool) != &"", "the re-proof refuses the claw row with a tool in hand")
 	assert_true(world._gear.unequip(tool, _probe._storage, false).ok, "tool down at M")
 	assert_equal(world._routes.refresh_travel_actor(world._worker, NULL_REF, ClawPins.CLAW_WALK_ROW, 1,
-		Grip.CONTENT_REVISION, 0, -1, NULL_REF), &"", "idle automatic actor at rest switches back to the claw WALK")
+		WorkArea.Bundle.CONTENT_REVISION, 0, -1, NULL_REF), &"", "idle automatic actor at rest switches back to the claw WALK")
 	assert_equal(Routes.source_ready_leaf_refusal(world._routes, world._worker, NULL_REF, ClawPins.CLAW_WALK_ROW, 1,
-		Grip.CONTENT_REVISION), &"", "it starts exactly at READY")
+		WorkArea.Bundle.CONTENT_REVISION), &"", "it starts exactly at READY")
 
 
 func _equip_tool() -> Vector2i:
@@ -238,7 +238,7 @@ func _source_actor_at_m() -> bool:
 	var at: Vector3i = _probe._surface_point(3)
 	assert_true(world._transforms.place(world._worker, at.x, at.y, at.z, 49152), "on the first station")
 	assert_equal(world._routes.admit_travel_actor(world._worker, NULL_REF, _probe._endpoints[3], ClawPins.CLAW_WALK_ROW,
-		1, Grip.CONTENT_REVISION, 0, -1, NULL_REF), &"", "canonical ground admission")
+		1, WorkArea.Bundle.CONTENT_REVISION, 0, -1, NULL_REF), &"", "canonical ground admission")
 	assert_equal(world._routes.request_route(world._worker, _probe._endpoints[1], 0), &"", "to M")
 	return _settle_at(_probe._endpoints[1], 1) and failures.is_empty()
 
@@ -251,7 +251,7 @@ func _settle_at(target: Vector2i, first_tick: int) -> bool:
 		world._routes.advance_tick(tick)
 		world._routes.read_actor_into(world._worker, actor)
 		if actor.location == target and Routes.source_ready_leaf_refusal(world._routes, world._worker, NULL_REF, ClawPins.CLAW_WALK_ROW, 1,
-				Grip.CONTENT_REVISION) == &"": return true
+				WorkArea.Bundle.CONTENT_REVISION) == &"": return true
 	assert_true(false, "arrived READY on %s" % target)
 	return false
 
@@ -337,7 +337,7 @@ func _grip(job: Jobs.OpResult, row: int) -> bool:
 			Prefix.Space.MAX_CHECKS), &"", "empty-handed supported turn to face the stock")
 	elif not Grip.is_load(row):
 		assert_equal(actor.yaw, Grip.yaw_of(row), "the CARRY edge arrives on the grip heading; no loaded turn exists")
-	assert_equal(world._routes.refresh_work_actor(world._worker, job.ref, row, 1, Grip.CONTENT_REVISION, 0, -1, NULL_REF),
+	assert_equal(world._routes.refresh_work_actor(world._worker, job.ref, row, 1, WorkArea.Bundle.CONTENT_REVISION, 0, -1, NULL_REF),
 		&"", "certified grip row %d" % row)
 	return failures.is_empty()
 

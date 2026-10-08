@@ -50,7 +50,7 @@ func before_each() -> void:
 	assert_equal(_fixture._profiles.configure(Catalog.PROFILE_COUNT, Catalog.BOX_COUNT, Catalog.SOURCE_COUNT,
 		Catalog.PAIRED_BANK_BYTES + Catalog.CONTROL_RESERVE), &"", "complete peak admission")
 	assert_equal(_fixture._bind(_fixture._profiles), &"", "actual same-owner profile identity")
-	assert_equal(Catalog.load_into(_fixture._profiles, _content, _domain), &"", "published content 9 (ADR1217 step 5)")
+	assert_equal(Catalog.load_into(_fixture._profiles, _content, _domain), &"", "published content 10 (ADR1229)")
 	assert_true(_fixture.failures.is_empty(), "actual fixture assertions propagated")
 
 
@@ -90,7 +90,8 @@ func test_published_content_5_keeps_content_4_and_appends_the_haul_source_block(
 	"""Rows 30-36 are the tool-free source-2 block; the full live wire still hashes to the published pin."""
 	var profiles: Profiles = _fixture._profiles
 	assert_equal(Catalog.catalog_refusal(profiles), &"", "complete live wire matches the published digest")
-	assert_equal(profiles.profile_count(Catalog.CONTENT_REVISION), 60, "content 4, the haul and stone blocks, then content 9's claw and paw rows")
+	assert_equal(profiles.profile_count(Catalog.CONTENT_REVISION), 67,
+		"content 4, the haul and stone blocks, then content 10's claw, stair and paw rows (ADR1229)")
 	var digest: PackedByteArray = PackedByteArray()
 	digest.resize(32)
 	assert_true(profiles.source_hash_into(2, Catalog.CONTENT_REVISION, digest), "third source exists")

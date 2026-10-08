@@ -225,3 +225,43 @@ In short:
   - `test_underground_stairs_bundle_source.gd` (3): the actual Catalog, Recipes, Assemblies and Frontier readers
     over content 10;
   - `test_publish_qualified_stairs.py` (5).
+
+## Increment 6a — content 10 and the T1–T6 bundle are mounted (2026-10-08)
+
+The Session now loads content 10, and its route and entry compositions mount `qualified-stairs-v8`.
+`qualified-stairs-v8` supersedes v7, which stays published and unused. The live `run_tick` chain still builds
+the L0/T0 prefix: on content 10 it finishes at tick 4,670 with the same Work ledger, the same tick as on content 9.
+The descent past T0 is increment 6b.
+
+- **What changed at activation:**
+  - `mole_profile_catalog.gd` loads `qualified-claw-stairs-v11` (67 rows, 547 boxes);
+  - `renew_source_pins.py` renews that publication's consumer pins;
+  - the Session presents the v2 claw and paw images (16 and 6 clips);
+  - the route composition loads the claw stair tables once and lends them to Routes;
+  - the grip certificate admits content 10, which keeps content 9's rows 0–50 and haul images;
+  - the work area publishes 19 endpoints;
+  - the progress record is version 3 (19 endpoints, up to 64 planned steps).
+- **v7 → v8.** The entry plan's claims are the Frontier's CUT rows, and the entry bindings require them to be
+  exactly the cubes the episodes cut. v7 gave the seventh row cube episodes but no CUT group, so the plan was
+  refused (ENTRY_EXACT_CUT_SET_REQUIRED). v8 adds that group, which no tread names, as Frontier revision 7.
+  Nothing else changed.
+- **Latent defect fixed.** The contact retirement scope read an INSTALL row's field 0 (the assembly) as its
+  station. In the claw bundle the two coincided (assemblies 0/1 at stations 0/1). The scope now reads field 1, and
+  its source tuple is sized by the mounted Frontier's census (8/22/6/38/44/14).
+- **Cold check budgets.** Every cold operation shares one `Space.MAX_CHECKS` = 1,048,576 bound. The bundle's
+  larger census exceeded it in three places. No budget was raised; each scan was made to scale instead:
+  1. *Surface contact proofs.* Each of the 19 surface endpoints was charged 16 checks per Location slot (16,384)
+     twice per entry confirmation. The anchor-namespace scan now charges one check per slot plus 16 per live row,
+     as ADR 1227 charges Contacts' Region scans.
+  2. *Path requalification.* Every Space phase and installation requalifies every live path. With paths from M and
+     R to all 14 cut stations, the L0 CUT phase ran out. The descent's eight stations now get their paths, from M
+     only, just before the first of them is worked, in the same preparation that retires the four T0 stations'
+     paths. The foreman asks the runtime through `bind_station_paths`; the answer is derived from the live graph,
+     so a restored chain asks the same question.
+  3. *Installed witnesses.* Contacts closed every Terrain observation of the T0 commit with the full installation
+     leaf, re-deriving every installed Location's paid witness about 19 times. With the stair stops that ran the
+     Locations operation budget out. Contacts' per-observation closure now skips only the witness pass:
+     `prepared_installation_leaf_refusal(..., witnesses = false)`. ConnectorWork's final funding leaf, after
+     Contacts, still runs the complete leaf. A witness pass also resolves each Room's source once.
+- **Memory.** The census charges the claw stair tables (9,580 B per Session) as a new retained row and the larger
+  entry plan (+5,680 B). Content 10's Profile bank adds 3,052 B inside the PROFILE_BYTES joint.

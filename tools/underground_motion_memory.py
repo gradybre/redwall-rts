@@ -147,7 +147,8 @@ def build(index):
     maximum_joint = joint - profile + maximum_profiles
     # ADR1212: content 6 (42 rows, 377 boxes, 4 sources) replaced content 3 (29, 271, 1): +8,676 profile bytes.
     # ADR1217 step 5: content 9 (60 rows, 517 boxes, 6 sources) replaces content 6: +11,496 profile bytes.
-    require((profile, one_bank, joint, maximum_joint) == (73928, 70860, 259076, 444284), 'exact joint formula')
+    # ADR1229: content 10 (67 rows, 547 boxes, 6 sources) replaces content 9: +3,052 profile bytes.
+    require((profile, one_bank, joint, maximum_joint) == (76980, 70860, 262128, 444284), 'exact joint formula')
     require(joint <= PROFILE_BYTES < maximum_joint, 'configured coexistence, no independent maxima')
     return {
         'source_sha256': hashlib.sha256(source.encode()).hexdigest(),
@@ -204,7 +205,7 @@ def joint_sources(index, memory):
     require(per_profile == resolve('underground_profiles', 'PROFILE_WIRE_BYTES') == 98, 'Profile row width')
     catalog = index['mole_profile_catalog']
     counts = tuple(resolve(catalog.name, key) for key in ('PROFILE_COUNT', 'BOX_COUNT', 'SOURCE_COUNT'))
-    require(counts == (60, 517, 6), 'current accepted publication configuration') # ADR1217 step 5: content 9
+    require(counts == (67, 547, 6), 'current accepted publication configuration') # ADR1229: content 10
     session = index['underground_session'].text
     require('const PROFILE_SOURCE_COUNT: int = Catalog.SOURCE_COUNT' in session
             and '_profiles.configure(Catalog.PROFILE_COUNT, Catalog.BOX_COUNT, PROFILE_SOURCE_COUNT,' in session,

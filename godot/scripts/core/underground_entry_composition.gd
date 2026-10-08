@@ -12,8 +12,8 @@ const ConnectorWork := preload("res://scripts/core/underground_connector_work.gd
 const Workpieces := preload("res://scripts/core/underground_connector_workpieces.gd")
 const Delivery := preload("res://scripts/core/underground_connector_delivery.gd")
 const Provider := preload("res://scripts/core/underground_room_world_bindings.gd")
-## ADR1217 step 5: the claw first-entry bundle (content 9, Frontier on source 4, workpieces on source 5).
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-claw-v6/catalog_source.gd")
+## ADR1229: the T1-T6 first-entry bundle (content 10; ADR1217 step 5 mounted the claw bundle, content 9).
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v8/catalog_source.gd")
 const StructureScope := preload("res://scripts/core/underground_world_structure_scope.gd")
 const EntryStructure := preload("res://scripts/core/underground_entry_structure.gd")
 

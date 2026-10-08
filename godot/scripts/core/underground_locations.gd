@@ -2490,20 +2490,25 @@ func _installed_part_site(record: Record, physical: Sites) -> Vector2i:
 
 
 func _installed_witnesses_refusal() -> StringName:
-	"""After all observers, rederive every candidate installed witness from current source and paid columns only."""
+	"""After all observers, rederive every candidate installed witness from current source and paid columns only.
+	ADR1229: a pass resolves each Room's source once (a Room's Locations follow one another's resolution within
+	the same synchronous pass), so the descent's many stops on one Room do not each re-scan the sources."""
 	if _installation == null: return &""
 	if not _spend(64): return &"LOCATION_OPERATION_BUDGET"
 	var physical: Sites = _physical()
+	var resolved: Vector2i = NULL_REF
 	for row: int in _capacity:
 		if not _spend(): return &"LOCATION_OPERATION_BUDGET"
 		if _stage.present[row] != 1 or _ref_at(_stage, ROOM_SLOT, row) == NULL_REF: continue
-		if not _spend(_owner._source_capacity + 104): return &"LOCATION_OPERATION_BUDGET"
 		_record.point = Vector3i(_get32(_stage, X, row), _get32(_stage, Y, row), _get32(_stage, Z, row))
 		_record.room = _ref_at(_stage, ROOM_SLOT, row)
 		_record.section = _ref_at(_stage, SECTION_SLOT, row)
 		_record.level = _get32(_stage, LEVEL, row)
-		var source: int = _resolve_source_row(_record.room)
-		if source < 0 or _resolve_room_source_refusal(_record.room, source) != &"": return &"LOCATION_SOURCE_STALE"
+		if _record.room != resolved:
+			if not _spend(_owner._source_capacity + 104): return &"LOCATION_OPERATION_BUDGET"
+			var source: int = _resolve_source_row(_record.room)
+			if source < 0 or _resolve_room_source_refusal(_record.room, source) != &"": return &"LOCATION_SOURCE_STALE"
+			resolved = _record.room
 		if _record_paid_site(_record, physical) == NULL_REF:
 			return &"LOCATION_OPERATION_BUDGET" if _remaining < 0 else &"LOCATION_PAID_SITE_MISSING"
 	return &""

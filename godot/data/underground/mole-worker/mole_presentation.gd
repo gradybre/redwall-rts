@@ -3,6 +3,9 @@ extends RefCounted
 ## Presentation only. It reads the actual Routes owner and never advances a clock or grants work or movement.
 ## ADR1217 step 5: content 9's claw rows (source 4) are drawn from their source clock and the paw handling row 59
 ## (source 5) from its handling clock, on the original open-paw body.
+## ADR1229: content 10 draws its claw rows (42-50, 56-64) on the v2 claw image by the v2 claw program, its stair and
+## short-step rows (51-55) at the key Routes holds in the clock's time lane on the motion's own clip, and its paw rows
+## 65/66 by the same handling clock on the v2 paw image's L0/T0 or tread clips.
 
 const ContentSet := preload("res://demo/cast/underground_content_set.gd")
 const Content := preload("res://demo/cast/underground_actor_content.gd")
@@ -16,6 +19,10 @@ const HaulProgram := preload("res://data/underground/mole-worker/mole_haul_progr
 const ClawProgram := preload("res://data/underground/mole-worker/mole_claw_program.gd")
 const Paw := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/paw_program.gd")
 const PawClock := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/paw_clock.gd")
+const Handling := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/handling_programs.gd")
+const Paw10 := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/paw_program.gd")
+const Claw10 := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/claw_program.gd")
+const Stair := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/stair_program.gd")
 const Dressing := preload("res://demo/tunnel/bore_dressing.gd")
 const ONE: int = 65536
 const SOURCE_ACTOR: int = 0
@@ -31,9 +38,10 @@ const HANDLING_MASKS: PackedInt32Array = [3, 3, 3]
 const HAUL_MASKS: PackedInt32Array = [3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 3, 3]
 # haul-handling-v1 native-program-v9 plan.json part_visibility_masks: body and stone lump in every clip (ADR1206).
 const STONE_MASKS: PackedInt32Array = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
-# The claw and paw images hold one part, the open-paw body, in every clip (native-claw-split-v1 programs).
-const CLAW_MASKS: PackedInt32Array = [1, 1, 1, 1, 1, 1, 1, 1]
-const PAW_MASKS: PackedInt32Array = [1, 1, 1]
+# The claw and paw images hold one part, the open-paw body, in every clip (native-claw-stairs-v1 programs: the v2
+# claw image's 16 clips, the v2 paw image's 6).
+const CLAW_MASKS: PackedInt32Array = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+const PAW_MASKS: PackedInt32Array = [1, 1, 1, 1, 1, 1]
 # Stone image part 1 is the tunnel dressing's own lump (bore_dressing.gd::stone_mesh), bound by its exact fingerprint.
 const STONE_PART: int = 1
 # Haul image clip ordinals, in plan order. Rows that select them are content-5 work (ADR1198 step 4).
@@ -233,7 +241,8 @@ func handling_frame_into(routes: Routes, worker: Vector2i, job: Vector2i, out: D
 	var code: StringName = routes.read_actor_into(worker, _actor)
 	if code != &"":
 		return code
-	var paw: bool = _actor.profile_id == Paw.PROFILE
+	var paw: bool = _actor.profile_id != Assembly.PROFILE \
+		and Handling.is_handling(_actor.profile_id, _actor.content_revision)
 	var source: int = SOURCE_PAW if paw else SOURCE_HANDLING
 	if (_actor.profile_id != Assembly.PROFILE and not paw) or _actor.job != job:
 		return &"MOLE_PRESENTATION_NOT_HANDLING"
@@ -244,6 +253,8 @@ func handling_frame_into(routes: Routes, worker: Vector2i, job: Vector2i, out: D
 		_actor.content_revision, _state)
 	if code == &"":
 		code = PawClock.source_into(_state[0], _state[1], _clock) if paw else Clock.source_into(_state[0], _state[1], _clock)
+	if code == &"" and paw and _actor.content_revision == Paw10.CONTENT:
+		_clock[0] = Paw10.clip_of(_actor.profile_id, _state[0])
 	if code == &"":
 		code = _sources.content(source).clip_into(_clock[0], _clock[1], _pose)
 	if code != &"":
@@ -287,9 +298,11 @@ func present_row(routes: Routes, worker: Vector2i, tick: int, out: Driver.Frame)
 	var code: StringName = routes.read_actor_into(worker, _actor)
 	if code != &"":
 		return code
-	if _actor.profile_id == Assembly.PROFILE or _actor.profile_id == Paw.PROFILE:
+	if Handling.is_handling(_actor.profile_id, _actor.content_revision):
 		return present_handling(routes, worker, _actor.job, out)
-	if Paw.Claw.owns(routes._profiles, _actor.profile_id):
+	if Stair.owns(routes._profiles, _actor.profile_id):
+		return present_stair(routes, worker, out)
+	if Paw.Claw.owns(routes._profiles, _actor.profile_id) or Claw10.owns(routes._profiles, _actor.profile_id):
 		return present_claw(routes, worker, out)
 	code = _observe_program(routes._profiles, tick)
 	if code != &"":
@@ -311,7 +324,8 @@ func present_claw(routes: Routes, worker: Vector2i, out: Driver.Frame) -> String
 	var code: StringName = Routes.source_state_leaf_into(routes, worker, _actor.job, _actor.profile_id,
 		_actor.profile_revision, _actor.content_revision, _state)
 	if code == &"":
-		code = ClawProgram.frames_into(_sources.content(SOURCE_CLAW), _actor.profile_id, _state, _pose, _frames)
+		code = ClawProgram.frames_into(_sources.content(SOURCE_CLAW), _actor.profile_id, _state, _pose, _frames,
+			_actor.content_revision)
 	if code == &"":
 		code = _show(SOURCE_CLAW, _frames)
 	if code != &"":
@@ -321,6 +335,24 @@ func present_claw(routes: Routes, worker: Vector2i, out: Driver.Frame) -> String
 	_publish_row(worker, out)
 	out.phase = _state[0]
 	out.ready = _state[0] == Paw.Claw.READY
+	return &""
+
+
+func present_stair(routes: Routes, worker: Vector2i, out: Driver.Frame) -> StringName:
+	"""ADR1229: a stair or short-step row on the v2 claw image: the motion's own clip at the key Routes presents."""
+	var motion: Routes.StairMotion = routes._stair_motion
+	if motion == null or _sources.source_for_row(routes._profiles, _actor.profile_id, _actor.profile_revision,
+			_actor.content_revision) != SOURCE_CLAW:
+		return &"MOLE_PRESENTATION_SOURCE_ABSENT" if not _sources.has_source(SOURCE_CLAW) else &"MOLE_PRESENTATION_ROW_SOURCE"
+	var code: StringName = Routes.source_state_leaf_into(routes, worker, _actor.job, _actor.profile_id,
+		_actor.profile_revision, _actor.content_revision, _state)
+	if code == &"": code = present_clip(SOURCE_CLAW, motion.clip_of(motion.program_of(_actor.profile_id)), _state[1])
+	if code != &"": return code
+	_program_source = SOURCE_CLAW
+	_key[0] = -1
+	_publish_row(worker, out)
+	out.phase = _state[0]
+	out.ready = _state[0] == Stair.READY
 	return &""
 
 

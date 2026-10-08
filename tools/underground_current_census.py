@@ -92,10 +92,11 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "cd47883834e0ad9660a5fe653e7c85dc8a7c8aa573c646be79ae8f401451cf71"
+REVIEWED_SHA = "dc8ebdea728a436d2393e7df2bdf94feae83a09d64f9c6cfb27fce27658c3e42"
 # ADR1217 step 5: the runtime Frontier is the claw bundle's (same row census as qualified-stone-v5's).
-FRONTIER = Path("godot/data/underground/first-entry-prefix-v1/qualified-claw-v6/frontier.ugfront")
-FRONTIER_SHA = "0d81d4f439912f737a5848d29cbfce4ad612da30b85f2d7fe38b5c23e0e8dfc7"
+# ADR1229: the mounted T1-T6 bundle's Frontier (ADR1217 step 5 mounted qualified-claw-v6's).
+FRONTIER = Path("godot/data/underground/first-entry-prefix-v1/qualified-stairs-v8/frontier.ugfront")
+FRONTIER_SHA = "fcbd4a0719bd2752b08957908025d50efaacdf7032a313e406bc1828ccb4eff3"
 CORE = "godot/scripts/core/"
 
 
@@ -217,7 +218,7 @@ ENTRY_FOREMAN = {"_owners": "Owners", "_crew": "Crew", "_tasks": "Array", "_inde
                  "_retreat_revision": "int", "_pending_retreat": "Vector2i", "_hauler": "Hauler",
                  "_haul_mwu": "int", "_haul_trips": "int", "_haul_marker": "int", "_arrival_profile": "int",
                  "_arrival_revision": "int", "_arrival_retreat": "Vector2i", "_arrival_retreat_profile": "int",
-                 "_arrival_retreat_revision": "int"}
+                 "_arrival_retreat_revision": "int", "_station_paths": "Callable"}
 ENTRY_HAULER = {"_o": "RefCounted", "_crew": "RefCounted", "_project": "Vector2i", "_home": "int",
                 "_queue": "PackedInt32Array", "_legs": "Array", "_leg": "int", "_trip": "int", "_job": "int",
                 "_stage": "int", "_content": "int", "_store": "Vector2i", "_stand_source": "Vector2i",
@@ -237,12 +238,12 @@ def entry_progress(memory, index: dict) -> dict:
     recomputed from the codec's own block constants, and two whole images (the writer's and its returned copy,
     or the caller's input and the canonical re-encode) are charged as retained, conservatively."""
     source = module(index, CORE + "underground_entry_progress.gd").text
-    formula = ("const MAX_WIRE_BYTES: int = HEADER_BYTES + RUNTIME_FIXED_BYTES + 11 * 8 + CREW_BYTES + FOREMAN_FIXED_BYTES \\\n"
+    formula = ("const MAX_WIRE_BYTES: int = HEADER_BYTES + RUNTIME_FIXED_BYTES + MAX_ENDPOINTS * 8 + CREW_BYTES + FOREMAN_FIXED_BYTES \\\n"
                "\t+ MAX_TASKS * TASK_BYTES + INSTALLER_FIXED_BYTES + MAX_QUOTE_LINES * QUOTE_LINE_BYTES \\\n"
                "\t+ HAULER_FIXED_BYTES + MAX_QUEUE * 4 + MAX_LEGS * LEG_BYTES\n")
     require(formula in source, "entry progress wire bound formula")
     const = lambda name: int(re.search(r"^const " + name + r": int = (\d+)\b", source, re.M).group(1))
-    wire = sum(const(name) for name in PROGRESS_TERMS) + 11 * 8 + const("MAX_TASKS") * const("TASK_BYTES") \
+    wire = sum(const(name) for name in PROGRESS_TERMS) + 8 * const("MAX_ENDPOINTS") + const("MAX_TASKS") * const("TASK_BYTES") \
         + const("MAX_QUOTE_LINES") * const("QUOTE_LINE_BYTES") + 4 * const("MAX_QUEUE") + const("MAX_LEGS") * const("LEG_BYTES")
     packets = packet(memory, index, CORE + "underground_entry_progress.gd", "Writer") \
         + packet(memory, index, CORE + "underground_entry_progress.gd", "Reader")
@@ -377,6 +378,24 @@ def contact_retirement_cold(memory, index: dict) -> dict:
                      "owners' existing paired banks. Coexistence inside one lease is runtime-enforced, not re-proved here."}
 
 
+STAIR_MOTION = {"_programs": "PackedInt32Array", "_keys": "PackedInt32Array", "_decks": "PackedInt32Array",
+                "_digest": "PackedByteArray", "_loaded": "bool"}
+
+
+def stair_tables(memory, index: dict) -> dict:
+    """ADR 1229: the claw stair tables (StairMotion), loaded once per Session by the route composition and lent to
+    Routes for the Session's life. Their fixed census is the pinned wire's, recomputed from the owner's constants."""
+    exact_members(memory, index, CORE + "underground_stair_motion.gd", STAIR_MOTION)
+    name = "underground_stair_motion"
+    words = sum(memory.resolve(index, name, fields) * memory.resolve(index, name, count) for fields, count in
+                (("PROGRAM_FIELDS", "PROGRAMS"), ("KEY_FIELDS", "KEYS"), ("DECK_FIELDS", "DECKS")))
+    require("const RESERVED_BYTES: int = 4 * (PROGRAM_FIELDS * PROGRAMS + KEY_FIELDS * KEYS + DECK_FIELDS * DECKS) + 32"
+            in module(index, CORE + "underground_stair_motion.gd").text, "stair tables reservation")
+    require("motion.load_file(MotionPins.WIRE_PATH, MotionPins.WIRE_SHA)"
+            in module(index, CORE + "underground_route_composition.gd").text, "one table load per route composition")
+    return {"rows": {"tables": 4 * words, "profile_digest": 32}, "bytes": 4 * words + 32}
+
+
 def cold_load_images(memory, index: dict) -> dict:
     """ADR 1221: the cold-load images that are not charged to the shared cold lease. Routes and WorldRoutes images
     are the caller's leased cold image; the Contacts scope and the Planner's admission record are one caller image
@@ -438,8 +457,10 @@ def build(index: dict, projected: list, motion: dict) -> dict:
     publication = publication_controls(memory, index)
     planner = room_planner_cold(memory, index)
     images = cold_load_images(memory, index)
+    stairs = stair_tables(memory, index)
     new = {"geometry_journals": journals["bytes"], "locations_carry_and_retirement_controls": locations["bytes"],
-           "first_entry_runtime_chain": entry["bytes"], "cold_load_images": images["bytes"]}
+           "first_entry_runtime_chain": entry["bytes"], "cold_load_images": images["bytes"],
+           "claw_stair_tables": stairs["bytes"]}
     charged = {}
     for relative, row in rows.items():
         for charge in row["charges"]:
@@ -452,7 +473,7 @@ def build(index: dict, projected: list, motion: dict) -> dict:
             "geometry_journals": journals, "locations_controls": locations, "first_entry_runtime": entry,
             "world_routes_controls": controls, "world_routes_cold": cold, "contact_retirement_cold": retirement,
             "location_air_pool": pool, "room_publication_controls": publication,
-            "room_planner_cold": planner, "cold_load_images": images,
+            "room_planner_cold": planner, "cold_load_images": images, "claw_stair_tables": stairs,
             "new_retained_bytes": new, "new_contribution_bytes": sum(new.values()),
             "runtime_qualified": False, "native_measured": False}
 

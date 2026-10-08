@@ -6,21 +6,23 @@ const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Content := preload("res://demo/cast/underground_actor_content.gd")
 const Actor := preload("res://demo/cast/underground_actor.gd")
 const Space := preload("res://scripts/core/room_space.gd")
-## ADR1217 step 5: the runtime loads content 9 (`qualified-claw-approach-v10`): the pick rows 0-29 stay published
-## and dormant (DEC-052); sources 2/3 are the v10 haul images, source 4 the claw image, source 5 the paw image.
-const Pins := preload("./qualified-claw-approach-v10/catalog_source.gd")
-const PROFILE_COUNT: int = 60
-const BOX_COUNT: int = 517
-const CONTENT_REVISION: int = 9
+## ADR1229 increment 6: the runtime loads content 10 (`qualified-claw-stairs-v11`): content 9's rows 0-50 keep their
+## words (the pick rows 0-29 stay published and dormant, DEC-052); 51-55 are the stair and short-step rows, 56-63 the
+## claw dig and tap rows, 64 the tread fitting tap, 65/66 the paw handling rows; sources 4/5 are the v2 claw and paw
+## images (ADR 1217 step 5 loaded content 9, `qualified-claw-approach-v10`).
+const Pins := preload("./qualified-claw-stairs-v11/catalog_source.gd")
+const PROFILE_COUNT: int = 67
+const BOX_COUNT: int = 547
+const CONTENT_REVISION: int = 10
 const PROFILE_REVISION: int = 1
-const WIRE_BYTES: int = 20588
-const PAIRED_BANK_BYTES: int = 41160
+const WIRE_BYTES: int = 22114
+const PAIRED_BANK_BYTES: int = 44212
 const SOURCE_CHARS: int = 262144
 const HASH_CHARS: int = 1024
 const CONTROL_RESERVE: int = 32768 # Existing Profiles reserve, never an additional arena.
-const WIRE_PATH: String = "res://data/underground/mole-worker/qualified-claw-approach-v10/mole-worker.ugprof"
-## ADR1200/1206/1217: actor, assembly-handling (row 29), wood haul v10 (30-36), stone haul v10 (37-41), claw (42-58),
-## paw handling (59).
+const WIRE_PATH: String = "res://data/underground/mole-worker/qualified-claw-stairs-v11/mole-worker.ugprof"
+## ADR1200/1206/1217/1229: actor, assembly-handling (row 29), wood haul v10 (30-36), stone haul v10 (37-41), claw v2
+## (42-64), paw v2 (65-66).
 const SOURCE_COUNT: int = 6
 
 

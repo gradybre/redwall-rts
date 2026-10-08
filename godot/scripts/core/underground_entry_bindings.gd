@@ -20,6 +20,7 @@ const REFUSE_ENTRY_CUTS: StringName = &"ENTRY_EXACT_CUT_SET_REQUIRED"
 const REFUSE_ENTRY_BEARING: StringName = &"ENTRY_NATURAL_BEARING_REMOVED"
 const REFUSE_ENTRY_ANCHOR: StringName = &"ENTRY_ACTUAL_SURFACE_ANCHOR"
 const REFUSE_ENTRY_CONTACT: StringName = &"ENTRY_EXISTING_SURFACE_CONTACT"
+const ROW_BUDGET: int = -3 # ADR1229: _entry_surface_contact_row ran out of the shared cold check budget.
 const REFUSE_ENTRY_COLD: StringName = &"ENTRY_ORIGINAL_COLD_SCOPE"
 const REFUSE_TIMBER: StringName = &"ENTRY_INSTALLED_PRISM_REQUIRED"
 const REFUSE_TIMBER_CUT: StringName = &"ENTRY_INSTALLED_PAID_VOID_REQUIRED"
@@ -573,9 +574,9 @@ func _entry_surface_contacts_refusal(space_token: int) -> StringName:
 func _entry_surface_contact(point: Vector3i, role: int, space_token: int) -> StringName:
 	"""A current full endpoint and actual source section are mandatory; source coordinates grant no permission."""
 	var locations: Locations = _entry_placements._locations
-	if not _entry_spend(256 + 16 * locations._capacity + 4 * _entry_placements._space._source_capacity):
-		return REFUSE_MASK_BUDGET
+	if not _entry_spend(256 + 4 * _entry_placements._space._source_capacity): return REFUSE_MASK_BUDGET
 	var row: int = _entry_surface_contact_row(point, role)
+	if row == ROW_BUDGET: return REFUSE_MASK_BUDGET
 	if row < 0: return REFUSE_ENTRY_CONTACT
 	var ref: Vector2i = Vector2i(row, locations._get32(locations._live, Locations.GENERATION, row))
 	var code: StringName = locations.read_location_into(ref, _entry_contact)
@@ -591,11 +592,16 @@ func _entry_surface_contact(point: Vector3i, role: int, space_token: int) -> Str
 
 
 func _entry_surface_contact_row(point: Vector3i, role: int) -> int:
-	"""Scan the exact source anchor namespace; a different full surface section cannot supply the immutable selector."""
+	"""Scan the exact source anchor namespace; a different full surface section cannot supply the immutable selector.
+	ADR1229: one check per slot, and the row's sixteen field checks per present row (as ADR1227 charges Contacts'
+	Region scans), so the cost follows the live endpoints, not the namespace capacity; ROW_BUDGET when exhausted."""
 	var locations: Locations = _entry_placements._locations
+	if not _entry_spend(locations._capacity): return ROW_BUDGET
 	var found: int = -1
 	for row: int in locations._capacity:
-		if locations._live.present[row] != 1 or locations._ref_at(locations._live, Locations.ROOM_SLOT, row) != NULL_REF \
+		if locations._live.present[row] != 1: continue
+		if not _entry_spend(16): return ROW_BUDGET
+		if locations._ref_at(locations._live, Locations.ROOM_SLOT, row) != NULL_REF \
 				or locations._ref_at(locations._live, Locations.SECTION_SLOT, row) != _entry_anchor.section \
 				or locations._get32(locations._live, Locations.LEVEL, row) != 0 \
 				or locations._get32(locations._live, Locations.ROLE, row) != role \
@@ -1579,6 +1585,7 @@ func _timber_profile_envelope(endpoint: int) -> StringName:
 	if profile == -2: return REFUSE_MASK_BUDGET
 	if profile < 0 or profile >= profiles._live.header[1] \
 			or profiles._live.flags[profile] != Profiles.CERT_REQUIRED: return REFUSE_TIMBER_CONTACT
+	if _stair_stop(profiles, profile): return _stair_stop_bounds(profiles, profile)
 	var code: StringName = _timber_profile_bounds(profiles, profile)
 	if code != &"" or _entry_contact.role != Locations.ROLE_WORK: return code
 	# ADR1193: a WORK contact is also the arrival/departure point of its explicit travel profile, so its
@@ -1588,6 +1595,39 @@ func _timber_profile_envelope(endpoint: int) -> StringName:
 	if travel < 0 or travel >= profiles._live.header[1] \
 			or profiles._live.flags[travel] != Profiles.CERT_REQUIRED: return REFUSE_TIMBER_CONTACT
 	return _timber_union_profile(profiles, travel)
+
+
+static func _stair_stop(profiles: Profiles, profile: int) -> bool:
+	"""ADR1229: a stop of content 10's source-proved stair and tread rows (steps, descent, ascent, half-turn, the tread
+	fitting tap). Their bounding boxes enclose whole motions over two decks or reach among the tread fixture's timber,
+	so they size no stop; each motion is proved per edge and per station against its installed fixture."""
+	return Routes.Stair.owns(profiles, profile) \
+		or (profile == Routes.Stair.Pins.CLAW_TREAD_TAP_ROW and Routes.Claw2.owns(profiles, profile))
+
+
+func _stair_stop_bounds(profiles: Profiles, profile: int) -> StringName:
+	"""ADR1229: the stop's footing is the claw READY stance of the tread fitting row (row 64's STANCE box: the tread
+	station's footing, 169 u ahead and 175 u behind the root), turned to face up the stair for an ascent stop; its own
+	air is that footing's column one unit high. The motions leaving it carry their own proofs."""
+	var tap: int = Routes.Stair.Pins.CLAW_TREAD_TAP_ROW
+	var first: int = profiles._live.fields[Profiles.F_FIRST_BOX * profiles._profile_capacity + tap]
+	var count: int = profiles._live.fields[Profiles.F_BOX_COUNT * profiles._profile_capacity + tap]
+	var up: bool = profile == Routes.Stair.Pins.CLAW_ASCENT_ROW
+	var point: Vector3i = _entry_contact.point
+	for box: int in range(first, first + count):
+		if not _entry_spend(24): return REFUSE_MASK_BUDGET
+		if profiles._live.boxes[6 * profiles._box_capacity + box] != Profiles.STANCE_SUPPORT: continue
+		for axis: int in 3:
+			var low: int = profiles._live.boxes[axis * profiles._box_capacity + box]
+			var high: int = profiles._live.boxes[(axis + 3) * profiles._box_capacity + box]
+			var turned: bool = up and axis != 1
+			_entry_contact.support[axis] = int(point[axis]) + (-high if turned else low)
+			_entry_contact.support[axis + 3] = int(point[axis]) + (-low if turned else high)
+		for axis: int in 6: _entry_contact.envelope[axis] = _entry_contact.support[axis]
+		_entry_contact.envelope[1] = point.y
+		_entry_contact.envelope[4] = point.y + 1
+		return &"" if Locations.support_covers_root(point, _entry_contact.support) else REFUSE_TIMBER_CONTACT
+	return REFUSE_TIMBER_CONTACT
 
 
 func _timber_union_profile(profiles: Profiles, profile: int) -> StringName:
@@ -1800,6 +1840,7 @@ func _timber_profile_foot(proof: TimberClearance, endpoint: int) -> StringName:
 	if profile == -2: return REFUSE_MASK_BUDGET
 	if profile < 0: return REFUSE_TIMBER_CONTACT
 	var profiles: Profiles = _entry_placements._profiles
+	if _stair_stop(profiles, profile): return &"" # ADR1229: the stop's footing is the READY stance (above).
 	var first: int = profiles._live.fields[Profiles.F_FIRST_BOX * profiles._profile_capacity + profile]
 	var end: int = first + profiles._live.fields[Profiles.F_BOX_COUNT * profiles._profile_capacity + profile]
 	for box: int in range(first, end):

@@ -124,6 +124,8 @@ var _arrival_retreat_revision: int = 0
 var _haul_mwu: int = 0
 var _haul_trips: int = 0
 var _haul_marker: int = -1
+## ADR1229: the runtime's work-area path supplier, asked before each cut phase opens; wiring, never saved state.
+var _station_paths: Callable = Callable()
 
 
 func configure(owners: Owners, crew: Crew, placement: Vector2i) -> StringName:
@@ -244,9 +246,16 @@ func _run_stage(tick: int) -> StringName:
 	return REFUSE_STATE
 
 
+func bind_station_paths(supplier: Callable) -> void:
+	"""ADR1229: the runtime publishes a station's work-area paths when its first phase is about to open."""
+	_station_paths = supplier
+
+
 func _open(tick: int) -> StringName:
 	"""Admit the real phase Project and its BUILD Job, haul any missing inputs, then take the Job."""
 	var task: Task = _tasks[_index]
+	var paths: StringName = _station_paths.call(task.station) if _station_paths.is_valid() else &""
+	if paths != &"": return paths
 	var opened: RefCounted = _owners.sites.open_phase(task.site, task.operation)
 	if not opened.ok: return opened.error
 	if not _owners.construction.remaining_mwu_into(opened.ref, _math): return REFUSE_STATE

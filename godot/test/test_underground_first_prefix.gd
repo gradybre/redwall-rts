@@ -437,9 +437,10 @@ func _bind_paid_owners() -> void:
 	assert_equal(_provider.configure(_world._world, _world._terrain, _world._owner, _world._sources,
 		_world._budget), &"", "actual phase composer")
 	_authority = Authority.new()
-	assert_equal(_authority.configure(_world._owner, _provider, 8), &"", "actual phase authority")
+	# ADR1229: room for the T1-T6 bundle's fourteen cut cubes (the claw bundle cut six).
+	assert_equal(_authority.configure(_world._owner, _provider, 16), &"", "actual phase authority")
 	_sites = Sites.new(_world._construction, _world._inventory, _world._pool, _world._items,
-		_world._jobs, _world._work, _authority, 64, 8)
+		_world._jobs, _world._work, _authority, 64, 16)
 	assert_equal(_sites.initialization_refusal(), &"", "actual finite Site ledger")
 	assert_equal(_authority.bind_sites(_sites), &"", "exact reciprocal Site authority")
 	_router = Router.new(_world._construction, _world._inventory, _world._pool, _world._items,
@@ -545,7 +546,7 @@ func test_initial_stock_is_finite_and_does_not_precreate_spoil_or_paid_progress(
 	assert_equal(_world._buildings.live_room_count(), 0, "admission has not been bypassed")
 	assert_equal(_world._jobs.job_count(), 0, "no Job without an actual order")
 	assert_equal(_sites.virgin_sourced_milli(), 0, "actual conserved spoil ledger starts empty")
-	assert_equal(_sites.remaining_history_capacity(), 8, "no retained key is seeded by the fixture")
+	assert_equal(_sites.remaining_history_capacity(), 16, "no retained key is seeded by the fixture")
 
 
 func test_common_metadata_grants_no_support_over_any_future_paid_cube() -> void:
@@ -592,4 +593,4 @@ func test_fine_entry_request_keeps_tail_outside_claims_and_derives_all_six_paid_
 		assert_true(observed.has(Vector3i(cube[0], cube[1], cube[2])), "source key %d covered once" % ordinal)
 	cursor.clear()
 	assert_equal(_world._budget.release(lease), &"", "cursor scratch released")
-	assert_equal(_sites.remaining_history_capacity(), 8, "enumeration creates no Site or paid state")
+	assert_equal(_sites.remaining_history_capacity(), 16, "enumeration creates no Site or paid state")

@@ -781,7 +781,9 @@ func _workpiece_context_leaf() -> StringName:
 		return REFUSE_SCOPE
 	var code: StringName = Workpieces.prepared_leaf_refusal(actual, _placement, _project, _action, actual._cold_token)
 	if code != &"": return code
-	return _placements.prepared_installation_leaf_refusal(_placement, _project, _ordinal, actual._cold_token) \
+	# ADR1229: this closes each Terrain observation; the installed witnesses (sealed Locations, paid Site columns)
+	# cannot change under a Terrain read, and ConnectorWork's final funding leaf re-derives them after Contacts.
+	return _placements.prepared_installation_leaf_refusal(_placement, _project, _ordinal, actual._cold_token, false) \
 		if _action == Contract.COMMIT else _placements.prepared_workpiece_leaf_refusal(actual._context)
 
 

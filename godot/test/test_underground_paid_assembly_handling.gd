@@ -29,11 +29,11 @@ const RESTORE_EVERY: int = 1
 ## fall on every phase of the 30 Hz motion fractions).
 const ROUTE_RESTORE_EVERY: int = 41
 const NULL_REF: Vector2i = Vector2i(-1, 0)
-const ClawPins := preload("res://data/underground/mole-worker/qualified-claw-approach-v10/catalog_source.gd")
+const ClawPins := preload("res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd")
 ## ADR1217 step 5 (DEC-052): the claw bundle's rows replace pick rows 29 (handling), 16 (INSTALL), 12 (ground) and 2
 ## (narrow approach); the crew holds no tool.
 const HANDLING: int = ClawPins.PAW_HANDLING_ROW
-const INSTALL: int = 52
+const INSTALL: int = ClawPins.CLAW_TAP_ROWS[0] # ADR1229: content 10 row 57 (content 9 row 52).
 const GROUND: int = ClawPins.CLAW_WALK_ROW
 const APPROACH: int = 43
 const RETREAT: int = 47
@@ -104,7 +104,7 @@ class PaidProbe extends WorkArea.Probe:
 		super.before_each()
 		if not failures.is_empty(): return
 		pieces = Workpieces.new()
-		assert_equal(pieces.configure(4, 2, Workpieces.required_bytes(4, 2)), &"", "original finite banks")
+		assert_equal(pieces.configure(4, 8, Workpieces.required_bytes(4, 8)), &"", "original finite banks (ADR1229: eight assemblies)")
 		assert_equal(pieces.bind_actual(_placements, _router, _paid), &"", "original paid source tuple")
 		assert_equal(pieces.load_file(WorkArea.Bundle.WORKPIECES_PATH, WorkArea.Bundle.WORKPIECES_SHA, WorkArea.Bundle.WORKPIECES_REVISION), &"", "exact two source-derived workpieces")
 		assert_equal(_paid.bind_workpieces(pieces), &"", "actual reciprocal activation")

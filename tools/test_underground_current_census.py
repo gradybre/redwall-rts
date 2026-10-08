@@ -37,7 +37,8 @@ class CurrentCensusTests(unittest.TestCase):
     def test_current_counts(self):
         result = census.build(self.index, self.projected, self.motion)
         self.assertEqual(result["new_retained_bytes"], {"geometry_journals": 4322,
-                         "locations_carry_and_retirement_controls": 161, "first_entry_runtime_chain": 8347, "cold_load_images": 196694})
+                         "locations_carry_and_retirement_controls": 161, "first_entry_runtime_chain": 14027,
+                         "cold_load_images": 196694, "claw_stair_tables": 9580}) # ADR1229: the T1-T6 plan and tables
         self.assertEqual(result["room_publication_controls"]["controls"], 8970)
         self.assertEqual(result["location_air_pool"]["remaining_bytes"], 1472)
         self.assertEqual(result["world_routes_cold"]["world_routes_cold_bytes"], 379648)
@@ -54,10 +55,10 @@ class CurrentCensusTests(unittest.TestCase):
     def test_entry_progress_record_is_charged_at_its_wire_bound(self):
         """ADR 1218: two whole records at MAX_WIRE_BYTES plus the Writer/Reader packets; a changed bound refuses."""
         result = census.build(self.index, self.projected, self.motion)
-        self.assertEqual(result["first_entry_runtime"]["rows"]["progress_record"], 2 * 2559 + 10)
-        text = self.index["underground_entry_progress"].text.replace("const MAX_TASKS: int = 32", "const MAX_TASKS: int = 33")
+        self.assertEqual(result["first_entry_runtime"]["rows"]["progress_record"], 2 * 4287 + 10)
+        text = self.index["underground_entry_progress"].text.replace("const MAX_TASKS: int = 64", "const MAX_TASKS: int = 65")
         self.assertEqual(census.entry_progress(memory, self.changed("underground_entry_progress", text))["max_wire_bytes"],
-                         2559 + 52)
+                         4287 + 52)
         text = self.index["underground_entry_progress"].text.replace("+ HAULER_FIXED_BYTES + MAX_QUEUE", "+ 2 * HAULER_FIXED_BYTES + MAX_QUEUE")
         with self.assertRaises((AssertionError, ValueError)):
             census.build(self.changed("underground_entry_progress", text), self.projected, self.motion)
@@ -98,7 +99,7 @@ class CurrentCensusTests(unittest.TestCase):
     def test_joint_pack_fits_the_raised_gate(self):
         result = memory.build()
         self.assertEqual((result["live_with_reserve_bytes"], result["gate_bytes"], result["headroom_bytes"]),
-                         (100228042, 150000000, 49771958)) # ADR1217 step 5: PROFILE_BYTES +16,384
+                         (100243302, 150000000, 49756698)) # ADR1229: +5,680 entry chain, +9,580 stair tables
 
     def test_publication_controls_refuse_above_their_ceiling(self):
         text = self.index["underground_room_frontier_publication"].text.replace(

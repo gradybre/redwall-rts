@@ -21,7 +21,9 @@ rules (`TreadGeometry` mirrors them at runtime).
   - claw-v6's rows with content 10's row ids (tap 52 -> 57, dig 57 -> 62 and 53 -> 58);
   - eight more cube episodes (rows 4-7, two cubes each) from surface stations at +-1,430 u, cut with T0's
     prefix installed (before T1), each retaining the natural bearings under it;
-  - three more CUT groups (rows 4-6), the bearings (each tread's forward strip of the deck above, its posts');
+  - four more CUT groups (rows 4-7: the entry plan claims exactly the cubes the episodes cut, so the seventh row
+    has its own group though no tread names it), the bearings (each tread's forward strip of the deck above, its
+    posts');
   - the stair stops: on L0 the walk-in stop 310 u behind its far edge (narrow approach 43), the descent's start
     169 u behind (53), the ascent's end 343 u behind (row 45 leaves it); on T_j (j = 0..5) the arrival 169 u (53), the
     tread station 310 u (WORK; travel 51, station profile 64) and the ascent's start 343 u (54); and the crossing
@@ -43,8 +45,8 @@ import sys
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 OLD = HERE / "qualified-claw-v6"
-OUTPUT = HERE / "qualified-stairs-v7"
-RES = "res://data/underground/first-entry-prefix-v1/qualified-stairs-v7/"
+OUTPUT = HERE / "qualified-stairs-v8"
+RES = "res://data/underground/first-entry-prefix-v1/qualified-stairs-v8/"
 RUNTIME = ROOT / "godot/data/underground/mole-worker/qualified-claw-stairs-v11"
 SPEC = ROOT / "docs/design/underground-planning/first-entry-prefix-v1.json"
 SPEC_SHA = "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81"
@@ -54,7 +56,7 @@ OLD_SHA = {
 }
 PROFILE_SHA = "9791eb59b778cf9fe0b4c66dfd7181c58706abd6ed1a8e6a90a73daafa7f3317"
 GROUND_SHA = "e155bf5dfbbde5ddda7702b510d8e299ad8516154c69e024efb1a77f591bc081"
-CONTENT, FRONTIER_REVISION, CLAW_SOURCE, PAW_SOURCE = 10, 6, 4, 5
+CONTENT, FRONTIER_REVISION, CLAW_SOURCE, PAW_SOURCE = 10, 7, 4, 5
 TREADS, SILL = 6, 6
 RISE, RUN, L0_FAR, T0_FAR = 128, 512, -2048, -2560
 ARRIVAL, STATION, ASCENT_START = 169, 310, 343
@@ -206,8 +208,9 @@ def regions_of(catalog: bytes) -> list:
 
 
 def cut_rows() -> list:
-    """The three new cut groups (rows 4-6); the seventh row has cube episodes only (D2)."""
-    return [[-1024, -1024, -1024 * (row + 1), 1024, 0, -1024 * row] for row in (3, 4, 5)]
+    """The four new cut groups (rows 4-7). No tread stands in the seventh row (D2), but the entry plan's claims are
+    the CUT rows and the bindings require them to be exactly the cubes the episodes cut."""
+    return [[-1024, -1024, -1024 * (row + 1), 1024, 0, -1024 * row] for row in (3, 4, 5, 6)]
 
 
 def grouping(catalog: bytes, parts: int) -> bytes:

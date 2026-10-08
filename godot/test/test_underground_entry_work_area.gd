@@ -5,10 +5,11 @@ const Previous := preload("res://test/test_underground_entry_source_phases.gd")
 const Prefix := preload("res://test/test_underground_first_prefix.gd")
 const Foreman := preload("res://scripts/core/underground_entry_foreman.gd")
 const WorkAreaSource := preload("res://scripts/core/underground_entry_work_area.gd")
-## ADR1217 step 5: the production work area is the claw bundle's (stations at +/-1430, H's claw air).
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-claw-v6/catalog_source.gd")
+## ADR1217 step 5: the production work area is the claw bundle's (stations at +/-1430, H's claw air). ADR1229: the
+## mounted bundle is the T1-T6 one (content 10), which keeps the claw bundle's L0/T0 rows on content 10's row ids.
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v8/catalog_source.gd")
 const MoleCatalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
-const ClawPins := preload("res://data/underground/mole-worker/qualified-claw-approach-v10/catalog_source.gd")
+const ClawPins := preload("res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd")
 const WA_PROFILE_SHA: String = Bundle.PROFILE_SHA
 const WA_CATALOG_SHA: String = Bundle.CATALOG_SHA
 const WA_GROUP_SHA: String = Bundle.GROUPING_SHA
@@ -68,6 +69,13 @@ class Probe extends Previous.Probe:
 		"""The new selector revision is explicit in the original Room confirmation request."""
 		var plan: EntryPlan.Request = super._entry_plan()
 		plan.frontier_revision = Bundle.FRONTIER_REVISION
+		# ADR1229: the claims are the bundle's CUT rows, as Site.entry_plan derives them (seven cube rows).
+		plan.claims = PackedInt32Array()
+		var cut: PackedInt32Array = PackedInt32Array()
+		cut.resize(Frontier.row_fields(Frontier.CUT))
+		for row: int in _source.row_count(Frontier.CUT, Bundle.FRONTIER_REVISION):
+			assert_equal(_source.cut_into(row, cut), &"", "authored CUT row")
+			plan.claims.append_array(Prefix.Source.world_box(cut.slice(0, 6)))
 		return plan
 
 	func _load_real_bills() -> void:
@@ -84,7 +92,9 @@ class Probe extends Previous.Probe:
 	func _bind_frontier() -> void:
 		"""Distinct source selectors resolve to the same actual immutable M/R Location handles."""
 		_source = Frontier.new()
-		assert_equal(_source.configure(PackedInt32Array([2, 8, 2, 10, 14, 6]), 4192), &"", "exact successor arena")
+		var capacities: PackedInt32Array = PackedInt32Array([Bundle.INSTALL_COUNT, Bundle.STATION_COUNT, Bundle.CUT_COUNT,
+			Bundle.BEARING_COUNT, Bundle.ENDPOINT_COUNT, Bundle.EPISODE_COUNT])
+		assert_equal(_source.configure(capacities, Frontier.required_bytes(capacities)), &"", "exact successor arena")
 		assert_equal(_source.bind_actual(_world._catalog, _groups._reader, _groups._recipes, _world._profiles), &"", "original source chain")
 		assert_equal(_source.load_file(WorkAreaImages.frontier(), WA_FRONTIER_SHA, Bundle.FRONTIER_REVISION), &"", "immutable work-area Frontier")
 
@@ -100,7 +110,7 @@ class Probe extends Previous.Probe:
 		for index: int in _published.endpoints.size(): _endpoints[index] = _published.endpoints[index]
 
 	func _remaining_surface_contacts() -> void:
-		"""All eleven endpoints were published together by the production module."""
+		"""All nineteen endpoints were published together by the production module."""
 		pass
 
 	func _surface_routes() -> void:
@@ -145,13 +155,14 @@ func test_actual_work_area_preserves_all_four_paid_cuts() -> void:
 
 
 func test_actual_material_aliases_do_not_create_extra_locations() -> void:
-	"""Nine original endpoints plus two haul stands exist although twelve immutable selectors describe this source."""
+	"""Nine original endpoints, two haul stands and (ADR1229) the descent's eight cut stations exist although twelve
+	immutable selectors describe this source; the descent stations' paths wait until they are worked."""
 	_probe = Probe.new()
 	_probe.before_each()
-	assert_equal(_probe._world._locations._live.count, 11, "original nine plus the two ADR1198 haul stands")
+	assert_equal(_probe._world._locations._live.count, 19, "original nine, two haul stands, eight descent stations")
 	assert_equal(_probe._world._routes._live.edge_count, 36, "original 28 directed paths plus eight haul edges")
-	assert_equal(_probe._source.row_count(4, Bundle.FRONTIER_REVISION), 14,
-		"explicit extra travel selectors and the two installed arrival selectors only")
+	assert_equal(_probe._source.row_count(4, Bundle.FRONTIER_REVISION), 44,
+		"explicit extra travel selectors, the installed arrival selectors and the stair stops")
 
 
 func test_entry_foreman_drives_all_twelve_l0_phases_from_the_frontier() -> void:

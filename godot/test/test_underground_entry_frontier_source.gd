@@ -2,7 +2,6 @@ extends "res://test/test_underground_entry_structure_source.gd"
 ## Inherits the two actual structural-source regressions; adds real Frontier admission without live activation.
 
 const Frontier := preload("res://scripts/core/underground_entry_frontier.gd")
-const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const FRONTIER_PATH: String = Bundle.FRONTIER_PATH
 const FRONTIER_SHA: String = Bundle.FRONTIER_SHA
 const TEMP_PATH: String = "user://entry-frontier-source-negative.bin"
@@ -26,7 +25,7 @@ func _frontier_reader() -> void:
 	assert_equal(Frontier.required_bytes(capacities), 4192, "complete source bank (ADR1202: two arrival selectors)")
 	assert_equal(_frontier.configure(capacities, 4192), &"", "exact immutable source capacities")
 	assert_equal(_frontier.bind_actual(_catalog, _assemblies, _recipes,
-		_session._retirement_owners.profiles), &"", "actual complete source chain")
+		_profiles), &"", "actual complete source chain")
 
 
 func test_actual_source_selects_eighteen_cube_phases_without_publishing_world_state() -> void:
@@ -50,7 +49,7 @@ func _assert_phase_selectors() -> void:
 	var episode: PackedInt32Array = PackedInt32Array(); episode.resize(19)
 	var station: PackedInt32Array = PackedInt32Array(); station.resize(9)
 	var revision: Catalog.IntMath.IntResult = Catalog.IntMath.IntResult.new()
-	var profiles: Profiles = _session._retirement_owners.profiles
+	var profiles: Profiles = _profiles
 	for ordinal: int in 6:
 		assert_equal(_frontier.episode_into(ordinal, episode), &"", "exact physical cube")
 		assert_equal(episode[6], 7, "BRACE CUT FINISH remain distinct required operations")

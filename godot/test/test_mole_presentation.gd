@@ -93,12 +93,12 @@ func test_pinned_sources_load_inside_the_declared_set_reservation() -> void:
 	var sources: ContentSet = _loaded(true, true, true)
 	assert_equal(Session.HANDLING_ACTOR_SHA, Assembly.ACTOR_SHA, "handling pin is row 29's source digest")
 	assert_equal(Session.HANDLING_ACTOR_SHA, Catalog.Pins.HANDLING_SOURCE_SHA, "same digest the catalog requires")
-	assert_equal(Session.PRESENTATION_SET_BYTES, 42015616, "7141920 + 6628488 + 7486168 + 7285004 + 6906492 + 6567544")
+	assert_equal(Session.PRESENTATION_SET_BYTES, 42735176, "7141920 + 6628488 + 7486168 + 7285004 + 7551924 + 6641672")
 	assert_equal(sources.reserved_bytes(), Session.PRESENTATION_SET_BYTES, "every source reserved, none shared")
 	var peaks: PackedInt32Array = [Session.PRESENTATION_BYTES, Session.HANDLING_PRESENTATION_BYTES,
 		Session.HAUL_PRESENTATION_BYTES, Session.STONE_PRESENTATION_BYTES, Session.CLAW_PRESENTATION_BYTES,
 		Session.PAW_PRESENTATION_BYTES]
-	var clips: PackedInt32Array = [14, 3, 12, 10, 8, 3]
+	var clips: PackedInt32Array = [14, 3, 12, 10, 16, 6] # ADR1229: the v2 claw and paw images.
 	for source: int in 6:
 		assert_equal(sources.content(source).required_peak_bytes(), peaks[source], "exact declared peak %d" % source)
 		assert_equal(sources.content(source).clip_count(), clips[source], "clip count %d" % source)
@@ -330,7 +330,8 @@ func test_row_59_handling_cycle_is_drawn_from_the_actual_clock() -> void:
 	var row_frame: Driver.Frame = Driver.Frame.new()
 	assert_equal(presenter.present_row(routes, worker, 0, row_frame), &"", "ADR1211: present_row routes row 59")
 	assert_equal([row_frame.profile_id, row_frame.frames, presenter.visible_source()],
-		[Presentation.Paw.PROFILE, frame.frames, Presentation.SOURCE_PAW], "row 59 by the handling clock, not a program")
+		[PaidSuite.HANDLING, frame.frames, Presentation.SOURCE_PAW],
+		"the paw handling row (65 in content 10, ADR1229) by the handling clock, not a program")
 	assert_equal(routes.begin_assembly_handling(worker, ref), &"", "actual handling entry")
 	_handling_ticks(probe, presenter, routes, worker, ref, frame)
 	assert_equal(presenter.present_handling(routes, worker, ref, frame), &"", "completed handling frame")
@@ -374,7 +375,7 @@ func test_claw_row_is_drawn_from_its_source_clock_on_the_claw_image() -> void:
 	var presenter: Presentation = _presenter(_loaded(false, false, true))
 	var frame: Driver.Frame = Driver.Frame.new()
 	assert_equal(presenter.present_row(probe._world._routes, probe._world._worker, 0, frame), &"", "claw row frame")
-	assert_true(Presentation.Paw.Claw.owns(probe._world._routes._profiles, frame.profile_id), "a source-4 row")
+	assert_true(Presentation.Claw10.owns(probe._world._routes._profiles, frame.profile_id), "a source-4 row (content 10)")
 	assert_equal([frame.frames[0], frame.frames[2], frame.frames[6], frame.ready],
 		[Presentation.Paw.Claw.CLIP_STAND + 8, 0, Presentation.ONE, true], "stand key 8 at READY")
 	assert_equal(frame.source_digest, Session.CLAW_ACTOR_SHA, "the claw image")

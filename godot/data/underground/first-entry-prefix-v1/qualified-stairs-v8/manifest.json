@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "decision": [
+    "1229",
+    "1209",
+    "DEC-058"
+  ],
+  "predecessor": "qualified-claw-v6 (ADR 1217 step 4e)",
+  "content_revision": 10,
+  "frontier_revision": 7,
+  "frontier_source": 4,
+  "workpieces_source": 5,
+  "assemblies": 8,
+  "parts": 52,
+  "stair_paces_u_per_s": {
+    "53": 528,
+    "54": 528,
+    "55": 116
+  },
+  "entry_source_constants": {
+    "CATALOG_REVISION": 1,
+    "GROUPING_REVISION": 1,
+    "RECIPE_REVISION": 1,
+    "FRONTIER_REVISION": 7,
+    "WORKPIECES_REVISION": 1,
+    "CONTENT_REVISION": 10,
+    "INSTALL_COUNT": 8,
+    "STATION_COUNT": 22,
+    "CUT_COUNT": 6,
+    "BEARING_COUNT": 38,
+    "ENDPOINT_COUNT": 44,
+    "EPISODE_COUNT": 14
+  },
+  "files": {
+    "structure.ugconn": "7f6758911458de66f751d6d5d4bbb525f980227cc4d79c9d03a2f538e60fd673",
+    "assemblies.ugasmb": "30dcccd1e312cb27e575e27e95f5467408a0964a34362e92e3115ce89f870b4a",
+    "recipes.ugrecp": "364941688cc24eef379ee3850ce8d5f69a7599d659b2754f4801a68f4f2c2548",
+    "frontier.ugfront": "fcbd4a0719bd2752b08957908025d50efaacdf7032a313e406bc1828ccb4eff3",
+    "workpieces.ugwipc": "551ccc9cc4f34a21635255d0c59f6240e20a7dd5307a2d6e46ea3f605e5eff45",
+    "ground-pace.ugconn": "dfadb2efbbd3ebb234e5f0fe3c128038eafb67572e2be1103470b7b432da67f3",
+    "mole-worker.ugprof": "9791eb59b778cf9fe0b4c66dfd7181c58706abd6ed1a8e6a90a73daafa7f3317",
+    "catalog_source.gd": "497c1b19a7058238a7e1a85d312d17725cb71a4f1ec408d6c91a23d37f2d8cb1"
+  },
+  "inputs": {
+    "docs/design/underground-planning/first-entry-prefix-v1.json": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81",
+    "godot/data/underground/first-entry-prefix-v1/qualified-claw-v6/structure.ugconn": "e13ce51dbf394c825fbd7a240ef2568dc9ea4ec5df58b7fa19e02794a72a89e6",
+    "godot/data/underground/first-entry-prefix-v1/qualified-claw-v6/frontier.ugfront": "0d81d4f439912f737a5848d29cbfce4ad612da30b85f2d7fe38b5c23e0e8dfc7",
+    "godot/data/underground/mole-worker/qualified-claw-stairs-v11/mole-worker.ugprof": "9791eb59b778cf9fe0b4c66dfd7181c58706abd6ed1a8e6a90a73daafa7f3317",
+    "godot/data/underground/mole-worker/qualified-claw-stairs-v11/ground-pace.ugconn": "e155bf5dfbbde5ddda7702b510d8e299ad8516154c69e024efb1a77f591bc081"
+  },
+  "runtime_admitted": false
+}

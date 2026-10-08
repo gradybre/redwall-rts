@@ -1693,13 +1693,48 @@ func batch_refusal(recipe: int) -> String:
 	if not short.is_empty():
 		return short
 	var water: int = Recipes.WATER_MILLI[recipe]
-	if water > 0 and (stores == null or stores.water_milli_u < water):
-		return _refuse("NO_WATER", "it needs %s of water in the butt" % Text.units(water), "Pantry (K) ▸ Kitchen: Draw water")
+	if water > 0 and (stores == null or stores.water_milli_u - water_held_milli() < water):
+		return _refuse("NO_WATER", _water_words(water), "Pantry (K) ▸ Kitchen: Draw water")
 	var item: int = Recipes.OUT_ITEM[recipe]
 	if not pantry.location_for_item_into(item, Recipes.OUT_MILLI[recipe], _read):
 		return _refuse("NO_ROOM", "no store has room for %s of %s" % [Text.units(Recipes.OUT_MILLI[recipe]),
 			Catalog.ITEM_LABELS[item].to_lower()], "Pantry (K): make room")
 	return _job_room_refusal()
+
+
+func drink_stock_warning(recipe: int) -> String:
+	"""THE DRINKS' STOCK WARNING (preserve_rules.gd DRINK_STOCK_WARN_MILLI, decision 1734): words when `recipe` makes a
+	drink the stores already hold two feasts' worth of; "" otherwise. A warning only: the order is never refused."""
+	if not Recipes.is_drink(recipe) or pantry == null:
+		return ""
+	var item: int = Recipes.OUT_ITEM[recipe]
+	var held: int = pantry.milli_of(item)
+	if held < Recipes.DRINK_STOCK_WARN_MILLI:
+		return ""
+	return "the stores already hold %s of %s, two feasts' worth (%s): more will wait for a feast to pour it" % [
+		Text.units(held), Catalog.ITEM_LABELS[item].to_lower(), Text.units(Recipes.DRINK_STOCK_WARN_MILLI)]
+
+
+func water_held_milli() -> int:
+	"""THE BATCHES' WATER (decision 1737): what the butt holds for batches ordered but not yet started -- each live rack
+	or station job's recipe water, until the work starts and takes it (or the job is cancelled). Computed from the jobs,
+	so nothing can drift. Only the fishery's own orders see it: the kitchen and the feast draw on the butt by their own
+	rules (the butt is the digging lane's tunnel_stores.gd, which keeps no reservations)."""
+	var held: int = 0
+	for j: int in Tables.MAX_JOBS:
+		if tables.j_live[j] == 1 and tables.j_started[j] == 0 and Recipes.is_recipe(tables.j_recipe[j]) \
+				and (tables.j_kind[j] == Tables.KIND_DRY or tables.j_kind[j] == Tables.KIND_BATCH):
+			held += Recipes.WATER_MILLI[tables.j_recipe[j]]
+	return held
+
+
+func _water_words(water: int) -> String:
+	"""A batch's water refusal: what it needs, and what is set aside for batches already ordered."""
+	var held: int = water_held_milli()
+	if held <= 0:
+		return "it needs %s of water in the butt" % Text.units(water)
+	return "it needs %s of water in the butt, and %s of it is set aside for batches already ordered" % [
+		Text.units(water), Text.units(held)]
 
 
 func free_slot(station: int) -> int:

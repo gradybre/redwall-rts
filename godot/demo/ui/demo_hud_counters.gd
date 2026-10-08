@@ -74,6 +74,12 @@ func bind(shell: UiShell) -> void:
 		_ledger_line = ledger.get_node_or_null(LEDGER_LINE) as Label if ledger != null else null
 
 
+static func _stamped(cell: int) -> bool:
+	"""Whether `cell` shows anything the model's stamp covers: the fuel's breakdown, the planks, the raw reserve beside
+	Ready food (decision 1736)."""
+	return cell == ModelScript.CELL_FUEL or cell == ModelScript.CELL_WOOD or cell == ModelScript.CELL_FOOD
+
+
 func sync() -> bool:
 	"""Keep every cell and the ledger the model's (see REPAINTING); true when anything was painted this call."""
 	if _shell == null or not is_instance_valid(_shell):
@@ -84,7 +90,7 @@ func sync() -> bool:
 	_stamp = stamp
 	var painted: bool = false
 	for cell: int in ModelScript.CELL_COUNT:
-		if not _primed or _figures[cell] != _shown[cell] or _overwritten(cell) or (restamped and (cell == ModelScript.CELL_FUEL or cell == ModelScript.CELL_WOOD)):
+		if not _primed or _figures[cell] != _shown[cell] or _overwritten(cell) or (restamped and _stamped(cell)):
 			_paint(cell)
 			painted = true
 	_primed = true

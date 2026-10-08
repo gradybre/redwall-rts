@@ -14,6 +14,9 @@ const SUMMARY: Array[String] = ["", "Fruit dried on the rack", "Packed at the pr
 	"Brewed at the brewery", "Pressed and brewed at the brewery", "Soured in a vat at the brewery",
 	"Pickled in a crock at the preserving table"]
 const DRINK_USE: String = "A drink for the feast: poured at the regatta's supper, a unit for every four guests, when the brewery has made enough. No one is made drunk."
+## The cordial is also a TABLE DRINK (decision 1733): poured at every ordinary supper as well as at the feast.
+const CORDIAL_USE: String = "A table drink: poured at every supper, a unit for every four who ate, and at the " \
+	+ "regatta's feast. No one is made drunk."
 const VINEGAR_USE: String = "An ingredient: the pickles' apple vinegar. Never drunk or eaten."
 const DRINK_ALTERNATIVE: String = "The Hearth feast's warm infusion of herbs and water is poured whatever the brewery has made."
 
@@ -42,6 +45,8 @@ static func card_use(recipe: int) -> String:
 	"""A recipe card's few words on what its row's good is for (preserve_rules.gd USE)."""
 	if Recipes.USE[recipe] == Recipes.USE_INGREDIENT:
 		return "kept for pickling"
+	if recipe == Recipes.R_CORDIAL:
+		return "poured at supper and at feasts"
 	return "kept for feasts" if Recipes.USE[recipe] == Recipes.USE_DRINK else "eaten as it is"
 
 
@@ -53,6 +58,8 @@ static func guide_fields(item: int, raw_np: int) -> PackedStringArray:
 		else "The village's reserve: eaten as it is by a hungry resident when a meal is missed (%d NP a unit)." % raw_np
 	if Recipes.USE[recipe] == Recipes.USE_INGREDIENT:
 		use = VINEGAR_USE
+	elif recipe == Recipes.R_CORDIAL:
+		use = CORDIAL_USE
 	if not Recipes.rows_taking(item).is_empty():
 		use += " " + made_into_text(item)
 	return PackedStringArray([use, made_words(recipe), DRINK_ALTERNATIVE if drink else _alternative(item),

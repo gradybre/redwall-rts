@@ -12,6 +12,7 @@ extends Node3D
 ## most of a day); a cellar dug near the kitchen keeps the food longer for the same walk.
 
 const KitchenScript := preload("res://demo/kitchen/kitchen.gd")
+const TableDrinkScript := preload("res://demo/kitchen/table_drink.gd")
 const PlacesScript := preload("res://demo/kitchen/kitchen_places.gd")
 const ViewScript := preload("res://demo/kitchen/kitchen_view.gd")
 const TabScript := preload("res://demo/kitchen/kitchen_tab.gd")
@@ -48,6 +49,8 @@ var kitchen: KitchenScript = KitchenScript.new()
 var places: PlacesScript = PlacesScript.new()
 var view: ViewScript = ViewScript.new()
 var tab: TabScript = TabScript.new()
+## The cordial poured at ordinary suppers (decision 1733).
+var table_drink: TableDrinkScript = TableDrinkScript.new()
 
 var _cast: DemoCastScript = null
 
@@ -71,6 +74,7 @@ func configure(cast: DemoCastScript, pantry: PantryScript, services: ServicesScr
 		keys.append(actor.creature_key)
 	kitchen.bind_news(services.notices, services.incidents)
 	kitchen.configure(brains, names, species, keys, pantry, services.stores, services.calendar, places)
+	table_drink.bind(kitchen)
 	if night != null:
 		night.set_early_riser(kitchen.up_early)
 	add_child(view)
@@ -132,5 +136,7 @@ func _exit_tree() -> void:
 
 
 func _process(_delta: float) -> void:
-	"""Run the kitchen on this frame's calendar (the farm has advanced it: it is added before this)."""
+	"""Run the kitchen on this frame's calendar (the farm has advanced it: it is added before this), then pour the table
+	drink at any supper it has published."""
 	kitchen.update()
+	table_drink.update()

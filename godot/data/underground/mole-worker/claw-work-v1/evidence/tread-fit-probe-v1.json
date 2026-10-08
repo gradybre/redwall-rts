@@ -1,0 +1,1837 @@
+{
+ "schema": 1,
+ "decision": "1217",
+ "grid": {
+  "work_y_u": [
+   131,
+   160,
+   192,
+   256
+  ],
+  "contact_z_u": [
+   -300,
+   -270
+  ],
+  "paw_x_u": [
+   176,
+   224
+  ],
+  "lean_degrees": [
+   0,
+   15,
+   30
+  ],
+  "drop_u": [
+   48,
+   96
+  ],
+  "head_lift_degrees": [
+   60
+  ],
+  "right_roll_degrees": [
+   90
+  ],
+  "left_roll_degrees": [
+   90
+  ]
+ },
+ "candidates": 96,
+ "solvable": 64,
+ "float_clear_ranked": [
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 45.3,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 43.9,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 40.1,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 40.1,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 40.1,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 40.1,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 40.1,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 40.1,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 15,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 36.7,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 15,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 36.7,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 15,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 36.7,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 0,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 36.3,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 34.4,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 15,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 34.4,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 34.0,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 33.7,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 15,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 33.6,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 15,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 33.6,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 15,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 32.4,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 15,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 31.9,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  }
+ ],
+ "rows": [
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 0,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 3.2,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 9.4,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 15,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 4.6,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 15,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 6.9,
+   "vertices_in_bearer": 12,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 30,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 2.3,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 30,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 3.0,
+   "vertices_in_bearer": 16,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 18.5,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 15,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 7.9,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 15,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 19.6,
+   "vertices_in_bearer": 12,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 30,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 7.4,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 30,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 0,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 1.7,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 2.4,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 15,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 1.9,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 15,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 2.1,
+   "vertices_in_bearer": 12,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 30,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 2.1,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 30,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 2.2,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 2.4,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 15,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 3.5,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 15,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 4.1,
+   "vertices_in_bearer": 12,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 30,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 131,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 30,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 0,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 11.2,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 22.8,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 15,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 9.4,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 15,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 14.7,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 30,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 2.7,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 30,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 15.9,
+   "vertices_in_bearer": 12,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 16.7,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 34.4,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 15,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 19.0,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 15,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 32.4,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 30,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 30,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 0,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 2.3,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 2.8,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 15,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 1.7,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 15,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 4.2,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 30,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 2.5,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 30,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 2.8,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 6.6,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 15,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 3.6,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 15,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 30,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 160,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 30,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 0,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 20.9,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 40.1,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 15,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 22.3,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 15,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 34.4,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 30,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 15.8,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 30,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "PAW_SEAT_CONTACT_CONVERGENCE"
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 34.0,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 40.1,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 15,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 31.9,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 15,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 36.7,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 30,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 30,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 0,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 1.7,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 20.4,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 15,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 1.9,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 15,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 22.2,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 30,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 30,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 10.2,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 33.7,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 15,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 15,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 30,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 192,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 30,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 0,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 36.3,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 40.1,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 15,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 33.6,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 15,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 36.7,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 30,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -300,
+    "paw_x_u": 176,
+    "lean_degrees": 30,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 45.3,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 40.1,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 15,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 33.6,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 15,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 36.7,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 30,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -300,
+    "paw_x_u": 224,
+    "lean_degrees": 30,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 0,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 10.6,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 40.1,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 15,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 15,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 30,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -270,
+    "paw_x_u": 176,
+    "lean_degrees": 30,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 43.9,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": true,
+   "arm_leg_gap_u": 40.1,
+   "vertices_in_bearer": 0,
+   "vertices_in_deck_behind": 0
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 15,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 15,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 30,
+    "drop_u": 48,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  },
+  {
+   "recipe": {
+    "work_y_u": 256,
+    "contact_z_u": -270,
+    "paw_x_u": 224,
+    "lean_degrees": 30,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+   },
+   "solvable": false,
+   "refusal": "STEP_LEG_REACH"
+  }
+ ],
+ "production_qualified": false
+}

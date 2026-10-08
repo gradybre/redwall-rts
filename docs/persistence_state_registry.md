@@ -742,6 +742,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 |---|---|---:|---|---|:-:|---|---|
 | Encoding primitives | -- | -- | -- | -- | 3 | -- | Holds no module-level `var` at all: ARCH-SAVE-001's little-endian integer, two's-complement and length-prefixed-UTF-8 primitives, all static, plus a `Reader` and a `Writer` whose buffers are per-call scratch owned by the caller that constructed them. It is the codec the sections are written THROUGH; it owns no world state, so there is nothing here to save. ARCH-SAVE-007's line that "a memory allocation row alone does not make a field persisted or canonical" is the same point from the other direction. |
 
+### `godot/scripts/core/save_file.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Whole-file container | -- | -- | -- | -- | 3 | -- | ADR 1222 steps 8-9. Stateless: static functions over a caller-owned `Body` (fifteen section byte arrays with their schema versions and row counts, the completed tick, the Chronicle count and the economic checkpoint pair). `encode_file()` lays out the header, the fifteen descriptors and contiguous sections with per-section CRC-32 and the body SHA-256; the development identities come from `save_identity_hashes.gd` and section 1's provenance prefix. `decode_file()` validates header, length, table, contiguity, CRCs, body digest and the five identities before it publishes a Body. `write_atomic()` streams `<path>.tmp` in 65536-byte chunks, re-reads and re-decodes it and renames it over the target. A whole file is a transient image at a save or load boundary (ADR 1222 working set). |
+
 ### `godot/scripts/core/save_header.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

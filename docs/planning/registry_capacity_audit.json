@@ -11,10 +11,10 @@
   "audited_source": {
     "module_sha256": {
       "buildings": "ac3ba6dcb74c6f6509dd685632bdf9f035fef1fdc60ef7abfb84d30c771e1bdc",
-      "command_dispatch": "191b5fa24ff06e18ccf20094e5fe9a44879db2d61c63554803a92905d3f5e87e",
+      "command_dispatch": "5277a33eaa8d0d1a96e0edc67efd53816ab6934302ae1f583629484a369349b5",
       "construction": "7715edbcebf550822d23381968f72e8a44e6402e7bc3449bd68f1dcbb8fda1b7",
-      "demolition_admissions": "b80ec6961ccaf7189ba93ca052ac60d3232e93b2d2a26287224107030f10d557",
-      "demolition_work": "3d2b482c14fd1cff6204935cb5aac3a889fafa0cbce8f47ddca70e8f46038735",
+      "demolition_admissions": "d8551d5add838e9d67a925473e72720eb719bdd2a9d064656185ebc0ac21b899",
+      "demolition_work": "942a3d5524818838cac2bd15ad7891f21ca968905f1b35cd91132b0f8f820cfc",
       "entity_directory": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
       "excavation_inventory": "e69e83b0fa3851f7408b574fec44b0978d048fb759eb90b458492ac81d15c001",
       "excavation_sites": "0136bdba31781d40c0a1a406dd292d35b422719b27e303723ad425184d203ab9",
@@ -43,7 +43,7 @@
       "schedule": "0096e23c435228efebff0e339809096ba997a211e77bb140a9de5caac8599890",
       "spatial_world": "6b2d56af6f0be763765ae02bdc22a4697c53d690decb5234ab0267c24d37202e",
       "stock_age": "f1c9e1bd0337c22d2076d7370bd2fb3f7c43b06ebee9afdc6a93427e2b8fee3e",
-      "store_policy": "f848574e2f45fe2eb5d6550053ca40c39fe6934ba995bf665854121f7c9ecd20",
+      "store_policy": "34e97ed22e2db9b6a7903c827125855b33b1afd76a3db50c2f838ccec95999d8",
       "transforms": "14898c3e6c782eefafd0ec9f42652ce402b3687bcfb2ac0eb81a9552cc98b505",
       "underground_space_owner": "c5aea1c3904c621552f67537f303799d51c7ab1adbe2478cef2fbdfd81e955d5",
       "weather": "f8f4ff5f3d1a68bd062a27ce28d75ee3b21663f4e829deab09586df784b5111e",

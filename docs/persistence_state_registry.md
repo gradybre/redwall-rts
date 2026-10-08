@@ -773,6 +773,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 |---|---|---:|---|---|:-:|---|---|
 | Section 13 CHRONICLE codec | -- | -- | -- | -- | 3 | -- | ADR 1222 step 5. Holds no module-level `var`; all static over a caller-owned `Record` (count + 32-byte digest, never records), `EncodeResult` and per-call `DigestVerifier`. Body `record_count:u64, rolling_digest:32, records:24*N`, exactly `40 + 24*N` bytes, schema 1; the descriptor `row_count` and header offset 208 must equal N. Decode streams records in whole-record chunks of at most 65536 bytes (2730 records, 65520 bytes) through the owner's digest rule, reports digest mismatch before any record refusal, and refuses every nonempty stream while the event domain is empty (DEC-055 Q8). Carries the `chronicle` canonical adapter. The classified rows for what it carries are `chronicle.gd`'s two above. |
 
+### `godot/scripts/core/save_aux_adapters.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Section 6 owner adapters | -- | -- | -- | -- | 3 | -- | ADR 1222 step 4b. Stateless module of adapter classes, each bound to one live store with no state of its own: crop_weather and ecology latches, command_dispatch intents, the generic ColumnsAdapter (demolition_admissions, demolition_work, store_policy), HaulPlannerAdapter over ADR 1221's UHPL wire, and JointAdapter for blocks the buildings and construction joint bridges own. capture/validate/apply over one section 6 Block; apply writes nothing on refusal. Transient column copies only. |
+
 ### `godot/scripts/core/save_child_arenas_schema.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

@@ -340,3 +340,46 @@ func _main_store_cell(container_ref: Vector2i, item_id: int) -> int:
 func ledger_bytes() -> int:
 	"""Bytes this store allocates: §3's two budgeted rows plus decision 1031's binding stamp."""
 	return _allowed.size() + _minimum_milli.size() * 8 + _bound_persistent_id.size() * 4
+
+
+# --- ARCH-SAVE-002 section 6 save pair (ADR 1222 build step 4) ------------------------------------
+#
+# Section 6 owner `store_policy` (DEC-055 Q7(a), C201): the allow arena (0/1), the minimum arena
+# (nonnegative milli) and the binding stamp (UNBOUND or a persistent id). A stale row reads as the
+# defaults at run time, so rows are saved verbatim.
+
+
+func save_columns() -> Array:
+	"""Copies of the three columns in registry order."""
+	return [_allowed.duplicate(), _minimum_milli.duplicate(), _bound_persistent_id.duplicate()]
+
+
+func restore_columns(columns: Array) -> bool:
+	"""Install the three columns after their checks. False writes nothing."""
+	if not columns_valid(columns):
+		return false
+	_allowed = (columns[0] as PackedByteArray).duplicate()
+	_minimum_milli = (columns[1] as PackedInt64Array).duplicate()
+	_bound_persistent_id = (columns[2] as PackedInt32Array).duplicate()
+	return true
+
+
+static func columns_valid(columns: Array) -> bool:
+	"""Types, extents and domains."""
+	if columns.size() != 3 or typeof(columns[0]) != TYPE_PACKED_BYTE_ARRAY \
+			or typeof(columns[1]) != TYPE_PACKED_INT64_ARRAY \
+			or typeof(columns[2]) != TYPE_PACKED_INT32_ARRAY:
+		return false
+	if columns[0].size() != POLICY_CELLS or columns[1].size() != POLICY_CELLS \
+			or columns[2].size() != BUILDING_CAPACITY:
+		return false
+	for value: int in columns[0]:
+		if value > 1:
+			return false
+	for value: int in columns[1]:
+		if value < 0:
+			return false
+	for value: int in columns[2]:
+		if value < UNBOUND:
+			return false
+	return true

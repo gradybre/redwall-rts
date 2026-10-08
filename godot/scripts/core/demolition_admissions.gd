@@ -248,3 +248,60 @@ func state_bytes() -> PackedByteArray:
 	out.append_array(var_to_bytes(_output_reserved_g))
 	out.append_array(var_to_bytes(_admitted_charge_g))
 	return out
+
+
+# --- ARCH-SAVE-002 section 6 save pair (ADR 1222 build step 4) ------------------------------------
+#
+# Section 6 owner `demolition_admissions` (DEC-055 Q7(a), C199): the seven columns in registry
+# order. A reference is the null reference or a live-shaped pair; grams and charge are
+# nonnegative; a revision is at least FIRST_DESTINATION_REVISION. Liveness is re-proved by the
+# readers (`_live_project_row()`), exactly as at run time.
+
+
+func save_columns() -> Array:
+	"""Copies of the seven columns in registry order (four i32 refs, two i64, one i32)."""
+	return [_project_slot.duplicate(), _project_generation.duplicate(), _output_slot.duplicate(),
+		_output_generation.duplicate(), _output_reserved_g.duplicate(),
+		_admitted_charge_g.duplicate(), _destination_revision.duplicate()]
+
+
+func restore_columns(columns: Array) -> bool:
+	"""Install the seven columns after their checks. False writes nothing."""
+	if not columns_valid(columns):
+		return false
+	_project_slot = (columns[0] as PackedInt32Array).duplicate()
+	_project_generation = (columns[1] as PackedInt32Array).duplicate()
+	_output_slot = (columns[2] as PackedInt32Array).duplicate()
+	_output_generation = (columns[3] as PackedInt32Array).duplicate()
+	_output_reserved_g = (columns[4] as PackedInt64Array).duplicate()
+	_admitted_charge_g = (columns[5] as PackedInt64Array).duplicate()
+	_destination_revision = (columns[6] as PackedInt32Array).duplicate()
+	return true
+
+
+static func columns_valid(columns: Array) -> bool:
+	"""Types, extents and every row's domains."""
+	if columns.size() != 7:
+		return false
+	for index: int in [0, 1, 2, 3, 6]:
+		if typeof(columns[index]) != TYPE_PACKED_INT32_ARRAY \
+				or columns[index].size() != BUILDING_CAPACITY:
+			return false
+	for index: int in [4, 5]:
+		if typeof(columns[index]) != TYPE_PACKED_INT64_ARRAY \
+				or columns[index].size() != BUILDING_CAPACITY:
+			return false
+	for row: int in BUILDING_CAPACITY:
+		if not _ref_shape_ok(columns[0][row], columns[1][row]) \
+				or not _ref_shape_ok(columns[2][row], columns[3][row]) \
+				or columns[4][row] < 0 or columns[5][row] < 0 \
+				or columns[6][row] < FIRST_DESTINATION_REVISION:
+			return false
+	return true
+
+
+static func _ref_shape_ok(slot: int, generation: int) -> bool:
+	"""The null reference, or a Directory slot with a positive generation."""
+	if slot == NULL_REF.x and generation == NULL_REF.y:
+		return true
+	return slot >= 0 and slot < EntityDirectory.DIRECTORY_CAPACITY and generation > 0

@@ -1620,3 +1620,52 @@ func queue() -> CommandsScript:
 func directory() -> EntityDirectory:
 	"""The one directory every bound store and every target reference is validated against."""
 	return _directory
+
+
+# --- ARCH-SAVE-002 section 6 save pair (ADR 1222 build step 4) ------------------------------------
+#
+# Section 6 owner `command_dispatch` is the zone-designation intent dedup table: per harvest-zone
+# slot, the player and sequence of the last committed designation and the zone generation it named.
+# A free slot is NO_INTENT_PLAYER with zeros; a used slot has a nonnegative player and generation.
+
+
+func copy_intent_columns_into(player: PackedInt32Array, high: PackedInt32Array,
+		low: PackedInt32Array, zone_generation: PackedInt32Array) -> bool:
+	"""Snapshot the four intent columns into caller-owned INTENT_CAPACITY buffers."""
+	for column: PackedInt32Array in [player, high, low, zone_generation]:
+		if column.size() != INTENT_CAPACITY:
+			return false
+	var sources: Array[PackedInt32Array] = [_intent_player_id, _intent_sequence_high,
+		_intent_sequence_low, _intent_zone_generation]
+	var outs: Array[PackedInt32Array] = [player, high, low, zone_generation]
+	for index: int in outs.size():
+		outs[index].clear()
+		outs[index].append_array(sources[index])
+	return true
+
+
+func restore_intent_columns(player: PackedInt32Array, high: PackedInt32Array,
+		low: PackedInt32Array, zone_generation: PackedInt32Array) -> bool:
+	"""Install the four intent columns after the shape and free-slot checks. False: no write."""
+	if not intent_columns_valid(player, high, low, zone_generation):
+		return false
+	_intent_player_id = player.duplicate()
+	_intent_sequence_high = high.duplicate()
+	_intent_sequence_low = low.duplicate()
+	_intent_zone_generation = zone_generation.duplicate()
+	return true
+
+
+static func intent_columns_valid(player: PackedInt32Array, high: PackedInt32Array,
+		low: PackedInt32Array, zone_generation: PackedInt32Array) -> bool:
+	"""Shape; a free slot is NO_INTENT_PLAYER with zeros; a used one is nonnegative throughout."""
+	for column: PackedInt32Array in [player, high, low, zone_generation]:
+		if column.size() != INTENT_CAPACITY:
+			return false
+	for slot: int in INTENT_CAPACITY:
+		if player[slot] == NO_INTENT_PLAYER:
+			if high[slot] != 0 or low[slot] != 0 or zone_generation[slot] != 0:
+				return false
+		elif player[slot] < 0 or high[slot] < 0 or low[slot] < 0 or zone_generation[slot] < 0:
+			return false
+	return true

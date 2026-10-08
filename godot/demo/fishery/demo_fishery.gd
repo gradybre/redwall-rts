@@ -437,6 +437,13 @@ const RESERVE_NONE: String = "Ration reserve: none. Keep more ▶ holds one batc
 	+ "fish, nuts) back from the kitchen and the hungry until it is packed"
 const RELEASE_CAPTION: String = "Release food reserves"
 const KEEP_AGAIN_CAPTION: String = "Keep food reserves again"
+const RELEASED_NOTHING: String = "Food reserves released: nothing was held; nothing will be held back until you keep " \
+	+ "them again"
+const RELEASE_NOTHING_NOW: String = "Nothing is held now; nothing will be held back until you keep them again"
+const KEEP_AGAIN_RESERVE: String = "One batch of rations' food held back again from the kitchen and the hungry while " \
+	+ "rations are short"
+const KEEP_AGAIN_KEEP: String = "No reserve is kept; the dried fish a batch of rations needs is kept from raw eating " \
+	+ "again while it waits on that alone (1740)"
 
 
 func _on_reserve(action_name: StringName) -> bool:
@@ -454,63 +461,76 @@ func _on_reserve(action_name: StringName) -> bool:
 
 
 func step_reserve(steps: int) -> String:
-	"""UI-SET-099's stepper: the target moved by `steps` batches (3 U each), within its range. The answer."""
+	"""UI-SET-099's stepper: the target moved by `steps` batches (3 U each), within its range. The answer -- saying,
+	while released, that nothing is held until the reserves are kept again (the review of 72817b34)."""
+	@warning_ignore("integer_division")
+	var most: int = RationReserveScript.TARGET_CAP_MILLI / RationReserveScript.TARGET_STEP_MILLI
 	var target: int = fishery.set_ration_reserve_target(fishery.ration_reserve.target_milli
-		+ steps * RationReserveScript.TARGET_STEP_MILLI)
-	if target == 0:
-		return "Ration reserve: none — nothing is held back for rations"
-	return "Ration reserve: keep %s of rations" % Text.units(target)
+		+ clampi(steps, -most, most) * RationReserveScript.TARGET_STEP_MILLI)
+	var said: String = "Ration reserve: none — nothing is held back for rations" if target == 0 \
+		else "Ration reserve: keep %s of rations" % Text.units(target)
+	return "%s (released: nothing is held until you keep them again)" % said if fishery.ration_reserve.released \
+		else said
 
 
 func toggle_release() -> String:
-	"""The GDD's 5.10 emergency action (never taken by itself): free what the reserve holds -- its card said what --
-	or, released, keep the reserves again. The answer."""
+	"""The GDD's 5.10 emergency action (never taken by itself): free what the reserve and 1740's keep withhold -- its
+	card said what -- or, released, keep the reserves again. The answer."""
 	if fishery.ration_reserve.released:
 		fishery.release_ration_reserve(false)
 		var held: String = held_words()
 		return "Food reserves kept again: holding %s" % (held if not held.is_empty() else "nothing yet")
 	var freed: String = held_words()
 	fishery.release_ration_reserve(true)
-	return "Food reserves released: %s free for the kitchen and the hungry" % (freed if not freed.is_empty()
-		else "nothing was held, nothing is")
+	if freed.is_empty():
+		return RELEASED_NOTHING
+	return "Food reserves released: %s free for the kitchen and the hungry" % freed
 
 
 func held_words() -> String:
-	"""What the reserve holds, in words ("1.0 U dried fish, 1.0 U nuts, 2.0 U flour"; "" when nothing)."""
+	"""What is withheld from the kitchen and the hungry, in words: what the reserve holds ("1.0 U dried fish, 1.0 U nuts,
+	2.0 U flour") and the dried fish 1740's keep keeps from raw eating ("1.0 U dried fish kept from raw eating"); ""
+	when nothing."""
 	var parts := PackedStringArray()
 	for category: int in RationReserveScript.HELD:
 		var milli: int = fishery.ration_reserve.held_milli(category)
 		if milli > 0:
 			parts.append("%s %s" % [Text.units(milli), Recipes.category_words(category)])
+	var kept: int = mini(fishery.ration_keep_milli(Catalog.CAT_DRIED_FISH),
+		fishery.takes.free_milli_of_crop(fishery.pantry, Catalog.CAT_DRIED_FISH)) if fishery.takes != null else 0
+	if kept > 0:
+		parts.append("%s dried fish kept from raw eating" % Text.units(kept))
 	return ", ".join(parts)
 
 
 func reserve_text() -> String:
-	"""The reserve's line: what it keeps, what the village owns, and what it holds now (released: nothing)."""
+	"""The reserve's line, two lines: what it keeps and what the village owns; then released, what it holds, or nothing."""
 	var reserve: RationReserveScript = fishery.ration_reserve
-	if reserve.target_milli == 0:
-		return RESERVE_NONE
-	var head: String = "Ration reserve: keep %s of rations (%s owned)" % [Text.units(reserve.target_milli),
-		Text.units(fishery.rations_owned_milli())]
+	var head: String = RESERVE_NONE if reserve.target_milli == 0 else "Ration reserve: keep %s of rations (%s owned)" \
+		% [Text.units(reserve.target_milli), Text.units(fishery.rations_owned_milli())]
 	if reserve.released:
-		return "%s. Released for an emergency: nothing held" % head
+		return "%s\nReleased for an emergency: nothing held back until kept again" % head
 	var held: String = held_words()
-	return "%s. Holding %s" % [head, held] if not held.is_empty() else "%s. Holding nothing now" % head
+	if reserve.target_milli == 0 and held.is_empty():
+		return head
+	return "%s\nHolding %s" % [head, held] if not held.is_empty() else "%s\nHolding nothing now" % head
 
 
 func release_card() -> CardScript:
-	"""Release food reserves' card: what it frees (refused when nothing is held); released, keeping them again."""
+	"""Release food reserves' card: what it frees, or that nothing is held now and nothing will be until they are kept
+	again -- refused only with no reserve and no dried fish kept (the review of 72817b34); released, keeping them
+	again."""
 	if fishery.ration_reserve.released:
 		_card.reset(KEEP_AGAIN_CAPTION)
-		_card.result = "One batch of rations' food held back again from the kitchen and the hungry while rations are short"
+		_card.result = KEEP_AGAIN_RESERVE if fishery.ration_reserve.target_milli > 0 else KEEP_AGAIN_KEEP
 		return _card
 	_card.reset("%s (an emergency action)" % RELEASE_CAPTION)
 	var held: String = held_words()
-	if held.is_empty():
-		_card.refuse("NOTHING_HELD", "the ration reserve holds nothing now", "")
+	if fishery.ration_reserve.target_milli == 0 and held.is_empty():
+		_card.refuse("NO_RESERVE", "no reserve is kept and no food is held back", "Keep more ▶ sets a reserve")
 		return _card
-	_card.result = ("Frees %s at once, for the kitchen and the hungry; nothing is held back until you keep them "
-		+ "again") % held
+	_card.result = RELEASE_NOTHING_NOW if held.is_empty() else ("Frees %s at once, for the kitchen and the hungry; "
+		+ "nothing is held back until you keep them again") % held
 	return _card
 
 

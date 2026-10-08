@@ -147,6 +147,9 @@ const BREW_ACTIONS: Array[StringName] = [&"brew_mead", &"make_cordial"]
 const PRESERVE_ACTIONS_2: Array[StringName] = [&"make_jam", &"make_cheese"]
 const PRESERVE_ACTIONS_3: Array[StringName] = [&"make_vinegar", &"make_pickles"]
 const RESERVE_ACTIONS: Array[StringName] = [&"reserve_fewer", &"reserve_more", &"reserve_release"]
+## The reserve's line is at least this many lines tall, so its row does not jump when the reserve is released or kept
+## again (the review of 72817b34).
+const RESERVE_LINES: int = 2
 const BREW_ACTIONS_2: Array[StringName] = [&"brew_ale", &"make_cider"]
 const FERRY_ACTIONS: Array[StringName] = [&"ferry_gather", &"ferry_send", &"ferry_cancel"]
 const REGATTA_CHOICE_ACTIONS: Array[StringName] = [&"regatta_prev_day", &"regatta_next_day", &"regatta_host"]
@@ -744,6 +747,7 @@ func _place() -> void:
 	if not is_inside_tree():
 		_frame.visible = _zone_shown and not _detail_open
 		return
+	_hold_lines(&"reserve", RESERVE_LINES)
 	var size_px := get_viewport().get_visible_rect().size
 	var rect := DetailZone.panel_placement(int(size_px.x), int(size_px.y), FRAME_EXPAND, _zone_inset, _layout, _geometry)
 	_frame.scale = Vector2(_geometry.scale, _geometry.scale)
@@ -757,6 +761,14 @@ func _place() -> void:
 	_body.custom_minimum_size.y = clampf(_column.get_combined_minimum_size().y, 0.0, maxf(room, MIN_BODY_H))
 	_frame.size = Vector2(rect.size.x, 0.0)
 	_frame.visible = _zone_shown and not _detail_open
+
+
+func _hold_lines(key: StringName, lines: int) -> void:
+	"""Line `key` is at least `lines` lines of its own type tall (measured in the tree, where its font is known)."""
+	var label := _lines[key] as Label
+	var tall: float = float(label.get_line_height() * lines + label.get_theme_constant(&"line_spacing") * (lines - 1))
+	if not is_equal_approx(label.custom_minimum_size.y, tall):
+		label.custom_minimum_size.y = tall
 
 
 func _pinned_bare_height() -> float:

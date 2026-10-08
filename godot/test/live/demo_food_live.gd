@@ -380,17 +380,20 @@ func _reserve() -> RefCounted:
 
 func _the_reserve_row() -> void:
 	"""Decision 1742, Brendan's R5: the Preserves section's reserve line, its stepper and Release, each shown (the view
-	scrolled to it, settling before the first click)."""
+	scrolled to it, settling before the first click). Dried fish is stocked and the reserve tops up, so it holds some."""
+	_stock(Catalog.ITEM_DRIED_FISH, 1000)
+	_village.get("_fishery").get("fishery").call(&"top_up_ration_reserve")
 	var panel: CanvasLayer = _reserve_panel()
 	var text: String = panel.call(&"line", &"reserve")
-	_check("the reserve line says what it keeps", text.begins_with("Ration reserve: keep 6.0 U of rations"), text)
+	_check("the reserve line says what it keeps and holds", text.begins_with("Ration reserve: keep 6.0 U of rations")
+		and text.contains("1.0 U dried fish"), text.replace("\n", " / "))
 	for key: StringName in [&"reserve_fewer", &"reserve_more", &"reserve_release"]:
 		var button: Button = panel.call(&"button", key)
 		_check("%s is shown" % key, button != null and button.is_visible_in_tree() and not button.text.is_empty(),
 			button.text if button != null else "")
 	var release: Button = panel.call(&"button", &"reserve_release")
-	_check("Release's card says what it frees or that nothing is held", release.tooltip_text.contains("Frees")
-		or release.tooltip_text.contains("holds nothing"), release.tooltip_text.replace("\n", " / "))
+	_check("Release's card says what it frees", release.tooltip_text.contains("Frees") and not release.disabled,
+		release.tooltip_text.replace("\n", " / "))
 	_capture("reserve_row")
 
 
@@ -400,8 +403,11 @@ func _press_keep_more() -> void:
 
 
 func _keep_more_pressed() -> void:
-	"""Keep more stepped the target a batch up; Keep fewer is clicked."""
+	"""Keep more stepped the target a batch up, and the panel's own refresh (its _process, not this harness) shows it;
+	Keep fewer is clicked."""
 	_check("Keep more: 9 U", int(_reserve().get("target_milli")) == 9000, str(_reserve().get("target_milli")))
+	var line: String = _village.get("_waterplay").get("panel").call(&"line", &"reserve")
+	_check("the panel's own refresh shows it", line.begins_with("Ration reserve: keep 9.0 U"), line.replace("\n", " / "))
 	_press(&"reserve_fewer")
 
 

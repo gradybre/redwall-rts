@@ -744,31 +744,85 @@ func test_release_shows_what_it_frees_then_frees_it_and_keeps_them_again() -> vo
 	var rig := _reserve_rig([[Catalog.ITEM_DRIED_FISH, 1000], [Catalog.ITEM_NUTS, 1000], [Catalog.ITEM_FLOUR, 2000]])
 	var node := _reserve_node(rig)
 	var held: String = "1.0 U dried fish, 1.0 U nuts, 2.0 U flour"
-	assert_equal(node.reserve_text(), "Ration reserve: keep 6.0 U of rations (0 U owned). Holding %s" % held, "the line")
+	assert_equal(node.reserve_text(), "Ration reserve: keep 6.0 U of rations (0 U owned)\nHolding %s" % held, "the line")
 	var card: CardScript = node.release_card()
 	assert_true(card.is_ok() and card.result.begins_with("Frees %s at once" % held), card.result)
 	assert_equal(node.toggle_release(), "Food reserves released: %s free for the kitchen and the hungry" % held,
 		"the answer")
 	assert_true(node.fishery.ration_reserve.released, "released")
 	assert_equal(rig.takes.free_milli_of_crop(rig.pantry, Catalog.CAT_FLOUR), 2000, "the flour free")
-	assert_true(node.reserve_text().ends_with("Released for an emergency: nothing held"), node.reserve_text())
+	assert_true(node.reserve_text().ends_with("\nReleased for an emergency: nothing held back until kept again"),
+		node.reserve_text())
 	card = node.release_card()
 	assert_true(card.is_ok() and card.verb == DemoFisheryScript.KEEP_AGAIN_CAPTION, card.verb)
+	assert_equal(card.result, DemoFisheryScript.KEEP_AGAIN_RESERVE, "keeping a reserve again")
 	assert_equal(node.toggle_release(), "Food reserves kept again: holding %s" % held, "kept again")
 	assert_false(node.fishery.ration_reserve.released, "no longer released")
 
 
-func test_release_is_refused_with_nothing_held_and_the_row_is_dressed() -> void:
-	"""Nothing held: Release's card refuses (the button not pressable) and its press says nothing was held. The row:
-	Keep fewer off at none, Keep more off at the cap, Release's caption following the state; the panel's verbs route."""
+func test_release_with_nothing_held_is_still_offered_and_lasts() -> void:
+	"""The review of 72817b34 (MEDIUM): with a reserve kept but nothing held now, Release is still offered -- a release
+	lasts, so food arriving later is not held back -- and says so; its answer says nothing was held (M27). With no
+	reserve and nothing kept from raw eating, it is refused."""
+	var node := _reserve_node(_reserve_rig([]))
+	var card: CardScript = node.release_card()
+	assert_true(card.is_ok(), "offered")
+	assert_equal(card.result, DemoFisheryScript.RELEASE_NOTHING_NOW, "nothing now, nothing later")
+	assert_equal(node.toggle_release(), DemoFisheryScript.RELEASED_NOTHING, "the answer")
+	assert_true(node.fishery.ration_reserve.released, "released")
+	var none := _reserve_node(_rig())
+	assert_false(none.release_card().is_ok(), "no reserve, nothing kept: refused")
+	assert_equal(none.release_card().code, "NO_RESERVE", "why")
+
+
+func test_release_frees_1740_s_kept_dried_fish_with_no_reserve() -> void:
+	"""The review of 72817b34 (MEDIUM): with no reserve target, 1740's keep still keeps a batch's dried fish from raw
+	eating; the line says so, Release is offered and frees it."""
+	var rig := _rig()
+	for pair: Array in [[Catalog.ITEM_DRIED_FISH, 3000], [Catalog.ITEM_NUTS, 2000], [Catalog.ITEM_FLOUR, 4000]]:
+		assert_true(rig.pantry.add_into(int(pair[0]), int(pair[1]), 0, _read), "stocked")
+	var node := _reserve_node(rig)
+	assert_equal(node.fishery.ration_keep_milli(Catalog.CAT_DRIED_FISH), 1000, "1740's keep")
+	assert_true(node.reserve_text().ends_with("\nHolding 1.0 U dried fish kept from raw eating"), node.reserve_text())
+	var card: CardScript = node.release_card()
+	assert_true(card.is_ok() and card.result.begins_with("Frees 1.0 U dried fish kept from raw eating"), card.result)
+	node.toggle_release()
+	assert_equal(node.fishery.ration_keep_milli(Catalog.CAT_DRIED_FISH), 0, "freed")
+	assert_equal(node.release_card().result, DemoFisheryScript.KEEP_AGAIN_KEEP, "no reserve: keeping the keep again")
+
+
+func test_after_a_release_the_line_card_and_answers_agree() -> void:
+	"""The review of 72817b34 (MEDIUM): Release, then Keep fewer to none -- the line still says released, the answer says
+	nothing is held until they are kept again, the card keeps the keep again; Keep more then keeps a reserve again. The
+	line counts the rations owned (M20)."""
+	var rig := _reserve_rig([[Catalog.ITEM_RATION, 3000]])
+	var node := _reserve_node(rig)
+	assert_true(node.reserve_text().begins_with("Ration reserve: keep 6.0 U of rations (3.0 U owned)"), node.reserve_text())
+	node.toggle_release()
+	node.step_reserve(-1)
+	assert_equal(node.step_reserve(-1),
+		"Ration reserve: none — nothing is held back for rations (released: nothing is held until you keep them again)",
+		"the answer")
+	assert_true(node.reserve_text().begins_with(DemoFisheryScript.RESERVE_NONE)
+		and node.reserve_text().contains("Released for an emergency"), node.reserve_text())
+	assert_equal(node.release_card().result, DemoFisheryScript.KEEP_AGAIN_KEEP, "no reserve: the keep")
+	assert_true(node.step_reserve(1).ends_with("(released: nothing is held until you keep them again)"), "still released")
+	assert_equal(node.release_card().result, DemoFisheryScript.KEEP_AGAIN_RESERVE, "a reserve again")
+
+
+func test_the_reserve_row_is_dressed_and_routes_only_its_own() -> void:
+	"""The row: Keep fewer off at none, Keep more off at the cap, Release's caption following the state, the stepper's
+	tooltips (M24); its verbs route through the panel's actions, and every other action goes on to its own verb (M28)."""
 	var rig := _reserve_rig([])
 	var node := _reserve_node(rig)
-	assert_false(node.release_card().is_ok(), "nothing held: refused")
-	assert_equal(node.release_card().reason, "the ration reserve holds nothing now", "why")
 	var panel: WaterPanelScript = _keep(WaterPanelScript.new()) as WaterPanelScript
 	panel.build()
 	node._dress_reserve(panel)
-	assert_true(panel.button(WaterPanelScript.ACTION_RESERVE_RELEASE).disabled, "Release not pressable")
+	assert_false(panel.button(WaterPanelScript.ACTION_RESERVE_RELEASE).disabled, "Release offered")
+	assert_true(panel.button(WaterPanelScript.ACTION_RESERVE_RELEASE).tooltip_text.contains("Nothing is held now"),
+		panel.button(WaterPanelScript.ACTION_RESERVE_RELEASE).tooltip_text)
+	for key: StringName in [WaterPanelScript.ACTION_RESERVE_FEWER, WaterPanelScript.ACTION_RESERVE_MORE]:
+		assert_equal(panel.button(key).tooltip_text, WaterPanelScript.BUTTON_TIPS[key], "%s's tooltip" % key)
 	assert_equal([panel.button(WaterPanelScript.ACTION_RESERVE_FEWER).disabled,
 		panel.button(WaterPanelScript.ACTION_RESERVE_MORE).disabled], [false, false], "6 U: both ways open")
 	node.on_action(WaterPanelScript.ACTION_RESERVE_FEWER)
@@ -785,7 +839,11 @@ func test_release_is_refused_with_nothing_held_and_the_row_is_dressed() -> void:
 	node._dress_reserve(panel)
 	assert_equal(panel.button(WaterPanelScript.ACTION_RESERVE_RELEASE).text, DemoFisheryScript.KEEP_AGAIN_CAPTION,
 		"released: the caption keeps them again")
-	assert_false(panel.button(WaterPanelScript.ACTION_RESERVE_RELEASE).disabled, "and it is pressable")
 	node.on_action(WaterPanelScript.ACTION_RESERVE_RELEASE)
 	node._dress_reserve(panel)
 	assert_equal(panel.button(WaterPanelScript.ACTION_RESERVE_RELEASE).text, DemoFisheryScript.RELEASE_CAPTION, "kept")
+	assert_false(node._on_reserve(WaterPanelScript.ACTION_MILL), "not the reserve's")
+	var mill := _reserve_node(_rig())
+	assert_true(mill.fishery.pantry.add_into(WHEAT, 3000, 0, _read), "grain")
+	mill.on_action(WaterPanelScript.ACTION_MILL)
+	assert_equal(mill.fishery.tables.job_count(), 1, "Mill grain still reaches the mill")

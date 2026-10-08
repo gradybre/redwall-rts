@@ -623,13 +623,13 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 | Hive candidate scratch (i64) | `_cand_distance` | 8 | `LINKS_PER_RECIPIENT` = 6 | Refilled per selection | 3 | -- | Six-entry selection buffer used inside one hive-day pass. |
 | Hive candidate scratch (i32) | `_cand_persistent_id`, `_cand_slot`, `_cand_generation` | 4 | `LINKS_PER_RECIPIENT` = 6 | Refilled per selection | 3 | -- | See the first row of this group. |
 | Orchard/hive live counts | -- | -- | -- | -- | 2 | §4 COMPONENT_COLUMNS | `_o_live_count` and `_h_live_count`, recomputed with their active lists. |
-| Orchard/hive scratch | -- | -- | -- | -- | 3 | -- | `_cand_count`, `_math`, the `_owns_directory` construction flag and `_last_column_refusal`, the code of the most recent refused bulk column call (ADR 1222 step 2: `copy_columns_into()`/`restore_columns()` over the 25 section 4 columns, with both live lists rebuilt; the section 5 link arena round-trips through `link_state_bytes()`/`restore_links_from_state()`). |
+| Orchard/hive scratch | -- | -- | -- | -- | 3 | -- | `_cand_count`, `_math`, the `_owns_directory` construction flag and `_last_column_refusal`, the code of the most recent refused bulk column call (ADR 1222 step 2: `copy_columns_into()`/`restore_columns()` over the 25 section 4 columns, with both live lists rebuilt; the section 5 link arena moves through `copy_link_columns_into()`/`restore_link_columns()`, structure only, and ruling §3's revalidation re-proves it after the hives restore). |
 
 ### `godot/scripts/core/save_owner_orchard_hive.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Owner 10 framed-column bridge | -- | -- | -- | -- | 3 | -- | Stateless. `framed_refusal()`/`capture_into()`/`apply()` are static and build no module-level `var`; ADR 1222 build step 2, mirroring `save_owner_priorities.gd`'s pair. Judges a framed owner 10 block against `orchard_hive.gd`'s own `columns_refusal()`, and captures/applies its 25 §4.2 columns through `OrchardHive.copy_columns_into()`/`restore_columns()`. The owner's single §5 CHILD_ARENAS extent (`_link_hive_slot`/`_link_hive_generation`) is explicitly out of scope here; it round-trips through `link_state_bytes()`/`restore_links_from_state()` and the two `revalidate_*_after_load()` calls instead. |
+| Owner 10 framed-column bridge | -- | -- | -- | -- | 3 | -- | Stateless. `framed_refusal()`/`capture_into()`/`apply()` are static and build no module-level `var`; ADR 1222 build step 2, mirroring `save_owner_priorities.gd`'s pair. Judges a framed owner 10 block against `orchard_hive.gd`'s own `columns_refusal()`, and captures/applies its 25 §4.2 columns through `OrchardHive.copy_columns_into()`/`restore_columns()`. The owner's single §5 CHILD_ARENAS extent (`_link_hive_slot`/`_link_hive_generation`) is explicitly out of scope here; the joint bridge adds `capture_links_into()`/`apply_links()` over it (ADR 1222 step 3), structure only, with the two `revalidate_*_after_load()` calls re-proving it afterwards. |
 
 ### `godot/scripts/core/presentation_extract.gd`
 

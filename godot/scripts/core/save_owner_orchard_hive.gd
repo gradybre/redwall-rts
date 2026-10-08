@@ -48,6 +48,8 @@ const OrchardHive := preload("res://scripts/core/orchard_hive.gd")
 const Schema := preload("res://scripts/core/save_component_columns_schema.gd")
 const Section := preload("res://scripts/core/save_section_component_columns.gd")
 const SaveHeader := preload("res://scripts/core/save_header.gd")
+const ChildSection := preload("res://scripts/core/save_section_child_arenas.gd")
+const ChildSchema := preload("res://scripts/core/save_child_arenas_schema.gd")
 
 ## The section-local owner this bridge accepts, and the compiled metadata it demands of it.
 const OWNER_INDEX: int = 10
@@ -327,3 +329,56 @@ static func _refuse(code: StringName, detail: String) -> SaveHeader.Refusal:
 static func _accept() -> SaveHeader.Refusal:
 	"""The accepted result: an empty code and no detail."""
 	return SaveHeader.Refusal.new(SaveHeader.REFUSE_NONE, "")
+
+
+# --- ADR 1222 step 3: the section 5 link arena --------------------------------------------------
+
+
+## The section 5 owner index of `orchard_hive` and its two link ordinals.
+const CHILD_OWNER_INDEX: int = 4
+const CHILD_LINK_HIVE_SLOT: int = 0
+const CHILD_LINK_HIVE_GENERATION: int = 1
+## The section 5 block is missing, another owner's, or misshaped.
+const REFUSE_BLOCK_SHAPE: StringName = &"SAVE_ORCHARD_HIVE_BLOCK_SHAPE"
+
+
+static func _link_block_refusal(block: ChildSection.Block) -> SaveHeader.Refusal:
+	"""The block is orchard_hive's section 5 block and well shaped."""
+	if block == null or block.owner != CHILD_OWNER_INDEX \
+			or ChildSchema.OWNER_KEYS[CHILD_OWNER_INDEX] != OWNER_KEY or block.shape_detail() != "":
+		return _refuse(REFUSE_BLOCK_SHAPE,
+			"a well-shaped section 5 'orchard_hive' block is required")
+	return _accept()
+
+
+static func capture_links_into(store: OrchardHive, block: ChildSection.Block) -> SaveHeader.Refusal:
+	"""Write the 30720-row link arena into the section 5 block."""
+	var target: SaveHeader.Refusal = _link_block_refusal(block)
+	if not target.is_ok():
+		return target
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no OrchardHive store was supplied")
+	var slot: PackedInt32Array = PackedInt32Array()
+	var generation: PackedInt32Array = PackedInt32Array()
+	slot.resize(OrchardHive.LINK_CAPACITY)
+	generation.resize(OrchardHive.LINK_CAPACITY)
+	if not store.copy_link_columns_into(slot, generation):
+		return _refuse(store.last_column_refusal(), "OrchardHive link capture refused")
+	var written: SaveHeader.Refusal = block.set_i32_column(CHILD_LINK_HIVE_SLOT, slot)
+	if not written.is_ok():
+		return written
+	return block.set_i32_column(CHILD_LINK_HIVE_GENERATION, generation)
+
+
+static func apply_links(block: ChildSection.Block, store: OrchardHive) -> SaveHeader.Refusal:
+	"""Install the link arena (structure only); the caller re-proves it after hives restore."""
+	var target: SaveHeader.Refusal = _link_block_refusal(block)
+	if not target.is_ok():
+		return target
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no OrchardHive store was supplied")
+	if not store.restore_link_columns(block.i32_column(CHILD_LINK_HIVE_SLOT),
+			block.i32_column(CHILD_LINK_HIVE_GENERATION)):
+		return _refuse(store.last_column_refusal(), "OrchardHive link restore refused with %s"
+			% String(store.last_column_refusal()))
+	return _accept()

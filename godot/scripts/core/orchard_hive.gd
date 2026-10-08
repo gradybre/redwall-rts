@@ -3099,3 +3099,50 @@ func _refuse(code: StringName) -> OpResult:
 
 
 
+
+
+# --- ARCH-SAVE-002 section 5 link arena bulk pair (ADR 1222 build step 3) -----------------------
+#
+# Owner `orchard_hive`'s section 5 extent is the 30720-row HivePollinationLinks table. These two
+# calls move it as the registry's two columns. `restore_link_columns()` checks only structure --
+# each entry is the null reference or a live-shaped (slot, generation) pair -- because ruling §3
+# keeps the references untrusted until `revalidate_orchard_links_after_load()` and
+# `revalidate_farm_links_after_load()` re-prove them against the restored hives.
+
+const REFUSE_COLUMN_LINK: StringName = &"COLUMN_LINK"
+
+
+func copy_link_columns_into(out_slot: PackedInt32Array, out_generation: PackedInt32Array) -> bool:
+	"""Snapshot both link columns into caller-owned LINK_CAPACITY buffers. False = COLUMN_SHAPE."""
+	if out_slot.size() != LINK_CAPACITY or out_generation.size() != LINK_CAPACITY:
+		_last_column_refusal = REFUSE_COLUMN_SHAPE
+		return false
+	_refill_i32(out_slot, _link_hive_slot)
+	_refill_i32(out_generation, _link_hive_generation)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func restore_link_columns(slot: PackedInt32Array, generation: PackedInt32Array) -> bool:
+	"""Install both link columns after the structural check. False writes nothing."""
+	var code: StringName = link_columns_refusal(slot, generation)
+	if code != REFUSE_NONE:
+		_last_column_refusal = code
+		return false
+	_link_hive_slot = slot.duplicate()
+	_link_hive_generation = generation.duplicate()
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+static func link_columns_refusal(slot: PackedInt32Array,
+		generation: PackedInt32Array) -> StringName:
+	"""Shape, then every entry the null reference or a live-shaped Directory pair."""
+	if slot.size() != LINK_CAPACITY or generation.size() != LINK_CAPACITY:
+		return REFUSE_COLUMN_SHAPE
+	for row: int in LINK_CAPACITY:
+		if slot[row] == NULL_SLOT and generation[row] == NULL_GENERATION:
+			continue
+		if slot[row] < 0 or slot[row] >= EntityDirectory.DIRECTORY_CAPACITY or generation[row] <= 0:
+			return REFUSE_COLUMN_LINK
+	return REFUSE_NONE

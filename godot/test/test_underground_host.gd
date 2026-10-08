@@ -752,6 +752,7 @@ func test_fixed_ticks_drive_the_live_foreman_until_the_first_gap() -> void:
 	_stage(o, entry._output, &"wood", 7000)
 	_stage(o, entry._output, &"stone", 2000)
 	assert_true(_host.begin_underground_entry(near), "foreman planned and the walk begun: %s" % _host.last_refusal())
+	assert_equal(entry.error(), &"", "ADR1227: the successful start cleared the G11 refusal of the first attempt")
 	var walk: int = _expected_walk(o, worker, entry)
 	assert_equal(entry.walk_ticks_left(), walk, "BAL-WORK-003 ticks from its own pose")
 	var arrived: Array = _tick_until_registered(o, entry, worker)
@@ -772,6 +773,8 @@ func test_fixed_ticks_drive_the_live_foreman_until_the_first_gap() -> void:
 	assert_equal(last, 0, "and none once the prefix is done")
 	_assert_prefix_done(o, entry, worker)
 	assert_equal(tick - 1, DONE_TICK, "the finishing tick")
+	assert_false(_host.begin_underground_entry(near), "a finished entry re-raises the descent gap")
+	assert_equal(_host.last_refusal(), Settlement.UndergroundEntryRuntime.REFUSE_DESCENT_UNBUILT, "exact code")
 
 
 func _expected_walk(o: Session.Retirement.Owners, worker: Vector2i, entry: Settlement.UndergroundEntryRuntime) -> int:
@@ -825,6 +828,8 @@ func _assert_prefix_done(o: Session.Retirement.Owners, entry: Settlement.Undergr
 	is left live. The crew stays the only route actor (ADR1219 section 4) and keeps its tool."""
 	assert_false(entry.is_running(), "the chain no longer runs")
 	assert_equal(entry.step(), Settlement.UndergroundEntryRuntime.STEP_DONE, "the runtime finished the prefix")
+	assert_equal(entry.error(), Settlement.UndergroundEntryRuntime.REFUSE_DESCENT_UNBUILT, "and stopped at the descent")
+	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G9"), "named gap row G9")
 	var foreman: RefCounted = entry._foreman
 	assert_true(foreman.is_done() and foreman.error() == &"", "every planned task done, no refusal: %s" % foreman.error())
 	assert_equal(_done_ledger(o, foreman), DONE_LEDGER, "both installations and every cut with their exact Work, once")
@@ -1343,6 +1348,9 @@ func test_entry_runtime_progress_round_trips_at_a_stopped_step_and_resumes() -> 
 	var kind: PackedByteArray = bytes.duplicate()
 	kind.encode_s32(8, Progress.KIND_FOREMAN)
 	_expect_runtime_refusal(session, kind, Progress.REFUSE_VERSION)
+	var old: PackedByteArray = bytes.duplicate()
+	old.encode_s32(4, 1)
+	_expect_runtime_refusal(session, old, Progress.REFUSE_VERSION) # ADR1227: version-1 records, no migration.
 	var stale: PackedByteArray = bytes.duplicate()
 	stale.encode_s32(AT_RUNTIME_STORAGE + 4, bytes.decode_s32(AT_RUNTIME_STORAGE + 4) + 1)
 	_expect_runtime_refusal(session, stale, Progress.REFUSE_CREW)

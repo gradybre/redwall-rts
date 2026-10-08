@@ -24,6 +24,8 @@ const REFUSE_NO_TOOLED_MOLE: StringName = &"ENTRY_CREW_NO_TOOLED_MOLE"
 const REFUSE_SURFACE_ARRIVAL: StringName = &"ENTRY_SURFACE_ARRIVAL_MISSING"
 const REFUSE_CREW_LOST: StringName = &"ENTRY_CREW_LOST"
 const REFUSE_NO_REPLACEMENT: StringName = &"ENTRY_CREW_NO_REPLACEMENT"
+## ADR1227: the prefix is done and nothing past T0 is planned; the next room needs the descent (ADR 1209 stairs).
+const REFUSE_DESCENT_UNBUILT: StringName = &"ENTRY_DESCENT_UNBUILT"
 const INSTALLATIONS: int = 2 # The first-entry prefix: L0, then the T0 cuts and T0 (ADR1202).
 const STEP_NONE: int = 0
 const STEP_SITE: int = 1
@@ -36,6 +38,7 @@ const STEP_DONE: int = 7
 ## ADR1197 gap rows; an alert names the row that, once built, clears it.
 const GAPS: Dictionary = {
 	&"ENTRY_SITE_NONE_FOUND": "G1/G2 no surveyed entry site near the settlement",
+	&"ENTRY_DESCENT_UNBUILT": "G9 the first-entry prefix is built; the descent past T0 (ADR 1209 stairs, then the Kitchen dug to reachable height, DEC-054) is not planned yet (ADR 1227)",
 	&"ENTRY_CREW_NO_TOOLED_MOLE": "G11 no adult mole with an equipped basic tool (tool equipping is not gameplay yet)",
 	&"ROUTE_UNREGISTERED_RESIDENT_NEAR": "G5 a resident outside the entry crew stands within reach of the work area (surface Movement does not route residents around it yet; ADR 1219)",
 	&"ENTRY_SURFACE_ARRIVAL_MISSING": "G5 the crew mole has no surface pose to walk from, or could not be placed on the stair-top anchor (ADR 1219)",
@@ -113,7 +116,8 @@ func start(session: RefCounted, near: Vector3i) -> StringName:
 	if code == &"" and _step < STEP_CREW: code = _select_crew(o)
 	if code == &"" and _step < STEP_RUNNING: code = _plan_foreman(o)
 	if code == &"" and _step == STEP_RUNNING and _foreman.error() != &"": code = _foreman.error()
-	return _stop(code) if code != &"" else &""
+	if code == &"" and _step == STEP_DONE: code = REFUSE_DESCENT_UNBUILT
+	return _stop(code) # ADR1227: a successful attempt clears the previous attempt's refusal.
 
 
 func walk_ticks_left() -> int:
@@ -135,8 +139,9 @@ func advance(tick: int) -> StringName:
 	if not _crew_ready(): return &""
 	code = _foreman.advance(tick)
 	if code != &"": return _stop(code)
-	if _foreman.is_done(): _step = STEP_DONE
-	return &""
+	if not _foreman.is_done(): return &""
+	_step = STEP_DONE
+	return _stop(REFUSE_DESCENT_UNBUILT) # ADR1227: raised once, on the finishing tick (G9).
 
 
 func _halt(code: StringName) -> StringName:
@@ -230,7 +235,7 @@ func _bind_dispatcher(o: RefCounted) -> StringName:
 
 
 func _stop(code: StringName) -> StringName:
-	"""Retain the first refusal of this attempt."""
+	"""Retain this attempt's refusal, or clear the last one when the attempt succeeded (empty `code`)."""
 	_error = code
 	return code
 

@@ -8,7 +8,9 @@ extends RefCounted
 const Routes := preload("res://scripts/core/underground_routes.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const MAGIC: int = 0x50544E45 # "ENTP"
-const VERSION: int = 1
+## ADR1227: 2 since a successful start clears the runtime's earlier refusal; a version-1 record is refused with
+## ENTRY_SAVE_VERSION (no migration before 1.0, DEC-055 item 1).
+const VERSION: int = 2
 const KIND_RUNTIME: int = 1
 const KIND_FOREMAN: int = 2
 const CODE_BYTES: int = 64 # A refusal code, ASCII, zero-padded.

@@ -368,6 +368,23 @@ const REFUSE_NOT_SPRING: StringName = &"NOT_SPRING"
 const REFUSE_LINKS_STALE: StringName = &"POLLINATION_LINKS_STALE"
 const REFUSE_OVERFLOW: StringName = &"OVERFLOW"
 
+## §4 COMPONENT_COLUMNS owner-10 column codes (ADR 1222 build step 2), one per gate of
+## `columns_refusal()`. These never travel through an `OpResult`; see `last_column_refusal()`.
+const REFUSE_COLUMN_SHAPE: StringName = &"COLUMN_SHAPE"
+const REFUSE_COLUMN_ORCHARD_PRESENT: StringName = &"COLUMN_ORCHARD_PRESENT"
+const REFUSE_COLUMN_HIVE_PRESENT: StringName = &"COLUMN_HIVE_PRESENT"
+const REFUSE_COLUMN_ORCHARD_SPECIES: StringName = &"COLUMN_ORCHARD_SPECIES"
+const REFUSE_COLUMN_ORCHARD_GROWTH: StringName = &"COLUMN_ORCHARD_GROWTH"
+const REFUSE_COLUMN_ORCHARD_FLAGS: StringName = &"COLUMN_ORCHARD_FLAGS"
+const REFUSE_COLUMN_ORCHARD_ORIGIN: StringName = &"COLUMN_ORCHARD_ORIGIN"
+const REFUSE_COLUMN_ORCHARD_REF: StringName = &"COLUMN_ORCHARD_REF"
+const REFUSE_COLUMN_HIVE_BUILDING: StringName = &"COLUMN_HIVE_BUILDING"
+const REFUSE_COLUMN_HIVE_STRENGTH: StringName = &"COLUMN_HIVE_STRENGTH"
+const REFUSE_COLUMN_HIVE_SERVICED_DAY: StringName = &"COLUMN_HIVE_SERVICED_DAY"
+const REFUSE_COLUMN_HIVE_STORES: StringName = &"COLUMN_HIVE_STORES"
+const REFUSE_COLUMN_HIVE_FOOTPRINT: StringName = &"COLUMN_HIVE_FOOTPRINT"
+const REFUSE_COLUMN_HIVE_REF: StringName = &"COLUMN_HIVE_REF"
+
 
 class OpResult:
 	"""Outcome of one orchard, hive or pollination operation.
@@ -548,6 +565,11 @@ var _cand_count: int = 0
 ## Checked-arithmetic scratch for int_math's `_into` forms. Nothing here invokes a callback or a
 ## signal, so no public operation can re-enter while it holds a live value.
 var _math: IntMath.IntResult = IntMath.IntResult.new()
+
+## The code of the most recent refused bulk column call, or REFUSE_NONE. Category 3: a
+## diagnostic channel separate from every mutator's OpResult, never saved or hashed (ADR 1222
+## build step 2, mirroring `priorities.gd`'s pair).
+var _last_column_refusal: StringName = REFUSE_NONE
 
 
 func _init(p_directory: EntityDirectory = null) -> void:
@@ -2483,6 +2505,580 @@ func revalidate_farm_links_after_load(farm_row: int, tile_x: int, tile_z: int) -
 		return _succeed(0, NULL_REF)
 	_write_slice(farm_row)
 	return _succeed(1, NULL_REF)
+
+
+# --- ARCH-SAVE-002 section 4 bulk column API (ADR 1222 build step 2) ----------------------------
+#
+# Owner 10's capture and apply steps, mirroring `priorities.gd`'s pair. `columns_refusal()` is a
+# PURE static predicate over the 25 §4.2 columns of owner 10, in the canonical ordinal order
+# `save_component_columns_schema.gd` declares for owner 10 (fields 207..231). It reads no
+# directory, clock or catalog, allocates nothing and touches no live store.
+#
+# WHAT IS COVERED AND WHAT IS NOT. These are the 25 section-4 fields only: the eleven OrchardPlot
+# columns and the fourteen Hive columns, not `_o_live_slots`/`_h_live_slots` (category 2, rebuilt
+# below) and NOT `_link_hive_slot`/`_link_hive_generation` -- those are owner 10's own §5
+# CHILD_ARENAS extent (ruling §3's 30720-row HivePollinationLinks table) and are intentionally
+# left out of this section-4 predicate and this bulk pair; they round-trip through
+# `link_state_bytes()`/`restore_links_from_state()` and the two `revalidate_*_after_load()` calls,
+# which a caller must run separately after `restore_columns()`.
+#
+# A present row is validated against the exact ranges `plant_orchard()`, `create_hive()`,
+# `restore_orchard_state()` and `restore_hive_state()` already enforce. An inactive (not present)
+# row is required to hold EXACTLY what `_clear_orchard_columns()`/`_clear_hive_columns()` leave:
+# this predicate is deliberately stricter than `resource_nodes.gd`'s, which retains an inactive
+# row's history, because nothing in this store's §5.6 arithmetic reads a felled tree's or an
+# abandoned hive's retained numbers the way a stump's catalog id survives there.
+#
+# `restore_columns()` writes nothing on refusal, installs all 25 columns, then REBUILDS the
+# category-2 active lists (`_o_live_slots`/`_o_live_count`, `_h_live_slots`/`_h_live_count`)
+# ascending from the installed presence bytes, exactly as `_insert_live_orchard()`/
+# `_insert_live_hive()` leave them. `_directory`, every link column and every scratch member are
+# untouched.
+
+class Columns:
+	"""Caller-owned image of owner 10's 25 category-1 columns, in registry ordinal order.
+
+	One object per save or load, never per resident (ARCH-MEM-001). `copy_columns_into()` refills
+	the buffers in place and refuses a wrongly sized one rather than resizing it.
+	"""
+	var o_present: PackedByteArray = PackedByteArray()
+	var h_present: PackedByteArray = PackedByteArray()
+	var o_species_id: PackedInt32Array = PackedInt32Array()
+	var o_age_days: PackedInt32Array = PackedInt32Array()
+	var o_health: PackedInt32Array = PackedInt32Array()
+	var o_chill_days: PackedInt32Array = PackedInt32Array()
+	var o_tended_today: PackedByteArray = PackedByteArray()
+	var o_harvested_year: PackedByteArray = PackedByteArray()
+	var o_origin_x: PackedInt32Array = PackedInt32Array()
+	var o_origin_z: PackedInt32Array = PackedInt32Array()
+	var o_ref_slot: PackedInt32Array = PackedInt32Array()
+	var o_ref_generation: PackedInt32Array = PackedInt32Array()
+	var h_building_slot: PackedInt32Array = PackedInt32Array()
+	var h_building_generation: PackedInt32Array = PackedInt32Array()
+	var h_strength: PackedInt32Array = PackedInt32Array()
+	var h_serviced_day: PackedInt32Array = PackedInt32Array()
+	var h_feed_milli: PackedInt64Array = PackedInt64Array()
+	var h_honey_milli: PackedInt64Array = PackedInt64Array()
+	var h_wax_milli: PackedInt64Array = PackedInt64Array()
+	var h_min_tile_x: PackedInt32Array = PackedInt32Array()
+	var h_min_tile_z: PackedInt32Array = PackedInt32Array()
+	var h_max_tile_x: PackedInt32Array = PackedInt32Array()
+	var h_max_tile_z: PackedInt32Array = PackedInt32Array()
+	var h_ref_slot: PackedInt32Array = PackedInt32Array()
+	var h_ref_generation: PackedInt32Array = PackedInt32Array()
+
+	## Each member is resized BY NAME, never through a loop over a temporary array literal: a
+	## Packed*Array copied into a loop variable detaches on its first write (copy-on-write), so
+	## resizing the loop variable would leave the member itself at size zero.
+	func _init() -> void:
+		"""Size all 25 columns to the shared 1024-row extent, then fill the empty-store image."""
+		o_present.resize(ORCHARD_CAPACITY)
+		h_present.resize(ORCHARD_CAPACITY)
+		o_species_id.resize(ORCHARD_CAPACITY)
+		o_age_days.resize(ORCHARD_CAPACITY)
+		o_health.resize(ORCHARD_CAPACITY)
+		o_chill_days.resize(ORCHARD_CAPACITY)
+		o_tended_today.resize(ORCHARD_CAPACITY)
+		o_harvested_year.resize(ORCHARD_CAPACITY)
+		o_origin_x.resize(ORCHARD_CAPACITY)
+		o_origin_z.resize(ORCHARD_CAPACITY)
+		o_ref_slot.resize(ORCHARD_CAPACITY)
+		o_ref_generation.resize(ORCHARD_CAPACITY)
+		h_building_slot.resize(ORCHARD_CAPACITY)
+		h_building_generation.resize(ORCHARD_CAPACITY)
+		h_strength.resize(ORCHARD_CAPACITY)
+		h_serviced_day.resize(ORCHARD_CAPACITY)
+		h_feed_milli.resize(ORCHARD_CAPACITY)
+		h_honey_milli.resize(ORCHARD_CAPACITY)
+		h_wax_milli.resize(ORCHARD_CAPACITY)
+		h_min_tile_x.resize(ORCHARD_CAPACITY)
+		h_min_tile_z.resize(ORCHARD_CAPACITY)
+		h_max_tile_x.resize(ORCHARD_CAPACITY)
+		h_max_tile_z.resize(ORCHARD_CAPACITY)
+		h_ref_slot.resize(ORCHARD_CAPACITY)
+		h_ref_generation.resize(ORCHARD_CAPACITY)
+		clear()
+
+	func clear() -> void:
+		"""Refill every column with what the store's own `clear()` leaves."""
+		o_present.fill(0)
+		h_present.fill(0)
+		o_species_id.fill(SPECIES_NONE)
+		o_age_days.fill(0)
+		o_health.fill(0)
+		o_chill_days.fill(0)
+		o_tended_today.fill(0)
+		o_harvested_year.fill(0)
+		o_origin_x.fill(NO_ROW)
+		o_origin_z.fill(NO_ROW)
+		o_ref_slot.fill(NULL_SLOT)
+		o_ref_generation.fill(NULL_GENERATION)
+		h_building_slot.fill(NULL_SLOT)
+		h_building_generation.fill(NULL_GENERATION)
+		h_strength.fill(0)
+		h_serviced_day.fill(NO_SERVICE_DAY)
+		h_feed_milli.fill(0)
+		h_honey_milli.fill(0)
+		h_wax_milli.fill(0)
+		h_min_tile_x.fill(NO_ROW)
+		h_min_tile_z.fill(NO_ROW)
+		h_max_tile_x.fill(NO_ROW)
+		h_max_tile_z.fill(NO_ROW)
+		h_ref_slot.fill(NULL_SLOT)
+		h_ref_generation.fill(NULL_GENERATION)
+
+	func equals(other: Columns) -> bool:
+		"""True when all 25 columns are byte-identical. Proves a refusal changed nothing."""
+		return other != null and o_present == other.o_present and h_present == other.h_present \
+			and o_species_id == other.o_species_id and o_age_days == other.o_age_days \
+			and o_health == other.o_health and o_chill_days == other.o_chill_days \
+			and o_tended_today == other.o_tended_today \
+			and o_harvested_year == other.o_harvested_year and o_origin_x == other.o_origin_x \
+			and o_origin_z == other.o_origin_z and o_ref_slot == other.o_ref_slot \
+			and o_ref_generation == other.o_ref_generation \
+			and h_building_slot == other.h_building_slot \
+			and h_building_generation == other.h_building_generation \
+			and h_strength == other.h_strength and h_serviced_day == other.h_serviced_day \
+			and h_feed_milli == other.h_feed_milli and h_honey_milli == other.h_honey_milli \
+			and h_wax_milli == other.h_wax_milli and h_min_tile_x == other.h_min_tile_x \
+			and h_min_tile_z == other.h_min_tile_z and h_max_tile_x == other.h_max_tile_x \
+			and h_max_tile_z == other.h_max_tile_z and h_ref_slot == other.h_ref_slot \
+			and h_ref_generation == other.h_ref_generation
+
+
+func last_column_refusal() -> StringName:
+	"""The code of the most recent refused bulk column call, or REFUSE_NONE after a success."""
+	return _last_column_refusal
+
+
+func copy_columns_into(out: Columns) -> bool:
+	"""Copy owner 10's 25 category-1 columns into caller-owned buffers. False refuses; unchanged.
+
+	The ONLY reader of a free row's bytes. The copies are snapshots: mutating `out` afterwards
+	cannot reach a column, and a later write here cannot reach `out`.
+	"""
+	if not _columns_are_capacity_sized(out):
+		_last_column_refusal = REFUSE_COLUMN_SHAPE
+		return false
+	_copy_orchard_columns_into(out)
+	_copy_hive_columns_into(out)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func _copy_orchard_columns_into(out: Columns) -> void:
+	"""Refill the eleven OrchardPlot columns and the orchard presence byte of a sized `out`."""
+	_refill_u8(out.o_present, _o_present)
+	_refill_i32(out.o_species_id, _o_species_id)
+	_refill_i32(out.o_age_days, _o_age_days)
+	_refill_i32(out.o_health, _o_health)
+	_refill_i32(out.o_chill_days, _o_chill_days)
+	_refill_u8(out.o_tended_today, _o_tended_today)
+	_refill_u8(out.o_harvested_year, _o_harvested_year)
+	_refill_i32(out.o_origin_x, _o_origin_x)
+	_refill_i32(out.o_origin_z, _o_origin_z)
+	_refill_i32(out.o_ref_slot, _o_ref_slot)
+	_refill_i32(out.o_ref_generation, _o_ref_generation)
+
+
+func _copy_hive_columns_into(out: Columns) -> void:
+	"""Refill the fourteen Hive columns and the hive presence byte of a sized `out`."""
+	_refill_u8(out.h_present, _h_present)
+	_refill_i32(out.h_building_slot, _h_building_slot)
+	_refill_i32(out.h_building_generation, _h_building_generation)
+	_refill_i32(out.h_strength, _h_strength)
+	_refill_i32(out.h_serviced_day, _h_serviced_day)
+	_refill_i64(out.h_feed_milli, _h_feed_milli)
+	_refill_i64(out.h_honey_milli, _h_honey_milli)
+	_refill_i64(out.h_wax_milli, _h_wax_milli)
+	_refill_i32(out.h_min_tile_x, _h_min_tile_x)
+	_refill_i32(out.h_min_tile_z, _h_min_tile_z)
+	_refill_i32(out.h_max_tile_x, _h_max_tile_x)
+	_refill_i32(out.h_max_tile_z, _h_max_tile_z)
+	_refill_i32(out.h_ref_slot, _h_ref_slot)
+	_refill_i32(out.h_ref_generation, _h_ref_generation)
+
+
+func restore_columns(columns: Columns) -> bool:
+	"""Replace all 25 columns and rebuild both active lists. False refuses; nothing is written.
+
+	Allocate before consume (decision 0059): the shape guard and the whole `columns_refusal()` run
+	before the first write, so a refusal leaves every column and both active lists byte-identical.
+	Neither link column nor the directory is touched; see the header above this section.
+	"""
+	var refusal: StringName = REFUSE_COLUMN_SHAPE
+	if _columns_are_capacity_sized(columns):
+		refusal = columns_refusal(columns.o_present, columns.h_present, columns.o_species_id,
+			columns.o_age_days, columns.o_health, columns.o_chill_days, columns.o_tended_today,
+			columns.o_harvested_year, columns.o_origin_x, columns.o_origin_z, columns.o_ref_slot,
+			columns.o_ref_generation, columns.h_building_slot, columns.h_building_generation,
+			columns.h_strength, columns.h_serviced_day, columns.h_feed_milli,
+			columns.h_honey_milli, columns.h_wax_milli, columns.h_min_tile_x,
+			columns.h_min_tile_z, columns.h_max_tile_x, columns.h_max_tile_z, columns.h_ref_slot,
+			columns.h_ref_generation)
+	if refusal != REFUSE_NONE:
+		_last_column_refusal = refusal
+		return false
+	_install_columns(columns)
+	_rebuild_orchard_live_list()
+	_rebuild_hive_live_list()
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func _install_columns(columns: Columns) -> void:
+	"""Take private copies of all 25 installed columns. The caller's buffers are never aliased."""
+	_o_present = columns.o_present.duplicate()
+	_h_present = columns.h_present.duplicate()
+	_o_species_id = columns.o_species_id.duplicate()
+	_o_age_days = columns.o_age_days.duplicate()
+	_o_health = columns.o_health.duplicate()
+	_o_chill_days = columns.o_chill_days.duplicate()
+	_o_tended_today = columns.o_tended_today.duplicate()
+	_o_harvested_year = columns.o_harvested_year.duplicate()
+	_o_origin_x = columns.o_origin_x.duplicate()
+	_o_origin_z = columns.o_origin_z.duplicate()
+	_o_ref_slot = columns.o_ref_slot.duplicate()
+	_o_ref_generation = columns.o_ref_generation.duplicate()
+	_h_building_slot = columns.h_building_slot.duplicate()
+	_h_building_generation = columns.h_building_generation.duplicate()
+	_h_strength = columns.h_strength.duplicate()
+	_h_serviced_day = columns.h_serviced_day.duplicate()
+	_h_feed_milli = columns.h_feed_milli.duplicate()
+	_h_honey_milli = columns.h_honey_milli.duplicate()
+	_h_wax_milli = columns.h_wax_milli.duplicate()
+	_h_min_tile_x = columns.h_min_tile_x.duplicate()
+	_h_min_tile_z = columns.h_min_tile_z.duplicate()
+	_h_max_tile_x = columns.h_max_tile_x.duplicate()
+	_h_max_tile_z = columns.h_max_tile_z.duplicate()
+	_h_ref_slot = columns.h_ref_slot.duplicate()
+	_h_ref_generation = columns.h_ref_generation.duplicate()
+
+
+func _rebuild_orchard_live_list() -> void:
+	"""Rebuild `_o_live_slots`/`_o_live_count` ascending from the installed presence bytes."""
+	_o_live_count = 0
+	for slot: int in ORCHARD_CAPACITY:
+		if _o_present[slot] == 1:
+			_o_live_slots[_o_live_count] = slot
+			_o_live_count += 1
+	for slot: int in range(_o_live_count, ORCHARD_CAPACITY):
+		_o_live_slots[slot] = NULL_SLOT
+
+
+func _rebuild_hive_live_list() -> void:
+	"""Rebuild `_h_live_slots`/`_h_live_count` ascending from the installed presence bytes."""
+	_h_live_count = 0
+	for slot: int in HIVE_CAPACITY:
+		if _h_present[slot] == 1:
+			_h_live_slots[_h_live_count] = slot
+			_h_live_count += 1
+	for slot: int in range(_h_live_count, HIVE_CAPACITY):
+		_h_live_slots[slot] = NULL_SLOT
+
+
+static func _columns_are_capacity_sized(columns: Columns) -> bool:
+	"""The shared null and extent guard of both bulk calls, before any indexed read."""
+	if columns == null:
+		return false
+	return _columns_are_capacity_sized_args(columns.o_present, columns.h_present,
+		columns.o_species_id, columns.o_age_days, columns.o_health, columns.o_chill_days,
+		columns.o_tended_today, columns.o_harvested_year, columns.o_origin_x, columns.o_origin_z,
+		columns.o_ref_slot, columns.o_ref_generation, columns.h_building_slot,
+		columns.h_building_generation, columns.h_strength, columns.h_serviced_day,
+		columns.h_feed_milli, columns.h_honey_milli, columns.h_wax_milli, columns.h_min_tile_x,
+		columns.h_min_tile_z, columns.h_max_tile_x, columns.h_max_tile_z, columns.h_ref_slot,
+		columns.h_ref_generation)
+
+
+static func _refill_u8(out: PackedByteArray, source: PackedByteArray) -> void:
+	"""Refill a caller's byte buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
+
+
+static func _refill_i32(out: PackedInt32Array, source: PackedInt32Array) -> void:
+	"""Refill a caller's int32 buffer in place with a snapshot of one column."""
+	out.clear()
+	out.append_array(source)
+
+
+static func _refill_i64(out: PackedInt64Array, source: PackedInt64Array) -> void:
+	"""Refill a caller's int64 buffer in place with a snapshot of one column."""
+	out.clear()
+	out.append_array(source)
+
+
+static func columns_refusal(o_present: PackedByteArray, h_present: PackedByteArray,
+		o_species_id: PackedInt32Array, o_age_days: PackedInt32Array, o_health: PackedInt32Array,
+		o_chill_days: PackedInt32Array, o_tended_today: PackedByteArray,
+		o_harvested_year: PackedByteArray, o_origin_x: PackedInt32Array,
+		o_origin_z: PackedInt32Array, o_ref_slot: PackedInt32Array,
+		o_ref_generation: PackedInt32Array, h_building_slot: PackedInt32Array,
+		h_building_generation: PackedInt32Array, h_strength: PackedInt32Array,
+		h_serviced_day: PackedInt32Array, h_feed_milli: PackedInt64Array,
+		h_honey_milli: PackedInt64Array, h_wax_milli: PackedInt64Array,
+		h_min_tile_x: PackedInt32Array, h_min_tile_z: PackedInt32Array,
+		h_max_tile_x: PackedInt32Array, h_max_tile_z: PackedInt32Array,
+		h_ref_slot: PackedInt32Array, h_ref_generation: PackedInt32Array) -> StringName:
+	"""Pure: the first refused gate (shape, flags, orchard, hive) over fields 207..231, or NONE."""
+	if not _columns_are_capacity_sized_args(o_present, h_present, o_species_id, o_age_days,
+			o_health, o_chill_days, o_tended_today, o_harvested_year, o_origin_x, o_origin_z,
+			o_ref_slot, o_ref_generation, h_building_slot, h_building_generation, h_strength,
+			h_serviced_day, h_feed_milli, h_honey_milli, h_wax_milli, h_min_tile_x, h_min_tile_z,
+			h_max_tile_x, h_max_tile_z, h_ref_slot, h_ref_generation):
+		return REFUSE_COLUMN_SHAPE
+	var code: StringName = _column_present_flag_refusal(o_present, h_present)
+	if code == REFUSE_NONE:
+		code = _column_orchard_refusal(o_present, o_species_id, o_age_days, o_health,
+			o_chill_days, o_tended_today, o_harvested_year, o_origin_x, o_origin_z, o_ref_slot,
+			o_ref_generation)
+	if code != REFUSE_NONE:
+		return code
+	return _column_hive_refusal(h_present, h_building_slot, h_building_generation, h_strength,
+		h_serviced_day, h_feed_milli, h_honey_milli, h_wax_milli, h_min_tile_x, h_min_tile_z,
+		h_max_tile_x, h_max_tile_z, h_ref_slot, h_ref_generation)
+
+
+static func _columns_are_capacity_sized_args(o_present: PackedByteArray, h_present: PackedByteArray,
+		o_species_id: PackedInt32Array, o_age_days: PackedInt32Array, o_health: PackedInt32Array,
+		o_chill_days: PackedInt32Array, o_tended_today: PackedByteArray,
+		o_harvested_year: PackedByteArray, o_origin_x: PackedInt32Array,
+		o_origin_z: PackedInt32Array, o_ref_slot: PackedInt32Array,
+		o_ref_generation: PackedInt32Array, h_building_slot: PackedInt32Array,
+		h_building_generation: PackedInt32Array, h_strength: PackedInt32Array,
+		h_serviced_day: PackedInt32Array, h_feed_milli: PackedInt64Array,
+		h_honey_milli: PackedInt64Array, h_wax_milli: PackedInt64Array,
+		h_min_tile_x: PackedInt32Array, h_min_tile_z: PackedInt32Array,
+		h_max_tile_x: PackedInt32Array, h_max_tile_z: PackedInt32Array,
+		h_ref_slot: PackedInt32Array, h_ref_generation: PackedInt32Array) -> bool:
+	"""Gate 1 as free arguments: all 25 columns are exactly 1024 long, before any indexed read."""
+	var u8: Array[PackedByteArray] = [o_present, h_present, o_tended_today, o_harvested_year]
+	for column: PackedByteArray in u8:
+		if column.size() != ORCHARD_CAPACITY:
+			return false
+	var i32: Array[PackedInt32Array] = [o_species_id, o_age_days, o_health, o_chill_days,
+		o_origin_x, o_origin_z, o_ref_slot, o_ref_generation, h_building_slot,
+		h_building_generation, h_strength, h_serviced_day, h_min_tile_x, h_min_tile_z,
+		h_max_tile_x, h_max_tile_z, h_ref_slot, h_ref_generation]
+	for column: PackedInt32Array in i32:
+		if column.size() != ORCHARD_CAPACITY:
+			return false
+	for column: PackedInt64Array in [h_feed_milli, h_honey_milli, h_wax_milli]:
+		if column.size() != ORCHARD_CAPACITY:
+			return false
+	return true
+
+
+static func _column_present_flag_refusal(o_present: PackedByteArray,
+		h_present: PackedByteArray) -> StringName:
+	"""Gates 2 and 3: both occupancy bytes hold nothing but 0 and 1, each over the whole image."""
+	if o_present.count(0) + o_present.count(1) != ORCHARD_CAPACITY:
+		return REFUSE_COLUMN_ORCHARD_PRESENT
+	if h_present.count(0) + h_present.count(1) != HIVE_CAPACITY:
+		return REFUSE_COLUMN_HIVE_PRESENT
+	return REFUSE_NONE
+
+
+static func _column_orchard_refusal(present: PackedByteArray, species_id: PackedInt32Array,
+		age_days: PackedInt32Array, health: PackedInt32Array, chill_days: PackedInt32Array,
+		tended_today: PackedByteArray, harvested_year: PackedByteArray,
+		origin_x: PackedInt32Array, origin_z: PackedInt32Array, ref_slot: PackedInt32Array,
+		ref_generation: PackedInt32Array) -> StringName:
+	"""The five OrchardPlot row gates, each a separate whole-image sweep, in fixed order."""
+	var species: StringName = _column_orchard_species_refusal(present, species_id)
+	if species != REFUSE_NONE:
+		return species
+	var growth: StringName = _column_orchard_growth_refusal(present, age_days, health, chill_days)
+	if growth != REFUSE_NONE:
+		return growth
+	var daily: StringName = _column_orchard_daily_refusal(present, tended_today, harvested_year)
+	if daily != REFUSE_NONE:
+		return daily
+	var origin: StringName = _column_orchard_origin_refusal(present, origin_x, origin_z)
+	if origin != REFUSE_NONE:
+		return origin
+	return _column_orchard_ref_refusal(present, ref_slot, ref_generation)
+
+
+static func _column_orchard_species_refusal(present: PackedByteArray,
+		species_id: PackedInt32Array) -> StringName:
+	"""A present block carries one of the two compiled species; an inactive row carries none."""
+	for slot: int in ORCHARD_CAPACITY:
+		if present[slot] == 1:
+			if not is_species(species_id[slot]):
+				return REFUSE_COLUMN_ORCHARD_SPECIES
+		elif species_id[slot] != SPECIES_NONE:
+			return REFUSE_COLUMN_ORCHARD_SPECIES
+	return REFUSE_NONE
+
+
+static func _column_orchard_growth_refusal(present: PackedByteArray, age_days: PackedInt32Array,
+		health: PackedInt32Array, chill_days: PackedInt32Array) -> StringName:
+	"""A present block's age, §4.1 health and winter chill count stay in their §5.6 ranges.
+
+	An inactive row holds exactly zero in all three, as `_clear_orchard_columns()` leaves it;
+	`restore_orchard_state()` folds the same three checks under one code and so does this gate.
+	"""
+	for slot: int in ORCHARD_CAPACITY:
+		if present[slot] == 1:
+			if age_days[slot] < 0 or health[slot] < HEALTH_MIN or health[slot] > HEALTH_MAX \
+					or chill_days[slot] < 0 or chill_days[slot] > DAYS_PER_SEASON:
+				return REFUSE_COLUMN_ORCHARD_GROWTH
+		elif age_days[slot] != 0 or health[slot] != 0 or chill_days[slot] != 0:
+			return REFUSE_COLUMN_ORCHARD_GROWTH
+	return REFUSE_NONE
+
+
+static func _column_orchard_daily_refusal(present: PackedByteArray,
+		tended_today: PackedByteArray, harvested_year: PackedByteArray) -> StringName:
+	"""Both daily/yearly latches are boolean everywhere, and clear on every inactive row."""
+	if tended_today.count(0) + tended_today.count(1) != ORCHARD_CAPACITY:
+		return REFUSE_COLUMN_ORCHARD_FLAGS
+	if harvested_year.count(0) + harvested_year.count(1) != ORCHARD_CAPACITY:
+		return REFUSE_COLUMN_ORCHARD_FLAGS
+	for slot: int in ORCHARD_CAPACITY:
+		if present[slot] != 1 and (tended_today[slot] != 0 or harvested_year[slot] != 0):
+			return REFUSE_COLUMN_ORCHARD_FLAGS
+	return REFUSE_NONE
+
+
+static func _column_orchard_origin_refusal(present: PackedByteArray, origin_x: PackedInt32Array,
+		origin_z: PackedInt32Array) -> StringName:
+	"""A present block's origin is an on-grid 4x4 tile; an inactive row carries no origin."""
+	for slot: int in ORCHARD_CAPACITY:
+		if present[slot] == 1:
+			if not is_block_origin(origin_x[slot], origin_z[slot]):
+				return REFUSE_COLUMN_ORCHARD_ORIGIN
+		elif origin_x[slot] != NO_ROW or origin_z[slot] != NO_ROW:
+			return REFUSE_COLUMN_ORCHARD_ORIGIN
+	return REFUSE_NONE
+
+
+static func _column_orchard_ref_refusal(present: PackedByteArray, ref_slot: PackedInt32Array,
+		ref_generation: PackedInt32Array) -> StringName:
+	"""A present block carries a global directory slot with a positive generation.
+
+	The bound is `EntityDirectory.DIRECTORY_CAPACITY`, the global arena, never this store's typed
+	1024. An inactive row carries exactly the null reference `(-1, 0)`.
+	"""
+	for slot: int in ORCHARD_CAPACITY:
+		if present[slot] == 1:
+			if ref_slot[slot] < 0 or ref_slot[slot] >= EntityDirectory.DIRECTORY_CAPACITY \
+					or ref_generation[slot] <= 0:
+				return REFUSE_COLUMN_ORCHARD_REF
+		elif ref_slot[slot] != NULL_SLOT or ref_generation[slot] != NULL_GENERATION:
+			return REFUSE_COLUMN_ORCHARD_REF
+	return REFUSE_NONE
+
+
+static func _column_hive_refusal(present: PackedByteArray, building_slot: PackedInt32Array,
+		building_generation: PackedInt32Array, strength: PackedInt32Array,
+		serviced_day: PackedInt32Array, feed_milli: PackedInt64Array,
+		honey_milli: PackedInt64Array, wax_milli: PackedInt64Array, min_tile_x: PackedInt32Array,
+		min_tile_z: PackedInt32Array, max_tile_x: PackedInt32Array, max_tile_z: PackedInt32Array,
+		ref_slot: PackedInt32Array, ref_generation: PackedInt32Array) -> StringName:
+	"""The five Hive row gates, each a separate whole-image sweep, in fixed order."""
+	var building: StringName = _column_hive_building_refusal(present, building_slot,
+		building_generation)
+	if building != REFUSE_NONE:
+		return building
+	var strength_code: StringName = _column_hive_strength_refusal(present, strength)
+	if strength_code != REFUSE_NONE:
+		return strength_code
+	var serviced: StringName = _column_hive_serviced_day_refusal(present, serviced_day)
+	if serviced != REFUSE_NONE:
+		return serviced
+	var stores: StringName = _column_hive_stores_refusal(present, feed_milli, honey_milli,
+		wax_milli)
+	if stores != REFUSE_NONE:
+		return stores
+	var footprint: StringName = _column_hive_footprint_refusal(present, min_tile_x, min_tile_z,
+		max_tile_x, max_tile_z)
+	if footprint != REFUSE_NONE:
+		return footprint
+	return _column_hive_ref_refusal(present, ref_slot, ref_generation)
+
+
+static func _column_hive_building_refusal(present: PackedByteArray,
+		building_slot: PackedInt32Array, building_generation: PackedInt32Array) -> StringName:
+	"""A colonised hive names a global directory slot for its Building; an abandoned one names none.
+
+	This is a structural bound only -- `EntityDirectory.DIRECTORY_CAPACITY` -- never a liveness
+	check against a directory, exactly as the ref gates below never consult one (see the header).
+	"""
+	for slot: int in HIVE_CAPACITY:
+		if present[slot] == 1:
+			if building_slot[slot] < 0 \
+					or building_slot[slot] >= EntityDirectory.DIRECTORY_CAPACITY \
+					or building_generation[slot] <= 0:
+				return REFUSE_COLUMN_HIVE_BUILDING
+		elif building_slot[slot] != NULL_SLOT or building_generation[slot] != NULL_GENERATION:
+			return REFUSE_COLUMN_HIVE_BUILDING
+	return REFUSE_NONE
+
+
+static func _column_hive_strength_refusal(present: PackedByteArray,
+		strength: PackedInt32Array) -> StringName:
+	"""A colonised hive's strength stays in §5.6's 0..10000 scale; an abandoned one holds zero."""
+	for slot: int in HIVE_CAPACITY:
+		if strength[slot] < HIVE_STRENGTH_MIN or strength[slot] > HIVE_STRENGTH_MAX:
+			return REFUSE_COLUMN_HIVE_STRENGTH
+		if present[slot] != 1 and strength[slot] != 0:
+			return REFUSE_COLUMN_HIVE_STRENGTH
+	return REFUSE_NONE
+
+
+static func _column_hive_serviced_day_refusal(present: PackedByteArray,
+		serviced_day: PackedInt32Array) -> StringName:
+	"""A colonised hive's last service is a real calendar day; an abandoned one names none."""
+	for slot: int in HIVE_CAPACITY:
+		if present[slot] == 1:
+			if not is_calendar_day(serviced_day[slot]):
+				return REFUSE_COLUMN_HIVE_SERVICED_DAY
+		elif serviced_day[slot] != NO_SERVICE_DAY:
+			return REFUSE_COLUMN_HIVE_SERVICED_DAY
+	return REFUSE_NONE
+
+
+static func _column_hive_stores_refusal(present: PackedByteArray, feed_milli: PackedInt64Array,
+		honey_milli: PackedInt64Array, wax_milli: PackedInt64Array) -> StringName:
+	"""All three accumulated stores are nonnegative, and zero on every abandoned hive."""
+	for slot: int in HIVE_CAPACITY:
+		if feed_milli[slot] < 0 or honey_milli[slot] < 0 or wax_milli[slot] < 0:
+			return REFUSE_COLUMN_HIVE_STORES
+		if present[slot] != 1 \
+				and (feed_milli[slot] != 0 or honey_milli[slot] != 0 or wax_milli[slot] != 0):
+			return REFUSE_COLUMN_HIVE_STORES
+	return REFUSE_NONE
+
+
+static func _column_hive_footprint_refusal(present: PackedByteArray, min_tile_x: PackedInt32Array,
+		min_tile_z: PackedInt32Array, max_tile_x: PackedInt32Array,
+		max_tile_z: PackedInt32Array) -> StringName:
+	"""A colonised hive's apiary footprint is an on-grid, non-inverted rectangle; else none."""
+	for slot: int in HIVE_CAPACITY:
+		if present[slot] == 1:
+			if not is_footprint(min_tile_x[slot], min_tile_z[slot], max_tile_x[slot],
+					max_tile_z[slot]):
+				return REFUSE_COLUMN_HIVE_FOOTPRINT
+		elif min_tile_x[slot] != NO_ROW or min_tile_z[slot] != NO_ROW \
+				or max_tile_x[slot] != NO_ROW or max_tile_z[slot] != NO_ROW:
+			return REFUSE_COLUMN_HIVE_FOOTPRINT
+	return REFUSE_NONE
+
+
+static func _column_hive_ref_refusal(present: PackedByteArray, ref_slot: PackedInt32Array,
+		ref_generation: PackedInt32Array) -> StringName:
+	"""A colonised hive carries a global directory slot with a positive generation; else none."""
+	for slot: int in HIVE_CAPACITY:
+		if present[slot] == 1:
+			if ref_slot[slot] < 0 or ref_slot[slot] >= EntityDirectory.DIRECTORY_CAPACITY \
+					or ref_generation[slot] <= 0:
+				return REFUSE_COLUMN_HIVE_REF
+		elif ref_slot[slot] != NULL_SLOT or ref_generation[slot] != NULL_GENERATION:
+			return REFUSE_COLUMN_HIVE_REF
+	return REFUSE_NONE
 
 
 # --- result helpers -------------------------------------------------------------------------------------------

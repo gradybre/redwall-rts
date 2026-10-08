@@ -71,6 +71,8 @@ const ITEM_KEYS: Array[StringName] = [
 	&"apple", &"pear",
 	&"dried_fruit", &"ration",
 	&"mead", &"cordial",
+	&"jam", &"cheese", &"ale", &"cider",
+	&"vinegar", &"pickles",
 ]
 const ITEM_LABELS: Array[String] = [
 	"Radish", "Turnip", "Carrot", "Beetroot", "Parsnip", "Onion",
@@ -84,6 +86,8 @@ const ITEM_LABELS: Array[String] = [
 	"Apple", "Pear",
 	"Dried fruit", "Rations",
 	"Mead", "Cordial",
+	"Berry jam", "Nut cheese", "Ale", "Cider",
+	"Apple vinegar", "Pickles",
 ]
 const ITEM_LEAVES: Array[String] = [
 	"LEAF_radish", "LEAF_turnip", "LEAF_carrot", "LEAF_beetroot", "LEAF_parsnip", "LEAF_onion",
@@ -139,13 +143,25 @@ const ITEM_COUNT: int = 16
 ##                  720 h, directly edible ("dried fruit is directly edible") -- CAT_DRIED_FRUIT;
 ##   * ration       §5.7 `ration`'s output, flour 2 + dried fish 1 + nuts 1 + water 1 -> 3 x 2400 NP at the kitchen's
 ##                  preserving table, 1440 h, directly edible ("rations are directly edible") -- CAT_RATION.
-## Salt fish waits for a coast (salt is coastal brine only); jam, pickles and cheese have no GDD row (Q-D5).
+## Salt fish waits for a coast (salt is coastal brine only); jam, cheese and the vinegar pickle came later as authored
+## rows (decision 1625, after Q-D5), and the salted pickle waits on salt.
 ## THE DRINKS (decision 1621, BREW #19), after the preserves -- kept for feasts, never eaten as a meal:
 ##   * mead     §5.7 `mead`'s output, honey 3 + water 3 -> mead 4 at the brewery (72 h in a vat), "Mead | 0 | No | 1440 |
 ##              Feast ingredient only; no intoxication subsystem" -- CAT_MEAD;
 ##   * cordial  Brendan's DEC-045 raspberry cordial (dish_book.gd `cordial`: berries 2 + honey 0.5 + water 2 -> 4, 72 h),
 ##              made at the brewery's bench and kept as a drink -- CAT_CORDIAL.
-const PANTRY_ITEM_COUNT: int = 36
+## THE NEW RECIPES (decision 1625; Brendan's "Approve and build Q-d5 and dec-007", 2026-10-07), after the drinks -- each
+## a content-library dish drafted as a recipe row with PROVISIONAL numbers (preserve_rules.gd):
+##   * jam     berries cooked with honey and water (the library's honey-sweetened fruit jams) -- CAT_JAM, eaten as it is;
+##   * cheese  the library's salt-free nut cheese (taggerung TAG_recipe_nut_cheese) -- CAT_CHEESE, eaten as it is;
+##   * ale     barley and water brewed (the library's October ale) -- CAT_ALE, a drink only, like mead;
+##   * cider   apples and water (the library's pale cider) -- CAT_CIDER, a drink only, like mead.
+##   * vinegar  apple vinegar from the orchard's apples (the library's COMPONENT_shared_apple_vinegar) -- CAT_VINEGAR,
+##              an ingredient only, never eaten;
+##   * pickles  onions or the other farmed roots (never potato: Brendan, 2026-10-07) in that vinegar, WITHOUT SALT -- beyond the library's formulas (every library pickle
+##              takes salt) by Brendan's approval ("both vinegar and salt", 2026-10-07) -- CAT_PICKLES, eaten as they are.
+## The salted pickle is approved too and waits on salt, which the demo has no source for (decision 1625).
+const PANTRY_ITEM_COUNT: int = 42
 const FIRST_CATCH: int = 16
 const CATCH_COUNT: int = 6
 const ITEM_DRIED_FISH: int = 22
@@ -164,6 +180,14 @@ const ITEM_DRIED_FRUIT: int = 32
 const ITEM_RATION: int = 33
 const ITEM_MEAD: int = 34
 const ITEM_CORDIAL: int = 35
+const ITEM_JAM: int = 36
+const ITEM_CHEESE: int = 37
+const ITEM_ALE: int = 38
+const ITEM_CIDER: int = 39
+const ITEM_VINEGAR: int = 40
+const ITEM_PICKLES: int = 41
+## The crops and fruit the new recipes name by item (decision 1625).
+const ITEM_BARLEY: int = 14
 const FIRST_FRUIT: int = 30
 const FRUIT_COUNT: int = 2
 ## Every item the orchard and the hedge yield (a list, not a range: the hedge's `berries` is the forage item, numbered
@@ -182,12 +206,19 @@ const CAT_DRIED_FRUIT: int = 14
 const CAT_RATION: int = 15
 const CAT_MEAD: int = 16
 const CAT_CORDIAL: int = 17
+const CAT_JAM: int = 18
+const CAT_CHEESE: int = 19
+const CAT_ALE: int = 20
+const CAT_CIDER: int = 21
+const CAT_VINEGAR: int = 22
+const CAT_PICKLES: int = 23
 ## The goods' categories and §5.7 shelf hours, from FIRST_CATCH on.
 const GOODS_CATEGORY: Array[int] = [CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_DRIED_FISH, CAT_FLOUR,
 	FarmingScript.CROP_ROOTS, CAT_HONEY, CAT_NUTS, CAT_MUSHROOMS, CAT_HERB, CAT_BERRIES, CAT_FRUIT, CAT_FRUIT,
-	CAT_DRIED_FRUIT, CAT_RATION, CAT_MEAD, CAT_CORDIAL]
+	CAT_DRIED_FRUIT, CAT_RATION, CAT_MEAD, CAT_CORDIAL, CAT_JAM, CAT_CHEESE, CAT_ALE, CAT_CIDER,
+	CAT_VINEGAR, CAT_PICKLES]
 const GOODS_SHELF_HOURS: Array[int] = [48, 48, 48, 48, 48, 48, 720, 240, 240, 1440, 720, 72, 480, 48, 144, 144, 720,
-	1440, 1440, 72]
+	1440, 1440, 72, 720, 1440, 1440, 1440, 1440, 720]
 ## scripts/core/forage.gd PATCH_KEYS row (berries, nuts, mushrooms, herb, roots) -> pantry item (NO_ITEM: not gathered).
 const PATCH_ITEM: Array[int] = [ITEM_BERRIES, ITEM_NUTS, ITEM_MUSHROOMS, ITEM_HERB, NO_ITEM]
 ## scripts/core/orchard_hive.gd SPECIES_KEYS row (apple, pear) -> pantry item.
@@ -280,6 +311,8 @@ const ITEM_PROP: Array[StringName] = [
 	&"", &"",
 	&"", &"",
 	&"", &"",
+	&"", &"", &"", &"",
+	&"", &"",
 ]
 ## The fallback icon's colour: the item's own, from its produce (parsnip cream, spinach dark leaf).
 const ITEM_SWATCH: Array[Color] = [
@@ -297,6 +330,8 @@ const ITEM_SWATCH: Array[Color] = [
 	Color(0.74, 0.22, 0.18), Color(0.74, 0.74, 0.34),
 	Color(0.6, 0.34, 0.16), Color(0.7, 0.6, 0.42),
 	Color(0.86, 0.66, 0.26), Color(0.7, 0.12, 0.24),
+	Color(0.58, 0.1, 0.26), Color(0.9, 0.82, 0.58), Color(0.66, 0.42, 0.16), Color(0.86, 0.72, 0.32),
+	Color(0.78, 0.6, 0.3), Color(0.62, 0.66, 0.3),
 ]
 
 ## The beds: the six first FIELD beds are world crop ids (BED_IDS); then the SOUTH FIELD's six (see THE SOUTH FIELD); then

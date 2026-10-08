@@ -47,7 +47,6 @@ const GAPS: Dictionary = {
 	&"ENTRY_CREW_LOST": "G6 the crew left the settlement; a replacement mole walks in and resumes the step (ADR 1225)",
 	&"STEP1_RESIDENT_DEAD": "G6 the crew died; a replacement mole walks in and resumes the step (ADR 1225)",
 	&"ENTRY_CREW_NO_REPLACEMENT": "G6 the crew was lost and no idle adult mole with a tool can replace it yet; the entry waits and retries (ADR 1225)",
-	&"ENTRY_CREW_LOST_INSTALLING": "G6 the crew was lost during a paid installation; resuming an installation with a replacement is not built (ADR 1225)",
 	&"STEP1_RESIDENT_INCAPACITATED": "G6 the crew was incapacitated mid-dispatch; interrupting and resuming a dispatch is not built (ADR 1223)",
 	&"STEP1_REST_COLLAPSED": "G6 the crew collapsed from exhaustion mid-dispatch; interrupting and resuming a dispatch is not built (ADR 1223)",
 	&"ROUTE_ASSEMBLY_ACTOR_UNBOUND": "G5 the paid installation's handling occupancy proof still requires every living resident to be a route actor (ADR 1219's reach-cube rule is not applied there yet; ADR 1224)",

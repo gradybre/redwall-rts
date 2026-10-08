@@ -1866,7 +1866,8 @@ func _actor_admission_refusal(location: Vector2i, selection: Profiles.Selection)
 
 
 func _assembly_admission(location: Vector2i, selection: Profiles.Selection) -> StringName:
-	"""An unfunded READY body needs complete actual air, never an exception for a prospective workpiece."""
+	"""An unfunded READY body needs complete actual air, never an exception for a prospective workpiece. DEC-057: once
+	the piece is live, a replacement re-handling it in place takes the funded proof, which excuses exactly that piece."""
 	var graph: Routes = _routes_ref.get_ref() as Routes if _routes_ref != null else null
 	var pieces: Workpieces = _assembly_pieces(graph)
 	if pieces == null: return REFUSE_BINDING
@@ -1878,7 +1879,9 @@ func _assembly_admission(location: Vector2i, selection: Profiles.Selection) -> S
 	var code: StringName = Workpieces.source_leaf_refusal(pieces, placement, project)
 	if code == &"": code = _terrain.binding_refusal()
 	if code == &"": code = _locations().read_location_into(location, _endpoint)
-	if code == &"": code = AssemblyPhysical.admission_refusal(self, graph, pieces, placement, project, location, selection)
+	if code == &"" and pieces._live.present[placement.x] != 0: # DEC-057: a replacement re-handles the live piece.
+		code = AssemblyPhysical.refusal(self, graph, pieces, placement, project, selection.worker, selection.job, selection)
+	elif code == &"": code = AssemblyPhysical.admission_refusal(self, graph, pieces, placement, project, location, selection)
 	return code
 
 

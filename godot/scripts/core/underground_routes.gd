@@ -2154,7 +2154,9 @@ func _qualify_actor_at(worker: Vector2i, job: Vector2i, location: Vector2i,
 
 static func _assembly_admission_leaf(actual: RefCounted, pieces: Workpieces, location: Vector2i,
 		expected: Profiles.Selection, family: int) -> StringName:
-	"""An unregistered worker may reach source READY, but no paid target exception or handling progress is inferred."""
+	"""An unregistered worker may reach source READY, but no handling progress is inferred. Before funding there is
+	no paid target exception; DEC-057: once the piece is live (a replacement re-handling it in place) the funded
+	physical proof applies, excusing exactly that piece."""
 	if pieces == null or Workpieces._binding_leaf(pieces) != &"" or actual._bindings == null \
 			or pieces._placements._routes != actual or pieces._placements._world_routes != actual._bindings \
 			or actual._profiles != pieces._profiles or actual._ids != pieces._placements._ids \
@@ -2175,7 +2177,10 @@ static func _assembly_admission_leaf(actual: RefCounted, pieces: Workpieces, loc
 		pieces._router._construction._subject_generation[row])
 	var code: StringName = Workpieces.source_leaf_refusal(pieces, placement, project)
 	if code == &"": code = _assembly_selected_leaf(actual, expected, family)
-	if code == &"": code = AssemblyPhysical.admission_refusal(actual._bindings, actual, pieces,
+	if code == &"" and pieces._live.present[placement.x] != 0: # DEC-057: re-handling a live piece in place.
+		code = AssemblyPhysical.refusal(actual._bindings, actual, pieces, placement, project, expected.worker,
+			expected.job, expected)
+	elif code == &"": code = AssemblyPhysical.admission_refusal(actual._bindings, actual, pieces,
 		placement, project, location, expected)
 	if code == &"": code = _assembly_occupants_leaf(actual, _turn_directory_row(actual, expected.worker, Directory.KIND_RESIDENT))
 	return code

@@ -1460,3 +1460,12 @@ On 2026-10-07 Brendan answered the two questions ADR 1223 left open:
 
 Engineering records: [decision1225](decisions/1225-entry-crew-replacement.md) (replacement) and
 [decision1226](decisions/1226-schedule-rest-at-safe-points.md) (schedule).
+
+
+### DEC-057 — A crew lost mid-installation is replaced and re-handles the piece in place
+
+On 2026-10-07 Brendan settled the case ADR 1225 left open: a crew lost while an installation is under way, including
+while it is holding a piece. **Re-handle in place.** The piece stays where it was being fitted, the replacement takes
+up handling it there and finishes the installation, and nothing is paid twice.
+
+Engineering record: [decision1225](decisions/1225-entry-crew-replacement.md) ("Amendment: installations").

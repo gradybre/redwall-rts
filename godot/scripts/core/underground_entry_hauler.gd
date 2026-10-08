@@ -84,7 +84,7 @@ static func free_milli(inventory: RefCounted, container: Vector2i, item: int) ->
 func begin(owners: RefCounted, crew: RefCounted, project: Vector2i, home_job: int, queue: PackedInt32Array,
 		legs: Array[Leg], start: Vector2i, tick: int) -> StringName:
 	"""Plan the trips, create the first HAUL Job and set off for M with the tool still held."""
-	if owners == null or owners.delivery == null or owners.gear == null or queue.is_empty() or legs.is_empty():
+	if owners == null or owners.delivery == null or owners.gear == null or legs.is_empty():
 		return REFUSE_PLAN
 	_o = owners; _crew = crew; _project = project; _home = home_job; _queue = queue; _legs = legs
 	_content = owners.profiles.content_revision()
@@ -93,7 +93,7 @@ func begin(owners: RefCounted, crew: RefCounted, project: Vector2i, home_job: in
 	_stand_store = _stand_beside(_store)
 	if _stand_source == NULL_REF or _stand_store == NULL_REF or legs[legs.size() - 1].target != _store: return REFUSE_STAND
 	_leg = 0; _trip = 0; _stage = STAGE_APPROACH
-	var code: StringName = _new_job()
+	var code: StringName = _new_job() if not queue.is_empty() else _take_home()
 	if code == &"" and _o.routes._resident_ref(_row()) == NULL_REF:
 		code = _o.routes.admit_travel_actor(_crew.worker, _job_ref(), start, legs[0].profile, legs[0].revision,
 			_content, 0, -1, _crew.tool)
@@ -157,6 +157,28 @@ func _new_job() -> StringName:
 	return &"" if result.ok else result.error
 
 
+func _take_home() -> StringName:
+	"""ADR1225 walk-in: with nothing to haul the replacement walks to M under the parent's own Job."""
+	_job = _home
+	var result: RefCounted = _o.jobs.assign_worker(_row(), _home)
+	return &"" if result.ok else result.error
+
+
+func release_lost(lost: Vector2i, row: int) -> StringName:
+	"""ADR1225: a lost crew's admitted haul returns its claims through Delivery's own cancel and its HAUL Job is
+	retired; the parent's own Job is left to the parent."""
+	if _job == _home or not _o.jobs.is_job_present(_job): return &""
+	var ref: Vector2i = _o.jobs.ref_of(_job)
+	if _o.delivery.handles_job(_o.delivery, ref):
+		var cancelled: RefCounted = _o.delivery.cancel(ref)
+		if not cancelled.ok: return cancelled.error
+	if row >= 0 and _o.jobs.worker_of(_job) == lost:
+		var released: RefCounted = _o.jobs.release_worker(row)
+		if not released.ok: return released.error
+	var destroyed: RefCounted = _o.jobs.destroy_job(_job)
+	return &"" if destroyed.ok else destroyed.error
+
+
 func _next_leg(tick: int) -> StringName:
 	"""Skip legs already reached; at M the tool goes down and the first trip starts."""
 	if _o.routes.read_actor_into(_crew.worker, _actor) != &"": return REFUSE_PLAN
@@ -187,7 +209,11 @@ func _arrived(target: Vector2i, tick: int) -> int:
 
 
 func _at_store(tick: int) -> StringName:
-	"""At M: the tool goes into M's container, so every trip is tool-free from its first step."""
+	"""At M: the tool goes into M's container, so every trip is tool-free from its first step. A walk-in (nothing
+	to haul) ends here, tooled, under the parent's Job."""
+	if _queue.is_empty():
+		_stage = STAGE_DONE
+		return &""
 	var result: RefCounted = _o.gear.unequip(_crew.tool, _crew.storage, false)
 	return _start_trip(tick) if result.ok else result.error
 
@@ -360,7 +386,7 @@ func read_state(r: Progress.Reader, owners: RefCounted, crew: RefCounted, home: 
 	_crew = crew
 	_project = r.ref()
 	_home = r.i32()
-	for index: int in r.ranged(1, Progress.MAX_QUEUE):
+	for index: int in r.ranged(0, Progress.MAX_QUEUE):
 		_queue.append(r.i32())
 	for index: int in r.ranged(1, Progress.MAX_LEGS):
 		var leg: Leg = Leg.new()

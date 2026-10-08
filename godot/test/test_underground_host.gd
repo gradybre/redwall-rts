@@ -1281,19 +1281,6 @@ func _equip_other_mole(o: Session.Retirement.Owners, container: Vector2i, except
 	return Vector2i(-1, 0)
 
 
-func test_a_crew_lost_during_the_paid_installation_stops_with_its_own_code() -> void:
-	"""ADR1225 limit: resuming a paid installation with a replacement is not built; the loss stops the chain with
-	ENTRY_CREW_LOST_INSTALLING (G6) and nothing is rolled back."""
-	var live: Array = _live_with_spare()
-	var o: Session.Retirement.Owners = live[0]
-	var entry: Settlement.UndergroundEntryRuntime = live[1]
-	var tick: int = _run_until(entry, 1, func() -> bool: return entry._foreman._installer != null)
-	_kill(o, live[2])
-	assert_equal(entry.advance(tick), entry._foreman.REFUSE_LOST_INSTALLING, "exact refusal")
-	assert_true(Settlement.UndergroundEntryRuntime.gap_of(entry.error()).begins_with("G6"), "named gap row")
-	assert_false(entry.is_running(), "stopped")
-
-
 func test_a_crew_that_leaves_on_its_walk_is_released_and_the_entry_waits() -> void:
 	"""ADR1225 crew loss: a crew row that no longer names the crew (it left) is detected; with no spare mole the
 	entry waits (ENTRY_CREW_NO_REPLACEMENT) and the departed row is reserved by nobody."""
@@ -1499,3 +1486,68 @@ func test_the_busy_crew_rests_at_a_resting_point_through_its_sleep_hour_and_resu
 	assert_equal([entry._foreman._index, entry._foreman.accepted_mwu(), entry._foreman.haul_trips()], NEXT_GAP_LEDGER,
 		"with the same ledgers")
 	assert_true(tick - 1 > NEXT_GAP_TICK, "later, by the rest")
+
+
+## DEC-057: installer stages a crew can be lost in, in the order the live chain crosses them ([ordinal, stage]).
+const LOSS_STAGES: Array = [[0, 10], [0, 2], [0, 4], [0, 5], [0, 6], [0, 7], [1, 9]]
+
+
+func _installing_at(entry: Settlement.UndergroundEntryRuntime, ordinal: int, stage: int) -> bool:
+	"""The crew has spent a few ticks in this installation's stage."""
+	var foreman: RefCounted = entry._foreman
+	var installer: RefCounted = foreman._installer
+	return installer != null and installer._plan.ordinal == ordinal and installer.stage() == stage \
+		and foreman._stage_ticks > 3
+
+
+func _lose_and_resume(at: Array, restore_every: int) -> Array:
+	"""Kill the crew in installer stage `at`; run to the stop (restoring the runtime every `restore_every` ticks
+	when positive). Returns [stop tick, error, foreman ledgers..., owner images...]."""
+	var live: Array = _live_with_spare()
+	var o: Session.Retirement.Owners = live[0]
+	var entry: Settlement.UndergroundEntryRuntime = live[1]
+	var tick: int = _run_until(entry, 1, _installing_at.bind(entry, at[0], at[1]))
+	assert_true(entry.is_running(), "reached installation %d stage %d" % at)
+	_kill(o, live[2])
+	assert_equal(entry.advance(tick), Jobs.REFUSE_RESIDENT_DEAD, "the loss is alerted once (stage %d)" % at[1])
+	assert_true(entry.is_running() and entry.crew().worker == live[3], "the spare walks in (stage %d)" % at[1])
+	assert_true(o.routes._lost_actor_row(live[2]) < 0, "the lost actor is unregistered")
+	tick += 1
+	while _host.underground_entry().is_running() and tick < 12000:
+		if restore_every > 0 and tick % restore_every == 0 and not _replace_entry_with_its_record(_host.underground_session(), tick):
+			return []
+		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
+		tick += 1
+	var foreman: RefCounted = _host.underground_entry()._foreman
+	return [tick, _host.underground_entry().error(), foreman._index, foreman.accepted_mwu(), foreman.install_mwu(),
+		o.placements._get32(o.placements._live, o.placements.INSTALLED, 0)] + _snapshot()
+
+
+func test_a_crew_lost_in_any_installation_stage_is_replaced_and_re_handles_in_place() -> void:
+	"""DEC-057 (Brendan: re-handle in place): the crew dies in each installer stage it can rest in -- L0's haul,
+	station approach, handling, INSTALL entry, fastening and recovery, and T0's split-landing arrival. The spare mole
+	walks in, is registered on H, walks to M and on to the station; a funded order is revalidated with resume_work
+	and the piece is handled again where it stands (or, already handled, goes straight to INSTALL). Every run reaches
+	the same next gap with L0 installed exactly once and no Work paid twice."""
+	for at: Array in LOSS_STAGES:
+		var result: Array = _lose_and_resume(at, 0)
+		if result.is_empty(): return
+		assert_equal(result[1], NEXT_GAP, "lost in installation %d stage %d: same next gap" % at)
+		assert_equal(result.slice(2, 6), [NEXT_GAP_LEDGER[0], NEXT_GAP_LEDGER[1], 32000, 1],
+			"lost in installation %d stage %d: cut Work, L0 fastening and INSTALLED exactly once" % at)
+		after_each()
+		before_each()
+
+
+func test_a_crew_lost_while_handling_resumes_byte_identically_across_restores() -> void:
+	"""DEC-057 persistence: lost mid-handling, run to the stop uninterrupted and again with the whole runtime replaced
+	by its restored record every 7 ticks (the walk-in, the RESUME wait and the re-handling are all crossed); the stop
+	and every owner image are byte-identical."""
+	var plain: Array = _lose_and_resume([0, 4], 0)
+	if plain.is_empty(): return
+	after_each()
+	before_each()
+	var restored: Array = _lose_and_resume([0, 4], 7)
+	if restored.is_empty(): return
+	for index: int in plain.size():
+		assert_equal(restored[index], plain[index], "image %d is byte-identical after restores" % index)

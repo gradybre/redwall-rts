@@ -41,7 +41,6 @@ const REFUSE_PLAN: StringName = &"ENTRY_FOREMAN_PLAN"
 const REFUSE_STALL: StringName = &"ENTRY_FOREMAN_STALLED"
 const REFUSE_STATE: StringName = &"ENTRY_FOREMAN_STATE"
 const Construction := preload("res://scripts/core/construction.gd")
-const REFUSE_LOST_INSTALLING: StringName = &"ENTRY_CREW_LOST_INSTALLING"
 
 
 class Owners extends RefCounted:
@@ -595,40 +594,31 @@ func release_lost_crew() -> StringName:
 	"""ADR1225: detach the dispatch from a crew that died or left: cancel its admitted haul, release its Job and
 	tool claim (Sites' own departure path once the phase is bound), unregister its actor, then wait in RESUME for
 	a replacement. Paid progress, consumed inputs and the parked Jobs stay; carried goods stay with the lost crew.
-	An installation in progress is not resumable yet (ENTRY_CREW_LOST_INSTALLING)."""
+	DEC-057: a paid installation is released by its installer and re-handled in place by the replacement."""
 	if _terminal(): return _error
-	if _installer != null: return REFUSE_LOST_INSTALLING
 	var lost: Vector2i = _crew.worker
 	var row: int = _owners.residents.directory().get_typed_row(lost)
 	var code: StringName = _release_haul(lost, row)
-	if code == &"" and _job >= 0 and _owners.jobs.worker_of(_job) == lost: code = _release_phase_job(row)
+	if code == &"" and _installer != null: code = _installer.release_lost_crew(lost, row)
+	elif code == &"" and _job >= 0 and _owners.jobs.worker_of(_job) == lost: code = _release_phase_job(row)
 	if code == &"" and _owners.routes._lost_actor_row(lost) >= 0: code = _owners.routes.unregister_lost_actor(lost)
 	if code != &"": return code
 	_crew.worker = NULL_REF
 	_crew.tool = NULL_REF
 	_retreat = NULL_REF
-	_set_stage(STAGE_RESUME)
+	if _installer == null: _set_stage(STAGE_RESUME)
 	return &""
 
 
 func _release_haul(lost: Vector2i, row: int) -> StringName:
 	"""The admitted haul's claims go back through Delivery's own cancel; its HAUL Job is retired."""
 	if _hauler == null: return &""
-	var job: int = _hauler._job
+	var hauler: Hauler = _hauler
 	_haul_mwu += _hauler.haul_mwu()
 	_haul_trips += _hauler.trips()
 	_hauler = null
 	_haul_marker = -1
-	if job == _job or not _owners.jobs.is_job_present(job): return &""
-	var ref: Vector2i = _owners.jobs.ref_of(job)
-	if _owners.delivery.handles_job(_owners.delivery, ref):
-		var cancelled: RefCounted = _owners.delivery.cancel(ref)
-		if not cancelled.ok: return cancelled.error
-	if row >= 0 and _owners.jobs.worker_of(job) == lost:
-		var released: RefCounted = _owners.jobs.release_worker(row)
-		if not released.ok: return released.error
-	var destroyed: RefCounted = _owners.jobs.destroy_job(job)
-	return &"" if destroyed.ok else destroyed.error
+	return hauler.release_lost(lost, row)
 
 
 func _release_phase_job(row: int) -> StringName:
@@ -662,8 +652,8 @@ func _resume(tick: int) -> StringName:
 
 
 func awaiting_crew() -> bool:
-	"""ADR1225: the crew was lost and no replacement has been chosen yet."""
-	return _stage == STAGE_RESUME and _crew.worker == NULL_REF
+	"""ADR1225: the crew was lost and no replacement has been chosen yet (a cut step or an installation)."""
+	return _crew.worker == NULL_REF and (_stage == STAGE_RESUME or _stage == STAGE_INSTALL)
 
 
 func is_done() -> bool:
@@ -812,6 +802,7 @@ func _plan_retreat(install: PackedInt32Array, plan: Installer.Plan) -> StringNam
 
 func _install(tick: int) -> StringName:
 	"""Delegate every tick to the installer until its one whole-group commit, then take the next step."""
+	if _installer.stage() == Installer.STAGE_RESUME: return _resume_installation(tick)
 	var code: StringName = _installer.advance(tick)
 	if code != &"": return code
 	if _installer.stage() == Installer.STAGE_DONE:
@@ -826,6 +817,21 @@ func _install(tick: int) -> StringName:
 	_stage_ticks = 0 if _installer.progress_marker() != _last_install_stage else _stage_ticks
 	_last_install_stage = _installer.progress_marker()
 	return &""
+
+
+func _resume_installation(tick: int) -> StringName:
+	"""DEC-057: the replacement, unregistered on H, is registered there on H's own profile, leaves by its authored
+	retreat and walks to M (hauling what M still lacks), then the installation continues from M and re-handles the
+	piece in place without paying again."""
+	if _crew.worker == NULL_REF or not _arriving(): return &""
+	var legs: Array[Hauler.Leg] = [_haul_leg(_crew.arrival, _arrival_profile, _arrival_revision)]
+	_take_arrival_retreat()
+	if _retreat != NULL_REF: legs.append(_haul_leg(_retreat, _retreat_profile, _retreat_revision))
+	_retreat = NULL_REF
+	var plan: Installer.Plan = _installer._plan
+	legs.append(_haul_leg(plan.material, plan.walk_profile, plan.walk_revision))
+	_stage_ticks = 0
+	return _installer.resume(legs, tick)
 
 
 func haul_mwu() -> int:

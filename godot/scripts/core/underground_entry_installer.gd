@@ -29,6 +29,9 @@ const STAGE_DONE: int = 8
 const STAGE_LEG_ARRIVAL: int = 9 # Split landing: M to the station's arrival on the material profile.
 const STAGE_HAUL: int = 10 # ADR1210: the quoted inputs missing at M are hauled before the Job is taken.
 const STAGE_REST: int = 11 # ADR1226 (REQ-SET-034): INSTALL recovers to READY and waits while the hour forbids work.
+const STAGE_RESUME: int = 12 # DEC-057: the crew was lost; the replacement re-handles in place from its arrival.
+const Workpieces := preload("res://scripts/core/underground_connector_workpieces.gd")
+const Construction := preload("res://scripts/core/construction.gd")
 const REFUSE_PLAN: StringName = &"ENTRY_INSTALLER_PLAN"
 const REFUSE_HEADING: StringName = &"ENTRY_INSTALLER_HEADING"
 ## ADR1197 G4 / ADR1210: the storage container holds less free stock of an input item than the bill.
@@ -145,7 +148,7 @@ func _run(tick: int) -> StringName:
 		STAGE_EARN: return _earn(tick)
 		STAGE_RECOVER: return _recover(tick)
 		STAGE_REST: return _rest(tick)
-	return &""
+	return &"" # STAGE_RESUME waits for the foreman to bring the replacement in (resume).
 
 
 func _job_ref() -> Vector2i:
@@ -155,6 +158,23 @@ func _job_ref() -> Vector2i:
 
 func _open(tick: int) -> StringName:
 	"""Admit the real paid order and its sole BUILD Job, bind M, haul what M lacks, then walk to M with the tool."""
+	var code: StringName = _open_order()
+	if code != &"": return code
+	var queue: PackedInt32Array = PackedInt32Array()
+	code = _units(queue)
+	if code == &"" and not queue.is_empty(): return _begin_haul(queue, tick)
+	if code != &"": return code
+	var worker: int = _o.residents.directory().get_typed_row(_crew.worker)
+	var result: RefCounted = _o.jobs.assign_worker(worker, _job)
+	if result.ok: result = _o.work.claim_tool_for_work(worker, _crew.tool)
+	if not result.ok: return result.error
+	code = _travel(_plan.walk_profile, _plan.walk_revision, _plan.material, tick)
+	if code == &"": _stage = STAGE_LEG_MATERIAL
+	return code
+
+
+func _open_order() -> StringName:
+	"""The real paid order, its BUILD Job with the satisfied tool gate, and M as its material container."""
 	var opened: RefCounted = _paid.router.open_order(_paid.connector, _plan.placement, _plan.ordinal)
 	if not opened.ok: return opened.error
 	_project = opened.ref
@@ -167,18 +187,7 @@ func _open(tick: int) -> StringName:
 	if result.ok: result = _o.jobs.set_tool_gate(_job, Jobs.GATE_SATISFIED)
 	if result.ok: result = _paid.router.bind_job(_project, _job_ref())
 	if result.ok: result = _paid.router.bind_material_container(_project, _crew.storage)
-	if not result.ok: return result.error
-	var queue: PackedInt32Array = PackedInt32Array()
-	code = _units(queue)
-	if code == &"" and not queue.is_empty(): return _begin_haul(queue, tick)
-	if code != &"": return code
-	var worker: int = _o.residents.directory().get_typed_row(_crew.worker)
-	result = _o.jobs.assign_worker(worker, _job)
-	if result.ok: result = _o.work.claim_tool_for_work(worker, _crew.tool)
-	if not result.ok: return result.error
-	code = _travel(_plan.walk_profile, _plan.walk_revision, _plan.material, tick)
-	if code == &"": _stage = STAGE_LEG_MATERIAL
-	return code
+	return &"" if result.ok else result.error
 
 
 func _units(out: PackedInt32Array) -> StringName:
@@ -275,10 +284,16 @@ func _leg_station(tick: int) -> StringName:
 	if _actor.yaw != _yaw(Assembly.PROFILE):
 		if not _all_yaw(_plan.approach_profile): return REFUSE_HEADING
 		code = WorldRoutes.turn_actor(_o.binding, _crew.worker, _job_ref(), _yaw(Assembly.PROFILE), Space.MAX_CHECKS)
+	if code == &"" and _funded() and _handled(): return _resume_funded() # DEC-057: straight to INSTALL.
 	if code == &"": code = _o.routes.refresh_work_actor(_crew.worker, _job_ref(), Assembly.PROFILE,
 		_plan.handling_revision, _content, 0, -1, _crew.tool)
 	if code == &"": _stage = STAGE_FUND
 	return code
+
+
+func _handled() -> bool:
+	"""DEC-057: the order's piece has completed handling (it is installed by INSTALL work alone)."""
+	return Workpieces.handled_leaf_refusal(_paid.connector._workpieces, _plan.placement, _project) == &""
 
 
 func _yaw(profile: int) -> int:
@@ -294,7 +309,9 @@ func _all_yaw(profile: int) -> bool:
 
 
 func _fund(tick: int) -> StringName:
-	"""Deliver the whole bill, retire the completed first pair, START, then enter real handling."""
+	"""Deliver the whole bill, retire the completed first pair, START, then enter real handling. DEC-057: an order
+	a lost crew had already funded is not paid again; the replacement resumes it in place."""
+	if _funded(): return _resume_funded()
 	var code: StringName = _deliver()
 	if code == &"": code = _retire_pair()
 	if code != &"": return code
@@ -302,6 +319,71 @@ func _fund(tick: int) -> StringName:
 	if not started.ok: return started.error
 	code = _o.routes.begin_assembly_handling(_crew.worker, _job_ref())
 	if code == &"": _stage = STAGE_HANDLE
+	return code
+
+
+func _funded() -> bool:
+	"""The order's START already ran (WORKING, or its fastening is done)."""
+	if not _o.construction.phase_into(_project, _math): return false
+	return _math.value == Construction.PHASE_WORKING or _math.value == Construction.PHASE_WORK_DONE
+
+
+func _resume_funded() -> StringName:
+	"""DEC-057 re-handle in place: a piece still pending handling is revalidated at handling READY (resume_work) and
+	handled again where it stands; an already handled piece goes to INSTALL, revalidated once its source works."""
+	if _handled():
+		var refreshed: StringName = _o.routes.refresh_work_actor(_crew.worker, _job_ref(), _plan.install_profile,
+			_plan.install_revision, _content, 0, -1, _crew.tool)
+		if refreshed == &"": _stage = STAGE_INSTALL_ENTER
+		return refreshed
+	var result: RefCounted = _paid.router.resume_work(_project)
+	if not result.ok: return result.error
+	var code: StringName = _o.routes.begin_assembly_handling(_crew.worker, _job_ref())
+	if code == &"": _stage = STAGE_HANDLE
+	return code
+
+
+func _finish_resume() -> StringName:
+	"""DEC-057: the INSTALL source now works; unfinished fastening is revalidated by Router, finished fastening needs
+	only its retained zero work to read complete again (as Router's own START writes it)."""
+	if not _o.construction.phase_into(_project, _math): return &"ENTRY_INSTALLER_STATE"
+	if _math.value == Construction.PHASE_WORKING:
+		var result: RefCounted = _paid.router.resume_work(_project)
+		return &"" if result.ok else result.error
+	var completed: RefCounted = _o.jobs.set_state(_job, Jobs.JOB_STATE_COMPLETE)
+	return &"" if completed.ok else completed.error
+
+
+func release_lost_crew(lost: Vector2i, row: int) -> StringName:
+	"""DEC-057: the lost crew's haul is cancelled and its hold on the order's Job and tool released; the piece, the
+	paid inputs and every Work mWU stay where they are. The installation then waits in STAGE_RESUME."""
+	var code: StringName = &""
+	if _hauler != null:
+		_haul_mwu += _hauler.haul_mwu()
+		_haul_trips += _hauler.trips()
+		code = _hauler.release_lost(lost, row)
+		_hauler = null
+	if code == &"" and row >= 0 and _job >= 0 and _o.jobs.worker_of(_job) == lost:
+		if _o.work.tool_job_of(row) == _job_ref():
+			var unclaimed: RefCounted = _o.work.release_tool_claim(row)
+			if not unclaimed.ok: return unclaimed.error
+		var released: RefCounted = _o.jobs.release_worker(row)
+		if not released.ok: return released.error
+	if code == &"" and _project != NULL_REF and _funded(): _o.construction.set_assigned_count(_project, 0)
+	if code == &"": _stage = STAGE_RESUME
+	return code
+
+
+func resume(legs: Array[Hauler.Leg], tick: int) -> StringName:
+	"""DEC-057: the replacement walks in on the foreman's legs (arrival at H, its retreat, M), hauling what M still
+	lacks for an unfunded order; from M it continues exactly as an arrival there."""
+	var code: StringName = _open_order() if _project == NULL_REF else &""
+	var queue: PackedInt32Array = PackedInt32Array()
+	if code == &"" and not _funded(): code = _units(queue)
+	if code != &"": return code
+	_hauler = Hauler.new()
+	code = _hauler.begin(_o, _crew, _project, _job, queue, legs, _crew.arrival, tick)
+	if code == &"": _stage = STAGE_HAUL
 	return code
 
 
@@ -371,8 +453,9 @@ func _install_enter(tick: int) -> StringName:
 	"""The unchanged INSTALL source reaches WORK through real route ticks."""
 	if Routes.source_work_leaf_refusal(_o.routes, _crew.worker, _job_ref(), _plan.install_profile,
 			_plan.install_revision, _content) == &"":
-		_stage = STAGE_EARN
-		return &""
+		var code: StringName = _finish_resume() if _o.jobs._state[_job] == Jobs.JOB_STATE_RESERVED else &""
+		if code == &"": _stage = STAGE_EARN
+		return code
 	_o.routes.advance_tick(tick)
 	return &""
 
@@ -431,7 +514,7 @@ func write_state(w: Progress.Writer) -> void:
 	w.i32(_stage)
 	w.ref(_project)
 	w.i32(_job)
-	w.ref(Progress.job_ref(_o.jobs, _job, _stage != STAGE_OPEN))
+	w.ref(Progress.job_ref(_o.jobs, _job, _project != NULL_REF))
 	w.i64(_accepted_mwu)
 	w.i64(_haul_mwu)
 	w.i32(_haul_trips)
@@ -470,7 +553,7 @@ func read_state(r: Progress.Reader, owners: RefCounted, crew: RefCounted, paid: 
 	_paid = paid
 	_plan = _read_plan(r)
 	_content = r.i64()
-	_stage = r.ranged(STAGE_OPEN, STAGE_REST)
+	_stage = r.ranged(STAGE_OPEN, STAGE_RESUME)
 	_project = r.ref()
 	_job = r.i32()
 	var job: Vector2i = r.ref()
@@ -483,7 +566,8 @@ func read_state(r: Progress.Reader, owners: RefCounted, crew: RefCounted, paid: 
 	var code: StringName = _read_haul(r, r.flag())
 	if code != &"": return code
 	if _stage == STAGE_DONE or (_stage == STAGE_HAUL) != (_hauler != null) \
-			or (_stage == STAGE_OPEN) != (_project == NULL_REF) or (_stage == STAGE_OPEN) != lines.is_empty():
+			or (_stage == STAGE_OPEN and _project != NULL_REF) or (_project == NULL_REF) != lines.is_empty() \
+			or (_stage != STAGE_OPEN and _stage != STAGE_RESUME and _project == NULL_REF):
 		return Progress.REFUSE_SHAPE
 	return _restored_refusal(job, lines)
 
@@ -522,16 +606,17 @@ func _restored_refusal(job: Vector2i, lines: PackedInt64Array) -> StringName:
 	"""The paid order must still quote the saved bill; every Location the plan will still read must be live."""
 	if _paid == null or _paid.router == null or _paid.connector == null: return Progress.REFUSE_OWNERS
 	if _content != _o.profiles.content_revision(): return Progress.REFUSE_CONTENT
-	var code: StringName = Progress.job_refusal(_o.jobs, _job, job, _stage != STAGE_OPEN)
-	if code == &"" and _stage != STAGE_OPEN: code = _quote_refusal(lines)
+	var code: StringName = Progress.job_refusal(_o.jobs, _job, job, _project != NULL_REF)
+	if code == &"" and _project != NULL_REF: code = _quote_refusal(lines)
 	var retiring: bool = _stage in [STAGE_OPEN, STAGE_LEG_MATERIAL, STAGE_LEG_ARRIVAL, STAGE_LEG_STATION, STAGE_HAUL,
-		STAGE_FUND]
+		STAGE_FUND, STAGE_RESUME] and not _funded() # DEC-057: a resumed funded order retired its pair already.
 	for at: Vector2i in [_plan.station, _plan.material]:
 		if code == &"": code = Progress.location_refusal(_o.locations, at, false)
 	if code == &"": code = Progress.location_refusal(_o.locations, _plan.arrival, true)
 	for at: Vector2i in [_plan.retired_first, _plan.retired_second]:
 		if code == &"" and retiring: code = Progress.location_refusal(_o.locations, at, true)
-	if code == &"" and _stage != STAGE_OPEN and _hauler == null: code = Progress.actor_refusal(_o, _crew.worker, job)
+	if code == &"" and _stage != STAGE_OPEN and _stage != STAGE_RESUME and _hauler == null:
+		code = Progress.actor_refusal(_o, _crew.worker, job)
 	return code
 
 

@@ -110,13 +110,51 @@ rebinds a worker this way after a pause (`test_paused_paid_phase_resumes_with_sa
 - **Routes:** a living actor is refused. A dead actor mid-span with a queued route is unregistered: blank row, no
   held span, and the image round-trips.
 
-## Not built: resuming a paid installation
+## Amendment: installations (DEC-057, re-handle in place)
 
-A crew lost while an installation is under way stops the chain with **`ENTRY_CREW_LOST_INSTALLING`** (G6), and
-nothing is rolled back. Resuming needs more than this change:
+The `ENTRY_CREW_LOST_INSTALLING` stop is gone. A crew lost in any installation stage is replaced, and the
+installation resumes.
 
-- **Before FUND:** a replacement route from H to M on the installation's own walk profile.
-- **After FUND:** a rule for the workpiece the lost mole was handling (assembly handling, row 29). Whether the timber
-  drops in place, returns to M, or is re-handled is a gameplay choice.
+- **Release** (`Installer.release_lost_crew`):
+  - an admitted haul is cancelled through Delivery, and its HAUL Job retired (`Hauler.release_lost`, now shared
+    with the foreman);
+  - the order's Job and tool claim are released from the lost crew;
+  - a funded order's assigned count drops to 0.
 
-That is for Brendan when installation crews are next touched.
+  The piece, its Region, the paid inputs and every accepted Work mWU stay. The installation waits in
+  `STAGE_RESUME` (12).
+- **Walk-in.** When the replacement arrives, the foreman registers it on H on H's own profile. It leaves by the
+  authored retreat and walks to M, all through the hauler's legs. With nothing to haul (a funded order, or M
+  already stocked), the hauler walks under the order's own Job with an empty queue, and that Job is all it carries.
+  From M the installation continues as an arrival there.
+- **At the station:**
+  - **Funded, piece still pending handling:** Router `resume_work` revalidates the replacement at handling READY,
+    and handling starts again where the piece stands. Handling earns no Work, so nothing is paid twice.
+  - **Piece already handled:** the replacement selects INSTALL directly. Once its source works, `resume_work`
+    revalidates it, or, if the fastening was already finished, the retained zero-work Job reads COMPLETE again.
+  - **Unfunded:** the ordinary FUND.
+
+Owner rules amended, each excusing exactly the order's own live piece and nothing else:
+- `WorldRoutes._assembly_admission` and `Routes._assembly_admission_leaf` use the funded physical proof
+  (`AssemblyPhysical.refusal`, which excuses that piece) once the piece is live.
+- `Contacts._assembly_rehandling_worker` revalidates a replacement at handling READY, as at START, while a funded,
+  unpaused order's piece is pending. The start-geometry pass excuses that piece's Region, but never under a foot.
+- `Contacts._assembly_start` no longer applies to an already handled piece; that case revalidates at INSTALL WORK.
+
+**Persistence.** No field is added.
+- `STAGE_RESUME` widens the installer's stage range.
+- The installer's Job handle is written whenever an order exists. That is the same bytes as before for every
+  existing stage.
+- A hauler's queue may now be empty.
+
+**Evidence** (`test_underground_host.gd`). The crew dies in each stage it can rest in:
+- L0's haul;
+- L0's station approach;
+- L0's handling;
+- L0's INSTALL entry;
+- L0's fastening;
+- L0's recovery;
+- T0's split-landing arrival.
+
+Every run reaches the same next gap with L0 `INSTALLED` once and 32,000 mWU of fastening. A loss mid-handling also
+runs with the whole runtime restored every 7 ticks and is byte-identical.

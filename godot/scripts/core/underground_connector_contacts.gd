@@ -1712,7 +1712,8 @@ func _worker_leaf(job: Vector2i, worker: Vector2i) -> StringName:
 	if _phase_mode and _phase_needs_worker() and (_sites._worker_site[row] != _phase_site.x \
 			or _sites._worker_generation[row] != worker.y):
 		return REFUSE_WORKER
-	if _assembly_start() or _assembly_unfunded_worker(): return _assembly_start_worker_leaf(job, worker, row)
+	if _assembly_start() or _assembly_unfunded_worker() or _assembly_rehandling_worker():
+		return _assembly_start_worker_leaf(job, worker, row)
 	var code: StringName = _dynamic_selection(row, worker, job, _selection)
 	if code != &"" or not graph._committed_selection(row, _selection) \
 			or _selection.profile_id != _station[5] or _selection.profile_revision != _profile_revision \
@@ -1739,8 +1740,17 @@ func _assembly_source_selected() -> bool:
 
 
 func _assembly_start() -> bool:
-	"""Funding starts at canonical handling READY; the INSTALL work selector is chosen only after handled recovery."""
-	return not _phase_mode and _action == Contract.START and _assembly_source_selected()
+	"""Funding starts at canonical handling READY; the INSTALL work selector is chosen only after handled recovery.
+	DEC-057: a replacement resuming an already handled piece revalidates at INSTALL WORK, not here."""
+	return not _phase_mode and _action == Contract.START and _assembly_source_selected() \
+		and _piece_state() != Workpieces.HANDLED
+
+
+func _piece_state() -> int:
+	"""The order's Workpieces row state (0 before funding), read without an observer."""
+	var pieces: Workpieces = _workpiece_owner()
+	if pieces == null or _placement.x < 0 or _placement.x >= pieces._capacity: return 0
+	return pieces._live.present[_placement.x]
 
 
 func _assembly_unfunded_worker() -> bool:
@@ -1753,6 +1763,24 @@ func _assembly_unfunded_worker() -> bool:
 	return construction._phase[row] == Construction.PHASE_READY and construction._work_begun[row] == 0 \
 		and construction._paused[row] == 0 and funding._project_slot[row] == -1 \
 		and funding._project_generation[row] == 0
+
+
+func _assembly_rehandling_worker() -> bool:
+	"""DEC-057: a replacement for a lost crew is revalidated at canonical handling READY, exactly as at START, while the
+	funded order's piece is still pending handling; it grants no transition or fastening work by itself."""
+	if _phase_mode or (_action != -1 and _action != Contract.START) or not _assembly_source_selected(): return false
+	var row: int = _project_row()
+	if row < 0: return false
+	var construction: Construction = _placements._construction
+	return construction._phase[row] == Construction.PHASE_WORKING and construction._work_begun[row] == 1 \
+		and construction._paused[row] == 0 and _piece_state() == Workpieces.PENDING_HANDLING
+
+
+func _rehandled_region() -> int:
+	"""DEC-057: the live Region of the order's own pending piece while a replacement re-handles it; -1 otherwise."""
+	if not _assembly_rehandling_worker(): return -1
+	var pieces: Workpieces = _workpiece_owner()
+	return pieces._live.fields[pieces.REGION_SLOT * pieces._capacity + _placement.x]
 
 
 func _assembly_start_worker_leaf(job: Vector2i, worker: Vector2i, row: int) -> StringName:
@@ -1810,11 +1838,15 @@ func _assembly_start_volume(foot: bool) -> StringName:
 func _assembly_start_regions(foot: bool) -> StringName:
 	"""Every overlapping Region; a foot may share proved SUPPORT only with its station Room's own marker (ADR 1202)."""
 	var owner: Owner = _placements._space
+	var piece: int = _rehandled_region()
 	for region: int in owner._region_capacity:
 		if not _fragments.spend(): return REFUSE_CAPACITY
 		if owner._r_present[region] == 0: continue
 		_copy_region_box(region, _scratch)
 		if not Space.overlaps(_bounds, _scratch): continue
+		if region == piece: # DEC-057: the pending piece being re-handled in place, never under a foot.
+			if foot: return REFUSE_GEOMETRY
+			continue
 		if foot and AssemblyPhysical.own_room_marker(owner, region, _location.room): continue
 		var role: int = owner._r_role[region]
 		if role == Space.SUPPORTED_VOID:

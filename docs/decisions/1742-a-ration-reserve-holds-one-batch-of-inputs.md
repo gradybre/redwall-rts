@@ -107,7 +107,7 @@ fish has, and it remains 1740's PROPOSAL, with F9 (c) accepted.
 ## Tests
 
 - `test_demo_ration_reserve.gd` (new):
-  - with no target, nothing is held, and an unconfigured reserve holds and gives nothing;
+  - with no target, nothing is held; an unconfigured reserve, or one with no takes, holds and gives nothing;
   - one batch's inputs are held (the 1 U of flour there, plus grain to grind the rest), so the free food is less by
     them; with the flour there the grain is let go; never more than a batch;
   - at the target (one milli-U either side) everything goes back, and below it is gathered again;
@@ -160,6 +160,13 @@ No CRITICAL or HIGH. Four MEDIUMs, three of them reproduced:
   - R26 is the performance guard above;
   - three are equivalent or harmless: a 0 shortfall asked, the input range one past its end, and the whole 3 U given
     to the mill.
+
+**The CI-style gate at `ae0e1143` caught two problems, both fixed in `db297ac2`:**
+- The regatta suite builds a fishery with no takes. The reserve's `configure` called `new_take()` on null, failing 28
+  tests. It is now inert with no takes, and a test pins it.
+- The analyzer flagged a local `packing` shadowing a fishery function.
+
+Neither changes the built village, so the measurement below (on `ae0e1143`) stands.
 
 ## The measurement
 

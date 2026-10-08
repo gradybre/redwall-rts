@@ -17,6 +17,8 @@ const COLUMNS: Array[String] = [
 	"weather/event", "weather/frost_night", "weather/blight_outbreak", "weather/air_tenths_min",
 	"beds/sown", "beds/harvested", "beds/growing_end",
 	"incidents/occurrences", "incidents/critical", "rescues",
+	"hearths/burned_milli", "hearths/heated_hours", "hearths/cold_hours", "hearths/fuel_days_hundredths_end",
+	"apiary/honey_made_milli", "apiary/released_milli", "apiary/fed_from_hive_milli", "apiary/strength_end",
 ]
 
 

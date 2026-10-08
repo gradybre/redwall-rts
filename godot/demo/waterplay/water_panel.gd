@@ -65,6 +65,9 @@ const ACTION_FISH_SPECIES: StringName = &"fish_species"
 const ACTION_AUTHORISE: StringName = &"fish_authorise"
 const ACTION_NEXT_TRIP: StringName = &"fish_next_trip"
 const ACTION_CANCEL_TRIP: StringName = &"fish_cancel"
+## The fishing revamp (decisions 1712-1713): the traps' collection policy and the chosen water's intensive harvest.
+const ACTION_FISH_COLLECT: StringName = &"fish_collect"
+const ACTION_FISH_INTENSIVE: StringName = &"fish_intensive"
 const ACTION_MAKE_NET: StringName = &"make_net"
 const ACTION_MAKE_TRAP: StringName = &"make_trap"
 const ACTION_MAKE_ICE_KIT: StringName = &"make_ice_kit"
@@ -101,6 +104,7 @@ const BUTTON_TEXT: Dictionary = {
 	&"dive": "Dive in the pond", &"consent": "Swim shortcuts: on",
 	&"fish_site": "Site ▸", &"fish_method": "Method ▸", &"fish_species": "Fish ▸",
 	&"fish_authorise": "Authorise trip", &"fish_next_trip": "Next trip ▸", &"fish_cancel": "Cancel trip",
+	&"fish_collect": "Traps: when soaked", &"fish_intensive": "Intensive: off",
 	&"make_net": "Make net", &"make_trap": "Make trap", &"make_ice_kit": "Make ice kit", &"mend": "Mend gear",
 	&"dry_fish": "Dry fish", &"mill_grain": "Mill grain", &"dry_fruit": "Dry fruit", &"pack_rations": "Pack rations",
 	&"brew_mead": "Brew mead", &"make_cordial": "Make cordial", &"make_jam": "Make jam", &"make_cheese": "Make cheese",
@@ -116,7 +120,8 @@ const BUTTON_TIPS: Dictionary = {
 	&"consent": "Swim shortcuts: whether the selected residents (everyone, with nobody selected) may swim across instead of walking round",
 	&"fish_site": "The next fishing water: the run, the ford, the pond",
 	&"fish_method": "The next method there: hand net, trap, boat, ice fishing",
-	&"fish_species": "The next fish of that water",
+	&"fish_species": "The next fish of that water, then Best catch (the fishery picks the best legal fish at the water)",
+	&"fish_collect": "When new traps are collected: as soon as soaked, or on the morning run (06:00-10:00)",
 	&"fish_next_trip": "Choose the next trip out (Cancel trip acts on it)",
 	&"regatta_prev_day": "An earlier day for the regatta, this season", &"regatta_next_day": "A later day for the regatta, this season",
 	&"regatta_host": "The next resident to host the regatta",
@@ -125,6 +130,7 @@ const BUTTON_TIPS: Dictionary = {
 const CHOICE_ACTIONS: Array[StringName] = [&"fish_site", &"fish_method", &"fish_species"]
 const TRIP_ACTIONS: Array[StringName] = [&"fish_authorise", &"fish_next_trip", &"fish_cancel"]
 const GEAR_ACTIONS: Array[StringName] = [&"make_net", &"make_trap", &"make_ice_kit", &"mend"]
+const STEWARD_ACTIONS: Array[StringName] = [&"fish_collect", &"fish_intensive"]
 const STATION_ACTIONS: Array[StringName] = [&"dry_fish", &"mill_grain"]
 const PRESERVE_ACTIONS: Array[StringName] = [&"dry_fruit", &"pack_rations"]
 const BREW_ACTIONS: Array[StringName] = [&"brew_mead", &"make_cordial"]
@@ -139,7 +145,7 @@ const FERRY_LINES: Array[StringName] = [&"ferry_status", &"ferry_cargo", &"ferry
 const REGATTA_LINES: Array[StringName] = [&"regatta_status", &"regatta_choice", &"regatta_preview"]
 ## Their lines, in order: what fishery.gd's panel text fills.
 const FISHERY_LINES: Array[StringName] = [&"fish_choice", &"fish_preview", &"fish_trips", &"fish_gear", &"boats",
-	&"stations", &"preserves", &"brewing"]
+	&"stations", &"preserves", &"brewing", &"fish_record"]
 const SITE_ACTIONS: Array[StringName] = [&"prev_site", &"next_site", &"span_tool", &"build_plank", &"build_log"]
 ## The two Build buttons, side by side under their kinds' costs.
 const BUILD_ACTIONS: Array[StringName] = [&"build_plank", &"build_log"]
@@ -314,6 +320,8 @@ func _build_fishery() -> void:
 	_add_line(_column, &"fish_trips", SMALL_PX, Palette.INK, null)
 	_add_line(_column, &"fish_gear", SMALL_PX, Palette.UMBER, null)
 	_column.add_child(_row(GEAR_ACTIONS))
+	_add_line(_column, &"fish_record", SMALL_PX, Palette.UMBER, null)
+	_column.add_child(_row(STEWARD_ACTIONS))
 	_add_line(_column, &"boats_title", HEADING_PX, Palette.INK, Styles.heading_font())
 	_set_line(&"boats_title", "Boats")
 	_add_line(_column, &"boats", SMALL_PX, Palette.INK, null)

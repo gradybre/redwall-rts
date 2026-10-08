@@ -1,6 +1,6 @@
 # 1701 — Called feasts: the GDD's Hearth, Harvest and Orchard feasts, called by the player, at the 17:00 supper
 
-Date: 2026-10-07 · Status: Accepted (engineering); the PROPOSALS below await Brendan's ruling
+Date: 2026-10-07 · Status: Accepted (engineering); **PROPOSALS P1–P9 approved by Brendan on 2026-10-07, all as recommended**
 
 Handoff packet FEAST (`docs/handoff/BACKLOG.md`, "## FEAST — Feasts (#9)"). Branch `feat/demo-feasts`.
 
@@ -88,7 +88,7 @@ existing **occasion** (decision 0438's API, both courses), served at 17:00, tall
 | File | Hook |
 |---|---|
 | `godot/demo/demo_village.gd` | `_build_feasts()` after the weather effects (the feasts node, its people hook, the Feast command, the cards, guide and people card give way while its panel is open, M4's `feasts` bound); `feasts()`; one `add_planning("the feasts", ...)` line |
-| `godot/demo/kitchen/kitchen.gd` | `days_of_meals_after_milli(set_aside)` and its `_set_aside` pool deduction (empty: no change); a **fix**: a batch of a dish with no water no longer calls `take_water(0)`, which refused and raised "a batch's water or wood was gone" |
+| `godot/demo/kitchen/kitchen.gd` | `days_of_meals_after_milli(set_aside)` and its `_set_aside` pool deduction (empty: no change); `held_for_meal_milli(key, selector)` (P6 (b), a read); a **fix**: a batch of a dish with no water no longer calls `take_water(0)`, which refused and raised "a batch's water or wood was gone" |
 | `godot/demo/kitchen/dish_book.gd` | four OCCASION rows appended; three category constants; `ADOPTED_ROWS` |
 | `godot/demo/regatta/regatta.gd` | three optional Callables (`feast_clash`, `food_days_after`, `fuel_days_after`); unbound, the regatta's own figures as before; FEAST_CLASH refusal first in `_feast_refusal` |
 | `godot/demo/regatta/demo_regatta.gd` | header words only (the Feast command is the feasts' now) |
@@ -125,6 +125,27 @@ behind the existing Feast command.
 - **P9. Recording Q-D11 in the specification.** (a) a `DEC-nnn` in `setting_decisions.md` and REQ-SET-103 amended to
   "17:00" at the next integration; (b) leave the GDD's 18:00 and keep the deviation recorded here and in `RULINGS.md`.
   Recommendation: (a).
+
+## Brendan's rulings (2026-10-07)
+
+Relayed by the coordinator: **"all nine of 1701's proposals approved as recommended"** -- P1 (a), P2 (a), P3 (a),
+P4 (a), P5 (a), P6 (b), P7 (a), P8 (b), P9 (a). What they required:
+
+- **P6 (b), built on this branch.** A feast counts the food its own supper's ordinary meal already holds, which the
+  feast replaces: `kitchen.gd held_for_meal_milli(key, selector)` (additive) -- what the planned meal `key` holds of a
+  selector, 0 when the meal is not planned, is already an occasion's, or has a batch cooked or at the cauldron
+  (nothing cooked is undone). `feast_menu.gd available_of` adds it to the free food for the feast's own supper; the
+  plan, the "needs X" words and the preview's "free" figures use it. The reservation is unchanged: what the free food
+  lacks at confirmation, the kitchen's own top-up takes once it adopts the occasion (it lets the meal's food go and
+  holds each course's from it). The regatta is unchanged: it is planned from tomorrow at the earliest, and its menu
+  file was left alone (a follow-up if wanted).
+- **P9 (a), done.** `DEC-058` in `docs/setting_decisions.md` ("Every feast is served at the 17:00 supper", Brendan's
+  words "All at 17:00 supper"; DEC-050–057 are taken on the digging branch, so 058 is the next free one); REQ-SET-103
+  in `docs/game_gdd.md` amended to "the 17:00 supper" with a dated amendment note; `docs/gameplay_balance.md`
+  BAL-RUN-004 and `docs/ui_ux_controls.md`'s "Hold a feast" flow amended to match.
+- **P8 (b), queued.** The four courses' icons are on the next costed art list (`docs/handoff/BACKLOG.md`, ART-NEXT:
+  one icon sheet, about 6 credits). Nothing was spent.
+- P1–P5 and P7 approve what was built.
 
 ## Tests and gates
 

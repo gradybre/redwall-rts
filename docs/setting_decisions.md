@@ -1302,6 +1302,23 @@ What the ruling does not change:
 Scope: the settlement UI (`docs/ui_ux_controls.md`, `godot/scripts/ui/`) and the live demo (`godot/demo/`).
 Engineering record, the full table, the wording rules and the phase-2 plan: decision 1011.
 
+### DEC-058 — Every feast is served at the 17:00 supper
+
+2026-10-07 · State: `USER_CONFIRMED`.
+
+Brendan, 2026-10-07, ruling on handoff question Q-D11 ("the hour of a called feast"): **"All at 17:00 supper".** Every
+feast -- a feast the player calls and the regatta's -- is served at the 17:00 supper, not at 18:00. On decision 1701 the
+same day he approved its P9 (a), as recommended: record the ruling here and amend the specification to match.
+
+- **GDD REQ-SET-103** now reads "When a ready feast begins at the 17:00 supper"; the three one-hour waves, attendance
+  and consumption are unchanged. `docs/gameplay_balance.md` BAL-RUN-004 and `docs/ui_ux_controls.md`'s "Hold a feast"
+  flow are amended to match.
+- In the live demo the supper is called at 17:00 and served until 18:59 (decision 0421); a feast's seatings fall inside
+  it. The regatta was already served then (decision 0438).
+
+Scope: the settlement GDD and the live demo (`godot/demo/feast/`, `godot/demo/regatta/`). Engineering record:
+decision 1701.
+
 ### DEC-040 engineering follow-through
 
 Brendan subsequently requested: “let's plan those as well, then give me what to send back to claude”. [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) records the resulting Astra-authored numeric economy/hazard choices. This is delegated engineering authoring, not a claim the user supplied every value. DEC-040's four-level candidate status remains unchanged. [Decision0092](decisions/0092-underground-economy-and-hazard-parameters.md) records adoption and its limits.

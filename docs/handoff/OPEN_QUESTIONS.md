@@ -163,7 +163,7 @@ Recommendation: (a), as approved, with the lesson cost set at 15% unless you pre
 Recommendation: (a).
 
 **Q-D11. The hour of a called feast.** **CLOSED: ruled (b) by Brendan on 2026-10-07**, "All at 17:00 supper" (decision
-1701; `RULINGS.md`): every feast, called or regatta, at the 17:00 supper -- a deviation from REQ-SET-103's 18:00. The GDD
+1701, DEC-058; `RULINGS.md`): every feast, called or regatta, at the 17:00 supper -- a deviation from REQ-SET-103's 18:00. The GDD
 starts feasts at 18:00 (REQ-SET-103); the regatta feast is served at the 17:00 supper (kept, 2026-10-01). [FEAST]
 - (a) Called feasts at 18:00, the regatta unchanged.
 - (b) Every feast at the 17:00 supper.

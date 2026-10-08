@@ -1398,6 +1398,44 @@ func state_bytes() -> PackedByteArray:
 	return image
 
 
+# --- ADR 1228: section 6 owner `modular_projects` ------------------------------------------------
+
+func save_columns() -> Array:
+	"""Copies of the four registry columns (Job and Project bindings keyed by Job typed row)."""
+	return [_job_slot.duplicate(), _job_generation.duplicate(), _project_slot.duplicate(),
+		_project_generation.duplicate()]
+
+
+func restore_columns(columns: Array) -> bool:
+	"""Install the four columns after `columns_valid()`; false writes nothing."""
+	if not columns_valid(columns):
+		return false
+	_job_slot = (columns[0] as PackedInt32Array).duplicate()
+	_job_generation = (columns[1] as PackedInt32Array).duplicate()
+	_project_slot = (columns[2] as PackedInt32Array).duplicate()
+	_project_generation = (columns[3] as PackedInt32Array).duplicate()
+	return true
+
+
+func columns_valid(columns: Array) -> bool:
+	"""A composed owner; four i32 columns of JOB_CAPACITY; each pair null as (-1, 0) or a live shape,
+	and a Job binding exactly where a Project binding is."""
+	if _ready_error != &"" or columns.size() != 4:
+		return false
+	for column: Variant in columns:
+		if typeof(column) != TYPE_PACKED_INT32_ARRAY or column.size() != JOB_CAPACITY:
+			return false
+	for row: int in JOB_CAPACITY:
+		for pair: int in [0, 2]:
+			var slot: int = columns[pair][row]
+			if (slot == -1) != (columns[pair + 1][row] == 0) or slot < -1 \
+					or slot >= Directory.DIRECTORY_CAPACITY or columns[pair + 1][row] < 0:
+				return false
+		if (columns[0][row] == -1) != (columns[2][row] == -1):
+			return false
+	return true
+
+
 func _ok(project: Vector2i) -> Construction.OpResult:
 	"""Cold convenience result; productive paths use reusable scalar readers."""
 	return Construction.OpResult.new(true, &"", 0, project)

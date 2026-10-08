@@ -277,15 +277,87 @@
     }
    }
   },
+  "godot/scripts/core/excavation_inventory.gd": {
+   "charges": [
+    {
+     "bytes": 3936264,
+     "carried_by": "ADR 1228 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+     "store": "section 6 excavation_inventory capture/apply: one copy of the eighteen columns at production capacity (free stack 131,072, project rows 2,322,432, receipts 1,441,792, losses 8,192, scalars 8) and a 32,768-byte receipt visit bitmap"
+    }
+   ],
+   "delta": {
+    "resizes_added": [
+     "seen.resize(_capacity)"
+    ],
+    "int_constants_added": [
+     [
+      "SAVE_COLUMN_COUNT",
+      "18"
+     ]
+    ],
+    "allocation_sites": {
+     ".duplicate(": 30,
+     ".slice(": 1,
+     "PackedByteArray(": 1,
+     "PackedInt32Array(": 2,
+     "range(": 2,
+     "return[": 1
+    }
+   }
+  },
   "godot/scripts/core/excavation_sites.gd": {
    "charges": [
     {
-     "bytes": 0,
-     "carried_by": "none",
-     "store": "ADR 1217 step 5: tool-free claw phases (GATE_NOT_REQUIRED, no tool claim) are bound, worked and released; three functions, no member, packet or resize"
+     "bytes": 8684325,
+     "carried_by": "ADR 1228 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+     "store": "section 6 excavation_sites capture/apply: one copy of the forty columns at production capacity (73,909 rows x 61 B, 369,545 earned-work i64, 512 worker pairs, 108 scalar bytes), the sorted-key validation copy and the rebuilt key order (591,272 B each) and the rebuilt Job index (32,768 B)"
     }
    ],
-   "delta": {}
+   "delta": {
+    "resizes_added": [
+     "order.resize(_count)",
+     "out.resize(Jobs.JOB_CAPACITY)"
+    ],
+    "int_constants_added": [
+     [
+      "SAVE_COLUMN_COUNT",
+      "40"
+     ],
+     [
+      "SAVE_SCALAR_COUNT",
+      "20"
+     ]
+    ],
+    "allocation_sites": {
+     "([": 1,
+     ",[": 18,
+     ".duplicate(": 22,
+     ".slice(": 1,
+     "=[": 2,
+     "PackedInt32Array(": 6,
+     "PackedInt64Array(": 2,
+     "in[": 3,
+     "range(": 2
+    }
+   }
+  },
+  "godot/scripts/core/inventory.gd": {
+   "charges": [
+    {
+     "bytes": 49176,
+     "carried_by": "ADR 1228 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+     "store": "section 6 inventory spatial capture/apply: the 1,024-row endpoint arena (24 B a row plus 12 scalar bytes) captured, and the previous arena held through the post-install audit"
+    }
+   ],
+   "delta": {
+    "allocation_sites": {
+     ".duplicate(": 10,
+     "PackedInt32Array(": 10,
+     "PackedInt64Array(": 1,
+     "range(": 1,
+     "return[": 3
+    }
+   }
   },
   "godot/scripts/core/jobs.gd": {
    "charges": [
@@ -315,12 +387,18 @@
   "godot/scripts/core/modular_projects.gd": {
    "charges": [
     {
-     "bytes": 0,
-     "carried_by": "none",
-     "store": "no retained-storage change"
+     "bytes": 131072,
+     "carried_by": "ADR 1228 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+     "store": "section 6 modular_projects capture/apply: one copy of the four JOB_CAPACITY i32 binding columns"
     }
    ],
-   "delta": {}
+   "delta": {
+    "allocation_sites": {
+     ".duplicate(": 8,
+     "in[": 1,
+     "return[": 1
+    }
+   }
   },
   "godot/scripts/core/movement.gd": {
    "charges": [

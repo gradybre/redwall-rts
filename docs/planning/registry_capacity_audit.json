@@ -16,8 +16,8 @@
       "demolition_admissions": "d8551d5add838e9d67a925473e72720eb719bdd2a9d064656185ebc0ac21b899",
       "demolition_work": "942a3d5524818838cac2bd15ad7891f21ca968905f1b35cd91132b0f8f820cfc",
       "entity_directory": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
-      "excavation_inventory": "e69e83b0fa3851f7408b574fec44b0978d048fb759eb90b458492ac81d15c001",
-      "excavation_sites": "0136bdba31781d40c0a1a406dd292d35b422719b27e303723ad425184d203ab9",
+      "excavation_inventory": "79c603c39b4b0cd9e1bba3243b5dd21d4a397d65f71d64baedf21bd86e4d0c68",
+      "excavation_sites": "e552c220f04460c61f40ec17bf79e474be667d29353d8a92ce27321e2f3f2a10",
       "farming": "85dd2e150de36b98830aad8f5293cb0c926060d58c0a79e1b61cd10a2f805aa7",
       "field_policy": "5c0e8ec679d6f43b0359d9aaaa30da1b053cc4e994995c53e1a31f5c8fa3cf75",
       "fishing": "81194d0e481e563703024e2f84b216fcb2fb25db8e8400af46db140d2dfcd478",
@@ -25,10 +25,10 @@
       "gear": "aeed59191a5e06fbd6e8b4bccf93d9b991ff9a73e2a1229afa1f2ed0cc6972ea",
       "haul_planner": "ff125c7c0a1a9ab3c23be832ceec77b54354e4b87c0b7fe8ebc482fee0a400e4",
       "injury": "587d4b5b1729063805dac41430c7fecc5a4ad92d28e12865eff0553c507c39a4",
-      "inventory": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
+      "inventory": "002b3404e2bcfff364680efeb8b374fbcfc3b289ec9e6ff4d1568096fb500a1d",
       "job_planner": "bc024854f95b7b31f7ed580252a84e85fba565f4adec7b354df776c3a4870591",
       "jobs": "c2439e107d6745524f5b260f11ce2a5f56fc7028bc6469702148aa5f87b0fc43",
-      "modular_projects": "c60c4f3e3b3826ef7d399755c45edbdfe67ebd77f363a5a7b97ae10976da3345",
+      "modular_projects": "4a705b8c18f21d3f7c7aba0768298d89c610fc5eddf7b273702f49c9d1e0180c",
       "movement": "cab4d14ed816b45ed5a57b824d063673cadb3416424057e4928f028e884b577d",
       "navigation": "ae078227fb79879b3357e1ba174c58f1b209ac346a9b6cc6ded70e1080cd7255",
       "needs": "9ceeb2fc155e33eb23ec2d0136b3feca3ef77c5c82a6e44eaf35b17746a1c190",
@@ -11288,7 +11288,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "eq",
       "source_resize_expression": "Construction.CONSTRUCTION_CAPACITY",
-      "source_resize_line": 165,
+      "source_resize_line": 166,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -11311,7 +11311,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "eq",
       "source_resize_expression": "Construction.CONSTRUCTION_CAPACITY",
-      "source_resize_line": 165,
+      "source_resize_line": 166,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -11334,7 +11334,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "eq",
       "source_resize_expression": "Construction.CONSTRUCTION_CAPACITY",
-      "source_resize_line": 165,
+      "source_resize_line": 166,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -11357,7 +11357,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "eq",
       "source_resize_expression": "Construction.CONSTRUCTION_CAPACITY",
-      "source_resize_line": 165,
+      "source_resize_line": 166,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -11380,7 +11380,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "eq",
       "source_resize_expression": "Construction.CONSTRUCTION_CAPACITY",
-      "source_resize_line": 165,
+      "source_resize_line": 166,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -11403,7 +11403,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "eq",
       "source_resize_expression": "Construction.CONSTRUCTION_CAPACITY",
-      "source_resize_line": 171,
+      "source_resize_line": 172,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -11415,8 +11415,8 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "Reservations.ROW_CAPACITY -> godot/scripts/core/reservations.gd:75 `const ROW_CAPACITY = 32768` = 32768",
-        "MAX_RECEIPT_CAPACITY -> godot/scripts/core/excavation_inventory.gd:17 `const MAX_RECEIPT_CAPACITY = Reservations.ROW_CAPACITY` = 32768",
-        "_capacity -> godot/scripts/core/excavation_inventory.gd:74 `clampi(receipt_capacity, 0, MAX_RECEIPT_CAPACITY)` max = 32768"
+        "MAX_RECEIPT_CAPACITY -> godot/scripts/core/excavation_inventory.gd:18 `const MAX_RECEIPT_CAPACITY = Reservations.ROW_CAPACITY` = 32768",
+        "_capacity -> godot/scripts/core/excavation_inventory.gd:75 `clampi(receipt_capacity, 0, MAX_RECEIPT_CAPACITY)` max = 32768"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11428,7 +11428,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 176,
+      "source_resize_line": 177,
       "source_value": 32768,
       "status": "proved_upper_bound"
     },
@@ -11440,8 +11440,8 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "Reservations.ROW_CAPACITY -> godot/scripts/core/reservations.gd:75 `const ROW_CAPACITY = 32768` = 32768",
-        "MAX_RECEIPT_CAPACITY -> godot/scripts/core/excavation_inventory.gd:17 `const MAX_RECEIPT_CAPACITY = Reservations.ROW_CAPACITY` = 32768",
-        "_capacity -> godot/scripts/core/excavation_inventory.gd:74 `clampi(receipt_capacity, 0, MAX_RECEIPT_CAPACITY)` max = 32768"
+        "MAX_RECEIPT_CAPACITY -> godot/scripts/core/excavation_inventory.gd:18 `const MAX_RECEIPT_CAPACITY = Reservations.ROW_CAPACITY` = 32768",
+        "_capacity -> godot/scripts/core/excavation_inventory.gd:75 `clampi(receipt_capacity, 0, MAX_RECEIPT_CAPACITY)` max = 32768"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11453,7 +11453,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 176,
+      "source_resize_line": 177,
       "source_value": 32768,
       "status": "proved_upper_bound"
     },
@@ -11465,8 +11465,8 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "Reservations.ROW_CAPACITY -> godot/scripts/core/reservations.gd:75 `const ROW_CAPACITY = 32768` = 32768",
-        "MAX_RECEIPT_CAPACITY -> godot/scripts/core/excavation_inventory.gd:17 `const MAX_RECEIPT_CAPACITY = Reservations.ROW_CAPACITY` = 32768",
-        "_capacity -> godot/scripts/core/excavation_inventory.gd:74 `clampi(receipt_capacity, 0, MAX_RECEIPT_CAPACITY)` max = 32768"
+        "MAX_RECEIPT_CAPACITY -> godot/scripts/core/excavation_inventory.gd:18 `const MAX_RECEIPT_CAPACITY = Reservations.ROW_CAPACITY` = 32768",
+        "_capacity -> godot/scripts/core/excavation_inventory.gd:75 `clampi(receipt_capacity, 0, MAX_RECEIPT_CAPACITY)` max = 32768"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11478,7 +11478,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 176,
+      "source_resize_line": 177,
       "source_value": 32768,
       "status": "proved_upper_bound"
     },
@@ -11490,8 +11490,8 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "Reservations.ROW_CAPACITY -> godot/scripts/core/reservations.gd:75 `const ROW_CAPACITY = 32768` = 32768",
-        "MAX_RECEIPT_CAPACITY -> godot/scripts/core/excavation_inventory.gd:17 `const MAX_RECEIPT_CAPACITY = Reservations.ROW_CAPACITY` = 32768",
-        "_capacity -> godot/scripts/core/excavation_inventory.gd:74 `clampi(receipt_capacity, 0, MAX_RECEIPT_CAPACITY)` max = 32768"
+        "MAX_RECEIPT_CAPACITY -> godot/scripts/core/excavation_inventory.gd:18 `const MAX_RECEIPT_CAPACITY = Reservations.ROW_CAPACITY` = 32768",
+        "_capacity -> godot/scripts/core/excavation_inventory.gd:75 `clampi(receipt_capacity, 0, MAX_RECEIPT_CAPACITY)` max = 32768"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11503,7 +11503,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 176,
+      "source_resize_line": 177,
       "source_value": 32768,
       "status": "proved_upper_bound"
     },
@@ -11515,8 +11515,8 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "Reservations.ROW_CAPACITY -> godot/scripts/core/reservations.gd:75 `const ROW_CAPACITY = 32768` = 32768",
-        "MAX_RECEIPT_CAPACITY -> godot/scripts/core/excavation_inventory.gd:17 `const MAX_RECEIPT_CAPACITY = Reservations.ROW_CAPACITY` = 32768",
-        "_capacity -> godot/scripts/core/excavation_inventory.gd:74 `clampi(receipt_capacity, 0, MAX_RECEIPT_CAPACITY)` max = 32768"
+        "MAX_RECEIPT_CAPACITY -> godot/scripts/core/excavation_inventory.gd:18 `const MAX_RECEIPT_CAPACITY = Reservations.ROW_CAPACITY` = 32768",
+        "_capacity -> godot/scripts/core/excavation_inventory.gd:75 `clampi(receipt_capacity, 0, MAX_RECEIPT_CAPACITY)` max = 32768"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11528,7 +11528,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 176,
+      "source_resize_line": 177,
       "source_value": 32768,
       "status": "proved_upper_bound"
     },
@@ -11540,8 +11540,8 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "Reservations.ROW_CAPACITY -> godot/scripts/core/reservations.gd:75 `const ROW_CAPACITY = 32768` = 32768",
-        "MAX_RECEIPT_CAPACITY -> godot/scripts/core/excavation_inventory.gd:17 `const MAX_RECEIPT_CAPACITY = Reservations.ROW_CAPACITY` = 32768",
-        "_capacity -> godot/scripts/core/excavation_inventory.gd:74 `clampi(receipt_capacity, 0, MAX_RECEIPT_CAPACITY)` max = 32768"
+        "MAX_RECEIPT_CAPACITY -> godot/scripts/core/excavation_inventory.gd:18 `const MAX_RECEIPT_CAPACITY = Reservations.ROW_CAPACITY` = 32768",
+        "_capacity -> godot/scripts/core/excavation_inventory.gd:75 `clampi(receipt_capacity, 0, MAX_RECEIPT_CAPACITY)` max = 32768"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11553,7 +11553,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 179,
+      "source_resize_line": 180,
       "source_value": 32768,
       "status": "proved_upper_bound"
     },
@@ -11565,8 +11565,8 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "Reservations.ROW_CAPACITY -> godot/scripts/core/reservations.gd:75 `const ROW_CAPACITY = 32768` = 32768",
-        "MAX_RECEIPT_CAPACITY -> godot/scripts/core/excavation_inventory.gd:17 `const MAX_RECEIPT_CAPACITY = Reservations.ROW_CAPACITY` = 32768",
-        "_capacity -> godot/scripts/core/excavation_inventory.gd:74 `clampi(receipt_capacity, 0, MAX_RECEIPT_CAPACITY)` max = 32768"
+        "MAX_RECEIPT_CAPACITY -> godot/scripts/core/excavation_inventory.gd:18 `const MAX_RECEIPT_CAPACITY = Reservations.ROW_CAPACITY` = 32768",
+        "_capacity -> godot/scripts/core/excavation_inventory.gd:75 `clampi(receipt_capacity, 0, MAX_RECEIPT_CAPACITY)` max = 32768"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11578,7 +11578,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 179,
+      "source_resize_line": 180,
       "source_value": 32768,
       "status": "proved_upper_bound"
     },
@@ -11590,8 +11590,8 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "Reservations.ROW_CAPACITY -> godot/scripts/core/reservations.gd:75 `const ROW_CAPACITY = 32768` = 32768",
-        "MAX_RECEIPT_CAPACITY -> godot/scripts/core/excavation_inventory.gd:17 `const MAX_RECEIPT_CAPACITY = Reservations.ROW_CAPACITY` = 32768",
-        "_capacity -> godot/scripts/core/excavation_inventory.gd:74 `clampi(receipt_capacity, 0, MAX_RECEIPT_CAPACITY)` max = 32768"
+        "MAX_RECEIPT_CAPACITY -> godot/scripts/core/excavation_inventory.gd:18 `const MAX_RECEIPT_CAPACITY = Reservations.ROW_CAPACITY` = 32768",
+        "_capacity -> godot/scripts/core/excavation_inventory.gd:75 `clampi(receipt_capacity, 0, MAX_RECEIPT_CAPACITY)` max = 32768"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11603,7 +11603,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 179,
+      "source_resize_line": 180,
       "source_value": 32768,
       "status": "proved_upper_bound"
     },
@@ -11614,9 +11614,9 @@
       "owner_key": "excavation_inventory",
       "parsed_expression": "LOSS_CELL_CAPACITY",
       "proof_chain": [
-        "LOSS_DOMAIN_COUNT -> godot/scripts/core/excavation_inventory.gd:18 `const LOSS_DOMAIN_COUNT = 4` = 4",
+        "LOSS_DOMAIN_COUNT -> godot/scripts/core/excavation_inventory.gd:19 `const LOSS_DOMAIN_COUNT = 4` = 4",
         "Inventory.ITEM_CAPACITY -> godot/scripts/core/inventory.gd:224 `const ITEM_CAPACITY = 256` = 256",
-        "LOSS_CELL_CAPACITY -> godot/scripts/core/excavation_inventory.gd:19 `const LOSS_CELL_CAPACITY = LOSS_DOMAIN_COUNT * Inventory.ITEM_CAPACITY` = 1024"
+        "LOSS_CELL_CAPACITY -> godot/scripts/core/excavation_inventory.gd:20 `const LOSS_CELL_CAPACITY = LOSS_DOMAIN_COUNT * Inventory.ITEM_CAPACITY` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11628,7 +11628,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "eq",
       "source_resize_expression": "LOSS_CELL_CAPACITY",
-      "source_resize_line": 82,
+      "source_resize_line": 83,
       "source_value": 1024,
       "status": "proved_equality"
     },

@@ -2072,6 +2072,204 @@ func state_bytes() -> PackedByteArray:
 	return out
 
 
+# --- ADR 1228: section 6 owner `excavation_sites` -------------------------------------------------
+
+## Section 6 column count, in registry ordinal order: twenty scalars, then the row columns.
+const SAVE_COLUMN_COUNT: int = 40
+const SAVE_SCALAR_COUNT: int = 20
+## Ordinals 2-8 and 20, 26 and 27 are i64; 21-25 are u8; the rest are i32.
+const SAVE_I64_ORDINALS: Array[int] = [2, 3, 4, 5, 6, 7, 8, 20, 26, 27]
+
+
+func save_columns() -> Array:
+	"""Copies of the forty registry columns in ordinal order; the derived indexes are not saved."""
+	var columns: Array = _save_scalars()
+	columns.append_array([_site_key.duplicate(), _present.duplicate(), _phase.duplicate(),
+		_installed.duplicate(), _ever_cut.duplicate(), _closure_before.duplicate(),
+		_embedded_milli.duplicate(), _earned_mwu.duplicate(), _room_slot.duplicate(),
+		_room_generation.duplicate(), _project_slot.duplicate(), _project_generation.duplicate(),
+		_operation.duplicate(), _job_slot.duplicate(), _job_generation.duplicate(),
+		_output_slot.duplicate(), _output_generation.duplicate(), _promotion_tile.duplicate(),
+		_worker_site.duplicate(), _worker_generation.duplicate()])
+	return columns
+
+
+func _save_scalars() -> Array:
+	"""Ordinals 0-19: the counters, then the copied world domain."""
+	var columns: Array = [PackedInt32Array([_capacity]), PackedInt32Array([_count])]
+	for value: int in [_domain_capacity, _initial_earth_milli, _virgin_sourced_milli, _funded_braces,
+			_completed_braces, _salvaged_braces, _returned_brace_milli]:
+		columns.append(PackedInt64Array([value]))
+	for value: int in _domain_values():
+		columns.append(PackedInt32Array([value]))
+	return columns
+
+
+func _domain_values() -> PackedInt32Array:
+	"""Ordinals 9-19 as values: the World ref, the datum, the minimum quantum and the size."""
+	var d: Domain = _domain
+	return PackedInt32Array([d.world_ref.x, d.world_ref.y, d.datum_u.x, d.datum_u.y, d.datum_u.z,
+		d.minimum_quantum.x, d.minimum_quantum.y, d.minimum_quantum.z, d.size_quanta.x,
+		d.size_quanta.y, d.size_quanta.z])
+
+
+func restore_columns(columns: Array) -> bool:
+	"""Install the columns after `columns_valid()` and rebuild the derived key order and Job index.
+	False writes nothing: a saved Job that does not resolve in the restored Jobs refuses first."""
+	if not columns_valid(columns):
+		return false
+	var job_site: PackedInt32Array = _derived_job_site(columns)
+	if job_site.is_empty():
+		return false
+	_install_scalars(columns)
+	_install_rows(columns)
+	_job_site = job_site
+	_rebuild_key_order()
+	return true
+
+
+func _install_scalars(columns: Array) -> void:
+	"""Ordinals 1-8 (capacity and domain are proved equal, never installed)."""
+	_count = columns[1][0]
+	_initial_earth_milli = columns[3][0]
+	_virgin_sourced_milli = columns[4][0]
+	_funded_braces = columns[5][0]
+	_completed_braces = columns[6][0]
+	_salvaged_braces = columns[7][0]
+	_returned_brace_milli = columns[8][0]
+
+
+func _install_rows(columns: Array) -> void:
+	"""Private copies of ordinals 20-39."""
+	_site_key = (columns[20] as PackedInt64Array).duplicate()
+	for pair: Array in [[21, &"_present"], [22, &"_phase"], [23, &"_installed"], [24, &"_ever_cut"],
+			[25, &"_closure_before"], [26, &"_embedded_milli"], [27, &"_earned_mwu"],
+			[28, &"_room_slot"], [29, &"_room_generation"], [30, &"_project_slot"],
+			[31, &"_project_generation"], [32, &"_operation"], [33, &"_job_slot"],
+			[34, &"_job_generation"], [35, &"_output_slot"], [36, &"_output_generation"],
+			[37, &"_promotion_tile"], [38, &"_worker_site"], [39, &"_worker_generation"]]:
+		set(pair[1], columns[pair[0]].duplicate())
+
+
+func _derived_job_site(columns: Array) -> PackedInt32Array:
+	"""Each bound Job's typed row -> its site, from the restored Directory; empty on a stale Job."""
+	var out: PackedInt32Array = PackedInt32Array()
+	out.resize(Jobs.JOB_CAPACITY)
+	out.fill(NO_ROW)
+	for row: int in _capacity:
+		if columns[33][row] == -1:
+			continue
+		var job: Vector2i = Vector2i(columns[33][row], columns[34][row])
+		if not _jobs.directory().is_valid_of_kind(job, Directory.KIND_JOB):
+			return PackedInt32Array()
+		out[_jobs.directory().get_typed_row(job)] = row
+	return out
+
+
+func _rebuild_key_order() -> void:
+	"""`_ordered_key`/`_ordered_row`: the populated prefix sorted by its unique physical keys."""
+	var order: PackedInt64Array = PackedInt64Array()
+	order.resize(_count)
+	for row: int in _count:
+		order[row] = _site_key[row] * MAX_SITE_CAPACITY + row
+	order.sort()
+	_ordered_key.fill(-1)
+	_ordered_row.fill(-1)
+	for index: int in _count:
+		@warning_ignore("integer_division") var key: int = order[index] / MAX_SITE_CAPACITY
+		_ordered_key[index] = key
+		_ordered_row[index] = order[index] - key * MAX_SITE_CAPACITY
+
+
+func columns_valid(columns: Array) -> bool:
+	"""Types and extents against this composed owner, its own world domain, then every row."""
+	if _ready_error != &"" or not _save_types_ok(columns) or not _save_extents_ok(columns):
+		return false
+	if columns[0][0] != _capacity or columns[2][0] != _domain_capacity:
+		return false
+	var domain: PackedInt32Array = _domain_values()
+	for index: int in domain.size():
+		if columns[9 + index][0] != domain[index]:
+			return false
+	var count: int = columns[1][0]
+	if count < 0 or count > _capacity:
+		return false
+	for ordinal: int in range(3, 9):
+		if columns[ordinal][0] < 0:
+			return false
+	return _save_keys_ok(columns, count) and _save_rows_ok(columns, count) and _save_workers_ok(columns)
+
+
+static func _save_types_ok(columns: Array) -> bool:
+	"""Forty columns of the registry's packed types; the twenty scalars one element each."""
+	if columns.size() != SAVE_COLUMN_COUNT:
+		return false
+	for ordinal: int in SAVE_COLUMN_COUNT:
+		var expected: int = TYPE_PACKED_INT32_ARRAY
+		if SAVE_I64_ORDINALS.has(ordinal):
+			expected = TYPE_PACKED_INT64_ARRAY
+		elif ordinal >= 21 and ordinal <= 25:
+			expected = TYPE_PACKED_BYTE_ARRAY
+		if typeof(columns[ordinal]) != expected or (ordinal < SAVE_SCALAR_COUNT and columns[ordinal].size() != 1):
+			return false
+	return true
+
+
+func _save_extents_ok(columns: Array) -> bool:
+	"""Row columns at this owner's capacity, earned work at its capacity, workers per resident row."""
+	for ordinal: int in range(SAVE_SCALAR_COUNT, SAVE_COLUMN_COUNT):
+		var expected: int = _capacity
+		if ordinal == 27:
+			expected = _earned_capacity
+		elif ordinal >= 38:
+			expected = Work.RESIDENT_CAPACITY
+		if columns[ordinal].size() != expected:
+			return false
+	return true
+
+
+func _save_keys_ok(columns: Array, count: int) -> bool:
+	"""The populated prefix holds distinct keys inside the domain; every later row is unclaimed."""
+	var keys: PackedInt64Array = (columns[20] as PackedInt64Array).slice(0, count)
+	keys.sort()
+	for index: int in count:
+		if keys[index] < 0 or keys[index] >= _domain_capacity or (index > 0 and keys[index] == keys[index - 1]):
+			return false
+	for row: int in _capacity:
+		if columns[21][row] != (1 if row < count else 0) or (row >= count and columns[20][row] != -1):
+			return false
+	return true
+
+
+static func _save_rows_ok(columns: Array, count: int) -> bool:
+	"""Phase domains, flags, nonnegative earth and work, and canonical (-1, 0) null references."""
+	for row: int in columns[21].size():
+		if columns[22][row] > SUPPORTED_VOID or columns[25][row] > SUPPORTED_VOID \
+				or columns[23][row] > 1 or columns[24][row] > 1 or columns[26][row] < 0:
+			return false
+		for pair: int in [28, 30, 33, 35]:
+			if (columns[pair][row] == -1) != (columns[pair + 1][row] == 0) or columns[pair][row] < -1:
+				return false
+		if row >= count and (columns[28][row] != -1 or columns[30][row] != -1):
+			return false
+	for value: int in columns[27]:
+		if value < 0:
+			return false
+	return true
+
+
+func _save_workers_ok(columns: Array) -> bool:
+	"""A registered worker row names a populated site; an unregistered row is (-1, 0)."""
+	for row: int in Work.RESIDENT_CAPACITY:
+		var site: int = columns[38][row]
+		if site == NO_ROW:
+			if columns[39][row] != 0:
+				return false
+		elif site < 0 or site >= columns[1][0] or columns[39][row] < 1:
+			return false
+	return true
+
+
 func _context_refusal(site: Vector2i) -> StringName:
 	"""Validate world/site/room/project identities before touching a phase collaborator."""
 	if _ready_error != &"" or not is_live_site(site) or _spatial() == null or not _world_is_live():

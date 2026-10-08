@@ -24,9 +24,17 @@
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/construction.gd-da07d55eb1a2.txt",
       "sha256": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a"
     },
+    "godot/scripts/core/excavation_inventory.gd": {
+      "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/excavation_inventory.gd-e69e83b0fa38.txt",
+      "sha256": "e69e83b0fa3851f7408b574fec44b0978d048fb759eb90b458492ac81d15c001"
+    },
     "godot/scripts/core/excavation_sites.gd": {
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/excavation_sites.gd-69797b79377b.txt",
       "sha256": "69797b79377bf5b5b3a055126d065304668c3415460863ef958fbef72385eb74"
+    },
+    "godot/scripts/core/inventory.gd": {
+      "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/inventory.gd-2c6b22a4c93b.txt",
+      "sha256": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102"
     },
     "godot/scripts/core/jobs.gd": {
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/jobs.gd-d8cd5fc96ab0.txt",

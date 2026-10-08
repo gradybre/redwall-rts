@@ -21,7 +21,8 @@ kitchen plans two days of meals ahead and reserves every fish for them, so the r
       calendar, so an hour the kitchen has not yet run cannot expose it);
     - an occasion's meal (the feast);
     - a meal with a batch cooked or at the cauldron;
-    - fish already fetched, in hand or at the kitchen.
+    - fish in the cook's hand. As first built, fish at the kitchen was protected too; F5 (b) below opened it to the
+      rack.
   - **The meal that gave fish up** tops itself up again from what is free at the kitchen's next hour (THE CHOICE,
     unchanged). Never inside the release: topping up there could take back the freed fish before the rack sets it
     aside.
@@ -46,8 +47,8 @@ touching no existing line.
   - giving it up takes the latest fish meal's first, never more than is beyond, never the next meal's, and moves the
     kitchen's revision;
   - an occasion's meal keeps its fish;
-  - a later meal cooked, cooking, or with its fish fetched (in hand, then at the kitchen) keeps its fish, however much is
-    asked;
+  - a later meal cooked, cooking, or with its fish in the cook's hand keeps its fish, however much is asked (put down
+    at the kitchen, it is given: F5 (b));
   - the next meal is read from the calendar itself (at supper's end before the kitchen has run, tomorrow's breakfast
     keeps its fish), and the earliest planned meal is protected whatever the hour reads;
   - a slot with no take counts nothing.
@@ -79,7 +80,7 @@ touching no existing line.
   - The earliest meal is computed once per call.
   - The section moved after `cookable_portions`.
   - The test's job index.
-- **M2, a question for Brendan** (open; nothing built on it).
+- **M2, a question for Brendan.** Ruled 2026-10-08: **keep as built** (see Brendan's rulings below).
   - **What happens now.** At the 06:00 round breakfast is the next meal, so today's supper counts as "beyond the next
     meal" and is open to the rack. The same holds during supper's serving for tomorrow's breakfast.
   - **Whether it fits the ruling.** This follows the ruling's wording, but Brendan may have meant only later days'
@@ -92,12 +93,13 @@ touching no existing line.
 **Re-review of `61d2da9b` (the same reviewer, waited for).**
 - **Every finding above confirmed fixed.** No CRITICAL, HIGH or MEDIUM remains.
 - **Its 16 mutants, adapted to the new code, all killed.**
-- **Four LOWs, left as they are** (the code stays as gated):
-  - `_take_spare_fish` builds its refusal words and drops them, and `order_batch` repeats them as a literal;
-  - a refused order may leave fish the kitchen gave back free until the kitchen's next hour, which is harmless; the
-    reviewer found no path to it;
-  - the take-0 test can no longer fail now that the guard is gone; it is kept as documentation;
-  - one assertion in the calendar test (`the village ran`) checks only the set-up.
+- **Four LOWs.** Left as they were in `61d2da9b` and #240's first push; two fixed with F5 in `ae137794`:
+  - **fixed:** `_take_spare_fish` built its refusal words and dropped them, and `order_batch` repeated them as a
+    literal. It now returns the words once;
+  - **commented:** a refused order may leave fish the kitchen gave back free until the kitchen's next hour, which is
+    harmless; the reviewer found no path to it. `_take_spare_fish`'s docstring now says so;
+  - **kept:** the take-0 test can no longer fail now that the guard is gone; it stays as documentation;
+  - **fixed:** one assertion in the calendar test (`the village ran`) checked only the set-up. It is gone.
 
 ## The measurement (staged; 3 seeds; the report's follow-up section, "Fish for the rack")
 
@@ -124,3 +126,42 @@ year, making 21–24 U of dried fish:
 - (a) keep it for rations: recommended;
 - (b) let the rack take fish already fetched;
 - (c) leave it.
+
+## Brendan's rulings (2026-10-08) on F5 and M2
+
+Relayed by the coordinator:
+- **F5: "Both".** Build (a) and (b) together.
+  - **(a):** dried fish is not eaten raw while a ration batch lacks it. Built in decision **1740**.
+  - **(b):** the rack may also take fish already fetched to the kitchen for meals beyond the next meal. Built here
+    (below).
+- **M2: keep as built.** At the 06:00 round, today's supper counts as beyond the next meal.
+
+## F5 (b): fish at the kitchen (`ae137794`)
+
+- **What the rack may take** (`fish_beyond_next_meal_milli`): the fish of meals beyond the next, in store **or at the
+  kitchen** (`AT_KITCHEN`). Fish in the cook's hand (`IN_HAND`) is never counted or taken: the cook is carrying it.
+- **What is given back first** (`release_fish_beyond_next_meal`, `_release_rack_fish`): every such meal's fish still in
+  store, latest meal first; only then fish at the kitchen, latest meal first.
+- **`ingredient_takes.gd`:** `release_milli` and `_latest` take an optional `where` (the default, -1, is anywhere, so
+  every other caller is unchanged).
+- **The protections are unchanged:** the next meal, an occasion's, a meal cooked or at the cauldron. The next meal's
+  fish at the kitchen is never the rack's.
+- **The kitchen's larder is not the rack's.** It holds fetched food planned for no meal, which the ruling does not name;
+  the kitchen draws it into its meals at its next top-up.
+- **A limit.** The takes never move food's books out of its store (ingredient_takes.gd WHERE THE FOOD IS). So fish the
+  cook had carried to the kitchen is set aside by the rack's job from its lot like any other, and the rack hand walks to
+  the fish pickup point as for every rack batch. Nothing is counted twice; only the walk is the store's, not the
+  kitchen's.
+- **Tests** (`test_demo_kitchen.gd`):
+  - fish put down at the kitchen for a later meal is still counted;
+  - the next meal's fish at the kitchen is not counted;
+  - every meal's fish in store is given before any at the kitchen, and then the kitchen's is given;
+  - the next meal's fish at the kitchen is never given;
+  - fish in hand is still never counted or given (the renamed `test_a_later_meal_cooked_cooking_or_in_hand_keeps_its_fish`),
+    and once put down it is given.
+
+## Generalised for the mill (decision 1741, `b21acaf8`)
+
+Brendan's F6 gave the mill the same rule for grain. The kitchen's functions now take a category
+(`beyond_next_meal_milli`, `release_beyond_next_meal`), and this decision's fish functions wrap them unchanged. The
+fishery's fish give-back and the mill's share `_ask_kitchen`.

@@ -131,6 +131,9 @@ Every row was checked against the record named.
 | Topic | Ruling | Recorded in |
 |---|---|---|
 | The tuning follow-up's questions (F1–F4) | F1 **wait**: no more beds or greens now; leave it until hunger has a cost (E8). F2 waits with F1. F3 **(a)**: Dry fish may take fish the kitchen planned beyond the next meal, never the next meal's. F4 waits on FEAST (#239). (Relayed by the coordinator) | 1731; 1739; `docs/balance/2026-10-07-year-matrix-rerun.md` |
+| 1739's questions (F5, M2) | F5 **"Both"**: (a) dried fish is not eaten raw while a ration batch lacks it; (b) the rack may also take fish already fetched to the kitchen for meals beyond the next meal. M2 **keep as built**: at 06:00, today's supper counts as beyond the next meal. (Relayed by the coordinator) | 1739; 1740; `docs/balance/2026-10-07-year-matrix-rerun.md` |
+| 1740's question F6 (rations wait on grain) | **"Push on: mill takes grain too."** The mill may take grain the kitchen has planned beyond the next meal, the rack's rule for fish under F5 (b): never the next meal's grain, never grain in the cook's hand. (Relayed by the coordinator.) Not Brendan's: making 1740's keep conditional (only while rations wait on dried fish alone) was the coordinator's call, recorded in 1740 as a PROPOSAL | 1741; 1740; `docs/balance/2026-10-07-year-matrix-rerun.md` |
+| Measures phase 2 (MEAS-2) timing | MEAS-2 (natural measures in place of "U", DEC-049 and 1011) runs **after the digging revamp lands**, as one pass over the demo, the tunnel and burrow stores and the settlement UI. Until then new lanes may keep using the existing U helpers. (Relayed by the coordinator) | `docs/handoff/BACKLOG.md` MEAS-2; DEC-049; 1011 |
 
 ## Standing rules (not dated rulings)
 

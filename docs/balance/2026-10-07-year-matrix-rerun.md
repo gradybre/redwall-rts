@@ -97,6 +97,62 @@ are in [rack-fish/](2026-10-07-year-matrix-rerun/rack-fish/):
 |---|---|---|---|
 | F5 | Rations need dried fish to be kept, not eaten | **(a) keep dried fish for rations:** dried fish is not eaten raw while a ration batch lacks it (close to 1611 P3's option (b), a ration reserve the cook keeps topped up, and the GDD's WorldPolicy `ration_reserve_milli`); (b) let the rack take fish already fetched for meals beyond the next (the rack's fetch from the kitchen's larder); (c) leave it, since rations are a winter reserve the player orders by hand | 21–24 U of dried fish a year, all eaten raw, with an hourly rack; 0 rations in every run |
 
+### F5 and F6 built, re-measured (2026-10-08; decisions 1739, 1740, 1741)
+
+**Are rations made now? No, not in any run. At what cost in meals? The mill took no grain from the porridge. The rack
+taking fetched fish (F5 (b)) moved missed meals from 190–226 to 216–235.**
+
+Brendan's rulings of 2026-10-08:
+- **F5, "Both":**
+  - (a) dried fish is not eaten raw while a batch of rations lacks it (1740);
+  - (b) the rack may also take fish already fetched to the kitchen for meals beyond the next (1739).
+- **M2:** keep as built.
+- **F6, "Push on: mill takes grain too":** the mill may take grain planned beyond the next meal under the rack's rule
+  (1741).
+
+**The coordinator's call (a PROPOSAL in 1740, for Brendan to overturn):** dried fish is kept from raw eating only while
+a batch of rations could be made but for it. That needs its nuts free; its flour free or on its way (grain for a mill
+batch, or a batch grinding); and no batch queued with its own.
+
+Staged provisioning, 9 residents, 3 seeds. The summaries and CSVs are in
+[rack-fish/f6/](2026-10-07-year-matrix-rerun/rack-fish/f6/) (final, `b21acaf8`) and
+[rack-fish/f5/](2026-10-07-year-matrix-rerun/rack-fish/f5/) (`ae137794`).
+
+| Provisioning run | Meals missed (of 864) | Winter missed (of 216) | Breakfasts eaten / went without (the porridge's meal) | Grain withdrawn (U) | Dried fish made (U) | Flour made (U) | Rations made |
+|---|---|---|---|---|---|---|---|
+| Before 1739 | 210–225 | 68–93 | 98–127 / 162–183 | 94–98 | 3 | 0 | 0 |
+| 1739 (F3 (a): the rack takes in-store fish) | 190–226 | 62–88 | 111–158 / 152–178 | 94–98 | 3 | 0 | 0 |
+| F5 (a) + (b), keep unconditional (`ae137794`) | 228–235 | 80–95 | 116–135 / 162–172 | 94–98 | 6–12 | 0 | 0 |
+| **F5 + F6, keep conditional (final, `b21acaf8`)** | **216–235** | **79–91** | **108–132 / 162–185** | **94–98** | **6–12** | **0** | **0** |
+| Probe: final, plus the scripted player grinding whenever flour is not free (not committed) | 226–245 | 63–100 | 100–127 / 168–182 | 98 | 15 | 12 | 0 |
+
+- **The rack runs more, and its fish is eaten.**
+  - Taking fetched fish (F5 (b)) gave the rack 2–4 batches a year against 1 (Dry fish refused NO_FISH on 44–46
+    mornings against 47), so 6–12 U of dried fish.
+  - Every unit was eaten (made = withdrawn in every seed).
+  - Missed meals rose to 216–235: the fish goes from the meals to the rack, and then to residents eating it raw.
+- **Why the dried fish was still eaten.** The keep held only while nuts were free and grain was to be had.
+  - **Grain** was to be had only on days 12–14, after the year's one harvest (25.6 U), which the porridge used up by
+    day 15. For the rest of the year the stores held 1.1–1.7 U, against the mill's 3 U.
+  - **Dried fish** came on days 2–3, 6 and 15 (and 20–23 in seed 3), when grain was short or no nuts were free.
+- **The porridge did as before.** The scripted player grinds only when dried fish and nuts are free together (1731's
+  chain order). That never fell on days 12–14, so the mill never ran: grain withdrawn 94–98 U and breakfasts as in
+  every run.
+- **Grinding early does not help either** (the uncommitted probe; its patch drops the dried-fish-and-nuts condition
+  from the player's grind gate in `provisioning_policy.gd`).
+  - **The mill ran.** 4 batches, 12 U of flour.
+  - **The kitchen ate it.** It plans flour into its own dishes within the hour (hardtack at breakfast, the biscuit
+    soup, the pasty, the scones), so all 12 U was cooked. Pack rations read NO_FLOUR on 47 mornings.
+  - **It cost meals.** 226–245 missed.
+
+**New questions for Brendan:**
+
+| # | Question | Options (recommended first) | Evidence |
+|---|---|---|---|
+| F7 | Rations need their three inputs at once, and the kitchen and hungry residents take each as it comes | **(a) leave rations to the player's own order** (1611 P3 (a), as built): the scripted player shows the chain cannot run by itself, and the meals pay for every attempt; (b) a ration reserve the cook keeps (1611 P3 (b), the GDD's `ration_reserve_milli`): flour, dried fish and nuts held for one batch from both the kitchen and raw eating, at a cost in meals; (c) take F5 (b) back (the rack takes in-store fish only), which recovers the 1739 missed-meal figures | No run made a ration; the rack's extra fish cost about 10 missed meals at the top of the range; grinding early cost about 10 more and still made none |
+| F8 | 1740's conditional keep (the coordinator's PROPOSAL) | (a) as built; (b) unconditional (`ae137794`: 1 U kept all year, still no rations) | Under both, all the dried fish beyond the kept unit was eaten |
+| F9 | The keep's nuts clause (the review of `b21acaf8`) | (a) also keep the rations' nuts while they wait; (b) drop the nuts clause; (c) accept it as the intent | Nuts are eaten raw too (1600 NP, same 720 h shelf), so under hunger the nuts go below 1 U and the keep switches off |
+
 ## Findings (written by hand; the generated report follows)
 
 The first full rerun of the year matrix since the [2026-10-01 baseline](2026-10-01-first-year-baseline.md).

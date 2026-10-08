@@ -923,7 +923,7 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---|---|---|:-:|---|---|
-| Fishing habitat and stock validation bridge | -- | -- | -- | -- | 3 | -- | Pure owner4 bridge, FISHING-S4-VALIDATE-R01v1/ADR0181. No mutable authoritative state or live owner construction. Caller5344 + cold Columns defaults5344 =10688 conservative logical packed bytes; fixed32-row duplicate scans add no packed scratch, within6417408 stream allowance; native/RSS unmeasured. Inactive habitat history is retained while stock rows are blank. Same-file Directory/Forage/claims/catalog/clock bindings and bulk restoration remain FISHING-SAVED-BINDINGS. |
+| Fishing habitat and stock validation bridge | -- | -- | -- | -- | 3 | -- | Pure owner4 bridge, FISHING-S4-VALIDATE-R01v1/ADR0181. No mutable authoritative state or live owner construction. Caller5344 + cold Columns defaults5344 =10688 conservative logical packed bytes; fixed32-row duplicate scans add no packed scratch, within6417408 stream allowance; native/RSS unmeasured. Inactive habitat history is retained while stock rows are blank. Same-file Directory/Forage/claims/catalog/clock bindings remain FISHING-SAVED-BINDINGS. Bulk capture/apply exist (ADR 1222 step 2): `Fishing.copy_columns_into()`/`restore_columns()` over the 22 columns, judged by the same `columns_refusal()`, nothing written on refusal, `_live_habitat_slots`/`_live_habitat_count` rebuilt; the bridge's `capture_into()`/`apply()`. `_last_column_refusal` is a category-3 diagnostic. The section 7 claim slice is not touched. |
 
 ### `godot/scripts/core/save_owner_farming.gd`
 

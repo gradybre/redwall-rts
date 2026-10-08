@@ -61,7 +61,9 @@ def validate_registry(data):
     # Decision1072 adds67 packed and14 scalar records across five explicit owners.
     # Decision1218 adds the entry progress owner: two hash records (length, bounded record).
     # Decision1221 adds section6 owner haul_planner: five hashed admission-record columns.
-    assert records == data['record_count'] == 763
+    # ADR 1222 (DEC-055 Q7(a)) adds five section6 owners: construction_extension (16), the paid
+    # ledger (2), demolition admissions (7), demolition work (4) and store policy (3): +32 records.
+    assert records == data['record_count'] == 795
     directory = next(o for o in owners if (o['section_id'],o['owner_key']) == (3,'entity_directory'))
     assert [f['field_key'] for f in directory['fields']] == ['_active','_generation','_retired','_persistent_id','_kind','_typed_row']
     allocator = next(o for o in owners if (o['section_id'],o['owner_key']) == (1,'entity_directory'))
@@ -116,7 +118,9 @@ def validate_source(data, source):
     # Decision1218 declares the hauler's category-1 `_queue`, carried inside the progress record.
     # Decision1221 resolves haul_planner's five UNRESOLVED admission columns as category 1 (section 6).
     # ADR 1222 step 5 implements chronicle.gd: its category-1 `_rolling_digest` gains contract C197.
-    assert len(actual)==data['packed_source_field_count']==678
+    # ADR 1222 Q7(a) resolves sixteen UNRESOLVED packed columns as category 1 in section 6 (the
+    # construction_extension owner re-carries construction's own columns and adds none).
+    assert len(actual)==data['packed_source_field_count']==694
     print(f"PASS source membership/types: {len(actual)} persisted packed fields (not semantic adapter validation)")
 
 def valid_name(present, named, raw):

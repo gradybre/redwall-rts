@@ -4,10 +4,12 @@ extends RefCounted
 ##
 ## THE FORMAT (decided by the integration lead for step 4a; little-endian, no padding):
 ##
-##   store_count:u32, exactly OWNER_COUNT (13), then one block per declared owner in strict ASCII
-##   key order: buildings, command_dispatch, crop_weather, ecology, excavation_inventory,
-##   excavation_sites, haul_planner, inventory, modular_projects, room_layout, room_projects,
-##   spoil_tips, underground_entry_progress. EVERY block is always present.
+##   store_count:u32, exactly OWNER_COUNT (18 since ADR 1222 Q7(a)), then one block per declared
+##   owner in strict ASCII key order: buildings, command_dispatch, construction_extension,
+##   construction_paid_ledger, crop_weather, demolition_admissions, demolition_work, ecology,
+##   excavation_inventory, excavation_sites, haul_planner, inventory, modular_projects,
+##   room_layout, room_projects, spoil_tips, store_policy, underground_entry_progress. EVERY block
+##   is always present.
 ##
 ##   block   = key_len:u32, key (UTF-8), owner_schema_version:u32, primary_count:u64,
 ##             payload_length:u64, payload
@@ -290,7 +292,7 @@ class Block:
 
 
 class State:
-	"""All thirteen blocks, in owner (ASCII) order. `State.new()` is the canonical empty section."""
+	"""Every declared block, in owner (ASCII) order. `State.new()` is the canonical empty section."""
 	var blocks: Array[Block] = []
 
 	func _init() -> void:
@@ -370,7 +372,7 @@ class Cursor:
 # --- encode -------------------------------------------------------------------------------------
 
 static func encode_section(state: State, out: EncodeResult) -> bool:
-	"""Encode `state` as `store_count` then thirteen blocks. A refusal produces no bytes at all."""
+	"""Encode `state` as `store_count` then every owner block. A refusal produces no bytes at all."""
 	var table: SaveHeader.Refusal = Schema.table_refusal()
 	if not table.is_ok():
 		return out.refuse(table.code, table.detail)
@@ -576,7 +578,7 @@ static func _call_adapter(adapter: Object, method: StringName, block: Block) -> 
 
 
 static func capture_into(adapters: Adapters, out: State) -> SaveHeader.Refusal:
-	"""Capture every owner into a staged State; `out` adopts it only if all thirteen succeed."""
+	"""Capture every owner into a staged State; `out` adopts it only if every owner succeeds."""
 	var missing: SaveHeader.Refusal = adapters.missing_refusal()
 	if not missing.is_ok():
 		return missing
@@ -610,7 +612,7 @@ static func validate_section(state: State, adapters: Adapters) -> SaveHeader.Ref
 
 
 static func apply_section(state: State, adapters: Adapters) -> SaveHeader.Refusal:
-	"""Validate ALL thirteen owners first, then apply in ASCII owner order.
+	"""Validate ALL owners first, then apply in ASCII owner order.
 
 	Nothing is applied unless everything validated. An `apply()` refusing AFTER its own
 	`validate()` accepted is an adapter contract violation; it is reported, but owners applied
@@ -677,7 +679,7 @@ class Adapter:
 	var _owner: int = 0
 
 	func _init(p_state: State, p_owner: int) -> void:
-		"""Bind to one State and one of its thirteen owners."""
+		"""Bind to one State and one of its owners."""
 		_state = p_state
 		_owner = p_owner
 
@@ -711,7 +713,7 @@ static func u32_logical(raw: PackedByteArray) -> PackedInt64Array:
 
 
 static func register_adapters(walker: Digest.Walker, state: State) -> Digest.Refusal:
-	"""Register all thirteen section-6 owners' canonical value adapters on `walker`."""
+	"""Register every section-6 owner's canonical value adapters on `walker`."""
 	for owner: int in OWNER_COUNT:
 		var refusal: Digest.Refusal = walker.register_owner(SECTION_ID, Schema.OWNER_KEYS[owner],
 			Adapter.new(state, owner))

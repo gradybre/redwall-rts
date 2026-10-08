@@ -359,6 +359,22 @@ These record the engineering choices made while building, step by step.
   mirrors the section 6 codec instead of sharing it, because GDScript binds a preloaded `Schema` per script; it
   has no owner-adapter registry, because Jobs, Buildings and Construction restore sections 4 and 5 in one joint
   bridge call that the orchestrator makes with both halves.
+- **Q7(a), five new section 6 owners.** Section 4's owner set is frozen at 18 (SAVE-S4-STREAM-R01), so, as
+  ADR 1221 did for `haul_planner`, the Q7 state becomes section 6 owners. Registry v14
+  (`RWL-CANONICAL-REGISTRY-2026-10-07-SL1`), section 6 schema 8, 18 owners:
+  - `construction_paid_ledger` (C198): `_paid_base_type`, `_paid_upgrade_mask`, 82,944 rows.
+  - `demolition_admissions` (C199): the project and output pairs, the reserved grams, the admitted charge and
+    the destination revision, 1,024 Building rows.
+  - `demolition_work` (C200): the evacuate-then-demolish intent and the removal Job link (a demolition or one
+    piece's furniture removal), 1,024 Building rows. The Job link is saved, not rebuilt by a Job scan.
+  - `store_policy` (C201): decision 1031's filter and minimum arenas (262,144 cells) and the binding stamp.
+  - `construction_extension`: Construction's sixteen section-4 columns again, for the rows whose purpose is
+    outside ADR 0186's frozen enum (REMOVE_FURNITURE, EXCAVATION, SPATIAL_FURNITURE, SPOIL_TIP,
+    CONNECTOR_INSTALL). Such a row is the clear row in section 4 and the real row here; every other row is the
+    clear row here. It re-carries construction's own members, so it has no source contract of its own.
+
+  Households keep their UNRESOLVED rows: there is no production instance, so a world never holds that state.
+  The declaration grows by 1,115 bytes; the joint pack is 100,211,016 bytes (49,788,984 below DEC-053's gate).
 - **Step 2, memory.** Every section-4 capture and apply makes a transient owner image. It is charged to "ADR 1222
   save/load working set" in the reviewed census deltas, and the 09.3 ledger owns the total. It is never resident
   between ticks.

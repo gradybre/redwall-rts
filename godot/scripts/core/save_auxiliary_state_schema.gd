@@ -20,8 +20,8 @@ extends RefCounted
 const SaveHeader := preload("res://scripts/core/save_header.gd")
 const Digest := preload("res://scripts/core/canonical_state_hash.gd")
 
-const EXPECTED_OWNER_COUNT: int = 13
-const EXPECTED_SECTION_SCHEMA_VERSION: int = 7
+const EXPECTED_OWNER_COUNT: int = 18
+const EXPECTED_SECTION_SCHEMA_VERSION: int = 8
 
 const TYPE_U8: int = 0
 const TYPE_U32: int = 1
@@ -44,46 +44,53 @@ const REFUSE_TABLE: StringName = &"SAVE_S6_TABLE"
 # --- BEGIN GENERATED AUXILIARY STATE SCHEMA ---
 # Generated from docs/planning/canonical_state_registry.json and
 # docs/planning/registry_capacity_audit.json by tools/generate_auxiliary_state_schema.py.
-# Registry RWL-CANONICAL-REGISTRY-2026-10-07-CL1 v13.
-# Do not hand-edit. 13 owners, 135 fields, 19 UNPROVED (zero-only) fields.
+# Registry RWL-CANONICAL-REGISTRY-2026-10-07-SL1 v14.
+# Do not hand-edit. 18 owners, 167 fields, 19 UNPROVED (zero-only) fields.
 
-const SECTION_SCHEMA_VERSION: int = 7
-const REGISTRY_VERSION: int = 13
-const OWNER_COUNT: int = 13
-const FIELD_COUNT: int = 135
-const EMPTY_SECTION_BYTES: int = 4471529
-const MAX_SECTION_BYTES: int = 16428145
+const SECTION_SCHEMA_VERSION: int = 8
+const REGISTRY_VERSION: int = 14
+const OWNER_COUNT: int = 18
+const FIELD_COUNT: int = 167
+const EMPTY_SECTION_BYTES: int = 12445887
+const MAX_SECTION_BYTES: int = 24402503
 
 const OWNER_KEYS: Array[String] = [
-	"buildings", "command_dispatch", "crop_weather", "ecology", "excavation_inventory",
+	"buildings", "command_dispatch", "construction_extension", "construction_paid_ledger",
+	"crop_weather", "demolition_admissions", "demolition_work", "ecology", "excavation_inventory",
 	"excavation_sites", "haul_planner", "inventory", "modular_projects", "room_layout",
-	"room_projects", "spoil_tips", "underground_entry_progress",
+	"room_projects", "spoil_tips", "store_policy", "underground_entry_progress",
 ]
 
 const OWNER_SCHEMAS: Array[int] = [
-	1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 ]
 
 const OWNER_FIELD_BEGIN: Array[int] = [
-	0, 2, 6, 8, 9, 27, 67, 72, 80, 84, 100, 111, 131,
+	0, 2, 6, 22, 24, 26, 33, 37, 38, 56, 96, 101, 109, 113, 129, 140, 160, 163,
 ]
 
 const OWNER_FIELD_COUNTS: Array[int] = [
-	2, 4, 2, 1, 18, 40, 5, 8, 4, 16, 11, 20, 4,
+	2, 4, 16, 2, 2, 7, 4, 1, 18, 40, 5, 8, 4, 16, 11, 20, 3, 4,
 ]
 
 const FIELD_KEYS: Array[String] = [
 	"_r_spatial_kind", "_f_installed", "_intent_player_id", "_intent_sequence_high",
-	"_intent_sequence_low", "_intent_zone_generation", "_last_day", "_last_hour_tick", "_last_day",
-	"_capacity", "_free_count", "_free", "_project_slot", "_project_generation", "_head",
-	"_output_slot", "_output_generation", "_output_mass_g", "_r_next", "_r_item", "_r_quality",
-	"_r_provenance", "_r_recipe", "_r_quantity", "_r_age", "_r_remainder", "_lost_milli",
-	"_capacity", "_count", "_domain_capacity", "_initial_earth_milli", "_virgin_sourced_milli",
-	"_funded_braces", "_completed_braces", "_salvaged_braces", "_returned_brace_milli",
-	"_world_slot", "_world_generation", "_datum_u_x", "_datum_u_y", "_datum_u_z",
-	"_minimum_quantum_x", "_minimum_quantum_y", "_minimum_quantum_z", "_size_quanta_x",
-	"_size_quanta_y", "_size_quanta_z", "_site_key", "_present", "_phase", "_installed",
-	"_ever_cut", "_closure_before", "_embedded_milli", "_earned_mwu", "_room_slot",
+	"_intent_sequence_low", "_intent_zone_generation", "_present", "_material_container_slot",
+	"_material_container_generation", "_assigned_count", "_max_workers", "_refund_policy",
+	"_remaining_mwu", "_paused", "_work_begun", "_ref_slot", "_ref_generation", "_subject_slot",
+	"_subject_generation", "_purpose", "_type_id", "_phase", "_paid_base_type",
+	"_paid_upgrade_mask", "_last_day", "_last_hour_tick", "_project_slot", "_project_generation",
+	"_output_slot", "_output_generation", "_output_reserved_g", "_admitted_charge_g",
+	"_destination_revision", "_intent_slot", "_intent_generation", "_job_slot", "_job_generation",
+	"_last_day", "_capacity", "_free_count", "_free", "_project_slot", "_project_generation",
+	"_head", "_output_slot", "_output_generation", "_output_mass_g", "_r_next", "_r_item",
+	"_r_quality", "_r_provenance", "_r_recipe", "_r_quantity", "_r_age", "_r_remainder",
+	"_lost_milli", "_capacity", "_count", "_domain_capacity", "_initial_earth_milli",
+	"_virgin_sourced_milli", "_funded_braces", "_completed_braces", "_salvaged_braces",
+	"_returned_brace_milli", "_world_slot", "_world_generation", "_datum_u_x", "_datum_u_y",
+	"_datum_u_z", "_minimum_quantum_x", "_minimum_quantum_y", "_minimum_quantum_z",
+	"_size_quanta_x", "_size_quanta_y", "_size_quanta_z", "_site_key", "_present", "_phase",
+	"_installed", "_ever_cut", "_closure_before", "_embedded_milli", "_earned_mwu", "_room_slot",
 	"_room_generation", "_project_slot", "_project_generation", "_operation", "_job_slot",
 	"_job_generation", "_output_slot", "_output_generation", "_promotion_tile", "_worker_site",
 	"_worker_generation", "_job_generation", "_dest_slot", "_dest_generation", "_dest_tile",
@@ -99,34 +106,39 @@ const FIELD_KEYS: Array[String] = [
 	"_count", "_compacted_milli", "_reclaimed_milli", "_present", "_retired", "_prepared",
 	"_generation", "_tile", "_project_slot", "_project_generation", "_operation", "_embedded_milli",
 	"_quantity_milli", "_locked_milli", "_incoming_milli", "_earned_mwu", "_retained_quantity",
-	"progress_length", "progress_record", "queue_length", "_queue",
+	"_allowed", "_minimum_milli", "_bound_persistent_id", "progress_length", "progress_record",
+	"queue_length", "_queue",
 ]
 
 const FIELD_TYPES: Array[int] = [
-	0, 0, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 4, 4, 4, 4, 2, 2, 4, 4, 4,
-	4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 0, 0, 0, 0, 0, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2,
-	2, 2, 2, 2, 0, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 0, 0, 0, 2, 2, 2, 2, 2, 4, 4, 4,
-	4, 4, 4, 1, 0, 1, 2,
+	0, 0, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 4, 4,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 4, 4, 4, 4, 2, 2, 4, 4, 4, 4, 4, 4,
+	4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 0, 0, 0, 0, 0, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2,
+	2, 0, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 0, 0, 0, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4,
+	0, 4, 2, 1, 0, 1, 2,
 ]
 
 const RULE_KINDS: Array[int] = [
-	1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	2, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 3, 3, 3, 3, 3, 1, 1, 1, 1, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 0, 2, 0, 2,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1,
+	1, 1, 1, 1, 1, 0, 0, 0, 3, 3, 3, 3, 3, 1, 1, 1, 1, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+	1, 1, 1, 0, 2, 0, 2,
 ]
 
 const RULE_VALUES: Array[int] = [
-	16384, 81920, 128, 128, 128, 128, 1, 1, 1, 1, 1, 32768, 82944, 82944, 82944, 82944, 82944,
+	16384, 81920, 128, 128, 128, 128, 82944, 82944, 82944, 82944, 82944, 82944, 82944, 82944, 82944,
+	82944, 82944, 82944, 82944, 82944, 82944, 82944, 82944, 82944, 1, 1, 1024, 1024, 1024, 1024,
+	1024, 1024, 1024, 1024, 1024, 1024, 1024, 1, 1, 1, 32768, 82944, 82944, 82944, 82944, 82944,
 	82944, 32768, 32768, 32768, 32768, 32768, 32768, 32768, 32768, 1024, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 73909, 73909, 73909, 73909, 73909, 73909, 73909, 369545, 73909,
 	73909, 73909, 73909, 73909, 73909, 73909, 73909, 73909, 73909, 512, 512, 8192, 8192, 8192, 8192,
 	8192, 1, 1, 1, 0, 0, 0, 0, 0, 8192, 8192, 8192, 8192, 1, 1, 1, 16384, 16384, 16384, 16384,
 	81920, 81920, 81920, 81920, 81920, 81920, 81920, 81920, 81920, 82944, 82944, 82944, 82944,
 	82944, 82944, 82944, 8192, 8192, 8192, 8192, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 1, 2559, 1, 8,
+	0, 0, 0, 262144, 262144, 1024, 1, 2559, 1, 8,
 ]
 
 const UNPROVED_FIELDS: Array[String] = [

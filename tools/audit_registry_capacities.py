@@ -132,14 +132,19 @@ EXPLAINED_SINCE_CENSUS = {
 	# "`JOB_CAPACITY` = 8192" (an expression already present), so five equalities.
 	# ADR 1222 step 5 implements chronicle.gd; its fixed 32-byte `_rolling_digest` gains source
 	# contract C197 and becomes one more packed source field (a fixed count, no capacity row).
-	"prose_records": 73,
-	"equality": 33,
+	# ADR 1222 (DEC-055 Q7(a)) adds five section6 owners and 32 hashed capacity-declared columns,
+	# all equalities: construction_extension (16) and the paid ledger (2) at CONSTRUCTION_CAPACITY,
+	# demolition admissions (7) and work (4) at BUILDING_CAPACITY, and store policy (3), whose
+	# POLICY_CELLS is the one new expression. Sixteen are new packed source fields; the extension
+	# owner re-carries construction's own columns.
+	"prose_records": 105,
+	"equality": 65,
 	"upper_bound": 40,
-	"packed_source_fields": 125,
-	"canonical_records": 164,
+	"packed_source_fields": 141,
+	"canonical_records": 196,
 	"other_canonical_shapes": 91,
-	"distinct_expressions": 9,
-	"owners": 11,
+	"distinct_expressions": 10,
+	"owners": 16,
 }
 
 RELATION_EQ = "eq"
@@ -635,7 +640,7 @@ def _census(registry: dict, rows: list) -> dict:
 		delta = seen - value
 		line = "%s: this audit %d, Astra Cycle 3 %d (%+d)" % (key, seen, value, delta)
 		if EXPLAINED_SINCE_CENSUS.get(key) == delta:
-			explained.append(line + " -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221 and 1222: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record and the Chronicle digest")
+			explained.append(line + " -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221 and 1222: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record, the Chronicle digest and the five Q7 section-6 owners")
 		else:
 			unexplained.append(line)
 	return {

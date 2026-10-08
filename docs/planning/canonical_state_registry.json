@@ -1,6 +1,6 @@
 {
- "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-07-CL1",
- "registry_version": 13,
+ "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-07-SL1",
+ "registry_version": 14,
  "status": "ADOPTED_KEYS_TYPES_AND_ORDINALS_FOR_NAMED_SNAPSHOT",
  "release_save_ready": false,
  "source_commit": "reconciled_to_integration_head_from_197472b9d7f2",
@@ -66,8 +66,8 @@
   "construction": "1ce4a49cebff074ac673d574af2b0e4d9b674ff7056d2524b63eabb5138f73c1"
  },
  "canonical_stream": "RWL-STATE-1",
- "record_count": 763,
- "packed_source_field_count": 678,
+ "record_count": 795,
+ "packed_source_field_count": 694,
  "policy": "Fixed per compatible build; add owners/fields explicitly on arrival, change rules identity and affected versions; refuse incompatible development saves. Never infer registry at runtime. source_module_sha256 records the named reconciliation snapshot, not current HEAD; current acceptance source hashes are retained with each task evidence ledger.",
  "owners": [
   {
@@ -6234,6 +6234,256 @@
   },
   {
    "section_id": 6,
+   "owner_key": "construction_extension",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "_present",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_present",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 0
+    },
+    {
+     "field_key": "_material_container_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_material_container_slot",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 1
+    },
+    {
+     "field_key": "_material_container_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_material_container_generation",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 2
+    },
+    {
+     "field_key": "_assigned_count",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_assigned_count",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 3
+    },
+    {
+     "field_key": "_max_workers",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_max_workers",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 4
+    },
+    {
+     "field_key": "_refund_policy",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_refund_policy",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 5
+    },
+    {
+     "field_key": "_remaining_mwu",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_remaining_mwu",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 6
+    },
+    {
+     "field_key": "_paused",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_paused",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 7
+    },
+    {
+     "field_key": "_work_begun",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_work_begun",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 8
+    },
+    {
+     "field_key": "_ref_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_ref_slot",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 9
+    },
+    {
+     "field_key": "_ref_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_ref_generation",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 10
+    },
+    {
+     "field_key": "_subject_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_subject_slot",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 11
+    },
+    {
+     "field_key": "_subject_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_subject_generation",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 12
+    },
+    {
+     "field_key": "_purpose",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_purpose",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 13
+    },
+    {
+     "field_key": "_type_id",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_type_id",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 14
+    },
+    {
+     "field_key": "_phase",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_phase",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 15
+    }
+   ]
+  },
+  {
+   "section_id": 6,
+   "owner_key": "construction_paid_ledger",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "_paid_base_type",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_paid_base_type",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 0,
+     "source_contract": "C198"
+    },
+    {
+     "field_key": "_paid_upgrade_mask",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_paid_upgrade_mask",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 1,
+     "source_contract": "C198"
+    }
+   ]
+  },
+  {
+   "section_id": 6,
    "owner_key": "crop_weather",
    "owner_schema_version": 1,
    "fields": [
@@ -6264,6 +6514,174 @@
      },
      "scalar": true,
      "ordinal": 1
+    }
+   ]
+  },
+  {
+   "section_id": 6,
+   "owner_key": "demolition_admissions",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "_project_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "demolition_admissions",
+     "source_member": "_project_slot",
+     "shape": {
+      "declared_capacity": "`BUILDING_CAPACITY` = 1024",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 0,
+     "source_contract": "C199"
+    },
+    {
+     "field_key": "_project_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "demolition_admissions",
+     "source_member": "_project_generation",
+     "shape": {
+      "declared_capacity": "`BUILDING_CAPACITY` = 1024",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 1,
+     "source_contract": "C199"
+    },
+    {
+     "field_key": "_output_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "demolition_admissions",
+     "source_member": "_output_slot",
+     "shape": {
+      "declared_capacity": "`BUILDING_CAPACITY` = 1024",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 2,
+     "source_contract": "C199"
+    },
+    {
+     "field_key": "_output_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "demolition_admissions",
+     "source_member": "_output_generation",
+     "shape": {
+      "declared_capacity": "`BUILDING_CAPACITY` = 1024",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 3,
+     "source_contract": "C199"
+    },
+    {
+     "field_key": "_output_reserved_g",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "demolition_admissions",
+     "source_member": "_output_reserved_g",
+     "shape": {
+      "declared_capacity": "`BUILDING_CAPACITY` = 1024",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 4,
+     "source_contract": "C199"
+    },
+    {
+     "field_key": "_admitted_charge_g",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "demolition_admissions",
+     "source_member": "_admitted_charge_g",
+     "shape": {
+      "declared_capacity": "`BUILDING_CAPACITY` = 1024",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 5,
+     "source_contract": "C199"
+    },
+    {
+     "field_key": "_destination_revision",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "demolition_admissions",
+     "source_member": "_destination_revision",
+     "shape": {
+      "declared_capacity": "`BUILDING_CAPACITY` = 1024",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 6,
+     "source_contract": "C199"
+    }
+   ]
+  },
+  {
+   "section_id": 6,
+   "owner_key": "demolition_work",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "_intent_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "demolition_work",
+     "source_member": "_intent_slot",
+     "shape": {
+      "declared_capacity": "`BUILDING_CAPACITY` = 1024",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 0,
+     "source_contract": "C200"
+    },
+    {
+     "field_key": "_intent_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "demolition_work",
+     "source_member": "_intent_generation",
+     "shape": {
+      "declared_capacity": "`BUILDING_CAPACITY` = 1024",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 1,
+     "source_contract": "C200"
+    },
+    {
+     "field_key": "_job_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "demolition_work",
+     "source_member": "_job_slot",
+     "shape": {
+      "declared_capacity": "`BUILDING_CAPACITY` = 1024",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 2,
+     "source_contract": "C200"
+    },
+    {
+     "field_key": "_job_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "demolition_work",
+     "source_member": "_job_generation",
+     "shape": {
+      "declared_capacity": "`BUILDING_CAPACITY` = 1024",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 3,
+     "source_contract": "C200"
     }
    ]
   },
@@ -8065,6 +8483,55 @@
      },
      "ordinal": 19,
      "source_contract": "C192"
+    }
+   ]
+  },
+  {
+   "section_id": 6,
+   "owner_key": "store_policy",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "_allowed",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "store_policy",
+     "source_member": "_allowed",
+     "shape": {
+      "declared_capacity": "`POLICY_CELLS` = 262144",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 0,
+     "source_contract": "C201"
+    },
+    {
+     "field_key": "_minimum_milli",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "store_policy",
+     "source_member": "_minimum_milli",
+     "shape": {
+      "declared_capacity": "`POLICY_CELLS` = 262144",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 1,
+     "source_contract": "C201"
+    },
+    {
+     "field_key": "_bound_persistent_id",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "store_policy",
+     "source_member": "_bound_persistent_id",
+     "shape": {
+      "declared_capacity": "`BUILDING_CAPACITY` = 1024",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 2,
+     "source_contract": "C201"
     }
    ]
   },
@@ -12202,6 +12669,22 @@
   "C197": {
    "unused": "Thirty-two zero bytes is the chain start and is valid only with _count 0.",
    "notes": "ADR 1222 step 5 (DEC-055 Q8). chronicle.gd is implemented: _count (u64 scalar) and the 32-byte _rolling_digest, SHA256(previous || record) from 32 zero bytes. The digest is a category-1 packed column, so it carries a source contract; history never lives in memory and the event domain is empty."
+  },
+  "C198": {
+   "unused": "_paid_base_type -1 (NO_PAID_PACKAGE) with mask 0 on a free row and on an UPGRADE row.",
+   "notes": "ADR 1222 DEC-055 Q7(a): ConstructionPaidLedger becomes its own section 6 owner; section 4's frozen construction owner stays frozen. Package keys only; quantities come from the compiled bills."
+  },
+  "C199": {
+   "unused": "(-1,0) project and output pairs, 0 grams and charge with no admission; destination revision 1 after clear, never 0.",
+   "notes": "ADR 1222 DEC-055 Q7(a): open demolition admissions are a section 6 owner indexed by Building typed row; restored with Buildings, Construction and the reservation pool."
+  },
+  "C200": {
+   "unused": "(-1,0) for no evacuate-then-demolish order and no removal Job.",
+   "notes": "ADR 1222 DEC-055 Q7(a): the evacuate-then-demolish intent and the removal (demolition or furniture-removal) Job link are a section 6 owner indexed by Building typed row. The Job link is saved (category 1), not rebuilt by a Job scan."
+  },
+  "C201": {
+   "unused": "Allowed 1 and minimum 0 in every cell of an unbound row; stamp 0 (UNBOUND).",
+   "notes": "ADR 1222 DEC-055 Q7(a): decision 1031's store filters and minimums are a section 6 owner, owner-major at stride ITEM_CAPACITY, with the persistent-ID binding stamp."
   }
  },
  "section_schema_versions": [
@@ -12210,7 +12693,7 @@
   1,
   2,
   1,
-  7,
+  8,
   6,
   2,
   2,

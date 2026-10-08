@@ -1,7 +1,8 @@
 # 1217 — Claw digging and paw fitting: no tools for now
 
-Date: 2026-10-07 · Status: Accepted direction (DEC-052). Step 1 reviewed: stations move in to 1,430 u and the stroke
-becomes two-paw. Step 1b, the two-paw stroke, is stopped for Brendan's review. Step 2c, the side-on tread station, is refused and stopped for his choice.
+Date: 2026-10-07 · Status: Accepted direction (DEC-052). Step 5 done: the runtime digs with claws and fits by
+paw (content 9 active); the pick content stays published and dormant. Step 2c, the side-on tread station, is refused
+and stopped for Brendan's choice.
 
 ## Decision
 
@@ -871,3 +872,74 @@ and it accepts the claw bundle. Its ADR 1190 rule against a shared set-down sour
 - The analyzer reports 0 warnings on the 6 changed .gd files.
 - The registry audit (`--check`) currently fails on capacity digests of `injury`, `priorities`, `schedule`,
   `transforms`, `work` and `world_init`, which the save/load work changed. This step does not touch them.
+
+## Step 5 — the runtime switch: content 9 active, no tool anywhere in the first entry
+
+Date: 2026-10-07. The live entry now digs with claws and seats by paw. No published byte was edited; the pick rows
+(2–29) and the pick handling program stay published and dormant (DEC-052).
+
+### 5.1 Source programs and dispatch
+
+- **Claw work program** (`qualified-claw-runtime-v1/claw_program.gd`) owns source 4 (rows 42–58). It reuses the
+  protocol-6 step word and its Q16 clocks. Travel rows (42, 43–46 forward, 47–50 backward) walk the 44-key loop
+  (`WALK_DURATION = 44·ONE`); dig and tap rows run entry (30), stroke (32) and recovery (30) clips.
+- **Fade window (step 4d review).** No READY fade starts from a presented walk key in 28–37. A travel that arrives
+  there walks on in place to key 38, and a retreat mirrors it. The clock leaf refuses a stored `FADE_READY` state
+  whose time lies in the blocked window, so a save cannot smuggle one in.
+- **Paw handling program** (`paw_program.gd`, `paw_clock.gd`, `paw_physical_certificate.gd`) owns source 5 (row 59).
+  It keeps the pick handling program's word tag, roles and state machine. Only the boxes, clip intervals and the
+  seating tap row (52) differ.
+- **Dispatch by row.** `handling_programs.gd` selects the pick (29/16) or paw (59/52) program by row, and
+  `endpoint_certificates.gd` selects the pick or claw endpoint certificate by the installation's content
+  (`qualified-claw-certificate-v1/` for content 9). Routes, WorldRoutes, Locations, Contacts, Workpieces,
+  ConnectorWork and Delivery call these selectors and never name one program.
+- **Tool-free Jobs.** DEC-052's `Jobs.GATE_NOT_REQUIRED` is accepted for excavation phases (Sites bind and release
+  without a tool claim, Construction's START worker check) and for connector installations (ModularProjects,
+  Contacts). A Job carrying a tool lot is still checked against its claim as before.
+
+### 5.2 Activation
+
+- Catalog, Session and composition load content 9 (`qualified-claw-approach-v10`, 60 rows, 517 boxes, 6 sources)
+  and the bundle `first-entry-prefix-v1/qualified-claw-v6/` (stations at ±1,430 u, 24 ground caps). Source pins
+  were renewed with `tools/renew_source_pins.py --write`.
+- **H's surveyed air** is the claw certificate's exact words: envelope `[-485,0,-578,479,930,412]`, footing
+  `[-276,-1,-274,299,0,249]`. Step 4e.2 allowed "at least the union" while the pick rows stayed admitted, but the
+  certificate compares the record's words for equality, so the work area carries the claw words alone.
+- **Cut air** is `[-712,0,-712,712,930,712]`. The pick's ±1,256 box would have overlapped the pending T0 bearer;
+  the claw stations at ±1,430 do not need it.
+- **The certified claw tap.** Row 52's entry/recovery AABB crosses the bearer prism because the published row does
+  not split the paws at the contact plane. Its offline triangle proof (step 2, `paw-seat-v1/candidate-a`) clears the
+  whole motion against both bearer prisms at the canonical root. Contacts and WorldRoutes excuse only that row, at
+  revision 1, content 9, the certified root and bearer (`Handling.tap_certified`).
+- **Memory.** Content 9's paired profile bank overflowed the joint Motion/Profile/Level reservation (268,804 >
+  262,144 B). `Budget.PROFILE_BYTES` grows to 278,528 (+16,384, its own ledger row in `systems_architecture.md`
+  §2.3); live with reserve is 100,226,285 B, 49,773,715 B under the 150 MB gate. The census rows note every changed
+  source.
+
+### 5.3 Crew, hauler and presentation
+
+- `_select_crew` picks an idle adult mole with no tool and no Job. The crew record's tool is always `NULL_REF`.
+  G11 (`ENTRY_CREW_NO_TOOLED_MOLE`) is retired. When no mole qualifies, the chain stops with
+  `ENTRY_CREW_NO_IDLE_MOLE`, mapped to G6 (ADR 1197).
+- The hauler no longer puts a tool down at M or picks it up again. The switch at rest (ADR 1210) remains.
+- The demo presentation loads six sources and draws sources 4 and 5 with their clip masks. Row 59 is drawn by the
+  paw clock, and `mole_claw_program.gd` mirrors the driver's fade rule.
+- **No progress-record VERSION bump.** The ADR 1218 layout is unchanged; the crew's tool slot now always holds
+  `NULL_REF`. A record saved on the pick content fails its content check and is refused (DEC-055).
+
+### 5.4 Results
+
+- **Hauled complete prefix** (`test_underground_paid_assembly_handling.gd`): 4,665 ticks (pick: 4,751), 9 trips,
+  36,000 mWU hauled. Route-check peak 836,030 of 1,048,576 (pick: 519,060); the claw rows carry more boxes per
+  proof. The variant that restores before every tick ends byte-identical (4,665 restores).
+- **Live host chain** (`test_underground_host.gd`): finishes the prefix at tick **4,670** (was 4,630) with the
+  unchanged ledger `[20, 54000, 9, 44000, 2]`. The 40-tick delta is motion timing only (the 44-key claw walk, the
+  walk-on past the blocked fade keys, the 32-tick claw strokes, and no tool put-down or pick-up); it was not split
+  further per cause. Work amounts, bills and hauled units are unchanged. The chain then raises `ENTRY_DESCENT_UNBUILT`
+  (G9), as before. The cold-restore variant reaches the same tick.
+- The ADR 1218 and ADR 1221 save/restore variants stay byte-identical.
+
+### Open
+
+- The treads' side-on paw seating (step 2b, Brendan's decision above) is not part of this switch.
+- `ENTRY_DESCENT_UNBUILT`: the descent past T0 is unchanged by this step.

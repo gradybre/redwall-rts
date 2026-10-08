@@ -174,6 +174,10 @@ var stores: StoresScript = null
 ## (milli) -> int, giving that much of it back; unbound, a fish input counts only the free fish.
 var spare_fish: Callable = Callable()
 var free_spare_fish: Callable = Callable()
+## GRAIN FOR THE MILL (decision 1741): the same pair for the grain the kitchen holds beyond its next meal; unbound, a
+## mill batch counts only the free grain.
+var spare_grain: Callable = Callable()
+var free_spare_grain: Callable = Callable()
 var calendar: CalendarScript = null
 var weather: DemoWeatherScript = null
 var map: WaterMapScript = null
@@ -1896,11 +1900,50 @@ func bind_spare_fish(spare: Callable, give: Callable) -> void:
 	free_spare_fish = give
 
 
+func bind_spare_grain(spare: Callable, give: Callable) -> void:
+	"""The kitchen's grain beyond its next meal, and its giving back (kitchen.gd GRAIN FOR THE MILL, decision 1741)."""
+	spare_grain = spare
+	free_spare_grain = give
+
+
 func ration_keep_milli(category: int) -> int:
 	"""THE RATIONS' DRIED FISH (decision 1740; Brendan's ruling of 2026-10-08 on 1739's F5 (a)): what raw eaters must
-	leave of `category` -- for dried fish, the dried fish one batch of rations takes (§5.7 `ration`), so the next batch
-	never lacks it; 0 for every other category (kitchen.gd FOOD KEPT FROM RAW EATING)."""
-	return Recipes.input_milli(Recipes.R_RATION, category) if category == Catalog.CAT_DRIED_FISH else 0
+	leave of `category` -- for dried fish, the dried fish one batch of rations takes (§5.7 `ration`), and only while a
+	batch lacks nothing else it can get (`rations_wait_on_dried_fish`: a PROPOSAL, 1740); 0 for every other category
+	(kitchen.gd FOOD KEPT FROM RAW EATING)."""
+	if category != Catalog.CAT_DRIED_FISH or not rations_wait_on_dried_fish():
+		return 0
+	return Recipes.input_milli(Recipes.R_RATION, category)
+
+
+func rations_wait_on_dried_fish() -> bool:
+	"""Whether a batch of rations could be made but for its dried fish (1740's PROPOSAL, the coordinator's of
+	2026-10-08): none queued (a queued batch holds its own), its nuts free, and its flour free or on its way -- a mill
+	batch grinding, or grain enough for one (free, or the kitchen's beyond its next meal: decision 1741)."""
+	if _queued_batches(Recipes.R_RATION) > 0:
+		return false
+	if takes.free_milli_of_crop(pantry, Catalog.CAT_NUTS) < Recipes.input_milli(Recipes.R_RATION, Catalog.CAT_NUTS):
+		return false
+	var flour: int = takes.free_milli_of_crop(pantry, Catalog.CAT_FLOUR)
+	return flour >= Recipes.input_milli(Recipes.R_RATION, Catalog.CAT_FLOUR) or _jobs_of_kind(Tables.KIND_MILL) > 0 \
+		or grain_available_milli() >= Rules.MILL_IN_MILLI
+
+
+func _queued_batches(recipe: int) -> int:
+	"""Live batches of `recipe` not yet started: each holds its food set aside."""
+	var n: int = 0
+	for j: int in Tables.MAX_JOBS:
+		if tables.j_live[j] == 1 and tables.j_started[j] == 0 and tables.j_recipe[j] == recipe \
+				and (tables.j_kind[j] == Tables.KIND_DRY or tables.j_kind[j] == Tables.KIND_BATCH):
+			n += 1
+	return n
+
+
+func grain_available_milli() -> int:
+	"""What a mill batch may take: the grain nobody has set aside, and what the kitchen holds for meals beyond its next
+	one (decision 1741)."""
+	var free: int = takes.free_milli_of_crop(pantry, FarmingScript.CROP_GRAIN)
+	return free + (int(spare_grain.call()) if spare_grain.is_valid() else 0)
 
 
 func input_available_milli(input: int) -> int:
@@ -1919,13 +1962,18 @@ func _take_spare_fish(recipe: int) -> String:
 		var input: int = Recipes.IN_FIRST[recipe] + k
 		if Recipes.IN_CATEGORY[input] != Catalog.CAT_FISH or not free_spare_fish.is_valid():
 			continue
-		var short: int = Recipes.IN_MILLI[input] - takes.free_milli_of_crop(pantry, Catalog.CAT_FISH)
-		if short > 0:
-			free_spare_fish.call(short)
-		if takes.free_milli_of_crop(pantry, Catalog.CAT_FISH) < Recipes.IN_MILLI[input]:
+		if not _ask_kitchen(Catalog.CAT_FISH, Recipes.IN_MILLI[input], free_spare_fish):
 			return _refuse(Recipes.IN_CODE[input], "the kitchen could not give the fish it held beyond its next meal",
 				Recipes.IN_FIX[input])
 	return ""
+
+
+func _ask_kitchen(category: int, need: int, give: Callable) -> bool:
+	"""Ask the kitchen (`give`) for what the free food of `category` lacks of `need`; whether `need` is free now."""
+	var short: int = need - takes.free_milli_of_crop(pantry, category)
+	if short > 0:
+		give.call(short)
+	return takes.free_milli_of_crop(pantry, category) >= need
 
 
 func _inputs_refusal(recipe: int) -> String:
@@ -2008,21 +2056,27 @@ func mill_refusal() -> String:
 	refused_fix = ""
 	if _jobs_of_kind(Tables.KIND_MILL) >= Rules.MILL_SLOTS:
 		return _refuse("MILL_BUSY", "both mill slots are grinding", "wait for a batch to finish")
-	var grain: int = takes.free_milli_of_crop(pantry, FarmingScript.CROP_GRAIN)
+	var grain: int = grain_available_milli()
 	if grain < Rules.MILL_IN_MILLI:
-		return _refuse("NO_GRAIN", "the stores hold %s of grain nobody has set aside; a batch takes %s" % [Text.units(grain),
-			Text.units(Rules.MILL_IN_MILLI)], "Farm ▸ Harvest wheat, barley or oats")
+		var whose: String = " or the kitchen holds beyond its next meal" if spare_grain.is_valid() else ""
+		return _refuse("NO_GRAIN", "the stores hold %s of grain nobody has set aside%s; a batch takes %s" % [
+			Text.units(grain), whose, Text.units(Rules.MILL_IN_MILLI)], "Farm ▸ Harvest wheat, barley or oats")
 	if not pantry.location_for_item_into(Catalog.ITEM_FLOUR, Rules.MILL_OUT_MILLI, _read):
 		return _refuse("NO_ROOM", "no store has room for %s of flour" % Text.units(Rules.MILL_OUT_MILLI), "Pantry (K): make room")
 	return _job_room_refusal()
 
 
 func order_mill(members: PackedInt32Array) -> String:
-	"""Grind a batch of grain at the mill (§5.7 `flour`: grain 3 -> flour 3, 12 WU): the grain that spoils first set
-	aside, room held for the flour (REQ-SET-112, as the rack's), the job on the board. "" when ordered."""
+	"""Grind a batch of grain at the mill (§5.7 `flour`: grain 3 -> flour 3, 12 WU): what the free grain lacks given
+	back first by the kitchen's meals beyond the next (decision 1741; refused NO_GRAIN, nothing opened, when it is still
+	short), the grain that spoils first set aside, room held for the flour (REQ-SET-112, as the rack's), the job on the
+	board. "" when ordered."""
 	var why: String = mill_refusal()
 	if not why.is_empty():
 		return why
+	if free_spare_grain.is_valid() and not _ask_kitchen(FarmingScript.CROP_GRAIN, Rules.MILL_IN_MILLI, free_spare_grain):
+		return _refuse("NO_GRAIN", "the kitchen could not give the grain it held beyond its next meal",
+			"Farm ▸ Harvest wheat, barley or oats")
 	var j: int = tables.open_job(Tables.KIND_MILL, PROG_MILL, NONE)
 	tables.j_goal[j] = _pickup_point(FarmingScript.CROP_GRAIN)
 	tables.j_take[j] = takes.new_take()

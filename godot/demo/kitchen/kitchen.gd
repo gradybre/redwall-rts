@@ -2573,7 +2573,7 @@ func cookable_portions() -> int:
 	return total
 
 
-# --- the rack's fish (decision 1739) --------------------------------------------------------------------------
+# --- the rack's fish and the mill's grain (decisions 1739, 1741) ----------------------------------------------
 
 ## FISH FOR THE RACK (decision 1739; Brendan's ruling of 2026-10-08 on the balance rerun's F3 (a)): the smoking rack's
 ## Dry fish may take fish the kitchen has planned for a meal BEYOND the next one -- never the next meal's (the earliest
@@ -2583,51 +2583,67 @@ func cookable_portions() -> int:
 ## later meal's fish within the hour it is reserved, so in-store fish alone was almost never there) -- never what the
 ## cook has in hand. Fish in store goes first; its books never left the store either way (ingredient_takes.gd WHERE
 ## THE FOOD IS). The kitchen plans two days ahead and had reserved every fish, so the rack never got any. A meal that
-## gives fish up tops itself up again from what is free at the kitchen's next hour (THE CHOICE) -- never here: topping
-## up now could take back the fish just freed before the rack sets it aside.
+## gives food up tops itself up again from what is free at the kitchen's next hour (THE CHOICE) -- never here: topping
+## up now could take back the food just freed before the station sets it aside.
+## GRAIN FOR THE MILL (decision 1741; Brendan's ruling of 2026-10-08 on 1740's F6, "Push on: mill takes grain too"): the
+## same rule for the mill's grain -- the one harvest went to the porridge planned two days ahead, so the mill never had
+## 3 U free and the rations never their flour. Both are `beyond_next_meal_milli` and `release_beyond_next_meal` of a
+## category (the fishery binds each with its own: Catalog.CAT_FISH, FarmingScript.CROP_GRAIN).
 
-func fish_beyond_next_meal_milli() -> int:
-	"""The fish, milli-U, the kitchen holds in store or at the kitchen for meals beyond the next (see FISH FOR THE
-	RACK)."""
+func beyond_next_meal_milli(crop: int) -> int:
+	"""Category `crop`'s food, milli-U, the kitchen holds in store or at the kitchen for meals beyond the next (see FISH
+	FOR THE RACK)."""
 	var next: int = _next_meal_for_rack()
 	var total: int = 0
 	for s: int in MAX_SLOTS:
 		if _rack_may_take(s, next):
-			total += takes.live_milli(pantry, _slot_take[s], TakesScript.AT_STORE, Catalog.CAT_FISH) \
-				+ takes.live_milli(pantry, _slot_take[s], TakesScript.AT_KITCHEN, Catalog.CAT_FISH)
+			total += takes.live_milli(pantry, _slot_take[s], TakesScript.AT_STORE, crop) \
+				+ takes.live_milli(pantry, _slot_take[s], TakesScript.AT_KITCHEN, crop)
 	return total
 
 
-func release_fish_beyond_next_meal(milli: int) -> int:
-	"""Give the rack up to `milli` of the fish held for meals beyond the next: all of it still in store first, then what
-	is at the kitchen, each the latest meal's first (see FISH FOR THE RACK; never a top-up here). How much was given
-	back to the pantry, free."""
+func release_beyond_next_meal(milli: int, crop: int) -> int:
+	"""Give a station up to `milli` of category `crop`'s food held for meals beyond the next: all of it still in store
+	first, then what is at the kitchen, each the latest meal's first (see FISH FOR THE RACK; never a top-up here). How
+	much was given back to the pantry, free. (`crop` last, so a station binds it: `.bind(crop)`.)"""
 	var next: int = _next_meal_for_rack()
-	var given: int = _release_rack_fish(next, milli, TakesScript.AT_STORE)
-	given += _release_rack_fish(next, milli - given, TakesScript.AT_KITCHEN)
+	var given: int = _release_beyond(next, milli, crop, TakesScript.AT_STORE)
+	given += _release_beyond(next, milli - given, crop, TakesScript.AT_KITCHEN)
 	if given > 0:
 		revision += 1
 	return given
 
 
-func _release_rack_fish(next: int, milli: int, where: int) -> int:
-	"""Up to `milli` of the fish at `where` the meals beyond `next` hold, the latest meal's first; how much was given."""
+func fish_beyond_next_meal_milli() -> int:
+	"""The fish the rack may take (`beyond_next_meal_milli` of fish)."""
+	return beyond_next_meal_milli(Catalog.CAT_FISH)
+
+
+func release_fish_beyond_next_meal(milli: int) -> int:
+	"""Give the rack up to `milli` of that fish (`release_beyond_next_meal` of fish)."""
+	return release_beyond_next_meal(milli, Catalog.CAT_FISH)
+
+
+func _release_beyond(next: int, milli: int, crop: int, where: int) -> int:
+	"""Up to `milli` of `crop`'s food at `where` the meals beyond `next` hold, the latest meal's first; how much was
+	given."""
 	var left: int = milli
 	for k: int in range(_slot_order.size() - 1, -1, -1):
 		var s: int = _slot_order[k]
 		if left > 0 and _rack_may_take(s, next):
-			left -= takes.release_milli(pantry, _slot_take[s], left, _hour_seen, Catalog.CAT_FISH, where)
+			left -= takes.release_milli(pantry, _slot_take[s], left, _hour_seen, crop, where)
 	return milli - left
 
 
 func _next_meal_for_rack() -> int:
-	"""The next meal the rack never takes from: the later of the earliest planned and the one the calendar is serving."""
+	"""The next meal a station never takes from: the later of the earliest planned and the one the calendar is
+	serving."""
 	var hour: int = calendar.hour_index() if calendar != null else _hour_seen
 	return maxi(_earliest_key(), _first_key(hour))
 
 
 func _rack_may_take(s: int, next: int) -> bool:
-	"""Whether slot `s`'s meal is beyond `next` and the rack may take its fish (see FISH FOR THE RACK)."""
+	"""Whether slot `s`'s meal is beyond `next` and a station may take its food (see FISH FOR THE RACK)."""
 	var key: int = _slot_key[s]
 	return key != FREE and key > next and key != occasion_key and key != _wip_key and _slot_cooked[s] == 0
 

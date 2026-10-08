@@ -331,9 +331,23 @@ func _the_cordial_is_a_table_drink() -> void:
 	_check("the Dry fish card counts the kitchen's fish too", have == expected and have >= 3000, "%d of %d" % [have, expected])
 	fishery.call(&"bind_spare_fish", spare, give)
 	var kitchen: RefCounted = _village.call(&"kitchen").get("kitchen")
-	_check("the kitchen keeps the rations' dried fish from raw eating (decision 1740)",
-		int(kitchen.call(&"raw_kept_milli", Catalog.CAT_DRIED_FISH)) == 1000
-		and int(kitchen.call(&"raw_kept_milli", Catalog.CAT_NUTS)) == 0)
+	var kept: int = int(kitchen.call(&"raw_kept_milli", Catalog.CAT_DRIED_FISH))
+	_check("the kitchen keeps the rations' dried fish from raw eating as the fishery says (decision 1740)",
+		(kitchen.get("raw_keep") as Callable).is_valid()
+		and kept == int(fishery.call(&"ration_keep_milli", Catalog.CAT_DRIED_FISH))
+		and int(kitchen.call(&"raw_kept_milli", Catalog.CAT_NUTS)) == 0, "kept %d" % kept)
+	_check("the mill reads the kitchen's grain beyond its next meal (decision 1741)",
+		(fishery.get("spare_grain") as Callable).is_valid() and (fishery.get("free_spare_grain") as Callable).is_valid()
+		and int(fishery.call(&"grain_available_milli")) == int(fishery.get("takes").call(&"free_milli_of_crop",
+		fishery.get("pantry"), 3)) + int(kitchen.call(&"beyond_next_meal_milli", 3)))
+	var grain_spare: Callable = fishery.get("spare_grain")
+	var grain_give: Callable = fishery.get("free_spare_grain")
+	fishery.call(&"bind_spare_grain", func() -> int: return 3000, func(_m: int) -> int: return 0)
+	var mill: RefCounted = _village.get("_fishery").call(&"mill_card", PackedInt32Array())
+	var grain: int = int((mill.get("cost_have") as PackedInt64Array)[0])
+	_check("the Mill grain card counts the kitchen's grain too", grain == int(fishery.call(&"grain_available_milli"))
+		and grain >= 3000, "%d" % grain)
+	fishery.call(&"bind_spare_grain", grain_spare, grain_give)
 	var drink: RefCounted = _village.call(&"kitchen").get("table_drink")
 	_check("the table drink watches the kitchen", drink != null and drink.get("_kitchen") != null)
 

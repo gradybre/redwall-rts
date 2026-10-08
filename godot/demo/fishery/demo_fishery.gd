@@ -791,7 +791,7 @@ func mill_card(members: PackedInt32Array) -> CardScript:
 	"""Mill grain's card: `fishery.mill_refusal`, §5.7's flour (grain 3 -> flour 3, 12 WU)."""
 	_card.reset("Mill grain at the watermill")
 	var why: String = fishery.mill_refusal()
-	_card.add_cost("Grain", fishery.takes.free_milli_of_crop(fishery.pantry, FarmingScript.CROP_GRAIN), Rules.MILL_IN_MILLI)
+	_card.add_cost("Grain", fishery.grain_available_milli(), Rules.MILL_IN_MILLI)
 	_card.result = "%s of flour in the pantry (keeps 240 h). No dish here uses it yet: it is kept for later" % Text.units(Rules.MILL_OUT_MILLI)
 	if not why.is_empty():
 		_card.refuse(fishery.refused_code, why, fishery.refused_fix)

@@ -34,6 +34,7 @@ const FisheryWork := preload("res://demo/work/fishery_work.gd")
 const TaskRecord := preload("res://demo/work/work_task.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 const FieldGuideScript := preload("res://demo/guide/field_guide.gd")
+const FarmingScript := preload("res://scripts/core/farming.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
 
 const DT: float = 0.1
@@ -395,15 +396,17 @@ class KitchenFish extends RefCounted:
 	var pantry: PantryScript = null
 	var take: int = 0
 	var asked: Array[int] = []
+	## The category it holds: fish, or the mill's grain (decision 1741).
+	var crop: int = Catalog.CAT_FISH
 
 	func held() -> int:
-		"""The fish its take holds in store."""
-		return takes.live_milli(pantry, take, TakesScript.AT_STORE, Catalog.CAT_FISH)
+		"""The food of its category its take holds in store."""
+		return takes.live_milli(pantry, take, TakesScript.AT_STORE, crop)
 
 	func give(milli: int) -> int:
 		"""Give back up to `milli`, counted."""
 		asked.append(milli)
-		return takes.release_milli(pantry, take, milli, 0, Catalog.CAT_FISH)
+		return takes.release_milli(pantry, take, milli, 0, crop)
 
 
 func _kitchen_fish(rig: Rig, milli: int) -> KitchenFish:
@@ -502,3 +505,66 @@ func test_only_a_fish_input_counts_the_kitchen_s_fish() -> void:
 	assert_equal(rig.fishery.input_available_milli(Recipes.IN_FIRST[Recipes.R_DRY_FRUIT]), 1000, "fruit: the free fruit only")
 	assert_equal(rig.fishery.input_available_milli(Recipes.IN_FIRST[Recipes.R_DRY_FISH]), kitchen.held(),
 		"fish: the kitchen's 3 U too")
+
+
+# --- grain for the mill (decision 1741) --------------------------------------------------------------------------
+
+const WHEAT: int = 13
+
+
+func _kitchen_grain(rig: Rig, milli: int) -> KitchenFish:
+	"""A kitchen holding `milli` of grain for meals beyond its next one, bound to the rig's mill."""
+	var k := KitchenFish.new()
+	k.takes = rig.takes
+	k.pantry = rig.pantry
+	k.crop = FarmingScript.CROP_GRAIN
+	k.take = rig.takes.new_take()
+	assert_true(rig.takes.reserve_into(rig.pantry, k.take, k.crop, milli, 0, _read), "the kitchen holds grain")
+	rig.fishery.bind_spare_grain(k.held, k.give)
+	return k
+
+
+func test_the_mill_takes_the_kitchen_s_grain_beyond_its_next_meal() -> void:
+	"""Brendan's F6 (decision 1741): 1 U of grain free and 2 U held by the kitchen beyond its next meal is a mill batch
+	(3 U): the refusal counts both, the order asks the kitchen for exactly the 2 U it lacks, the batch sets its 3 U
+	aside. Free grain enough asks nothing; unbound, only the free grain counts."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	rig.pantry.add_into(WHEAT, 3000, 0, _read)
+	var kitchen := _kitchen_grain(rig, 2000)
+	assert_equal(f.grain_available_milli(), Rules.MILL_IN_MILLI, "1 U free + 2 U beyond the next meal")
+	assert_equal(f.mill_refusal(), "", "a batch may be ordered")
+	assert_equal(f.order_mill(PackedInt32Array()), "", "ordered")
+	assert_equal(kitchen.asked, [2000] as Array[int], "the kitchen asked for exactly what was lacking")
+	var j: int = f.tables.job_count() - 1
+	assert_equal(rig.takes.live_milli(rig.pantry, f.tables.j_take[j]), Rules.MILL_IN_MILLI, "the batch holds its 3 U")
+	var plenty := _rig()
+	plenty.pantry.add_into(WHEAT, 4000, 0, _read)
+	var idle := _kitchen_grain(plenty, 1000)
+	assert_equal(plenty.fishery.order_mill(PackedInt32Array()), "", "3 U free: ordered")
+	assert_true(idle.asked.is_empty(), "the kitchen not asked")
+	var bare := _rig()
+	bare.pantry.add_into(WHEAT, 2000, 0, _read)
+	assert_equal(bare.fishery.grain_available_milli(), 2000, "unbound: the free grain only")
+	assert_false(bare.fishery.mill_refusal().find("the kitchen holds") >= 0, "unbound: the words name no kitchen")
+
+
+func test_a_kitchen_that_gives_no_grain_back_refuses_the_mill() -> void:
+	"""The count said there was grain, but the kitchen gave none back: refused NO_GRAIN, nothing opened; short in all,
+	refused NO_GRAIN with the kitchen's grain named and nothing asked."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	rig.pantry.add_into(WHEAT, 1000, 0, _read)
+	var stingy := StingyFish.new()
+	f.bind_spare_grain(stingy.held, stingy.give)
+	assert_equal(f.mill_refusal(), "", "the count passes")
+	assert_false(f.order_mill(PackedInt32Array()).is_empty(), "the order refused")
+	assert_equal(f.refused_code, "NO_GRAIN", "for grain")
+	assert_equal(f.tables.job_count(), 0, "nothing opened")
+	var short := _rig()
+	short.pantry.add_into(WHEAT, Rules.MILL_IN_MILLI - 1, 0, _read)
+	var little := _kitchen_grain(short, 1000)
+	assert_equal(short.fishery.grain_available_milli(), Rules.MILL_IN_MILLI - 1, "free and spare: one milli-U short")
+	assert_true(short.fishery.mill_refusal().contains("or the kitchen holds beyond its next meal"), "the kitchen named")
+	assert_equal(short.fishery.refused_code, "NO_GRAIN", "one milli-U short in all")
+	assert_true(little.asked.is_empty(), "nothing asked of the kitchen")

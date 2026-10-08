@@ -194,6 +194,7 @@ extends Node3D
 ## bridge, tunnel mouth and room, and the rings that show them (village_targets.gd); the focus hints.
 
 const DemoManifestScript := preload("res://demo/demo_manifest.gd")
+const FarmingScript := preload("res://scripts/core/farming.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoCameraScript := preload("res://demo/camera/demo_camera.gd")
@@ -848,6 +849,8 @@ func _build_fishery() -> void:
 		_farm.pantry, _kitchen.kitchen.takes, _water.map())
 	_fishery.fishery.bind_spare_fish(_kitchen.kitchen.fish_beyond_next_meal_milli,
 		_kitchen.kitchen.release_fish_beyond_next_meal)
+	_fishery.fishery.bind_spare_grain(_kitchen.kitchen.beyond_next_meal_milli.bind(FarmingScript.CROP_GRAIN),
+		_kitchen.kitchen.release_beyond_next_meal.bind(FarmingScript.CROP_GRAIN))
 	_kitchen.kitchen.raw_keep = _fishery.fishery.ration_keep_milli
 
 

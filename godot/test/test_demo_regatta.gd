@@ -467,6 +467,23 @@ func test_a_race_under_way_cannot_be_skipped() -> void:
 	assert_equal(r.state, RegattaScript.ST_CREWING, "the day goes on")
 
 
+func test_a_plan_whose_feast_is_cooking_cannot_be_skipped() -> void:
+	"""Cook now can start the regatta's supper before the race: with a batch of it at the cauldron, or one cooked, the
+	planned regatta is no longer skipped (the review of ae137794; decision 1733's fix)."""
+	var rig: Rig = _rig()
+	var r: RegattaScript = rig.regatta
+	_stock_feast(rig)
+	var day: int = SUMMER_1 + 1
+	assert_equal(r.hold(day, 2, true), "", "held")
+	assert_equal(r.skip_refusal(), "", "planned, nothing cooking: it may be skipped")
+	rig.kitchen._wip_key = Rules.feast_key(day)
+	assert_equal(r.skip(), "the kitchen is cooking its feast", "a batch at the cauldron: held")
+	rig.kitchen._wip_key = KitchenScript.FREE
+	rig.kitchen.cooked_keys.append(Rules.feast_key(day))
+	assert_equal(r.skip_refusal(), "the kitchen is cooking its feast", "a batch cooked: held")
+	assert_equal(r.state, RegattaScript.ST_PLANNED, "still planned")
+
+
 func test_a_feast_never_served_gives_its_food_and_wood_back() -> void:
 	"""A season skip past the regatta's supper before it was served (the kitchen never planned it, never ended it: no
 	meal-finalized event will come -- `meal_lapsed`): the tally, with nobody, gives the service wood and the reserved

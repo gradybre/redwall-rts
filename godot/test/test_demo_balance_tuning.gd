@@ -19,6 +19,7 @@ const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const FieldGuideScript := preload("res://demo/guide/field_guide.gd")
 const FarmText := preload("res://demo/farm/farm_text.gd")
+const WHEAT: int = 13
 
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 
@@ -249,9 +250,10 @@ func test_a_pour_that_cannot_be_reserved_is_a_dry_supper() -> void:
 # --- the rations' dried fish (decision 1740) ---------------------------------------------------------------------
 
 func test_the_rations_dried_fish_is_one_batch_s_and_nothing_else_is_kept() -> void:
-	"""F5 (a): raw eaters leave the dried fish one batch of rations takes (§5.7 `ration`: 1 U); every other category,
-	the rations' flour and nuts among them, is not kept."""
-	var fishery := FisheryScript.new()
+	"""F5 (a): raw eaters leave the dried fish one batch of rations takes (§5.7 `ration`: 1 U) -- here a batch lacks
+	nothing else (nuts and flour free); every other category, the rations' flour and nuts among them, is not kept."""
+	var fishery := _fishery_with(Catalog.ITEM_NUTS, 1000)
+	assert_true(fishery.pantry.add_into(Catalog.ITEM_FLOUR, 2000, 0, _read), "flour")
 	var dried: int = 0
 	for k: int in Recipes.IN_COUNT[Recipes.R_RATION]:
 		var input: int = Recipes.IN_FIRST[Recipes.R_RATION] + k
@@ -265,3 +267,27 @@ func test_the_rations_dried_fish_is_one_batch_s_and_nothing_else_is_kept() -> vo
 	var guide := FieldGuideScript.new()
 	var uses: String = guide.entry(guide.index_of(FieldGuideScript.item_id(Catalog.ITEM_DRIED_FISH))).uses
 	assert_true(uses.contains("all but the %s a batch of rations takes" % FarmText.units_text(dried)), uses)
+
+
+func test_the_dried_fish_is_kept_only_while_rations_wait_on_it_alone() -> void:
+	"""1740's PROPOSAL (the coordinator's, 2026-10-08): the dried fish is kept only while a batch of rations could be
+	made but for it -- its nuts free, and its flour free or on its way (grain enough for a mill batch, free or the
+	kitchen's beyond its next meal, or a mill batch grinding) -- and no batch is queued with its own."""
+	var f := _fishery_with(Catalog.ITEM_DRIED_FISH, 2000)
+	assert_equal(f.ration_keep_milli(Catalog.CAT_DRIED_FISH), 0, "no nuts: nothing kept")
+	assert_true(f.pantry.add_into(Catalog.ITEM_NUTS, 1000, 0, _read), "nuts")
+	assert_equal(f.ration_keep_milli(Catalog.CAT_DRIED_FISH), 0, "nuts, but no flour and no grain: nothing kept")
+	assert_true(f.pantry.add_into(WHEAT, 2000, 0, _read), "2 U of grain")
+	assert_false(f.rations_wait_on_dried_fish(), "2 U of grain is no mill batch")
+	f.bind_spare_grain(func() -> int: return 1000, func(_m: int) -> int: return 0)
+	assert_equal(f.ration_keep_milli(Catalog.CAT_DRIED_FISH), 1000, "with the kitchen's 1 U beyond its next meal: kept")
+	f.bind_spare_grain(Callable(), Callable())
+	assert_true(f.pantry.add_into(WHEAT, 1000, 0, _read), "3 U of grain")
+	assert_equal(f.ration_keep_milli(Catalog.CAT_DRIED_FISH), 1000, "grain for a mill batch: kept")
+	assert_equal(f.order_mill(PackedInt32Array()), "", "a mill batch grinding")
+	assert_equal(f.ration_keep_milli(Catalog.CAT_DRIED_FISH), 1000, "the flour on its way: still kept")
+	assert_true(f.pantry.add_into(Catalog.ITEM_FLOUR, 2000, 0, _read), "flour")
+	assert_equal(f.order_batch(Recipes.R_RATION, PackedInt32Array()), "", "a batch of rations queued")
+	assert_true(f.pantry.add_into(Catalog.ITEM_NUTS, 1000, 0, _read) and f.pantry.add_into(Catalog.ITEM_FLOUR, 2000, 0,
+		_read), "enough for another batch but its dried fish")
+	assert_equal(f.ration_keep_milli(Catalog.CAT_DRIED_FISH), 0, "a batch queued with its own: nothing kept")

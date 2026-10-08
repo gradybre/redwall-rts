@@ -1906,6 +1906,35 @@ func test_a_later_meal_with_no_take_is_not_the_rack_s() -> void:
 	assert_equal(v.kitchen.fish_beyond_next_meal_milli(), all - fish, "no take: not counted")
 
 
+func _grain_held(v: Village, key: int) -> int:
+	"""Grain meal `key`'s take holds in store or at the kitchen."""
+	var take: int = v.kitchen.take_of(key)
+	return v.kitchen.takes.live_milli(v.pantry, take, TakesScript.AT_STORE, FarmingScript.CROP_GRAIN) \
+		+ v.kitchen.takes.live_milli(v.pantry, take, TakesScript.AT_KITCHEN, FarmingScript.CROP_GRAIN)
+
+
+func test_the_mill_may_take_grain_only_beyond_the_next_meal() -> void:
+	"""Brendan's F6 (decision 1741), the rack's rule for the mill's grain: the meals beyond the next one give up their
+	grain (in store, then at the kitchen) and the next meal keeps its own; the fish wrappers are the same machinery."""
+	var v := _village(4, tick_at(1, 3))
+	_stock(v, OATS, 30000)
+	_stock(v, CARROT, 30000)
+	v.stores.water_milli_u = 40000
+	_open(v)
+	var keys: PackedInt32Array = v.kitchen.planned_keys()
+	var next_grain: int = _grain_held(v, keys[0])
+	assert_true(next_grain > 0, "the next meal, a breakfast, holds grain")
+	var beyond: int = 0
+	for k: int in range(1, keys.size()):
+		beyond += _grain_held(v, keys[k])
+	assert_true(beyond > 0, "later meals hold grain")
+	assert_equal(v.kitchen.beyond_next_meal_milli(FarmingScript.CROP_GRAIN), beyond, "all of it beyond the next meal")
+	assert_equal(v.kitchen.beyond_next_meal_milli(Catalog.CAT_FISH), v.kitchen.fish_beyond_next_meal_milli(), "fish: 0")
+	assert_equal(v.kitchen.release_beyond_next_meal(1 << 30, FarmingScript.CROP_GRAIN), beyond, "all of it given")
+	assert_equal(_grain_held(v, keys[0]), next_grain, "the next meal keeps its grain")
+	assert_equal(v.kitchen.beyond_next_meal_milli(FarmingScript.CROP_GRAIN), 0, "none left beyond")
+
+
 func _keep_dried_fish(category: int) -> int:
 	"""A ration batch's dried fish kept from raw eating, as the fishery's `ration_keep_milli` (decision 1740)."""
 	return 1000 if category == Catalog.CAT_DRIED_FISH else 0

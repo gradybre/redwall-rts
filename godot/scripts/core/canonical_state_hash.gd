@@ -1079,19 +1079,19 @@ static func production_walker() -> Walker:
 # Generated from docs/planning/canonical_state_registry.json by
 # tools/generate_canonical_state_table.py. Do not hand-edit: test_canonical_state_hash.gd
 # re-reads that JSON and proves every entry below equals it.
-#   registry_id RWL-CANONICAL-REGISTRY-2026-10-07-SL1, registry_version 14
-#   68 owners, 805 declared fields, 795 canonical records, 694 persisted packed fields.
+#   registry_id RWL-CANONICAL-REGISTRY-2026-10-08-UG1, registry_version 15
+#   75 owners, 820 declared fields, 810 canonical records, 694 persisted packed fields.
 
-const DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-10-07-SL1"
-const DECLARATION_VERSION: int = 14
-const CANONICAL_OWNER_COUNT: int = 68
-const CANONICAL_FIELD_COUNT: int = 805
-const CANONICAL_RECORD_COUNT: int = 795
+const DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-10-08-UG1"
+const DECLARATION_VERSION: int = 15
+const CANONICAL_OWNER_COUNT: int = 75
+const CANONICAL_FIELD_COUNT: int = 820
+const CANONICAL_RECORD_COUNT: int = 810
 
 const OWNER_SECTIONS: Array = [
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5,
-	5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 8, 9, 9, 10,
-	11, 12, 12, 13, 14
+	5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7,
+	7, 7, 8, 9, 9, 10, 11, 12, 12, 13, 14
 ]
 
 const OWNER_KEYS: Array = [
@@ -1104,21 +1104,23 @@ const OWNER_KEYS: Array = [
 	"construction_paid_ledger", "crop_weather", "demolition_admissions", "demolition_work",
 	"ecology", "excavation_inventory", "excavation_sites", "haul_planner", "inventory",
 	"modular_projects", "room_layout", "room_projects", "spoil_tips", "store_policy",
-	"underground_entry_progress", "fishing", "forage", "gear", "inventory", "reservations",
-	"stock_age", "job_planner", "movement", "navigation", "rng", "event_schedule", "commands",
-	"scheduler_events", "chronicle", "residents"
+	"underground_connector_contacts", "underground_connector_placements",
+	"underground_connector_workpieces", "underground_entry_progress", "underground_locations",
+	"underground_mount", "underground_routes", "underground_world_routes", "fishing", "forage",
+	"gear", "inventory", "reservations", "stock_age", "job_planner", "movement", "navigation",
+	"rng", "event_schedule", "commands", "scheduler_events", "chronicle", "residents"
 ]
 
 const OWNER_VERSIONS: Array = [
 	1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 5, 1, 1, 2, 1, 2, 1, 1,
-	2, 1, 1, 1
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 5,
+	1, 1, 2, 1, 2, 1, 1, 2, 1, 1, 1
 ]
 
 const OWNER_FIELD_COUNTS: Array = [
 	3, 1, 10, 1, 1, 5, 33, 2, 9, 12, 1, 6, 29, 16, 15, 20, 22, 20, 11, 38, 16, 20, 25, 4, 19, 10, 6,
-	9, 9, 9, 15, 1, 10, 4, 2, 2, 4, 16, 2, 2, 7, 4, 1, 18, 40, 5, 8, 4, 16, 11, 20, 3, 4, 8, 11, 12,
-	31, 8, 6, 35, 9, 57, 2, 8, 20, 14, 2, 1
+	9, 9, 9, 15, 1, 10, 4, 2, 2, 4, 16, 2, 2, 7, 4, 1, 18, 40, 5, 8, 4, 16, 11, 20, 3, 2, 2, 2, 4,
+	2, 3, 2, 2, 8, 11, 12, 31, 8, 6, 35, 9, 57, 2, 8, 20, 14, 2, 1
 ]
 
 const FIELD_KEYS: Array = [
@@ -1238,8 +1240,10 @@ const FIELD_KEYS: Array = [
 	"_count", "_compacted_milli", "_reclaimed_milli", "_present", "_retired", "_prepared",
 	"_generation", "_tile", "_project_slot", "_project_generation", "_operation", "_embedded_milli",
 	"_quantity_milli", "_locked_milli", "_incoming_milli", "_earned_mwu", "_retained_quantity",
-	"_allowed", "_minimum_milli", "_bound_persistent_id", "progress_length", "progress_record",
-	"queue_length", "_queue", "_effort_claim_active", "_effort_claim_expedition_generation",
+	"_allowed", "_minimum_milli", "_bound_persistent_id", "wire_length", "wire", "wire_length",
+	"wire", "wire_length", "wire", "progress_length", "progress_record", "queue_length", "_queue",
+	"wire_length", "wire", "_mounted", "_operations_prefix", "_content_digest", "wire_length",
+	"wire", "wire_length", "wire", "_effort_claim_active", "_effort_claim_expedition_generation",
 	"_effort_claim_habitat_slot", "_effort_claim_habitat_generation", "_effort_claim_job_slot",
 	"_effort_claim_job_generation", "_effort_claim_slot_count", "_effort_claim_expedition_slot",
 	"_claim_active", "_claim_job_slot", "_claim_job_generation", "_claim_designation_slot",
@@ -1307,38 +1311,40 @@ const FIELD_TYPES: Array = [
 	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 0, 0, 0, 0, 0, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
 	2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0,
 	2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 0, 0, 0, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 0, 4,
-	2, 1, 0, 1, 2, 0, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 0, 2, 2, 2, 2, 2, 2, 2,
-	2, 0, 2, 2, 1, 1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4,
-	2, 2, 2, 0, 2, 2, 2, 2, 2, 4, 4, 1, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 0, 2, 2, 0, 2,
-	2, 0, 0, 2, 2, 4, 2, 2, 2, 2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 4, 4, 1, 2, 2, 2, 2, 4, 4,
-	1, 1, 3, 1, 4, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 2, 2,
-	2, 2, 3, 0, 5
+	2, 1, 0, 1, 0, 1, 0, 1, 0, 1, 2, 1, 0, 0, 2, 0, 1, 0, 1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2,
+	2, 2, 2, 2, 4, 4, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 1, 1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4,
+	4, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 2, 2, 2, 0, 2, 2, 2, 2, 2, 4, 4, 1, 4, 0, 0, 2, 2,
+	2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 0, 2, 2, 0, 2, 2, 0, 0, 2, 2, 4, 2, 2, 2, 2, 2, 4, 0, 0, 2, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 2, 2, 2, 2, 1, 4, 4, 1, 2, 2, 2, 2, 4, 4, 1, 1, 3, 1, 4, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 2, 0, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 2, 2, 2, 2, 3, 0, 5
 ]
 
 ## Field indexes the registry marks hash=false: emitted by no record. See hash_location.
 const FIELD_EXCLUDED_INDEXES: Array = [
-	65, 70, 71, 72, 73, 74, 75, 76, 579, 580
+	65, 70, 71, 72, 73, 74, 75, 76, 585, 586
 ]
 
 ## Sparse (index, value) pairs for fields whose shape declares an exact element count.
 const FIELD_COUNT_INDEXES: Array = [
 	3, 16, 21, 22, 56, 57, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 398, 399, 400, 438, 439,
 	451, 452, 453, 470, 471, 472, 473, 474, 475, 476, 477, 478, 479, 480, 481, 482, 483, 484, 485,
-	486, 487, 488, 489, 515, 516, 517, 527, 528, 529, 554, 555, 556, 557, 558, 559, 577, 579, 612,
-	613, 651, 652, 687, 689, 691, 701, 702, 703, 704, 705, 706, 707, 708, 709, 710, 711, 712, 713,
-	760, 761, 768, 769, 770, 771, 788, 789, 790, 791, 792, 793, 794, 802, 803
+	486, 487, 488, 489, 515, 516, 517, 527, 528, 529, 554, 555, 556, 557, 558, 559, 577, 579, 581,
+	583, 585, 587, 589, 590, 591, 592, 594, 627, 628, 666, 667, 702, 704, 706, 716, 717, 718, 719,
+	720, 721, 722, 723, 724, 725, 726, 727, 728, 775, 776, 783, 784, 785, 786, 803, 804, 805, 806,
+	807, 808, 809, 817, 818
 ]
 const FIELD_COUNT_VALUES: Array = [
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 32
+	1, 1, 32, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 32
 ]
 
 ## Sparse (index, value) pairs for type-5 fields' declared UTF-8 byte cap (SAVE-R09-002).
 const FIELD_MAX_UTF8_INDEXES: Array = [
-	804
+	819
 ]
 const FIELD_MAX_UTF8_VALUES: Array = [
 	128

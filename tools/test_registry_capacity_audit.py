@@ -635,9 +635,9 @@ def test_p05_real_census_matches_astra_or_says_so_loudly() -> None:
 	check("P05 624 prose records (decision1221 +5, ADR 1222 Q7 +32)", observed["prose_records"] == 624)
 	check("P05 538 equality", observed["equality"] == 538)
 	check("P05 86 upper bounds", observed["upper_bound"] == 86)
-	check("P05 171 other canonical shapes", observed["other_canonical_shapes"] == 171)
+	check("P05 186 other canonical shapes", observed["other_canonical_shapes"] == 186)
 	check("P05 66 distinct expressions (ADR 1222 Q7 adds POLICY_CELLS)", observed["distinct_expressions"] == 66)
-	check("P05 795 canonical records and 10 non-hash", observed["canonical_records"] == 795 and observed["non_hash_fields"] == 10)
+	check("P05 810 canonical records and 10 non-hash", observed["canonical_records"] == 810 and observed["non_hash_fields"] == 10)
 	check("P05 no non-hash row was swept in", observed["non_hash_fields_admitted_to_audit"] == 0)
 	# The census no longer equals Astra's 388f4f4 snapshot, and must not be made to. Decision
 	# 0142 removed three packed fields; 0157 added three packed fields and three scalars.
@@ -697,13 +697,13 @@ def test_p07_every_proved_row_carries_its_provenance() -> None:
 
 
 def test_p08_keys_are_unique_and_nothing_is_lost() -> None:
-	"""Every audit key is unique, and the 795 canonical records are fully accounted for."""
+	"""Every audit key is unique, and the 810 canonical records are fully accounted for."""
 	built = real_audit()
 	keys = [(row["section_id"], row["owner_key"], row["ordinal"], row["field_key"]) for row in built["rows"]]
 	check("P08 624 keys, all unique", len(keys) == 624 and len(set(keys)) == 624)
 	other = built["non_capacity_canonical_records"]
-	check("P08 171 non-capacity records are listed, not dropped", len(other) == 171)
-	check("P08 the two lists partition the 795 canonical records", len(keys) + len(other) == 795)
+	check("P08 186 non-capacity records are listed, not dropped", len(other) == 186)
+	check("P08 the two lists partition the 810 canonical records", len(keys) + len(other) == 810)
 	overlap = set(keys) & {(row["section_id"], row["owner_key"], row["ordinal"], row["field_key"]) for row in other}
 	check("P08 the two lists do not overlap", overlap == set())
 

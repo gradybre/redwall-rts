@@ -43,7 +43,10 @@ const OwnerWorldInit := preload("res://scripts/core/save_owner_world_init.gd")
 
 const OWNER_COUNT_4: int = 18
 const UNDERGROUND_AUX_KEYS: Array[String] = ["excavation_inventory", "excavation_sites",
-	"modular_projects", "room_layout", "room_projects", "spoil_tips", "underground_entry_progress"]
+	"modular_projects", "room_layout", "room_projects", "spoil_tips",
+	"underground_connector_contacts", "underground_connector_placements",
+	"underground_connector_workpieces", "underground_entry_progress", "underground_locations",
+	"underground_mount", "underground_routes", "underground_world_routes"]
 const JOINT_AUX_KEYS: Array[String] = ["buildings", "construction_extension",
 	"construction_paid_ledger"]
 const REFUSE_ABSENT_OWNER: StringName = &"SAVE_UNSUPPORTED_STATE"

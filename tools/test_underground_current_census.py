@@ -98,7 +98,7 @@ class CurrentCensusTests(unittest.TestCase):
     def test_joint_pack_fits_the_raised_gate(self):
         result = memory.build()
         self.assertEqual((result["live_with_reserve_bytes"], result["gate_bytes"], result["headroom_bytes"]),
-                         (100227400, 150000000, 49772600)) # ADR1217 step 5: PROFILE_BYTES +16,384
+                         (100228042, 150000000, 49771958)) # ADR1217 step 5: PROFILE_BYTES +16,384
 
     def test_publication_controls_refuse_above_their_ceiling(self):
         text = self.index["underground_room_frontier_publication"].text.replace(

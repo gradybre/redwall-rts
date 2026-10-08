@@ -20,8 +20,8 @@ extends RefCounted
 const SaveHeader := preload("res://scripts/core/save_header.gd")
 const Digest := preload("res://scripts/core/canonical_state_hash.gd")
 
-const EXPECTED_OWNER_COUNT: int = 18
-const EXPECTED_SECTION_SCHEMA_VERSION: int = 8
+const EXPECTED_OWNER_COUNT: int = 25
+const EXPECTED_SECTION_SCHEMA_VERSION: int = 9
 
 const TYPE_U8: int = 0
 const TYPE_U32: int = 1
@@ -44,33 +44,37 @@ const REFUSE_TABLE: StringName = &"SAVE_S6_TABLE"
 # --- BEGIN GENERATED AUXILIARY STATE SCHEMA ---
 # Generated from docs/planning/canonical_state_registry.json and
 # docs/planning/registry_capacity_audit.json by tools/generate_auxiliary_state_schema.py.
-# Registry RWL-CANONICAL-REGISTRY-2026-10-07-SL1 v14.
-# Do not hand-edit. 18 owners, 167 fields, 19 UNPROVED (zero-only) fields.
+# Registry RWL-CANONICAL-REGISTRY-2026-10-08-UG1 v15.
+# Do not hand-edit. 25 owners, 182 fields, 19 UNPROVED (zero-only) fields.
 
-const SECTION_SCHEMA_VERSION: int = 8
-const REGISTRY_VERSION: int = 14
-const OWNER_COUNT: int = 18
-const FIELD_COUNT: int = 167
-const EMPTY_SECTION_BYTES: int = 12445887
-const MAX_SECTION_BYTES: int = 24402503
+const SECTION_SCHEMA_VERSION: int = 9
+const REGISTRY_VERSION: int = 15
+const OWNER_COUNT: int = 25
+const FIELD_COUNT: int = 182
+const EMPTY_SECTION_BYTES: int = 12446410
+const MAX_SECTION_BYTES: int = 24967568
 
 const OWNER_KEYS: Array[String] = [
 	"buildings", "command_dispatch", "construction_extension", "construction_paid_ledger",
 	"crop_weather", "demolition_admissions", "demolition_work", "ecology", "excavation_inventory",
 	"excavation_sites", "haul_planner", "inventory", "modular_projects", "room_layout",
-	"room_projects", "spoil_tips", "store_policy", "underground_entry_progress",
+	"room_projects", "spoil_tips", "store_policy", "underground_connector_contacts",
+	"underground_connector_placements", "underground_connector_workpieces",
+	"underground_entry_progress", "underground_locations", "underground_mount",
+	"underground_routes", "underground_world_routes",
 ]
 
 const OWNER_SCHEMAS: Array[int] = [
-	1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 ]
 
 const OWNER_FIELD_BEGIN: Array[int] = [
-	0, 2, 6, 22, 24, 26, 33, 37, 38, 56, 96, 101, 109, 113, 129, 140, 160, 163,
+	0, 2, 6, 22, 24, 26, 33, 37, 38, 56, 96, 101, 109, 113, 129, 140, 160, 163, 165, 167, 169, 173,
+	175, 178, 180,
 ]
 
 const OWNER_FIELD_COUNTS: Array[int] = [
-	2, 4, 16, 2, 2, 7, 4, 1, 18, 40, 5, 8, 4, 16, 11, 20, 3, 4,
+	2, 4, 16, 2, 2, 7, 4, 1, 18, 40, 5, 8, 4, 16, 11, 20, 3, 2, 2, 2, 4, 2, 3, 2, 2,
 ]
 
 const FIELD_KEYS: Array[String] = [
@@ -106,8 +110,10 @@ const FIELD_KEYS: Array[String] = [
 	"_count", "_compacted_milli", "_reclaimed_milli", "_present", "_retired", "_prepared",
 	"_generation", "_tile", "_project_slot", "_project_generation", "_operation", "_embedded_milli",
 	"_quantity_milli", "_locked_milli", "_incoming_milli", "_earned_mwu", "_retained_quantity",
-	"_allowed", "_minimum_milli", "_bound_persistent_id", "progress_length", "progress_record",
-	"queue_length", "_queue",
+	"_allowed", "_minimum_milli", "_bound_persistent_id", "wire_length", "wire", "wire_length",
+	"wire", "wire_length", "wire", "progress_length", "progress_record", "queue_length", "_queue",
+	"wire_length", "wire", "_mounted", "_operations_prefix", "_content_digest", "wire_length",
+	"wire", "wire_length", "wire",
 ]
 
 const FIELD_TYPES: Array[int] = [
@@ -116,7 +122,7 @@ const FIELD_TYPES: Array[int] = [
 	4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 0, 0, 0, 0, 0, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
 	2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2,
 	2, 0, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 0, 0, 0, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4,
-	0, 4, 2, 1, 0, 1, 2,
+	0, 4, 2, 1, 0, 1, 0, 1, 0, 1, 0, 1, 2, 1, 0, 0, 2, 0, 1, 0, 1, 0,
 ]
 
 const RULE_KINDS: Array[int] = [
@@ -125,7 +131,7 @@ const RULE_KINDS: Array[int] = [
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1,
 	1, 1, 1, 1, 1, 0, 0, 0, 3, 3, 3, 3, 3, 1, 1, 1, 1, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
 	2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	1, 1, 1, 0, 2, 0, 2,
+	1, 1, 1, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 0, 1, 0, 2, 0, 2,
 ]
 
 const RULE_VALUES: Array[int] = [
@@ -138,7 +144,8 @@ const RULE_VALUES: Array[int] = [
 	8192, 1, 1, 1, 0, 0, 0, 0, 0, 8192, 8192, 8192, 8192, 1, 1, 1, 16384, 16384, 16384, 16384,
 	81920, 81920, 81920, 81920, 81920, 81920, 81920, 81920, 81920, 82944, 82944, 82944, 82944,
 	82944, 82944, 82944, 8192, 8192, 8192, 8192, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 262144, 262144, 1024, 1, 2559, 1, 8,
+	0, 0, 0, 262144, 262144, 1024, 1, 74, 1, 43776, 1, 5436, 1, 2559, 1, 8, 1, 110464, 1, 1, 32, 1,
+	320608, 1, 84184,
 ]
 
 const UNPROVED_FIELDS: Array[String] = [

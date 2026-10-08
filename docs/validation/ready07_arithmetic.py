@@ -139,14 +139,16 @@ registry_key_bytes=sum(len(owner['owner_key'].encode('utf-8')) for owner in regi
 # +165 field bytes and +171 UTF-8 key bytes. Decision 1062 reconciles the actual buffers.
 # Decision1221 adds the haul admission owner: one owner, five fields, 74 key bytes.
 # ADR 1222 Q7(a) adds five section6 owners: 32 fields and 555 key bytes.
-assert (len(registry_owners),len(registry_fields),registry_key_bytes)==(68,805,11840)
-assert (registry['record_count'],registry['packed_source_field_count'])==(795,694)  # ADR 1222 step 5 C197; Q7 +32/+16
-assert sum(bool(field['hash']) for field in registry_fields)==795
+# ADR 1228 adds seven section6 owners (underground mount + six wires): 15 fields and 305 key bytes.
+assert (len(registry_owners),len(registry_fields),registry_key_bytes)==(75,820,12145)
+assert (registry['record_count'],registry['packed_source_field_count'])==(810,694)  # ADR 1222 step 5 C197; Q7 +32/+16; ADR 1228 +15/+0
+assert sum(bool(field['hash']) for field in registry_fields)==810
 DECISION_0127_ADDED=len(registry_owners)*16+len(registry_fields)*15+registry_key_bytes
 # Decision1218 adds the entry progress owner: +150 (one owner, four fields, 74 key bytes).
 # Decision1221 adds the haul admission owner: +165 (16 + 5*15 + 74).
 # ADR 1222 Q7(a) adds +1115 (5*16 + 32*15 + 555).
-assert DECISION_0127_ADDED==25003 and DECISION_0127_ADDED-21185==3818
+# ADR 1228 adds +642 (7*16 + 15*15 + 305).
+assert DECISION_0127_ADDED==25645 and DECISION_0127_ADDED-21185==4460
 # RoomProjects is additional mutable state, not a replacement for Construction's paid ledger.
 # Read all eleven source declarations and allocation expressions, then require exact agreement
 # with both the canonical owner's widths/capacities and the three printed auxiliary rows.
@@ -492,8 +494,8 @@ DECISION_1023_ADDED=DECISION_1023_RECORD+DECISION_1023_SCRATCH
 # decision 1023 adds one (39 -> 40); decision 1053 folds into Auxiliary payload and adds none.
 assert len(allocations)==59 and sum(allocations)==DECISION_1217_PROFILE+DECISION_1221_IMAGES+DECISION_1223_ADDED+DECISION_1219_ADDED+DECISION_1218_RECORD+DECISION_1212_MUTABLE+DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED+DECISION_1023_ADDED+DECISION_1053_ADDED+DECISION_1066_ADDED+DECISION_1068_ADDED+DECISION_1071_MUTABLE+DECISION_1072_MUTABLE+DECISION_1102_MUTABLE+LATER_UNDERGROUND_MUTABLE
 payload=sum(allocations);reserve=8388608;candidate=payload-(3670016+2097152+262144+131072+55200+DECISION_0127_ADDED+DECISION_0169_ADDED);live=payload+reserve
-assert payload==91838792
-assert live==100227400 and candidate==85587669 and live+candidate==185815069
+assert payload==91839434
+assert live==100228042 and candidate==85587669 and live+candidate==185815711
 GATE=underground_pack['gate_bytes'] # REQ-SET-163 as amended by DEC-053 (supersedes DEC-051): 150 MB.
 assert GATE==150000000
 assert live==underground_pack['live_with_reserve_bytes']

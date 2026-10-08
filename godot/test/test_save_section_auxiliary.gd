@@ -11,7 +11,7 @@ const SaveHeader := preload("res://scripts/core/save_header.gd")
 const Digest := preload("res://scripts/core/canonical_state_hash.gd")
 const REGISTRY_PATH: String = "res://../docs/planning/canonical_state_registry.json"
 
-## Section 6 owner indexes after ADR 1222 Q7(a) added five owners (schema 8, 18 owners).
+## Section 6 owner indexes after ADR 1228 added the underground mount and wire owners (schema 9, 25 owners).
 const CROP_WEATHER: int = 4
 const ECOLOGY: int = 7
 const EXCAVATION_INVENTORY: int = 8
@@ -19,7 +19,7 @@ const EXCAVATION_SITES: int = 9
 const INVENTORY: int = 11
 const ROOM_LAYOUT: int = 13
 const SPOIL_TIPS: int = 15
-const ENTRY_PROGRESS: int = 17
+const ENTRY_PROGRESS: int = 20
 
 
 class Recorder:
@@ -114,7 +114,7 @@ func test_generated_table_matches_the_registry_json() -> void:
 			assert_equal(Schema.field_type_of(owner, ordinal), int(field["type_code"]), "type")
 			assert_equal(int(field["ordinal"]), ordinal, "ordinal")
 		owner += 1
-	assert_equal(owner, Schema.OWNER_COUNT, "eighteen section-6 owners")
+	assert_equal(owner, Schema.OWNER_COUNT, "twenty-five section-6 owners")
 	assert_equal(Schema.SECTION_SCHEMA_VERSION, int((registry["section_schema_versions"] as Array)[5]),
 		"section schema")
 
@@ -122,8 +122,8 @@ func test_generated_table_matches_the_registry_json() -> void:
 func test_table_rules_and_pinned_lengths() -> void:
 	"""The compiled table is coherent and its rules are the proved ones; unproved stays zero-only."""
 	assert_true(Schema.table_refusal().is_ok(), "table_refusal accepts the compiled table")
-	assert_equal(Schema.EMPTY_SECTION_BYTES, 12445887, "the empty section length")
-	assert_equal(Schema.MAX_SECTION_BYTES, 24402503, "the maximum section length")
+	assert_equal(Schema.EMPTY_SECTION_BYTES, 12446410, "the empty section length")
+	assert_equal(Schema.MAX_SECTION_BYTES, 24967568, "the maximum section length")
 	assert_equal(Schema.rule_kind_of(0, 0), Schema.RULE_FIXED, "buildings._r_spatial_kind FIXED")
 	assert_equal(Schema.rule_value_of(0, 0), 16384, "at ROOM_CAPACITY")
 	assert_equal(Schema.rule_kind_of(ECOLOGY, 0), Schema.RULE_SCALAR, "ecology._last_day")
@@ -142,7 +142,7 @@ func test_empty_state_round_trips_to_identical_bytes() -> void:
 	"""State.new() encodes to EMPTY_SECTION_BYTES and decodes back to the same bytes."""
 	var bytes: PackedByteArray = _encode(Section.State.new())
 	assert_equal(bytes.size(), Schema.EMPTY_SECTION_BYTES, "empty section length")
-	assert_equal(bytes.decode_u32(0), 18, "store_count")
+	assert_equal(bytes.decode_u32(0), 25, "store_count")
 	var decoded: Section.State = _marked_state()
 	var refusal: SaveHeader.Refusal = Section.decode_section(bytes, 0, bytes.size(), decoded)
 	assert_true(refusal.is_ok(), "decode: %s %s" % [refusal.code, refusal.detail])
@@ -350,7 +350,7 @@ func test_missing_adapter_and_bad_interface_refuse() -> void:
 # --- canonical hash adapters --------------------------------------------------------------------
 
 func test_register_adapters_covers_every_section_six_owner() -> void:
-	"""All eighteen §6 owners register on the production walker and supply typed columns."""
+	"""All twenty-five §6 owners register on the production walker and supply typed columns."""
 	var walker: Digest.Walker = Digest.production_walker()
 	var state: Section.State = _filled_state()
 	var refusal: Digest.Refusal = Section.register_adapters(walker, state)

@@ -1,6 +1,6 @@
 {
- "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-07-SL1",
- "registry_version": 14,
+ "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-08-UG1",
+ "registry_version": 15,
  "status": "ADOPTED_KEYS_TYPES_AND_ORDINALS_FOR_NAMED_SNAPSHOT",
  "release_save_ready": false,
  "source_commit": "reconciled_to_integration_head_from_197472b9d7f2",
@@ -66,7 +66,7 @@
   "construction": "1ce4a49cebff074ac673d574af2b0e4d9b674ff7056d2524b63eabb5138f73c1"
  },
  "canonical_stream": "RWL-STATE-1",
- "record_count": 795,
+ "record_count": 810,
  "packed_source_field_count": 694,
  "policy": "Fixed per compatible build; add owners/fields explicitly on arrival, change rules identity and affected versions; refuse incompatible development saves. Never infer registry at runtime. source_module_sha256 records the named reconciliation snapshot, not current HEAD; current acceptance source hashes are retained with each task evidence ledger.",
  "owners": [
@@ -8537,6 +8537,114 @@
   },
   {
    "section_id": 6,
+   "owner_key": "underground_connector_contacts",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "wire_length",
+     "type": "u32",
+     "type_code": 1,
+     "hash": true,
+     "source_module": "underground_connector_contacts",
+     "source_member": "capture_state_into",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "ordinal": 0
+    },
+    {
+     "field_key": "wire",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "underground_connector_contacts",
+     "source_member": "capture_state_into",
+     "shape": {
+      "count_field": "wire_length",
+      "max_count": 74,
+      "order": "adr1221_uwcp_v1_wire"
+     },
+     "scalar": false,
+     "ordinal": 1
+    }
+   ]
+  },
+  {
+   "section_id": 6,
+   "owner_key": "underground_connector_placements",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "wire_length",
+     "type": "u32",
+     "type_code": 1,
+     "hash": true,
+     "source_module": "underground_connector_placements",
+     "source_member": "capture_file",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "ordinal": 0
+    },
+    {
+     "field_key": "wire",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "underground_connector_placements",
+     "source_member": "capture_file",
+     "shape": {
+      "count_field": "wire_length",
+      "max_count": 43776,
+      "order": "decision1105_stream_wire"
+     },
+     "scalar": false,
+     "ordinal": 1
+    }
+   ]
+  },
+  {
+   "section_id": 6,
+   "owner_key": "underground_connector_workpieces",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "wire_length",
+     "type": "u32",
+     "type_code": 1,
+     "hash": true,
+     "source_module": "underground_connector_workpieces",
+     "source_member": "capture_into",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "ordinal": 0
+    },
+    {
+     "field_key": "wire",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "underground_connector_workpieces",
+     "source_member": "capture_into",
+     "shape": {
+      "count_field": "wire_length",
+      "max_count": 5436,
+      "order": "decision1134_ugwips_v2_wire"
+     },
+     "scalar": false,
+     "ordinal": 1
+    }
+   ]
+  },
+  {
+   "section_id": 6,
    "owner_key": "underground_entry_progress",
    "owner_schema_version": 1,
    "fields": [
@@ -8600,6 +8708,163 @@
      "hash_location": "inside progress_record (ADR1218 haul block, count-prefixed trip order)",
      "ordinal": 3,
      "source_contract": "C195"
+    }
+   ]
+  },
+  {
+   "section_id": 6,
+   "owner_key": "underground_locations",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "wire_length",
+     "type": "u32",
+     "type_code": 1,
+     "hash": true,
+     "source_module": "underground_locations",
+     "source_member": "capture_state_into",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "ordinal": 0
+    },
+    {
+     "field_key": "wire",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "underground_locations",
+     "source_member": "capture_state_into",
+     "shape": {
+      "count_field": "wire_length",
+      "max_count": 110464,
+      "order": "locations_v2_wire"
+     },
+     "scalar": false,
+     "ordinal": 1
+    }
+   ]
+  },
+  {
+   "section_id": 6,
+   "owner_key": "underground_mount",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "_mounted",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "settlement_system",
+     "source_member": "_underground_session",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "ordinal": 0
+    },
+    {
+     "field_key": "_operations_prefix",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_session",
+     "source_member": "_operations_prefix",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "ordinal": 1
+    },
+    {
+     "field_key": "_content_digest",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "underground_actor_content",
+     "source_member": "source_digest()",
+     "shape": {
+      "count": 32,
+      "order": "sha256_bytes"
+     },
+     "scalar": false,
+     "ordinal": 2
+    }
+   ]
+  },
+  {
+   "section_id": 6,
+   "owner_key": "underground_routes",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "wire_length",
+     "type": "u32",
+     "type_code": 1,
+     "hash": true,
+     "source_module": "underground_routes",
+     "source_member": "capture_state_into",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "ordinal": 0
+    },
+    {
+     "field_key": "wire",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "underground_routes",
+     "source_member": "capture_state_into",
+     "shape": {
+      "count_field": "wire_length",
+      "max_count": 320608,
+      "order": "adr1221_routes_v1_wire"
+     },
+     "scalar": false,
+     "ordinal": 1
+    }
+   ]
+  },
+  {
+   "section_id": 6,
+   "owner_key": "underground_world_routes",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "wire_length",
+     "type": "u32",
+     "type_code": 1,
+     "hash": true,
+     "source_module": "underground_world_routes",
+     "source_member": "capture_state_into",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "ordinal": 0
+    },
+    {
+     "field_key": "wire",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "underground_world_routes",
+     "source_member": "capture_state_into",
+     "shape": {
+      "count_field": "wire_length",
+      "max_count": 84184,
+      "order": "adr1221_world_routes_v1_wire"
+     },
+     "scalar": false,
+     "ordinal": 1
     }
    ]
   },
@@ -12693,7 +12958,7 @@
   1,
   2,
   1,
-  8,
+  9,
   6,
   2,
   2,

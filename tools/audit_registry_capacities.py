@@ -137,14 +137,17 @@ EXPLAINED_SINCE_CENSUS = {
 	# demolition admissions (7) and work (4) at BUILDING_CAPACITY, and store policy (3), whose
 	# POLICY_CELLS is the one new expression. Sixteen are new packed source fields; the extension
 	# owner re-carries construction's own columns.
+	# ADR 1228 adds seven section6 owners with no capacity rows: the underground mount record
+	# (three fixed-count fields) and six ADR 1221 wire owners (a length and a bounded image each),
+	# so fifteen canonical non-capacity records and no packed source field.
 	"prose_records": 105,
 	"equality": 65,
 	"upper_bound": 40,
 	"packed_source_fields": 141,
-	"canonical_records": 196,
-	"other_canonical_shapes": 91,
+	"canonical_records": 211,
+	"other_canonical_shapes": 106,
 	"distinct_expressions": 10,
-	"owners": 16,
+	"owners": 23,
 }
 
 RELATION_EQ = "eq"
@@ -640,7 +643,7 @@ def _census(registry: dict, rows: list) -> dict:
 		delta = seen - value
 		line = "%s: this audit %d, Astra Cycle 3 %d (%+d)" % (key, seen, value, delta)
 		if EXPLAINED_SINCE_CENSUS.get(key) == delta:
-			explained.append(line + " -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221 and 1222: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record, the Chronicle digest and the five Q7 section-6 owners")
+			explained.append(line + " -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221, 1222 and 1228: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record, the Chronicle digest, the five Q7 section-6 owners and ADR 1228's underground mount and wire owners")
 		else:
 			unexplained.append(line)
 	return {

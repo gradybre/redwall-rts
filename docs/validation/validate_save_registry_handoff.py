@@ -63,7 +63,9 @@ def validate_registry(data):
     # Decision1221 adds section6 owner haul_planner: five hashed admission-record columns.
     # ADR 1222 (DEC-055 Q7(a)) adds five section6 owners: construction_extension (16), the paid
     # ledger (2), demolition admissions (7), demolition work (4) and store policy (3): +32 records.
-    assert records == data['record_count'] == 795
+    # ADR 1228 adds seven section6 owners: the underground mount record (3) and six ADR 1221
+    # wire owners (a length and a bounded image each): +15 records.
+    assert records == data['record_count'] == 810
     directory = next(o for o in owners if (o['section_id'],o['owner_key']) == (3,'entity_directory'))
     assert [f['field_key'] for f in directory['fields']] == ['_active','_generation','_retired','_persistent_id','_kind','_typed_row']
     allocator = next(o for o in owners if (o['section_id'],o['owner_key']) == (1,'entity_directory'))

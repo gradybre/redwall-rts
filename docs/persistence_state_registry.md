@@ -785,6 +785,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 |---|---|---:|---|---|:-:|---|---|
 | Underground section 6 owner adapters | -- | -- | -- | -- | 3 | -- | ADR 1228. Stateless module of adapter classes bound to the settlement save's World, with no state of their own: WireAdapter (a length and the owner's own wire for Locations, Routes, WorldRoutes, Contacts, Placements and Workpieces; the first three under the Session's cold lease, the last two through one user://save_staging file removed after each use), DeclaredAdapter (excavation sites, their funding and the Router through their column APIs), SpatialAdapter (Inventory's endpoint arena), MountAdapter (the mount record) and EntryAdapter (ADR 1218's record, restored by the orchestrator last). An owner absent at the Session's composition prefix writes and requires its canonical empty block. Transient images only. |
 
+### `godot/scripts/core/save_installed_geometry.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Installed-part geometry proof | -- | -- | -- | -- | 3 | -- | ADR 1228's open point, closed in ADR 1222 step 11's commit series. Stateless static proof run by `save_underground_adapters.gd`'s closing cross-audit: every installed part of every live Placement is covered by unclaimed Space regions with its Corridor owner, level and role, and no unclaimed air overlaps it. Transient box lists only. |
+
 ### `godot/scripts/core/settlement_save_slots.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

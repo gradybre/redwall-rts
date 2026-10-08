@@ -28,6 +28,7 @@ const Section := preload("res://scripts/core/save_section_auxiliary.gd")
 const Schema := preload("res://scripts/core/save_auxiliary_state_schema.gd")
 const SaveHeader := preload("res://scripts/core/save_header.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
+const InstalledGeometry := preload("res://scripts/core/save_installed_geometry.gd")
 
 const REFUSE_NONE: StringName = SaveHeader.REFUSE_NONE
 const REFUSE_BUSY: StringName = &"SAVE_BUSY"
@@ -72,10 +73,13 @@ static func shape_refusal(block: Section.Block, key: String) -> SaveHeader.Refus
 
 static func cross_audit_refusal(world: SaveWorld.World) -> SaveHeader.Refusal:
 	"""After the underground group: the Placements' full audit, anchors included, against the now
-	restored Locations (Placements restored first, before their anchors existed)."""
+	restored Locations (Placements restored first, before their anchors existed); then every installed
+	part's geometry against the restored Space (`save_installed_geometry.gd`)."""
 	if not present(world, "underground_connector_placements"):
 		return _ok()
 	var code: StringName = world.underground.placements.audit()
+	if code == &"":
+		code = InstalledGeometry.refusal(world.underground.placements)
 	return _ok() if code == &"" else _no(REFUSE_RESTORE, "'underground_connector_placements' audit: %s" % code)
 
 

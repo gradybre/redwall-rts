@@ -117,9 +117,10 @@ or after a successful load. If it will not restore, the target stays empty, the 
 `settlement_save_slots.gd` implements DEC-055 Q2, Q4, Q5 and Q10: `user://saves/<kind>/<name>.rwlsave`
 with a JSON sidecar, five rotating daily slots, one quicksave, one prewinter and one pre-demolition
 slot; a scheduler that saves at the first quiescent boundary and drops a request still SAVE_BUSY after
-30 ticks; and launch recovery that never deletes a save. **Engineering reading:** the calendar has no
-week (seasons are 12 days), so "autumn's last week" is its last seven days, and the prewinter save
-fires at the midnight that begins autumn day 6.
+30 ticks; and launch recovery that never deletes a save. The calendar has no week (seasons are 12
+days), so "autumn's last week" is its last seven days, and the prewinter save fires at the midnight
+that begins autumn day 6. This was an engineering reading when built; Brendan confirmed it on
+2026-10-08 (DEC-055 Q4).
 
 ### Owner changes the load needed
 
@@ -140,6 +141,16 @@ fires at the midnight that begins autumn day 6.
   geometry is not re-derived here: an attempt to recognise installed timber by its Space claim was
   wrong (a confirmed Room's reserved cuts share that claim), so the geometry stays the restored
   Space's own image, re-read by the next installation's proofs.
+  **Closed (2026-10-08):** the loader's closing cross-audit now runs `save_installed_geometry.gd` after
+  Placements' `audit()`. It works from the Placements towards Space, never the reverse: for every
+  installed part of every live Placement, the unclaimed regions with the part's Corridor owner, level
+  and role (SUPPORT for treads, risers, posts and ramp decks; OBSTACLE otherwise, exactly as
+  `_stage_timber_part` adds them) must cover its prism (by union, so a region split along its own
+  faces still proves), and no unclaimed air may overlap it. A Room's reserved cuts carry a Room claim
+  and are never asked to cover anything, so they cannot false-match. Evidence:
+  `test_save_installed_geometry.gd` (the live chain's installation proves; an extra claimed group or a
+  region that lost its owner refuses) and the goal test above, whose loads after the installation
+  pass the proof.
 - **Locations**: a cold load re-proves every row against the restored Space, and refused a work
   endpoint that the paid L0 piece had since been set down on. That overlap is legal in play: the
   piece is set down after the endpoint was proved, and WorldRoutes keeps every body out of it

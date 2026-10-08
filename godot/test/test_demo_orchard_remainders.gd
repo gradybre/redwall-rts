@@ -192,7 +192,7 @@ func test_the_numbers_are_their_reasoning() -> void:
 	assert_equal(Rules.MOVE_REPLANT_MWU, 40000, "BAL-CAT-010's planting")
 	assert_equal(Rules.MOVE_COMPOST_MILLI, 4000, "§5.6's planting compost")
 	assert_equal(Rules.CART_LOAD_MILLI, 4 * Rules.HAUL_LOAD_MILLI, "four baskets")
-	assert_true(Rules.CART_LOAD_MILLI * 250 / 1000 <= 16000, "10 kg at 250 g a unit: within a medium carrier's 16 kg")
+	assert_true(Rules.CART_LOAD_MILLI * 250 <= 16000 * 1000, "10 kg at 250 g a unit: within a medium carrier's 16 kg")
 	assert_equal([Rules.CART_WOOD_MILLI, Rules.CART_BUILD_MWU], [4000, 60000], "the cart's cost")
 	assert_equal(Rules.FRESH_STEPS, PackedInt32Array([0, 25, 50, 75, 100]), "the share's steps")
 	assert_equal(Rules.GROVE_RESERVE_PERMILLE, 100, "a tenth of the capacity")
@@ -350,10 +350,14 @@ func test_a_sapling_is_lifted_carried_and_replanted() -> void:
 	var j: int = rig.jobs.find(JobsScript.K_MOVE, 2)
 	assert_true(j >= 0 and rig.jobs.worker[j] == 3, "to the selected resident")
 	var carried: Array[bool] = [false]
+	var needs: Array[int] = [0, 0]
 	assert_true(_run(rig, func() -> bool:
 		carried[0] = carried[0] or rig.jobs.holds_sapling(j)
+		if rig.jobs.is_live(j) and rig.jobs.at_work[j] == 1:
+			needs[0 if rig.jobs.step_of(j) == JobsScript.S_WORK else 1] = rig.jobs.need_mwu[j]
 		return rig.model.has_tree(3)), "replanted")
 	assert_true(carried[0], "carried in arms")
+	assert_equal(needs, [Rules.MOVE_LIFT_MWU, Rules.MOVE_REPLANT_MWU], "lifted in 20 WU, replanted in 40")
 	assert_false(rig.model.has_tree(2), "its old block empty")
 	assert_equal(rig.compost, 36000, "4 U of compost")
 	assert_equal(rig.model.moved[3], 1, "moved once")
@@ -423,6 +427,8 @@ func test_a_cart_is_built_for_its_wood() -> void:
 	var rig := _rig(3)
 	_services.stores.wood_milli_u = 3999
 	assert_true(rig.jobs.order(JobsScript.K_CART, 1, -1, PackedInt32Array()).contains("of wood"), "short of wood")
+	_services.stores.wood_milli_u = Rules.CART_WOOD_MILLI
+	assert_equal(rig.jobs.cart_refusal(1), "", "exactly enough")
 	_services.stores.wood_milli_u = 10000
 	assert_equal(rig.jobs.order(JobsScript.K_CART, 1, -1, PackedInt32Array([2])), "", "ordered")
 	assert_equal(_services.stores.wood_milli_u, 10000, "nothing taken at the order")

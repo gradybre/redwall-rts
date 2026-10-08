@@ -313,11 +313,13 @@ func test_the_reserve_stops_a_trip_and_says_so() -> void:
 	permille[0] = OrchardRules.GROVE_RESERVE_PERMILLE
 	assert_true(t.nothing_left_words(NUTS).contains("in the protected grove"), t.nothing_left_words(NUTS))
 	assert_false(t.nothing_left_words(HERBS).contains("grove"), "the herb bank has none")
+	permille[0] = 558
 	var before: int = t.harvestable_milli(NUTS)
+	assert_true(before > 4000 and before < t.driver.harvestable_milli(ForageCore.PATCH_NUTS), "the reserve binds, not the quota")
 	assert_equal(t.order_trip(NUTS, 1, PackedInt32Array([3])), "", "authorised")
 	assert_true(_run(rig, func() -> bool: return t.j_claimed[0] > 0), "claimed")
 	assert_equal(t.claimed_milli(NUTS), 4000, "the seat's claim")
-	assert_true(t.harvestable_milli(NUTS) <= before - 4000, "counted against what is left")
+	assert_equal(t.harvestable_milli(NUTS), before - 4000, "counted against what is left")
 
 
 func test_the_section_shows_the_outing() -> void:

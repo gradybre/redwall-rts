@@ -673,7 +673,7 @@ open question. The first lane of each packet records the approval in its decisio
 - **Depends on:** HIVES and BREW for Harvest and Orchard themes (mead, honey); DAYPLAN if the feast hour moves.
 - **Files:** `demo/regatta/*` (shared feast machinery), `kitchen.gd`, `goals/*` (M4 `feasts`), `winter/cold_exposure.gd`.
   Conflicts: PRESERVE, BREW, RG-W (`kitchen.gd`), HALL-FUEL (fuel-days).
-- **Decisions:** 1261–1270.
+- **Decisions:** 1261–1270, superseded by **1701–1709** (the digging branch uses 0991–1217; README §3.6). Built: 1701.
 - **Acceptance:** a Hearth feast can be called, is refused truthfully under REQ-SET-101, serves its waves, and its
   buff reaches the residents; the other themes cook when their ingredients exist and say "needs X" otherwise.
 - **Pitfalls:**
@@ -683,7 +683,7 @@ open question. The first lane of each packet records the approval in its decisio
     reads it: wire it.
   - M4's `feasts` goal is not bound (0901).
   - 0438 records SOC-024 (several feast forms; separate verdicts instead of the GDD's 80% rule) as NOT adopted.
-- **Open:** Q-D11 (general feast hour: the GDD's 18:00, or the regatta's 17:00 supper).
+- **Open:** none. Q-D11 is CLOSED: "All at 17:00 supper" (Brendan, 2026-10-07; decision 1701).
 
 <a id="skills"></a>
 ## SKILLS — Skills (#23)

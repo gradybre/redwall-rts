@@ -1933,6 +1933,15 @@ func rations_owned_milli() -> int:
 	return pantry.milli_of(Catalog.ITEM_RATION) + being_packed
 
 
+func set_ration_reserve_target(milli: int) -> int:
+	"""UI-SET-099 ("Keep N rations in reserve"): the ration reserve's target, clamped to the stepper's range; it gathers
+	or lets go at once. The target set."""
+	ration_reserve.target_milli = RationReserveScript.clamped_target(milli)
+	top_up_ration_reserve()
+	revision += 1
+	return ration_reserve.target_milli
+
+
 func release_ration_reserve(on: bool) -> void:
 	"""§5.10's emergency action "release ordinary production food reserves" (REQ-SET-146: offered, never taken by
 	itself): `on` lets everything the ration reserve holds go free at once; off, it gathers again."""

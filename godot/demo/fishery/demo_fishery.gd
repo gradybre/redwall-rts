@@ -64,6 +64,7 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const Recipes := preload("res://demo/preserve/preserve_rules.gd")
+const RationReserveScript := preload("res://demo/preserve/ration_reserve.gd")
 const PlanScript := preload("res://demo/fishery/catch_plan.gd")
 const RollsScript := preload("res://demo/fishery/fishing_rolls.gd")
 const StewardScript := preload("res://demo/fishery/fishery_stewardship.gd")
@@ -262,7 +263,7 @@ func on_action(action_name: StringName) -> void:
 	"""A Water panel button of the fishery's (others are the water's own)."""
 	var members: PackedInt32Array = _command.selected() if _command != null else PackedInt32Array()
 	_refresh_in = 0.0
-	if _on_choice(action_name):
+	if _on_choice(action_name) or _on_reserve(action_name):
 		return
 	match action_name:
 		PanelScript.ACTION_AUTHORISE:
@@ -426,6 +427,104 @@ func intensive_card() -> CardScript:
 	return _card
 
 
+# --- the ration reserve (decision 1742) ----------------------------------------------------------------
+
+## THE RESERVE'S CONTROLS (Brendan's R5, 2026-10-08), in the Preserves section beside Pack rations: the line says
+## what the reserve keeps and holds; Keep fewer / Keep more step its target (UI-SET-099, a batch a press, up to
+## RationReserve's TARGET_CAP_MILLI); Release food reserves is the GDD's 5.10 emergency action -- never taken by
+## itself, its card saying what it frees before it is pressed -- and, pressed again, keeps them again.
+const RESERVE_NONE: String = "Ration reserve: none. Keep more ▶ holds one batch's food (flour or grain, dried " \
+	+ "fish, nuts) back from the kitchen and the hungry until it is packed"
+const RELEASE_CAPTION: String = "Release food reserves"
+const KEEP_AGAIN_CAPTION: String = "Keep food reserves again"
+
+
+func _on_reserve(action_name: StringName) -> bool:
+	"""The reserve's row: the target stepped, or §5.10's release. False for any other action."""
+	match action_name:
+		PanelScript.ACTION_RESERVE_FEWER:
+			_answer(step_reserve(-1))
+		PanelScript.ACTION_RESERVE_MORE:
+			_answer(step_reserve(1))
+		PanelScript.ACTION_RESERVE_RELEASE:
+			_answer(toggle_release())
+		_:
+			return false
+	return true
+
+
+func step_reserve(steps: int) -> String:
+	"""UI-SET-099's stepper: the target moved by `steps` batches (3 U each), within its range. The answer."""
+	var target: int = fishery.set_ration_reserve_target(fishery.ration_reserve.target_milli
+		+ steps * RationReserveScript.TARGET_STEP_MILLI)
+	if target == 0:
+		return "Ration reserve: none — nothing is held back for rations"
+	return "Ration reserve: keep %s of rations" % Text.units(target)
+
+
+func toggle_release() -> String:
+	"""The GDD's 5.10 emergency action (never taken by itself): free what the reserve holds -- its card said what --
+	or, released, keep the reserves again. The answer."""
+	if fishery.ration_reserve.released:
+		fishery.release_ration_reserve(false)
+		var held: String = held_words()
+		return "Food reserves kept again: holding %s" % (held if not held.is_empty() else "nothing yet")
+	var freed: String = held_words()
+	fishery.release_ration_reserve(true)
+	return "Food reserves released: %s free for the kitchen and the hungry" % (freed if not freed.is_empty()
+		else "nothing was held, nothing is")
+
+
+func held_words() -> String:
+	"""What the reserve holds, in words ("1.0 U dried fish, 1.0 U nuts, 2.0 U flour"; "" when nothing)."""
+	var parts := PackedStringArray()
+	for category: int in RationReserveScript.HELD:
+		var milli: int = fishery.ration_reserve.held_milli(category)
+		if milli > 0:
+			parts.append("%s %s" % [Text.units(milli), Recipes.category_words(category)])
+	return ", ".join(parts)
+
+
+func reserve_text() -> String:
+	"""The reserve's line: what it keeps, what the village owns, and what it holds now (released: nothing)."""
+	var reserve: RationReserveScript = fishery.ration_reserve
+	if reserve.target_milli == 0:
+		return RESERVE_NONE
+	var head: String = "Ration reserve: keep %s of rations (%s owned)" % [Text.units(reserve.target_milli),
+		Text.units(fishery.rations_owned_milli())]
+	if reserve.released:
+		return "%s. Released for an emergency: nothing held" % head
+	var held: String = held_words()
+	return "%s. Holding %s" % [head, held] if not held.is_empty() else "%s. Holding nothing now" % head
+
+
+func release_card() -> CardScript:
+	"""Release food reserves' card: what it frees (refused when nothing is held); released, keeping them again."""
+	if fishery.ration_reserve.released:
+		_card.reset(KEEP_AGAIN_CAPTION)
+		_card.result = "One batch of rations' food held back again from the kitchen and the hungry while rations are short"
+		return _card
+	_card.reset("%s (an emergency action)" % RELEASE_CAPTION)
+	var held: String = held_words()
+	if held.is_empty():
+		_card.refuse("NOTHING_HELD", "the ration reserve holds nothing now", "")
+		return _card
+	_card.result = ("Frees %s at once, for the kitchen and the hungry; nothing is held back until you keep them "
+		+ "again") % held
+	return _card
+
+
+func _dress_reserve(panel: PanelScript) -> void:
+	"""The reserve's row: the stepper's ends, and Release's caption and card."""
+	var target: int = fishery.ration_reserve.target_milli
+	panel.button(PanelScript.ACTION_RESERVE_FEWER).disabled = target <= 0
+	panel.button(PanelScript.ACTION_RESERVE_MORE).disabled = target >= RationReserveScript.TARGET_CAP_MILLI
+	var card: CardScript = release_card()
+	panel.set_card(PanelScript.ACTION_RESERVE_RELEASE, card.text(), card.is_ok())
+	panel.button(PanelScript.ACTION_RESERVE_RELEASE).text = KEEP_AGAIN_CAPTION if fishery.ration_reserve.released \
+		else RELEASE_CAPTION
+
+
 # --- the panel ---------------------------------------------------------------------------------------
 
 func refresh_panel() -> void:
@@ -444,6 +543,7 @@ func refresh_panel() -> void:
 	card = mend_card(members)
 	panel.set_card(PanelScript.ACTION_MEND, card.text(), card.is_ok())
 	_dress_steward(panel)
+	_dress_reserve(panel)
 	card = mill_card(members)
 	panel.set_card(PanelScript.ACTION_MILL, card.text(), card.is_ok())
 	for action: StringName in ACTION_RECIPES:
@@ -467,7 +567,7 @@ func panel_lines() -> Dictionary:
 	"""The sections' text (water_panel.gd FISHERY_LINES)."""
 	return {&"fish_choice": choice_line(), &"fish_preview": preview_text(), &"fish_trips": trips_text(),
 		&"fish_gear": gear_text(), &"boats": boats_text(), &"stations": stations_text(), &"preserves": preserves_text(),
-		&"brewing": brewing_text(), &"fish_record": record_text()}
+		&"reserve": reserve_text(), &"brewing": brewing_text(), &"fish_record": record_text()}
 
 
 func record_text() -> String:

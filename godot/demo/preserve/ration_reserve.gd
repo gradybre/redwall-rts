@@ -36,6 +36,10 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 ## The demo village's target: two batches of rations, 6 U. PROVISIONAL (1742's proposal; the GDD leaves it to the
 ## player, and BAL-SUPPLY-004's 18 winter days of rations is a full settlement's, hundreds of units).
 const DEMO_TARGET_MILLI: int = 6000
+## The panel's target stepper (UI-SET-099; Brendan's R5): one batch (3 U) a press, from none to ten batches.
+## PROVISIONAL (1742's R6 and R7).
+const TARGET_STEP_MILLI: int = 3000
+const TARGET_CAP_MILLI: int = 30000
 ## The categories it holds: the rations' three foods and the mill's grain.
 const HELD: PackedInt32Array = [Catalog.CAT_DRIED_FISH, Catalog.CAT_NUTS, Catalog.CAT_FLOUR, FarmingScript.CROP_GRAIN]
 
@@ -57,6 +61,11 @@ func configure(p_pantry: PantryScript, p_takes: TakesScript) -> void:
 	pantry = p_pantry
 	takes = p_takes
 	take = p_takes.new_take() if p_takes != null and p_pantry != null else 0
+
+
+static func clamped_target(milli: int) -> int:
+	"""A target the stepper may set: 0 to TARGET_CAP_MILLI."""
+	return clampi(milli, 0, TARGET_CAP_MILLI)
 
 
 func held_milli(category: int) -> int:

@@ -448,6 +448,31 @@ These record the engineering choices made while building, step by step.
   **Measured cost** (generated settlement, this Mac, 2026-10-08): a save takes about 33 s and writes
   56,989,480 bytes; a load about 66 s. Every autosave therefore stalls the frame it runs in for that long.
 
+- **Step 12, ARCH-SAVE-006 parity** (`test_settlement_save_parity.gd`). A whole save takes ~33 s, so the
+  per-tick comparison cannot recapture the world 15,000 times. `test/fixtures/save_parity_fingerprint.gd`
+  reads every member the canonical registry declares (the generated FIELD_KEYS per owner, hash=false
+  excluded) straight off the live owners and folds their native Variant hashes into one integer per tick
+  (about 18 ms). The two queues are read as the save writes them: the scheduler queue's and the command
+  queue's live rows in logical order (the command rows with their payload bytes), because a save writes
+  them from a canonical head without the residue executed rows leave in their slots. The first run
+  showed exactly that residue as a tick-3001 difference while the saves stayed byte-identical. The test
+  asserts every declared field is covered except those of owners an unmounted settlement has no
+  instance of (the underground owners and three Inventory spatial members).
+  - **The fork:** the generated settlement runs to 3000; a NAME_RESIDENT is queued and still pending; the
+    save is loaded into a fresh settlement, which must match the uninterrupted run at every tick
+    3001-18000 and save byte-identically at 18000.
+  - **Coverage cases**, each saved at its first host boundary, compared tick for tick for 1,500 ticks and
+    then byte for byte: the exact midnight (completed tick 13500; the calendar starts 4,500 ticks into
+    day 1) and a dying resident (one resident's hunger is emptied at the fork, so the starvation clock the
+    registry names for this case runs).
+  - **Not reached by the surface settlement today, and asserted so** (`REACHED_CASES`), so a change that
+    makes one reachable fails the test until it is added: an active passive batch (no job scan continues
+    across a tick boundary), an expired lease (no reservation lease ends inside a window) and a partial A*
+    heap (the surface composes no navigation). Their columns are in every tick's fingerprint; ADR 1228's
+    goal test covers the underground movement owners at its checkpoints, by whole saves only.
+  - **Not done:** the first divergence names the tick, not the fields (task 09's acceptance asks for
+    fields); the comparison runs at 1x only.
+
 ## Brendan's answers (DEC-055, 2026-10-07)
 
 Brendan took the recommendation on every question, Q1–Q10. The coordinator relayed his answers and authorised

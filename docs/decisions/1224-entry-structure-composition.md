@@ -79,3 +79,24 @@ capacity (1,536), all pass.
 This is recorded as ADR 1197 **G13** and not built here. The fix is to check the bank against its own configured
 capacities instead of fixture literals. The code is shared with genuine source-drift refusals, so it is not mapped
 to G13 in `GAPS`.
+
+## Update (2026-10-07): G13 built; the next gap is G14
+
+**G13 built.** The retirement scope now validates the Workpieces bank against its own configured capacity: 6 × the
+assembly capacity for parts, the assembly capacity for revisions, and exactly two loaded assemblies. It snapshots
+and re-proves the two assemblies' six field-major part columns at that capacity (`field × capacity + row`). This
+equals the old flat indexing at the fixture's capacity of 2, so fixture images and the census-counted packet sizes
+are unchanged.
+
+**The live chain now:**
+- installs L0 once (32,000 mWU of handling and fastening, `INSTALLED` 1);
+- settles T0's six cut phases (54,000 mWU of cut Work in all, nine whole units hauled);
+- opens T0's paid installation.
+
+At tick 4349 the T0 FUND stops with **`CONNECTOR_CONTACT_OPERATION_CAPACITY`**. Contacts' `_scope_leaf` cannot
+spend `SOURCE_CHECKS` from its per-operation fragment budget during the final observation that the FUND's input
+consumption runs (`Reservations.consume_connector_inputs` → `Inventory` attestation → `Router.final_input_refusal` →
+`ConnectorWork.final_funding_refusal` → `Contacts.final_observation_refusal`). The fixture never meets this. The likely
+cause is the live occupancy scans: ADR 1219's reach test spends 16 checks per resident row, over 256 rows, in each
+proof of the operation. This is recorded as ADR 1197 **G14** and not built here. The code is generic, so it is not
+mapped in `GAPS`.

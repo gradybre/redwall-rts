@@ -243,7 +243,9 @@ func _source_i32(index: int) -> int:
 	if index < ENDPOINTS: return _frontier._travel_profile[index]
 	index -= ENDPOINTS
 	if index < 114: return _frontier._episode[index]
-	return _pieces._parts[index - 114]
+	index -= 114 # ADR1224 G13: the two assemblies' six field-major part columns, at the bank's own capacity.
+	@warning_ignore("integer_division") var field: int = index / 2
+	return _pieces._parts[field * _pieces._assembly_capacity + index % 2]
 
 
 func _source_i64(index: int) -> int:
@@ -418,7 +420,9 @@ func _source_shapes() -> bool:
 		and _frontier._travel_profile.size() == ENDPOINTS and _frontier._episode.size() == 114 \
 		and _frontier._profile_revision.size() == 32 and _frontier._travel_revision.size() == ENDPOINTS \
 		and _frontier._digests.size() == 160 and _pieces._header.size() == 9 \
-		and _pieces._parts.size() == 12 and _pieces._profile_revisions.size() == 2 \
+		and _pieces._assembly_capacity >= 2 and _pieces._header[6] == 2 \
+		and _pieces._parts.size() == 6 * _pieces._assembly_capacity \
+		and _pieces._profile_revisions.size() == _pieces._assembly_capacity \
 		and _pieces._digests.size() == 160
 
 

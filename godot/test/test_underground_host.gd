@@ -23,12 +23,14 @@ const Jobs := preload("res://scripts/core/jobs.gd")
 const Needs := preload("res://scripts/core/needs.gd")
 const Schedule := preload("res://scripts/core/schedule.gd")
 const Contract := preload("res://scripts/core/excavation_contract.gd")
-## ADR1224: with the entry structure composed (G12) the live chain settles all twelve L0 phases. ADR1219's reach rule now
-## covers the assembly-handling proof too, so the L0 bill is delivered; the paid FUND then stops in the contact
-## retirement scope, whose source-shape check expects a fixture-sized Workpieces bank (ADR1197 G13).
-const NEXT_GAP: StringName = &"ENTRY_CONTACT_RETIREMENT_SOURCE"
+## ADR1224: with the entry structure composed (G12), ADR1219's reach rule in the assembly-handling proof and the
+## contact-retirement scope sized to the live Workpieces bank (G13), the live chain installs L0, cuts T0's six
+## phases, and stops in T0's paid FUND: Contacts' per-operation check budget runs out (ADR1197 G14).
+const NEXT_GAP: StringName = &"CONNECTOR_CONTACT_OPERATION_CAPACITY"
 ## The tick the uninterrupted live chain stops on (ADR1224), asserted by both the plain and the restored chain.
-const NEXT_GAP_TICK: int = 2575
+const NEXT_GAP_TICK: int = 4349
+## [task index, cut Work mWU, hauled whole units] at that stop: L0 (12 phases) and T0's cuts (6) settled.
+const NEXT_GAP_LEDGER: Array = [19, 54000, 9]
 ## ADR1221: the live chain's route owners are cold-restored this often (ticks; prime).
 const ROUTE_RESTORE_EVERY: int = 23
 ## ADR1218 runtime wire: header, step, code, origin, section, endpoint count and eleven endpoints, then M's container.
@@ -814,15 +816,17 @@ func _assert_dispatch_held(o: Session.Retirement.Owners, entry: Settlement.Under
 
 
 func _assert_next_gap_stop(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime, worker: Vector2i) -> void:
-	"""ADR1223/1224: past G6 and G12. The crew hauled, settled all twelve paid L0 phases (BRACE, CUT, FINISH of four
-	episodes) and opened the paid L0 installation under its own installation Job; the handling proof refuses at the
-	next gap (NEXT_GAP)."""
+	"""ADR1223/1224: past G6, G12 and G13. The crew hauled, settled every L0 phase, installed L0 once (its handling
+	and fastening Work), settled T0's six cut phases and opened T0's paid installation under its own Job; the T0
+	FUND refuses at the next gap (NEXT_GAP)."""
 	assert_false(entry.is_running(), "stopped at the next remaining gap")
 	assert_equal(entry.error(), NEXT_GAP, "exact refusal")
 	var foreman: RefCounted = entry._foreman
 	assert_equal(foreman._installer.stage(), foreman.Installer.STAGE_FUND, "stopped in the paid FUND, after delivery")
-	assert_equal([foreman._index, foreman._tasks[12].install_ordinal, foreman.accepted_mwu(), foreman.haul_trips()],
-		[12, 0, 36000, 6], "every L0 phase settled with its exact Work, six whole units hauled, the L0 installation open")
+	assert_equal([foreman._index, foreman._tasks[19].install_ordinal, foreman.accepted_mwu(), foreman.haul_trips()],
+		[19, 1] + NEXT_GAP_LEDGER.slice(1), "L0 and T0's cuts settled with their exact Work, all units hauled, T0 open")
+	assert_equal(foreman.install_mwu(), 32000, "L0 fastened exactly once")
+	assert_equal(o.placements._get32(o.placements._live, o.placements.INSTALLED, 0), 1, "L0 INSTALLED")
 	assert_true(o.gear.is_equipped_record(entry.crew().tool) and o.gear.owner_of(entry.crew().tool) == worker,
 		"the crew holds its tool")
 	assert_equal(o.jobs.worker_of(foreman._installer._job), worker, "the crew holds the installation's own Job")
@@ -1214,7 +1218,7 @@ func test_a_crew_lost_mid_haul_is_replaced_and_the_entry_resumes_where_it_stoppe
 	tick = _run_until(entry, tick + 1, func() -> bool: return false)
 	assert_equal(entry.error(), NEXT_GAP, "the resumed entry reaches the same next gap")
 	var foreman: RefCounted = entry._foreman
-	assert_equal([foreman._index, foreman.accepted_mwu(), foreman.haul_trips()], [12, 36000, 6],
+	assert_equal([foreman._index, foreman.accepted_mwu(), foreman.haul_trips()], NEXT_GAP_LEDGER,
 		"every L0 phase settled once, with the same Work and the same six hauled units")
 	assert_equal(o.jobs.worker_of(foreman._installer._job), live[3], "the replacement holds the installation Job")
 
@@ -1232,7 +1236,7 @@ func test_a_crew_lost_mid_phase_is_replaced_and_the_paid_phase_is_not_paid_again
 	assert_equal(entry._foreman._stage, entry._foreman.STAGE_RESUME, "the step waits for the replacement")
 	tick = _run_until(entry, tick + 1, func() -> bool: return false)
 	assert_equal(entry.error(), NEXT_GAP, "the resumed entry reaches the same next gap")
-	assert_equal([entry._foreman._index, entry._foreman.accepted_mwu()], [12, 36000], "no Work paid twice or lost")
+	assert_equal([entry._foreman._index, entry._foreman.accepted_mwu()], NEXT_GAP_LEDGER.slice(0, 2), "no Work paid twice or lost")
 
 
 func _earning_the_first_cut(entry: Settlement.UndergroundEntryRuntime) -> bool:
@@ -1492,6 +1496,6 @@ func test_the_busy_crew_rests_at_a_resting_point_through_its_sleep_hour_and_resu
 	assert_equal(entry._foreman.accepted_mwu(), resting, "no Work while it rests")
 	tick = _run_until(entry, tick, func() -> bool: return false)
 	assert_equal(entry.error(), NEXT_GAP, "it resumes and reaches the same next gap")
-	assert_equal([entry._foreman._index, entry._foreman.accepted_mwu(), entry._foreman.haul_trips()], [12, 36000, 6],
+	assert_equal([entry._foreman._index, entry._foreman.accepted_mwu(), entry._foreman.haul_trips()], NEXT_GAP_LEDGER,
 		"with the same ledgers")
 	assert_true(tick - 1 > NEXT_GAP_TICK, "later, by the rest")

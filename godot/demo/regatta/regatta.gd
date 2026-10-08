@@ -31,6 +31,13 @@ extends RefCounted
 ## THE FULL MENU (decision 0682; Brendan's ruling of 2026-10-01: "add nuts & herbs now"): the second course (nut loaf) and
 ## the warm infusion are regatta_menu.gd's -- reserved with the main course when the pantry holds them, cooked as the
 ## occasion's second course, poured at the supper -- and with them Shared Warmth when 80% of E eat every course.
+##
+## ONE FEAST AMONG OTHERS (decision 1701, feasts #9): the village's called feasts (demo/feast/) bind three hooks --
+## `feast_clash(day) -> String`, why a feast that day would break "at most 1 scheduled/active feast" (§3) or "at most
+## one feast may start in any 72-game-hour interval" (§5.7) ("" when it would not); `food_days_after(E) -> int` and
+## `fuel_days_after(wood_after_milli) -> int`, REQ-SET-101's post-feast reserves in thousandths of a day -- the ready
+## food without the feast's reservation, and §5.8's fuel-days over the winter's hearths as well as the kitchen. Unbound
+## (a check of the regatta alone), the regatta keeps its own figures.
 
 const Rules := preload("res://demo/regatta/regatta_rules.gd")
 const RaceTask := preload("res://demo/regatta/race_task.gd")
@@ -104,6 +111,10 @@ var record_deed: Callable = Callable()
 var share_feast: Callable = Callable()
 ## `say(text)`: a routine line to the village news.
 var say: Callable = Callable()
+## ONE FEAST AMONG OTHERS's hooks (see the header).
+var feast_clash: Callable = Callable()
+var food_days_after: Callable = Callable()
+var fuel_days_after: Callable = Callable()
 var revision: int = 0
 
 ## THE CHOICE being made (the panel's): the day (absolute), the host, and the reserve override.
@@ -334,14 +345,19 @@ func daily_wood_milli() -> int:
 
 func food_days_milli() -> int:
 	"""Ready food (the HUD's days of meals, thousandths): the feast's beans and cabbage are outside it, so it is the
-	figure the feast leaves."""
+	figure the feast leaves; the feasts' figure when bound (ONE FEAST AMONG OTHERS)."""
+	if food_days_after.is_valid():
+		return int(food_days_after.call(residents()))
 	return kitchen.days_of_meals_milli() if kitchen != null else 0
 
 
 func fuel_days_milli(eligible_now: int) -> int:
-	"""Days of the kitchen's wood left after the feast's service and its batches (thousandths)."""
+	"""Days of wood left after the feast's service and its batches (thousandths): the kitchen's alone, or -- the feasts'
+	hook bound (ONE FEAST AMONG OTHERS) -- §5.8's over the hearths and the kitchen."""
 	var batches: int = Rules.main_batches(eligible_now) + menu.second_batches_now(eligible_now)
 	var after: int = stores.wood_milli_u - Rules.service_wood_milli(eligible_now) - batches * MealRules.WOOD_MILLI_PER_BATCH
+	if fuel_days_after.is_valid():
+		return int(fuel_days_after.call(after))
 	@warning_ignore("integer_division") var days: int = maxi(after, 0) * 1000 / daily_wood_milli()
 	return days
 
@@ -353,7 +369,7 @@ func refusal(day: int, host: int, with_override: bool) -> String:
 	refused_fix = ""
 	var why: String = _plan_refusal(day, host)
 	if why.is_empty():
-		why = _feast_refusal(with_override)
+		why = _feast_refusal(with_override, day)
 	return why
 
 
@@ -383,10 +399,14 @@ func _plan_refusal(day: int, host: int) -> String:
 	return ""
 
 
-func _feast_refusal(with_override: bool) -> String:
-	"""The feast's half: the main course's beans and cabbage free, the service wood, the seats, and REQ-SET-101's
-	reserves -- refused under 3 days unless overridden."""
+func _feast_refusal(with_override: bool, day: int = NONE) -> String:
+	"""The feast's half: no other feast planned or started within 72 h of `day` (ONE FEAST AMONG OTHERS), the main
+	course's beans and cabbage free, the service wood, the seats, and REQ-SET-101's reserves -- refused under 3 days
+	unless overridden."""
 	var e: int = residents()
+	var clash: String = String(feast_clash.call(day)) if feast_clash.is_valid() else ""
+	if not clash.is_empty():
+		return _refuse("FEAST_CLASH", clash, "Cancel the called feast, or choose a later day")
 	var need: int = main_food_milli(e)
 	if free_beans() < need:
 		return _refuse("NO_BEANS", "the main course (bean hotpot x%d) needs %s of beans; the pantry has %s free" % [

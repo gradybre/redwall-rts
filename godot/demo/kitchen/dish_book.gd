@@ -63,6 +63,13 @@ extends RefCounted
 ## THE FEAST'S SECOND COURSE (decision 0682): nut_loaf, the library's Nutbread cooked as §5.7's own `nut_loaf` row
 ## (flour 2 + nuts 2, the GDD's numbers), is an OCCASION dish -- never a meal's choice, cooked only as the Hearth feast's
 ## second course (meal_rules.gd DISH_NUT_LOAF; added to the book at the batch 7 integration, decision 0902).
+##
+## THE FEASTS' OTHER COURSES (decision 1701, feasts #9): GDD §5.7's Harvest and Orchard rows -- the Harvest feast's
+## `feast_fish` and `berry_tart`, the Orchard feast's `nut_roast` (SET-AMEND-001 §4.1, replacing the retired game roast)
+## and `orchard_crumble` -- each §5.7's own row exactly, appended after the nut loaf (never renumbering a row) as OCCASION
+## dishes: cooked only as a called feast's course (demo/feast/), never the cook's choice. The tart is the library's
+## "Feast tarts" (triss, berries for its redcurrants) and the crumble its "Banquet crumbles" (rakkety_tam, the orchard's
+## apples and pears); the feast fish and the nut roast are the GDD's own dishes, as the hotpot is.
 
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
@@ -85,6 +92,9 @@ const GRAIN: int = FarmingScript.CROP_GRAIN
 const ROOTS: int = FarmingScript.CROP_ROOTS
 const FISH: int = Catalog.CAT_FISH
 const NUTS: int = Catalog.CAT_NUTS
+const HERB: int = Catalog.CAT_HERB
+const BERRIES: int = Catalog.CAT_BERRIES
+const FRUIT: int = Catalog.CAT_FRUIT
 
 const DISHES: Array[Dictionary] = [
 	{"key": &"porridge", "name": "Wild oat porridge", "short": "porridge",
@@ -168,10 +178,27 @@ const DISHES: Array[Dictionary] = [
 		"library": "redwall::RW-RECIPE-nutbread", "gdd_row": "nut_loaf", "meal": OCCASION,
 		"portions": 3, "np": 2600, "work_mwu": 24000, "shelf_hours": 72, "water_milli": 1000,
 		"inputs": [[FLOUR, 2000, []], [NUTS, 2000, []]]},
+	{"key": &"feast_fish", "name": "Feast fish", "short": "feast fish",
+		"library": "", "gdd_row": "feast_fish", "meal": OCCASION,
+		"portions": 6, "np": 2500, "work_mwu": 48000, "shelf_hours": 36, "water_milli": 2000,
+		"inputs": [[FISH, 4000, []], [ROOTS, 2000, []], [HERB, 500, []]]},
+	{"key": &"berry_tart", "name": "Feast tarts", "short": "berry tart",
+		"library": "triss::TRI_recipe_feast_tarts", "gdd_row": "berry_tart", "meal": OCCASION,
+		"portions": 3, "np": 2200, "work_mwu": 28000, "shelf_hours": 48, "water_milli": 1000,
+		"inputs": [[FLOUR, 2000, []], [BERRIES, 2000, []], [HONEY, 500, []]]},
+	{"key": &"nut_roast", "name": "Bean, root and nut roast", "short": "nut roast",
+		"library": "", "gdd_row": "nut_roast", "meal": OCCASION,
+		"portions": 4, "np": 2400, "work_mwu": 30000, "shelf_hours": 36, "water_milli": 0,
+		"inputs": [[BEANS, 3000, []], [ROOTS, 2000, []], [NUTS, 1000, []], [HERB, 250, []]]},
+	{"key": &"orchard_crumble", "name": "Banquet crumble", "short": "orchard crumble",
+		"library": "rakkety_tam::RAK_recipe_banquet_crumbles", "gdd_row": "orchard_crumble", "meal": OCCASION,
+		"portions": 3, "np": 2300, "work_mwu": 28000, "shelf_hours": 48, "water_milli": 0,
+		"inputs": [[FRUIT, 3000, []], [FLOUR, 2000, []], [HONEY, 500, []]]},
 ]
 
 ## The §5.7 recipe rows the GDD adopts; every other `gdd_row` here is one of Brendan's DEC-045 rows (decision 0603).
-const ADOPTED_ROWS: Array[String] = ["porridge", "root_stew", "fish_stew", "bean_hotpot", "woodland_pie", "nut_loaf"]
+const ADOPTED_ROWS: Array[String] = ["porridge", "root_stew", "fish_stew", "bean_hotpot", "woodland_pie", "nut_loaf",
+	"feast_fish", "berry_tart", "nut_roast", "orchard_crumble"]
 
 ## WHERE A MISSING INGREDIENT WILL COME FROM, by item key: a dish taking one waits, saying so ("needs potato: grown in
 ## the fields, not yet planted in the demo"). The lane that lands a source deletes its key here (and a NEEDS key resolves itself once its

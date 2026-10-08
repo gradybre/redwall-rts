@@ -2293,7 +2293,7 @@ rated the ferry "Stretch" and moving vessels lie outside the adopted movement sc
 **The regatta** (`regatta/regatta.gd`; numbers in `regatta_rules.gd`; decision 0438) -- a once-a-season occasion, the
 first in summer:
 
-- **Water panel ▸ Regatta** (or the HUD's **Feast** command, unlocked for it): **◀ Day / Day ▶** (the season's days from
+- **Water panel ▸ Regatta** (or the Feasts panel's **The regatta…**, from the HUD's **Feast** command; decision 1701): **◀ Day / Day ▶** (the season's days from
   tomorrow; before summer, summer's), **Host ▸** (anyone but the village cook), and the **preview** -- the GDD's Hearth
   feast for every resident: bean hotpot ×ceil(E/3) (beans and cabbage, free in the pantry), the second course -- **nut
   loaf** ×ceil(E/3) (flour from the mill, nuts from a foraging trip) -- and the **warm infusion** (water and herb), each
@@ -2657,6 +2657,32 @@ Each of GDD §5.10's seven events is shown and felt by its numbers (`weather/wea
 - **Paused**, a strike holds still and nothing new strikes.
 - The live harness: `godot --path godot --script res://test/live/demo_weather_live.gd -- --size 1920x1080 --capture <dir>`.
 
+## Called feasts (decision 1701; feature #9)
+
+The HUD's **Feast** command opens the **Feasts** panel: call one of GDD §5.7's three feasts for one of the next three
+suppers (today's before 15:00), with a keeper who does not cook it (`feast/`).
+
+| Theme | Main course | Second course | Beverage | Buff (48 h) |
+|---|---|---|---|---|
+| Hearth | ceil(E/3) bean hotpot | ceil(E/3) nut loaf | warm infusion (water ceil(E/4), herb 0.25 x ceil(E/12)) | Shared Warmth: cold exposure −25% (applied to the winter's cold), mood +400 (shown) |
+| Harvest | ceil(E/6) feast fish | ceil(E/3) berry tart | mead ceil(E/4) | Abundant Tables: work +5% (on the work pace), purpose +20% (shown) |
+| Orchard | ceil(E/4) nut roast (SET-AMEND-001 §4.2) | ceil(E/3) orchard crumble | mead ceil(E/4) | Rooted Community: social decay −20%, +2 newcomers (shown) |
+
+- **Every feast is served at the 17:00 supper** (Brendan's ruling on Q-D11, 2026-10-07: "All at 17:00 supper"), not
+  REQ-SET-103's 18:00; the kitchen seats the guests in turns at the hall's seats.
+- **Refused truthfully**, with the fix: a keeper who cooks, too few hands (2 cooks + 1 keeper), another feast planned
+  (the regatta's included: one at a time) or begun within 72 game hours, any course's or the beverage's input short
+  ("needs mead: 2.0 U (0.0 U free) — the brewery's mead"), the service wood, the seats (ceil(E/3)), and REQ-SET-101's
+  reserves after it -- ready food without the feast's reservation and §5.8's fuel-days over the hearths and the
+  kitchen -- unless **Override reserves** is on for this feast.
+- **Called**, everything is reserved (both courses in the kitchen's occasion, the beverage, the service wood); **Cancel**
+  before 17:00 gives it all back. At 17:00 it is served; once the kitchen finalizes the supper it is tallied: who came,
+  the beverage poured for them, the buff when 80% ate every course, +5 friendship a pair, one chronicle line.
+- A feast at least one resident ate is **completed**: M4's "12 completed feasts" counts these and the regatta's.
+- The four new courses are recipe-book rows (`kitchen/dish_book.gd`, OCCASION dishes, never the cook's choice); their
+  icons fall back to swatches (no dish art yet).
+- The live harness: `godot --path godot --script res://test/live/demo_feast_live.gd -- --size 1920x1080 --capture <dir>`.
+
 ## Layout
 
 | Folder | Owns |
@@ -2677,7 +2703,8 @@ Each of GDD §5.10's seven events is shown and felt by its numbers (`weather/wea
 | `fishery/` | Water part B: the trips, jobs and stations (`fishery.gd`, its rows `fishery_tables.gd`, its task), the numbers (`fishery_rules.gd`), the real gear locker over gear.gd, the FISH skill, the pond's ice, the words, the drawing and the node wiring it into the village (`demo_fishery.gd`) |
 | `boats/` | The boat core: the jetties, berths and fixed routes (`boat_routes.gd`; the ferry's stages and third boat, decision 0437), the boats as integer rows (`boat_fleet.gd`), their drawing, and the boat as a rescue rank (`boat_rescue.gd`) |
 | `ferry/` | The ferry (decision 0437): its rules, the crossings, the far copse, the stacks, the passengers and the books (`ferry.gd`), its task, its drawing, and the node wiring it into the village, the Water panel and the incidents (`demo_ferry.gd`) |
-| `regatta/` | The regatta (decision 0438): its rules (the GDD's Hearth feast, the race), the occasion, race and tally (`regatta.gd`), the crews' task, and the node wiring it into the village, the Water panel and the HUD's Feast command (`demo_regatta.gd`) |
+| `regatta/` | The regatta (decision 0438): its rules (the GDD's Hearth feast, the race), the occasion, race and tally (`regatta.gd`), the crews' task, and the node wiring it into the village and the Water panel (`demo_regatta.gd`; the HUD's Feast command is the feasts' since decision 1701) |
+| `feast/` | The called feasts (decision 1701): the themes' numbers (`feast_rules.gd`), a theme's menu, shortfalls, reservation and pour (`feast_menu.gd`), the buffs (`feast_buffs.gd`), the plan, interval, reserves, day and tally (`called_feast.gd`), the words, the Feasts panel, and the node wiring it into the village, the regatta, the winter's cold, the work pace and the HUD's Feast command (`demo_feasts.gd`) |
 | `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel; whose water range the map layer paints (`water_range.gd`) |
 | `farm/` | The farm: real FarmPlot rows, the pantry (and its ledger) and its storage providers, the Pantry's Stocks table (`farm_pantry_rows.gd`), the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves; the seasonal planner -- its overview rows, season calendar and timeline, soil plans, the after-action record and its tables (`farm_planner*.gd`, `farm_plan_rows.gd`, `farm_season.gd`, `farm_timeline.gd`, `farm_soil_plan*.gd`, `farm_record*.gd`) -- and the bed panel's Compare view (`farm_compare_view.gd`); the crop plans -- crop roles (`farm_crop_roles.gd`), the kitchen garden (`farm_garden*.gd`), harvest plans (`farm_harvest_*.gd`), tending policies (`farm_tending*.gd`) and the tunnel outlet box (`farm_outlet_box.gd`) |
 | `kitchen/` | The meal loop: the recipe book (`dish_book.gd`) and each species' favourites (`dish_favourites.gd`), the dishes' columns and numbers (`meal_rules.gd`), the portions (`meal_store.gd`), the ingredient holds (`ingredient_takes.gd`), nourishment, the kitchen and its places, task and words, the steam, bowls and carrying (`kitchen_view.gd`), the Pantry's Kitchen tab and the node with the kitchen pantry (`demo_kitchen.gd`) |

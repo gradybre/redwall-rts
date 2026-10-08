@@ -57,7 +57,17 @@ const GDD_ROWS: Dictionary = {
 	"woodland_pie": [[[Catalog.CAT_FLOUR, 2000], [Book.NEEDS, 2000], [FarmingScript.CROP_ROOTS, 1000]], 1000, 3, 2300,
 		30000, 48],
 	"nut_loaf": [[[Catalog.CAT_FLOUR, 2000], [Catalog.CAT_NUTS, 2000]], 1000, 3, 2600, 24000, 72],
+	"feast_fish": [[[Catalog.CAT_FISH, 4000], [FarmingScript.CROP_ROOTS, 2000], [Catalog.CAT_HERB, 500]], 2000, 6, 2500,
+		48000, 36],
+	"berry_tart": [[[Catalog.CAT_FLOUR, 2000], [Catalog.CAT_BERRIES, 2000], [Catalog.CAT_HONEY, 500]], 1000, 3, 2200,
+		28000, 48],
+	"nut_roast": [[[FarmingScript.CROP_BEANS, 3000], [FarmingScript.CROP_ROOTS, 2000], [Catalog.CAT_NUTS, 1000],
+		[Catalog.CAT_HERB, 250]], 0, 4, 2400, 30000, 36],
+	"orchard_crumble": [[[Catalog.CAT_FRUIT, 3000], [Catalog.CAT_FLOUR, 2000], [Catalog.CAT_HONEY, 500]], 0, 3, 2300,
+		28000, 48],
 }
+## The GDD's own dishes, which no library dish is (decision 1701 adds the feast fish and the nut roast).
+const GDD_OWN: Array[StringName] = [&"bean_hotpot", &"woodland_pie", &"feast_fish", &"nut_roast"]
 
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 
@@ -144,7 +154,7 @@ static func _many(species: String, n: int) -> PackedStringArray:
 func test_every_dish_is_cooked_as_its_gdd_row_exactly() -> void:
 	"""Each dish carries its §5.7 row's inputs (categories and milli-U), water, portions, NP, WU and shelf exactly."""
 	assert_equal(Rules.DISH_COUNT, Book.DISHES.size(), "a column per row")
-	assert_equal(Rules.DISH_COUNT, 20, "twenty dishes: eight (0601), eleven (0603) and the feast's nut loaf (0682, 0902)")
+	assert_equal(Rules.DISH_COUNT, 24, "twenty-four dishes: eight (0601), eleven (0603), the feast's nut loaf (0682, 0902) and the feasts' four courses (1701)")
 	assert_equal(GDD_ROWS.keys(), Book.ADOPTED_ROWS, "the adopted rows are the ones checked here")
 	for dish: int in Rules.DISH_COUNT:
 		if Rules.ROW_ADOPTED[dish] == 0:
@@ -163,7 +173,7 @@ func test_every_dish_is_cooked_as_its_gdd_row_exactly() -> void:
 
 func test_every_dish_is_a_library_production_candidate() -> void:
 	"""Each library id resolves exactly once in the content library's recipes, as a production candidate (LIB-008: its
-	numbers are §5.7's); the hotpot alone is the GDD's own dish."""
+	numbers are §5.7's); the GDD's own dishes (GDD_OWN) are no library dish."""
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(RECIPES_PATH))
 	assert_true(parsed is Dictionary, "the library's recipes load")
 	var found: Dictionary = {}
@@ -172,8 +182,8 @@ func test_every_dish_is_a_library_production_candidate() -> void:
 			found[recipe["id"]] = bool(recipe["production_candidate"])
 	for dish: int in Rules.DISH_COUNT:
 		var id: String = Rules.LIBRARY_IDS[dish]
-		if dish == Rules.DISH_BEAN_HOTPOT or dish == Rules.DISH_WOODLAND_PIE:
-			assert_equal(id, "", "the hotpot and the woodland pie are the GDD's")
+		if GDD_OWN.has(Rules.DISH_KEYS[dish]):
+			assert_equal(id, "", "%s is the GDD's own" % Rules.DISH_NAMES[dish])
 			continue
 		assert_true(found.get(id, false), "%s is a production candidate" % id)
 
@@ -250,7 +260,7 @@ func test_recipes_and_freshness_rank_as_the_gdd_says() -> void:
 	assert_true(Rules.same_recipe(Rules.DISH_PORRIDGE, Rules.DISH_BARLEYMEAL), "one recipe")
 	assert_false(Rules.same_recipe(Rules.DISH_SOUP, Rules.DISH_FISH_STEW), "two recipes")
 	assert_false(Rules.same_recipe(Rules.NO_DISH, Rules.DISH_SOUP), "no dish")
-	assert_equal(Rules.ROW_COUNT, 16, "four §5.7 rows of 0601, woodland_pie, ten drafts and nut_loaf")
+	assert_equal(Rules.ROW_COUNT, 20, "four §5.7 rows of 0601, woodland_pie, ten drafts, nut_loaf and the feasts' four (1701)")
 	assert_equal(Rules.FRESHEST_HOURS.slice(0, 8), PackedInt32Array([720, 240, 48, 720, 240, 240, 48, 144]),
 		"freshest input")
 	assert_true(Rules.fresher_first(Rules.DISH_FISH_STEW, Rules.DISH_BEAN_HOTPOT) < 0, "fish before greens")

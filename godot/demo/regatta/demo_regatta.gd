@@ -12,7 +12,8 @@ extends Node3D
 ##   Override reserves      REQ-SET-101's explicit override for this regatta, when its reserves would fall under 3 days
 ##   Skip this season       no penalty and nothing withheld; a held plan's food and wood given back untouched
 ## THE FEAST COMMAND (UI-SET-032, the HUD's Feast): unlocked by the demo for the regatta, it brings the Water panel and
-## its Regatta section forward.
+## its Regatta section forward -- until the called feasts take it over (demo/feast/demo_feasts.gd, decision 1701): it
+## then opens the Feasts panel, whose "The regatta…" button calls `show_section`.
 ##
 ## THE MARKS: two barrels afloat at the lanes' turning marks while the crews are called and the race is rowed.
 

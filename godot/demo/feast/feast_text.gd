@@ -20,6 +20,8 @@ static func preview_lines(feast: FeastScript, theme: int, day: int, host: int) -
 	lines.append("Main: %s" % course_words(feast.menu, Rules.main_dish(theme), Rules.main_batches(theme, e)))
 	lines.append("Second: %s" % course_words(feast.menu, Rules.second_dish(theme), Rules.second_batches(theme, e)))
 	lines.append(beverage_words(feast.menu, theme, e))
+	if MenuScript.pours_extras(theme):
+		lines.append(feast.menu.extras_words(theme, e))
 	lines.append(service_words(feast, e, host))
 	lines.append("After it: ready food %s days, fuel %s days (REQ-SET-101 asks %d of each)" % [
 		FeastScript.days_text(feast.food_days_after_milli(theme, e)),

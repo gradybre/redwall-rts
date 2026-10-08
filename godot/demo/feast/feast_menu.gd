@@ -11,6 +11,12 @@ extends RefCounted
 ## mead, ceil(E/4) U reserved in that take. Either is consumed "proportionally to attended/E with milli-unit rounding at
 ## the last attendee" (§5.7): floor(total x attended / E); the rest is given back. Mead is "feast ingredient only; no
 ## intoxication subsystem".
+## THE OTHER DRINK (Brendan's ruling of 2026-10-07 on balance proposal 1731 P3, option (a): "the Harvest and Orchard
+## feasts pour mead and cider under the mead rule"; decision 1701): beside their required mead, the Harvest and Orchard
+## feasts pour the brewery's cider -- ceil(E/4) U, reserved at confirmation in a take of its own when the pantry holds
+## all of it free, poured proportionally to attended/E at the supper's end and the rest given back, as the regatta pours
+## its drinks (regatta_menu.gd THE FEAST'S DRINKS). The mead rule (decision 1625): a feast or table drink only, no
+## intoxication, no effect on a buff -- and never required. The Hearth feast pours only its infusion (P3).
 ## EVERY COURSE IS REQUIRED for a called feast (REQ-SET-100: "complete ingredient/portion requirements ... before
 ## accepting the plan"): the plan is refused naming what is short, where the regatta holds its feast with a missing
 ## course (decision 0682's reading for the once-a-season occasion, kept there).
@@ -22,6 +28,7 @@ const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const KitchenScript := preload("res://demo/kitchen/kitchen.gd")
 const TakesScript := preload("res://demo/kitchen/ingredient_takes.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
+const RegattaMenuScript := preload("res://demo/regatta/regatta_menu.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 
 ## Where each missing input comes from, by category (the "needs X" words' fix).
@@ -36,6 +43,9 @@ const SOURCES: Dictionary = {
 	Catalog.CAT_MEAD: "the brewery's mead (honey and water, 72 h in a vat)",
 }
 const SOURCE_FIELDS: String = "the fields (Farm ▸ the planner)"
+## THE OTHER DRINK(S), and their names: cider, by Brendan's ruling (a list, so a later ruling is a row).
+const EXTRA_DRINKS: PackedInt32Array = [Catalog.ITEM_CIDER]
+const EXTRA_NAMES: Array[String] = ["cider"]
 
 var kitchen: KitchenScript = null
 var stores: StoresScript = null
@@ -46,6 +56,10 @@ var water_held_milli: int = 0
 var bev_planned_milli: int = 0
 var bev_used_milli: int = 0
 var water_used_milli: int = 0
+## THE OTHER DRINK held: its take, what is reserved of each (0: not poured this feast), and all ever poured.
+var extra_take: int = 0
+var extras_planned: PackedInt64Array = PackedInt64Array([0])
+var extras_poured_milli: PackedInt64Array = PackedInt64Array([0])
 
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 
@@ -159,6 +173,8 @@ func reserve(theme: int, eligible: int, take: int, hour_index: int) -> void:
 	bev_planned_milli = bev_need_milli(theme, eligible)
 	kitchen.takes.reserve_into(kitchen.pantry, bev_take, bev_selector(theme), bev_planned_milli, hour_index, _read)
 	water_held_milli = RegattaRules.infusion_water_milli(eligible) if Rules.BEVERAGE[theme] == Rules.BEV_INFUSION else 0
+	if pours_extras(theme):
+		_reserve_extras(eligible, hour_index)
 
 
 func release() -> void:
@@ -168,6 +184,10 @@ func release() -> void:
 	bev_take = 0
 	bev_planned_milli = 0
 	water_held_milli = 0
+	if extra_take != 0 and kitchen != null:
+		kitchen.takes.release(extra_take)
+	extra_take = 0
+	extras_planned.fill(0)
 
 
 func pour(theme: int, eligible: int, attended: int, hour_index: int) -> bool:
@@ -181,6 +201,7 @@ func pour(theme: int, eligible: int, attended: int, hour_index: int) -> bool:
 	var drawn: int = kitchen.draw_service_water(water) if water > 0 and kitchen != null else 0
 	bev_used_milli += poured
 	water_used_milli += drawn
+	_pour_extras(eligible, guests, hour_index)
 	release()
 	return guests > 0 and poured == share and drawn == water
 
@@ -197,6 +218,57 @@ func _pour_take(theme: int, share: int, hour_index: int) -> int:
 	var ok: bool = kitchen.takes.consume_into(kitchen.pantry, bev_take, amount, TakesScript.AT_STORE, hour_index, _read,
 		bev_selector(theme))
 	return amount if ok else 0
+
+
+# --- the other drinks -----------------------------------------------------------------------------------------------
+
+static func pours_extras(theme: int) -> bool:
+	"""Whether the theme pours THE OTHER DRINK: the feasts whose beverage is mead (Harvest, Orchard)."""
+	return Rules.valid_theme(theme) and Rules.BEVERAGE[theme] == Rules.BEV_MEAD
+
+
+static func extra_selector(k: int) -> int:
+	"""Other drink `k`'s pantry category."""
+	return Catalog.category_of(EXTRA_DRINKS[k])
+
+
+func _reserve_extras(eligible: int, hour_index: int) -> void:
+	"""Each other drink the pantry holds all of, ceil(E/4) U, reserved in their own take."""
+	var need: int = RegattaMenuScript.drink_need_milli(eligible)
+	for k: int in EXTRA_DRINKS.size():
+		if need <= 0 or free_of(extra_selector(k)) < need:
+			continue
+		if extra_take == 0:
+			extra_take = kitchen.takes.new_take()
+		kitchen.takes.reserve_into(kitchen.pantry, extra_take, extra_selector(k), need, hour_index, _read)
+		extras_planned[k] = need
+
+
+func _pour_extras(eligible: int, guests: int, hour_index: int) -> void:
+	"""Each other drink reserved, poured for `guests` of E (floor), no more than is still there."""
+	if extra_take == 0 or kitchen == null:
+		return
+	kitchen.takes.trim_to_lots(kitchen.pantry, extra_take, TakesScript.AT_STORE)
+	for k: int in EXTRA_DRINKS.size():
+		@warning_ignore("integer_division") var pour_milli: int = extras_planned[k] * guests / maxi(eligible, 1)
+		pour_milli = mini(pour_milli, kitchen.takes.live_milli(kitchen.pantry, extra_take, TakesScript.AT_STORE, extra_selector(k)))
+		if pour_milli > 0 and kitchen.takes.consume_into(kitchen.pantry, extra_take, pour_milli, TakesScript.AT_STORE,
+				hour_index, _read, extra_selector(k)):
+			extras_poured_milli[k] += pour_milli
+
+
+func extras_words(theme: int, eligible: int) -> String:
+	"""'Also poured, if there: cider 2.0 U (free 0.0 U) — not poured: the brewery has not made enough; no one is made
+	drunk' ("" for a theme that pours none)."""
+	if not pours_extras(theme):
+		return ""
+	var need: int = RegattaMenuScript.drink_need_milli(eligible)
+	var parts := PackedStringArray()
+	for k: int in EXTRA_DRINKS.size():
+		var free: int = free_of(extra_selector(k))
+		parts.append("%s %s (free %s)%s" % [EXTRA_NAMES[k], units(need), units(free),
+			"" if free >= need else " — not poured: the brewery has not made enough"])
+	return "Also poured, if there: %s; no one is made drunk" % ", ".join(parts)
 
 
 static func units(milli: int) -> String:

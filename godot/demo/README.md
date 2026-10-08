@@ -2698,8 +2698,8 @@ suppers (today's before 15:00), with a keeper who does not cook it (`feast/`).
 | Theme | Main course | Second course | Beverage | Buff (48 h) |
 |---|---|---|---|---|
 | Hearth | ceil(E/3) bean hotpot | ceil(E/3) nut loaf | warm infusion (water ceil(E/4), herb 0.25 x ceil(E/12)) | Shared Warmth: cold exposure −25% (applied to the winter's cold), mood +400 (shown) |
-| Harvest | ceil(E/6) feast fish | ceil(E/3) berry tart | mead ceil(E/4) | Abundant Tables: work +5% (on the work pace), purpose +20% (shown) |
-| Orchard | ceil(E/4) nut roast (SET-AMEND-001 §4.2) | ceil(E/3) orchard crumble | mead ceil(E/4) | Rooted Community: social decay −20%, +2 newcomers (shown) |
+| Harvest | ceil(E/6) feast fish | ceil(E/3) berry tart | mead ceil(E/4) (and cider, if there) | Abundant Tables: work +5% (on the work pace), purpose +20% (shown) |
+| Orchard | ceil(E/4) nut roast (SET-AMEND-001 §4.2) | ceil(E/3) orchard crumble | mead ceil(E/4) (and cider, if there) | Rooted Community: social decay −20%, +2 newcomers (shown) |
 
 - **Every feast is served at the 17:00 supper** (Brendan's ruling on Q-D11, 2026-10-07: "All at 17:00 supper"), not
   REQ-SET-103's 18:00; the kitchen seats the guests in turns at the hall's seats.
@@ -2712,6 +2712,8 @@ suppers (today's before 15:00), with a keeper who does not cook it (`feast/`).
   before 17:00 gives it all back. At 17:00 it is served; once the kitchen finalizes the supper it is tallied: who came,
   the beverage poured for them, the buff when 80% ate every course, +5 friendship a pair, one chronicle line.
 - A feast at least one resident ate is **completed**: M4's "12 completed feasts" counts these and the regatta's.
+- **Cider beside the mead** at the Harvest and Orchard feasts (Brendan's ruling, 2026-10-07): ceil(E/4) U when the
+  brewery has it all, poured for those who came under the mead rule -- never required, no intoxication, no buff.
 - The four new courses are recipe-book rows (`kitchen/dish_book.gd`, OCCASION dishes, never the cook's choice); their
   icons fall back to swatches (no dish art yet).
 - The live harness: `godot --path godot --script res://test/live/demo_feast_live.gd -- --size 1920x1080 --capture <dir>`.

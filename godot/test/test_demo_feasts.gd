@@ -152,6 +152,8 @@ func _stock_theme(v: Village, theme: int) -> void:
 			_stock(v, Catalog.ITEM_BERRIES, 8000)
 			_stock(v, Catalog.ITEM_HONEY, 2000)
 			_stock(v, Catalog.ITEM_MEAD, 4000)
+			_stock(v, Catalog.ITEM_CIDER, 4000)
+			_stock(v, Catalog.ITEM_ALE, 4000)
 		Rules.ORCHARD:
 			_stock(v, PEA, 8000)
 			_stock(v, CARROT, 6000)
@@ -377,6 +379,8 @@ func test_holding_reserves_everything_and_cancelling_gives_it_back() -> void:
 	assert_equal(v.feast.menu.free_of(Catalog.CAT_FISH), 6000 - 4000, "one feast fish's fish")
 	assert_equal(v.feast.menu.free_of(Catalog.CAT_BERRIES), 8000 - 4000, "two tarts' berries")
 	assert_equal(v.feast.menu.free_of(Catalog.CAT_MEAD), 4000 - 2000, "ceil(6/4) U of mead")
+	assert_equal(v.feast.menu.extras_planned, PackedInt64Array([2000]), "the cider held too")
+	assert_equal(v.feast.menu.free_of(MenuScript.extra_selector(0)), 4000 - 2000, "ceil(6/4) U of cider")
 	assert_equal(v.stores.wood_milli_u, wood - 1000, "ceil(6/12) U of service wood")
 	assert_equal([v.kitchen.occasion_dish, v.kitchen.occasion_batches, v.kitchen.occasion_second,
 		v.kitchen.occasion_second_batches], [Rules.main_dish(Rules.HARVEST), 1, Rules.second_dish(Rules.HARVEST), 2],
@@ -393,6 +397,7 @@ func test_holding_reserves_everything_and_cancelling_gives_it_back() -> void:
 	assert_equal(v.kitchen.takes.live_milli(v.pantry, take), 0, "its take let go (the kitchen's own supper may plan the fish)")
 	assert_equal([v.feast.menu.free_of(Catalog.CAT_BERRIES), v.feast.menu.free_of(Catalog.CAT_MEAD), v.stores.wood_milli_u],
 		[8000, 4000, wood], "the berries, the mead and the wood back")
+	assert_equal(v.feast.menu.free_of(MenuScript.extra_selector(0)), 4000, "the cider back")
 	assert_equal(v.kitchen.occasion_key, KitchenScript.FREE, "no occasion")
 	assert_equal(v.feast.cancel(), "no feast is planned", "nothing left to cancel")
 
@@ -449,6 +454,10 @@ func test_a_harvest_feast_pours_mead_and_quickens_the_work() -> void:
 	@warning_ignore("integer_division") var mead: int = 2000 * f.attendees.size() / RESIDENTS
 	assert_equal(v.pantry.milli_of(Catalog.ITEM_MEAD), 4000 - mead, "mead for those who came, the rest back")
 	assert_equal(f.menu.bev_used_milli, mead, "poured")
+	assert_equal(v.pantry.milli_of(Catalog.ITEM_CIDER), 4000 - mead, "the cider poured as the mead is (the mead rule)")
+	assert_equal(v.pantry.milli_of(Catalog.ITEM_ALE), 4000, "ale is not poured (Brendan's ruling: mead and cider)")
+	assert_equal(f.menu.extras_poured_milli, PackedInt64Array([mead]), "the cider's tally")
+	assert_equal(f.menu.extra_take, 0, "their take let go")
 	assert_true(f.buffs.active(Rules.HARVEST, f.now_tick()), "Abundant Tables: %s" % f.last_line)
 	var pace := WorkPaceScript.new()
 	pace.add_factor("feast", f.buffs.work_permille)
@@ -575,6 +584,24 @@ func test_a_feast_the_kitchen_is_cooking_cannot_be_cancelled() -> void:
 	assert_equal(v.feast.state, FeastScript.ST_PREPARING, "still preparing")
 
 
+func test_the_other_drinks_are_poured_for_those_who_came() -> void:
+	"""Half the village at a Harvest feast: half its cider poured (floor), the rest given back with the take; a cider
+	short of ceil(E/4) is not held at all."""
+	var v: Village = _village()
+	_stock_theme(v, Rules.HARVEST)
+	assert_equal(v.feast.hold(Rules.HARVEST, DAY, 1, true), "", "held")
+	assert_true(v.feast.menu.pour(Rules.HARVEST, RESIDENTS, 3, 0), "the mead poured for three")
+	assert_equal(v.feast.menu.extras_poured_milli, PackedInt64Array([1000]), "1.0 U of the 2.0 U of cider")
+	assert_equal(v.pantry.milli_of(Catalog.ITEM_CIDER), 3000, "the rest back in store")
+	assert_equal(v.feast.menu.free_of(MenuScript.extra_selector(0)), 3000, "and free")
+	var short: Village = _village()
+	_stock_theme(short, Rules.ORCHARD)
+	_stock(short, Catalog.ITEM_CIDER, 1999)
+	assert_equal(short.feast.hold(Rules.ORCHARD, DAY, 1, true), "", "held")
+	assert_equal(short.feast.menu.extras_planned, PackedInt64Array([0]), "1.999 U of cider: not poured")
+	assert_true(short.feast.menu.extras_words(Rules.ORCHARD, RESIDENTS).contains("not poured"), "said so")
+
+
 # --- the buffs -------------------------------------------------------------------------------------------------------
 
 func test_a_buff_is_granted_once_and_never_stacks_or_extends() -> void:
@@ -662,11 +689,13 @@ func test_the_plan_reads_as_req_set_100_asks() -> void:
 	_stock_theme(v, Rules.ORCHARD)
 	var text: String = "\n".join(Words.preview_lines(v.feast, Rules.ORCHARD, DAY, 1))
 	for words: String in ["Orchard feast (M3 in the full game) for 6", "17:00 supper", "nut roast x2 (8 portions)",
-			"orchard crumble x2", "Mead: 2.0 U", "2 seatings", "keeps it", "After it: ready food", "Rooted Community if 5 of 6"]:
+			"orchard crumble x2", "Mead: 2.0 U", "Also poured, if there: cider 2.0 U", "2 seatings", "keeps it", "After it: ready food", "Rooted Community if 5 of 6"]:
 		assert_true(text.contains(words), "says %s: %s" % [words, text])
 	assert_true(Words.status_line(v.feast).begins_with("No feast is called."), "the status")
 	assert_true(Words.choice_line(v.feast).contains("Theme: Hearth"), "the choice")
 	assert_equal(FeastScript.served_words(Rules.HEARTH), "bean hotpot, nut loaf and the warm infusion", "the menu")
+	assert_false("\n".join(Words.preview_lines(v.feast, Rules.HEARTH, DAY, 1)).contains("Also poured"),
+		"the Hearth pours only its infusion")
 
 
 func test_the_choice_steps_and_keeps_current() -> void:

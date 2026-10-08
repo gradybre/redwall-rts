@@ -100,3 +100,10 @@ consumption runs (`Reservations.consume_connector_inputs` → `Inventory` attest
 cause is the live occupancy scans: ADR 1219's reach test spends 16 checks per resident row, over 256 rows, in each
 proof of the operation. This is recorded as ADR 1197 **G14** and not built here. The code is generic, so it is not
 mapped in `GAPS`.
+
+## Update (2026-10-07): G14 built (ADR 1227)
+
+Measurement refuted the reach-scan hypothesis above. The occupancy leaf, reach scan included, spent 8,192 of the
+operation's 1,046,706 checks. The overflow came from Contacts' full Region-bank scans, which were charged per slot
+whether a slot was present or not. ADR 1227 charges them per slot read plus per present row. The live chain now
+installs T0 and finishes the first-entry prefix at tick 4630.

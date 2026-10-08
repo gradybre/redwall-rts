@@ -151,3 +151,10 @@ It now applies the same rule as the other five proofs, through the same helper:
 
 The bound is the same over-refusing one. No new constant or state is added, and the leaf's existing
 16-checks-per-row charge covers the read.
+
+## Note (2026-10-07, ADR 1227): the reach scan's measured cost
+
+ADR 1224 suspected this rule's per-row charge of exhausting Contacts' operation budget at T0's paid FUND (ADR 1197
+G14). Measured, Contacts' occupancy leaf (16 checks × 512 allocator rows, reach test included) spent 8,192 of the
+1,046,706 checks in that operation, under 1%. The rule and its charges are unchanged. G14 was fixed in the Region-bank
+scans instead (ADR 1227).

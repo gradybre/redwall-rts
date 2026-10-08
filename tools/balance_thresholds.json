@@ -22,6 +22,6 @@
   },
   "hungry_max_pct": {
     "value": 5.0,
-    "why": "HUNGRY is need 1500 or below (meal_rules.gd: §5.2's urgent line). An occasional hungry hour (a late meal, a resident called away) is normal; more than one resident-hour in twenty spent hungry means meals are not keeping up."
+    "why": "HUNGRY is need 1500 or below (meal_rules.gd: §5.2's urgent line). An occasional hungry hour (a late meal, a resident called away) is normal; more than one resident-hour in twenty spent hungry means meals are not keeping up. Brendan's ruling of 2026-10-07 on the balance rerun's P9 (a) (decision 1731): kept at 5% as the target, and UNATTAINABLE until P1 has been measured -- two 1800 NP portions a day were 3600 NP against a 6000 NP day (86-89% of hours hungry in every policy); P1 (b), a portion and a half a diner (decision 1732), is the change to measure."
   }
 }

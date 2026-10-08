@@ -15,6 +15,14 @@ The coordinator's brief:
 - the reserve holds what one ration batch needs (grain or flour, nuts and dried fish) from the kitchen's planning and
   from raw eating, while it is below target.
 
+**Brendan's later rulings (2026-10-08, relayed by the coordinator):**
+- **F10 (c), leave it:** rations may be eaten at any time, so the reserve does not hold rations themselves.
+- **R5, add the controls:** a field to set the target and a Release button for emergencies, per UI-SET-099 and §5.10.
+  Built (The controls).
+- **Merge #240 after the controls, the extra missed meals included.** The merge decision accepts R1–R4 as built,
+  provisional.
+- **Still a PROPOSAL:** the REQ-SET-117 amendment (Against the GDD).
+
 ## What the GDD says
 
 - **The policy.** §4.2 WorldPolicy `ration_reserve_milli:int64`, default 0. ui_ux_controls.md UI-SET-099 ("Keep N
@@ -64,10 +72,33 @@ The coordinator's brief:
 - **Who may break it.**
   - **§5.10's emergency action** is `fishery.gd release_ration_reserve(on)`: everything goes free until it is restored.
     It is never taken by itself.
-  - **No UI is built for it yet,** and none for UI-SET-099. PROPOSAL: a "Release food reserves" button beside the
-    winter panel's emergency actions (`winter/fuel_panel.gd`), and the UI-SET-099 field in the Pantry.
+  - **The player offers it** with Release food reserves in the Water panel's Preserves section (Brendan's R5; see The
+    controls, below).
 - **The scripted provisioning player** (`tools/balance/provisioning_policy.gd ration_input_free`) counts food the
   reserve holds as the rations', as the panel's refusals do.
+
+## The controls (Brendan's R5, 2026-10-08; `72817b34`)
+
+Built demo-side, in the panel that already orders rations: the Water panel's Preserves section
+(`waterplay/water_panel.gd`, `fishery/demo_fishery.gd`), after the preserving table's rows. Nothing is in the
+settlement UI or `scripts/core`.
+- **The readout** (the `reserve` line), in one of three forms:
+  - no target: "Ration reserve: none" and how to keep one;
+  - otherwise: "Ration reserve: keep 6.0 U of rations (0 U owned). Holding 1.0 U dried fish, 1.0 U nuts, 2.0 U flour"
+    (or "Holding nothing now");
+  - released: "Released for an emergency: nothing held".
+- **The target (UI-SET-099), a stepper.**
+  - "◀ Keep fewer" and "Keep more ▶" move it one batch (3 U) a press, from none to ten batches (30 U). Both values are
+    PROVISIONAL (R6, R7).
+  - Each button is disabled at its end. A press says the new target beside the selection.
+  - `fishery.gd set_ration_reserve_target` clamps the target; the reserve gathers or lets go at once.
+- **Release food reserves (§5.10), never taken by itself.**
+  - Its action card says what it frees before it is pressed ("Frees 1.0 U dried fish, 1.0 U nuts, 2.0 U flour at
+    once…"). It is refused, and the button disabled, when nothing is held.
+  - The press frees the food and says what it freed.
+  - The button then reads "Keep food reserves again"; pressed, the reserve holds again.
+- **Looked at:** frames at 1280x720 and 1920x1080, before and after a release. The live harness clicks Keep more, Keep
+  fewer, Release and Keep again for real.
 
 ## Against the GDD (for Brendan)
 
@@ -98,11 +129,13 @@ fish has, and it remains 1740's PROPOSAL, with F9 (c) accepted.
 
 | # | Value | Why | Options |
 |---|---|---|---|
-| R1 | Demo target 6 U (two batches) | The GDD leaves the target to the player (UI-SET-099); BAL-SUPPLY-004's 18 winter days is a settlement's hundreds | (a) 6 U; (b) 3 U, one batch; (c) a winter's days for the demo's village |
-| R2 | One batch's inputs held at a time | Brendan's ruling ("what one ration batch needs") | (a) as built; (b) the inputs for the whole shortfall |
-| R3 | Grain held only while the flour held is short | Flour is the input; grain is how to get it | (a) as built |
-| R4 | Gathered from the kitchen's meals beyond the next | Free food alone was never there (1739–1741) | (a) as built; (b) free food only |
-| R5 | No UI for the release or for UI-SET-099 yet | Separate lane | (a) a button in the winter panel and a Pantry field |
+| R1 | Demo target 6 U (two batches) | The GDD leaves the target to the player (UI-SET-099); BAL-SUPPLY-004's 18 winter days is a settlement's hundreds | **Accepted as built, provisional** (Brendan's merge decision, 2026-10-08). The player can now step it |
+| R2 | One batch's inputs held at a time | Brendan's ruling ("what one ration batch needs") | **Accepted as built, provisional** |
+| R3 | Grain held only while the flour held is short (and no mill batch grinds) | Flour is the input; grain is how to get it | **Accepted as built, provisional** |
+| R4 | Gathered from the kitchen's meals beyond the next | Free food alone was never there (1739–1741) | **Accepted as built, provisional** |
+| R5 | The controls | UI-SET-099 and §5.10's release need a player's hand | **Ruled: "add the controls"** (Brendan, 2026-10-08). Built: see The controls |
+| R6 | The stepper's step: one batch, 3 U | A batch packs 3 U; a step of anything else leaves a part-batch target | PROVISIONAL |
+| R7 | The stepper's cap: ten batches, 30 U | A demo village of 9 cannot gather more than a few batches a year (the measurement: 3–6 U); BAL-SUPPLY-004's full reserve is a settlement's | PROVISIONAL |
 
 ## Tests
 
@@ -144,11 +177,9 @@ No CRITICAL or HIGH. Four MEDIUMs, three of them reproduced:
     The keep now keeps nothing while a reserve has a target or is released (see Against 1740's keep).
   - **The reserve held the lots that spoil soonest,** withholding from the kitchen what it would cook first.
     `ingredient_takes.gd reserve_into` gains `latest_first`, and the reserve holds the lots that spoil last.
-- **Recorded:**
-  - **In the live demo the reserve cannot be broken.** `release_ration_reserve` has no UI, so REQ-SET-146's "offered"
-    is not met. At worst 1 U of dried fish and 1 U of nuts (3400 NP) stay out of a starving resident's reach; the grain
-    and flour are not raw-edible. R5 above proposes the UI. **For the coordinator:** keep the demo's target until it
-    exists, or set it only in balance runs.
+- **Recorded, then resolved by Brendan's R5:**
+  - **In the live demo the reserve could not be broken.** `release_ration_reserve` had no UI, so REQ-SET-146's
+    "offered" was not met. The controls (`72817b34`) offer it now.
 - **LOWs:**
   - **Recorded:** the takes table holds 96 entries, and the reserve uses at least 4. A full table reserves short, and
     `_add_entry` fails quietly, as for every take.

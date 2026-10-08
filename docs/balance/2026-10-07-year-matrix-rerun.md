@@ -41,7 +41,7 @@ Staged provisioning, 9 residents, 3 seeds, on the final `ae0e1143`. The summarie
 
 | # | Question | Options (recommended first) | Evidence |
 |---|---|---|---|
-| F10 | The rations made are eaten before or early in winter | **(a) hold the rations themselves up to the target from raw eating too, outside winter or the critical food alert** (the GDD's reserve is of rations; REQ-SET-117 would need its emergency override narrowed, as for the inputs); (b) hold them all year, breakable only by §5.10's release; (c) leave it (rations are an emergency food whenever residents are hungry) | 3–6 U made, all eaten by day 38; at winter's start 3 U were left in two seeds and none in the third |
+| F10 | The rations made are eaten before or early in winter. **Ruled (c), leave it** (Brendan, 2026-10-08: rations may be eaten any time) | **(a) hold the rations themselves up to the target from raw eating too, outside winter or the critical food alert** (the GDD's reserve is of rations; REQ-SET-117 would need its emergency override narrowed, as for the inputs); (b) hold them all year, breakable only by §5.10's release; (c) leave it (rations are an emergency food whenever residents are hungry) | 3–6 U made, all eaten by day 38; at winter's start 3 U were left in two seeds and none in the third |
 
 ## Follow-up: after the tuning (2026-10-07; decisions 1732–1738)
 

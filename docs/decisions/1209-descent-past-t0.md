@@ -491,3 +491,5 @@ The tread episode is now:
 6. ascend.
 
 The half-turn is stopped for review (ADR 1217 step 5b).
+
+**Brendan (2026-10-08): the half-turn and the episode order are approved.**

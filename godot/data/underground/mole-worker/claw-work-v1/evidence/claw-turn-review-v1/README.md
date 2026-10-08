@@ -50,7 +50,11 @@ single-vertex contact witness; this is recorded.
 | Overview at key 135, mid-turn: front, side, top | `tread/overview.png` | `sill/overview.png` |
 | Motion: top views at keys 0, 45, 90, 135, 180, 225, 270; side view at 270 | `tread/motion.png` | `sill/motion.png` |
 
-## Checklist for Brendan
+## Brendan's review (2026-10-08)
+
+**Approved:** the turn and the episode order.
+
+## Checklist for Brendan (as put)
 
 1. Does the stepped half-turn read well without the pick (`tread/motion.png`)?
 2. Is the episode order above (step forward, then turn) acceptable?

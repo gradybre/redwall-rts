@@ -1049,3 +1049,7 @@ forward, with the fitted next tread as a solid.
 
 - Packet: `evidence/claw-turn-review-v1/`. Records: `evidence/claw-turn-v1/` and `evidence/tread-step-forward-v1/`.
 - `test_claw_turn.py` holds 5 tests.
+
+### Brendan's review of step 5b (2026-10-08): **approved**
+
+Brendan approved the tool-free half-turn and the tread episode order: descend → step back → bearer delivered → handle and fit → step forward → half-turn → ascend.

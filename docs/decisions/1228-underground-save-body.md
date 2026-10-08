@@ -106,13 +106,20 @@ byte-identically to the uninterrupted run.
 
 The recapture proof then requires sections 1-14 byte-identical and the same section 15.
 
-### The disk checkpoint
+### The disk checkpoint and slots
 
 `load_bytes(..., rollback_path)` saves a populated target to `rollback_path` (through the same
 atomic writer) before it is retired. A failure after retirement re-applies that checkpoint into the
 reset target, rolls the clock back and closes the load; the checkpoint is removed after it restores
 or after a successful load. If it will not restore, the target stays empty, the barrier stays held
 (`REFUSE_ROLLBACK`) and both files are kept. An empty target needs no checkpoint.
+
+`settlement_save_slots.gd` implements DEC-055 Q2, Q4, Q5 and Q10: `user://saves/<kind>/<name>.rwlsave`
+with a JSON sidecar, five rotating daily slots, one quicksave, one prewinter and one pre-demolition
+slot; a scheduler that saves at the first quiescent boundary and drops a request still SAVE_BUSY after
+30 ticks; and launch recovery that never deletes a save. **Engineering reading:** the calendar has no
+week (seasons are 12 days), so "autumn's last week" is its last seven days, and the prewinter save
+fires at the midnight that begins autumn day 6.
 
 ### Owner changes the load needed
 
@@ -160,6 +167,10 @@ or after a successful load. If it will not restore, the target stays empty, the 
 
 - A failed load over a populated target (a mounted save with no content to re-mount) restores the
   target from its disk checkpoint byte for byte and closes the load.
+
+`test_settlement_save_slots.gd` covers slot names, a slot round trip with its sidecar, a checkpoint
+that cannot be written (refused before the target is touched), the autosave timing, the scheduler's
+30-tick wait and launch recovery.
 
 `test_save_underground_columns.gd` round-trips Sites, funding, the Router and the spatial arena at
 tick 2000 and refuses damaged images without a write.

@@ -785,6 +785,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 |---|---|---:|---|---|:-:|---|---|
 | Underground section 6 owner adapters | -- | -- | -- | -- | 3 | -- | ADR 1228. Stateless module of adapter classes bound to the settlement save's World, with no state of their own: WireAdapter (a length and the owner's own wire for Locations, Routes, WorldRoutes, Contacts, Placements and Workpieces; the first three under the Session's cold lease, the last two through one user://save_staging file removed after each use), DeclaredAdapter (excavation sites, their funding and the Router through their column APIs), SpatialAdapter (Inventory's endpoint arena), MountAdapter (the mount record) and EntryAdapter (ADR 1218's record, restored by the orchestrator last). An owner absent at the Session's composition prefix writes and requires its canonical empty block. Transient images only. |
 
+### `godot/scripts/core/settlement_save_slots.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Save slots, autosave queue and startup recovery | -- | -- | -- | -- | 3 | -- | ADR 1228 (DEC-055 Q2, Q4, Q5, Q10). Static slot paths, sidecars and recovery hold no state. The nested Scheduler keeps the player's autosave cadence and a short queue of requested slot saves (kind, name, request tick); both are host/UI settings and requests, not world state, so neither is saved: a load starts with an empty queue, and a request still SAVE_BUSY after 30 ticks is dropped and reported. |
+
 ### `godot/scripts/core/settlement_save_capture.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

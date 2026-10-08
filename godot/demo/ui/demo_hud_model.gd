@@ -47,6 +47,7 @@ const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const KitchenWords := preload("res://demo/kitchen/kitchen_text.gd")
+const RawReserveScript := preload("res://demo/kitchen/raw_reserve.gd")
 const WinterText := preload("res://demo/winter/winter_text.gd")
 
 const CELL_FOOD: int = 0
@@ -66,6 +67,11 @@ const LEDGER_TITLE: String = "Village stores and residents"
 ## Ready food in days (see READY FOOD IS DAYS OF MEALS): tenths, floored (kitchen_text.gd `days_value`).
 const DAYS_WHERE: String = "of meals"
 const DAYS_TIP: String = "of meals (portions held and cookable, over a day's portions)"
+## EATEN RAW BESIDE IT (decision 1736): the raw reserve Ready food does not count, on the ledger's food line -- short,
+## "Ready food: 2.5 days · raw 0.4 days", as the ledger keeps its eight lines at 296 px (at most 37 characters, both
+## figures in double digits) -- and in full words in the cell's tooltip.
+const RAW_LINE: String = "%s: %s · raw %s"
+const RAW_TIP: String = " Eaten raw: %s more (berries, fruit, honey, nuts, jam, cheese and other food eaten as it is)."
 ## Wood's ledger line with the planks on it, and the planks in the Wood tooltip (see HEATING FUEL).
 const WOOD_LINE: String = "Wood: %s · planks %s in store"
 const PLANKS_NOTE: String = " (planks: %s)"
@@ -79,6 +85,8 @@ var food: Callable = Callable()
 ## the lines behind it for the ledger.
 var food_days: bool = false
 var food_detail: Callable = Callable()
+## The raw reserve beside Ready food (decision 1736); null: not shown.
+var raw_reserve: RawReserveScript = null
 ## () -> int: the fuel-days in hundredths, -1 with no heat demand (demo_winter.gd `fuel_days_hundredths`); and
 ## () -> PackedStringArray, its breakdown (`detail_lines`). Unset: unknown.
 var fuel: Callable = Callable()
@@ -108,6 +116,7 @@ func bind_meals(kitchen: RefCounted) -> void:
 	food = Callable(kitchen, &"days_of_meals_milli")
 	food_detail = Callable(kitchen, &"ledger_lines")
 	food_days = true
+	raw_reserve = RawReserveScript.new(kitchen)
 
 
 func bind_fuel(winter: Object) -> void:
@@ -118,11 +127,13 @@ func bind_fuel(winter: Object) -> void:
 
 
 func stamp() -> int:
-	"""What the ledger and the Heating fuel tooltip show beyond the six figures -- the planks and the fuel's breakdown --
-	as one integer that changes when they do (demo_hud_counters.gd repaints on it)."""
+	"""What the ledger and the tooltips show beyond the six figures -- the planks, the fuel's breakdown and the raw
+	reserve beside Ready food (decision 1736) -- as one integer that changes when they do (demo_hud_counters.gd repaints
+	on it)."""
 	var planks: int = stores.plank_milli_u if stores != null else 0
 	var detail: int = int(fuel_stamp.call()) if fuel_stamp.is_valid() else 0
-	return planks ^ (detail << 32)
+	var raw: int = raw_reserve.hourly_days_milli() if raw_reserve != null else 0
+	return planks ^ (detail << 32) ^ (raw << 16)
 
 
 func known(cell: int) -> bool:
@@ -199,7 +210,13 @@ func tooltip(cell: int, figure: int) -> String:
 	var where: String = DAYS_TIP if cell == CELL_FOOD and food_days else WHERE[cell]
 	if cell == CELL_WOOD and stores != null:
 		where += PLANKS_NOTE % StoresScript.units_text(stores.plank_milli_u)
-	return "%s: %s %s. Click for the ledger." % [CAPTIONS[cell], _text(cell, figure), where]
+	var raw: String = RAW_TIP % raw_days_text() if cell == CELL_FOOD and raw_reserve != null else ""
+	return "%s: %s %s.%s Click for the ledger." % [CAPTIONS[cell], _text(cell, figure), where, raw]
+
+
+func raw_days_text() -> String:
+	"""The raw reserve in days ("3.5 days"; "0 days"), as Ready food is worded (decision 1736)."""
+	return KitchenWords.days_value(raw_reserve.hourly_days_milli()) if raw_reserve != null else UNAVAILABLE
 
 
 func _fuel_lines() -> PackedStringArray:
@@ -234,6 +251,8 @@ func ledger_line(cell: int, figure: int) -> String:
 		var count: int = int(homes.call())
 		where = "in %d burrow %s" % [count, "home" if count == 1 else "homes"]
 	var line: String = "%s: %s %s" % [CAPTIONS[cell], _text(cell, figure), where]
+	if cell == CELL_FOOD and raw_reserve != null:
+		line = RAW_LINE % [CAPTIONS[cell], _text(cell, figure), raw_days_text()]
 	if cell == CELL_FOOD and food_detail.is_valid():
 		line += "\n" + "\n".join(PackedStringArray(food_detail.call()))
 	return line

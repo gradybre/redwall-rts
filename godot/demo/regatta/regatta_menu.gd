@@ -280,7 +280,7 @@ func _pour(eligible: int, attended: int, hour_index: int) -> bool:
 
 func _pour_drinks(eligible: int, attended: int, hour_index: int) -> void:
 	"""The drinks reserved, poured proportionally to attended/E (floor), each from the drinks' take -- no more than is
-	still there (a cordial kept 72 h may have partly spoiled since the feast was held); the rest is given back when the
+	still there (a cordial kept 240 h may have partly spoiled since the feast was held); the rest is given back when the
 	take is released."""
 	var guests: int = clampi(attended, 0, eligible)
 	if kitchen == null or drink_take == 0:

@@ -55,6 +55,9 @@ var _stores: StoresScript = null
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 var _nobody: PackedInt32Array = PackedInt32Array()
 var _orders: Dictionary = {}
+## The fresh fish over which no trip is authorised: FISH_STOCK_HIGH unless the run's `--fish-high` says otherwise (the
+## balance rerun's P6 measurement, decision 1738).
+var fish_stock_high: int = FISH_STOCK_HIGH
 
 
 func bind(farm: DemoFarmScript, forestry: ForestryScript, fishery: FisheryScript, stores: StoresScript) -> void:
@@ -173,7 +176,7 @@ func _gather_one() -> void:
 
 func _water_round() -> void:
 	"""One fishing trip, when none is open (see THE MORNING)."""
-	if _fishery == null or _open_trips() > 0 or _fresh_fish_milli() >= FISH_STOCK_HIGH:
+	if _fishery == null or _open_trips() > 0 or _fresh_fish_milli() >= fish_stock_high:
 		return
 	for method: int in FISHING_METHODS:
 		for site: int in SITES:

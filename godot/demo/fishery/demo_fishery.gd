@@ -282,7 +282,7 @@ func on_action(action_name: StringName) -> void:
 			if not ACTION_RECIPES.has(action_name):
 				return
 			var recipe: int = ACTION_RECIPES[action_name]
-			_answer(_ordered(fishery.order_batch(recipe, members), "%s: on the work board" % Recipes.VERB[recipe]))
+			_answer(batch_answer(recipe, members))
 
 
 func _on_choice(action_name: StringName) -> bool:
@@ -355,6 +355,14 @@ func authorise_words(why: String) -> String:
 	if not why.is_empty():
 		return "Can't authorise: %s" % why
 	return "%s: authorised — on the work board" % Text.method_title(choice_method, choice_site, _species_key())
+
+
+func batch_answer(recipe: int, members: PackedInt32Array) -> String:
+	"""A preserve's or a drink's order and its answer: done (with the drinks' stock warning when it applies, decision
+	1734 -- read before the order, which may change nothing of the stock), or why not."""
+	var warning: String = fishery.drink_stock_warning(recipe)
+	var done: String = "%s: on the work board" % Recipes.VERB[recipe]
+	return _ordered(fishery.order_batch(recipe, members), done if warning.is_empty() else "%s — %s" % [done, warning])
 
 
 func _ordered(why: String, done: String) -> String:
@@ -761,11 +769,15 @@ func batch_card(recipe: int, members: PackedInt32Array) -> CardScript:
 		_card.add_cost(Recipes.cap(Recipes.category_words(Recipes.IN_CATEGORY[input])), fishery.takes.free_milli_of_crop(
 			fishery.pantry, Recipes.IN_CATEGORY[input]), Recipes.IN_MILLI[input])
 	if Recipes.WATER_MILLI[recipe] > 0:
-		_card.add_cost("Water", fishery.stores.water_milli_u if fishery.stores != null else 0, Recipes.WATER_MILLI[recipe])
+		_card.add_cost("Water", maxi(0, fishery.stores.water_milli_u - fishery.water_held_milli()) if fishery.stores != null \
+			else 0, Recipes.WATER_MILLI[recipe])
 	_card.result = "%s of %s (keeps %d h; %s)%s" % [Text.units(Recipes.OUT_MILLI[recipe]),
 		Catalog.ITEM_LABELS[item].to_lower(), Catalog.shelf_hours_of(item),
 		PreserveText.card_use(recipe), " after %d game hours at %s" % [Recipes.PASSIVE_HOURS[recipe],
 		Recipes.STATION_NAMES[Recipes.STATION[recipe]]] if Recipes.is_passive(recipe) else ""]
+	var warning: String = fishery.drink_stock_warning(recipe)
+	if not warning.is_empty():
+		_card.result += ". Note: " + warning
 	if not why.is_empty():
 		_card.refuse(fishery.refused_code, why, fishery.refused_fix)
 		return _card

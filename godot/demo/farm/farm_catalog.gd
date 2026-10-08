@@ -148,8 +148,9 @@ const ITEM_COUNT: int = 16
 ## THE DRINKS (decision 1621, BREW #19), after the preserves -- kept for feasts, never eaten as a meal:
 ##   * mead     §5.7 `mead`'s output, honey 3 + water 3 -> mead 4 at the brewery (72 h in a vat), "Mead | 0 | No | 1440 |
 ##              Feast ingredient only; no intoxication subsystem" -- CAT_MEAD;
-##   * cordial  Brendan's DEC-045 raspberry cordial (dish_book.gd `cordial`: berries 2 + honey 0.5 + water 2 -> 4, 72 h),
-##              made at the brewery's bench and kept as a drink -- CAT_CORDIAL.
+##   * cordial  Brendan's DEC-045 raspberry cordial (dish_book.gd `cordial`: berries 2 + honey 0.5 + water 2 -> 4),
+##              made at the brewery's bench and kept as a drink -- CAT_CORDIAL. It keeps 240 h (was 72 h): Brendan's
+##              ruling of 2026-10-07 on the balance rerun's P2 (c), "have cordial keep longer as well" (decision 1733).
 ## THE NEW RECIPES (decision 1625; Brendan's "Approve and build Q-d5 and dec-007", 2026-10-07), after the drinks -- each
 ## a content-library dish drafted as a recipe row with PROVISIONAL numbers (preserve_rules.gd):
 ##   * jam     berries cooked with honey and water (the library's honey-sweetened fruit jams) -- CAT_JAM, eaten as it is;
@@ -218,7 +219,7 @@ const GOODS_CATEGORY: Array[int] = [CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_
 	CAT_DRIED_FRUIT, CAT_RATION, CAT_MEAD, CAT_CORDIAL, CAT_JAM, CAT_CHEESE, CAT_ALE, CAT_CIDER,
 	CAT_VINEGAR, CAT_PICKLES]
 const GOODS_SHELF_HOURS: Array[int] = [48, 48, 48, 48, 48, 48, 720, 240, 240, 1440, 720, 72, 480, 48, 144, 144, 720,
-	1440, 1440, 72, 720, 1440, 1440, 1440, 1440, 720]
+	1440, 1440, 240, 720, 1440, 1440, 1440, 1440, 720]
 ## scripts/core/forage.gd PATCH_KEYS row (berries, nuts, mushrooms, herb, roots) -> pantry item (NO_ITEM: not gathered).
 const PATCH_ITEM: Array[int] = [ITEM_BERRIES, ITEM_NUTS, ITEM_MUSHROOMS, ITEM_HERB, NO_ITEM]
 ## scripts/core/orchard_hive.gd SPECIES_KEYS row (apple, pear) -> pantry item.

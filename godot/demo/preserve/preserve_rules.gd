@@ -15,7 +15,7 @@ extends RefCounted
 ## BREWING (decision 1621, BREW #19) adds two rows at THE BREWERY east of the kitchen (art pass 3's `brew_vat` and
 ## `ale_cask`), whose four passive slots are §5.9's Brewery's ("Cook 1 | 4 passive batch slots"):
 ##   mead       honey 3, water 3                        -> mead 4, 20 WU + 72 h passive, Brewery/COOK, 1440 h
-##   cordial    berries 2, honey 0.5, water 2           -> cordial 4, 10 WU, keeps 72 h -- Brendan's DEC-045 drink
+##   cordial    berries 2, honey 0.5, water 2           -> cordial 4, 10 WU, keeps 240 h -- Brendan's DEC-045 drink
 ##              (dish_book.gd's `cordial` row, decision 0603: the raspberry cordial), made at the brewery's bench and
 ##              kept as a drink, never a meal's dish
 ## Mead is "feast ingredient only; no intoxication subsystem" (§5.7): nothing here, or anywhere, models drink's effect.
@@ -177,6 +177,18 @@ static func station_of_slot(slot: int) -> int:
 		if slot >= STATION_FIRST_SLOT[station] and slot < STATION_FIRST_SLOT[station] + STATION_SLOTS[station]:
 			return station
 	return -1
+
+
+## THE DRINKS' STOCK WARNING (decision 1734; Brendan's ruling of 2026-10-07 on the balance rerun's P3 (b)): ordering a
+## drink while the stores already hold two feasts' worth of it is warned of, never refused -- a feast pours ceil(E/4) U
+## of each drink (§5.7's mead quantity; regatta_menu.gd `drink_need_milli`), so two feasts of the demo's nine residents
+## pour ceil(9/4) x 2 = 6 U. The ruling's figure is 6 U a drink, kept as it is (not rescaled with the population).
+const DRINK_STOCK_WARN_MILLI: int = 6000
+
+
+static func is_drink(recipe: int) -> bool:
+	"""Whether `recipe` makes a drink (USE_DRINK: mead, the cordial, ale, cider)."""
+	return is_recipe(recipe) and USE[recipe] == USE_DRINK
 
 
 static func is_recipe(recipe: int) -> bool:

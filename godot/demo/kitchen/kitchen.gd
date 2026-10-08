@@ -363,6 +363,18 @@ var _waiting_built: bool = false
 var occasion_second: int = Rules.NO_DISH
 var occasion_second_batches: int = 0
 var _occasion_courses: PackedByteArray = PackedByteArray()
+## Per resident: the meal it had its second helping at (FREE: none yet; meal_rules.gd A PORTION AND A HALF A DINER).
+var _seconds_at: PackedInt32Array = PackedInt32Array()
+## Second helpings eaten (each also counted in `portions_eaten`).
+var seconds_eaten: int = 0
+## `_firsts_owed`'s count, and the calendar tick and meal it was taken for.
+var _owed: int = 0
+var _owed_tick: int = -1
+var _owed_key: int = FREE
+## Half-portions a diner a meal (meal_rules.gd A PORTION AND A HALF A DINER): 3 by the ruling (decision 1732), and
+## seconds only then; 2 is one portion a diner, no seconds -- what a suite about another mechanic sets to keep its
+## scenario.
+var portion_halves: int = Rules.PORTIONS_PER_DINER_HALVES
 ## Every milli-U the kitchen has taken or made, for the conservation checks and the ledger.
 var consumed_food_milli: int = 0
 var consumed_water_milli: int = 0
@@ -426,7 +438,7 @@ func bind_news(notices: NoticesScript, incidents: IncidentsScript) -> void:
 func _size_columns(n: int) -> void:
 	"""Every per-resident column sized for `n` residents, and the meal slots."""
 	for column: PackedInt32Array in [_role, _step, _place, _credited, _location, _seat, _portion, _meal, _raw_take,
-			_raw_np, _raw_item, _called, _sent_tick, _fails]:
+			_raw_np, _raw_item, _called, _sent_tick, _fails, _seconds_at]:
 		column.resize(n)
 	for column: PackedInt64Array in [_mwu, _need, _water, _draw_amount]:
 		column.resize(n)
@@ -440,6 +452,7 @@ func _size_columns(n: int) -> void:
 	_seat.fill(FREE)
 	_portion.fill(FREE)
 	_called.fill(FREE)
+	_seconds_at.fill(FREE)
 	_sent_tick.fill(-RESEND_TICKS)
 	_tasks.resize(n)
 	for column: PackedInt32Array in [_slot_key, _slot_dish, _slot_wanted, _slot_cooked, _slot_take]:
@@ -697,13 +710,14 @@ func _wanted(s: int) -> int:
 
 
 func _portions_wanted(s: int) -> int:
-	"""Portions slot `s`'s meal wants: one each for every resident, less the LEFTOVERS -- portions of meals whose serving
-	is over that will still be good at its call (eaten first) -- when it is the earliest planned meal."""
+	"""Portions slot `s`'s meal wants: a portion and a half for every resident (meal_rules.gd `portions_for`, decision
+	1732), less the LEFTOVERS -- portions of meals whose serving is over that will still be good at its call (eaten
+	first) -- when it is the earliest planned meal."""
 	var key: int = _slot_key[s]
 	@warning_ignore("integer_division") var call_at: int = (key / 2) * SimClock.HOURS_PER_DAY + Rules.CALL_HOUR[key % 2]
 	var spare: int = store.portions_lasting(_first_key(_hour_seen), maxi(0, call_at - _hour_seen),
 		PantryScript.season_of_hour(_hour_seen)) if key == _earliest_key() else 0
-	return maxi(0, _brains.size() - spare)
+	return maxi(0, Rules.portions_for(_brains.size(), portion_halves) - spare)
 
 
 func _top_up(s: int, at_hour: int) -> void:
@@ -1030,9 +1044,10 @@ func _start_role(i: int, role: int, cleared: bool = false) -> void:
 func _clear_role(i: int) -> void:
 	"""Resident `i`'s part ends: a diner's portion or raw food goes back (nothing eaten), the step state is reset;
 	what a cook or drawer carries stays with it. An occasion's guest giving back its second course after the end has
-	eaten the meal already (its first course): it did not go without (decision 0997, the R05 review's H1)."""
+	eaten the meal already (its first course): it did not go without (decision 0997, the R05 review's H1); nor did a
+	diner giving back its second helping (decision 1732)."""
 	if (_portion[i] != FREE or _raw_take[i] > 0) and _meal[i] != FREE and _meal[i] <= _closed_key \
-			and not _ate_a_course(i, _meal[i]):
+			and not _ate_a_course(i, _meal[i]) and not _holds_seconds(i, _meal[i]):
 		_served_but_missed(i)
 	if _portion[i] != FREE:
 		store.release_one(_portion[i])
@@ -1392,6 +1407,8 @@ func _cook_meal_to_eat(i: int) -> int:
 		return _serving
 	if _serving != FREE and _wants_other_course(i, _serving) and store.available(_serving, _other_course(i)) > 0:
 		return _serving
+	if _serving != FREE and _wants_seconds(i, _serving) and _seconds_spare(_serving):
+		return _serving
 	if _serving == FREE or _serving % 2 != Rules.MEAL_BREAKFAST or _fetch_location() < 0:
 		return FREE
 	var supper: int = _serving + 1
@@ -1455,7 +1472,7 @@ func _eat_next(i: int) -> void:
 	elif _raw_take[i] > 0:
 		var at: Vector2 = pantry.storage.position_of(_location[i])
 		_go_or_work(i, PLACE_RAW, WALK_RAW, at, WORK_EAT_RAW, Rules.EAT_MWU, at)
-	elif fed.had(i, _meal[i]) and not _wants_other_course(i, _meal[i]):
+	elif fed.had(i, _meal[i]) and not _wants_more(i, _meal[i]):
 		_step[i] = STEP_DONE
 	else:
 		_seat_for(i, _meal[i])
@@ -1524,10 +1541,14 @@ func _put_out() -> void:
 
 
 func _eat_portion(i: int) -> void:
-	"""Resident `i` finishes its portion (REQ-SET-095: its NP, its history, once)."""
+	"""Resident `i` finishes its portion (REQ-SET-095: its NP, its history, once); a second helping its NP only."""
+	var second: bool = _ate_first(i, _meal[i]) and _meal[i] != occasion_key
 	var dish: int = store.consume_one(_portion[i])
 	_portion[i] = FREE
 	if dish == Rules.NO_DISH:
+		return
+	if second:
+		_eat_seconds(i, dish)
 		return
 	var first: bool = not _ate_a_course(i, _meal[i])
 	fed.ate_meal(i, _meal[i], dish, _hour_seen)
@@ -1537,7 +1558,7 @@ func _eat_portion(i: int) -> void:
 		_final_for(_meal[i]).diners.append(i)
 	if _meal[i] > _closed_key and first:
 		_ate_by_meal[_meal[i]] = int(_ate_by_meal.get(_meal[i], 0)) + 1
-	if not _wants_other_course(i, _meal[i]):
+	if not _wants_more(i, _meal[i]):
 		_seat[i] = FREE
 	if _incidents != null:
 		_incidents.resolve(INCIDENT_KEY)
@@ -1568,6 +1589,63 @@ func occasion_courses(i: int) -> int:
 	return _occasion_courses[i] if i >= 0 and i < _occasion_courses.size() else 0
 
 
+func _wants_more(i: int, key: int) -> bool:
+	"""Whether resident `i`, having eaten at meal `key`, stays for more: an occasion's other course, or its second
+	helping (decision 1732)."""
+	return _wants_other_course(i, key) or _wants_seconds(i, key)
+
+
+func _wants_seconds(i: int, key: int) -> bool:
+	"""Whether resident `i` is due a second helping of ordinary meal `key` and it may still come: it has eaten its first
+	there and not yet its second, its turn by meal_rules.gd `entitled_to_seconds`, and a portion spare now or more of the
+	meal still to come (A PORTION AND A HALF A DINER). Never at an occasion's meal."""
+	if key == FREE or key == occasion_key or i >= _seconds_at.size() or _seconds_at[i] == key or not _ate_first(i, key):
+		return false
+	if portion_halves <= 2 or not Rules.entitled_to_seconds(i, key):
+		return false
+	return _seconds_spare(key) or meal_coming(key) or _coming(key)
+
+
+func _ate_first(i: int, key: int) -> bool:
+	"""Whether resident `i` has eaten its first portion of meal `key` (its last recorded meal is `key`, eaten): so a
+	portion it holds or takes there is a second helping."""
+	return key != FREE and fed.last_meal[i] == key and fed.last_outcome[i] == FedScript.OUTCOME_ATE
+
+
+func _holds_seconds(i: int, key: int) -> bool:
+	"""Whether resident `i` holds a second helping of ordinary meal `key` (already counted as having eaten there)."""
+	return _portion[i] != FREE and key != occasion_key and _ate_first(i, key)
+
+
+func _seconds_spare(key: int) -> bool:
+	"""Whether a portion of meal `key` is out beyond one for every resident who has not had it yet -- at the table or
+	not called yet (in the water, carrying, on duty, called next frame): a second never takes a first (decision 1732)."""
+	return store.available(key) > _firsts_owed(key)
+
+
+func _firsts_owed(key: int) -> int:
+	"""How many residents have not had meal `key` yet: counted once a calendar tick (a waiting diner asks every frame,
+	so a pass each time would be n x n a frame; within a tick the count only falls as residents eat, which keeps a
+	second's guard on the safe side)."""
+	var tick: int = calendar.tick if calendar != null else -1
+	if tick != _owed_tick or key != _owed_key:
+		_owed_tick = tick
+		_owed_key = key
+		_owed = 0
+		for j: int in _role.size():
+			_owed += 0 if fed.had(j, key) else 1
+	return _owed
+
+
+func _eat_seconds(i: int, dish: int) -> void:
+	"""Resident `i` finishes its second helping of `dish`: its NP only (decision 1732), then it leaves the table."""
+	fed.eat(i, Rules.NP_PER_PORTION[dish])
+	_seconds_at[i] = _meal[i]
+	portions_eaten += 1
+	seconds_eaten += 1
+	_seat[i] = FREE
+
+
 func _wants_other_course(i: int, key: int) -> bool:
 	"""Whether resident `i`, having eaten one course of a two-course occasion's meal `key`, still has the other to eat
 	and it is really coming: portions of it held, a batch of it at the cauldron, or its food reserved to cook (a course
@@ -1594,6 +1672,8 @@ func _reserve_for(i: int, key: int, exact: bool) -> int:
 	the next by §5.7's order (meal_store.gd)."""
 	if _one_course_eaten(i, key):
 		return store.reserve_one(key, exact, _other_course(i))
+	if _ate_first(i, key) and not _seconds_spare(key):
+		return FREE
 	return store.reserve_one(key, exact)
 
 
@@ -1624,7 +1704,7 @@ func _watch_tables() -> void:
 	for i: int in _role.size():
 		if _step[i] != WORK_WAIT or _at_work[i] == 0 or _portion[i] != FREE:
 			continue
-		if fed.had(i, _meal[i]) and not _wants_other_course(i, _meal[i]):
+		if fed.had(i, _meal[i]) and not _wants_more(i, _meal[i]):
 			_stop_waiting(i)
 			continue
 		var lot: int = _reserve_for(i, _meal[i], _serving == FREE or _meal[i] > _serving)
@@ -1708,10 +1788,11 @@ func _record_meal(key: int, without: int) -> void:
 
 func _holding(key: int, raw: bool) -> int:
 	"""How many residents hold food for meal `key` not yet eaten: raw food with `raw`, else a portion -- not counting an
-	occasion's guest holding its second course, already counted as having eaten the meal (its first course)."""
+	occasion's guest holding its second course, or a diner holding its second helping (decision 1732), each already
+	counted as having eaten the meal."""
 	var n: int = 0
 	for i: int in _role.size():
-		if _meal[i] != key or (not raw and _ate_a_course(i, key)):
+		if _meal[i] != key or (not raw and (_ate_a_course(i, key) or _holds_seconds(i, key))):
 			continue
 		if (_raw_take[i] > 0) if raw else (_portion[i] != FREE):
 			n += 1
@@ -2485,12 +2566,31 @@ func _estimate_dish(dish: int, wood: int) -> int:
 	var batches: int = wood
 	for k: int in Rules.INPUT_N[dish]:
 		@warning_ignore("integer_division")
-		batches = mini(batches, int(_pool[Rules.input_category(dish, k)]) / Rules.input_milli(dish, k))
+		batches = mini(batches, _pooled(Rules.input_categories(dish, k)) / Rules.input_milli(dish, k))
 	batches = maxi(0, batches)
 	for k: int in Rules.INPUT_N[dish]:
-		_pool[Rules.input_category(dish, k)] -= batches * Rules.input_milli(dish, k)
+		_draw_pool(Rules.input_categories(dish, k), batches * Rules.input_milli(dish, k))
 	_estimated[dish] = batches
 	return batches
+
+
+func _pooled(categories: int) -> int:
+	"""The pooled food of every category in the mask `categories` (one bit a category: a hotpot's greens or roots,
+	decision 1735)."""
+	var total: int = 0
+	for c: int in _pool.size():
+		total += int(_pool[c]) if categories & (1 << c) != 0 else 0
+	return total
+
+
+func _draw_pool(categories: int, milli: int) -> void:
+	"""Take `milli` from the pool, from the mask's categories in category order (greens before roots)."""
+	var left: int = milli
+	for c: int in _pool.size():
+		if left > 0 and categories & (1 << c) != 0:
+			var take: int = mini(left, int(_pool[c]))
+			_pool[c] -= take
+			left -= take
 
 
 func _crop_milli(crop: int) -> int:
@@ -2503,8 +2603,8 @@ func _crop_milli(crop: int) -> int:
 
 
 func daily_portions() -> int:
-	"""Portions the village eats a day: a portion a meal, two meals, every resident."""
-	return 2 * _brains.size()
+	"""Portions the village eats a day: two meals of a portion and a half a resident (decision 1732)."""
+	return 2 * Rules.portions_for(_brains.size(), portion_halves)
 
 
 func days_of_meals_milli() -> int:

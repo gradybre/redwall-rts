@@ -102,6 +102,9 @@ func _village(count: int, tick: int, species: String = "mouse") -> Village:
 	"""A village of `count` residents standing in a row at the square, on the calendar at `tick`."""
 	var v := Village.new()
 	_villages.append(v)
+	## One portion a diner (decision 1732's `portion_halves` 2): this suite's scenarios are about other mechanics, sized
+	## for one portion each; the portion and a half and its seconds are test_demo_balance_tuning.gd's.
+	v.kitchen.portion_halves = 2
 	v.space = CastSpaceScript.new()
 	var points: Array[Dictionary] = [{"name": NightScript.HALL_POI, "position": Vector3(HALL.x, 0.0, HALL.y),
 		"capacity": 4}]
@@ -1578,3 +1581,175 @@ func test_an_earlier_meal_still_held_when_the_next_ends_is_settled_and_published
 	if later != null:
 		assert_equal(later.diners.size() + later.raw.size() + later.without, 3, "and so does its event")
 	assert_true(v.kitchen.fed.had_exact(1, next), "resident 1's own record holds the closing meal (eaten, raw or missed)")
+
+
+# --- a portion and a half a diner (decision 1732) ------------------------------------------------------------------
+
+func _hearty(count: int, oats: int, carrots: int) -> Village:
+	"""A village of `count` at a portion and a half a diner (the ruling's 3 halves), 02:00 on day 1, stocked with oats,
+	carrots and a full butt, its kitchen open."""
+	var v := _village(count, tick_at(1, 2))
+	v.kitchen.portion_halves = Rules.PORTIONS_PER_DINER_HALVES
+	if oats > 0:
+		_stock(v, OATS, oats)
+	if carrots > 0:
+		_stock(v, CARROT, carrots)
+	v.stores.water_milli_u = 40000
+	return _open(v)
+
+
+func test_a_portion_and_a_half_a_diner_and_half_the_diners_take_seconds() -> void:
+	"""Four residents: each meal plans ceil(4 x 1.5) = 6 portions; everyone eats a portion and, at each meal, the two
+	whose turn it is ((i + key) even) a second -- three portions (5400 NP) a resident a day. A second helping is counted
+	once as food, never twice in the meal's event, its tally or the variety history; every portion is held, eaten or
+	spoiled."""
+	var v := _hearty(4, 20000, 20000)
+	var breakfast: int = Rules.meal_key(1, Rules.MEAL_BREAKFAST)
+	assert_equal(v.kitchen.daily_portions(), 12, "two meals of six")
+	var ran := _run(v, 18 * FRAMES_PER_HOUR, func() -> bool: return _everyone_had(v, breakfast + 1) \
+		and v.kitchen.seconds_eaten == 4)
+	assert_true(ran < 18 * FRAMES_PER_HOUR, "both meals and their seconds eaten (%d frames)" % ran)
+	for i in v.brains.size():
+		assert_equal(v.kitchen._seconds_at[i], breakfast if (i + breakfast) % 2 == 0 else breakfast + 1,
+			"resident %d had seconds at its own meal" % i)
+		assert_equal(v.kitchen.fed.today_np[i], 3 * Rules.NP_PER_PORTION[Rules.DISH_PORRIDGE], "resident %d: 5400 NP" % i)
+		assert_equal(v.kitchen.fed.repeats_of(i, Rules.DISH_PORRIDGE), 1, "resident %d: one porridge in its history" % i)
+	assert_equal(v.kitchen.portions_eaten, 12, "8 firsts + 4 seconds")
+	for key: int in [breakfast, breakfast + 1]:
+		assert_equal(v.kitchen.meal_ate[v.kitchen.meal_keys.rfind(key)], 4, "the meal's tally: four ate, once each")
+	assert_equal(v.kitchen.store.portions() + v.kitchen.portions_eaten + v.kitchen.store.spoiled_portions,
+		2 * v.kitchen.batches_cooked, "each portion once")
+
+
+func test_a_second_helping_never_takes_a_first_portion() -> void:
+	"""Food for exactly one portion each (four portions of porridge, no carrots): everyone eats, nobody has seconds, and
+	nobody goes without -- a second is taken only while every resident still due a first can have one."""
+	var v := _hearty(4, 4000, 0)
+	var breakfast: int = Rules.meal_key(1, Rules.MEAL_BREAKFAST)
+	_run(v, 9 * FRAMES_PER_HOUR, func() -> bool: return _everyone_had(v, breakfast))
+	for i in v.brains.size():
+		assert_equal(v.kitchen.fed.last_outcome[i], FedScript.OUTCOME_ATE, "resident %d ate a first portion" % i)
+	assert_equal(v.kitchen.seconds_eaten, 0, "no seconds from the last four portions")
+	assert_equal(v.kitchen.portions_eaten, 4, "four firsts")
+
+
+func test_one_portion_a_diner_and_an_occasion_have_no_seconds() -> void:
+	"""Two halves a diner is one portion each and no seconds; an occasion's meal never has seconds; the rule's figures."""
+	assert_equal([Rules.portions_for(0), Rules.portions_for(1), Rules.portions_for(2), Rules.portions_for(9)],
+		[0, 2, 3, 14], "ceil(n x 1.5)")
+	assert_equal([Rules.portions_for(9, 2), Rules.portions_for(-1)], [9, 0], "one portion each; nobody")
+	assert_true(Rules.entitled_to_seconds(0, 2) and Rules.entitled_to_seconds(1, 3), "(i + k) even")
+	assert_false(Rules.entitled_to_seconds(1, 2) or Rules.entitled_to_seconds(0, 3) or Rules.entitled_to_seconds(-1, 1),
+		"(i + k) odd, or no resident")
+	var v := _hearty(2, 20000, 20000)
+	var breakfast: int = Rules.meal_key(1, Rules.MEAL_BREAKFAST)
+	_run(v, 9 * FRAMES_PER_HOUR, func() -> bool: return _everyone_had(v, breakfast))
+	v.kitchen._seconds_at[0] = -1
+	assert_true(v.kitchen.fed.had(0, breakfast), "resident 0 ate breakfast")
+	v.kitchen.occasion_key = breakfast
+	assert_false(v.kitchen._wants_seconds(0, breakfast), "an occasion's meal: no seconds")
+	v.kitchen.occasion_key = -1
+	v.kitchen.portion_halves = 2
+	assert_false(v.kitchen._wants_seconds(0, breakfast), "one portion a diner: no seconds")
+	assert_equal(v.kitchen.daily_portions(), 4, "two meals of two")
+
+
+func test_a_second_helping_held_is_never_counted_twice() -> void:
+	"""A diner holding its second helping has eaten the meal already: the tally's holders leave it out (so the meal's
+	ate count is not doubled), as they leave out an occasion's guest holding its second course; one holding its first
+	portion is counted; one that went without is not 'eaten first'."""
+	var v := _hearty(2, 20000, 20000)
+	var key: int = Rules.meal_key(1, Rules.MEAL_BREAKFAST)
+	v.kitchen._meal[0] = key
+	v.kitchen._portion[0] = 0
+	v.kitchen.fed.last_meal[0] = key - 1
+	assert_equal(v.kitchen._holding(key, false), 1, "holding its first portion: counted")
+	v.kitchen.fed.last_meal[0] = key
+	v.kitchen.fed.last_outcome[0] = FedScript.OUTCOME_ATE
+	assert_true(v.kitchen._holds_seconds(0, key), "holding a second helping")
+	assert_equal(v.kitchen._holding(key, false), 0, "a second helping is not counted again")
+	v.kitchen.fed.last_outcome[0] = FedScript.OUTCOME_SKIPPED
+	assert_false(v.kitchen._ate_first(0, key), "went without: no first eaten")
+	v.kitchen.occasion_key = key
+	v.kitchen.fed.last_outcome[0] = FedScript.OUTCOME_ATE
+	assert_false(v.kitchen._holds_seconds(0, key), "an occasion's meal has no seconds")
+	v.kitchen._portion[0] = -1
+	v.kitchen.occasion_key = -1
+
+
+func test_a_resident_away_from_the_table_keeps_its_first_portion() -> void:
+	"""Food for four portions, and resident 1 held at the water through the serving (not called): the others eat, but
+	nobody takes a second while resident 1 is still owed its first -- it comes back and eats (the review of 7076a86d)."""
+	var v := _hearty(4, 4000, 0)
+	var breakfast: int = Rules.meal_key(1, Rules.MEAL_BREAKFAST)
+	v.brains[1].water_hold = true
+	_run(v, 4115)
+	v.brains[1].water_hold = false
+	_run(v, 12 * FRAMES_PER_HOUR, func() -> bool: return _everyone_had(v, breakfast) \
+		and v.kitchen._closed_key >= breakfast)
+	for i in v.brains.size():
+		assert_equal(v.kitchen.fed.last_outcome[i], FedScript.OUTCOME_ATE, "resident %d ate its first" % i)
+	assert_equal(v.kitchen.seconds_eaten, 0, "no second taken from a first")
+	assert_equal(v.kitchen.meal_without[v.kitchen.meal_keys.rfind(breakfast)], 0, "nobody went without")
+
+
+func test_a_second_helping_given_back_after_the_meal_is_not_going_without() -> void:
+	"""A diner holding a second helping when the meal has closed and its part ends (bed, an order) gives the portion
+	back: the meal's tally and its own outcome stay as they were -- it had eaten the meal."""
+	var v := _hearty(2, 4000, 0)
+	var breakfast: int = Rules.meal_key(1, Rules.MEAL_BREAKFAST)
+	_run(v, 9 * FRAMES_PER_HOUR)
+	var at: int = v.kitchen.meal_keys.rfind(breakfast)
+	assert_true(at >= 0 and v.kitchen._closed_key >= breakfast, "breakfast closed and tallied")
+	var lot: int = v.kitchen.store.reserve_one(breakfast, false)
+	assert_true(lot != -1, "a portion left to hold")
+	var who: int = 0 if v.kitchen._ate_first(0, breakfast) else 1
+	assert_true(v.kitchen._ate_first(who, breakfast), "resident %d ate its first" % who)
+	v.kitchen._portion[who] = lot
+	v.kitchen._meal[who] = breakfast
+	var before: Array = [v.kitchen.meal_ate[at], v.kitchen.meal_without[at]]
+	v.kitchen._clear_role(who)
+	assert_equal([v.kitchen.meal_ate[at], v.kitchen.meal_without[at]], before, "the tally unchanged")
+	assert_equal(v.kitchen.fed.last_outcome[who], FedScript.OUTCOME_ATE, "still ate")
+	assert_equal(v.kitchen._portion[who], -1, "the portion given back")
+
+
+func _served_and_all_fed(v: Village, key: int) -> void:
+	"""Run until meal `key` is being served with portions out, then book every resident as having eaten its first
+	(the guard's count taken afresh), so any portion out is a spare for seconds."""
+	_run(v, 9 * FRAMES_PER_HOUR, func() -> bool: return v.kitchen.serving() == key and v.kitchen.store.available(key) > 0)
+	assert_equal(v.kitchen.serving(), key, "the meal is being served")
+	for i in v.brains.size():
+		v.kitchen.fed.last_meal[i] = key
+		v.kitchen.fed.last_outcome[i] = FedScript.OUTCOME_ATE
+	v.kitchen._owed_tick = -1
+
+
+func test_the_cook_takes_its_second_helping_by_its_turn() -> void:
+	"""The cook's own path to the table (`_cook_meal_to_eat`): having eaten its first, on its turn ((i + key) even) and
+	with a portion spare, it goes back for its second -- once; off its turn it does not (the review's K7)."""
+	var v := _hearty(4, 20000, 20000)
+	var breakfast: int = Rules.meal_key(1, Rules.MEAL_BREAKFAST)
+	_served_and_all_fed(v, breakfast)
+	var turn: int = 0 if Rules.entitled_to_seconds(0, breakfast) else 1
+	assert_equal(v.kitchen._cook_meal_to_eat(turn), breakfast, "its turn and a portion spare: back for a second")
+	assert_equal(v.kitchen._cook_meal_to_eat(1 - turn), -1, "not its turn: nothing to eat")
+	v.kitchen._seconds_at[turn] = breakfast
+	assert_equal(v.kitchen._cook_meal_to_eat(turn), -1, "its second eaten: nothing more")
+
+
+func test_a_second_helping_eaten_gives_up_its_seat() -> void:
+	"""A second helping finished: the NP, the books, and the seat given up -- a cook (whose part goes on) must not keep
+	a table seat (the review's K5)."""
+	var v := _hearty(2, 20000, 20000)
+	var breakfast: int = Rules.meal_key(1, Rules.MEAL_BREAKFAST)
+	_served_and_all_fed(v, breakfast)
+	v.kitchen._meal[0] = breakfast
+	v.kitchen._seat[0] = 0
+	var np: int = v.kitchen.fed.today_np[0]
+	var eaten: int = v.kitchen.portions_eaten
+	v.kitchen._eat_seconds(0, Rules.DISH_PORRIDGE)
+	assert_equal(v.kitchen._seat[0], -1, "the seat given up")
+	assert_equal(v.kitchen._seconds_at[0], breakfast, "its second booked at this meal")
+	assert_equal([v.kitchen.portions_eaten - eaten, v.kitchen.seconds_eaten], [1, 1], "counted once")
+	assert_equal(v.kitchen.fed.today_np[0] - np, Rules.NP_PER_PORTION[Rules.DISH_PORRIDGE], "its NP")

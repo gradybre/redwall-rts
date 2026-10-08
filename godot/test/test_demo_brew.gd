@@ -148,7 +148,7 @@ func _menu_over(pantry: PantryScript) -> MenuScript:
 
 func test_mead_is_the_gdds_row_and_the_cordial_is_dec_045s() -> void:
 	"""§5.7 mead: honey 3, water 3 -> 4, 20 WU + 72 h, Brewery, 1440 h. The cordial: dish_book.gd's row exactly -- berries
-	2, honey 0.5, water 2 -> 4 portions, 10 WU, 72 h."""
+	2, honey 0.5, water 2 -> 4 portions, 10 WU, 240 h (decision 1733; it was 72 h)."""
 	var m: int = Recipes.R_MEAD
 	assert_equal([Recipes.IN_CATEGORY[Recipes.IN_FIRST[m]], Recipes.IN_MILLI[Recipes.IN_FIRST[m]], Recipes.WATER_MILLI[m],
 		Recipes.OUT_MILLI[m], Recipes.WORK_MWU[m], Recipes.PASSIVE_HOURS[m], Recipes.STATION[m]],
@@ -400,7 +400,7 @@ func test_both_drinks_pour_for_those_who_came_and_holding_again_resets() -> void
 
 
 func test_a_drink_partly_spoiled_since_the_hold_pours_what_is_left() -> void:
-	"""The cordial keeps 72 h: one lot spoiled between the hold and the feast, the rest is still poured."""
+	"""The cordial keeps 240 h: one lot spoiled between the hold and the feast, the rest is still poured."""
 	var pantry := PantryScript.new(StorageScript.new(Vector2.ZERO))
 	pantry.add_into(Catalog.ITEM_CORDIAL, 1000, 0, _read)
 	var old: int = _read.value

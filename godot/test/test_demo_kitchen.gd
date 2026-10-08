@@ -1823,9 +1823,10 @@ func _later_fish_slot(v: Village) -> int:
 	return -1
 
 
-func test_a_later_meal_cooked_cooking_or_fetched_keeps_its_fish() -> void:
-	"""A meal beyond the next with a batch cooked, one at the cauldron, or its fish fetched (in hand, then at the kitchen)
-	is not the rack's: not counted, and nothing of it given back however much is asked (the review of f86d79c2)."""
+func test_a_later_meal_cooked_cooking_or_in_hand_keeps_its_fish() -> void:
+	"""A meal beyond the next with a batch cooked, one at the cauldron, or its fish in the cook's hand is not the rack's:
+	not counted, and nothing of it given back however much is asked (the review of f86d79c2). Put down at the kitchen it
+	is the rack's again (F5 (b)), all of it given back."""
 	var v := _fish_village()
 	var s: int = _later_fish_slot(v)
 	assert_true(s >= 0, "a later meal holds fish")
@@ -1847,7 +1848,32 @@ func test_a_later_meal_cooked_cooking_or_fetched_keeps_its_fish() -> void:
 	assert_equal(v.kitchen.takes.live_milli(v.pantry, take, -1, Catalog.CAT_FISH), in_hand, "fish in hand: never given")
 	v.kitchen.takes.put_down(take)
 	v.kitchen.release_fish_beyond_next_meal(1 << 30)
-	assert_equal(v.kitchen.takes.live_milli(v.pantry, take, -1, Catalog.CAT_FISH), in_hand, "at the kitchen: never given")
+	assert_equal(v.kitchen.takes.live_milli(v.pantry, take, -1, Catalog.CAT_FISH), 0, "at the kitchen: given (F5 (b))")
+
+
+func test_fish_fetched_to_the_kitchen_for_a_later_meal_is_the_rack_s_too() -> void:
+	"""Brendan's F5 (b) (decision 1739): fish already fetched to the kitchen for a meal beyond the next is counted and
+	given back -- after every meal's fish still in store -- and the next meal's fetched fish never is."""
+	var v := _fish_village()
+	var keys: PackedInt32Array = v.kitchen.planned_keys()
+	var all: int = v.kitchen.fish_beyond_next_meal_milli()
+	var take: int = v.kitchen._slot_take[_later_fish_slot(v)]
+	assert_true(v.kitchen.takes.pick_up(v.pantry, take, v.kitchen.takes.store_to_fetch(v.pantry, take)) > 0, "fetched")
+	v.kitchen.takes.put_down(take)
+	var at_kitchen: int = v.kitchen.takes.live_milli(v.pantry, take, TakesScript.AT_KITCHEN, Catalog.CAT_FISH)
+	assert_true(at_kitchen > 0, "a later meal's fish at the kitchen")
+	assert_equal(v.kitchen.fish_beyond_next_meal_milli(), all, "still counted at the kitchen")
+	var next_take: int = v.kitchen.take_of(keys[0])
+	v.kitchen.takes.pick_up(v.pantry, next_take, v.kitchen.takes.store_to_fetch(v.pantry, next_take))
+	v.kitchen.takes.put_down(next_take)
+	var next_fish: int = v.kitchen.takes.live_milli(v.pantry, next_take, TakesScript.AT_KITCHEN, Catalog.CAT_FISH)
+	assert_true(next_fish > 0, "the next meal's fish at the kitchen too")
+	assert_equal(v.kitchen.fish_beyond_next_meal_milli(), all, "the next meal's fetched fish is not counted")
+	assert_equal(v.kitchen.release_fish_beyond_next_meal(all - at_kitchen), all - at_kitchen, "the fish in store")
+	assert_equal(v.kitchen.takes.live_milli(v.pantry, take, TakesScript.AT_KITCHEN, Catalog.CAT_FISH), at_kitchen,
+		"every meal's fish in store went first: the kitchen's is still held")
+	assert_equal(v.kitchen.release_fish_beyond_next_meal(1 << 30), at_kitchen, "then the kitchen's")
+	assert_equal(v.kitchen.takes.live_milli(v.pantry, next_take, -1, Catalog.CAT_FISH), next_fish, "the next meal's kept")
 
 
 func test_the_next_meal_is_read_from_the_calendar_itself() -> void:
@@ -1859,7 +1885,6 @@ func test_the_next_meal_is_read_from_the_calendar_itself() -> void:
 	var breakfast: int = keys[1]
 	var kept: int = _fish_held(v, breakfast)
 	assert_true(kept > 0, "tomorrow's breakfast holds fish")
-	var hour_was: int = v.calendar.tick
 	v.calendar.tick = tick_at(1, 19)
 	v.kitchen.release_fish_beyond_next_meal(1 << 30)
 	assert_equal(_fish_held(v, breakfast), kept, "tomorrow's breakfast, next by the calendar, keeps its fish")
@@ -1869,7 +1894,6 @@ func test_the_next_meal_is_read_from_the_calendar_itself() -> void:
 	w.calendar.tick = tick_at(1, 3)
 	w.kitchen.release_fish_beyond_next_meal(1 << 30)
 	assert_equal(_fish_held(w, first), first_fish, "the earliest planned meal keeps its fish whatever the hour reads")
-	assert_true(hour_was > 0, "the village ran")
 
 
 func test_a_later_meal_with_no_take_is_not_the_rack_s() -> void:
@@ -1880,3 +1904,30 @@ func test_a_later_meal_with_no_take_is_not_the_rack_s() -> void:
 	var fish: int = _fish_held(v, v.kitchen._slot_key[s])
 	v.kitchen._slot_take[s] = 0
 	assert_equal(v.kitchen.fish_beyond_next_meal_milli(), all - fish, "no take: not counted")
+
+
+func _keep_dried_fish(category: int) -> int:
+	"""A ration batch's dried fish kept from raw eating, as the fishery's `ration_keep_milli` (decision 1740)."""
+	return 1000 if category == Catalog.CAT_DRIED_FISH else 0
+
+
+func test_a_raw_meal_leaves_the_rations_dried_fish() -> void:
+	"""Brendan's F5 (a) (decision 1740): with 1 U of dried fish kept, a hungry resident eats raw only the dried fish
+	beyond it, and none when there is none beyond; other food is not kept; unbound, all of it may be eaten."""
+	var v := _village(4, tick_at(1, 10))
+	_stock(v, Catalog.ITEM_DRIED_FISH, 1500)
+	_open(v)
+	v.kitchen.raw_keep = _keep_dried_fish
+	assert_equal([v.kitchen.raw_kept_milli(Catalog.CAT_DRIED_FISH), v.kitchen.raw_kept_milli(Catalog.CAT_NUTS)],
+		[1000, 0], "the dried fish is kept, nothing else")
+	assert_true(v.kitchen._reserve_raw(0), "a raw meal")
+	assert_equal(v.kitchen.takes.live_milli(v.pantry, v.kitchen._raw_take[0]), 500, "only the 0.5 U beyond the kept 1 U")
+	assert_false(v.kitchen._reserve_raw(1), "none beyond: no raw meal of it")
+	_stock(v, Catalog.ITEM_NUTS, 1000)
+	assert_true(v.kitchen._reserve_raw(1), "other food is not kept")
+	assert_equal(v.kitchen._raw_item[1], Catalog.ITEM_NUTS, "the nuts")
+	v.kitchen.raw_keep = Callable()
+	assert_equal(v.kitchen.raw_kept_milli(Catalog.CAT_DRIED_FISH), 0, "unbound: nothing kept")
+	assert_true(v.kitchen._reserve_raw(2), "unbound, a raw meal")
+	assert_equal([v.kitchen._raw_item[2], v.kitchen.takes.live_milli(v.pantry, v.kitchen._raw_take[2])],
+		[Catalog.ITEM_DRIED_FISH, 1000], "the kept unit eaten")

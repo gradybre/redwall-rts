@@ -755,6 +755,28 @@ func test_a_feast_supper_pours_no_table_cordial() -> void:
 	assert_equal(v.pantry.milli_of(Catalog.ITEM_CORDIAL), 4000, "the cordial untouched")
 
 
+func test_a_cancelled_feast_s_supper_pours_the_table_cordial() -> void:
+	"""The note this lane left for 1733's owner, fixed: a feast called and then cancelled before its supper is an
+	ordinary supper again, so the table drink pours the cordial at it (ceil(diners/4) U), as at any supper."""
+	var v: Village = _village()
+	_stock_everyday(v)
+	_stock_theme(v, Rules.HEARTH)
+	_stock(v, Catalog.ITEM_CORDIAL, 4000)
+	var drink := TableDrinkScript.new()
+	drink.bind(v.kitchen)
+	assert_equal(v.feast.hold(Rules.HEARTH, DAY, 1, true), "", "held")
+	drink.update()
+	assert_equal(v.feast.cancel(), "", "cancelled before the supper")
+	var key: int = Rules.feast_key(DAY)
+	assert_true(_run(v, func() -> bool:
+		drink.update()
+		return v.kitchen.final_of(key) != null, 30000), "the day's supper published")
+	drink.update()
+	var diners: int = v.kitchen.final_of(key).diners.size()
+	assert_true(diners > 0, "the supper was eaten")
+	assert_equal([drink.pours, drink.poured_milli], [1, TableDrinkScript.need_milli(diners)], "the table cordial poured")
+
+
 func test_a_roots_hotpot_is_left_out_of_the_reserves_as_a_greens_one_is() -> void:
 	"""REQ-SET-101 with decision 1735's greens or roots: the feast's hotpot input is set aside the way the kitchen's
 	estimate draws it (greens first, then roots), so the ready food after a feast of beans and carrots is the same as

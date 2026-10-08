@@ -83,8 +83,8 @@ func test_cordial_is_poured_at_an_ordinary_supper_never_at_breakfast() -> void:
 
 
 func test_a_feast_supper_and_an_empty_supper_pour_nothing_here() -> void:
-	"""The occasion's supper (noted while it was set, even once cleared) pours its own drinks; a supper nobody ate
-	pours none; events published before the drink was bound are not poured."""
+	"""The occasion's supper (noted while it was set, even once cleared after it cooked) pours its own drinks; a supper
+	nobody ate pours none; events published before the drink was bound are not poured."""
 	var kitchen := _kitchen_with_cordial(10000)
 	var feast: int = MealRules.meal_key(3, MealRules.MEAL_SUPPER)
 	_publish(kitchen, MealRules.meal_key(1, MealRules.MEAL_SUPPER), 9)
@@ -93,12 +93,43 @@ func test_a_feast_supper_and_an_empty_supper_pour_nothing_here() -> void:
 	drink.update()
 	kitchen.occasion_key = feast
 	drink.update()
+	kitchen.cooked_keys.append(feast)
 	kitchen.occasion_key = KitchenScript.FREE
 	_publish(kitchen, feast, 9)
 	_publish(kitchen, MealRules.meal_key(4, MealRules.MEAL_SUPPER), 0)
 	drink.update()
 	assert_equal(kitchen.pantry.milli_of(Catalog.ITEM_CORDIAL), 10000, "nothing poured")
 	assert_equal(drink.pours, 0, "no pour counted")
+
+
+func test_a_feast_cleared_before_it_cooked_is_an_ordinary_supper() -> void:
+	"""The FEAST lane's note to 1733 (decision 1701): an occasion cleared before any batch of its meal cooked (a called
+	feast cancelled) is forgotten, so its supper pours the table cordial; one cleared with a batch at the cauldron is
+	still the occasion's and pours none."""
+	var kitchen := _kitchen_with_cordial(10000)
+	var drink := TableDrinkScript.new()
+	drink.bind(kitchen)
+	var cancelled: int = MealRules.meal_key(3, MealRules.MEAL_SUPPER)
+	var cooking: int = MealRules.meal_key(4, MealRules.MEAL_SUPPER)
+	assert_false(kitchen.meal_under_way(cancelled), "nothing of it cooked")
+	kitchen.occasion_key = cancelled
+	drink.update()
+	kitchen.occasion_key = KitchenScript.FREE
+	drink.update()
+	_publish(kitchen, cancelled, 8)
+	drink.update()
+	assert_equal([drink.pours, drink.poured_milli], [1, 2000], "the cancelled feast's supper: 2 U, as any supper")
+	kitchen.occasion_key = cooking
+	drink.update()
+	kitchen._wip_key = cooking
+	assert_true(kitchen.meal_under_way(cooking), "a batch at the cauldron")
+	kitchen.occasion_key = KitchenScript.FREE
+	drink.update()
+	kitchen._wip_key = KitchenScript.FREE
+	_publish(kitchen, cooking, 8)
+	drink.update()
+	assert_equal(drink.pours, 1, "cleared while cooking: still the occasion's, nothing poured")
+	assert_false(kitchen.meal_under_way(KitchenScript.FREE), "no meal: never under way")
 
 
 func test_only_free_cordial_is_poured_and_a_dry_supper_is_counted() -> void:
@@ -211,3 +242,19 @@ func test_a_pour_that_cannot_be_reserved_is_a_dry_supper() -> void:
 	drink.update()
 	assert_equal([drink.poured_milli, drink.pours, drink.dry_suppers], [0, 0, 1], "a dry supper, nothing poured")
 	assert_equal(kitchen.pantry.milli_of(Catalog.ITEM_CORDIAL), 10000, "the cordial untouched")
+
+
+# --- the rations' dried fish (decision 1740) ---------------------------------------------------------------------
+
+func test_the_rations_dried_fish_is_one_batch_s_and_nothing_else_is_kept() -> void:
+	"""F5 (a): raw eaters leave the dried fish one batch of rations takes (§5.7 `ration`: 1 U); every other category,
+	the rations' flour and nuts among them, is not kept."""
+	var fishery := FisheryScript.new()
+	var dried: int = 0
+	for k: int in Recipes.IN_COUNT[Recipes.R_RATION]:
+		var input: int = Recipes.IN_FIRST[Recipes.R_RATION] + k
+		dried += Recipes.IN_MILLI[input] if Recipes.IN_CATEGORY[input] == Catalog.CAT_DRIED_FISH else 0
+	assert_equal(dried, 1000, "a batch of rations takes 1 U of dried fish")
+	assert_equal(fishery.ration_keep_milli(Catalog.CAT_DRIED_FISH), dried, "that is kept")
+	for category: int in [Catalog.CAT_FLOUR, Catalog.CAT_NUTS, Catalog.CAT_FISH, Catalog.CAT_DRIED_FRUIT]:
+		assert_equal(fishery.ration_keep_milli(category), 0, "category %d is not kept" % category)

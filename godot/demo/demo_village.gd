@@ -848,6 +848,7 @@ func _build_fishery() -> void:
 		_farm.pantry, _kitchen.kitchen.takes, _water.map())
 	_fishery.fishery.bind_spare_fish(_kitchen.kitchen.fish_beyond_next_meal_milli,
 		_kitchen.kitchen.release_fish_beyond_next_meal)
+	_kitchen.kitchen.raw_keep = _fishery.fishery.ration_keep_milli
 
 
 func fishery() -> FisheryNodeScript:

@@ -330,6 +330,10 @@ func _the_cordial_is_a_table_drink() -> void:
 	var expected: int = int(fishery.call(&"input_available_milli", Recipes.IN_FIRST[Recipes.R_DRY_FISH]))
 	_check("the Dry fish card counts the kitchen's fish too", have == expected and have >= 3000, "%d of %d" % [have, expected])
 	fishery.call(&"bind_spare_fish", spare, give)
+	var kitchen: RefCounted = _village.call(&"kitchen").get("kitchen")
+	_check("the kitchen keeps the rations' dried fish from raw eating (decision 1740)",
+		int(kitchen.call(&"raw_kept_milli", Catalog.CAT_DRIED_FISH)) == 1000
+		and int(kitchen.call(&"raw_kept_milli", Catalog.CAT_NUTS)) == 0)
 	var drink: RefCounted = _village.call(&"kitchen").get("table_drink")
 	_check("the table drink watches the kitchen", drink != null and drink.get("_kitchen") != null)
 

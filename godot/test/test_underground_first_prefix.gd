@@ -520,7 +520,7 @@ func test_exact_two_assembly_prices_and_six_cube_phase_ledger() -> void:
 		+ Contract.work_mwu(Contract.OP_FINISH))
 	assert_equal(wood, 1500, "six installed braces wood")
 	assert_equal(6 * Contract.input_milli(Contract.OP_BRACE, 1), 1500, "six installed braces stone")
-	assert_equal(work, 54000, "all18 actual phase bills")
+	assert_equal(work, 25380, "all18 actual phase bills (DEC-059: 4,230 a cube)")
 	for ordinal: int in 2:
 		assert_equal(_groups._recipes.recipe_into(0, 1, ordinal * 7, GroupTests.RECIPE_REVISION, quote), &"", "exact complete assembly quote")
 		assert_equal(quote.input_count, 1, "wood only, no rope or per-part surcharge")
@@ -529,7 +529,7 @@ func test_exact_two_assembly_prices_and_six_cube_phase_ledger() -> void:
 		assert_equal(quote.total_mwu, 32000 if ordinal == 0 else 12000, "approved BUILD work")
 		wood += quote.input_milli[0]; work += quote.total_mwu
 	assert_equal(wood, 6500, "complete first-prefix wood")
-	assert_equal(work, 98000, "complete first-prefix work, not elapsed time")
+	assert_equal(work, 69380, "complete first-prefix work, not elapsed time")
 	assert_equal(6 * Contract.EARTH_MILLI, 12000, "only six new CUT completions may create this earth")
 	assert_equal(_world._inventory.item_mass_g(_world._items.compiled_id(&"excavated_earth")), 1000, "current adopted earth mass")
 

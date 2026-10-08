@@ -301,7 +301,7 @@ func test_real_l0_requires_paid_handling_before_unchanged_productive_install() -
 	assert_true(_probe.failures.is_empty(), "actual paid handling: %s" % _probe.failures)
 	assert_true(_probe.handled_l0, "actual positioning completed")
 	assert_true(_probe.installed_l0, "actual whole L0 installed")
-	assert_equal(_probe._accepted_work_mwu, 68000, "only36000 excavation plus32000 fastening work")
+	assert_equal(_probe._accepted_work_mwu, 48920, "only16920 excavation plus32000 fastening work")
 
 
 func test_actual_prefunded_ready_pause_releases_worker_without_handling_or_payment() -> void:
@@ -321,7 +321,7 @@ func test_actual_prefunded_ready_pause_releases_worker_without_handling_or_payme
 	assert_equal(_probe._world._inventory.state_bytes(), inventory, "no payment")
 	assert_equal(_probe._world._owner.state_bytes(), geometry, "no obstacle or installed geometry")
 	assert_equal(_probe.pieces._live.present, pieces, "no handling state")
-	assert_equal(_probe._accepted_work_mwu, 36000, "only prior excavation work")
+	assert_equal(_probe._accepted_work_mwu, 16920, "only prior excavation work")
 	assert_true(_probe._router.set_paused(project, true).ok, "repeat pause keeps the same safe terminal state")
 
 
@@ -525,7 +525,7 @@ func test_actual_start_refuses_changed_pre_stage_context_and_original_cold_lease
 	assert_true(_probe.failures.is_empty(), "original Inventory delivery: %s" % _probe.failures)
 	for kind: int in 3:
 		_check_pre_stage_refusal(project, kind)
-	assert_equal(_probe._accepted_work_mwu, 36000, "only the four actual completed excavation cubes earned work")
+	assert_equal(_probe._accepted_work_mwu, 16920, "only the four actual completed excavation cubes earned work")
 
 
 func _installing_probe() -> Vector2i:
@@ -661,7 +661,7 @@ func test_entry_foreman_drives_cuts_retirement_paid_handling_and_install() -> vo
 		tick += 1
 	assert_equal(foreman.error(), &"", "no refusal")
 	assert_true(foreman.is_done(), "cuts, retirement, handling, fastening and commit all completed")
-	assert_equal(foreman.accepted_mwu() + foreman.install_mwu(), 68000, "36000 excavation plus 32000 fastening")
+	assert_equal(foreman.accepted_mwu() + foreman.install_mwu(), 48920, "16920 excavation plus 32000 fastening")
 	assert_equal(_probe._world._inventory.lot_quantity_milli(_probe._wood), 1500, "one whole L0 bill paid once")
 	assert_equal(_probe._placements._get32(_probe._placements._live, Prefix.Placements.INSTALLED, 0), 1, "L0 installed")
 	assert_equal(_probe._world._construction.live_project_count(), 0, "every Project retired")
@@ -697,8 +697,8 @@ func _assert_complete_prefix_ledger(foreman: Foreman) -> void:
 	assert_equal(world._inventory.lot_quantity_milli(_probe._wood), 0, "all adopted wood spent")
 	assert_equal(world._inventory.lot_quantity_milli(_probe._stone), 0, "all 1500 adopted brace stone spent")
 	assert_equal(_probe._sites.virgin_sourced_milli(), 12000, "six 2000 spoil outputs")
-	assert_equal(foreman.accepted_mwu(), 54000, "six cubes x 9000 phase work")
-	assert_equal(foreman.accepted_mwu() + foreman.install_mwu(), 98000, "cuts plus both installations' fastening")
+	assert_equal(foreman.accepted_mwu(), 25380, "six cubes x 4230 phase work (DEC-059)")
+	assert_equal(foreman.accepted_mwu() + foreman.install_mwu(), 69380, "cuts plus both installations' fastening")
 	assert_equal(_probe._sites.earth_conservation_refusal(), &"", "complete spoil conservation")
 	assert_equal(_probe._sites.support_conservation_refusal(), &"", "complete brace conservation")
 	assert_true(world._inventory.audit().ok and world._pool.audit(world._inventory).ok, "real conservation audits")
@@ -750,7 +750,7 @@ func _assert_hauled_ledger(foreman: Foreman) -> void:
 		assert_equal(Hauler.free_milli(world._inventory, _probe._output, item), 0, "R's staging fully hauled")
 		assert_equal(Hauler.free_milli(world._inventory, _probe._storage, item), 500, "whole-unit remainder at M")
 	assert_equal(_probe._sites.virgin_sourced_milli(), 12000, "six 2000 spoil outputs")
-	assert_equal(foreman.accepted_mwu() + foreman.install_mwu(), 98000, "cuts plus both installations' fastening")
+	assert_equal(foreman.accepted_mwu() + foreman.install_mwu(), 69380, "cuts plus both installations' fastening")
 	assert_equal(_probe._sites.earth_conservation_refusal(), &"", "complete spoil conservation")
 	assert_equal(_probe._sites.support_conservation_refusal(), &"", "complete brace conservation")
 	assert_true(world._inventory.audit().ok and world._pool.audit(world._inventory).ok, "real conservation audits")

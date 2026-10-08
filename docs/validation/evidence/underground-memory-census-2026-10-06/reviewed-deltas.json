@@ -2581,6 +2581,45 @@
      ".new(": 4
     }
    }
+  },
+  "godot/scripts/core/excavation_contract.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "DEC-059 (P3): BRACE/CUT/FINISH_WORK_MWU 2,000/4,000/3,000 -> 940/1,880/1,410 milli-WU (x 0.47); constants only, no member, packed column or allocation"
+    }
+   ],
+   "delta": {
+    "int_constants_added": [
+     [
+      "BRACE_WORK_MWU",
+      "940"
+     ],
+     [
+      "CUT_WORK_MWU",
+      "1880"
+     ],
+     [
+      "FINISH_WORK_MWU",
+      "1410"
+     ]
+    ],
+    "int_constants_removed": [
+     [
+      "BRACE_WORK_MWU",
+      "2000"
+     ],
+     [
+      "CUT_WORK_MWU",
+      "4000"
+     ],
+     [
+      "FINISH_WORK_MWU",
+      "3000"
+     ]
+    ]
+   }
   }
  },
  "scope": "ADR 1212 reviewed storage deltas between manifest-3 reviewed bytes and the current source."

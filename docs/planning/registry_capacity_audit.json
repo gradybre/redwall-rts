@@ -11813,7 +11813,7 @@
       "parsed_expression": "_earned_capacity",
       "proof_chain": [
         "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:32 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "Contract.OP_COUNT -> godot/scripts/core/excavation_contract.gd:111 `const OP_COUNT = 5` = 5",
+        "Contract.OP_COUNT -> godot/scripts/core/excavation_contract.gd:112 `const OP_COUNT = 5` = 5",
         "MAX_EARNED_CAPACITY -> godot/scripts/core/excavation_sites.gd:33 `const MAX_EARNED_CAPACITY = MAX_SITE_CAPACITY * Contract.OP_COUNT` = 369545",
         "_earned_capacity -> godot/scripts/core/excavation_sites.gd:290 `clampi(earned_request, 0, MAX_EARNED_CAPACITY)` max = 369545"
       ],

@@ -414,7 +414,7 @@ func test_spatial_cancellation_retains_another_purposes_actual_input_claims() ->
 	var site: Vector2i = _sites.claim_quantum(PhysicalFixture.ORIGIN, PhysicalFixture.ROOM).ref
 	var brace: Construction.OpResult = _sites.open_phase(site, PhysicalFixture.Contract.OP_BRACE)
 	assert_true(brace.ok, "actual second purpose project")
-	var job: Jobs.OpResult = _jobs.create_job(Jobs.JOB_KIND_BUILD, 0, 0, 2000, 0)
+	var job: Jobs.OpResult = _jobs.create_job(Jobs.JOB_KIND_BUILD, 0, 0, PhysicalFixture.Contract.BRACE_WORK_MWU, 0)
 	assert_true(_jobs.set_requester(job.value, brace.ref).ok, "actual Site requester")
 	assert_true(_jobs.set_tool_gate(job.value, Jobs.GATE_SATISFIED).ok, "actual required-tool declaration")
 	assert_true(_sites.bind_job(site, job.ref).ok, "actual Site binds Job")

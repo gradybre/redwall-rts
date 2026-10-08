@@ -11,7 +11,7 @@ const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 ## ADR1229: the T1-T6 first-entry bundle (content 10, Frontier on source 4, workpieces on source 5); ADR1217 step 5
 ## mounted the claw bundle `qualified-claw-v6` (content 9).
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v8/catalog_source.gd")
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v9/catalog_source.gd")
 ## ADR1229: the claw stair tables Routes samples for the stair and short-step rows 51-55.
 const StairMotion := preload("res://scripts/core/underground_stair_motion.gd")
 const MotionPins := preload("res://data/underground/mole-worker/qualified-claw-stair-motion-v1/catalog_source.gd")

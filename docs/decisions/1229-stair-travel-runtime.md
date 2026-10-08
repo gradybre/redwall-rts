@@ -451,3 +451,19 @@ the GDD seek thresholds the crew hands off at a safe point by ADR 1225's path. O
 The target is the default schedule's first work block (§ Target). The ledger rows of the stair runtime (+22,269 B,
 increments 6a and 6b) were added to `docs/systems_architecture.md` §2.3 in the same commit. They had been missing
 since 6a, which is why `ready07_arithmetic.py` failed.
+
+## DEC-059 P3 — work amounts × 0.47 (2026-10-08)
+
+- **Excavation.** `excavation_contract.gd`: brace, cut and finish go from 2,000, 4,000 and 3,000 to 940, 1,880 and
+  1,410 milli-WU. Every excavation phase reads them through `ExcavationContract.work_mwu`. Bills, spoil and refunds
+  are unchanged.
+- **Treads.** `qualified-stairs-v9` is a create-only successor of v8, with the same parts, rows, stops and paces.
+  T1-T6's recipe fastens in 5,640 milli-WU. L0 (32,000) and T0 (12,000) keep theirs: Brendan's choice named the
+  tread fastening of the proposal, which was T1-T6 (ADR 1209 D3's per-tread bill). Its Frontier is revision 8.
+  - The Session's entry and route compositions, the work area and the census now mount v9.
+  - v8 stays published and unused.
+- **Census.** `excavation_contract.gd` is a reviewed projected input (constants only, 0 B).
+- **Balance.** The rows are in `docs/gameplay_balance.md` BAL-UG-001.
+- **Measured** (the live chain on the flexible schedule):
+  - the prefix finishes on tick 4,382 (was 4,670), ledger `[20, 25,380, 9, 44,000, 2]`;
+  - the whole descent finishes on tick 12,474 (was 13,690), ledger `[50, 59,220, 19, 77,840, 8]`.

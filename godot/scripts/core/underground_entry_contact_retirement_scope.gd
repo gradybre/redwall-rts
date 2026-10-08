@@ -15,7 +15,7 @@ const REFUSE_RETAINED: StringName = &"ENTRY_CONTACT_RETIREMENT_RETAINED"
 const REFUSE_WORKER: StringName = &"ENTRY_CONTACT_RETIREMENT_WORKER"
 const REFUSE_CAPACITY: StringName = &"ENTRY_CONTACT_RETIREMENT_CAPACITY"
 const SURFACE_ANCHOR: int = 0 # Mirrors underground_entry_frontier.gd; no Frontier preload (see header).
-## ADR1229: the accepted Frontier is the mounted T1-T6 bundle's (`qualified-stairs-v8`, its accessor's table census
+## ADR1229: the accepted Frontier is the mounted T1-T6 bundle's (`qualified-stairs-v9` since DEC-059; v8 before, its accessor's table census
 ## INSTALL/STATION/CUT/BEARING/ENDPOINT/EPISODE = 8/22/6/38/44/14; ADR1202's claw bundle had 2/8/2/10/14/6). They size
 ## the flattened source this scope replays, and _source_shapes refuses any other Frontier.
 const INSTALLS: int = 8

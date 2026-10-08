@@ -356,7 +356,7 @@ func test_real_source_first_cube_earns_paid_brace_cut_and_finish() -> void:
 	_probe.execute_first_cube()
 	assert_true(_probe.failures.is_empty(), "real-source execution: %s" % _probe.failures)
 	assert_true(_probe.completed_cube, "all three actual source phases completed")
-	assert_equal(_probe._accepted_work_mwu, 9000, "exact adopted productive work; recovery earns none")
+	assert_equal(_probe._accepted_work_mwu, 4230, "exact adopted productive work; recovery earns none")
 	assert_true(_probe.assertions > 50, "actual nested owner checks executed; not added to the suite assertion counter")
 
 
@@ -376,7 +376,7 @@ func test_four_landing_cubes_require_real_source_travel_and_paid_phases() -> voi
 	_probe.execute_l0_cubes()
 	assert_true(_probe.failures.is_empty(), "four source cubes: %s" % _probe.failures)
 	assert_true(_probe.completed_l0, "all four whole cubes dug and finished")
-	assert_equal(_probe._accepted_work_mwu, 36000, "actual phase work only; travel and turns earn none")
+	assert_equal(_probe._accepted_work_mwu, 16920, "actual phase work only; travel and turns earn none")
 
 
 func test_mixed_body_residual_cannot_be_clipped_to_air() -> void:

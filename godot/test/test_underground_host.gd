@@ -32,16 +32,17 @@ const Contract := preload("res://scripts/core/excavation_contract.gd")
 ## 44-key loop, the walk-on past the blocked fade keys, the 32-tick dig and tap loops); every Work amount, bill and
 ## hauled unit is unchanged (DEC-052). ADR1229 increment 6b: the chain then carries on down the descent; these
 ## suites stop at the prefix (task PREFIX_TASKS), and one suite runs the whole descent to the sill.
-const DONE_TICK: int = 4670
+## DEC-059 (P3): 4670 -> 4382 with brace/cut/finish x 0.47.
+const DONE_TICK: int = 4382
 ## [task index, cut Work mWU, hauled whole units, installation Work mWU, groups INSTALLED] at the end of the prefix:
 ## L0's twelve phases, T0's six cuts, both installations' fastening (32,000 + 12,000 mWU).
-const DONE_LEDGER: Array = [20, 54000, 9, 44000, 2]
+const DONE_LEDGER: Array = [20, 25380, 9, 44000, 2] # DEC-059: six cubes x 4,230
 ## ADR1229: the prefix is the foreman's first twenty tasks; task 20 is the descent's first cut.
 const PREFIX_TASKS: int = 20
 ## ADR1229 increment 6b: the whole descent on the flexible schedule (every hour ANYTHING, GDD 5.3), from the same
-## start: the eight descent cubes (72,000 mWU), T1-T6 down the stair (6 x 12,000 mWU, one hauled unit each).
-const DESCENT_DONE_TICK: int = 13690
-const DESCENT_LEDGER: Array = [50, 126000, 19, 116000, 8]
+## start: the eight descent cubes (33,840 mWU since DEC-059), T1-T6 down the stair (6 x 5,640 mWU, one hauled unit each).
+const DESCENT_DONE_TICK: int = 12474 # DEC-059 (P3)
+const DESCENT_LEDGER: Array = [50, 59220, 19, 77840, 8] # DEC-059: 14 cubes x 4,230; 32,000 + 12,000 + 6 x 5,640
 ## ADR1221: the live chain's route owners are cold-restored this often (ticks; prime).
 const ROUTE_RESTORE_EVERY: int = 23
 ## ADR1218 runtime wire: header, step, code, origin, section, endpoint count and the work area's endpoints (nineteen

@@ -11,6 +11,7 @@ const Inventory := preload("res://scripts/core/inventory.gd")
 
 ## A tick by which the crew has hauled and the first paid phases hold Sites, funding and Router state.
 const MID_CHAIN_TICK: int = 2000
+const EARNING: int = 4 # The foreman's STAGE_EARN: a funded phase is being worked.
 
 var _host: Node = null
 
@@ -22,7 +23,18 @@ func before_each() -> void:
 	assert_true(content != null, "the production actor image loads")
 	assert_equal(Chain.mount_and_compose(_host, content), &"", "mounted and composed")
 	assert_equal(Chain.begin_entry(_host), &"", "the entry begins")
-	assert_true(Chain.run_ticks(_host, 1, MID_CHAIN_TICK) > 0, "the chain runs")
+	var tick: int = Chain.run_ticks(_host, 1, MID_CHAIN_TICK)
+	assert_true(tick > 0, "the chain runs")
+	# DEC-059: phases are short; carry on to the next paid BRACE in progress, so funding receipts are held.
+	while tick > 0 and tick < MID_CHAIN_TICK + 2000 and not _bracing():
+		tick = Chain.run_ticks(_host, tick, tick)
+	assert_true(_bracing(), "a paid brace is in progress")
+
+
+func _bracing() -> bool:
+	"""The foreman is working a funded BRACE phase (its inputs hold funding receipts)."""
+	var foreman: RefCounted = _host.underground_entry()._foreman
+	return foreman._stage == EARNING and foreman._tasks[foreman._index].operation == foreman.Contract.OP_BRACE
 
 
 func after_each() -> void:

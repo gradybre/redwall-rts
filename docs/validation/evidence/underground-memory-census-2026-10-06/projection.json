@@ -24,6 +24,10 @@
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/construction.gd-da07d55eb1a2.txt",
       "sha256": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a"
     },
+    "godot/scripts/core/excavation_contract.gd": {
+      "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/excavation_contract.gd-9957fa1531ba.txt",
+      "sha256": "9957fa1531bacc67bcd67dfd79620bc4164f2d648571eb2c7ea9f61ea52add4e"
+    },
     "godot/scripts/core/excavation_inventory.gd": {
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/excavation_inventory.gd-e69e83b0fa38.txt",
       "sha256": "e69e83b0fa3851f7408b574fec44b0978d048fb759eb90b458492ac81d15c001"

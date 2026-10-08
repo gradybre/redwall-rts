@@ -5,10 +5,9 @@ extends RefCounted
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 const QUANTUM_SIDE_U: int = 1024
-## DEC-059 (P3): brace, cut and finish are 2,000, 4,000 and 3,000 milli-WU (ECON-001, DEC-052) x 0.47.
-const BRACE_WORK_MWU: int = 940
-const CUT_WORK_MWU: int = 1880
-const FINISH_WORK_MWU: int = 1410
+const BRACE_WORK_MWU: int = 2000
+const CUT_WORK_MWU: int = 4000
+const FINISH_WORK_MWU: int = 3000
 const REMOVE_SUPPORT_WORK_MWU: int = 1250
 const BACKFILL_WORK_MWU: int = 3000
 const BRACE_WOOD_MILLI: int = 250

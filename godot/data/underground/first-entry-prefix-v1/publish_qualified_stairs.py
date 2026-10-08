@@ -14,10 +14,11 @@ rules (`TreadGeometry` mirrors them at runtime).
   - the envelope spans every part, bearing and cut group, down to the seventh row (z -7168);
   - paces: content 10's 26 ground caps, then DEC-050's authored connector rows on variant 0: descent 53 and ascent
     54 at 528 u/s over the 528 u tread edge (30 ticks), the half-turn 55 at 116 u/s over its 174 u span (45 ticks).
-- **Grouping and recipes:** eight assemblies (L0, T0..T6), T0's bill per tread (1,000 milli wood, 12,000 mWU).
+- **Grouping and recipes:** eight assemblies (L0, T0..T6); each of T1..T6 carries T0's wood (1,000 milli, D3) and
+  DEC-059's fastening, 12,000 x 0.47 = 5,640 mWU (v9; v8 carried 12,000). L0 and T0 keep their bills.
 - **Workpieces** (set-down source 5): L0/T0 on paw handling 65; T_k's staged left bearer (`TreadGeometry`) on the
   tread handling row 66.
-- **Frontier** (revision 6, source 4):
+- **Frontier** (revision 8 since v9, source 4):
   - claw-v6's rows with content 10's row ids (tap 52 -> 57, dig 57 -> 62 and 53 -> 58);
   - eight more cube episodes (rows 4-7, two cubes each) from surface stations at +-1,430 u, cut with T0's
     prefix installed (before T1), each retaining the natural bearings under it;
@@ -45,8 +46,8 @@ import sys
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 OLD = HERE / "qualified-claw-v6"
-OUTPUT = HERE / "qualified-stairs-v8"
-RES = "res://data/underground/first-entry-prefix-v1/qualified-stairs-v8/"
+OUTPUT = HERE / "qualified-stairs-v9"
+RES = "res://data/underground/first-entry-prefix-v1/qualified-stairs-v9/"
 RUNTIME = ROOT / "godot/data/underground/mole-worker/qualified-claw-stairs-v11"
 SPEC = ROOT / "docs/design/underground-planning/first-entry-prefix-v1.json"
 SPEC_SHA = "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81"
@@ -56,7 +57,7 @@ OLD_SHA = {
 }
 PROFILE_SHA = "9791eb59b778cf9fe0b4c66dfd7181c58706abd6ed1a8e6a90a73daafa7f3317"
 GROUND_SHA = "e155bf5dfbbde5ddda7702b510d8e299ad8516154c69e024efb1a77f591bc081"
-CONTENT, FRONTIER_REVISION, CLAW_SOURCE, PAW_SOURCE = 10, 7, 4, 5
+CONTENT, FRONTIER_REVISION, CLAW_SOURCE, PAW_SOURCE = 10, 8, 4, 5
 TREADS, SILL = 6, 6
 RISE, RUN, L0_FAR, T0_FAR = 128, 512, -2048, -2560
 ARRIVAL, STATION, ASCENT_START = 169, 310, 343
@@ -70,7 +71,8 @@ OLD_TRAVEL = {43: APPROACH, 47: RETREAT, 42: WALK}
 TREAD_EDGE_U, TURN_EDGE_U = 528, 174
 STAIR_PACES = ((DESCENT, TREAD_EDGE_U), (ASCENT, TREAD_EDGE_U), (TURN, TURN_EDGE_U * 2 // 3))
 MOVEMENT = 1  # the adult mole's Movement profile, as every ground cap of content 10 names it
-WOOD_MILLI, BUILD_MWU = 1000, 12000  # D3: T0's bill per tread
+# D3: T0's bill per tread (1,000 milli wood); DEC-059 (P3): T1-T6's fastening 12,000 x 0.47 = 5,640 mWU.
+WOOD_MILLI, BUILD_MWU = 1000, 5640
 FACE = 3
 LANDING, ENVELOPE, SUPPORT_REQUIRED, OPENING, SOLID = 17, 16, 18, 19, 20
 TREAD_KIND, POST_KIND = 0, 3
@@ -221,7 +223,7 @@ def grouping(catalog: bytes, parts: int) -> bytes:
 
 
 def recipes(catalog: bytes, group: bytes, old_recipe: bytes) -> bytes:
-    """L0's and T0's bills unchanged; T0's bill for every tread (D3)."""
+    """L0's and T0's bills unchanged; T0's wood for every tread (D3), fastened in 5,640 mWU (DEC-059)."""
     out = b"UGRECP01" + struct.pack("<IqqqiqI", 1, 1, 1, 1, 0, 1, 8) + sha(catalog) + sha(group)
     out += old_recipe[116:116 + 160]
     for anchor in [7 * a for a in range(2, 7)] + [49]:
@@ -434,7 +436,7 @@ def accessor(files: dict, linked: dict, profile: bytes) -> bytes:
 
 def manifest(files: dict, linked: dict) -> dict:
     """What was derived, from what."""
-    return {"schema": 1, "decision": ["1229", "1209", "DEC-058"], "predecessor": "qualified-claw-v6 (ADR 1217 step 4e)",
+    return {"schema": 1, "decision": ["1229", "1209", "DEC-058", "DEC-059"], "predecessor": "qualified-claw-v6 (ADR 1217 step 4e)",
             "content_revision": CONTENT, "frontier_revision": FRONTIER_REVISION, "frontier_source": CLAW_SOURCE,
             "workpieces_source": PAW_SOURCE, "assemblies": 8, "parts": 52,
             "stair_paces_u_per_s": {str(row): rate for row, rate in STAIR_PACES},

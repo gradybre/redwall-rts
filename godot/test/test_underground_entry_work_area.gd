@@ -7,7 +7,7 @@ const Foreman := preload("res://scripts/core/underground_entry_foreman.gd")
 const WorkAreaSource := preload("res://scripts/core/underground_entry_work_area.gd")
 ## ADR1217 step 5: the production work area is the claw bundle's (stations at +/-1430, H's claw air). ADR1229: the
 ## mounted bundle is the T1-T6 one (content 10), which keeps the claw bundle's L0/T0 rows on content 10's row ids.
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v8/catalog_source.gd")
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v9/catalog_source.gd")
 const MoleCatalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
 const ClawPins := preload("res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd")
 const WA_PROFILE_SHA: String = Bundle.PROFILE_SHA

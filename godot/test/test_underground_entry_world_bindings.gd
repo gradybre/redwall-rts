@@ -837,7 +837,7 @@ func test_four_real_l0_cubes_then_paid_l0_installation_conserve_all_adopted_good
 	assert_equal(_world._inventory.lot_quantity_milli(_wood), 1500, "4000 wood charged once for seven included parts")
 	assert_equal(_sites.earth_conservation_refusal(), &"", "actual earth account")
 	assert_equal(_sites.support_conservation_refusal(), &"", "actual paid brace account")
-	assert_equal(_accepted_work_mwu, 68000, "four9000 phase bills plus32000 landing through real Work")
+	assert_equal(_accepted_work_mwu, 48920, "four4230 phase bills (DEC-059) plus32000 landing through real Work")
 	_assert_timber_prisms(7)
 	assert_equal(_world._routes._live.edge_count, 16, "no ground connection to installed L0 or stair edge invented")
 
@@ -984,7 +984,7 @@ func _assert_complete_prefix_ledger() -> void:
 	assert_equal(_world._inventory.lot_quantity_milli(_wood), 0, "all6500 adopted wood spent, no bearer surcharge")
 	assert_equal(_world._inventory.lot_quantity_milli(_stone), 0, "all1500 adopted brace stone spent")
 	assert_equal(_sites.virgin_sourced_milli(), 12000, "six2000 spoil outputs, never an assembly output")
-	assert_equal(_accepted_work_mwu, 98000, "six9000 phase bills plus32000 landing and12000 tread are earned through real Work")
+	assert_equal(_accepted_work_mwu, 69380, "six4230 phase bills (DEC-059) plus32000 landing and12000 tread are earned through real Work")
 	assert_equal(_sites.earth_conservation_refusal(), &"", "complete spoil conservation")
 	assert_equal(_sites.support_conservation_refusal(), &"", "complete brace conservation")
 	assert_true(_world._inventory.audit().ok and _world._pool.audit(_world._inventory).ok, "real conservation audits")

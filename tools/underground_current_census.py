@@ -92,11 +92,12 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "610a8f8d0670e347079d1e7caea66ca93d60d4ad4bddd5e7bec0aec1b03ecd8c"
+REVIEWED_SHA = "67d8d8035ceb51bcc0c0ee76862e74e671f9c40f24c22653b48997a419897504"
 # ADR1217 step 5: the runtime Frontier is the claw bundle's (same row census as qualified-stone-v5's).
 # ADR1229: the mounted T1-T6 bundle's Frontier (ADR1217 step 5 mounted qualified-claw-v6's).
-FRONTIER = Path("godot/data/underground/first-entry-prefix-v1/qualified-stairs-v8/frontier.ugfront")
-FRONTIER_SHA = "fcbd4a0719bd2752b08957908025d50efaacdf7032a313e406bc1828ccb4eff3"
+# DEC-059 (P3): qualified-stairs-v9, the same rows with T1-T6 fastened in 5,640 mWU.
+FRONTIER = Path("godot/data/underground/first-entry-prefix-v1/qualified-stairs-v9/frontier.ugfront")
+FRONTIER_SHA = "182b304c2a0d9ff7b337dac2566f98a2587171d97c18c9bb89c9b3afe1d5e49f"
 CORE = "godot/scripts/core/"
 
 

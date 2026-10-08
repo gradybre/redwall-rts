@@ -41229,6 +41229,7 @@
       "godot/data/underground/mole-worker/work-step-v1/source_program.gd",
       "godot/scripts/core/buildings.gd",
       "godot/scripts/core/construction.gd",
+      "godot/scripts/core/excavation_contract.gd",
       "godot/scripts/core/excavation_inventory.gd",
       "godot/scripts/core/excavation_sites.gd",
       "godot/scripts/core/inventory.gd",
@@ -44168,6 +44169,45 @@
             ".new(": 4
           }
         }
+      },
+      "godot/scripts/core/excavation_contract.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "DEC-059 (P3): BRACE/CUT/FINISH_WORK_MWU 2,000/4,000/3,000 -> 940/1,880/1,410 milli-WU (x 0.47); constants only, no member, packed column or allocation"
+          }
+        ],
+        "delta": {
+          "int_constants_added": [
+            [
+              "BRACE_WORK_MWU",
+              "940"
+            ],
+            [
+              "CUT_WORK_MWU",
+              "1880"
+            ],
+            [
+              "FINISH_WORK_MWU",
+              "1410"
+            ]
+          ],
+          "int_constants_removed": [
+            [
+              "BRACE_WORK_MWU",
+              "2000"
+            ],
+            [
+              "CUT_WORK_MWU",
+              "4000"
+            ],
+            [
+              "FINISH_WORK_MWU",
+              "3000"
+            ]
+          ]
+        }
       }
     },
     "charged_by_carrier": {
@@ -44372,7 +44412,7 @@
     "godot/scripts/core/underground_phase_structure.gd": "8ca9a827a4002f5ceaf73869548ea5cb61bcc39d0cc618deab33773aca4e2a7c",
     "godot/scripts/core/underground_profiles.gd": "4adcdc2be52254d7c9ca73f7790b64cdd58e62f35d512dbd6f47a9f573d17d28",
     "godot/scripts/core/underground_room_world_bindings.gd": "d012c526a267fc7aecb365e7a6afa40d00d931f2b710b1122fc19705f556f8b1",
-    "godot/scripts/core/underground_route_composition.gd": "ce257f24601e725bb015e80c42c284bbaa074d2b9a5eeae257018feaf603bfee",
+    "godot/scripts/core/underground_route_composition.gd": "d4599f84ce86f95d4d54dee4193c27d6f85ad59e6be000d05419017b04bf811a",
     "godot/scripts/core/underground_routes.gd": "97d2f4bf4e083cc5e00fabd7abd8b54195663fc7cebd1c3b0f28dbed50949d9a",
     "godot/scripts/core/underground_session.gd": "054e63c7b16b10c6f929c81c62c0fd0124c21cd7e83b491cb6d1be68f5588e06",
     "godot/scripts/core/underground_space_authority.gd": "3377e00f509e833e618330237c65fa7a18aaf20a4876b5b16322bbdab7d4ec5b",

@@ -69,7 +69,7 @@ func _fund(project: Vector2i, operation: int) -> void:
 
 func test_adopted_economic_rows_and_legacy_material_domain_are_exact() -> void:
 	"""The new phase table is pinned independently to ECON, including coupled closure."""
-	var work: Array[int] = [4250, 2000, 4000, 3000, 1250]
+	var work: Array[int] = [4250, 940, 1880, 1410, 1250] # DEC-059: brace, cut, finish x 0.47
 	var count: Array[int] = [1, 2, 0, 0, 0]
 	assert_equal(Construction.MATERIAL_KEYS.size(), 6, "legacy material-key numbering remains unchanged")
 	for operation: int in 5:
@@ -99,9 +99,9 @@ func test_brace_needs_full_delivery_and_preserves_partial_accounting() -> void:
 	assert_true(_construction.deliver_material(project, 0, 1).ok, "wood reaches authored total")
 	assert_true(_construction.deliver_material(project, 1, 250).ok, "stone delivered")
 	assert_true(_construction.begin_work(project).ok, "fully funded work begins")
-	assert_true(_construction.add_work_mwu(project, 1500).ok, "partial brace work")
+	assert_true(_construction.add_work_mwu(project, 640).ok, "partial brace work")
 	assert_true(_construction.remaining_mwu_into(project, _out), "remaining work reads")
-	assert_equal(_out.value, 500, "actual partial progress remains")
+	assert_equal(_out.value, 300, "actual partial progress remains")
 	assert_true(_construction.max_workers_into(project, _out), "worker capacity reads")
 	assert_equal(_out.value, 1, "one worker per quantum")
 	assert_false(_construction.set_assigned_count(project, 2).ok, "two workers cannot share one cut face")
@@ -136,7 +136,7 @@ func test_cancelled_started_brace_prices_refund_per_phase() -> void:
 		assert_true(_construction.cancellation_refund_milli_into(project, index, _out), "refund line reads")
 		assert_equal(_out.value, 200, "200 returned, 50 loss per input")
 	assert_true(_construction.remaining_mwu_into(project, _out), "work retained while refund waits")
-	assert_equal(_out.value, 1300, "earned 700 WU-milli not reset")
+	assert_equal(_out.value, 240, "earned 700 WU-milli not reset (DEC-059: 940 brace)")
 	assert_equal(_construction.close_refund(project).error, Construction.REFUSE_COORDINATOR_ONLY, "ordinary cancel cannot erase site history")
 	assert_true(_construction.retire_excavation_phase(project, _site).ok, "physical owner retires only after refunds")
 

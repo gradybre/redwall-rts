@@ -20,7 +20,8 @@ extends RefCounted
 ## THE SUPPER'S OWN FOOD (Brendan's ruling on 1701 P6, 2026-10-07: (b)): a feast called for a supper the kitchen has
 ## already planned counts the food that supper's ordinary meal holds, since the feast replaces that meal: the kitchen
 ## lets it go when it adopts the occasion and tops the courses up from it (kitchen.gd `held_for_meal_milli`). The
-## reservation itself is unchanged: what the free food lacks at confirmation the kitchen's own top-up takes.
+## reservation itself is unchanged: what the free food lacks at confirmation the kitchen's own top-up takes. Only the
+## courses count it: the kitchen never tops a beverage up, so the herb or mead must be free.
 ## EVERY COURSE IS REQUIRED for a called feast (REQ-SET-100: "complete ingredient/portion requirements ... before
 ## accepting the plan"): the plan is refused naming what is short, where the regatta holds its feast with a missing
 ## course (decision 0682's reading for the once-a-season occasion, kept there).
@@ -142,7 +143,7 @@ func shortfalls(theme: int, eligible: int, key: int = NO_KEY) -> PackedStringArr
 			if free < need:
 				out.append(_needs(input_word(dish, k), need, free, MealRules.input_category(dish, k)))
 	var bev: int = bev_need_milli(theme, eligible)
-	var bev_free: int = available_of(bev_selector(theme), key)
+	var bev_free: int = free_of(bev_selector(theme))
 	if bev_free < bev:
 		out.append(_needs(bev_words(theme), bev, bev_free, bev_selector(theme)))
 	var water: int = RegattaRules.infusion_water_milli(eligible) if Rules.BEVERAGE[theme] == Rules.BEV_INFUSION else 0

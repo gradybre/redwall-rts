@@ -16,8 +16,8 @@ extends RefCounted
 ## cooked when its ingredients exist and says what it needs otherwise (the packet's acceptance).
 ##
 ## THE HOUR (Brendan's ruling on Q-D11, 2026-10-07: "All at 17:00 supper"): every feast, called or regatta, is served
-## at the kitchen's 17:00 supper (meal_rules.gd MEAL_SUPPER), not REQ-SET-103's 18:00 -- a deviation from the GDD's
-## hour by his ruling. Its waves are the supper's (17:00-18:59): seats >= ceil(E/3) lets up to three seatings share the
+## at the kitchen's 17:00 supper (meal_rules.gd MEAL_SUPPER); REQ-SET-103 is amended to 17:00 by DEC-058 (it read
+## 18:00). Its waves are the supper's (17:00-18:59): seats >= ceil(E/3) lets up to three seatings share the
 ## hall's seats, the kitchen seating each guest as a seat frees.
 ##
 ## THE DAY (PROVISIONAL, decision 1701): a feast is called for one of the next DAY_CHOICES suppers the kitchen can still

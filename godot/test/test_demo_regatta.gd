@@ -915,3 +915,31 @@ func test_a_guest_giving_back_its_second_course_after_the_end_still_ate_the_feas
 	var at: int = rig.kitchen.meal_keys.rfind(key)
 	assert_equal(rig.kitchen.meal_ate[at] + rig.kitchen.meal_raw[at] + rig.kitchen.meal_without[at],
 		rig.kitchen.fed.count(), "and so is the kitchen's own tally")
+
+
+func test_the_regatta_counts_the_food_its_supper_already_holds() -> void:
+	"""Brendan's ruling on decision 1701 P6 (b): the kitchen has planned the regatta day's supper (its slots run four
+	meals ahead) and holds beans and greens for it; the regatta counts them as its feast's (the feast replaces that
+	meal), is held, and the kitchen tops the feast's courses up from them at adoption."""
+	var rig: Rig = _rig()
+	var r: RegattaScript = rig.regatta
+	_stock(rig, PEA, 12000)
+	_stock(rig, CABBAGE, 12000)
+	_services.stores.add_water(40000)
+	rig.calendar.tick = tick_at(SUMMER_1, 10)
+	rig.kitchen.update()
+	var day: int = SUMMER_1 + 1
+	var key: int = Rules.feast_key(day)
+	var held: int = rig.kitchen.held_for_meal_milli(key, FarmingScript.CROP_BEANS)
+	var free: int = rig.kitchen.takes.free_milli_of_crop(rig.pantry, FarmingScript.CROP_BEANS)
+	var need: int = r.main_food_milli(r.residents())
+	assert_true(held > 0 and free < need and free + held >= need, "the day's supper holds the rest (free %d, held %d, need %d)" % [free, held, need])
+	r.count_supper(day)
+	assert_equal(r.free_beans(), free + held, "counted for that day's feast")
+	r.count_supper(day + 1)
+	assert_true(r.free_beans() < need, "not for another day's")
+	assert_equal(r.hold(day, 2, true), "", "held")
+	assert_true(rig.kitchen.occasion_adopted(), "the supper is the regatta's feast now")
+	assert_equal(rig.kitchen.takes.live_milli(rig.pantry, r.take, -1, FarmingScript.CROP_BEANS), need, "its beans all held, topped up")
+	assert_equal(r.menu.supper_key, -1, "held: nothing more counted")
+

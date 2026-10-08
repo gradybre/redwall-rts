@@ -38,6 +38,9 @@ extends RefCounted
 ## `fuel_days_after(wood_after_milli) -> int`, REQ-SET-101's post-feast reserves in thousandths of a day -- the ready
 ## food without the feast's reservation, and §5.8's fuel-days over the winter's hearths as well as the kitchen. Unbound
 ## (a check of the regatta alone), the regatta keeps its own figures.
+## THE SUPPER'S OWN FOOD (Brendan's ruling on 1701 P6, 2026-10-07): while planning, the food the kitchen's planned
+## ordinary supper on the regatta's day already holds counts as free to its feast (`count_supper`), since the feast
+## replaces that meal: what the reservation at holding lacks, the kitchen's own top-up takes when it adopts the occasion.
 
 const Rules := preload("res://demo/regatta/regatta_rules.gd")
 const RaceTask := preload("res://demo/regatta/race_task.gd")
@@ -322,14 +325,27 @@ func pace_of(boat: int, crew: PackedInt32Array) -> int:
 
 # --- the preview and the decision (the card's and the order's own; decision 0332) -------------------------
 
+func count_supper(day: int) -> void:
+	"""THE SUPPER'S OWN FOOD (Brendan's ruling on decision 1701 P6, 2026-10-07): while planning, the food the planned
+	ordinary supper of `day` holds counts as free to the feast that replaces it -- the kitchen lets it go when it adopts
+	the occasion and tops the courses up from it. Held, nothing more is counted."""
+	menu.supper_key = Rules.feast_key(day) if state == ST_IDLE and day >= 0 and kitchen != null else -1
+
+
 func free_beans() -> int:
-	"""Beans in the pantry nobody has set aside, milli-U."""
-	return kitchen.takes.free_milli_of_crop(kitchen.pantry, FarmingScript.CROP_BEANS)
+	"""Beans in the pantry nobody has set aside, milli-U (with the planned supper's own: `count_supper`)."""
+	return _free_with_supper(FarmingScript.CROP_BEANS)
 
 
 func free_cabbage() -> int:
-	"""The cabbage row in the pantry nobody has set aside, milli-U."""
-	return kitchen.takes.free_milli_of_crop(kitchen.pantry, FarmingScript.CROP_CABBAGE)
+	"""The cabbage row in the pantry nobody has set aside, milli-U (with the planned supper's own)."""
+	return _free_with_supper(FarmingScript.CROP_CABBAGE)
+
+
+func _free_with_supper(crop: int) -> int:
+	"""Selector `crop`'s free food, and what the supper `count_supper` named holds of it."""
+	var held: int = kitchen.held_for_meal_milli(menu.supper_key, crop) if menu.supper_key >= 0 else 0
+	return kitchen.takes.free_milli_of_crop(kitchen.pantry, crop) + held
 
 
 func main_food_milli(eligible_now: int) -> int:
@@ -367,6 +383,7 @@ func refusal(day: int, host: int, with_override: bool) -> String:
 	/ `refused_fix`. The Hold button and its card both run this."""
 	refused_code = ""
 	refused_fix = ""
+	count_supper(day)
 	var why: String = _plan_refusal(day, host)
 	if why.is_empty():
 		why = _feast_refusal(with_override, day)
@@ -439,6 +456,7 @@ static func _days(milli: int) -> String:
 
 func preview_lines(day: int, host: int) -> PackedStringArray:
 	"""The preview (REQ-SET-100: attendees, the courses and their food, staffing, seats, reserves), in lines."""
+	count_supper(day)
 	var e: int = residents()
 	var lines := PackedStringArray()
 	lines.append("%s: the %s feast for %d (every resident), at the day's supper; hosted by %s" % [day_text(day),
@@ -496,6 +514,7 @@ func hold(day: int, host: int, with_override: bool) -> String:
 	kitchen.takes.reserve_into(kitchen.pantry, take, FarmingScript.CROP_BEANS, need, at_hour, _read)
 	kitchen.takes.reserve_into(kitchen.pantry, take, FarmingScript.CROP_CABBAGE, need, at_hour, _read)
 	menu.reserve(take, eligible, at_hour)
+	menu.supper_key = -1
 	wood_held_milli = Rules.service_wood_milli(eligible)
 	stores.take_wood(wood_held_milli)
 	kitchen.set_occasion(Rules.feast_key(day), MealRules.DISH_BEAN_HOTPOT, Rules.main_batches(eligible), take,

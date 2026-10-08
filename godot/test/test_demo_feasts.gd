@@ -625,6 +625,8 @@ func test_a_feast_counts_the_food_its_own_supper_already_holds() -> void:
 	assert_true(Words.theme_ready_words(v.feast, Rules.HEARTH).contains("every course can be made"), "the themes say so")
 	assert_true("\n".join(Words.preview_lines(v.feast, Rules.HEARTH, DAY, 1)).contains("beans 4.0 U (free 4.0 U)"),
 		"the plan counts them")
+	assert_true("\n".join(Words.preview_lines(v.feast, Rules.HEARTH, DAY + 1, 1)).contains("beans 4.0 U (free 0.0 U)"),
+		"a plan for another supper does not")
 	assert_equal(v.feast.refusal(Rules.HEARTH, DAY + 1, 1, true), "needs beans: 4.0 U (0.0 U free) — the fields (Farm ▸ the planner) (and 1 more: see The themes)",
 		"tomorrow's feast may not count today's supper")
 	assert_equal(v.feast.hold(Rules.HEARTH, DAY, 1, true), "", "held")
@@ -634,6 +636,29 @@ func test_a_feast_counts_the_food_its_own_supper_already_holds() -> void:
 	assert_true(_run(v, func() -> bool: return f.state == FeastScript.ST_IDLE, 30000), "tallied (%s)" % Words.status_line(f))
 	assert_equal(_cooked(v, MealRules.DISH_BEAN_HOTPOT), 2, "both hotpot batches cooked from the supper's beans")
 	assert_true(Rules.covered(f.every_course, RESIDENTS), "and eaten: %s" % f.last_line)
+
+
+func test_a_supper_planned_as_another_dish_lends_its_food_too() -> void:
+	"""Today's supper planned as a fish stew holds the fish and roots; a Harvest feast for it counts them, is held and
+	cooked from them (the kitchen tops the feast fish up at adoption)."""
+	var v: Village = _village()
+	_stock(v, TROUT, 4000)
+	_stock(v, CARROT, 4000)
+	for item: int in [Catalog.ITEM_FLOUR, Catalog.ITEM_BERRIES]:
+		_stock(v, item, 60000)
+	_stock(v, Catalog.ITEM_HERB, 1000)
+	_stock(v, Catalog.ITEM_HONEY, 2000)
+	_stock(v, Catalog.ITEM_MEAD, 4000)
+	v.calendar.tick = tick_at(DAY, 10)
+	v.kitchen.update()
+	var key: int = Rules.feast_key(DAY)
+	assert_equal(v.kitchen.held_for_meal_milli(key, Catalog.CAT_FISH), 4000, "the supper's fish stew holds the fish")
+	assert_equal(v.feast.menu.shortfalls(Rules.HARVEST, RESIDENTS, key), PackedStringArray(), "counted")
+	assert_equal(v.feast.hold(Rules.HARVEST, DAY, 1, true), "", "held")
+	var f: FeastScript = v.feast
+	assert_true(_run(v, func() -> bool: return f.state == FeastScript.ST_IDLE, 30000), "tallied (%s)" % Words.status_line(f))
+	assert_equal(_cooked(v, Rules.main_dish(Rules.HARVEST)), 1, "the feast fish cooked from the stew's fish")
+	assert_true(f.attendees.size() > 0, f.last_line)
 
 
 func test_a_supper_with_a_batch_cooked_lends_the_feast_nothing() -> void:
@@ -647,6 +672,11 @@ func test_a_supper_with_a_batch_cooked_lends_the_feast_nothing() -> void:
 	assert_equal(v.kitchen.held_for_meal_milli(Rules.feast_key(DAY + 9), beans), 0, "a meal not planned")
 	assert_equal(v.feast.menu.available_of(beans, MenuScript.NO_KEY), 0, "no supper named: the free food alone")
 	assert_equal(v.feast.menu.available_of(beans, Rules.feast_key(DAY)), 4000, "the supper's own")
+	var regatta_menu := RegattaMenuScript.new()
+	regatta_menu.configure(v.kitchen, v.stores)
+	assert_equal(regatta_menu._free(beans), 0, "the regatta's menu: free food alone, no supper named")
+	regatta_menu.supper_key = Rules.feast_key(DAY)
+	assert_equal(regatta_menu._free(beans), 4000, "with its supper named, that supper's food (regatta_menu.gd)")
 	var key: int = Rules.feast_key(DAY)
 	assert_true(_run(v, func() -> bool: return v.kitchen._wip_key == key, 30000), "today's supper at the cauldron")
 	assert_equal(v.kitchen.batches_cooked, 0, "nothing cooked yet")

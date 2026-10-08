@@ -65,6 +65,11 @@ var drink_take: int = 0
 var drinks_planned: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
 var drinks_poured_milli: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
 
+## THE SUPPER'S OWN FOOD (Brendan's ruling on decision 1701 P6, 2026-10-07): the kitchen's meal key of the supper the
+## regatta plans its feast for (-1: none), set by the regatta (regatta.gd `count_supper`); the food that supper's
+## ordinary meal holds counts as free to the feast it becomes (kitchen.gd `held_for_meal_milli`).
+var supper_key: int = -1
+
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 
 
@@ -75,8 +80,12 @@ func configure(p_kitchen: KitchenScript, p_stores: StoresScript) -> void:
 
 
 func _free(category: int) -> int:
-	"""Category `category`'s food in the pantry nobody has set aside, milli-U."""
-	return kitchen.takes.free_milli_of_crop(kitchen.pantry, category) if kitchen != null else 0
+	"""Category `category`'s food in the pantry nobody has set aside, milli-U -- with what the feast's own supper holds
+	(THE SUPPER'S OWN FOOD)."""
+	if kitchen == null:
+		return 0
+	var held: int = kitchen.held_for_meal_milli(supper_key, category) if supper_key >= 0 else 0
+	return kitchen.takes.free_milli_of_crop(kitchen.pantry, category) + held
 
 
 func free_flour() -> int:

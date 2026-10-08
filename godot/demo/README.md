@@ -2701,15 +2701,15 @@ suppers (today's before 15:00), with a keeper who does not cook it (`feast/`).
 | Harvest | ceil(E/6) feast fish | ceil(E/3) berry tart | mead ceil(E/4) (and cider, if there) | Abundant Tables: work +5% (on the work pace), purpose +20% (shown) |
 | Orchard | ceil(E/4) nut roast (SET-AMEND-001 §4.2) | ceil(E/3) orchard crumble | mead ceil(E/4) (and cider, if there) | Rooted Community: social decay −20%, +2 newcomers (shown) |
 
-- **Every feast is served at the 17:00 supper** (Brendan's ruling on Q-D11, 2026-10-07: "All at 17:00 supper"), not
-  REQ-SET-103's 18:00; the kitchen seats the guests in turns at the hall's seats.
+- **Every feast is served at the 17:00 supper** (Brendan's ruling on Q-D11, 2026-10-07: "All at 17:00 supper";
+  REQ-SET-103 amended by DEC-058); the kitchen seats the guests in turns at the hall's seats.
 - **Refused truthfully**, with the fix: a keeper who cooks, too few hands (2 cooks + 1 keeper), another feast planned
   (the regatta's included: one at a time) or begun within 72 game hours, any course's or the beverage's input short
   ("needs mead: 2.0 U (0.0 U free) — the brewery's mead"), the service wood, the seats (ceil(E/3)), and REQ-SET-101's
   reserves after it -- ready food without the feast's reservation and §5.8's fuel-days over the hearths and the
   kitchen -- unless **Override reserves** is on for this feast.
-- **Its own supper's food counts**: a feast called for a supper the kitchen has already planned counts the food that
-  meal holds, since the feast replaces it (Brendan's ruling on 1701 P6).
+- **Its own supper's food counts**: a feast called (or a regatta planned) for a supper the kitchen has already planned
+  counts the food that meal holds, since the feast replaces it (Brendan's ruling on 1701 P6).
 - **Called**, everything is reserved (both courses in the kitchen's occasion, the beverage, the service wood); **Cancel**
   before 17:00 gives it all back. At 17:00 it is served; once the kitchen finalizes the supper it is tallied: who came,
   the beverage poured for them, the buff when 80% ate every course, +5 friendship a pair, one chronicle line.

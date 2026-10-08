@@ -369,6 +369,7 @@ Neither needs new state.
 | ForageClaim columns (i64) | `_claim_remaining_milli`, `_claim_created_tick`, `_claim_persistent_id` | 8 | `FORAGE_CLAIM_CAPACITY` = 8192 | `_claim_active == 0` is a free claim row | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | See the first row of this group. |
 | Forage link allocator | -- | -- | -- | `_link_free_head == -1` (`NO_LINK`) when the free list is empty | 1 | §5 CHILD_ARENAS | `_link_bump`, `_link_free_head` and `_link_used`. A bump pointer plus a free LIST, not a min-heap: like `inventory.gd`'s stacks and unlike `entity_directory.gd`'s heaps, the order it hands links out depends on the list contents, so it must be written. |
 | Forage live counts | -- | -- | -- | -- | 2 | §4 COMPONENT_COLUMNS | `_live_zone_count` and `_claim_count`, recomputed from `_zone_present` and `_claim_active`. |
+| Zone/patch bulk column diagnostic | -- | -- | -- | `REFUSE_NONE` | 3 | -- | `_last_column_refusal`, the code of the most recent refused zone/patch `copy_columns_into()`/`restore_columns()` call (ADR 1222 step 3). That pair moves the twenty section 4 columns and the section 5 allocator scalars, zone heads/counts and link arena together: the pure `columns_refusal()` (domains, free-row canon, patch blocks) and `links_refusal()` (allocator, free list, every zone chain, patch counts, each link placed once) and Directory resolution run before any write; the live-zone list is rebuilt. |
 | Forage scratch | -- | -- | -- | `_pending_*` use `-1` / `NULL_SLOT` between calls | 3 | -- | `_math`, `_math_b`, `_math_c`, `_pending_designation_slot`, `_pending_basin_slot`, `_pending_patch_row` and `_owns_directory`. |
 | Claim-column diagnostic | -- | -- | -- | -- | 3 | -- | `_last_claim_column_refusal` belongs only to the exact section7 claim boundary. Code echo; failure-only owner write, cleared on success. Local Columns/tally objects are cold staging and do not add canonical fields. |
 
@@ -968,6 +969,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---|---|---|:-:|---|---|
 | Residents saved validation bridge | -- | -- | -- | -- | 3 | -- | Pure owner12 bridge, RESIDENTS-S4-VALIDATE-R01v1/ADR0178. No mutable authoritative state or live Residents construction. Existing caller Columns projection shares framed buffers; conservatively caller102912 + transient defaults102912 + existingXPsort49152 =254976logical packedbytes within6417408stream allowance, not measuredRSS. Native/wrapper overhead unmeasured. Catalog/Directory/Needs/names/equipment and complete restore remain RESIDENTS-SAVED-BINDINGS. |
+
+### `godot/scripts/core/save_owner_forage.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Forage section 4 bridge and joint section 4 + 5 pair | -- | -- | -- | -- | 3 | -- | ADR 1222 step 3. Stateless static `framed_refusal()`, `capture_into(store, record, block)` and `apply(record, block, store)` over the section 4 FramedOwner (owner 5) and the section 5 Block (owner 2). One transient `Forage.Columns` + `Forage.Links` image per call moves both sections through `Forage.copy_columns_into()` / `restore_columns()`; refusal writes nothing and forwards the store's `COLUMN_` code. Section 1 tile heads and section 7 claims keep their own boundaries. |
 
 ### `godot/scripts/core/save_owner_injury.gd`
 

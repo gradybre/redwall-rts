@@ -3459,3 +3459,421 @@ func _refuse_claim_column(code: StringName) -> bool:
 	"""Record one claim-column refusal and return false. Changes no other field."""
 	_last_claim_column_refusal = code
 	return false
+
+
+
+# --- ARCH-SAVE-002 sections 4 + 5 bulk API (ADR 1222 build step 3) -------------------------------
+#
+# Owner `forage` is section 4 owner 5 (twenty HarvestZone/ForagePatch columns) and section 5 owner
+# 2 (the link allocator scalars, the zone chain heads and counts, and the 16384-link arena). Both
+# restore in ONE `restore_columns()` call: the pure `columns_refusal()` and `links_refusal()` and
+# the Directory resolution of every present zone run before the first write; then the ascending
+# live-zone list is rebuilt. Section 1's `_tile_link_head` and section 7's claims have their own
+# boundaries (`restore_section_1_columns()` and the claim slice); a caller restores section 1 after
+# this and runs `section_1_cross_check_refusal()`, which walks both chain directions.
+
+const REFUSE_COLUMN_SHAPE: StringName = &"COLUMN_SHAPE"
+const REFUSE_COLUMN_FLAG: StringName = &"COLUMN_FLAG"
+const REFUSE_COLUMN_ZONE: StringName = &"COLUMN_ZONE"
+const REFUSE_COLUMN_ZONE_FREE: StringName = &"COLUMN_ZONE_FREE"
+const REFUSE_COLUMN_PATCH: StringName = &"COLUMN_PATCH"
+const REFUSE_COLUMN_LINKS: StringName = &"COLUMN_LINKS"
+const REFUSE_COLUMN_ZONE_CHAIN: StringName = &"COLUMN_ZONE_CHAIN"
+const REFUSE_COLUMN_DIRECTORY: StringName = &"COLUMN_DIRECTORY"
+
+## The code of the most recent refused zone/patch bulk column call, or REFUSE_NONE. Category 3.
+var _last_column_refusal: StringName = REFUSE_NONE
+
+
+class Columns extends RefCounted:
+	"""Caller-owned image of the twenty section 4 columns, in registry ordinal order."""
+	var zone_present: PackedByteArray = PackedByteArray()
+	var patch_present: PackedByteArray = PackedByteArray()
+	var zone_type: PackedInt32Array = PackedInt32Array()
+	var zone_danger: PackedInt32Array = PackedInt32Array()
+	var zone_quota_milli: PackedInt64Array = PackedInt64Array()
+	var zone_protected: PackedByteArray = PackedByteArray()
+	var zone_enabled: PackedByteArray = PackedByteArray()
+	var zone_ref_slot: PackedInt32Array = PackedInt32Array()
+	var zone_ref_generation: PackedInt32Array = PackedInt32Array()
+	var zone_basin_slot: PackedInt32Array = PackedInt32Array()
+	var zone_basin_generation: PackedInt32Array = PackedInt32Array()
+	var zone_harvested_today_milli: PackedInt64Array = PackedInt64Array()
+	var zone_quota_reserved_milli: PackedInt64Array = PackedInt64Array()
+	var zone_quota_mode: PackedByteArray = PackedByteArray()
+	var patch_item_id: PackedInt32Array = PackedInt32Array()
+	var patch_zone_slot: PackedInt32Array = PackedInt32Array()
+	var patch_zone_generation: PackedInt32Array = PackedInt32Array()
+	var patch_stock_milli: PackedInt64Array = PackedInt64Array()
+	var patch_capacity_milli: PackedInt64Array = PackedInt64Array()
+	var patch_harvested_year_milli: PackedInt64Array = PackedInt64Array()
+
+	func _init() -> void:
+		"""Size every column by name; the copy refills them, so no clear values are written."""
+		zone_present.resize(HARVEST_ZONE_CAPACITY)
+		zone_type.resize(HARVEST_ZONE_CAPACITY)
+		zone_danger.resize(HARVEST_ZONE_CAPACITY)
+		zone_quota_milli.resize(HARVEST_ZONE_CAPACITY)
+		zone_protected.resize(HARVEST_ZONE_CAPACITY)
+		zone_enabled.resize(HARVEST_ZONE_CAPACITY)
+		zone_ref_slot.resize(HARVEST_ZONE_CAPACITY)
+		zone_ref_generation.resize(HARVEST_ZONE_CAPACITY)
+		zone_basin_slot.resize(HARVEST_ZONE_CAPACITY)
+		zone_basin_generation.resize(HARVEST_ZONE_CAPACITY)
+		zone_harvested_today_milli.resize(HARVEST_ZONE_CAPACITY)
+		zone_quota_reserved_milli.resize(HARVEST_ZONE_CAPACITY)
+		zone_quota_mode.resize(HARVEST_ZONE_CAPACITY)
+		_size_patches()
+
+	func _size_patches() -> void:
+		"""Size the seven ForagePatch columns."""
+		patch_present.resize(FORAGE_PATCH_CAPACITY)
+		patch_item_id.resize(FORAGE_PATCH_CAPACITY)
+		patch_zone_slot.resize(FORAGE_PATCH_CAPACITY)
+		patch_zone_generation.resize(FORAGE_PATCH_CAPACITY)
+		patch_stock_milli.resize(FORAGE_PATCH_CAPACITY)
+		patch_capacity_milli.resize(FORAGE_PATCH_CAPACITY)
+		patch_harvested_year_milli.resize(FORAGE_PATCH_CAPACITY)
+
+	func is_sized() -> bool:
+		"""True only at the canonical extents."""
+		for column: Variant in [zone_present, zone_type, zone_danger, zone_quota_milli,
+				zone_protected, zone_enabled, zone_ref_slot, zone_ref_generation, zone_basin_slot,
+				zone_basin_generation, zone_harvested_today_milli, zone_quota_reserved_milli,
+				zone_quota_mode]:
+			if column.size() != HARVEST_ZONE_CAPACITY:
+				return false
+		for column: Variant in [patch_present, patch_item_id, patch_zone_slot,
+				patch_zone_generation, patch_stock_milli, patch_capacity_milli,
+				patch_harvested_year_milli]:
+			if column.size() != FORAGE_PATCH_CAPACITY:
+				return false
+		return true
+
+
+class Links extends RefCounted:
+	"""Caller-owned image of section 5: the allocator scalars, zone heads/counts and the arena."""
+	var link_bump: int = 0
+	var link_free_head: int = NO_LINK
+	var link_used: int = 0
+	var zone_link_head: PackedInt32Array = PackedInt32Array()
+	var zone_tile_count: PackedInt32Array = PackedInt32Array()
+	var zone_patch_count: PackedInt32Array = PackedInt32Array()
+	var link_tile: PackedInt32Array = PackedInt32Array()
+	var link_zone: PackedInt32Array = PackedInt32Array()
+	var link_tile_next: PackedInt32Array = PackedInt32Array()
+	var link_zone_next: PackedInt32Array = PackedInt32Array()
+
+	func _init() -> void:
+		"""Size every column by name."""
+		zone_link_head.resize(HARVEST_ZONE_CAPACITY)
+		zone_tile_count.resize(HARVEST_ZONE_CAPACITY)
+		zone_patch_count.resize(HARVEST_ZONE_CAPACITY)
+		link_tile.resize(ZONE_LINK_CAPACITY)
+		link_zone.resize(ZONE_LINK_CAPACITY)
+		link_tile_next.resize(ZONE_LINK_CAPACITY)
+		link_zone_next.resize(ZONE_LINK_CAPACITY)
+
+	func is_sized() -> bool:
+		"""True only at the canonical extents."""
+		return zone_link_head.size() == HARVEST_ZONE_CAPACITY \
+			and zone_tile_count.size() == HARVEST_ZONE_CAPACITY \
+			and zone_patch_count.size() == HARVEST_ZONE_CAPACITY \
+			and link_tile.size() == ZONE_LINK_CAPACITY and link_zone.size() == ZONE_LINK_CAPACITY \
+			and link_tile_next.size() == ZONE_LINK_CAPACITY \
+			and link_zone_next.size() == ZONE_LINK_CAPACITY
+
+
+func last_column_refusal() -> StringName:
+	"""The code of the most recent refused zone/patch bulk call, or REFUSE_NONE after a success."""
+	return _last_column_refusal
+
+
+func copy_columns_into(columns: Columns, links: Links) -> bool:
+	"""Snapshot sections 4 and 5 into caller-owned, fully sized images. False = COLUMN_SHAPE."""
+	if columns == null or links == null or not columns.is_sized() or not links.is_sized():
+		_last_column_refusal = REFUSE_COLUMN_SHAPE
+		return false
+	_copy_zone_columns_into(columns)
+	_copy_patch_columns_into(columns)
+	_copy_links_into(links)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+static func _refill(out: Variant, source: Variant) -> void:
+	"""Refill a caller's packed buffer in place with a snapshot of one same-typed column."""
+	out.clear()
+	out.append_array(source)
+
+
+func _copy_zone_columns_into(c: Columns) -> void:
+	"""The thirteen HarvestZone columns."""
+	_refill(c.zone_present, _zone_present)
+	_refill(c.zone_type, _zone_type)
+	_refill(c.zone_danger, _zone_danger)
+	_refill(c.zone_quota_milli, _zone_quota_milli)
+	_refill(c.zone_protected, _zone_protected)
+	_refill(c.zone_enabled, _zone_enabled)
+	_refill(c.zone_ref_slot, _zone_ref_slot)
+	_refill(c.zone_ref_generation, _zone_ref_generation)
+	_refill(c.zone_basin_slot, _zone_basin_slot)
+	_refill(c.zone_basin_generation, _zone_basin_generation)
+	_refill(c.zone_harvested_today_milli, _zone_harvested_today_milli)
+	_refill(c.zone_quota_reserved_milli, _zone_quota_reserved_milli)
+	_refill(c.zone_quota_mode, _zone_quota_mode)
+
+
+func _copy_patch_columns_into(c: Columns) -> void:
+	"""The seven ForagePatch columns."""
+	_refill(c.patch_present, _patch_present)
+	_refill(c.patch_item_id, _patch_item_id)
+	_refill(c.patch_zone_slot, _patch_zone_slot)
+	_refill(c.patch_zone_generation, _patch_zone_generation)
+	_refill(c.patch_stock_milli, _patch_stock_milli)
+	_refill(c.patch_capacity_milli, _patch_capacity_milli)
+	_refill(c.patch_harvested_year_milli, _patch_harvested_year_milli)
+
+
+func _copy_links_into(l: Links) -> void:
+	"""The allocator scalars, the zone heads and counts, and the link arena."""
+	l.link_bump = _link_bump
+	l.link_free_head = _link_free_head
+	l.link_used = _link_used
+	_refill(l.zone_link_head, _zone_link_head)
+	_refill(l.zone_tile_count, _zone_tile_count)
+	_refill(l.zone_patch_count, _zone_patch_count)
+	_refill(l.link_tile, _link_tile)
+	_refill(l.link_zone, _link_zone)
+	_refill(l.link_tile_next, _link_tile_next)
+	_refill(l.link_zone_next, _link_zone_next)
+
+
+func restore_columns(columns: Columns, links: Links) -> bool:
+	"""Replace sections 4 and 5 together, then rebuild the live-zone list. False writes nothing."""
+	var code: StringName = columns_refusal(columns)
+	if code == REFUSE_NONE:
+		code = links_refusal(columns, links)
+	if code == REFUSE_NONE:
+		code = _zone_directory_refusal(columns)
+	if code != REFUSE_NONE:
+		_last_column_refusal = code
+		return false
+	_install_zone_columns(columns)
+	_install_patch_columns(columns)
+	_install_links(links)
+	_rebuild_live_zones()
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func _install_zone_columns(c: Columns) -> void:
+	"""Private copies of the thirteen accepted HarvestZone columns."""
+	_zone_present = c.zone_present.duplicate()
+	_zone_type = c.zone_type.duplicate()
+	_zone_danger = c.zone_danger.duplicate()
+	_zone_quota_milli = c.zone_quota_milli.duplicate()
+	_zone_protected = c.zone_protected.duplicate()
+	_zone_enabled = c.zone_enabled.duplicate()
+	_zone_ref_slot = c.zone_ref_slot.duplicate()
+	_zone_ref_generation = c.zone_ref_generation.duplicate()
+	_zone_basin_slot = c.zone_basin_slot.duplicate()
+	_zone_basin_generation = c.zone_basin_generation.duplicate()
+	_zone_harvested_today_milli = c.zone_harvested_today_milli.duplicate()
+	_zone_quota_reserved_milli = c.zone_quota_reserved_milli.duplicate()
+	_zone_quota_mode = c.zone_quota_mode.duplicate()
+
+
+func _install_patch_columns(c: Columns) -> void:
+	"""Private copies of the seven accepted ForagePatch columns."""
+	_patch_present = c.patch_present.duplicate()
+	_patch_item_id = c.patch_item_id.duplicate()
+	_patch_zone_slot = c.patch_zone_slot.duplicate()
+	_patch_zone_generation = c.patch_zone_generation.duplicate()
+	_patch_stock_milli = c.patch_stock_milli.duplicate()
+	_patch_capacity_milli = c.patch_capacity_milli.duplicate()
+	_patch_harvested_year_milli = c.patch_harvested_year_milli.duplicate()
+
+
+func _install_links(l: Links) -> void:
+	"""The accepted allocator scalars and private copies of the section 5 columns."""
+	_link_bump = l.link_bump
+	_link_free_head = l.link_free_head
+	_link_used = l.link_used
+	_zone_link_head = l.zone_link_head.duplicate()
+	_zone_tile_count = l.zone_tile_count.duplicate()
+	_zone_patch_count = l.zone_patch_count.duplicate()
+	_link_tile = l.link_tile.duplicate()
+	_link_zone = l.link_zone.duplicate()
+	_link_tile_next = l.link_tile_next.duplicate()
+	_link_zone_next = l.link_zone_next.duplicate()
+
+
+func _rebuild_live_zones() -> void:
+	"""The category-2 ascending live list, from the installed presence bytes."""
+	_live_zone_count = 0
+	_live_zone_slots.fill(EntityDirectory.NULL_SLOT)
+	for slot: int in HARVEST_ZONE_CAPACITY:
+		if _zone_present[slot] == 1:
+			_live_zone_slots[_live_zone_count] = slot
+			_live_zone_count += 1
+
+
+func _zone_directory_refusal(c: Columns) -> StringName:
+	"""Every present zone's reference resolves to a live HARVEST_ZONE entry at that slot."""
+	for slot: int in HARVEST_ZONE_CAPACITY:
+		if c.zone_present[slot] != 1:
+			continue
+		var ref: Vector2i = Vector2i(c.zone_ref_slot[slot], c.zone_ref_generation[slot])
+		if not _directory.is_valid_of_kind(ref, EntityDirectory.KIND_HARVEST_ZONE) \
+				or _directory.get_typed_row(ref) != slot:
+			return REFUSE_COLUMN_DIRECTORY
+	return REFUSE_NONE
+
+
+# --- the pure predicates --------------------------------------------------------------------------
+
+static func columns_refusal(c: Columns) -> StringName:
+	"""Shape, canonical flags, then every zone row and every patch row, ascending."""
+	if c == null or not c.is_sized():
+		return REFUSE_COLUMN_SHAPE
+	for column: PackedByteArray in [c.zone_present, c.zone_protected, c.zone_enabled,
+			c.patch_present]:
+		for value: int in column:
+			if value > 1:
+				return REFUSE_COLUMN_FLAG
+	for slot: int in HARVEST_ZONE_CAPACITY:
+		var code: StringName = _zone_row_refusal(c, slot)
+		if code != REFUSE_NONE:
+			return code
+	for row: int in FORAGE_PATCH_CAPACITY:
+		var patch: StringName = _patch_row_refusal(c, row)
+		if patch != REFUSE_NONE:
+			return patch
+	return REFUSE_NONE
+
+
+static func _ref_shape_ok(slot: int, generation: int) -> bool:
+	"""A live-shaped Directory reference: a slot and a nonzero generation."""
+	return slot >= 0 and slot < EntityDirectory.DIRECTORY_CAPACITY and generation >= 1
+
+
+static func _zone_row_refusal(c: Columns, slot: int) -> StringName:
+	"""One zone: domains always; a present zone has live-shaped refs, a free one only history."""
+	if c.zone_type[slot] < 0 or c.zone_type[slot] >= ZONE_TYPE_COUNT \
+			or c.zone_danger[slot] < DANGER_MIN or c.zone_danger[slot] > DANGER_MAX \
+			or c.zone_quota_milli[slot] < 0 or c.zone_quota_mode[slot] >= QUOTA_MODE_COUNT \
+			or c.zone_harvested_today_milli[slot] < 0 or c.zone_quota_reserved_milli[slot] < 0:
+		return REFUSE_COLUMN_ZONE
+	if c.zone_present[slot] == 1:
+		if c.zone_type[slot] == ZONE_TYPE_RESERVED_1 \
+				or not _ref_shape_ok(c.zone_ref_slot[slot], c.zone_ref_generation[slot]) \
+				or not _ref_shape_ok(c.zone_basin_slot[slot], c.zone_basin_generation[slot]):
+			return REFUSE_COLUMN_ZONE
+		return REFUSE_NONE
+	if c.zone_ref_slot[slot] != EntityDirectory.NULL_SLOT \
+			or c.zone_ref_generation[slot] != EntityDirectory.NULL_GENERATION \
+			or c.zone_basin_slot[slot] != EntityDirectory.NULL_SLOT \
+			or c.zone_basin_generation[slot] != EntityDirectory.NULL_GENERATION \
+			or c.zone_harvested_today_milli[slot] != 0 or c.zone_quota_reserved_milli[slot] != 0 \
+			or c.zone_quota_mode[slot] != QUOTA_MODE_AUTOMATIC:
+		return REFUSE_COLUMN_ZONE_FREE
+	return REFUSE_NONE
+
+
+static func _patch_row_refusal(c: Columns, row: int) -> StringName:
+	"""A present patch belongs to its block's present zone at its kind's capacity; else clear."""
+	@warning_ignore("integer_division") var zone: int = row / PATCHES_PER_ZONE
+	var kind: int = row % PATCHES_PER_ZONE
+	if c.patch_present[row] == 0:
+		if c.patch_item_id[row] != -1 or c.patch_zone_slot[row] != EntityDirectory.NULL_SLOT \
+				or c.patch_zone_generation[row] != EntityDirectory.NULL_GENERATION \
+				or c.patch_stock_milli[row] != 0 or c.patch_capacity_milli[row] != 0 \
+				or c.patch_harvested_year_milli[row] != 0:
+			return REFUSE_COLUMN_PATCH
+		return REFUSE_NONE
+	var capacity: int = PATCH_CAPACITY_U[kind] * MILLI_PER_UNIT
+	if c.zone_present[zone] != 1 or c.patch_zone_slot[row] != c.zone_ref_slot[zone] \
+			or c.patch_zone_generation[row] != c.zone_ref_generation[zone] \
+			or c.patch_item_id[row] < 0 or c.patch_capacity_milli[row] != capacity \
+			or c.patch_stock_milli[row] < 0 or c.patch_stock_milli[row] > capacity \
+			or c.patch_harvested_year_milli[row] < 0:
+		return REFUSE_COLUMN_PATCH
+	return REFUSE_NONE
+
+
+static func links_refusal(c: Columns, l: Links) -> StringName:
+	"""Allocator, free list, every present zone's chain and patch count; every link placed once."""
+	if c == null or l == null or not c.is_sized() or not l.is_sized():
+		return REFUSE_COLUMN_SHAPE
+	if l.link_bump < 0 or l.link_bump > ZONE_LINK_CAPACITY or l.link_used < 0 \
+			or l.link_used > l.link_bump:
+		return REFUSE_COLUMN_LINKS
+	var placed: PackedByteArray = PackedByteArray()
+	placed.resize(ZONE_LINK_CAPACITY)
+	var code: StringName = _free_list_refusal(l, placed)
+	if code == REFUSE_NONE:
+		code = _zone_chains_refusal(c, l, placed)
+	if code != REFUSE_NONE:
+		return code
+	for link: int in ZONE_LINK_CAPACITY:
+		var expected: int = 1 if link < l.link_bump else 0
+		if placed[link] != expected:
+			return REFUSE_COLUMN_LINKS
+		if link >= l.link_bump and not _link_is_clear(l, link, NO_LINK):
+			return REFUSE_COLUMN_LINKS
+	return REFUSE_NONE
+
+
+static func _link_is_clear(l: Links, link: int, tile_next: int) -> bool:
+	"""A free or never-used link: no tile, no zone, no zone successor, the given tile slot."""
+	return l.link_tile[link] == NO_LINK and l.link_zone[link] == EntityDirectory.NULL_SLOT \
+		and l.link_zone_next[link] == NO_LINK and l.link_tile_next[link] == tile_next
+
+
+static func _free_list_refusal(l: Links, placed: PackedByteArray) -> StringName:
+	"""The free list threads `bump - used` clear links below the bump, each once."""
+	var count: int = 0
+	var link: int = l.link_free_head
+	while link != NO_LINK:
+		if link < 0 or link >= l.link_bump or placed[link] == 1 \
+				or not _link_is_clear(l, link, l.link_tile_next[link]):
+			return REFUSE_COLUMN_LINKS
+		placed[link] = 1
+		count += 1
+		link = l.link_tile_next[link]
+	return REFUSE_NONE if count == l.link_bump - l.link_used else REFUSE_COLUMN_LINKS
+
+
+static func _zone_chains_refusal(c: Columns, l: Links, placed: PackedByteArray) -> StringName:
+	"""Each zone's chain lists its own distinct tiles at its count; free zones hold none."""
+	var last_zone: PackedInt32Array = PackedInt32Array()
+	last_zone.resize(TILE_COUNT)
+	last_zone.fill(-1)
+	for zone: int in HARVEST_ZONE_CAPACITY:
+		if _patch_count_of(c, zone) != l.zone_patch_count[zone]:
+			return REFUSE_COLUMN_ZONE_CHAIN
+		var count: int = 0
+		var link: int = l.zone_link_head[zone]
+		if c.zone_present[zone] != 1 and (link != NO_LINK or l.zone_tile_count[zone] != 0):
+			return REFUSE_COLUMN_ZONE_CHAIN
+		while link != NO_LINK:
+			if link < 0 or link >= l.link_bump or placed[link] == 1 or l.link_zone[link] != zone \
+					or l.link_tile[link] < 0 or l.link_tile[link] >= TILE_COUNT \
+					or last_zone[l.link_tile[link]] == zone:
+				return REFUSE_COLUMN_ZONE_CHAIN
+			placed[link] = 1
+			last_zone[l.link_tile[link]] = zone
+			count += 1
+			link = l.link_zone_next[link]
+		if count != l.zone_tile_count[zone]:
+			return REFUSE_COLUMN_ZONE_CHAIN
+	return REFUSE_NONE
+
+
+static func _patch_count_of(c: Columns, zone: int) -> int:
+	"""How many of a zone's five patch rows are present."""
+	var count: int = 0
+	for kind: int in PATCHES_PER_ZONE:
+		count += c.patch_present[zone * PATCHES_PER_ZONE + kind]
+	return count

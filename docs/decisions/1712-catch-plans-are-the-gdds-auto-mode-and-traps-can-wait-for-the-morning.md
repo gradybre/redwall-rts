@@ -1,5 +1,5 @@
 # 1712 — Catch plans are the GDD's auto mode, and traps can wait for the morning run
-Date: 2026-10-07 · Status: Accepted (P5–P7 are PROPOSALS awaiting Brendan)
+Date: 2026-10-07 · Status: Accepted (proposals P5–P7 approved as built, 2026-10-07)
 
 Part of the fishing revamp (#49); the lane's record, its gates and its review are [1711](1711-the-fishing-rolls-hazards-and-rare-catches-on-the-fishing-stream.md).
 
@@ -57,3 +57,9 @@ Part of the fishing revamp (#49); the lane's record, its gates and its review ar
 
 GDD §5.4 (auto mode, REQ-SET-046, the trap row), §5.7 (the fish row); review ECO-024 and ECO-026 (decision 0493 row W,
 approved 2026-09-30); feature #49 (2026-10-01).
+
+## Brendan's rulings (2026-10-07)
+
+Relayed by the coordinator on PR #236 (no verbatim wording was passed on): P5, P6 and P7 **approved as built, the
+values provisional** -- the morning run's 06:00–10:00 window and the one-day closure warning stay PROVISIONAL; the
+preserving plan, menu-led collection and "land now" are not built (option (a)).

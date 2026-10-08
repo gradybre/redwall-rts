@@ -1,5 +1,5 @@
 # 1711 — The fishing rolls: hazards and rare catches on the FISHING stream
-Date: 2026-10-07 · Status: Accepted (P1–P3 are PROPOSALS awaiting Brendan)
+Date: 2026-10-07 · Status: Accepted (proposals P1–P3 and P10 approved as built, 2026-10-07)
 
 The fishing revamp, feature #49 (Brendan, 2026-10-01, "NEW 3"; selected for building on 2026-10-07). This is the
 lane's main record. Its companions are **1712** (catch plans and trap collection) and **1713** (each water's record and
@@ -176,3 +176,12 @@ No CRITICAL findings. Every HIGH and MEDIUM was fixed, each with a test:
   **SURVIVED_MUTANTS: none.**
 - **The review:** see above. **Commits** are on named paths only, with the diff scanned for credential-shaped strings
   (one false positive: "ta*sk-d*riven").
+
+## Brendan's rulings (2026-10-07)
+
+Relayed by the coordinator on PR #236 (no verbatim wording was passed on): **P1–P10 approved as built, with the values
+provisional**, across 1711–1713. That covers P1 (the helm), P2 (excellent fish stay in the books), P3 (no fishing
+rescue in the non-fatal demo) and P10 (same-frame draws in job order) here; P5–P7 in 1712; P4, P8 and P9 in 1713.
+**Boats: (a)** -- fishing boats stay task-driven (0432, 0461); river trade's boats get router crossing rows later, in
+a lane that owns the router. Status is now Accepted without pending proposals; every PROVISIONAL value stays
+provisional until a balance run tunes it.

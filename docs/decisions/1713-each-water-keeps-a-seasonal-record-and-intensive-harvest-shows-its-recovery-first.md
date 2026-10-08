@@ -1,5 +1,5 @@
 # 1713 — Each water keeps a seasonal record, and intensive harvest shows its recovery first
-Date: 2026-10-07 · Status: Accepted (P4, P8 and P9 are PROPOSALS awaiting Brendan)
+Date: 2026-10-07 · Status: Accepted (proposals P4, P8 and P9 approved as built, 2026-10-07)
 
 Part of the fishing revamp (#49); the lane's record, gates and review are [1711](1711-the-fishing-rolls-hazards-and-rare-catches-on-the-fishing-stream.md).
 
@@ -55,3 +55,9 @@ Part of the fishing revamp (#49); the lane's record, gates and review are [1711]
 
 GDD §5.4 (the recovery formula, quotas, floors, REQ-SET-047–049), READY_06 §5 (decisions 0027/0036); review ECO-025
 (decision 0493 row W).
+
+## Brendan's rulings (2026-10-07)
+
+Relayed by the coordinator on PR #236 (no verbatim wording was passed on): P4, P8 and P9 **approved as built, the
+values provisional** -- recovery is shown back strictly above 40% (option (a)); the record keeps 12 days
+(PROVISIONAL); intensive harvest has no automatic end (option (a)).

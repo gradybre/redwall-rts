@@ -97,6 +97,11 @@ zero**, even with 0 failures.
   `@warning_ignore("integer_division") var half: int = n / 2`, on the statement itself. `int(a / b)` does not silence
   the warning, an annotation on the `func` line does not cover its body, and an `elif` condition needs
   `@warning_ignore_start`/`@warning_ignore_restore` around it.
+- **The analyzer's language-server port is shared by every checkout.** `tools/gdscript_warnings.py` uses `--port 6018`
+  unless told otherwise. When another session's editor already listens there, the analyzer reads that project's scripts,
+  not yours. It then reports hundreds of false warnings ("Cannot find member …", "Preload file … does not exist",
+  "… is a constant but does not contain a type"). Check with `lsof -iTCP:6018 -sTCP:LISTEN`, and pass a free
+  `--port` (decision 1738).
 
 ## The Windows demo build
 

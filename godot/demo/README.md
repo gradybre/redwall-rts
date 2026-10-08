@@ -2754,6 +2754,38 @@ Each of GDD §5.10's seven events is shown and felt by its numbers (`weather/wea
 - **Paused**, a strike holds still and nothing new strikes.
 - The live harness: `godot --path godot --script res://test/live/demo_weather_live.gd -- --size 1920x1080 --capture <dir>`.
 
+## The balance rerun's tuning (decisions 1732-1737)
+
+Brendan's rulings of 2026-10-07 on the balance rerun's proposals (decision 1731;
+`docs/balance/2026-10-07-year-matrix-rerun.md`):
+
+- **A portion and a half a diner** (1732, P1 (b)).
+  - **Planning.** The kitchen plans ceil(1.5 × residents) portions a meal (`meal_rules.gd portions_for`).
+  - **Eating.** Every diner eats a portion, then half of them take a second, by turns: resident i at meal key k when
+    i + k is even, so three portions (5400 NP) a resident a day. The turns rule is a PROPOSAL.
+  - **A second helping is food only.** It is never a second entry in the meal's event, tally or variety history, and it
+    is never taken while someone still waits for a first.
+  - **Occasions.** An occasion's meal has no seconds.
+  - **The setting.** `kitchen.portion_halves` (3) is per kitchen. Suites about other mechanics set 2.
+- **The cordial** (1733, P2 (a) + (c)).
+  - **Shelf.** It keeps 240 h.
+  - **Pouring.** `kitchen/table_drink.gd` pours ceil(diners/4) U of free cordial at every ordinary supper somebody ate,
+    reading the kitchen's published meal events. A feast pours its own.
+- **Ordering a drink** (mead, the cordial, ale, cider) **warns** when the stores already hold two feasts' worth, 6 U (1734,
+  P3 (b)). The warning goes on the card and in the order's answer, and the order is never refused.
+- **The bean hotpot** takes beans and greens **or roots** (1735, P5 (a)), so the rotation's peas are eaten. Ready food
+  counts it, pooling the two categories.
+- **"Eaten raw: N days" beside Ready food** (1736, P7 (a)).
+  - **What it counts.** `kitchen/raw_reserve.gd` counts the free raw-edible food Ready food does not count, at its NP,
+    over a day of portions.
+  - **Where it shows.** On the ledger's food line ("Ready food: 2.5 days · raw 0.4 days") and in the cell's tooltip.
+  - **How often.** It is worked out at most once a game hour.
+- **A batch holds its water** (1737). `fishery.gd water_held_milli` is the water of batches ordered but not yet started,
+  and a batch's refusal and card see the butt less that hold. Only the fishery's own orders see it: the butt
+  (`tunnel_stores.gd`) keeps no reservations.
+
+No key is added.
+
 ## Layout
 
 | Folder | Owns |
@@ -2777,7 +2809,7 @@ Each of GDD §5.10's seven events is shown and felt by its numbers (`weather/wea
 | `regatta/` | The regatta (decision 0438): its rules (the GDD's Hearth feast, the race), the occasion, race and tally (`regatta.gd`), the crews' task, and the node wiring it into the village, the Water panel and the HUD's Feast command (`demo_regatta.gd`) |
 | `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel; whose water range the map layer paints (`water_range.gd`) |
 | `farm/` | The farm: real FarmPlot rows, the pantry (and its ledger) and its storage providers, the Pantry's Stocks table (`farm_pantry_rows.gd`), the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves; the seasonal planner -- its overview rows, season calendar and timeline, soil plans, the after-action record and its tables (`farm_planner*.gd`, `farm_plan_rows.gd`, `farm_season.gd`, `farm_timeline.gd`, `farm_soil_plan*.gd`, `farm_record*.gd`) -- and the bed panel's Compare view (`farm_compare_view.gd`); the crop plans -- crop roles (`farm_crop_roles.gd`), the kitchen garden (`farm_garden*.gd`), harvest plans (`farm_harvest_*.gd`), tending policies (`farm_tending*.gd`) and the tunnel outlet box (`farm_outlet_box.gd`) |
-| `kitchen/` | The meal loop: the recipe book (`dish_book.gd`) and each species' favourites (`dish_favourites.gd`), the dishes' columns and numbers (`meal_rules.gd`), the portions (`meal_store.gd`), the ingredient holds (`ingredient_takes.gd`), nourishment, the kitchen and its places, task and words, the steam, bowls and carrying (`kitchen_view.gd`), the Pantry's Kitchen tab and the node with the kitchen pantry (`demo_kitchen.gd`) |
+| `kitchen/` | The meal loop: the recipe book (`dish_book.gd`) and each species' favourites (`dish_favourites.gd`), the dishes' columns and numbers (`meal_rules.gd`), the portions (`meal_store.gd`), the ingredient holds (`ingredient_takes.gd`), nourishment, the kitchen and its places, task and words, the steam, bowls and carrying (`kitchen_view.gd`), the Pantry's Kitchen tab and the node with the kitchen pantry (`demo_kitchen.gd`); the supper's table drink (`table_drink.gd`) and the raw reserve beside Ready food (`raw_reserve.gd`) (decisions 1733, 1736) |
 | `orchard/` | The orchard (decisions 0671-0677): its numbers (`orchard_rules.gd`), the trees as real rows with the hedge, nursery plans, groups and the grove (`orchard_model.gd`), the jobs and their task (`orchard_jobs.gd`, `orchard_task.gd`), the words and cards (`orchard_text.gd`, `orchard_cards.gd`), the panel, the drawing, and the node wiring it into the village (`demo_orchard.gd`) |
 | `seasons/` | The seasons on the woods and ground (decision 0551): the sampling (`season_look.gd`), the view that writes it to every tree, the ground and the tufts (`season_view.gd`), the leaf shader include and the in-leaf tree shader, the bare boughs and the falling leaves |
 | `forestry/` | The woods: the trees as real ResourceNode rows, zones, deadfall, skills, the job board and crew, the yard, the drawings (falls, stumps, trunks, particles, zone marks), the pick, the zone tool and the Woods panel |

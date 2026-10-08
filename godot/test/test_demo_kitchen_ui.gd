@@ -28,6 +28,9 @@ const NightScript := preload("res://demo/burrow/night_routine.gd")
 const SleepTaskScript := preload("res://demo/burrow/sleep_task.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
+const RawReserveScript := preload("res://demo/kitchen/raw_reserve.gd")
+const CountersScript := preload("res://demo/ui/demo_hud_counters.gd")
+const TakesScript := preload("res://demo/kitchen/ingredient_takes.gd")
 
 const OATS: int = 15
 const CARROT: int = 2
@@ -76,6 +79,9 @@ func _kitchen(count: int, tick: int, pantry: PantryScript, stores: StoresScript)
 	places.set_points(Vector2(6.0, 0.0), Vector2(3.0, -3.0), Vector2(0.0, 4.0), Vector2(1.5, 4.5))
 	places.add_table_seats(Vector2(3.0, -3.0), PlacesScript.SEATS_PER_TABLE)
 	var kitchen := KitchenScript.new()
+	## One portion a diner (decision 1732's `portion_halves` 2): this suite's scenarios are about other mechanics, sized
+	## for one portion each; the portion and a half and its seconds are test_demo_balance_tuning.gd's.
+	kitchen.portion_halves = 2
 	kitchen.configure(brains, names, species, keys, pantry, stores, calendar, places)
 	return kitchen
 
@@ -110,17 +116,21 @@ func test_ready_food_is_days_of_meals() -> void:
 
 
 func test_the_ledger_shows_the_stock_behind_the_days() -> void:
-	"""The ledger's Ready food line, then one line of the stock behind it: the portions, the grain and the roots (the
-	shell's ledger is a fixed size); the tooltip says how the days are counted."""
+	"""The ledger's Ready food line with the raw reserve beside it (decision 1736), then one line of the stock behind it:
+	the portions, the grain and the roots (the shell's ledger is a fixed size); the tooltip says how the days are
+	counted, and the raw reserve's days."""
 	var pantry := _pantry()
 	var kitchen := _kitchen(9, tick_at(1, 20), pantry, StoresScript.new())
 	pantry.add_into(OATS, 20000, 0, _read)
 	var model := ModelScript.new()
 	model.bind_meals(kitchen)
 	var line: String = model.ledger_line(ModelScript.CELL_FOOD, kitchen.days_of_meals_milli())
-	assert_equal(line, "Ready food: 1.1 days of meals\n0 portions · grain 20.0 · roots 0.0 U", "the ledger")
+	assert_equal(line, "Ready food: 1.1 days · raw 0 days\n0 portions · grain 20.0 · roots 0.0 U", "the ledger")
+	assert_true(("Ready food: %s · raw %s" % [Words.days_value(12500), Words.days_value(12500)]).length() <= 37,
+		"the longest line keeps to the ledger's width")
 	assert_equal(model.tooltip(ModelScript.CELL_FOOD, kitchen.days_of_meals_milli()), "Ready food: 1.1 days of meals "
-		+ "(portions held and cookable, over a day's portions). Click for the ledger.", "the tooltip")
+		+ "(portions held and cookable, over a day's portions). Eaten raw: 0 days more (berries, fruit, honey, nuts, "
+		+ "jam, cheese and other food eaten as it is). Click for the ledger.", "the tooltip")
 
 
 # --- the Pantry ----------------------------------------------------------------------------------
@@ -327,3 +337,45 @@ func test_a_cooked_dish_row_in_the_stocks_carries_its_icon() -> void:
 		if icon.get_parent().visible and icon.texture != null:
 			shown.append(icon.texture)
 	assert_true(shown.has(props.staged_icon(&"dish_pasty")), "the pasty's row carries its icon")
+
+
+func test_the_raw_reserve_counts_what_ready_food_does_not_in_days() -> void:
+	"""Decision 1736 (P7 (a)): berries 10 U (700 NP) and honey 5 U (1200 NP), free, are 13 000 NP: over nine
+	residents' day of portions (18 x 1800 NP) that is 0.401 days; oats and carrots (Ready food's own) and honey set
+	aside are not counted; the HUD's figure is worked out once a game hour."""
+	var pantry := _pantry()
+	var kitchen := _kitchen(9, tick_at(1, 20), pantry, StoresScript.new())
+	pantry.add_into(OATS, 20000, 0, _read)
+	pantry.add_into(CARROT, 20000, 0, _read)
+	pantry.add_into(Catalog.ITEM_BERRIES, 10000, 0, _read)
+	pantry.add_into(Catalog.ITEM_HONEY, 6000, 0, _read)
+	var take: int = kitchen.takes.new_take()
+	assert_true(kitchen.takes.reserve_into(pantry, take, Catalog.CAT_HONEY, 1000, 0, _read), "1 U of honey set aside")
+	var reserve := RawReserveScript.new(kitchen)
+	var cooked: int = RawReserveScript.cooked_categories()
+	for c: int in [Catalog.CAT_FISH, 0, 1, 3, 4]:
+		assert_true(cooked & (1 << c) != 0, "Ready food counts category %d" % c)
+		assert_false(reserve.categories().has(c), "so the reserve does not")
+	assert_equal(reserve.np_total(), 10 * 700 + 5 * 1200, "13 000 NP free")
+	assert_equal(reserve.days_milli(), 401, "0.401 days: 13 000 000 / 32 400, floored")
+	assert_equal(reserve.hourly_days_milli(), 401, "the HUD's figure")
+	pantry.add_into(Catalog.ITEM_BERRIES, 10000, 0, _read)
+	assert_equal(reserve.hourly_days_milli(), 401, "the same game hour: not worked out again")
+	assert_equal(reserve.days_milli(), 617, "the figure itself moves: 20 000 NP")
+	assert_equal(RawReserveScript.new(null).days_milli(), 0, "no kitchen: 0")
+
+
+func test_the_raw_reserve_restamps_the_food_cell_each_game_hour() -> void:
+	"""The HUD's stamp carries the raw reserve, so the food cell and the ledger repaint when it changes -- at the next
+	game hour, not before (decision 1736); the food cell is among the stamped cells."""
+	var pantry := _pantry()
+	var kitchen := _kitchen(9, tick_at(1, 20), pantry, StoresScript.new())
+	var model := ModelScript.new()
+	model.bind_meals(kitchen)
+	var before: int = model.stamp()
+	pantry.add_into(Catalog.ITEM_BERRIES, 20000, 0, _read)
+	assert_equal(model.stamp(), before, "the same hour: the stamp holds")
+	kitchen._hour_seen += 1
+	assert_true(model.stamp() != before, "the next hour: the raw reserve restamps")
+	assert_true(CountersScript._stamped(ModelScript.CELL_FOOD), "the food cell repaints on a restamp")
+	assert_false(CountersScript._stamped(ModelScript.CELL_STONE), "the stone cell does not")

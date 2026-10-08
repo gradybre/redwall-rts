@@ -30,7 +30,10 @@ extends RefCounted
 ##   beetroot_soup  Wild-beetroot soup         triss           root_stew   beetroot or onion
 ##   vole_stew      Vole vegetable stew        taggerung       root_stew   carrot, onion or turnip
 ##   poached_dace   Poached dace               taggerung       fish_stew   dace + any roots
-##   bean_hotpot    Bean hotpot                (the GDD's)     bean_hotpot any beans + any greens
+##   bean_hotpot    Bean hotpot                (the GDD's)     bean_hotpot any beans + any greens or roots
+## The hotpot's second input is "greens or roots" (GREENS_OR_ROOTS), not §5.7's cabbage alone: Brendan's ruling of
+## 2026-10-07 on the balance rerun's P5 (a), as E2 opened the fish stew -- the default rotation sows peas and nothing
+## sows greens, so its beans were never cooked (decision 1735).
 ## The fish-stew rows' roots are §5.7's second input, which the library's poached fish do not name (as decision 0436).
 ## bean_hotpot's §5.7 unlock is M1; the demo runs no milestones, so unlocks are not evaluated (as the fishing driver's).
 ## Rows 0-2 keep their indices: the meal store, the logs and the guide's ids refer to them.
@@ -83,6 +86,9 @@ const BEANS: int = FarmingScript.CROP_BEANS
 const GREENS: int = FarmingScript.CROP_CABBAGE
 const GRAIN: int = FarmingScript.CROP_GRAIN
 const ROOTS: int = FarmingScript.CROP_ROOTS
+## The bean hotpot's second input (decision 1735): every greens item (§5.6's cabbage row) and every root, by pantry key.
+const GREENS_OR_ROOTS: Array[StringName] = [&"cabbage", &"lettuce", &"spinach", &"leek", &"celery", &"radish",
+	&"turnip", &"carrot", &"beetroot", &"parsnip", &"onion", &"potato"]
 const FISH: int = Catalog.CAT_FISH
 const NUTS: int = Catalog.CAT_NUTS
 
@@ -118,7 +124,7 @@ const DISHES: Array[Dictionary] = [
 	{"key": &"bean_hotpot", "name": "Bean hotpot", "short": "bean hotpot",
 		"library": "", "gdd_row": "bean_hotpot", "meal": SUPPER,
 		"portions": 3, "np": 2100, "work_mwu": 20000, "shelf_hours": 36, "water_milli": 2000,
-		"inputs": [[BEANS, 2000, []], [GREENS, 2000, []]]},
+		"inputs": [[BEANS, 2000, []], [GREENS, 2000, GREENS_OR_ROOTS]]},
 	{"key": &"oatcake", "name": "Breakfast oatcake", "short": "oatcakes",
 		"library": "rakkety_tam::RAK_recipe_breakfast_oatcake", "gdd_row": "oatcake", "meal": BREAKFAST,
 		"portions": 2, "np": 1800, "work_mwu": 14000, "shelf_hours": 72, "water_milli": 1000,
@@ -162,7 +168,7 @@ const DISHES: Array[Dictionary] = [
 		"inputs": [[FLOUR, 2000, []], [NEEDS, 500, [&"nuts"]]]},
 	{"key": &"cordial", "name": "Raspberry cordial", "short": "cordial",
 		"library": "lord_brocktree::LB-RECIPE-raspberry-cordial", "gdd_row": "cordial", "meal": DRINK,
-		"portions": 4, "np": 500, "work_mwu": 10000, "shelf_hours": 72, "water_milli": 2000,
+		"portions": 4, "np": 500, "work_mwu": 10000, "shelf_hours": 240, "water_milli": 2000,
 		"inputs": [[NEEDS, 2000, [&"berries"]], [HONEY, 500, []]]},
 	{"key": &"nut_loaf", "name": "Nutbread", "short": "nut loaf",
 		"library": "redwall::RW-RECIPE-nutbread", "gdd_row": "nut_loaf", "meal": OCCASION,

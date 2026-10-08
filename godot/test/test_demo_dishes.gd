@@ -95,6 +95,9 @@ func _kitchen(species: PackedStringArray, tick: int, pantry: PantryScript, store
 	places.set_points(Vector2(6.0, 0.0), Vector2(3.0, -3.0), Vector2(0.0, 4.0), Vector2(1.5, 4.5))
 	places.add_table_seats(Vector2(3.0, -3.0), PlacesScript.SEATS_PER_TABLE)
 	var kitchen := KitchenScript.new()
+	## One portion a diner (decision 1732's `portion_halves` 2): this suite's scenarios are about other mechanics, sized
+	## for one portion each; the portion and a half and its seconds are test_demo_balance_tuning.gd's.
+	kitchen.portion_halves = 2
 	kitchen.configure(brains, names, species, keys, pantry, stores, calendar, places)
 	return kitchen
 
@@ -207,8 +210,8 @@ func test_inputs_are_the_demos_own_produce_and_never_overlap() -> void:
 		for item: int in Catalog.PANTRY_ITEM_COUNT:
 			var k: int = Rules.input_of(dish, item)
 			if k >= 0:
-				assert_equal(Catalog.category_of(item), Rules.input_category(dish, k), "%s takes %s in its category" % [
-					Rules.DISH_NAMES[dish], Catalog.ITEM_KEYS[item]])
+				assert_true(Rules.input_categories(dish, k) & (1 << Catalog.category_of(item)) != 0,
+					"%s takes %s in its categories" % [Rules.DISH_NAMES[dish], Catalog.ITEM_KEYS[item]])
 				var takers: int = 0
 				for j: int in Rules.INPUT_N[dish]:
 					takers += 1 if TakesScript.matches(Rules.input_selector(dish, j), item) else 0
@@ -508,8 +511,8 @@ func test_a_variant_cooks_from_its_own_ingredients_only() -> void:
 
 
 func test_a_short_second_input_is_refused_in_words() -> void:
-	"""With the hotpot planned and its greens gone, the Cook order refuses: "the pantry has 0 U of greens for bean
-	hotpot; a batch takes 2.0 U"."""
+	"""With the hotpot planned and its greens gone (and no roots), the Cook order refuses: "the pantry has 0 U of greens or
+	roots for bean hotpot; a batch takes 2.0 U" (decision 1735: its second input is greens or roots)."""
 	var pantry := _pantry()
 	pantry.add_into(PEA, 2000, 0, _read)
 	pantry.add_into(CABBAGE, 2000, 0, _read)
@@ -521,7 +524,7 @@ func test_a_short_second_input_is_refused_in_words() -> void:
 	var d: KitchenScript.Decision = kitchen.decide_meal()
 	assert_equal(d.code, KitchenScript.NO_FOOD, "refused")
 	assert_equal(d.reason, Words.no_side_reason(Rules.DISH_BEAN_HOTPOT, 1, 0), "its words")
-	assert_true(d.reason.contains("0 U of greens for bean hotpot; a batch takes 2.0 U"), d.reason)
+	assert_true(d.reason.contains("0 U of greens or roots for bean hotpot; a batch takes 2.0 U"), d.reason)
 
 
 func test_ready_food_counts_the_hotpot_and_never_a_variant_twice() -> void:
@@ -631,7 +634,7 @@ const DRAFT_ROWS: Dictionary = {
 	"root_pie": [[[Catalog.CAT_FLOUR, 2000], [FarmingScript.CROP_ROOTS, 2000], [FarmingScript.CROP_ROOTS, 1000],
 		[Book.NEEDS, 500]], 500, 4, 2300, 32000, 48, Rules.MEAL_SUPPER],
 	"scones": [[[Catalog.CAT_FLOUR, 2000], [Book.NEEDS, 500]], 1000, 3, 1800, 20000, 48, Rules.MEAL_BREAKFAST],
-	"cordial": [[[Book.NEEDS, 2000], [Catalog.CAT_HONEY, 500]], 2000, 4, 500, 10000, 72, Book.DRINK],
+	"cordial": [[[Book.NEEDS, 2000], [Catalog.CAT_HONEY, 500]], 2000, 4, 500, 10000, 240, Book.DRINK],
 }
 
 
@@ -746,3 +749,35 @@ func test_a_drink_is_never_a_meal_and_the_guide_says_what_waits() -> void:
 	assert_false(cordial.here.contains("hall's tables"), "a drink is not served at the tables")
 	assert_true(cordial.uses.begins_with("A drink:"), cordial.uses)
 	assert_equal(Rules.raw_np_per_u(Catalog.ITEM_HONEY), 1200, "honey is raw-edible (§5.7)")
+
+
+func test_the_hotpot_takes_greens_or_roots_and_ready_food_counts_it() -> void:
+	"""Decision 1735 (P5 (a)): the bean hotpot's second input is greens or roots -- every greens item and every root,
+	never a bean or a grain -- in words "greens or roots"; the hotpot stays a plain dish, and Ready food counts beans with
+	roots as hotpots before the roots' own soup (greens first, then roots); a single-category item list is not plain."""
+	var hotpot: int = Rules.DISH_BEAN_HOTPOT
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
+		var c: int = Catalog.category_of(item)
+		var expected: bool = c == FarmingScript.CROP_CABBAGE or c == FarmingScript.CROP_ROOTS
+		assert_equal(TakesScript.matches(Rules.input_selector(hotpot, 1), item), expected,
+			"the second input takes %s: %s" % [Catalog.ITEM_KEYS[item], expected])
+	assert_equal(Words.input_words(hotpot, 1), "greens or roots", "its words")
+	assert_equal(Rules.PLAIN[hotpot], 1, "still plain")
+	assert_equal(Rules.IN_WHOLE[Rules.INPUT_FIRST[Rules.DISH_SCONES] + 1], 0, "the scones' nuts alone: not whole")
+	var pantry := _pantry()
+	pantry.add_into(PEA, 4000, 0, _read)
+	pantry.add_into(CARROT, 7000, 0, _read)
+	var kitchen := _kitchen(_many("mole", 2), tick_at(0, 6), pantry, StoresScript.new())
+	assert_equal(kitchen.cookable_portions(), 6 + 2, "2 hotpots from 4 U of roots (6 portions), then a soup from 3 U")
+	assert_equal(Rules.categories_words(PackedInt32Array([PEA])), "", "one category: no words")
+
+
+func test_ready_food_s_hotpot_draws_greens_before_roots() -> void:
+	"""Beans 2, greens 4, roots 2: the hotpot takes the greens first, so a salad (greens 2 + roots 1) still counts --
+	3 + 2 portions; drawn from the roots first, the salad would have none (the review's K12)."""
+	var pantry := _pantry()
+	pantry.add_into(PEA, 2000, 0, _read)
+	pantry.add_into(CABBAGE, 4000, 0, _read)
+	pantry.add_into(CARROT, 2000, 0, _read)
+	var kitchen := _kitchen(_many("mole", 2), tick_at(0, 6), pantry, StoresScript.new())
+	assert_equal([kitchen.cookable_batches(), kitchen.cookable_portions()], [2, 5], "a hotpot and a salad")

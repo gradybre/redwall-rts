@@ -124,16 +124,17 @@ func test_a_window_closing_holds_the_days_inside_it() -> void:
 
 
 func test_the_kitchen_s_use_and_the_keeping() -> void:
-	"""Nine mouths: 5 batches a meal -- roots 15 U a day (the soup's 3 U), grain 10 U (porridge's 2 U), lettuce none.
-	Roots keep 10 days in the covered store in spring, 6 in summer (×1.5)."""
+	"""Nine mouths at a portion and a half each (decision 1732): 14 portions, 7 batches a meal -- roots 21 U a day (the
+	soup's 3 U), grain 14 U (porridge's 2 U), lettuce none. Roots keep 10 days in the covered store in spring, 6 in
+	summer (×1.5)."""
 	var sim := SimScript.new()
 	var plan := _plan(sim)
-	assert_equal(plan.daily_use_milli(FarmingScript.CROP_ROOTS), 15000, "roots")
-	assert_equal(plan.daily_use_milli(FarmingScript.CROP_GRAIN), 10000, "grain")
+	assert_equal(plan.daily_use_milli(FarmingScript.CROP_ROOTS), 21000, "roots")
+	assert_equal(plan.daily_use_milli(FarmingScript.CROP_GRAIN), 14000, "grain")
 	assert_equal(plan.daily_use_milli(FarmingScript.CROP_CABBAGE), 0, "no dish takes the leaf row")
 	assert_equal(plan.keep_days(FarmingScript.CROP_ROOTS, 1), 10, "240 h in spring")
 	assert_equal(plan.keep_days(FarmingScript.CROP_ROOTS, 13), 6, "160 h in summer")
-	assert_equal(plan.eaten_before_spoiling_milli(FarmingScript.CROP_ROOTS, 1), 150000, "150 U eaten before it spoils")
+	assert_equal(plan.eaten_before_spoiling_milli(FarmingScript.CROP_ROOTS, 1), 210000, "210 U eaten before it spoils")
 	assert_equal(plan.hands(), 2, "the field crew's two")
 	assert_equal(plan.hands_usec(), 2 * 10 * HOUR_USEC, "ten work hours each")
 	assert_equal(plan.room_milli(), StorageScript.STORE_CAPACITY_U * 1000, "the covered store's room")

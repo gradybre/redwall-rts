@@ -802,3 +802,21 @@ func test_flour_is_ground_only_once_rations_lack_nothing_else() -> void:
 	_stock(short, Catalog.ITEM_DRIED_FISH, _ration_need(Catalog.CAT_DRIED_FISH))
 	other._stores_round()
 	assert_true(short.ordered.is_empty(), "dried fish there but no nuts: nothing ground")
+
+
+func test_fish_high_sets_the_scripted_player_s_fishing_line() -> void:
+	"""--fish-high U (decision 1738, the balance rerun's P6): whole units for a policy that fishes; refused for
+	hands_off and for a non-integer; unset, the policy keeps FISH_STOCK_HIGH."""
+	var run := RunScript.new()
+	run._read_args(PackedStringArray(["--policy", "provisioning", "--fish-high", "12", "--out", "/tmp/x.json"]))
+	assert_equal([run._error, run._fish_high_milli], ["", 12000], "12 U")
+	run = RunScript.new()
+	run._read_args(PackedStringArray(["--policy", "hands_off", "--fish-high", "12", "--out", "/tmp/x.json"]))
+	assert_true(run._error.begins_with("--fish-high must be"), "hands_off does not fish: %s" % run._error)
+	run = RunScript.new()
+	run._read_args(PackedStringArray(["--policy", "light_touch", "--fish-high", "lots", "--out", "/tmp/x.json"]))
+	assert_true(run._error.begins_with("--fish-high must be"), "not a number: %s" % run._error)
+	run = RunScript.new()
+	run._read_args(PackedStringArray(["--policy", "light_touch", "--fish-high", "0", "--out", "/tmp/x.json"]))
+	assert_equal([run._error, run._fish_high_milli], ["", 0], "0 U: no trip ever")
+	assert_equal(PolicyScript.new().fish_stock_high, PolicyScript.FISH_STOCK_HIGH, "unset: the policy's 4 U")

@@ -13,6 +13,10 @@ extends SceneTree
 const DetailZone := preload("res://demo/ui/demo_detail_zone.gd")
 const HiveRules := preload("res://demo/hives/hive_rules.gd")
 const Recipes := preload("res://demo/preserve/preserve_rules.gd")
+const Catalog := preload("res://demo/farm/farm_catalog.gd")
+## ui_shell.gd ID_FOOD and ID_LEDGER (named here: its script needs the autoloads a --script run has not registered yet).
+const ID_FOOD: int = 2
+const ID_LEDGER: int = 9
 ## demo_orchard.gd SEL_APIARY (named here: its script needs the autoloads a --script run has not registered yet).
 const SEL_APIARY: int = 6
 
@@ -46,7 +50,8 @@ func _initialize() -> void:
 	current_scene = _village
 	_steps = [_pause, _the_apiary_is_wired, _look_at_the_apiary, _click_the_skep, _its_readout_and_verbs,
 		_close_on_the_bees, _look_at_the_preserving_table, _open_the_preserves, _look_at_the_brewery, _open_the_brewing,
-		_the_new_recipes, _select_a_bed, _open_the_crop_picker, _the_picker_lists_the_stations]
+		_the_new_recipes, _a_deep_drink_warns, _the_cordial_is_a_table_drink, _open_the_ledger, _ready_food_says_eaten_raw,
+		_select_a_bed, _open_the_crop_picker, _the_picker_lists_the_stations]
 
 
 func _process(_delta: float) -> bool:
@@ -272,6 +277,72 @@ func _the_new_recipes() -> void:
 	_check("the vinegar card keeps it for pickling", vinegar_card.contains("pickling") and not vinegar_card.contains("feasts"), vinegar_card.replace("\n", " / "))
 	_check("the preserves line counts vinegar and pickles", String(panel.call(&"line", &"preserves")).contains("pickles"))
 	_capture("new_recipes_panel")
+
+
+func _stock(item: int, milli: int) -> void:
+	"""Put `milli` of `item` in the village's pantry (a setup for the tuning's checks)."""
+	var read: RefCounted = load("res://scripts/core/int_math.gd").IntResult.new()
+	_check("%s stocked" % Catalog.ITEM_KEYS[item], bool(_village.get("_farm").get("pantry").call(&"add_into", item, milli, 0,
+		read)))
+
+
+static func _flat(text: String) -> String:
+	"""A card's text on one line: its wrapped lines joined, runs of spaces made one."""
+	var flat: String = text.replace("\n", " ")
+	while flat.contains("  "):
+		flat = flat.replace("  ", " ")
+	return flat
+
+
+func _a_deep_drink_warns() -> void:
+	"""Decision 1734: with 8 U of mead in store (over two feasts' worth, 6 U) and honey for a batch, Brew mead's card
+	notes it and the order's answer says so -- a warning, the batch still ordered."""
+	_stock(Catalog.ITEM_MEAD, 8000)
+	_stock(Catalog.ITEM_HONEY, 6000)
+	_village.call(&"services").get("stores").set("water_milli_u", 20000)
+	var panel: CanvasLayer = _village.get("_waterplay").get("panel")
+	_village.get("_fishery").call(&"refresh_panel")
+	panel.call(&"scroll_to_line", &"brewing")
+	var card: String = _flat((panel.call(&"button", &"brew_mead") as Button).tooltip_text)
+	_check("the Brew mead card notes the stock", card.contains("Note: the stores already hold 8.0 U of mead"),
+		card.replace("\n", " / "))
+	var said: String = _village.get("_fishery").call(&"batch_answer", Recipes.R_MEAD, PackedInt32Array())
+	_check("the order is placed and warned of", said.begins_with("Brew mead: on the work board — the stores already hold"),
+		said)
+	_capture("brew_warning")
+
+
+func _the_cordial_is_a_table_drink() -> void:
+	"""Decision 1733: Make cordial's card says it keeps 240 h and is poured at supper; the kitchen's table drink is on."""
+	var panel: CanvasLayer = _village.get("_waterplay").get("panel")
+	_village.get("_fishery").call(&"refresh_panel")
+	var card: String = _flat((panel.call(&"button", &"make_cordial") as Button).tooltip_text)
+	_check("the cordial card: 240 h, poured at supper", card.contains("keeps 240 h") and card.contains("poured at supper"),
+		card.replace("\n", " / "))
+	var drink: RefCounted = _village.call(&"kitchen").get("table_drink")
+	_check("the table drink watches the kitchen", drink != null and drink.get("_kitchen") != null)
+
+
+func _open_the_ledger() -> void:
+	"""Click the Ready food counter: the resource ledger opens on it."""
+	var shell: Node = _village.call(&"_shell")
+	var cell: Control = shell.call(&"control_for", ID_FOOD)
+	_click(cell.get_global_transform_with_canvas() * (cell.size / 2.0))
+
+
+func _ready_food_says_eaten_raw() -> void:
+	"""Decision 1736: the ledger's food line and the cell's tooltip carry the raw reserve beside Ready food (the honey
+	stocked is raw-edible food Ready food does not count)."""
+	var shell: Node = _village.call(&"_shell")
+	var ledger: Control = shell.call(&"control_for", ID_LEDGER)
+	var line: String = (shell.call(&"ledger_label") as Label).text
+	_check("the ledger is open", ledger.visible)
+	_check("the food line says raw", line.contains("Ready food: ") and line.contains(" · raw "), line.replace("\n", " / "))
+	_check("the ledger keeps its eight lines", line.split("\n").size() == 8, str(line.split("\n").size()))
+	var tip: String = (shell.call(&"control_for", ID_FOOD) as Control).tooltip_text
+	_check("the tooltip says eaten raw", tip.contains("Eaten raw: "), tip)
+	_check("the ledger fits the window", _fits(ledger.get_global_rect()), str(ledger.get_global_rect()))
+	_capture("ready_food_ledger")
 
 
 func _select_a_bed() -> void:

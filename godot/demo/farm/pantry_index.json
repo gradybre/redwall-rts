@@ -4547,6 +4547,314 @@
    "direct_count": 0,
    "component_count": 0,
    "dishes": []
+  },
+  {
+   "item_key": "jam",
+   "leaf_id": "",
+   "targets": [
+    "COMPONENT_shared_blackberry_jam",
+    "COMPONENT_shared_strawberry_jam"
+   ],
+   "direct_count": 1,
+   "component_count": 0,
+   "dishes": [
+    {
+     "label": "Blackberry jam roly-poly pudding",
+     "id": "marlfox::MF_RECIPE_blackberry_jam_roly_poly_pudding",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "item_key": "cheese",
+   "leaf_id": "",
+   "targets": [],
+   "direct_count": 0,
+   "component_count": 0,
+   "dishes": []
+  },
+  {
+   "item_key": "ale",
+   "leaf_id": "",
+   "targets": [
+    "COMPONENT_shared_ale",
+    "COMPONENT_shared_october_ale"
+   ],
+   "direct_count": 5,
+   "component_count": 0,
+   "dishes": [
+    {
+     "label": "Durral-style celebration cake with candied mint leaves",
+     "id": "pearls_lutra::PL_RECIPE_durral_s_seven_season_celebration_cake",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Dark fruit cake with October ale",
+     "id": "pearls_lutra::PL_RECIPE_dark_fruit_cake_with_october_ale",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Gerul and Arven's huge fruitcake",
+     "id": "pearls_lutra::PL_RECIPE_gerul_and_arven_s_huge_fruitcake",
+     "use": "direct"
+    },
+    {
+     "label": "Mulled October Ale",
+     "id": "rakkety_tam::RAK_recipe_mulled_october_ale",
+     "use": "direct"
+    },
+    {
+     "label": "Mulled spiced ale",
+     "id": "taggerung::TAG_recipe_mulled_spiced_ale",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "item_key": "cider",
+   "leaf_id": "",
+   "targets": [
+    "COMPONENT_shared_pale_cider",
+    "COMPONENT_shared_old_cider"
+   ],
+   "direct_count": 3,
+   "component_count": 0,
+   "dishes": [
+    {
+     "label": "Filboonimgun cultured hazelnut wheel",
+     "id": "taggerung::TAG_recipe_filboonimgun_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Fleetrunn's plum and almond cake",
+     "id": "outcast::OUT_recipe_fleetrunn_s_plum_and_almond_cake",
+     "use": "direct"
+    },
+    {
+     "label": "Honey-sweetened pale cider",
+     "id": "taggerung::TAG_recipe_honey_sweetened_pale_cider",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "item_key": "vinegar",
+   "leaf_id": "",
+   "targets": [
+    "COMPONENT_shared_apple_vinegar"
+   ],
+   "direct_count": 37,
+   "component_count": 8,
+   "dishes": [
+    {
+     "label": "Autumn oat-and-nut cheese",
+     "id": "long_patrol::LP-RECIPE-autumn-nut-cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Burdock-stalk salad",
+     "id": "marlfox::MF_RECIPE_burdock_stalk_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Corkal's duel salad",
+     "id": "pearls_lutra::PL_RECIPE_corkal_s_duel_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Crusty bread with pressed oat-and-seed cheese",
+     "id": "long_patrol::LP-RECIPE-crusty-bread-and-ripe-yellow-cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Dandelion salad",
+     "id": "mossflower::MF_recipe_dandelion_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Fresh spring salad",
+     "id": "long_patrol::LP-RECIPE-fresh-spring-salad",
+     "use": "direct"
+    },
+    {
+     "label": "Fresh trout salad with mustard and cress",
+     "id": "redwall::RW-RECIPE-fresh-trout-salad-with-mustard-and-cress",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Pretended mussel salad",
+     "id": "lord_brocktree::LB-RECIPE-pretended-shrimp-salad",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Travel oat cheese",
+     "id": "lord_brocktree::LB-RECIPE-travel-cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Yellow sage and onion oat cheese",
+     "id": "lord_brocktree::LB-RECIPE-yellow-sage-and-onion-cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Deeper 'n' ever pie with tomato chutney",
+     "id": "mossflower::MF_recipe_deeper_n_ever_pie_with_tomato_chutney",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Fresh fruit salad",
+     "id": "pearls_lutra::PL_RECIPE_fresh_fruit_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Fresh spring salad",
+     "id": "pearls_lutra::PL_RECIPE_fresh_spring_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Ruddaring tropical fruit salad",
+     "id": "pearls_lutra::PL_RECIPE_ruddaring_tropical_fruit_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Summer salad",
+     "id": "pearls_lutra::PL_RECIPE_summer_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Summer salad and cheese",
+     "id": "martin_warrior::MW_RECIPE_summer_salad_and_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Honey oat-curds with roasted almonds",
+     "id": "long_patrol::LP-RECIPE-honey-curds-with-roasted-almonds",
+     "use": "direct"
+    },
+    {
+     "label": "Kitchen-song pickles",
+     "id": "lord_brocktree::LB-RECIPE-kitchen-song-pickles",
+     "use": "direct"
+    },
+    {
+     "label": "Last Summer Salad",
+     "id": "marlfox::MF_RECIPE_last_summer_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Lettuce watercress and scallion salad",
+     "id": "lord_brocktree::LB-RECIPE-lettuce-watercress-and-scallion-salad",
+     "use": "direct"
+    },
+    {
+     "label": "Marinated cabbage stalks with creamed white turnip and nutmeg",
+     "id": "redwall::RW-RECIPE-marinated-cabbage-stalks-with-creamed-white-turnip-and-nutmeg",
+     "use": "direct"
+    },
+    {
+     "label": "Mussel adaptation of Pickled whelks and cockles",
+     "id": "martin_warrior::MW_RECIPE_pickled_whelks_and_cockles",
+     "use": "direct"
+    },
+    {
+     "label": "Pickled mackerel",
+     "id": "martin_warrior::MW_RECIPE_pickled_mackerel",
+     "use": "direct"
+    },
+    {
+     "label": "Pickled onions",
+     "id": "taggerung::TAG_recipe_pickled_onions",
+     "use": "direct"
+    },
+    {
+     "label": "Pressed oat-and-hazelnut cheese",
+     "id": "long_patrol::LP-RECIPE-white-hazelnut-cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Pressed oat-cheese with celery and carrot",
+     "id": "long_patrol::LP-RECIPE-yellow-celery-and-carrot-cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Raft salad",
+     "id": "marlfox::MF_RECIPE_raft_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Remembered salad",
+     "id": "lord_brocktree::LB-RECIPE-remembered-salad",
+     "use": "direct"
+    },
+    {
+     "label": "Remembered summer salad",
+     "id": "lord_brocktree::LB-RECIPE-remembered-summer-salad",
+     "use": "direct"
+    },
+    {
+     "label": "Salad",
+     "id": "redwall::RW-RECIPE-salad",
+     "use": "direct"
+    },
+    {
+     "label": "Salad luncheon",
+     "id": "mossflower::MF_recipe_salad_luncheon",
+     "use": "direct"
+    },
+    {
+     "label": "Soft oat-and-seed cheese",
+     "id": "long_patrol::LP-RECIPE-soft-white-cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Summer salad",
+     "id": "marlfox::MF_RECIPE_summer_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Summer salad with hazelnuts",
+     "id": "marlfox::MF_RECIPE_summer_salad_with_hazelnuts",
+     "use": "direct"
+    },
+    {
+     "label": "Tangy pickles",
+     "id": "long_patrol::LP-RECIPE-tangy-pickles",
+     "use": "direct"
+    },
+    {
+     "label": "Winter salad",
+     "id": "martin_warrior::MW_RECIPE_winter_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Woodland salad with cultured hazelnut spread, apple, apple vinegar",
+     "id": "mossflower::MF_recipe_cheese_and_apple_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — oat cheese and oatmeal cakes",
+     "id": "lord_brocktree::LB-RECIPE-cheese-and-oatmeal-cakes",
+     "use": "component"
+    },
+    {
+     "label": "Game adaptation — oat cheese-topped baked bread",
+     "id": "lord_brocktree::LB-RECIPE-cheese-topped-baked-bread",
+     "use": "component"
+    },
+    {
+     "label": "Game adaptation — Rough loaf and oat cheese sandwich",
+     "id": "lord_brocktree::LB-RECIPE-rough-loaf-and-cheese-sandwich",
+     "use": "component"
+    }
+   ]
+  },
+  {
+   "item_key": "pickles",
+   "leaf_id": "",
+   "targets": [],
+   "direct_count": 0,
+   "component_count": 0,
+   "dishes": []
   }
  ]
 }

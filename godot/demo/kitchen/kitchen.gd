@@ -2528,6 +2528,45 @@ func cookable_batches() -> int:
 	return total
 
 
+# --- the rack's fish (decision 1739) --------------------------------------------------------------------------
+
+## FISH FOR THE RACK (decision 1739; Brendan's ruling of 2026-10-08 on the balance rerun's F3 (a)): the smoking rack's
+## Dry fish may take fish the kitchen has planned for a meal BEYOND the next one -- never the next meal's (the earliest
+## planned, or the one being served), never an occasion's, never a meal with a batch cooked or at the cauldron, and
+## only fish still in its store. The kitchen plans two days ahead and had reserved every fish, so the rack never got
+## any. A meal that gives fish up tops itself up again from what is free (THE CHOICE).
+
+func fish_beyond_next_meal_milli() -> int:
+	"""The fish, milli-U, the kitchen holds in store for meals beyond the next (see FISH FOR THE RACK)."""
+	var total: int = 0
+	for s: int in MAX_SLOTS:
+		if _rack_may_take(s):
+			total += takes.live_milli(pantry, _slot_take[s], TakesScript.AT_STORE, Catalog.CAT_FISH)
+	return total
+
+
+func release_fish_beyond_next_meal(milli: int) -> int:
+	"""Give the rack up to `milli` of the fish held for meals beyond the next, the latest meal's first (see FISH FOR
+	THE RACK). How much was given back to the pantry, free."""
+	var left: int = milli
+	for k: int in range(_slot_order.size() - 1, -1, -1):
+		var s: int = _slot_order[k]
+		if left > 0 and _rack_may_take(s):
+			var held: int = takes.live_milli(pantry, _slot_take[s], TakesScript.AT_STORE, Catalog.CAT_FISH)
+			left -= takes.release_milli(pantry, _slot_take[s], mini(left, held), _hour_seen, Catalog.CAT_FISH)
+	if left < milli:
+		revision += 1
+	return milli - left
+
+
+func _rack_may_take(s: int) -> bool:
+	"""Whether slot `s`'s meal is beyond the next one and the rack may take its fish (see FISH FOR THE RACK)."""
+	var key: int = _slot_key[s]
+	var next: int = maxi(_earliest_key(), _first_key(_hour_seen))
+	return key != FREE and key > next and key != occasion_key and key != _wip_key and _slot_cooked[s] == 0 \
+		and _slot_take[s] != 0
+
+
 func cookable_portions() -> int:
 	"""The portions `cookable_batches` cook, each dish at its own PORTIONS_PER_BATCH (a stew or a hotpot makes 3)."""
 	_estimate()

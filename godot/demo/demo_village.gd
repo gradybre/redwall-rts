@@ -816,6 +816,8 @@ func _build_fishery() -> void:
 	add_child(_fishery)
 	_fishery.configure(_cast as DemoCastScript, _command as DemoCommandScript, _services, _waterplay, _water,
 		_farm.pantry, _kitchen.kitchen.takes, _water.map())
+	_fishery.fishery.bind_spare_fish(_kitchen.kitchen.fish_beyond_next_meal_milli,
+		_kitchen.kitchen.release_fish_beyond_next_meal)
 
 
 func fishery() -> FisheryNodeScript:

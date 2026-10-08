@@ -766,8 +766,8 @@ func batch_card(recipe: int, members: PackedInt32Array) -> CardScript:
 	var why: String = fishery.batch_refusal(recipe)
 	for k: int in Recipes.IN_COUNT[recipe]:
 		var input: int = Recipes.IN_FIRST[recipe] + k
-		_card.add_cost(Recipes.cap(Recipes.category_words(Recipes.IN_CATEGORY[input])), fishery.takes.free_milli_of_crop(
-			fishery.pantry, Recipes.IN_CATEGORY[input]), Recipes.IN_MILLI[input])
+		_card.add_cost(Recipes.cap(Recipes.category_words(Recipes.IN_CATEGORY[input])), fishery.input_available_milli(input),
+			Recipes.IN_MILLI[input])
 	if Recipes.WATER_MILLI[recipe] > 0:
 		_card.add_cost("Water", maxi(0, fishery.stores.water_milli_u - fishery.water_held_milli()) if fishery.stores != null \
 			else 0, Recipes.WATER_MILLI[recipe])

@@ -170,6 +170,10 @@ var driver: Driver = null
 var pantry: PantryScript = null
 var takes: TakesScript = null
 var stores: StoresScript = null
+## FISH FOR THE RACK (decision 1739): () -> int, the fish the kitchen holds for meals beyond its next one, and
+## (milli) -> int, giving that much of it back; unbound, a fish input counts only the free fish.
+var spare_fish: Callable = Callable()
+var free_spare_fish: Callable = Callable()
 var calendar: CalendarScript = null
 var weather: DemoWeatherScript = null
 var map: WaterMapScript = null
@@ -1886,11 +1890,38 @@ func _slots_full(station: int) -> String:
 	return _refuse("RACK_FULL", "all %d rack slots are taken" % Rules.RACK_SLOTS, "wait for a batch to cure")
 
 
-func _inputs_refusal(recipe: int) -> String:
-	"""The first of `recipe`'s inputs the stores lack, nobody's reservation counted ("" when all are there)."""
+func bind_spare_fish(spare: Callable, give: Callable) -> void:
+	"""The kitchen's fish beyond its next meal, and its giving back (kitchen.gd FISH FOR THE RACK, decision 1739)."""
+	spare_fish = spare
+	free_spare_fish = give
+
+
+func input_available_milli(input: int) -> int:
+	"""What a batch may take of recipe input `input`: the food nobody has set aside, and for fish also what the kitchen
+	holds for meals beyond its next one (decision 1739)."""
+	var category: int = Recipes.IN_CATEGORY[input]
+	var free: int = takes.free_milli_of_crop(pantry, category)
+	return free + (int(spare_fish.call()) if category == Catalog.CAT_FISH and spare_fish.is_valid() else 0)
+
+
+func _take_spare_fish(recipe: int) -> void:
+	"""Before a batch sets its food aside: the fish it lacks beyond the free fish, given back by the kitchen's meals
+	beyond the next (decision 1739)."""
 	for k: int in Recipes.IN_COUNT[recipe]:
 		var input: int = Recipes.IN_FIRST[recipe] + k
-		var free: int = takes.free_milli_of_crop(pantry, Recipes.IN_CATEGORY[input])
+		if Recipes.IN_CATEGORY[input] != Catalog.CAT_FISH or not free_spare_fish.is_valid():
+			continue
+		var short: int = Recipes.IN_MILLI[input] - takes.free_milli_of_crop(pantry, Catalog.CAT_FISH)
+		if short > 0:
+			free_spare_fish.call(short)
+
+
+func _inputs_refusal(recipe: int) -> String:
+	"""The first of `recipe`'s inputs the stores lack, nobody's reservation counted -- for fish, the kitchen's beyond its
+	next meal counted as there (decision 1739) -- ("" when all are there)."""
+	for k: int in Recipes.IN_COUNT[recipe]:
+		var input: int = Recipes.IN_FIRST[recipe] + k
+		var free: int = input_available_milli(input)
 		if free < Recipes.IN_MILLI[input]:
 			return _refuse(Recipes.IN_CODE[input], "the stores hold %s of %s nobody has set aside; a batch takes %s" % [
 				Text.units(free), Recipes.category_words(Recipes.IN_CATEGORY[input]), Text.units(Recipes.IN_MILLI[input])],
@@ -1917,6 +1948,7 @@ func order_batch(recipe: int, members: PackedInt32Array) -> String:
 	var why: String = batch_refusal(recipe)
 	if not why.is_empty():
 		return why
+	_take_spare_fish(recipe)
 	var passive: bool = Recipes.is_passive(recipe)
 	var j: int = tables.open_job(Tables.KIND_DRY if passive else Tables.KIND_BATCH, PROG_DRY if passive else PROG_MILL,
 		NONE)

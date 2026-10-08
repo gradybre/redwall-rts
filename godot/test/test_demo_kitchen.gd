@@ -1753,3 +1753,62 @@ func test_a_second_helping_eaten_gives_up_its_seat() -> void:
 	assert_equal(v.kitchen._seconds_at[0], breakfast, "its second booked at this meal")
 	assert_equal([v.kitchen.portions_eaten - eaten, v.kitchen.seconds_eaten], [1, 1], "counted once")
 	assert_equal(v.kitchen.fed.today_np[0] - np, Rules.NP_PER_PORTION[Rules.DISH_PORRIDGE], "its NP")
+
+
+func _fish_held(v: Village, key: int) -> int:
+	"""Fish meal `key`'s take holds in store."""
+	return v.kitchen.takes.live_milli(v.pantry, v.kitchen.take_of(key), TakesScript.AT_STORE, Catalog.CAT_FISH)
+
+
+func _fish_village() -> Village:
+	"""Four residents at 10:00 on day 1 with fish and carrots in store (no grain: breakfasts turn to the fish dishes
+	too): the next meal is the day's supper, and every planned meal holds fish."""
+	var v := _village(4, tick_at(1, 10))
+	_stock(v, Catalog.FIRST_CATCH, 30000)
+	_stock(v, CARROT, 30000)
+	v.stores.water_milli_u = 40000
+	return _open(v)
+
+
+func test_the_rack_may_take_fish_only_beyond_the_next_meal() -> void:
+	"""Decision 1739 (F3 (a)): the fish the rack may take is what the meals after the next one hold in store; giving it
+	up takes the latest meal's first and never touches the next meal's; an occasion's meal keeps its fish."""
+	var v := _fish_village()
+	var keys: PackedInt32Array = v.kitchen.planned_keys()
+	var beyond: int = 0
+	for k: int in range(1, keys.size()):
+		beyond += _fish_held(v, keys[k])
+	assert_true(beyond > 0, "the later meals hold fish")
+	assert_equal(v.kitchen.fish_beyond_next_meal_milli(), beyond, "all of it beyond the next meal")
+	var next_fish: int = _fish_held(v, keys[0])
+	assert_true(next_fish > 0, "the next meal, a supper, holds fish too")
+	var last: int = -1
+	for k: int in range(1, keys.size()):
+		last = keys[k] if _fish_held(v, keys[k]) > 0 else last
+	var last_fish: int = _fish_held(v, last)
+	var fish_meals: int = 0
+	for k: int in range(1, keys.size()):
+		fish_meals += 1 if _fish_held(v, keys[k]) > 0 else 0
+	assert_true(fish_meals >= 2, "two or more later meals hold fish (%d), so the order is tested" % fish_meals)
+	var revision: int = v.kitchen.revision
+	assert_equal(v.kitchen.release_fish_beyond_next_meal(1000), 1000, "1 U given back")
+	assert_true(v.kitchen.revision > revision, "the kitchen's plan changed: its revision moves")
+	assert_equal(_fish_held(v, last), last_fish - 1000, "from the latest meal holding fish")
+	assert_equal(v.kitchen.release_fish_beyond_next_meal(1 << 30), beyond - 1000, "never more than is beyond")
+	assert_equal(_fish_held(v, keys[0]), next_fish, "the next meal keeps its fish")
+	assert_equal(v.kitchen.fish_beyond_next_meal_milli(), 0, "none left beyond")
+
+
+func test_an_occasion_s_meal_keeps_its_fish_from_the_rack() -> void:
+	"""A later meal that is an occasion's is not the rack's to take from."""
+	var v := _fish_village()
+	var keys: PackedInt32Array = v.kitchen.planned_keys()
+	var with_fish: int = -1
+	for k: int in range(1, keys.size()):
+		if with_fish < 0 and _fish_held(v, keys[k]) > 0:
+			with_fish = keys[k]
+	assert_true(with_fish >= 0, "a later meal holds fish")
+	var before: int = v.kitchen.fish_beyond_next_meal_milli()
+	v.kitchen.occasion_key = with_fish
+	assert_equal(v.kitchen.fish_beyond_next_meal_milli(), before - _fish_held(v, with_fish), "the occasion's fish left out")
+	v.kitchen.occasion_key = -1

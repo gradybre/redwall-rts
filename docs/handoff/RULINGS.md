@@ -123,6 +123,12 @@ Every row was checked against the record named.
 | RG-Y's proposals (1721 P1–P12) | All twelve approved, each as option (a), provisional, as built: the 12-day settling, a sapling's first 24 days, the move's 20 + 40 WU and compost 4 U, a 40 U cart at walking pace for wood 4 U and 60 WU, the fresh-table share, the beech hollow protected, the 10% grove reserve, home before dark, one 8 U carry kit, the lead in the news and note only, the latest place note | 1721 (relayed by the coordinator) |
 | The balance rerun's proposals (P1–P14) | P1 **(b)**, 1.5 portions per diner at each meal (not a third meal). P2 **(a) + (c)**: the cordial is poured at ordinary suppers, and its shelf goes from 72 h to 240 h ("Approve both and have cordial keep longer as well"). P3 **(a) + (b)**: the Harvest and Orchard feasts pour mead and cider (FEAST lane), and the Brew order warns above 6 U a drink. P5 **(a)**: the hotpot takes beans plus greens or roots. P6: measure at `FISH_STOCK_HIGH` 12 U first. P7 **(a)**: show "eaten raw: N days" beside Ready food. P9 **(a)**: keep 5%, marked unattainable until P1 is measured. P4, P8 and P10–P14: no change. Also: `order_batch` reserves the butt's water. (Relayed by the coordinator) | 1731; `docs/balance/2026-10-07-year-matrix-rerun.md` |
 
+## 2026-10-08
+
+| Topic | Ruling | Recorded in |
+|---|---|---|
+| The tuning follow-up's questions (F1–F4) | F1 **wait**: no more beds or greens now; leave it until hunger has a cost (E8). F2 waits with F1. F3 **(a)**: Dry fish may take fish the kitchen planned beyond the next meal, never the next meal's. F4 waits on FEAST (#239). (Relayed by the coordinator) | 1731; 1739; `docs/balance/2026-10-07-year-matrix-rerun.md` |
+
 ## Standing rules (not dated rulings)
 
 - **Windows builds only when Brendan asks** (his standing instruction; README §3.10).

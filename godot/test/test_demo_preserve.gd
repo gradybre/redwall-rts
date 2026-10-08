@@ -386,3 +386,82 @@ func test_rations_are_worked_at_the_table_and_fruit_at_the_rack() -> void:
 	f.tables.j_recipe[j] = Recipes.R_DRY_FRUIT
 	f.tables.j_kind[j] = Tables.KIND_TAKE_DOWN
 	assert_equal(f.place_words(j), "the rack", "a fruit batch's place")
+
+
+## The kitchen's side of the rack's fish (decision 1739), as Callables over one take of its own: what it holds, and
+## giving that back -- each call counted.
+class KitchenFish extends RefCounted:
+	var takes: TakesScript = null
+	var pantry: PantryScript = null
+	var take: int = 0
+	var asked: Array[int] = []
+
+	func held() -> int:
+		"""The fish its take holds in store."""
+		return takes.live_milli(pantry, take, TakesScript.AT_STORE, Catalog.CAT_FISH)
+
+	func give(milli: int) -> int:
+		"""Give back up to `milli`, counted."""
+		asked.append(milli)
+		return takes.release_milli(pantry, take, milli, 0, Catalog.CAT_FISH)
+
+
+func _kitchen_fish(rig: Rig, milli: int) -> KitchenFish:
+	"""A kitchen holding `milli` of fish for meals beyond its next one, bound to the rig's fishery."""
+	var k := KitchenFish.new()
+	k.takes = rig.takes
+	k.pantry = rig.pantry
+	k.take = rig.takes.new_take()
+	assert_true(rig.takes.reserve_into(rig.pantry, k.take, Catalog.CAT_FISH, milli, 0, _read), "the kitchen holds fish")
+	rig.fishery.bind_spare_fish(k.held, k.give)
+	return k
+
+
+func test_dry_fish_takes_the_kitchen_s_fish_beyond_its_next_meal() -> void:
+	"""Decision 1739 (F3 (a)): 1 U of fish free and 3 U held by the kitchen beyond its next meal is a batch (4 U):
+	the refusal counts both, the order asks the kitchen for exactly the 3 U it lacks, and the batch sets its 4 U aside;
+	the card shows what may be taken."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	rig.pantry.add_into(Catalog.FIRST_CATCH, 4000, 0, _read)
+	var kitchen := _kitchen_fish(rig, 3000)
+	var input: int = Recipes.IN_FIRST[Recipes.R_DRY_FISH]
+	assert_equal(f.input_available_milli(input), Rules.DRY_IN_MILLI, "1 U free + 3 U beyond the next meal")
+	assert_equal(f.batch_refusal(Recipes.R_DRY_FISH), "", "a batch may be ordered")
+	assert_equal(f.order_batch(Recipes.R_DRY_FISH, PackedInt32Array()), "", "ordered")
+	assert_equal(kitchen.asked, [3000] as Array[int], "the kitchen asked for exactly what was lacking")
+	var j: int = f.tables.job_count() - 1
+	assert_equal(rig.takes.live_milli(rig.pantry, f.tables.j_take[0]), Rules.DRY_IN_MILLI, "the batch holds its 4 U (job %d)" % j)
+	assert_equal(kitchen.held(), 0, "the kitchen gave its 3 U")
+
+
+func test_dry_fish_leaves_the_kitchen_alone_when_free_fish_will_do_or_too_little_is_spare() -> void:
+	"""Free fish enough: the kitchen is not asked. Free and spare one milli-U short: refused NO_FISH, nothing asked.
+	Unbound: only free fish counts."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	var input: int = Recipes.IN_FIRST[Recipes.R_DRY_FISH]
+	rig.pantry.add_into(Catalog.FIRST_CATCH, 5000, 0, _read)
+	var kitchen := _kitchen_fish(rig, 1000)
+	assert_equal(f.order_batch(Recipes.R_DRY_FISH, PackedInt32Array()), "", "4 U free: ordered")
+	assert_true(kitchen.asked.is_empty(), "the kitchen not asked")
+	var short := _rig()
+	short.pantry.add_into(Catalog.FIRST_CATCH, Rules.DRY_IN_MILLI - 1, 0, _read)
+	var little := _kitchen_fish(short, 1000)
+	little.takes.release_milli(short.pantry, little.take, 1, 0, Catalog.CAT_FISH)
+	assert_equal(short.fishery.input_available_milli(input), Rules.DRY_IN_MILLI - 1, "one milli-U short in all")
+	assert_true(not short.fishery.batch_refusal(Recipes.R_DRY_FISH).is_empty() and short.fishery.refused_code == "NO_FISH",
+		"refused for fish")
+	assert_true(little.asked.is_empty(), "nothing asked of the kitchen")
+	var bare := _rig()
+	bare.pantry.add_into(Catalog.FIRST_CATCH, 3000, 0, _read)
+	assert_equal(bare.fishery.input_available_milli(input), 3000, "unbound: the free fish only")
+	assert_equal(bare.fishery.input_available_milli(Recipes.IN_FIRST[Recipes.R_DRY_FRUIT]), 0, "fruit: no kitchen fish")
+	var fruit := _rig()
+	var spare := KitchenFish.new()
+	spare.takes = fruit.takes
+	spare.pantry = fruit.pantry
+	spare.take = fruit.takes.new_take()
+	fruit.fishery.bind_spare_fish(spare.held, spare.give)
+	fruit.fishery._take_spare_fish(Recipes.R_DRY_FRUIT)
+	assert_true(spare.asked.is_empty(), "a fruit batch short of fruit never asks the kitchen for fish")

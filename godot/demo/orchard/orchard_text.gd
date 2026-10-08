@@ -9,9 +9,10 @@ const CalendarScript := preload("res://demo/demo_calendar.gd")
 const FarmText := preload("res://demo/farm/farm_text.gd")
 const ModelScript := preload("res://demo/orchard/orchard_model.gd")
 const HiveRules := preload("res://demo/hives/hive_rules.gd")
+const ForageRules := preload("res://demo/forage/forage_rules.gd")
 
 const KIND_NAMES: Array[String] = ["Tend", "Harvest", "Pick berries", "Haul baskets", "Plant", "Propagate", "Observe",
-	"Tend the bees", "Feed the bees", "Recolonise the hive"]
+	"Tend the bees", "Feed the bees", "Recolonise the hive", "Move", "Build a cart"]
 const OTHER_JOB: String = "has another orchard job"
 const CANT_REACH: String = "can't reach it — %s"
 const NO_ROOM_HEAD: String = "no room"
@@ -30,7 +31,12 @@ const BOARD_FULL: String = "the orchard's job board is full"
 const GONE: String = "that task is no longer on the board"
 const CARRYING: String = "%s is carrying the load — it finishes the delivery first"
 const DELIVERY_GOES_ON: String = "a delivery always finishes: its fruit is already picked"
-const DEST_WORDS: Array[String] = ["the kitchen pantry", "any store"]
+## Where a haul may go (decision 1721: by the group's fresh-table share, to the other when the first has no room).
+const DEST_EITHER: String = "the kitchen pantry or any store"
+const HAS_CART: String = "the group has its cart already"
+const NO_WOOD: String = "a cart needs %s of wood (the stores hold %s)"
+const LIFTED: String = "it is out of the ground, on its way to its new site"
+const MOVE_THROUGH_ORDER: String = "a move is ordered with Move sapling, which speaks for its new site first"
 ## ECO-015's seasonal sightings: insects and the trees' own year (mammals and birds are never targets or pest icons).
 const SIGHTINGS: Array[String] = [
 	"bees working the catkins; the first beetles in the leaf litter",
@@ -77,6 +83,8 @@ static func tend_refusal(model: ModelScript, site: int, season: int, drought: bo
 	"""Why a tree needs no tending now ("" when it does): §5.6's care is in spring and summer, once a day."""
 	if not model.has_tree(site):
 		return "no tree stands there"
+	if model.lifted[site] == 1:
+		return LIFTED
 	if not Hive.is_growing_season(season):
 		return "no care needed in autumn or winter (§5.6: spring and summer)"
 	if model.tended_today(site):
@@ -111,7 +119,37 @@ static func plant_words(code: String) -> String:
 			return "the nursery has promised this site another sapling"
 		"NO_SAPLING":
 			return "the nursery has no sapling of that kind (propagate one)"
+		"SITE_MOVE_DEST":
+			return "a sapling is being moved to this site"
 	return "the block cannot be planted (%s)" % code.to_lower().replace("_", " ")
+
+
+static func move_words(code: String) -> String:
+	"""A move refusal code (orchard_model.gd `move_refusal`) in words ("" stays "")."""
+	match code:
+		"":
+			return ""
+		"NOT_A_SAPLING":
+			return "only a sapling in its first %d days may be moved; a grown tree stays where it stands" % \
+				Rules.HALF_YEAR_DAYS
+		"MOVED_ONCE":
+			return "it has been moved once already: a sapling is moved only once"
+		"NO_MOVE_SITE":
+			return "no free site to move it to (an empty block nothing else is promised to)"
+	return "no tree stands there"
+
+
+static func moved(model: ModelScript, dest: int) -> String:
+	"""A sapling replanted on `dest`: its settling days and its first fruit (decision 1721)."""
+	var species: int = model.species_of(dest)
+	return "%s was moved to %s: it settles %d days before it grows again; next fruit %s" % [cap(a_species(species)),
+		Rules.SITE_NAMES[dest], Rules.MOVE_SETTLE_DAYS, day_text(model.next_harvest_day(dest, model.today_hint))]
+
+
+static func cart_built(group: int) -> String:
+	"""A group's handcart built (decision 1721)."""
+	return "%s has a handcart: its hauls carry up to %s a trip" % [cap(Rules.GROUP_NAMES[group].to_lower()),
+		units(Rules.CART_LOAD_MILLI)]
 
 
 static func no_room(milli: int, item: int, where: String) -> String:
@@ -144,6 +182,11 @@ static func target_words(jobs: RefCounted, j: int) -> String:
 	match int(jobs.get(&"kind")[j]):
 		Rules.K_TEND, Rules.K_HARVEST, Rules.K_PLANT:
 			return tree_name(model, t)
+		Rules.K_MOVE:
+			var dest: int = model.move_dest[t]
+			return "%s to %s" % [tree_name(model, t), Rules.SITE_NAMES[dest] if dest >= 0 else "a free site"]
+		Rules.K_CART:
+			return "%s's baskets" % Rules.GROUP_NAMES[t].to_lower()
 		Rules.K_PICK:
 			return "the %s" % BUSH_WORDS[t]
 		Rules.K_HAUL:
@@ -152,7 +195,7 @@ static func target_words(jobs: RefCounted, j: int) -> String:
 			return "%s sapling for %s" % [a_species(model.plan_species[t]), Rules.SITE_NAMES[model.plan_site[t]]]
 		Rules.K_SERVICE, Rules.K_FEED, Rules.K_RECOLONIZE:
 			return HiveRules.APIARY_NAMES[t]
-	return Rules.GROVE_NAME
+	return Rules.GROVE_NAMES[t]
 
 
 const BUSH_WORDS: Array[String] = ["raspberry canes", "blackberry bramble", "strawberry bed"]
@@ -194,11 +237,29 @@ static func propagated(model: ModelScript, plan: int) -> String:
 		Rules.SITE_NAMES[model.plan_site[plan]], day_text(model.plan_ready_day[plan])]
 
 
-static func observation(season: int, standing: int, protected: bool) -> String:
-	"""What the grove's observer saw (ECO-015): the season's sighting and the trees standing (the news stamps its date;
-	the record adds it: `dated`)."""
-	return "%s: %s; %d trees standing%s" % [cap(Rules.GROVE_NAME), SIGHTINGS[posmod(season, 4)], standing,
+static func observation(grove: int, season: int, standing: int, protected: bool) -> String:
+	"""What grove `grove`'s observer saw (ECO-015): the season's sighting and the trees standing (the news stamps its
+	date; the record adds it: `dated`)."""
+	return "%s: %s; %d trees standing%s" % [cap(Rules.GROVE_NAMES[grove]), SIGHTINGS[posmod(season, 4)], standing,
 		"" if protected else " (not protected)"]
+
+
+static func grove_forage_words(grove: int) -> String:
+	"""What the foraging trips gather inside grove `grove` (forage_rules.gd's spots in it): "nuts", or "its forage"."""
+	var kinds := PackedStringArray()
+	for k: int in ForageRules.KIND_COUNT:
+		if Rules.grove_of(ForageRules.SPOT_AT[k]) == grove:
+			kinds.append(ForageRules.KIND_WORDS[k])
+	return " and ".join(kinds) if not kinds.is_empty() else "forage"
+
+
+static func reserve_words(grove: int, protected: bool) -> String:
+	"""The grove's forage reserve (decision 1721, ECO-015), in words."""
+	@warning_ignore("integer_division") var percent: int = Rules.GROVE_RESERVE_PERMILLE / 10
+	if protected:
+		return "Foraging trips leave its %s a reserve: %d%% of the woods' capacity above the floor." % [
+			grove_forage_words(grove), percent]
+	return "Unprotected, foraging trips may take its %s down to the woods' floor." % grove_forage_words(grove)
 
 
 static func dated(calendar: CalendarScript, line: String) -> String:

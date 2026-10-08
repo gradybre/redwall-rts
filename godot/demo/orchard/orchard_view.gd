@@ -19,6 +19,9 @@ extends Node3D
 ##   * THE NURSERY: a sapling basket for each sapling it holds or grows.
 ##   * THE GROVE: a sage ring on the ground round it while it is protected.
 ##   * A carrier holds a basket on its carry walk; a load set down shows as a basket where it lies.
+##   * DECISION 1721: a sapling being moved is drawn in its mover's arms (the staged sapling basket), its block empty
+##     meanwhile; a group's HANDCART (the world's staged `handcart`, its placeholder unstaged) stands beside its baskets
+##     once built and goes ahead of whoever hauls with it, above ground (it waits at a tunnel's mouth below).
 ## THE FOOD ART (decision 0941; wired by the batch 8 integration, decision 0903). Where it is staged, the orchard draws
 ## its own models instead of those stand-ins, each PRESCALED (size 1.0 is its full height): the apple and pear trees
 ## (4.7 m and 5.2 m full-grown; a sapling, a young and an old tree at FRUIT_SIZES' shares, the pear let down its
@@ -39,6 +42,7 @@ const PropsScript := preload("res://demo/props/demo_props.gd")
 const Sizes := preload("res://demo/world/world_sizes.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
+const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
@@ -97,6 +101,12 @@ const RING_W: float = 0.14
 const FRUIT_POOL: int = 30
 const NURSERY_POOL: int = 6
 const LOAD_POOL: int = 4
+## Decision 1721: the staged model a mover carries a lifted sapling in, and the groups' handcarts -- how they stand at
+## their baskets and how far ahead of a hauler one goes (m).
+const SAPLING_BASKET_KEY: StringName = &"sapling_basket"
+const CART_KEY: StringName = &"handcart"
+const CART_PARK_YAW: float = 1.57
+const CART_AHEAD_M: float = 1.3
 
 var _model: ModelScript = null
 var _jobs: JobsScript = null
@@ -122,6 +132,9 @@ var _full_baskets: Array[MeshInstance3D] = []
 var _nursery: Array[MeshInstance3D] = []
 var _loads: Array[MeshInstance3D] = []
 var _ring: MeshInstance3D = null
+## The groves' rings past the first (decision 1721), and each group's handcart (null: not drawn in a check).
+var _rings: Array[MeshInstance3D] = []
+var _carts: Array[Node3D] = []
 var _held: Array[StringName] = []
 var _holding: PackedInt32Array = PackedInt32Array()
 var _next: PackedInt32Array = PackedInt32Array()
@@ -279,7 +292,16 @@ func _build_places() -> void:
 		if basket != null:
 			basket.visible = false
 		_loads.append(basket)
-	_ring = _make_ring()
+	_ring = _make_ring(0)
+	_rings.append(_ring)
+	for grove: int in range(1, Rules.GROVE_COUNT):
+		_rings.append(_make_ring(grove))
+	for group: int in Rules.GROUP_COUNT:
+		var cart: Node3D = _make_piece(CART_KEY, Rules.CART_PARK_AT[group], CART_PARK_YAW, 1.0)
+		if cart != null:
+			cart.visible = false
+			add_child(cart)
+		_carts.append(cart)
 
 
 func _build_apple_baskets() -> void:
@@ -332,11 +354,11 @@ func _fruit_heap(at: Vector2) -> MultiMeshInstance3D:
 	return node
 
 
-func _make_ring() -> MeshInstance3D:
-	"""The grove's sage ring on the ground (shown while it is protected)."""
+func _make_ring(grove: int) -> MeshInstance3D:
+	"""Grove `grove`'s sage ring on the ground (shown while it is protected)."""
 	var torus := TorusMesh.new()
-	torus.inner_radius = Rules.GROVE_RADIUS_M - RING_W
-	torus.outer_radius = Rules.GROVE_RADIUS_M
+	torus.inner_radius = Rules.GROVE_RADII_M[grove] - RING_W
+	torus.outer_radius = Rules.GROVE_RADII_M[grove]
 	torus.rings = 72
 	torus.ring_segments = 4
 	var material := StandardMaterial3D.new()
@@ -344,11 +366,11 @@ func _make_ring() -> MeshInstance3D:
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	torus.material = material
 	var ring := MeshInstance3D.new()
-	ring.name = "GroveRing"
+	ring.name = "GroveRing" if grove == 0 else "GroveRing%d" % grove
 	ring.mesh = torus
 	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	ring.transform = Transform3D(Basis.IDENTITY.scaled(Vector3(1.0, 0.05, 1.0)), Vector3(Rules.GROVE_AT.x, 0.04,
-		Rules.GROVE_AT.y))
+	var centre: Vector2 = Rules.GROVE_CENTRES[grove]
+	ring.transform = Transform3D(Basis.IDENTITY.scaled(Vector3(1.0, 0.05, 1.0)), Vector3(centre.x, 0.04, centre.y))
 	add_child(ring)
 	return ring
 
@@ -356,8 +378,9 @@ func _make_ring() -> MeshInstance3D:
 # --- following the model ---------------------------------------------------------------------------------------------------
 
 func _process(_delta: float) -> void:
-	"""Follow the model, the jobs and the hour (see the header)."""
+	"""Follow the model, the jobs and the hour (see the header); a cart out on a haul follows its hauler."""
 	refresh(false)
+	follow_carts()
 
 
 func refresh(force: bool) -> void:
@@ -396,6 +419,8 @@ func _sync_trees() -> void:
 		if key != _tree_key[site] or _trees[site] == null:
 			_replace_tree(site, key)
 		_size_tree(site, key, tree_size(site))
+		if _trees[site] != null:
+			_trees[site].visible = _model.lifted[site] == 0
 
 
 func tree_key(site: int) -> StringName:
@@ -513,8 +538,9 @@ func _sync_places() -> void:
 	for k: int in _nursery.size():
 		if _nursery[k] != null:
 			_nursery[k].visible = k < held
-	if _ring != null:
-		_ring.visible = _model.grove_protected
+	for grove: int in _rings.size():
+		if _rings[grove] != null:
+			_rings[grove].visible = _model.is_grove_protected(grove)
 
 
 func _heap(group: int) -> void:
@@ -568,8 +594,9 @@ func _follow_held() -> void:
 	_next.resize(0)
 	for j: int in JobsScript.MAX_JOBS:
 		var who: int = _jobs.worker[j]
-		if _jobs.in_hand(j) and who >= 0 and who < _held.size():
-			_show_held(who, &"basket")
+		var key: StringName = held_key(j)
+		if key != &"" and who >= 0 and who < _held.size():
+			_show_held(who, key)
 			_next.append(who)
 	for who: int in _holding:
 		if not _next.has(who):
@@ -577,6 +604,40 @@ func _follow_held() -> void:
 	var swap: PackedInt32Array = _holding
 	_holding = _next
 	_next = swap
+
+
+func held_key(j: int) -> StringName:
+	"""What job `j`'s worker holds (&"": nothing): a lifted sapling's basket, or the load's basket -- none while it
+	pushes its group's cart (decision 1721)."""
+	if _jobs.holds_sapling(j):
+		return SAPLING_BASKET_KEY
+	if not _jobs.in_hand(j):
+		return &""
+	var cart: bool = _jobs.kind[j] == JobsScript.K_HAUL and _model.has_cart(_jobs.target[j])
+	return &"" if cart else &"basket"
+
+
+func follow_carts() -> void:
+	"""Each built cart at its baskets, or just ahead of its hauler (above ground; below, at its park)."""
+	for group: int in _carts.size():
+		var cart: Node3D = _carts[group]
+		if cart == null:
+			continue
+		cart.visible = _model.has_cart(group)
+		if not cart.visible:
+			continue
+		var who: int = _jobs.cart_out(group) if _jobs != null and _cast != null else -1
+		var at: Vector2 = Rules.CART_PARK_AT[group]
+		var yaw: float = CART_PARK_YAW
+		if who >= 0:
+			var brain: BrainScript = _jobs.brain_of(who)
+			if not brain.underground:
+				at = brain.position + Vector2(sin(brain.yaw), cos(brain.yaw)) * CART_AHEAD_M
+				yaw = brain.yaw + PI * 0.5
+		var place := Vector3(at.x, 0.0, at.y)
+		if cart.position != place or cart.rotation.y != yaw:
+			cart.position = place
+			cart.rotation.y = yaw
 
 
 func _show_held(who: int, key: StringName) -> void:
@@ -666,3 +727,13 @@ func bush_is_art(slot: int) -> bool:
 func ring_shown() -> bool:
 	"""Whether the grove's ring is drawn (checks)."""
 	return _ring != null and _ring.visible
+
+
+func cart_node(group: int) -> Node3D:
+	"""Group `group`'s handcart (checks; null: not drawn)."""
+	return _carts[group]
+
+
+func ring_of(grove: int) -> MeshInstance3D:
+	"""Grove `grove`'s ring (checks)."""
+	return _rings[grove]

@@ -6,7 +6,7 @@ extends Node3D
 ## (demo_work.gd `add_orchard`) and its grove in the woods' felling rule (forest_crew.gd `set_protected`).
 ##
 ## THE PLAYER'S WAY IN: left-click an orchard tree, a site's pegs, a hedge bush, the baskets, the nursery, the grove's
-## stone or the apiary's skep (decision 1601) -- it is selected and the Orchard panel opens in the right column (it has no tab: decision 0671). Right-click
+## stones (decision 1721: two groves) or the apiary's skep (decision 1601) -- it is selected and the Orchard panel opens in the right column (it has no tab: decision 0671). Right-click
 ## one with residents selected: the nearest does its most pressing work (a tree: harvest, else tend; an empty site:
 ## plant its ready sapling or a free one; a bush: pick; the baskets: send them on; the nursery: propagate the first
 ## waiting plan; the grove: observe). With nobody selected the panel's verbs queue the job for the board's Field crew.
@@ -102,7 +102,8 @@ static func land_obstacles() -> Array[Vector3]:
 	for at: Vector2 in Rules.STAND_AT:
 		out.append(Vector3(at.x, PLACE_RADIUS_M, at.y))
 	out.append(Vector3(Rules.NURSERY_AT.x, PLACE_RADIUS_M, Rules.NURSERY_AT.y))
-	out.append(Vector3(Rules.GROVE_AT.x, BUSH_RADIUS_M, Rules.GROVE_AT.y))
+	for stone: Vector2 in Rules.GROVE_STONES:
+		out.append(Vector3(stone.x, BUSH_RADIUS_M, stone.y))
 	for apiary: int in HiveRules.APIARY_COUNT:
 		var skep: Vector2 = HiveRules.centre_m(apiary)
 		out.append(Vector3(skep.x, HiveRules.SKEP_RADIUS_M, skep.y))
@@ -148,12 +149,13 @@ func configure(world: DemoWorldScript, cast: DemoCastScript, command: DemoComman
 
 
 func _place_grove_stone(world: DemoWorldScript) -> void:
-	"""The grove's stone: its rest and observation spot (ECO-015), and what a click selects it by."""
+	"""Each grove's stone: its rest and observation spot (ECO-015), and what a click selects it by."""
 	if world == null:
 		return
-	var stone: Node3D = world.make_piece(GROVE_STONE_KEY, Rules.GROVE_AT, 0.4, GROVE_STONE_SIZE)
-	if stone != null:
-		add_child(stone)
+	for grove: int in Rules.GROVE_COUNT:
+		var stone: Node3D = world.make_piece(GROVE_STONE_KEY, Rules.GROVE_STONES[grove], 0.4 + 1.3 * grove, GROVE_STONE_SIZE)
+		if stone != null:
+			add_child(stone)
 
 
 func set_compost(left: Callable, take: Callable) -> void:
@@ -209,19 +211,24 @@ func set_panel_shower(shower: Callable) -> void:
 # --- the grove's rule (forest_crew.gd's hook) -------------------------------------------------------------------------
 
 func grove_protects(at: Vector2) -> bool:
-	"""Whether a woods tree standing at `at` is in the protected grove (forestry may not fell it)."""
-	return model.grove_protected and at.distance_to(Rules.GROVE_AT) <= Rules.GROVE_RADIUS_M
+	"""Whether a woods tree standing at `at` is in a protected grove (forestry may not fell it)."""
+	return model.protected_grove_at(at) != Rules.NONE
 
 
-func grove_trees_standing() -> int:
-	"""The woods' trees standing (mature or young) in the grove."""
+func grove_reserve_permille(at: Vector2) -> int:
+	"""The foraging trips' reserve at a spot `at` (decision 1721, ECO-015): GROVE_RESERVE_PERMILLE of the kind's capacity
+	when `at` is in a protected grove, else 0 (forage_trips.gd `reserve_permille`)."""
+	return Rules.GROVE_RESERVE_PERMILLE if grove_protects(at) else 0
+
+
+func grove_trees_standing(grove: int) -> int:
+	"""The woods' trees standing (mature or young) in grove `grove`."""
 	if _stand == null:
 		return 0
 	var n: int = 0
 	for t: int in _stand.count():
 		var state: int = _stand.state_of(t)
-		if _stand.at[t].distance_to(Rules.GROVE_AT) <= Rules.GROVE_RADIUS_M \
-				and (state == StandScript.STATE_MATURE or state == StandScript.STATE_YOUNG):
+		if Rules.grove_of(_stand.at[t]) == grove and (state == StandScript.STATE_MATURE or state == StandScript.STATE_YOUNG):
 			n += 1
 	return n
 
@@ -279,8 +286,9 @@ func pick_at(ground: Vector2) -> Vector2i:
 			return Vector2i(SEL_STAND, group)
 	if ground.distance_to(Rules.NURSERY_AT) <= PICK_SMALL_M * 1.5:
 		return Vector2i(SEL_NURSERY, 0)
-	if ground.distance_to(Rules.GROVE_AT) <= PICK_SMALL_M:
-		return Vector2i(SEL_GROVE, 0)
+	for grove: int in Rules.GROVE_COUNT:
+		if ground.distance_to(Rules.GROVE_STONES[grove]) <= PICK_SMALL_M:
+			return Vector2i(SEL_GROVE, grove)
 	for apiary: int in HiveRules.APIARY_COUNT:
 		if ground.distance_to(HiveRules.centre_m(apiary)) <= PICK_SMALL_M:
 			return Vector2i(SEL_APIARY, apiary)
@@ -327,7 +335,10 @@ func on_action(action: StringName) -> void:
 		&"timing", &"dest", &"keep":
 			_cycle_policy(action)
 		&"protect":
-			model.set_grove_protected(not model.grove_protected)
+			model.set_grove_protected(shown_grove(), not model.is_grove_protected(shown_grove()))
+		&"move":
+			if selected_kind == SEL_SITE:
+				_answer(jobs.order_move(selected_id, _command.selected() if _command != null else PackedInt32Array()))
 		&"plan_apple", &"plan_pear":
 			_answer(Text.plant_words(model.add_plan(Rules.APPLE if action == &"plan_apple" else Rules.PEAR, selected_id)))
 		&"drop_plan":
@@ -349,7 +360,8 @@ func _cycle_policy(action: StringName) -> void:
 		&"timing":
 			model.group_timing[group] = (model.group_timing[group] + 1) % Rules.TIMING_NAMES.size()
 		&"dest":
-			model.group_dest[group] = (model.group_dest[group] + 1) % Rules.DEST_NAMES.size()
+			var step: int = Rules.FRESH_STEPS.find(model.group_fresh_pct[group])
+			model.group_fresh_pct[group] = Rules.FRESH_STEPS[(step + 1) % Rules.FRESH_STEPS.size()]
 		&"keep":
 			var at: int = Array(Rules.KEEP_STEPS).find(model.group_keep[group])
 			model.group_keep[group] = Rules.KEEP_STEPS[(at + 1) % Rules.KEEP_STEPS.size()]
@@ -378,9 +390,15 @@ func refresh_panel() -> void:
 		cards.dest_word(group), cards.keep_word(group))
 	for action: StringName in PanelScript.GROUP_ACTIONS:
 		panel.set_card(action, cards.policy_tip(action, group), group >= 0)
-	panel.set_card(&"protect", cards.policy_tip(&"protect", -1), true)
+	panel.set_card(&"protect", cards.policy_tip(&"protect", shown_grove()), true)
 	panel.show_nursery("The nursery", cards.nursery_text())
-	panel.show_grove(Text.cap(Rules.GROVE_NAME), cards.grove_text(), model.grove_protected)
+	panel.show_grove(Text.cap(Rules.GROVE_NAMES[shown_grove()]), cards.grove_text(shown_grove()),
+		model.is_grove_protected(shown_grove()))
+
+
+func shown_grove() -> int:
+	"""The grove the panel's grove section shows and its toggle sets: the selected one, else the North hollow."""
+	return selected_id if selected_kind == SEL_GROVE and Rules.is_grove(selected_id) else 0
 
 
 func _ground_at(screen: Vector2) -> Vector2:

@@ -1053,3 +1053,26 @@ forward, with the fitted next tread as a solid.
 ### Brendan's review of step 5b (2026-10-08): **approved**
 
 Brendan approved the tool-free half-turn and the tread episode order: descend → step back → bearer delivered → handle and fit → step forward → half-turn → ascend.
+
+## Step 6 — the stair and tread content (content 10)
+
+### 6.1 Native capture of the tread and stair clips (done)
+
+`claw-work-v1/native_claw_stairs.py` succeeds `native_claw_split.py`. The accepted compiler, capture script, runner
+and verifier equations are reused; it only adds the approved clips, each pinned by its approval record:
+
+| Image | Source | Clips | Content | Native rows | Mismatches | Joins | Max vertex error (u) |
+|---|---|---|---|---:|---:|---:|---|
+| claw v2 | 4 | content 9's 8; tread_tap ×3; step_back; step_forward; descent; ascent; turn | `b85f9195…` (1,058,772 B) | 10,836 | 0 | 66 | 0.0003 |
+| paw v2 | 5 | content 9's 3; tread_seat ×3 | `9cdafc55…` (148,520 B) | 1,482 | 0 | 24 | 0.0002 |
+
+- Both replays ran on the real non-headless Metal backend, with 0 failures, 0 analyzer warnings and the sources
+  unchanged.
+- **Joins** cover every program (ready → entry → work → recovery → ready, recovery reversed), and every single
+  travel clip begins and ends on the ready hub. The paw image's hub is the claw capture's stand key 8.
+- **Floor rule.** The rooted clips (descent, ascent, turn) carry a root track that the program applies. Their
+  support is proved on the terrain, flight and handoff fixtures, so the local floor check skips them. It holds on
+  every other clip, with a minimum gap of 0.0014 u.
+
+The palettes were staged from the frozen ug-space worktree against their pins and removed afterwards. Evidence is in
+`evidence/native-claw-stairs-v1/{claw,paw}/`.

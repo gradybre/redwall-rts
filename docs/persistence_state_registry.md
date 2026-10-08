@@ -931,6 +931,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 |---|---|---|---|---|:-:|---|---|
 | Construction validation bridge | -- | -- | -- | -- | 3 | -- | Pure owner1 bridge, CONSTRUCTION-S4-VALIDATE-R01v2/ADR0186. No mutable authoritative state or live owner construction. Columns(false) borrows16 pre-shaped buffers; no second4893696-byte default image or packed scratch. Caller4893696 + two663552 field copies + three65536 stream windows =6417408 logical packed allowance; native overhead remains unmeasured. Retained purpose, type, phase and refund history are preserved. Same-file Directory/Buildings identity, section5 delivered-material ledger, material conservation, clock and bulk restoration remain CONSTRUCTION-SAVED-BINDINGS. Classification is not candidate acceptance. |
 
+### `godot/scripts/core/save_owner_jobs.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Jobs joint section 4 + 5 bridge | -- | -- | -- | -- | 3 | -- | ADR 1222 step 3. Stateless: static `capture_into(store, record, block)` / `apply(record, block, store)` over the section 4 FramedOwner (owner 7) and the section 5 Block (owner 3). One transient `Jobs.Columns` per call carries all forty-two columns through `Jobs.copy_columns_into()` / `restore_columns()`, so the two sections restore in one validated call and a half-applied pair never exists; refusal writes nothing and forwards the store's `COLUMN_` code. |
+
 ### `godot/scripts/core/save_owner_movement.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

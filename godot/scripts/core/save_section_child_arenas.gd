@@ -452,7 +452,8 @@ static func _read_block(bytes: PackedByteArray, cursor: Cursor, block: Block) ->
 	if not cursor.has(SaveCodec.U32_BYTES):
 		return _no(REFUSE_TRUNCATED, "no key length for block %d" % block.owner)
 	if bytes.decode_u32(cursor.at) != key.size() \
-			or not cursor.has(SaveCodec.U32_BYTES + key.size()) or bytes.slice(cursor.at + 4, cursor.at + 4 + key.size()) != key:
+			or not cursor.has(SaveCodec.U32_BYTES + key.size()) \
+			or bytes.slice(cursor.at + 4, cursor.at + 4 + key.size()) != key:
 		return _no(REFUSE_OWNER_KEY, "block %d does not carry '%s'" % [block.owner,
 			Schema.OWNER_KEYS[block.owner]])
 	cursor.at += SaveCodec.U32_BYTES + key.size()

@@ -165,9 +165,42 @@ when a resident may stand there (unchanged for the other three sites), else the 
 turn either way. Tested against the real woods' obstacles, with a move replanting there. The boulder itself (inside a
 planting block) is the world layout's, not this lane's: noted for the coordinator.
 
-## Gates
+## Gates (2026-10-07)
 
-(Filled in below when the gates ran.)
+- **CI-style full suite** (a clean checkout of `703c1b47`, no `godot/demo/assets`, `.godot` deleted and re-imported,
+  `./tools/run_tests.sh`): `9349 test(s), 650184 assertion(s), 0 failure(s)` ·
+  `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 373 tolerated; leaked at exit: 0 object(s), 0 resource(s)` ·
+  `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).` An earlier run (at
+  `1623ae17`, while the mutation pass loaded the machine) failed only `test_twenty_workers_at_four_x_cost_little_per_frame`
+  (the sound cues' wall-clock budget: p99 501 us against 500, not this lane's code); rerun once on the final commit, it
+  passed.
+- **Analyzer**: `python3 tools/gdscript_warnings.py --max 0 --port 6127` (the clean checkout of `703c1b47`) →
+  `0 GDScript warning(s) in 0 of 1057 file(s)`. **Found on the way:** runs on the default `--port 6018` reported
+  hundreds of spurious warnings (existing files "missing", members of other branches absent) while other lanes ran the
+  analyzer at the same time -- the language server's default port is shared across worktrees on this machine. Give
+  each concurrent lane its own `--port`.
+- **Contracts**: decision_numbers, ready07_arithmetic, merge_gate, setting_contract, dispatch_plan, astra_inbox,
+  validate_save_registry_handoff, generate_canonical_state_table, validate_cycle01/02/03_handoff, audit_registry_capacities
+  and its test, generate_component_columns_schema and its test, lane_notes, test_movement_envelopes,
+  test_movement_profile_policy, state_registry_coverage, ui_refinement_contract -- all PASS.
+- **Live harness** `test/live/demo_orchard_remainders_live.gd` (staged art): `LIVE-SUMMARY 26 0` at 1280x720 and at
+  1920x1080 (and in the CI-style suite through `test_demo_orchard_remainders_live.gd`, unstaged). Frames looked at, at both
+  sizes (session scratchpad `rgy_check/`): `orchard_move_panel`, `orchard_cart`, `orchard_old_cart`, `orchard_moved`,
+  `beech_hollow`, `forage_outing` -- they moved the east cart off a stump (the parks are now tested clear of the real
+  layout). At 720p the Move and the Kit/Lead buttons sit below the panels' scroll, as their panels already do.
+- **The orchard's existing harness** (`demo_orchard_live.gd`, unchanged from master): unstaged, as CI runs it, 6 of 6
+  passes at 1920x1080 on this branch (the tending done in about 1340 frames; master's code 1362). With the demo's art
+  staged the tending ends nearer 1410 frames and the 07:00 breakfast call sometimes takes the tender first: the job then
+  waits on the board past the check's 2400-frame bound (about 1 run in 5 here). That race is the harness's own (its
+  timed tending and the meal call), seen only staged; its budget is not changed. Putting this lane's steps in that file
+  made it worse (a longer script shifted the race), so they have their own harness, run past breakfast.
+- **Mutation testing** (one mutant a run, `test_demo_orchard_remainders.gd` and `test_demo_forage_outings.gd`): **61
+  mutants, 61 killed** after the review's fixes. The first pass left six: five got tests (an empty site is never its own
+  move's destination; one group's cart stays parked while another's hauls; a cart's hold sized by its lot; a lifted
+  sapling not tended; the too-late boundary counting the least worth gathering), the sixth was equivalent and its
+  redundant comparison was removed (`daylight_ticks`), and all six were rerun killed. SURVIVED_MUTANTS: none.
+- **Independent review**: see "The independent review and what it changed": no CRITICAL; the one HIGH and every MEDIUM
+  fixed; the LOWs fixed or answered there.
 
 ## Source
 

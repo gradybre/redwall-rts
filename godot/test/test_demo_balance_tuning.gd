@@ -21,6 +21,14 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 
 
+## Ingredient takes that sees free food but can reserve none (as when every entry row is taken).
+class FullTakes extends "res://demo/kitchen/ingredient_takes.gd":
+	func reserve_into(_pantry: PantryScript, _take: int, _crop: int, _milli: int, _hour_index: int,
+			out: IntMath.IntResult) -> bool:
+		"""Nothing reserved."""
+		return out.succeed(0)
+
+
 # --- the cordial (decision 1733) ---------------------------------------------------------------------------------
 
 func test_the_cordial_keeps_240_hours_and_is_a_table_drink() -> void:
@@ -190,3 +198,16 @@ func test_a_second_batch_cannot_be_ordered_against_water_already_held() -> void:
 	assert_true(why.contains("set aside for batches already ordered"), why)
 	fishery.stores.water_milli_u += 1
 	assert_equal(fishery.batch_refusal(Recipes.R_MEAD), "", "6 U in the butt: a second mead")
+
+
+func test_a_pour_that_cannot_be_reserved_is_a_dry_supper() -> void:
+	"""Free cordial seen, but none could be set aside for the pour (the takes full): nothing poured, the supper counted
+	dry, the cordial untouched (the review's D4)."""
+	var kitchen := _kitchen_with_cordial(10000)
+	kitchen.takes = FullTakes.new()
+	var drink := TableDrinkScript.new()
+	drink.bind(kitchen)
+	_publish(kitchen, MealRules.meal_key(2, MealRules.MEAL_SUPPER), 9)
+	drink.update()
+	assert_equal([drink.poured_milli, drink.pours, drink.dry_suppers], [0, 0, 1], "a dry supper, nothing poured")
+	assert_equal(kitchen.pantry.milli_of(Catalog.ITEM_CORDIAL), 10000, "the cordial untouched")

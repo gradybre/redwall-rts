@@ -84,3 +84,11 @@ The FEAST lane edits `kitchen.gd` too. These are narrow, additive hooks, and non
 - a resident held at the water through the serving keeps its first portion, and nobody takes a second;
 - a second helping held is never counted twice among the holders;
 - a second helping given back after the meal has closed leaves the tally and the outcome unchanged.
+- the cook's own path takes its second on its turn, once, and not off it (K7);
+- a second helping eaten gives up its seat, which matters for a cook whose part goes on (K5).
+
+Also, for decisions 1733 and 1735:
+- a pour that cannot be reserved after free cordial was seen is a dry supper (D4, `test_demo_balance_tuning.gd`);
+- Ready food's hotpot draws greens before roots, so a salad still counts (K12, `test_demo_dishes.gd`).
+
+All four mutants, which the second review left surviving, are now killed.

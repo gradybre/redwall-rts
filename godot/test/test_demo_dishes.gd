@@ -770,3 +770,14 @@ func test_the_hotpot_takes_greens_or_roots_and_ready_food_counts_it() -> void:
 	var kitchen := _kitchen(_many("mole", 2), tick_at(0, 6), pantry, StoresScript.new())
 	assert_equal(kitchen.cookable_portions(), 6 + 2, "2 hotpots from 4 U of roots (6 portions), then a soup from 3 U")
 	assert_equal(Rules.categories_words(PackedInt32Array([PEA])), "", "one category: no words")
+
+
+func test_ready_food_s_hotpot_draws_greens_before_roots() -> void:
+	"""Beans 2, greens 4, roots 2: the hotpot takes the greens first, so a salad (greens 2 + roots 1) still counts --
+	3 + 2 portions; drawn from the roots first, the salad would have none (the review's K12)."""
+	var pantry := _pantry()
+	pantry.add_into(PEA, 2000, 0, _read)
+	pantry.add_into(CABBAGE, 4000, 0, _read)
+	pantry.add_into(CARROT, 2000, 0, _read)
+	var kitchen := _kitchen(_many("mole", 2), tick_at(0, 6), pantry, StoresScript.new())
+	assert_equal([kitchen.cookable_batches(), kitchen.cookable_portions()], [2, 5], "a hotpot and a salad")

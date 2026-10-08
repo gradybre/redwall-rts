@@ -164,12 +164,16 @@ func test_each_link_corruption_refuses_with_its_code_and_writes_nothing() -> voi
 		column[case[1]] = case[2]
 		assert_true(parts[1].set_i32_column(case[0], column).is_ok(), "corrupt")
 		assert_equal(Bridge.apply(parts[0], parts[1], parts[2], target).code, case[3], case[4])
-	var spatial: Array = _captured()
-	var kinds: PackedByteArray = spatial[2].u8_column(Bridge.AUX_R_SPATIAL_KIND)
-	kinds[0] = 1
-	assert_true(spatial[2].set_u8_column(Bridge.AUX_R_SPATIAL_KIND, kinds).is_ok(), "flag")
-	assert_equal(Bridge.apply(spatial[0], spatial[1], spatial[2], target).code,
-		Buildings.REFUSE_COLUMN_SPATIAL, "spatial rooms are refused until the underground step")
+	for flag: Array in [[0, Buildings.ROOM_SPACE_UNDERGROUND, Buildings.REFUSE_COLUMN_ROOM_STATE,
+				"a surface room with a parent and tiles flagged underground"],
+			[0, 2, Buildings.REFUSE_COLUMN_SPATIAL, "an unknown spatial kind"],
+			[Buildings.ROOM_CAPACITY - 1, Buildings.ROOM_SPACE_UNDERGROUND, Buildings.REFUSE_COLUMN_SPATIAL,
+				"a free room flagged underground"]]:
+		var spatial: Array = _captured()
+		var kinds: PackedByteArray = spatial[2].u8_column(Bridge.AUX_R_SPATIAL_KIND)
+		kinds[flag[0]] = flag[1]
+		assert_true(spatial[2].set_u8_column(Bridge.AUX_R_SPATIAL_KIND, kinds).is_ok(), "flag")
+		assert_equal(Bridge.apply(spatial[0], spatial[1], spatial[2], target).code, flag[2], flag[3])
 	var after: Array = _image(target)
 	assert_true(after[1].equals(before[1]) and after[0].b_present == before[0].b_present,
 		"no refusal wrote anything")
@@ -195,3 +199,27 @@ func test_wrong_blocks_and_a_null_store_refuse_before_the_store() -> void:
 	assert_equal(Bridge.apply(parts[0], parts[1], parts[2], null).code, Bridge.REFUSE_NULL_STORE,
 		"no store")
 	assert_equal(target.live_building_count(), 0, "nothing was installed")
+
+
+func test_an_underground_room_round_trips_by_its_section_6_flag() -> void:
+	"""ADR 1228: a published underground Room (no parent, no tiles) is captured and restored with
+	its flag; section 1 carries the world, and the restored store reports it underground."""
+	var ref: Vector2i = _store.directory().create(EntityDirectory.KIND_ROOM)
+	var published: Buildings.OpResult = Buildings.publish_spatial_room_preflighted(_store, ref,
+		int(CatalogScript.ROOM_TYPE["CORRIDOR"]))
+	assert_true(published.ok, "an underground Room is published")
+	var parts: Array = _captured()
+	var target: Buildings = _target()
+	var refusal: Variant = Bridge.apply(parts[0], parts[1], parts[2], target)
+	assert_true(refusal.is_ok(), "apply: %s %s" % [refusal.code, refusal.detail])
+	assert_true(_same(_store, target), "the stores agree")
+	assert_equal(target.spatial_kind_of_room(ref).value, Buildings.ROOM_SPACE_UNDERGROUND, "still underground")
+	var maps: Array[PackedInt32Array] = [PackedInt32Array(), PackedInt32Array(), PackedInt32Array()]
+	for map: PackedInt32Array in maps:
+		map.resize(Buildings.TILE_COUNT)
+	assert_true(_store.copy_section_1_columns_into(maps[0], maps[1], maps[2]), "section 1 copies")
+	assert_true(target.restore_section_1_columns(maps[0], maps[1], maps[2]), "section 1 restores")
+	assert_true(Bridge.apply(parts[0], parts[1], parts[2], target).is_ok(), "the flags land after section 1")
+	assert_equal(target.section_1_cross_check_refusal(), Buildings.REFUSE_NONE, "the tile maps agree")
+	assert_equal(Bridge.framed_refusal(parts[0]).code, Buildings.REFUSE_COLUMN_ROOM_STATE,
+		"without its flags the section 4 record alone is a surface image and refuses the room")

@@ -6826,7 +6826,7 @@
     },
     "source_sha256": {
       "godot/scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
-      "godot/scripts/core/buildings.gd": "ac3ba6dcb74c6f6509dd685632bdf9f035fef1fdc60ef7abfb84d30c771e1bdc",
+      "godot/scripts/core/buildings.gd": "3c76433e6f4fdcc2752ba97a26f95b35a89e883fc7ebba63a4a7c26eb926cb85",
       "godot/scripts/core/construction.gd": "7715edbcebf550822d23381968f72e8a44e6402e7bc3449bd68f1dcbb8fda1b7",
       "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310",
       "godot/scripts/core/inventory.gd": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
@@ -41808,7 +41808,7 @@
           },
           "allocation_sites": {
             ".duplicate(": 46,
-            "PackedByteArray(": 6,
+            "PackedByteArray(": 8,
             "PackedInt32Array(": 15,
             "in[": 3,
             "range(": 1

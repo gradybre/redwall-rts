@@ -208,14 +208,18 @@ const SOURCE_TIER_TWO_TYPE_ID_COUNT: int = 4
 const SOURCE_TIER_TWO_TYPE_IDS: Array[int] = [5, 12, 23, 29]
 
 
-static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
-	"""Judge one framed owner 0 block against the Buildings store's own cold column rules."""
+static func framed_refusal(record: Section.FramedOwner,
+		flags: AuxSection.Block = null) -> SaveHeader.Refusal:
+	"""Judge one framed owner 0 block against the Buildings store's own cold column rules. With
+	the section 6 flags block, a present underground Room takes the spatial predicate (ADR 1228)."""
 	var preflight: SaveHeader.Refusal = _record_preflight(record)
 	if not preflight.is_ok():
 		return preflight
 	var columns: Buildings.Columns = Buildings.Columns.new(false)
 	_project_columns(record, columns)
-	var code: StringName = Buildings.columns_refusal(columns)
+	var spatial: PackedByteArray = flags.u8_column(AUX_R_SPATIAL_KIND) if flags != null \
+		else PackedByteArray()
+	var code: StringName = Buildings.columns_refusal(columns, spatial)
 	if code != Buildings.REFUSE_NONE:
 		return _refuse(code, "%srefuses this image with column code %s"
 			% [COLUMN_DETAIL_PREFIX, String(code)])
@@ -682,7 +686,7 @@ static func capture_into(store: Buildings, record: Section.FramedOwner,
 	var written: SaveHeader.Refusal = _write_links(image, links, flags)
 	if not written.is_ok():
 		return written
-	return framed_refusal(record)
+	return framed_refusal(record, flags)
 
 
 static func apply(record: Section.FramedOwner, links: ChildSection.Block,

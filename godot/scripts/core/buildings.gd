@@ -2325,12 +2325,15 @@ func legacy_save_refusal() -> StringName:
 	return _legacy_discriminator_refusal(false)
 
 
-func _legacy_discriminator_refusal(loading_surface: bool) -> StringName:
-	"""Validate all flags before cold legacy capture/load; no unknown or free-row bits survive."""
+func _legacy_discriminator_refusal(loading_surface: bool, spatial_rooms: bool = false) -> StringName:
+	"""Validate all flags before cold legacy capture/load; no unknown or free-row bits survive.
+	`spatial_rooms` admits present underground Rooms, whose flags section 6 carries (ADR 1228)."""
 	if _r_spatial_kind.size() != ROOM_CAPACITY or _f_installed.size() != FURNITURE_CAPACITY:
 		return COLUMN_REFUSE_SHAPE
-	for kind: int in _r_spatial_kind:
-		if kind != ROOM_SPACE_SURFACE:
+	for row: int in ROOM_CAPACITY:
+		var kind: int = _r_spatial_kind[row]
+		if kind != ROOM_SPACE_SURFACE and not (spatial_rooms and kind == ROOM_SPACE_UNDERGROUND
+				and _r_present[row] == 1):
 			return REFUSE_VERSIONED_CODEC
 	for row: int in FURNITURE_CAPACITY:
 		var installed: int = _f_installed[row]
@@ -2344,8 +2347,9 @@ func _legacy_discriminator_refusal(loading_surface: bool) -> StringName:
 
 
 func _legacy_section_1_refusal(loading_surface: bool) -> StringName:
-	"""Preserve an explicit diagnostic when the frozen ground-grid image cannot carry live state."""
-	var code: StringName = _legacy_discriminator_refusal(loading_surface)
+	"""Preserve an explicit diagnostic when the frozen ground-grid image cannot carry live state.
+	Underground Rooms own no tile, so section 1 carries a world holding them (ADR 1228)."""
+	var code: StringName = _legacy_discriminator_refusal(loading_surface, true)
 	if code != REFUSE_NONE:
 		return _refuse_section_1_code(code, "spatial/pending or unknown flags require the composed versioned codec")
 	return REFUSE_NONE
@@ -2451,6 +2455,8 @@ func _section_1_room_refusal() -> StringName:
 			return identity
 		var begin: int = _r_tile_offset[row]
 		var count: int = _r_tile_count[row]
+		if _r_spatial_kind[row] == ROOM_SPACE_UNDERGROUND and begin == 0 and count == 0:
+			continue
 		if begin < 0 or count <= 0 or begin + count > _room_tile_id.size():
 			return _refuse_section_1_code(COLUMN_REFUSE_FOOTPRINT,
 				"room %d claims run [%d,%d) of a %d-entry arena"
@@ -2789,12 +2795,15 @@ class Columns:
 
 # --- the pure ordered predicate: shape, canonical flags, then ascending rows ---------------------
 
-static func columns_refusal(image: Columns) -> StringName:
+static func columns_refusal(image: Columns,
+		spatial_kind: PackedByteArray = PackedByteArray()) -> StringName:
 	"""The first refusal this image earns in contract order, or REFUSE_NONE.
 
 	Shape first, then all four canonical flag buffers in the fixed order b_present, r_present,
 	f_present, r_valid, then ascending building rows, ascending room rows and ascending furniture
-	rows, each row using its own enum/value/reference/never-used/state gates.
+	rows, each row using its own enum/value/reference/never-used/state gates. `spatial_kind` is
+	section 6's room flag column (ADR 1228): with it, a present UNDERGROUND room is judged by the
+	spatial predicate instead of the frozen surface one; without it every room is a surface room.
 	"""
 	if image == null or not image.is_sized():
 		return REFUSE_COLUMN_SHAPE
@@ -2805,8 +2814,10 @@ static func columns_refusal(image: Columns) -> StringName:
 		var b_code: StringName = _columns_building_refusal(image, row)
 		if b_code != REFUSE_NONE:
 			return b_code
+	var spatial: bool = spatial_kind.size() == ROOM_CAPACITY
 	for row: int in ROOM_CAPACITY:
-		var r_code: StringName = _columns_room_refusal(image, row)
+		var r_code: StringName = _columns_room_refusal(image, row,
+			spatial and spatial_kind[row] == ROOM_SPACE_UNDERGROUND)
 		if r_code != REFUSE_NONE:
 			return r_code
 	for row: int in FURNITURE_CAPACITY:
@@ -2887,9 +2898,10 @@ static func _columns_building_state_refusal(image: Columns, row: int) -> StringN
 	return REFUSE_NONE
 
 
-static func _columns_room_refusal(image: Columns, row: int) -> StringName:
+static func _columns_room_refusal(image: Columns, row: int, underground: bool = false) -> StringName:
 	"""One room row's ordered gates. Temperature permits the whole signed i32 domain, which its
-	packed type already enforces, so it has no gate of its own."""
+	packed type already enforces, so it has no gate of its own. An `underground` present row takes
+	the spatial state gate."""
 	if image.r_type[row] < 0 or image.r_type[row] >= ROOM_TYPE_COUNT:
 		return REFUSE_COLUMN_ROOM_ENUM
 	if (image.r_tile_offset[row] < 0 or image.r_tile_offset[row] > ROOM_TILE_LINK_CAPACITY
@@ -2904,6 +2916,8 @@ static func _columns_room_refusal(image: Columns, row: int) -> StringName:
 		return REFUSE_COLUMN_ROOM_REF
 	if image.r_present[row] == 0:
 		return _columns_room_free_refusal(image, row)
+	if underground:
+		return _columns_spatial_room_state_refusal(image, row)
 	return _columns_room_state_refusal(image, row)
 
 
@@ -2928,6 +2942,15 @@ static func _columns_room_state_refusal(image: Columns, row: int) -> StringName:
 		return REFUSE_COLUMN_ROOM_STATE
 	if (image.r_tile_count[row] < 1
 			or image.r_tile_offset[row] + image.r_tile_count[row] > ROOM_TILE_LINK_CAPACITY):
+		return REFUSE_COLUMN_ROOM_STATE
+	return REFUSE_NONE
+
+
+static func _columns_spatial_room_state_refusal(image: Columns, row: int) -> StringName:
+	"""ADR 1228: a present underground Room (`publish_spatial_room_preflighted`) has no parent
+	building and no surface tiles; its space is the underground Session's, saved in section 6."""
+	if not _columns_ref_is_null(image.r_building_slot[row], image.r_building_generation[row]) \
+			or image.r_tile_offset[row] != 0 or image.r_tile_count[row] != 0:
 		return REFUSE_COLUMN_ROOM_STATE
 	return REFUSE_NONE
 
@@ -3071,10 +3094,10 @@ static func world_retirement_release_preflighted_in(actual: RefCounted, ids: Ent
 # and only then installs and recounts `_b/_r/_f_live_count`, `_room_tile_used` and
 # `_f_kind_count`. Section 1's tile maps are restored separately (`restore_section_1_columns()`).
 #
-# SURFACE ONLY FOR NOW. Spatial (underground) rooms and pending installations are refused with
-# COLUMN_SPATIAL, exactly as the section-1 legacy codec refuses them (`legacy_save_refusal()`):
-# the frozen section-4 predicate also requires a present room to have a parent and a tile run.
-# The underground step (ADR 1222 step 10) owns the versioned codec that lifts this.
+# UNDERGROUND ROOMS (ADR 1228). The section 6 flag column marks a present underground Room, which
+# has no parent building and no tile run; `columns_refusal()` judges it by the spatial predicate
+# when given that column, and the room chains list it by its flag. Pending and spatial furniture
+# are still refused with COLUMN_SPATIAL: no production instance composes them yet.
 
 const REFUSE_COLUMN_LINK_FREE: StringName = &"COLUMN_LINK_FREE"
 const REFUSE_COLUMN_LINK_REF: StringName = &"COLUMN_LINK_REF"
@@ -3282,7 +3305,7 @@ func restore_columns(columns: Columns, links: Links) -> bool:
 	(section 1) are NOT touched; the caller restores them with `restore_section_1_columns()` and
 	runs `section_1_cross_check_refusal()` once both are installed.
 	"""
-	var code: StringName = columns_refusal(columns)
+	var code: StringName = columns_refusal(columns, links.r_spatial_kind if links != null else PackedByteArray())
 	if code == REFUSE_NONE:
 		code = links_refusal(columns, links)
 	if code == REFUSE_NONE:
@@ -3465,9 +3488,14 @@ static func _links_furniture_free_refusal(c: Columns, l: Links) -> StringName:
 
 
 static func _links_spatial_refusal(c: Columns, l: Links) -> StringName:
-	"""Surface only: no spatial room, and exactly the present furniture rows installed."""
+	"""A spatial flag only on a present, unchained underground Room (ADR 1228), and exactly the
+	present furniture rows installed: spatial furniture still waits for its versioned codec."""
 	for row: int in ROOM_CAPACITY:
-		if l.r_spatial_kind[row] != ROOM_SPACE_SURFACE:
+		var kind: int = l.r_spatial_kind[row]
+		if kind == ROOM_SPACE_SURFACE:
+			continue
+		if kind != ROOM_SPACE_UNDERGROUND or c.r_present[row] != 1 \
+				or l.r_building_next[row] != NO_LINK or l.r_building_prev[row] != NO_LINK:
 			return REFUSE_COLUMN_SPATIAL
 	for row: int in FURNITURE_CAPACITY:
 		if l.f_installed[row] != c.f_present[row]:
@@ -3535,7 +3563,16 @@ static func _links_room_chain_refusal(c: Columns, l: Links) -> StringName:
 			room = l.r_building_next[room]
 		if count != l.b_room_count[building]:
 			return REFUSE_COLUMN_ROOM_CHAIN
+	_mark_underground_rooms(c, l, seen)
 	return _links_unlisted_refusal(c.r_present, seen, REFUSE_COLUMN_ROOM_CHAIN)
+
+
+static func _mark_underground_rooms(c: Columns, l: Links, seen: PackedByteArray) -> void:
+	"""An underground Room has no parent chain; it is listed by its own flag (ADR 1228). A chain
+	cannot have reached it, since its null parent matches no building."""
+	for room: int in ROOM_CAPACITY:
+		if c.r_present[room] == 1 and l.r_spatial_kind[room] == ROOM_SPACE_UNDERGROUND:
+			seen[room] = 1
 
 
 static func _links_unlisted_refusal(present: PackedByteArray, seen: PackedByteArray,

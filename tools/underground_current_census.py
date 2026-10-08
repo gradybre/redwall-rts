@@ -92,7 +92,7 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "5fa9d420148a4a88540a78f9c956ebffea1a6a3d49e532c6c16cf63c90c1d506"
+REVIEWED_SHA = "4d7476b6837c358eca21bb7c7695ba8cdbbe7f95770e715e5468ce53262f13d0"
 # ADR1217 step 5: the runtime Frontier is the claw bundle's (same row census as qualified-stone-v5's).
 FRONTIER = Path("godot/data/underground/first-entry-prefix-v1/qualified-claw-v6/frontier.ugfront")
 FRONTIER_SHA = "0d81d4f439912f737a5848d29cbfce4ad612da30b85f2d7fe38b5c23e0e8dfc7"

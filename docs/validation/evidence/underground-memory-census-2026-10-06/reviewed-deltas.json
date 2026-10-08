@@ -223,7 +223,7 @@
     },
     "allocation_sites": {
      ".duplicate(": 46,
-     "PackedByteArray(": 6,
+     "PackedByteArray(": 8,
      "PackedInt32Array(": 15,
      "in[": 3,
      "range(": 1

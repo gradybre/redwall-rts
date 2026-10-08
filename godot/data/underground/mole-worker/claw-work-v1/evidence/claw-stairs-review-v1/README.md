@@ -46,7 +46,11 @@ the same.
 - `tread/motion.png`: side views of the descent at keys 0, 15, 30, 45, 60, 75, 90, then the ascent at 0, 30, 60, 90.
 - `sill/overview.png` and `sill/motion.png`: the descent onto the T6 sill.
 
-## Checklist for Brendan
+## Brendan's review (2026-10-08)
+
+**Approved**, including the 3° right-arm swing.
+
+## Checklist for Brendan (as put)
 
 1. Do the arms read naturally on the stairs without the pick (`tread/motion.png`)?
 2. Is the 3° extra outward swing of the right arm acceptable?

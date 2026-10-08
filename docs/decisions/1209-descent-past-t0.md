@@ -476,3 +476,18 @@ past T0.
 
 **Still open for the ascent.** The accepted ascent starts 343 u behind the far edge (`ASCENT_START`), 33 u behind
 the station. That second short step is proved with the stair gaits (M7).
+
+### M7 approved (2026-10-08); the half-turn re-derived (stopped for review)
+
+Brendan approved the tool-free stair gaits, including the 3° right-arm swing.
+
+The tread episode is now:
+
+1. descend;
+2. step back 141 u;
+3. the bearer is delivered; handle and fit it;
+4. step forward 141 u;
+5. half-turn and reposition (ADR 1142 candidate 6, re-derived tool-free, proved on T0–T5);
+6. ascend.
+
+The half-turn is stopped for review (ADR 1217 step 5b).

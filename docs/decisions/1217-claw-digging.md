@@ -1026,3 +1026,26 @@ The pair counts equal the pick-era proofs'.
 
 **Next new motion:** the tool-free half-turn on a tread. An in-place turn leaves the deck past 71°, so ADR 1142's
 stepped half-turn must be re-derived.
+
+### Brendan's review of M7 (2026-10-08): **approved**, including the 3° right-arm swing
+
+## Step 5b — the tool-free half-turn on a tread (authored; stopped for Brendan's review)
+
+`claw-work-v1/author_claw_turn.py` re-derives ADR 1142's candidate 6 turn on the tool-free ready. The author,
+`author_stair_handoffs.source_case("turn")`, runs unchanged: the same controls, footfalls and solve. It goes from
+169 u behind the tread's far edge facing down to 343 u facing up, in 271 keys, and needs no arm swing.
+
+**Proofs.** All clear:
+
+- the accepted handoff prover on T0–T5, 3,048 checks each, against the whole derived descent with the sill and the
+  seven-row trench, translated per tread;
+- self-clearance.
+
+Two pick-era guards (the pick ready's digest, and the two-part/22-solid census) are replaced by the tool's own
+claw checks, as in M7.
+
+`prove_tread_step_forward.py` proves the 141 u return from the fitting station to the turn's start: the short step
+forward, with the fitted next tread as a solid.
+
+- Packet: `evidence/claw-turn-review-v1/`. Records: `evidence/claw-turn-v1/` and `evidence/tread-step-forward-v1/`.
+- `test_claw_turn.py` holds 5 tests.

@@ -708,8 +708,8 @@ static func _occasion_regatta() -> Entry:
 	"""The regatta and its feast (decision 0438), from regatta_rules.gd."""
 	return make(&"occasion_regatta", KIND_STATION, "The regatta", "A race and a feast, once a season", PackedStringArray([
 		"Once a season, the first in summer: a race between the two rowboats and the %s feast at the day's supper, remembered in the chronicle." % RegattaRules.THEME_NAME,
-		"A day and a host; two helms; the main course's beans and cabbage (bean hotpot), the nut loaf's flour and nuts and the infusion's herb for all three courses (and %s); %s of wood for its service; 3 days of food and wood after it, or your override." % [
-			RegattaRules.BUFF_NAME, FarmText.units_text(RegattaRules.service_wood_milli(9))],
+		"A day and a host; two helms; the main course's beans and %s (bean hotpot), the nut loaf's flour and nuts and the infusion's herb for all three courses (and %s); %s of wood for its service; 3 days of food and wood after it, or your override." % [
+			Rules.IN_WORDS[Rules.INPUT_FIRST[Rules.DISH_BEAN_HOTPOT] + 1], RegattaRules.BUFF_NAME, FarmText.units_text(RegattaRules.service_wood_milli(9))],
 		"Skip the season: no penalty, nothing withheld.",
 		"The pond and the boathouse jetty; the hall's tables; the Water panel's Regatta, or the Feast command."]),
 		[&"dish_bean_hotpot", &"dish_nut_loaf", &"station_fishing", &"station_kitchen", &"station_foraging"])

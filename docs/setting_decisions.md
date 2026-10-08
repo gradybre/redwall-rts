@@ -1305,3 +1305,25 @@ Engineering record, the full table, the wording rules and the phase-2 plan: deci
 ### DEC-040 engineering follow-through
 
 Brendan subsequently requested: “let's plan those as well, then give me what to send back to claude”. [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) records the resulting Astra-authored numeric economy/hazard choices. This is delegated engineering authoring, not a claim the user supplied every value. DEC-040's four-level candidate status remains unchanged. [Decision0092](decisions/0092-underground-economy-and-hazard-parameters.md) records adoption and its limits.
+
+
+### DEC-058 — Every feast is served at the 17:00 supper
+
+2026-10-07 · State: `USER_CONFIRMED`.
+
+Brendan, 2026-10-07, ruling on handoff question Q-D11 ("the hour of a called feast"): **"All at 17:00 supper".** Every
+feast -- a feast the player calls and the regatta's -- is served at the 17:00 supper, not at 18:00. On decision 1701 the
+same day he approved its P9 (a) as recommended, relayed through the coordinator: record the ruling here and amend the
+specification to match.
+
+- **GDD REQ-SET-103** now reads "When a ready feast begins at 17:00"; its up-to-three one-hour waves, attendance and
+  consumption are unchanged, so a feast's waves run within 17:00–20:00. `docs/gameplay_balance.md` BAL-RUN-004 and
+  `docs/ui_ux_controls.md`'s "Hold a feast" flow are amended to match.
+- **Not yet reconciled:** 17:00 falls in the GDD's default schedule's last WORK hour (§5.3: WORK 13:00–18:00, SOCIAL
+  18:00–20:00). How a feast's first wave meets that hour belongs to the schedule's owner (handoff Q-D14, the DAYPLAN
+  packet); this ruling does not move the schedule.
+- In the live demo the supper is called at 17:00 and served until 18:59 (decision 0421); with the hall's twelve seats a
+  feast of the demo's nine is one seating, inside it. The regatta was already served then (decision 0438).
+
+Scope: the settlement GDD and the live demo (`godot/demo/feast/`, `godot/demo/regatta/`). Engineering record:
+decision 1701.

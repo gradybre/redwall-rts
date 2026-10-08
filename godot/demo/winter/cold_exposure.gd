@@ -15,12 +15,20 @@ extends RefCounted
 ##
 ## WHY (the panels say it): each resident's last environment and the place it was in (a source of hearth_fuel.gd, or
 ## OUTDOORS / BELOW for a tunnel), and the air or room temperature there.
+##
+## A FEAST'S WARMTH (decision 1701; GDD §5.7 Hearth row, "Shared Warmth: cold-exposure accumulation -25%"): exposure
+## GAINED is scaled by `gain_permille` (1000: none; the feasts set 750 while Shared Warmth lasts, demo/feast/), never
+## below §5.7's cap of a 40% reduction (GAIN_FLOOR_PERMILLE); clearing at a hearth is never scaled. §5.2's figures are
+## exact at 750: 2000 -> 1500 and 1000 -> 750 milli-hours an hour.
 
 const Rules := preload("res://demo/winter/winter_rules.gd")
 
 ## Where a resident was, besides a hearth source row (hearth_fuel.gd): outdoors, or below in a tunnel (no room).
 const OUTDOORS: int = -1
 const BELOW: int = -2
+## §5.7: "cold-exposure reductions cap 40% across food/feast effects".
+const GAIN_FLOOR_PERMILLE: int = 600
+const FULL_GAIN_PERMILLE: int = 1000
 
 var cold_milli: PackedInt64Array = PackedInt64Array()
 var chilled: PackedByteArray = PackedByteArray()
@@ -34,6 +42,8 @@ var warmed: PackedInt32Array = PackedInt32Array()
 ## Times anyone became Chilled (a metric for the balance sim).
 var chilled_count: int = 0
 var revision: int = 0
+## Exposure gained, per mille (see A FEAST'S WARMTH).
+var gain_permille: int = FULL_GAIN_PERMILLE
 
 var _remainder: PackedInt64Array = PackedInt64Array()
 
@@ -71,7 +81,8 @@ func integrate(i: int, rate_milli_per_hour: int, ticks: int) -> void:
 	if ticks <= 0:
 		return
 	if rate_milli_per_hour != 0:
-		var scaled: int = rate_milli_per_hour * ticks + _remainder[i]
+		var rate: int = gained_rate(rate_milli_per_hour, gain_permille)
+		var scaled: int = rate * ticks + _remainder[i]
 		var whole: int = Rules.div(scaled, Rules.TICKS_PER_HOUR)
 		_remainder[i] = scaled - whole * Rules.TICKS_PER_HOUR
 		var value: int = cold_milli[i] + whole
@@ -79,6 +90,14 @@ func integrate(i: int, rate_milli_per_hour: int, ticks: int) -> void:
 			_remainder[i] = 0
 		cold_milli[i] = clampi(value, 0, Rules.COLD_CAP_MILLI)
 	_follow_chilled(i)
+
+
+static func gained_rate(rate_milli_per_hour: int, permille: int) -> int:
+	"""A rate after A FEAST'S WARMTH: a gain scaled by `permille` (clamped to GAIN_FLOOR_PERMILLE..1000, floored), a
+	loss (clearing) unchanged."""
+	if rate_milli_per_hour <= 0:
+		return rate_milli_per_hour
+	return Rules.div(rate_milli_per_hour * clampi(permille, GAIN_FLOOR_PERMILLE, FULL_GAIN_PERMILLE), FULL_GAIN_PERMILLE)
 
 
 func _follow_chilled(i: int) -> void:

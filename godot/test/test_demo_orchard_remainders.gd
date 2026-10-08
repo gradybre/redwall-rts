@@ -236,6 +236,23 @@ func test_the_groves_are_circles() -> void:
 			"grove %d's stone in it" % grove)
 
 
+func test_the_carts_park_clear_of_the_village() -> void:
+	"""Each group's cart stands beside its baskets, CART_CLEAR_M clear of every obstacle the real layout, the woods and
+	the orchard put down (the stump by the east stand among them), and off every planting block."""
+	var world := _keep(DemoWorldScript.new()) as DemoWorldScript
+	var circles: Array[Vector3] = world.obstacles()
+	circles.append_array(world.woods_obstacles(40.0))
+	circles.append_array(OrchardNode.land_obstacles())
+	for group: int in Rules.GROUP_COUNT:
+		var at: Vector2 = Rules.CART_PARK_AT[group]
+		assert_true(at.distance_to(Rules.STAND_AT[group]) < 3.0, "group %d's cart by its baskets" % group)
+		for circle: Vector3 in circles:
+			assert_true(at.distance_to(Vector2(circle.x, circle.z)) - circle.y >= Rules.CART_CLEAR_M,
+				"group %d's cart clear of %s" % [group, circle])
+		for site: int in Rules.SITE_COUNT:
+			assert_false(Rules.site_rect_m(site).grow(Rules.CART_CLEAR_M).has_point(at), "group %d's cart off site %d" % [group, site])
+
+
 # --- the model's move (ECO-009) ------------------------------------------------------------------------------------------
 
 func test_move_refusals_say_why() -> void:

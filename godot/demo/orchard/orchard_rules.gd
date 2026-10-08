@@ -210,8 +210,11 @@ const CART_LOAD_MILLI: int = 40000
 ## the group's baskets -- one and a half times §5.9's 40 WU workbench trap, a larger piece. No rope (open question Q-D3).
 const CART_WOOD_MILLI: int = 4000
 const CART_BUILD_MWU: int = 60000
-## Where each group's cart stands when it is not out (beside its baskets).
-const CART_PARK_AT: Array[Vector2] = [Vector2(-4.6, 21.4), Vector2(6.2, 30.0)]
+## Where each group's cart stands when it is not out: beside its baskets, clear of the stump by the east stand and of
+## every obstacle by CART_CLEAR_M (the suite checks it against the real layout).
+const CART_PARK_AT: Array[Vector2] = [Vector2(-2.4, 22.0), Vector2(2.2, 29.0)]
+## The handcart's half-length (world_sizes.gd's `handcart` bound: 0.95 m) and a hand's breadth.
+const CART_CLEAR_M: float = 1.1
 
 # --- the fresh-table share (ECO-010; decision 1721) --------------------------------------------------------------------------
 ## The share of a group's hauls it would like on the fresh table (the kitchen pantry), in percent; the rest go to the

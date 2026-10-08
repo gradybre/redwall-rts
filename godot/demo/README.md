@@ -2024,7 +2024,7 @@ seasons (`orchard/`). Presentation only; every number not the GDD's is named in 
 |---|---|
 | Left click an orchard tree, a site's pegs, a bush, the baskets, the nursery or the grove's stone | Select it: the **Orchard (demo)** panel takes the right column (it has no tab; any tab takes the column back) -- the thing's readout and verbs (each with its action card), its group's policy, the nursery's plans, the grove's record |
 | Right click one (residents selected) | The nearest does its most pressing work: a tree's harvest (else its tending), an empty site's planting, a bush's picking, the baskets' haul, the grove's observation |
-| Orchard panel | Tend, Harvest, Pick berries, Send baskets on, Plant apple/pear, Plan an apple/pear, Drop the plan, Observe now -- with nobody selected, queued for the Field crew; Timing, To, Keep (the group's policy); Protected (the grove) |
+| Orchard panel | Tend, Harvest, Pick berries, Send baskets on, Plant apple/pear, Plan an apple/pear, Drop the plan, Observe now -- with nobody selected, queued for the Field crew; Timing, Share (a fresh-table share since decision 1721), Keep (the group's policy); Protected (the grove) |
 
 ## Hives, honey and wax (decision 1601)
 
@@ -2058,6 +2058,45 @@ not the GDD's is named in `hives/hive_rules.gd`.
 |---|---|
 | Left click the skep | Select the apiary: the **Orchard (demo)** panel -- its strength and season, REQ-SET-083's service and feed deficits, its honey, wax and winter feed, the crops it pollinates, and its verbs |
 | Right click it (residents selected) | The nearest does its most pressing work: the service, else a feeding, else a recolonisation |
+
+## Review group Y's remainders: a sapling moved, carts and shares, two groves, prepared outings (decision 1721)
+
+Brendan's ruling on open question Q-D7 (2026-10-07): "Both, agent proposes numbers". Every number below is a
+PROVISIONAL proposal of decision 1721, named in `orchard/orchard_rules.gd` or `forage/forage_rules.gd`.
+
+- **Moving a sapling** (ECO-009): a planted tree still a sapling (its first 24 days, never an inherited one) may be
+  moved **once** to a free site (empty, not promised to a plan or another move). The Orchard panel's **Move sapling**
+  orders it: a resident lifts it (20 WU), carries it in arms, and replants it (40 WU, compost 4 U taken at the end).
+  The tree keeps its age and health and then **settles 12 days** (its age stands still), so its early fruit and its
+  maturity come 12 days later. Let go before the replanting, the sapling is set back in its hole; the new site is
+  spoken for from the order until the move is over.
+- **Carts** (ECO-010): **Build a cart** at a group's baskets (wood 4 U, 60 WU): its hauls then carry up to **40 U** a
+  trip instead of a basket's 10 U (a basket's load when no store has room for 40). The cart stands beside its baskets
+  and goes ahead of its hauler above ground.
+- **The fresh-table share** (ECO-010): the group's **Share** button steps 0, 25, 50, 75 or 100% to the kitchen pantry,
+  the rest to the best keeping store. Each haul goes where the share is furthest behind, and to the other place when
+  that has no room; the baskets' readout says what share went where this year.
+- **The beech hollow** (ECO-015): a second protected grove, round the foraging trips' mushroom spot, with its own mossy
+  stone, ring, toggle and seasonal record. While a grove is protected, **foraging trips leave its kind a reserve**:
+  10% of the woods' capacity above §5.5's floor (the hazel brake's nuts in the North hollow, the beech hollow's
+  mushrooms).
+- **Prepared outings** (ECO-014), in the Woods panel's Foraging section: a trip is planned to be **home by dusk**
+  (20:00, at the slowest resident's 18 m a game hour): it is refused at night or too late, and a forager at its spot
+  claims only what it can gather and still walk home, **turning back** when that is too little. **Kit ▸** lends the
+  village's one carry kit (its carrier brings two baskets, 8 U); **Lead ▸** names the first selected resident the
+  trip's lead. Each spot **remembers** its latest trip home (when, what, how long, who led) -- shown under the trip,
+  never a bonus. The card says REQ-SET-067's permission is not asked at the woods' danger 1.
+- **Not built**: a rest stop on an outing and rest at a grove wait on a rest need (review group AE's leisure model, as
+  decision 0675 said).
+- Checked by `test_demo_orchard_remainders.gd`, `test_demo_forage_outings.gd` and, on the real scene with real input
+  at 1280x720 and 1920x1080, `test/live/demo_orchard_remainders_live.gd`.
+
+| Input | Does |
+|---|---|
+| Orchard panel, a sapling selected: **Move sapling** | Lift it, carry it and replant it on the first free site (to the nearest selected resident, else the Field crew) |
+| Orchard panel, the baskets selected: **Build a cart** / **Share** | Build the group's handcart; step its fresh-table share |
+| Click the beech hollow's stone | Select the second grove (its section, Protected and Observe now) |
+| Woods panel ▸ Foraging: **Kit ▸**, **Lead ▸** | Take the carry kit; name the first selected resident the lead |
 
 ## Preserving: dried fruit and rations (decision 1611)
 
@@ -2286,6 +2325,31 @@ Fishing trips feed the pantry through the real fishery (`fishery/`, `boats/`): t
 - **The Pantry's Stocks** lists each fish species, dried fish and flour like the crops, and so does its Recipes tab
   (decision 0602). The sound: a splash where a net
   or trap goes in, a boat pushes off or a hole is cut, and the oars' knock as a boat rows.
+
+## The fishing revamp: hazards, catch plans, collection and stewardship (#49; decisions 1711-1713)
+
+- **Hazards** (REQ-SET-053): every completed fishing cycle rolls §5.4's injury chance -- net 12, trap 8, boat 20, ice 24
+  in 10000, less 2 for each level of the crew's fishing skill and 4 for a boat's second crew, never below 1 -- on the
+  core RNG's FISHING stream (`fishery/fishing_rolls.gd`). A hit on a net or trap is a bite from a pike or a territorial
+  eel (which, by the habitat and the day): severity 1, −20 health. On a boat or the ice it is cold-water exposure:
+  severity 2, −35. The trip's first fisher (a boat's helm) is hurt through the infirmary, which says so in the news and
+  takes the patient to a bed once the catch is landed. The demo stays non-fatal (the infirmary's health floor).
+- **A fine catch**: the same cycle rolls §5.4's rare bonus, `100 + 30 x skill` in 10000 (at most 1000); a success books a
+  quarter of the catch as excellent, said in the feed and totalled on the trips line. The pantry keeps no quality yet, so
+  it is stored as plain fish. Both rolls are drawn when the cycle opens at the water and kept if the trip is then called
+  off.
+- **Catch plans** (Water panel ▸ Fishing ▸ **Fish ▸**): after the water's three fish comes **Best catch**, the GDD's auto
+  mode -- the legal fish with the most expected nourishment for the work, then the one closing soonest, then the table
+  order. It is chosen again at the water, so a fish that closed on the way is replaced. A chosen fish that is closed
+  waits instead, and the refusal names the day it reopens.
+- **Traps: when soaked / morning run** (Fishing ▸ the stewardship row): new traps are collected as soon as their 6 h soak
+  is done, or on the morning run (06:00-10:00) -- unless their fish closes tomorrow, when they are collected at once.
+- **Each water's record** (under the gear): the catch landed over the last 12 days, the stock and its change today, the
+  fishing places in use, the intensive policy, and for any fish restocking (below 30% until back above 40%) the days
+  until it is back above 40% with no fishing.
+- **Intensive: off / on** for the chosen water: its card, and the first press, show the 10% hard floor it allows and
+  each fish's days from that floor back above 40%; a second press accepts it ("Intensive: press to accept"). One press
+  turns it off. Never during a closure; never reset by itself.
 
 ## The ferry and the regatta (water part B lane 3; decisions 0437-0439)
 

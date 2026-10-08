@@ -48,11 +48,10 @@ extends RefCounted
 ##   * GEAR DURABILITY AND WEAR. gear.gd owns GearInstance durability; the demo owns no gear
 ##     objects, so no durability is reserved (REQ-SET-044) or worn (REQ-SET-045). Wear/cycle is
 ##     published for display only.
-##   * THE HAZARD ROLL, INJURY AND RESCUE (REQ-SET-053/054). ARCH-RNG-002's FISHING draw belongs
-##     to the cycle's owner "which does not exist yet" (rng.gd), and injury needs the resident and
-##     injury stores. The risk number and each site's bank landing point (the rescue point) are
-##     published; the roll is phase 2's.
-##   * THE RARE-QUALITY ROLL -- the same FISHING stream. Every lot is PLAIN.
+##   * THE HAZARD ROLL AND THE RARE-QUALITY ROLL are the cycle owner's: the demo's fishery rolls
+##     both on the FISHING stream when a cycle completes (demo/fishery/fishing_rolls.gd, decision
+##     1711) with this module's `injury_per_10000`. The pantry keeps no quality, so every lot it
+##     stores is PLAIN; the EXCELLENT share is the fishery's books (decision 1711 P2).
 ##   * UNLOCKS (M1 trap, M2 weir, M3 boat) are not evaluated: the demo runs no milestones.
 ##
 ## WINTER ICE (REQ-SET-051; water part B, decision 0433). The pond's ice is the fishery owner's (demo/fishery/
@@ -434,9 +433,11 @@ func ice_refusal(site: int, gear: int) -> StringName:
 	return REFUSE_NONE
 
 
-func preview_into(site: int, species_index: int, gear: int, skill: int, out: Preview) -> bool:
-	"""Fill REQ-SET-055's figures for one crew member of FISH `skill` (0..10); false when the site,
-	species or gear does not exist (nothing written). `out.ok` says whether the cycle may start."""
+func preview_into(site: int, species_index: int, gear: int, skill: int, out: Preview,
+		additional_crew: int = 0) -> bool:
+	"""Fill REQ-SET-055's figures for a crew of FISH `skill` (0..10; a boat's group skill) with
+	`additional_crew` beyond the first (§5.4's injury term); false when the site, species or gear
+	does not exist (nothing written). `out.ok` says whether the cycle may start."""
 	if site < 0 or site >= SITE_COUNT or not _fishing.is_species_index(species_index) \
 			or not _fishing.is_gear(gear):
 		return false
@@ -444,7 +445,43 @@ func preview_into(site: int, species_index: int, gear: int, skill: int, out: Pre
 	out.ok = out.block == REFUSE_NONE
 	_preview_stock(site, species_index, out)
 	_preview_gear(site, species_index, gear, skill, out)
+	out.injury_per_10000 = injury_per_10000(gear, danger_of_site(site), skill, maxi(additional_crew, 0))
 	return true
+
+
+func danger_of_site(site: int) -> int:
+	"""The danger 0..3 of a valid site's habitat (§5.4's injury term)."""
+	return _fishing.danger_of(_fishing.habitat_slot_of(_habitat_ref[site]).value).value
+
+
+func habitat_type_of_site(site: int) -> int:
+	"""A valid site's habitat type (fishing.gd HABITAT_*)."""
+	return SITE_HABITAT[site]
+
+
+func days_to_closure(site: int, species_index: int) -> int:
+	"""Days until this site's species next enters a §5.4 closure window (0: closed today; up to a
+	year ahead; REOPEN_SCAN_DAYS + 1 when none falls within it) -- auto mode's "earliest closure"."""
+	var species: int = species_row_of(site, species_index)
+	for ahead: int in REOPEN_SCAN_DAYS + 1:
+		_scan.set_tick(_tick + ahead * SimClock.TICKS_PER_DAY)
+		if _fishing.is_closure_window(species, _scan.season, _scan.season_day):
+			return ahead
+	return REOPEN_SCAN_DAYS + 1
+
+
+func set_intensive(site: int, enabled: bool) -> bool:
+	"""§5.4's explicitly visible intensive-harvest policy for a valid site's habitat (fishing.gd's
+	one setter). True when the store took it."""
+	var done: bool = _fishing.set_intensive_harvest(_habitat_ref[site], enabled).ok
+	if done:
+		revision += 1
+	return done
+
+
+func intensive(site: int) -> bool:
+	"""Whether a valid site's habitat fishes under the intensive policy."""
+	return _fishing.is_intensive_harvest(_fishing.habitat_slot_of(_habitat_ref[site]).value)
 
 
 func _preview_stock(site: int, species_index: int, out: Preview) -> void:
@@ -470,7 +507,7 @@ func _preview_stock(site: int, species_index: int, out: Preview) -> void:
 
 
 func _preview_gear(site: int, species_index: int, gear: int, skill: int, out: Preview) -> void:
-	"""The gear, effort and risk half of a preview; expected catch is the store's `catch_milli`."""
+	"""The gear and effort half of a preview (the risk is `preview_into`'s); expected catch is the store's `catch_milli`."""
 	var slot: int = _fishing.habitat_slot_of(_habitat_ref[site]).value
 	out.base_catch_milli = BASE_CATCH_MILLI[gear]
 	out.wear_per_cycle = WEAR_PER_CYCLE[gear]
@@ -478,7 +515,6 @@ func _preview_gear(site: int, species_index: int, gear: int, skill: int, out: Pr
 	out.slots_total = _fishing.effort_slots_of(slot).value
 	out.slots_free = _fishing.effort_slots_free_of(slot).value
 	out.must_queue = _fishing.must_queue(_habitat_ref[site], out.slots_needed)
-	out.injury_per_10000 = injury_per_10000(gear, _fishing.danger_of(slot).value, skill, 0)
 	out.expected_catch_milli = 0
 	if gear_offered(site, gear) and gear_takes_species(gear, out.species_row) \
 			and _fishing.catch_milli_into(stock_row(site, species_index), out.base_catch_milli, skill,

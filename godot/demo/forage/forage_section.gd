@@ -1,6 +1,7 @@
 extends VBoxContainer
 ## The Woods panel's FORAGING section (decision 0681): what the woods hold of each kind and what a trip would bring home,
-## the trips out, and the verbs -- Gather ▸ (nuts, mushrooms, herbs, berries), Party ▸ (1-3), Authorise trip, Cancel trip. Built
+## the trips out, and the verbs -- Gather ▸ (nuts, mushrooms, herbs, berries), Party ▸ (1-3), Kit ▸ and Lead ▸ (decision
+## 1721's prepared outing: the carry kit, the first selected resident named to lead), Authorise trip, Cancel trip. Built
 ## in the Woods panel's own type and wood buttons (forest_panel.gd), placed there by its `add_section`; its buttons emit
 ## `action` with a name (ACTION_*) and nothing here decides anything. Each order's tooltip is its ACTION CARD (decision
 ## 0332, `set_card`).
@@ -15,12 +16,18 @@ const ACTION_KIND: StringName = &"forage_kind"
 const ACTION_PARTY: StringName = &"forage_party"
 const ACTION_AUTHORISE: StringName = &"forage_authorise"
 const ACTION_CANCEL: StringName = &"forage_cancel"
-const ACTIONS: Array[StringName] = [&"forage_kind", &"forage_party", &"forage_authorise", &"forage_cancel"]
+const ACTION_KIT: StringName = &"forage_kit"
+const ACTION_LEAD: StringName = &"forage_lead"
+const ACTIONS: Array[StringName] = [&"forage_kind", &"forage_party", &"forage_kit", &"forage_lead", &"forage_authorise",
+	&"forage_cancel"]
 const BUTTON_TEXT: Dictionary = {&"forage_kind": "Gather ▸ nuts", &"forage_party": "Party ▸ 2",
-	&"forage_authorise": "Authorise trip", &"forage_cancel": "Cancel trip"}
+	&"forage_kit": "Kit ▸ no", &"forage_lead": "Lead ▸ no", &"forage_authorise": "Authorise trip",
+	&"forage_cancel": "Cancel trip"}
 const TIPS: Dictionary = {&"forage_kind": "What the trip gathers: nuts, mushrooms, herbs or berries (each in its season)",
-	&"forage_party": "How many go: one to three foragers, a basket each"}
-const LINE_KEYS: Array[StringName] = [&"woods", &"trip", &"out"]
+	&"forage_party": "How many go: one to three foragers, a basket each",
+	&"forage_kit": "Take the village's one carry kit: its carrier brings two baskets",
+	&"forage_lead": "Name a lead: the first selected resident leads the trip, and the news and the place's note name them"}
+const LINE_KEYS: Array[StringName] = [&"woods", &"trip", &"note", &"out"]
 const TITLE: String = "Foraging"
 ## The Woods panel's type and buttons (forest_panel.gd).
 const BODY_PX: int = 14
@@ -42,7 +49,7 @@ func build(width: float) -> void:
 	add_theme_constant_override(&"separation", 4)
 	add_child(_label(TITLE, BODY_PX + 1, Palette.INK, Styles.heading_font()))
 	for key: StringName in LINE_KEYS:
-		_lines[key] = _label("", BODY_PX if key != &"out" else SMALL_PX, Palette.UMBER, null)
+		_lines[key] = _label("", BODY_PX if key == &"woods" or key == &"trip" else SMALL_PX, Palette.UMBER, null)
 		add_child(_lines[key])
 	var grid := GridContainer.new()
 	grid.columns = 2
@@ -97,7 +104,7 @@ func button(key: StringName) -> Button:
 
 
 func line(key: StringName) -> String:
-	"""A line's text: woods, trip or out."""
+	"""A line's text: woods, trip, note or out."""
 	return (_lines[key] as Label).text
 
 
@@ -109,6 +116,14 @@ func show_lines(woods: String, trip: String, out: String, kind_word: String, par
 	(_lines[&"out"] as Label).visible = not out.is_empty()
 	_set_text(ACTION_KIND, "Gather ▸ %s" % kind_word)
 	_set_text(ACTION_PARTY, "Party ▸ %d" % party)
+
+
+func show_outing(note: String, kit: bool, lead: bool) -> void:
+	"""Decision 1721: the chosen spot's remembered note ("" hides it) and the kit and lead choices on their buttons."""
+	_set_line(&"note", note)
+	(_lines[&"note"] as Label).visible = not note.is_empty()
+	_set_text(ACTION_KIT, "Kit ▸ %s" % ("yes" if kit else "no"))
+	_set_text(ACTION_LEAD, "Lead ▸ %s" % ("yes" if lead else "no"))
 
 
 func set_card(key: StringName, card_text: String, enabled: bool) -> void:

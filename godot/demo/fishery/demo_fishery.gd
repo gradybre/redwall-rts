@@ -6,7 +6,11 @@ extends Node3D
 ## PLAYER VERBS (the Water panel's Fishing, Boats and rack-and-mill sections; every button's tooltip is its ACTION CARD
 ## from the order's own decision, decision 0332):
 ##   Site ▸ / Method ▸ / Fish ▸     choose the trip: the run, the ford or the pond; hand net, trap, boat or ice fishing;
-##                                  one of that water's fish (the six the village's water holds; never eel or pike)
+##                                  one of that water's fish (the six the village's water holds; never eel or pike), or
+##                                  Best catch: §5.4's auto mode, chosen again at the water (decision 1712)
+##   Traps: when soaked / morning   when new traps are collected (decision 1712)
+##   Intensive: off / on            the chosen water's intensive harvest; its card shows the 10% floor and the recovery
+##                                  time first (REQ-SET-049, decision 1713)
 ##   Authorise trip                 the trip's seats go on the work board -- to the selected residents first
 ##   Next trip ▸ / Cancel trip      call a trip off: its cycle, gear claim and held room released at once
 ##   Make net / trap / ice kit      at the workbench, from the stores' wood and the locker's rope or iron
@@ -60,6 +64,9 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const Recipes := preload("res://demo/preserve/preserve_rules.gd")
+const PlanScript := preload("res://demo/fishery/catch_plan.gd")
+const RollsScript := preload("res://demo/fishery/fishing_rolls.gd")
+const StewardScript := preload("res://demo/fishery/fishery_stewardship.gd")
 
 const PANEL_REFRESH_S: float = 0.25
 const OVERDUE_KEY: String = "water:overdue:%d"
@@ -96,6 +103,11 @@ var _overdue_open: PackedInt32Array = PackedInt32Array()
 var _ice_seen: int = -1
 var _ice_um_seen: int = -1
 var _water: DemoWaterScript = null
+## The fishing revamp's panel state: the species shown, worked out once a refresh (SHOWN_UNKNOWN: not now), and the
+## water whose Intensive press waits for its second (-1: none; decision 1713).
+const SHOWN_UNKNOWN: int = -2
+var _shown_cache: int = SHOWN_UNKNOWN
+var _intensive_armed: int = -1
 
 
 func configure(cast: DemoCastScript, command: DemoCommandScript, shared: ServicesScript, waterplay: WaterplayScript,
@@ -249,13 +261,10 @@ func _trip_state_words(t: int) -> String:
 func on_action(action_name: StringName) -> void:
 	"""A Water panel button of the fishery's (others are the water's own)."""
 	var members: PackedInt32Array = _command.selected() if _command != null else PackedInt32Array()
+	_refresh_in = 0.0
+	if _on_choice(action_name):
+		return
 	match action_name:
-		PanelScript.ACTION_FISH_SITE:
-			step_site()
-		PanelScript.ACTION_FISH_METHOD:
-			step_method()
-		PanelScript.ACTION_FISH_SPECIES:
-			choice_species = (choice_species + 1) % 3
 		PanelScript.ACTION_AUTHORISE:
 			_answer(authorise_words(fishery.authorise(choice_method, choice_site, choice_species, members)))
 		PanelScript.ACTION_NEXT_TRIP:
@@ -274,15 +283,36 @@ func on_action(action_name: StringName) -> void:
 				return
 			var recipe: int = ACTION_RECIPES[action_name]
 			_answer(_ordered(fishery.order_batch(recipe, members), "%s: on the work board" % Recipes.VERB[recipe]))
-	_refresh_in = 0.0
+
+
+func _on_choice(action_name: StringName) -> bool:
+	"""The trip's choices and the stewardship row (decisions 1712-1713): site, method, fish or Best catch, the traps'
+	policy, intensive harvest. False for any other action."""
+	match action_name:
+		PanelScript.ACTION_FISH_SITE:
+			step_site()
+		PanelScript.ACTION_FISH_METHOD:
+			step_method()
+		PanelScript.ACTION_FISH_SPECIES:
+			choice_species = (choice_species + 1) % PlanScript.PLAN_CHOICES
+		PanelScript.ACTION_FISH_COLLECT:
+			fishery.collect_policy = (fishery.collect_policy + 1) % PlanScript.COLLECT_COUNT
+		PanelScript.ACTION_FISH_INTENSIVE:
+			_answer(toggle_intensive())
+		_:
+			return false
+	return true
 
 
 func step_site() -> void:
-	"""The next site where the chosen method is used (the method changes to one used there when it is not)."""
+	"""The next site where the chosen method is used (the method changes to one used there when it is not); Best catch
+	stays chosen, a chosen fish goes back to the water's first."""
 	choice_site = (choice_site + 1) % Driver.SITE_COUNT
 	if not Rules.offers_site(choice_method, choice_site):
 		choice_method = Rules.METHOD_NET
-	choice_species = 0
+	if not PlanScript.is_auto(choice_species):
+		choice_species = 0
+	_intensive_armed = -1
 
 
 func step_method() -> void:
@@ -342,8 +372,50 @@ func _answer(said: String) -> void:
 
 
 func _species_key() -> StringName:
-	"""The chosen fish's key (&"fish" without a fishery)."""
-	return fishery.driver.species_key_of(choice_site, choice_species) if fishery.driver != null else &"fish"
+	"""The chosen fish's key -- BEST CATCH's pick now (&"fish" without a fishery or a pick)."""
+	var shown: int = _shown_species()
+	return fishery.driver.species_key_of(choice_site, shown) if fishery.driver != null and shown >= 0 else &"fish"
+
+
+func _shown_species() -> int:
+	"""The species index the preview shows: the chosen fish, or BEST CATCH's pick now (-1: none) -- worked out once
+	per panel refresh (`_shown_cache`)."""
+	if fishery.driver == null:
+		return -1
+	if _shown_cache != SHOWN_UNKNOWN:
+		return _shown_cache
+	return fishery.planned_species(choice_method, choice_site, choice_species, PackedInt32Array())
+
+
+func toggle_intensive() -> String:
+	"""Intensive harvest for the chosen water (REQ-SET-049: the floor and the predicted recovery shown before it is
+	accepted): turning it on takes two presses, the first saying the figures; turning it off one. The answer."""
+	if fishery.driver == null:
+		return "The fishery is not running"
+	var water: String = StewardScript.WATER_NAMES[StewardScript.water_of_site(choice_site)]
+	if fishery.driver.intensive(choice_site):
+		fishery.driver.set_intensive(choice_site, false)
+		return "%s: intensive harvest off — the 30%% floor again" % water
+	if _intensive_armed != choice_site:
+		_intensive_armed = choice_site
+		return "%s: %s. Press Intensive again to accept" % [water,
+			". ".join(fishery.steward.intensive_lines(fishery.driver, choice_site))]
+	_intensive_armed = -1
+	fishery.driver.set_intensive(choice_site, true)
+	return "%s: intensive harvest ON — down to the 10%% floor" % water
+
+
+func intensive_card() -> CardScript:
+	"""Intensive's card (REQ-SET-049): the 10% floor and each species' predicted recovery from it, before accepting."""
+	var water: String = StewardScript.WATER_NAMES[StewardScript.water_of_site(choice_site)]
+	var on: bool = fishery.driver != null and fishery.driver.intensive(choice_site)
+	_card.reset("%s: intensive harvest %s" % [water, "off" if on else "on"])
+	if fishery.driver == null:
+		_card.refuse("NO_FISHERY", "the fishery did not start", "")
+		return _card
+	_card.result = "; ".join(fishery.steward.intensive_lines(fishery.driver, choice_site)) if not on \
+		else "Back to the 30% floor; species already below it stay closed until they recover above 40%"
+	return _card
 
 
 # --- the panel ---------------------------------------------------------------------------------------
@@ -352,6 +424,7 @@ func refresh_panel() -> void:
 	"""Fill the Fishing, Boats and rack-and-mill sections and set every button's card (only while shown)."""
 	var panel: PanelScript = _waterplay.panel
 	var members: PackedInt32Array = _command.selected() if _command != null else PackedInt32Array()
+	_shown_cache = _shown_species()
 	panel.show_fishery(panel_lines())
 	var card: CardScript = trip_card(members)
 	panel.set_card(PanelScript.ACTION_AUTHORISE, card.text(), card.is_ok())
@@ -362,30 +435,60 @@ func refresh_panel() -> void:
 		panel.set_card(MAKE_ACTIONS[kind], card.text(), card.is_ok())
 	card = mend_card(members)
 	panel.set_card(PanelScript.ACTION_MEND, card.text(), card.is_ok())
+	_dress_steward(panel)
 	card = mill_card(members)
 	panel.set_card(PanelScript.ACTION_MILL, card.text(), card.is_ok())
 	for action: StringName in ACTION_RECIPES:
 		card = dry_card(members) if action == PanelScript.ACTION_DRY else batch_card(ACTION_RECIPES[action], members)
 		panel.set_card(action, card.text(), card.is_ok())
+	_shown_cache = SHOWN_UNKNOWN
+
+
+func _dress_steward(panel: PanelScript) -> void:
+	"""The stewardship row: Intensive's card, and the captions of the traps' policy and the chosen water's intensive
+	state."""
+	var card: CardScript = intensive_card()
+	panel.set_card(PanelScript.ACTION_FISH_INTENSIVE, card.text(), card.is_ok())
+	panel.button(PanelScript.ACTION_FISH_COLLECT).text = "Traps: %s" % PlanScript.COLLECT_WORDS[fishery.collect_policy]
+	var on: bool = fishery.driver != null and fishery.driver.intensive(choice_site)
+	panel.button(PanelScript.ACTION_FISH_INTENSIVE).text = "Intensive: %s" % ("on" if on else
+		("press to accept" if _intensive_armed == choice_site else "off"))
 
 
 func panel_lines() -> Dictionary:
 	"""The sections' text (water_panel.gd FISHERY_LINES)."""
 	return {&"fish_choice": choice_line(), &"fish_preview": preview_text(), &"fish_trips": trips_text(),
 		&"fish_gear": gear_text(), &"boats": boats_text(), &"stations": stations_text(), &"preserves": preserves_text(),
-		&"brewing": brewing_text()}
+		&"brewing": brewing_text(), &"fish_record": record_text()}
+
+
+func record_text() -> String:
+	"""Each water's stewardship record (fishery_stewardship.gd; review ECO-025)."""
+	if fishery.driver == null:
+		return ""
+	var lines := PackedStringArray()
+	for water: int in StewardScript.WATER_COUNT:
+		lines.append(fishery.steward.record_line(fishery.driver, water, Callable(Text, &"units")))
+	return "\n".join(lines)
 
 
 func choice_line() -> String:
-	"""'The pond · Boat · perch — on the pond: the biggest planned catch, rowed by a crew of two'."""
+	"""'The pond · Boat · perch — on the pond: the biggest planned catch, rowed by a crew of two' (Best catch: 'best
+	catch (perch now)')."""
+	var fish: String = Text.species_label(_species_key())
+	if PlanScript.is_auto(choice_species):
+		fish = "best catch (%s now)" % fish if _shown_species() >= 0 else "best catch (nothing now)"
 	return "%s · %s · %s — %s" % [Rules.SITE_NAMES[choice_site].capitalize(), Rules.METHOD_NAMES[choice_method],
-		Text.species_label(_species_key()), Rules.METHOD_ROLES[choice_method]]
+		fish, Rules.METHOD_ROLES[choice_method]]
 
 
 func preview_text() -> String:
 	"""REQ-SET-055 before authorising: the stock and quota, the closure, the expected catch, the gear, the risk."""
 	var level: int = fishery.skills.level_of(_likely_crew())
-	var p: Driver.Preview = fishery.preview_of(choice_method, choice_site, choice_species, level)
+	var shown: int = _shown_species()
+	if fishery.driver != null and shown < 0:
+		return "Best catch: no fish there may be fished now (closed, out of season, restocking or the quota)"
+	var p: Driver.Preview = fishery.preview_of(choice_method, choice_site, shown, level)
 	if p == null:
 		return "The fishery is not running"
 	var lines := PackedStringArray([Text.stock_line(p)])
@@ -396,6 +499,7 @@ func preview_text() -> String:
 		Text.units(p.base_catch_milli), level])
 	lines.append(_gear_condition())
 	lines.append("Risk of injury: %s" % Text.risk_text(p.injury_per_10000))
+	lines.append("Rare catch: %d in 10000 a cycle makes a quarter of it excellent" % RollsScript.rare_chance(level))
 	return "\n".join(lines)
 
 
@@ -434,7 +538,8 @@ func trips_text() -> String:
 	if lines.is_empty():
 		return "No trips out. Caught so far: %s; landed in the stores: %s" % [Text.units(fishery.caught_milli),
 			Text.units(fishery.landed_milli)]
-	lines.append("Caught so far: %s; landed: %s" % [Text.units(fishery.caught_milli), Text.units(fishery.landed_milli)])
+	lines.append("Caught so far: %s; landed: %s; excellent: %s" % [Text.units(fishery.caught_milli),
+		Text.units(fishery.landed_milli), Text.units(fishery.rolls.excellent_milli)])
 	return "\n".join(lines)
 
 

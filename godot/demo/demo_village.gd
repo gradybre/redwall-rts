@@ -892,6 +892,8 @@ func _build_care() -> void:
 	if world.is_staged(HERB_PATCH_KEY):
 		_care.patch_view.use_model(world.make_piece(HERB_PATCH_KEY, Vector2.ZERO, 0.4, 1.0))
 	_winter.bind_infirmary(_care.building.project.is_done, _care.building.project.has_patients)
+	_fishery.fishery.hurt = func(who: int, kind: int, severity: int, loss: int) -> bool:
+		return _care.desk.hurt(who, kind, severity, loss, NoticesScript.SOURCE_WATER)
 
 
 func _cast_key_of(who: int) -> StringName:
@@ -915,10 +917,12 @@ func care() -> CareScript:
 
 func _build_forage() -> void:
 	"""FORAGING TRIPS (see the header), after the ferry: the woods' forage basin, the trips into the farm's pantry, the
-	Woods panel's Foraging section; its seats on the work board (`_build_work`)."""
+	Woods panel's Foraging section; its seats on the work board (`_build_work`); the orchard's protected groves' forage
+	reserve (decision 1721)."""
 	_forage = ForageNodeScript.new()
 	add_child(_forage)
 	_forage.configure(_cast as DemoCastScript, _command as DemoCommandScript, _services, _farm.pantry, _forestry.panel)
+	_forage.trips.reserve_permille = _orchard.grove_reserve_permille
 	var world := _world as DemoWorldScript
 	if _forage.place_spots(world.make_piece, world.is_staged) > 0:
 		_seasons.add_trees(_forage.view)

@@ -1930,6 +1930,27 @@ func test_a_raw_meal_is_never_a_crumb_of_kept_dried_fish() -> void:
 		[Catalog.ITEM_DRIED_FISH, 1], "nothing else: the crumb beyond the kept unit")
 
 
+func test_a_raw_meal_eats_what_spoils_first_and_a_whole_kept_lot_counts_as_whole() -> void:
+	"""REQ-SET-013's choice, pinned with the keep (the re-review of 6fcdec12): with nothing kept, the berries (48 h) go
+	before the nuts (720 h); with 1 U of dried fish kept, a small dried-fish lot that fits in what is beyond the kept unit
+	is a whole meal, eaten before the nuts beside it -- only the lot too big for that room is cut short."""
+	var v := _village(4, tick_at(1, 10))
+	_stock(v, Catalog.ITEM_NUTS, 3000)
+	_stock(v, Catalog.ITEM_BERRIES, 3000)
+	_open(v)
+	assert_true(v.kitchen._reserve_raw(0), "a raw meal")
+	assert_equal(v.kitchen._raw_item[0], Catalog.ITEM_BERRIES, "the berries spoil first")
+	var w := _village(4, tick_at(1, 10))
+	_stock(w, Catalog.ITEM_DRIED_FISH, 300)
+	_stock(w, Catalog.ITEM_DRIED_FISH, 1200)
+	_stock(w, Catalog.ITEM_NUTS, 3000)
+	_open(w)
+	w.kitchen.raw_keep = _keep_dried_fish
+	assert_true(w.kitchen._reserve_raw(0), "a raw meal")
+	assert_equal([w.kitchen._raw_item[0], w.kitchen.takes.live_milli(w.pantry, w.kitchen._raw_take[0])],
+		[Catalog.ITEM_DRIED_FISH, 300], "the 0.3 U lot, within the 0.5 U beyond the kept unit, eaten whole")
+
+
 func test_a_raw_meal_leaves_the_rations_dried_fish() -> void:
 	"""Brendan's F5 (a) (decision 1740): with 1 U of dried fish kept, a hungry resident eats raw only the dried fish
 	beyond it, and none when there is none beyond; other food is not kept; unbound, all of it may be eaten."""

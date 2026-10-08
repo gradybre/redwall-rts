@@ -53,6 +53,16 @@ helping twice; that was fixed before these runs (decision 1732).
 
 Frames looked at: `brew_warning_*`, `ready_food_ledger_*` (session scratchpad `tune_frames/`).
 
+## The analyzer's shared port (a tool that misbehaves, recorded)
+
+- **What happened.** At the merge commit the analyzer first reported "595 GDScript warning(s) in 64 of 1062 file(s)",
+  every one a stale-cache error for code that exists ("Cannot find member ITEM_CORDIAL", "Preload file …
+  preserve_rules.gd does not exist").
+- **Why.** `tools/gdscript_warnings.py` drives a language server on `--port 6018` by default, and another session's
+  editor was already listening there, so it answered from another checkout.
+- **What we did.** With `--port 6237` the run reported the one real warning: a shadowed parameter, fixed in `489693de`.
+  `docs/ENVIRONMENT.md` now says to check the port and pass a free one.
+
 ## Gates
 
 The branch's gates are recorded in the PR and in decisions 1732–1737.

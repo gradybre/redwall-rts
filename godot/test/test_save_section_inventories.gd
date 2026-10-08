@@ -1335,13 +1335,14 @@ func test_a_section_schema_four_descriptor_is_refused_without_publication() -> v
 
 
 func test_the_codec_refuses_a_live_anchor_outside_the_grid() -> void:
-	"""-1 and 0..16383 decode; -2 and 16384 on a live container refuse SAVE_INV_SLOT_RANGE."""
+	"""-1, 0..16383 and (ADR 1228) the spatial endpoint rows -2..-1025 decode; -1026, 16384 and the
+	i32 extremes on a live container refuse SAVE_INV_SLOT_RANGE."""
 	var record: Section.Record = _capture(_anchored_store())
 	var block: Section.OwnerRecord = record.of(Section.OWNER_INVENTORY)
-	for good: int in [-1, 0, 16383]:
+	for good: int in [-1, 0, 16383, -2, -1025]:
 		_set_cell(block, 30, 1, good)
 		assert_true(Section.owner_refusal(block).is_ok(), "a live anchor of %d is accepted" % good)
-	for bad: int in [-2, 16384, 2147483647]:
+	for bad: int in [-1026, 16384, 2147483647, -2147483648]:
 		_set_cell(block, 30, 1, bad)
 		var refusal: SaveHeader.Refusal = Section.owner_refusal(block)
 		assert_equal(refusal.code, Section.REFUSE_SLOT_RANGE, "a live anchor of %d refuses" % bad)

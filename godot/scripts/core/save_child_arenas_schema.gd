@@ -46,11 +46,11 @@ const REFUSE_TABLE: StringName = &"SAVE_S5_TABLE"
 # --- BEGIN GENERATED CHILD ARENAS SCHEMA ---
 # Generated from docs/planning/canonical_state_registry.json and
 # docs/planning/registry_capacity_audit.json by tools/generate_auxiliary_state_schema.py --section 5.
-# Registry RWL-CANONICAL-REGISTRY-2026-10-08-UG1 v15.
+# Registry RWL-CANONICAL-REGISTRY-2026-10-08-UG2 v16.
 # Do not hand-edit. 5 owners, 32 fields, 0 UNPROVED (zero-only) fields.
 
 const SECTION_SCHEMA_VERSION: int = 1
-const REGISTRY_VERSION: int = 15
+const REGISTRY_VERSION: int = 16
 const OWNER_COUNT: int = 5
 const FIELD_COUNT: int = 32
 const EMPTY_SECTION_BYTES: int = 5081011

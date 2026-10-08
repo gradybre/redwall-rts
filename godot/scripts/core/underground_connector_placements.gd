@@ -1659,9 +1659,16 @@ func _placement_leaf(bank: Bank, row: int) -> StringName:
 	if code != &"":
 		return code
 	if _space._r_owner_revision[section.x] != _get64(bank, ROOM_REVISION, row) \
-			or not _locations._live_ref(_locations._live, _pair(bank, ANCHOR_SLOT, row)):
+			or (not _loading_fresh() and not _locations._live_ref(_locations._live, _pair(bank, ANCHOR_SLOT, row))):
 		return REFUSE_STALE
 	return &""
+
+
+func _loading_fresh() -> bool:
+	"""ADR 1228: `restore_file()` reading into a never-admitted empty store -- a load into a re-mounted
+	Session. Locations' installed endpoints are proved from these rows, so Placements restores first
+	and the anchors are proved by the loader's `audit()` once Locations is restored."""
+	return _reading_state and _live.header[H_FRONTIER_REV] == 0 and _live.header[H_COUNT] == 0
 
 
 func _project_leaf(ref: Vector2i, project: Vector2i, assembly: int) -> StringName:
@@ -2966,10 +2973,13 @@ func audit() -> StringName:
 
 func _audit_bank(bank: Bank) -> StringName:
 	"""Bounded row/opening scans reject mismatched source headers, linked cycles and noncanonical inactive fields."""
-	if bank.header[H_REVISION] < 1 or bank.digests != _live.digests:
+	if bank.header[H_REVISION] < 1 or not _frontier_pin_admissible(bank):
 		return &"PLACEMENT_STATE_SOURCE"
+	for index: int in 96:
+		if bank.digests[index] != _live.digests[index]:
+			return &"PLACEMENT_STATE_SOURCE"
 	for index: int in 16:
-		if index != H_REVISION and index != H_COUNT and index != H_OPEN_COUNT \
+		if index != H_REVISION and index != H_COUNT and index != H_OPEN_COUNT and index != H_FRONTIER_REV \
 				and index != H_ACTIVE_ORDERS and bank.header[index] != _live.header[index]:
 			return &"PLACEMENT_STATE_HEADER"
 	if _revision_refusal(bank, 0) != &"":
@@ -2991,6 +3001,24 @@ func _audit_bank(bank: Bank) -> StringName:
 			return &"PLACEMENT_OPENING_ORPHAN"
 	return &"" if count == bank.header[H_COUNT] and openings == bank.header[H_OPEN_COUNT] \
 		and active == bank.header[H_ACTIVE_ORDERS] else &"PLACEMENT_STATE_COUNT"
+
+
+func _frontier_pin_admissible(bank: Bank) -> bool:
+	"""The first admission's frontier tuple (header and digest bytes 96-127) is the live one; or, while
+	`restore_file()` reads into a never-admitted empty store (ADR 1228: a load into a re-mounted
+	Session), the image's own tuple, which the physical authority's `restoration_refusal()` proves
+	against its bound frontier source before anything is swapped in."""
+	var same: bool = bank.header[H_FRONTIER_REV] == _live.header[H_FRONTIER_REV]
+	for index: int in range(96, 128):
+		same = same and bank.digests[index] == _live.digests[index]
+	if same:
+		return true
+	if not _loading_fresh():
+		return false
+	for index: int in range(96, 128):
+		if _live.digests[index] != 0:
+			return false
+	return true
 
 
 func _audit_row(bank: Bank, row: int) -> StringName:

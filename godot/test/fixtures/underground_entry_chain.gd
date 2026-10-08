@@ -1,8 +1,8 @@
 extends RefCounted
 ## Test fixture (ADR 1228): a generated settlement with its underground Session mounted, every owner
-## composed and the first entry begun exactly as `test_underground_host.gd`'s live chain begins it --
-## one basic tool equipped by the first adult mole and 7 wood and 2 stone staged at R. Nothing here
-## is a production path; it builds the state the save body must carry.
+## composed and the first entry begun exactly as `test_underground_host.gd`'s live chain begins it,
+## with 7 wood and 2 stone staged at R. Nothing here is a production path; it builds the state the
+## save body must carry.
 
 const Settlement := preload("res://scripts/systems/settlement_system.gd")
 const Session := preload("res://scripts/core/underground_session.gd")
@@ -33,38 +33,20 @@ static func mount_and_compose(host: Node, content: Content) -> StringName:
 
 
 static func begin_entry(host: Node) -> StringName:
-	"""The G11 refusal, the tooled mole and the staged stock, then the entry's real start."""
-	host.begin_underground_entry(NEAR)
+	"""The entry's real start (ADR 1217 step 5: the claw crew needs no tool), then 7 wood and 2 stone
+	staged at R's ground-staging container, as the host suite's live chain does."""
+	if not host.begin_underground_entry(NEAR):
+		return host.last_refusal()
 	var o: Session.Retirement.Owners = host.underground_session()._retirement_owners
 	var output: Vector2i = host.underground_entry()._output
-	var code: StringName = _equip_first_mole(o, output)
-	if code == &"": code = _stage(o, output, &"wood", 7000)
-	if code == &"": code = _stage(o, output, &"stone", 2000)
-	if code == &"" and not host.begin_underground_entry(NEAR):
-		code = host.last_refusal()
-	return code
+	var code: StringName = _stage(o, output, &"wood", 7000)
+	return code if code != &"" else _stage(o, output, &"stone", 2000)
 
 
 static func _stage(o: Session.Retirement.Owners, container: Vector2i, key: StringName,
 		milli: int) -> StringName:
 	"""One staged lot at R's ground-staging container."""
 	return o.inventory.create_lot(container, o.items.compiled_id(key), milli, 1, 0, -1, 0, 0).error
-
-
-static func _equip_first_mole(o: Session.Retirement.Owners, container: Vector2i) -> StringName:
-	"""One real basic tool lot equipped by the first present mole."""
-	var residents: RefCounted = o.residents
-	for slot: int in residents._present.size():
-		if not residents.is_present(slot) or residents.species_key(residents.species_of(slot).value) != &"mole":
-			continue
-		var lot: RefCounted = o.inventory.create_lot(container, o.items.compiled_id(&"tool"), 1000, 1, 0, -1, 0, 0)
-		if not lot.ok:
-			return lot.error
-		var made: RefCounted = o.gear.create_gear(o.inventory, o.items, lot.ref, o.gear.MANUFACTURE_BASIC)
-		if not made.ok:
-			return made.error
-		return o.gear.equip(lot.ref, residents.ref_of(slot)).error
-	return &"FIXTURE_NO_MOLE"
 
 
 static func run_ticks(host: Node, first: int, last: int) -> int:

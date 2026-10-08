@@ -238,9 +238,10 @@ func test_flat_authority_readers_and_legacy_codec_cannot_reinterpret_spatial_loc
 	assert_equal(_math.error, String(Inventory.REFUSE_SPATIAL_REQUIRED), "explicit namespace reason")
 	assert_false(_inventory.set_container_anchor(container, 3).ok, "ordinary setter cannot move actual ground endpoint")
 	var columns: Inventory.CanonicalColumns = Inventory.CanonicalColumns.new(16, 16)
-	assert_false(_inventory.copy_canonical_columns_into(columns), "legacy capture cannot drop actual Locations")
-	assert_equal(_inventory.canonical_detail(), String(Inventory.REFUSE_SPATIAL_CODEC), "versioned codec required")
-	assert_false(_inventory.restore_canonical_columns(columns), "legacy restore cannot erase retained endpoint")
+	assert_true(_inventory.copy_canonical_columns_into(columns), "ADR 1228: section 7 captures the anchored container")
+	assert_equal(columns.c_anchor_tile[container.x], -2, "anchored at its endpoint row; section 6 carries the arena")
+	assert_false(_inventory.restore_canonical_columns(columns), "restore cannot erase a retained endpoint")
+	assert_equal(_inventory.canonical_detail(), String(Inventory.REFUSE_SPATIAL_CODEC), "the arena must be empty first")
 
 
 func test_stale_existing_endpoint_and_late_foreign_binding_refuse_before_admission() -> void:

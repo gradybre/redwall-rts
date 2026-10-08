@@ -12,9 +12,9 @@ extends RefCounted
 ## apply every section in dependency order, and prove the
 ## result by RECAPTURING the restored world: sections 1-14 must come back byte-identical and the
 ## digest must equal section 15 (load steps 7-9). Then it publishes and ends the load. A refusal
-## after the load opened rolls the clock back (`rollback_load()`) and resets the settlement, so
-## the target is left empty rather than half-restored; the disk-checkpoint rollback of a populated
-## target is `settlement_save_slots.gd`'s.
+## after the load opened restores the target from its disk checkpoint when the caller asked for
+## one (`rollback_path`: the live world is saved there before it is retired), then rolls the clock
+## back (`rollback_load()`); without a checkpoint the target is left empty, never half-restored.
 ##
 ## NO FLOAT. ARCH-AUTH-002: there is no float in this file and there must never be one.
 
@@ -25,6 +25,7 @@ const Apply := preload("res://scripts/core/settlement_save_apply.gd")
 const SaveDigest := preload("res://scripts/core/settlement_save_digest.gd")
 const SaveFile := preload("res://scripts/core/save_file.gd")
 const SaveHeader := preload("res://scripts/core/save_header.gd")
+const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
 
 const REFUSE_NONE: StringName = SaveHeader.REFUSE_NONE
 const REFUSE_BUSY: StringName = &"SAVE_BUSY"
@@ -32,6 +33,9 @@ const REFUSE_LOAD_OPEN: StringName = &"SAVE_LOAD_OPEN_REFUSED"
 const REFUSE_RESET: StringName = &"SAVE_LOAD_RESET_REFUSED"
 const REFUSE_VERIFY: StringName = &"SAVE_LOAD_VERIFY_MISMATCH"
 const REFUSE_PUBLISH: StringName = &"SAVE_LOAD_PUBLISH_REFUSED"
+## The load failed after the target was retired AND its disk checkpoint would not restore: the
+## target is empty, the load barrier stays held and both files are kept (ARCH-SAVE-004).
+const REFUSE_ROLLBACK: StringName = &"SAVE_LOAD_ROLLBACK_FAILED"
 
 
 static func _ok() -> SaveHeader.Refusal:
@@ -100,18 +104,25 @@ static func save_to_path(settlement: Node, manager: Node, path: String) -> SaveH
 
 # --- load ----------------------------------------------------------------------------------------
 
-static func load_bytes(settlement: Node, manager: Node,
-		bytes: PackedByteArray) -> SaveHeader.Refusal:
-	"""Validate, decode and verify `bytes`; then retire, apply, prove and publish."""
+class Incoming:
+	"""One validated, decoded and digest-verified file, ready to apply."""
 	var body: SaveFile.Body = SaveFile.Body.new()
 	var header: SaveHeader.Header = SaveHeader.Header.new()
 	var staged: Capture.Staged = Capture.Staged.new()
-	var checked: SaveHeader.Refusal = SaveFile.decode_file(bytes, body, header)
-	if checked.is_ok():
-		checked = Decode.decode_body(body, header, staged)
-	if checked.is_ok():
-		checked = Decode.verify_digest(staged, body, header,
-			SaveWorld.bind(settlement, manager).movement)
+
+
+static func load_bytes(settlement: Node, manager: Node, bytes: PackedByteArray,
+		content: RefCounted = null, rollback_path: String = "") -> SaveHeader.Refusal:
+	"""Validate, decode and verify `bytes`; then retire, apply, prove and publish. A mounted save is
+	re-mounted with `content`, or, when none is given, with the target's own mounted content
+	(ADR 1228); either must be the very image the save names. With `rollback_path`, the target's
+	world is first saved there as the disk checkpoint a later failure restores (ARCH-SAVE-004)."""
+	var mount_content: RefCounted = content if content != null else settlement.underground_content()
+	var own_content: RefCounted = settlement.underground_content()
+	var incoming: Incoming = Incoming.new()
+	var checked: SaveHeader.Refusal = decode_verified(bytes, settlement, manager, incoming)
+	if checked.is_ok() and rollback_path != "":
+		checked = _write_rollback(settlement, manager, rollback_path)
 	if checked.is_ok():
 		checked = _retire(settlement, manager)
 	if not checked.is_ok():
@@ -119,12 +130,61 @@ static func load_bytes(settlement: Node, manager: Node,
 	if not manager.begin_load():
 		return _no(REFUSE_LOAD_OPEN, "the GameManager refused to open a load: %s"
 			% String(manager.last_refusal()))
-	var applied: SaveHeader.Refusal = _apply_prove(settlement, manager, staged, body, header)
+	var applied: SaveHeader.Refusal = _apply_prove(settlement, manager, incoming, mount_content)
 	if not applied.is_ok():
+		return _roll_back(settlement, manager, applied, rollback_path, own_content)
+	var published: SaveHeader.Refusal = _publish(manager)
+	if published.is_ok():
+		SaveFile.remove_file(rollback_path)
+	return published
+
+
+static func decode_verified(bytes: PackedByteArray, settlement: Node, manager: Node,
+		out: Incoming) -> SaveHeader.Refusal:
+	"""Load steps 3-5: the whole file, every section decoded, section 15 recomputed. Touches no world."""
+	var checked: SaveHeader.Refusal = SaveFile.decode_file(bytes, out.body, out.header)
+	if checked.is_ok():
+		checked = Decode.decode_body(out.body, out.header, out.staged)
+	if checked.is_ok():
+		checked = Decode.verify_digest(out.staged, out.body, out.header,
+			SaveWorld.bind(settlement, manager).movement)
+	return checked
+
+
+static func _write_rollback(settlement: Node, manager: Node, path: String) -> SaveHeader.Refusal:
+	"""Step 2: the live world saved and verified at `path`. An empty settlement has nothing to keep."""
+	SaveFile.remove_file(path)
+	if settlement.world_ref() == EntityDirectoryScript.NULL_REF and settlement.residents().population() == 0:
+		return _ok()
+	var saved: SaveHeader.Refusal = save_to_path(settlement, manager, path)
+	if not saved.is_ok():
+		return _no(saved.code, "the rollback checkpoint: " + saved.detail)
+	return _ok()
+
+
+static func _roll_back(settlement: Node, manager: Node, failure: SaveHeader.Refusal, path: String,
+		content: RefCounted) -> SaveHeader.Refusal:
+	"""A failure after the target was retired: re-apply the disk checkpoint, then roll the clock back
+	and release the load. Without a checkpoint the target is left empty. A checkpoint that will not
+	restore leaves the target empty, the load barrier held and both files on disk."""
+	settlement.reset()
+	if path == "" or not FileAccess.file_exists(path):
 		manager.rollback_load()
+		return failure
+	var bytes: PackedByteArray = PackedByteArray()
+	var incoming: Incoming = Incoming.new()
+	var restored: SaveHeader.Refusal = SaveFile.read_file(path, bytes)
+	if restored.is_ok():
+		restored = decode_verified(bytes, settlement, manager, incoming)
+	if restored.is_ok():
+		restored = _apply_prove(settlement, manager, incoming, content)
+	if not restored.is_ok():
 		settlement.reset()
-		return applied
-	return _publish(manager)
+		return _no(REFUSE_ROLLBACK, "%s (%s); the rollback checkpoint did not restore: %s %s"
+			% [failure.code, failure.detail, restored.code, restored.detail])
+	manager.rollback_load()
+	SaveFile.remove_file(path)
+	return failure
 
 
 static func _retire(settlement: Node, manager: Node) -> SaveHeader.Refusal:
@@ -138,14 +198,15 @@ static func _retire(settlement: Node, manager: Node) -> SaveHeader.Refusal:
 	return _ok()
 
 
-static func _apply_prove(settlement: Node, manager: Node, staged: Capture.Staged,
-		body: SaveFile.Body, header: SaveHeader.Header) -> SaveHeader.Refusal:
+static func _apply_prove(settlement: Node, manager: Node, incoming: Incoming,
+		content: RefCounted) -> SaveHeader.Refusal:
 	"""Install every section into the retired world, then recapture and compare."""
 	var world: SaveWorld.World = SaveWorld.bind(settlement, manager)
-	var applied: SaveHeader.Refusal = Apply.apply_all(world, staged, header)
+	world.content = content
+	var applied: SaveHeader.Refusal = Apply.apply_all(world, incoming.staged, incoming.header)
 	if not applied.is_ok():
 		return applied
-	return _prove(world, body)
+	return _prove(world, incoming.body)
 
 
 static func _prove(world: SaveWorld.World, body: SaveFile.Body) -> SaveHeader.Refusal:

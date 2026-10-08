@@ -4653,9 +4653,6 @@ func copy_canonical_columns_into(out: CanonicalColumns) -> bool:
 	only into the caller's buffer -- the live columns are not touched, in this call or any other.
 	"""
 	_canonical_detail = ""
-	if _has_spatial_endpoints():
-		_canonical_detail = String(REFUSE_SPATIAL_CODEC)
-		return false
 	var quiescent: StringName = _canonical_quiescent_refusal()
 	if quiescent != REFUSE_NONE:
 		return false
@@ -4889,7 +4886,8 @@ func restore_canonical_columns(cols: CanonicalColumns) -> bool:
 
 	EQUIPMENT ATTESTATION IS NOT RE-CHECKED HERE. `audit()`'s equipped biconditional needs a
 	bound `gear.gd` authority, which the load orchestrator rebinds after the six section 7
-	owners are published; running it now would refuse every legitimate equipped lot.
+	owners are published; running it now would refuse every legitimate equipped lot. ADR 1228:
+	section 6 restores the (here empty) spatial arena later and proves each anchored container.
 	"""
 	_canonical_detail = ""
 	if _has_spatial_endpoints():
@@ -4995,8 +4993,19 @@ func _canonical_live_refusal(cols: CanonicalColumns) -> StringName:
 
 
 func _canonical_live_anchor_refusal(cols: CanonicalColumns) -> StringName:
-	"""DEMO-CONTAIN-R01: a live container is UNPLACED_TILE or on a cell in the anchor domain."""
+	"""DEMO-CONTAIN-R01: a live container is UNPLACED_TILE or on a cell in the anchor domain, or
+	(ADR 1228) anchored at a distinct spatial endpoint row of the arena."""
+	var rows: PackedByteArray = PackedByteArray()
+	rows.resize(SPATIAL_ENDPOINT_CAPACITY)
 	for slot: int in range(cols.container_capacity):
+		var row: int = -2 - cols.c_anchor_tile[slot]
+		if cols.c_live[slot] == 1 and row >= 0 and row < SPATIAL_ENDPOINT_CAPACITY \
+				and cols.c_policy[slot] != POLICY_SATCHEL:
+			if rows[row] == 1:
+				_canonical_detail = "live container %d shares spatial endpoint row %d" % [slot, row]
+				return REFUSE_CANONICAL_LIVE_ROW
+			rows[row] = 1
+			continue
 		if cols.c_live[slot] == 1 and not is_anchor_tile_in_domain(cols.c_anchor_tile[slot]):
 			_canonical_detail = "live container %d is anchored at %d, outside %d and 0..%d" \
 				% [slot, cols.c_anchor_tile[slot], UNPLACED_TILE, ANCHOR_TILE_COUNT - 1]
@@ -5022,10 +5031,12 @@ func _canonical_live_pile_refusal(cols: CanonicalColumns) -> StringName:
 		if cols.c_live[slot] != 1 or cols.c_policy[slot] != POLICY_GROUND_PILE:
 			continue
 		var tile: int = cols.c_anchor_tile[slot]
-		if tile < 0 or tile >= ANCHOR_TILE_COUNT or seen[tile] == 1:
+		# ADR 1228: a spatial pile (anchor <= -2) has a distinct endpoint row by the anchor rule.
+		if tile > -2 and (tile < 0 or tile >= ANCHOR_TILE_COUNT or seen[tile] == 1):
 			_canonical_detail = "ground pile %d is unplaced or shares tile %d" % [slot, tile]
 			return REFUSE_CANONICAL_LIVE_ROW
-		seen[tile] = 1
+		if tile >= 0:
+			seen[tile] = 1
 		if cols.c_max_mass_g[slot] != GROUND_PILE_MAX_MASS_G or cols.c_owner_slot[slot] < 0 \
 				or cols.c_owner_generation[slot] <= NULL_GENERATION or cols.c_lot_count[slot] == 0:
 			_canonical_detail = "ground pile %d is empty or has a malformed owner or capacity" % slot
@@ -5495,7 +5506,10 @@ static func world_retirement_release_preflighted_in(actual: RefCounted, ids: Ret
 func save_spatial_columns() -> Array:
 	"""The eight registry columns: capacity, World, then the five endpoint columns. With no spatial
 	World bound (no Session) the arena is written as capacity 0, whatever a retired arena retains;
-	an unbound arena still holding an endpoint has no canonical image and returns []."""
+	an unbound arena still holding an endpoint, or a bound World with no arena, has no canonical
+	image and returns []."""
+	if _spatial_world != NULL_REF and _spatial_container_slot.is_empty():
+		return []
 	if _spatial_world == NULL_REF:
 		if _has_spatial_endpoints():
 			return []

@@ -1964,6 +1964,19 @@ func underground_entry() -> UndergroundEntryRuntime:
 	return _underground_entry
 
 
+func restore_underground_entry(record: PackedByteArray) -> StringName:
+	"""ADR 1228: a load's last step. Rebuild the entry runtime from its saved record against the
+	re-mounted Session (ADR 1218 proves every handle it will still read) and adopt it. Only into a
+	mounted host that has no entry runtime yet; a refusal adopts nothing."""
+	if _underground_mutations_stopped() or _underground_session == null or _underground_entry != null:
+		return &"UNDERGROUND_ENTRY_RESTORE_TARGET"
+	var runtime: UndergroundEntryRuntime = UndergroundEntryRuntime.new()
+	var code: StringName = runtime.restore(record, _underground_session)
+	if code == &"":
+		_underground_entry = runtime
+	return code
+
+
 func compose_underground_entry_owners() -> bool:
 	"""ADR1184/1195: construct the fixed first-entry owners in the mounted surface-ready Session."""
 	if _underground_mutations_stopped(): return _refuse(&"UNDERGROUND_HOST_RESETTING")

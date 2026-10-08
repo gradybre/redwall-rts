@@ -4,15 +4,15 @@
   "audit_schema_version": 2,
   "audited_registry": {
     "path": "docs/planning/canonical_state_registry.json",
-    "registry_canonical_json_sha256": "11363ba14015d695d24e7a93e9e500cc67aca75d8a10f5c1039aaebc3dd8c158",
-    "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-08-UG1",
-    "registry_version": 15
+    "registry_canonical_json_sha256": "1522b429f449a47112e6635c87d66f55f4122ffbe239f561ba015e10007cfb6b",
+    "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-08-UG2",
+    "registry_version": 16
   },
   "audited_source": {
     "module_sha256": {
       "buildings": "3c76433e6f4fdcc2752ba97a26f95b35a89e883fc7ebba63a4a7c26eb926cb85",
       "command_dispatch": "5277a33eaa8d0d1a96e0edc67efd53816ab6934302ae1f583629484a369349b5",
-      "construction": "7715edbcebf550822d23381968f72e8a44e6402e7bc3449bd68f1dcbb8fda1b7",
+      "construction": "e85958b2b0236b0cb9714ecec1a701b12679c8e0c907db47ad564b5d2302ccda",
       "demolition_admissions": "d8551d5add838e9d67a925473e72720eb719bdd2a9d064656185ebc0ac21b899",
       "demolition_work": "942a3d5524818838cac2bd15ad7891f21ca968905f1b35cd91132b0f8f820cfc",
       "entity_directory": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
@@ -25,7 +25,7 @@
       "gear": "aeed59191a5e06fbd6e8b4bccf93d9b991ff9a73e2a1229afa1f2ed0cc6972ea",
       "haul_planner": "ff125c7c0a1a9ab3c23be832ceec77b54354e4b87c0b7fe8ebc482fee0a400e4",
       "injury": "587d4b5b1729063805dac41430c7fecc5a4ad92d28e12865eff0553c507c39a4",
-      "inventory": "002b3404e2bcfff364680efeb8b374fbcfc3b289ec9e6ff4d1568096fb500a1d",
+      "inventory": "92a00d390ba18f327c0de8992b8cef16966de86e742378f745440bf7dfb03824",
       "job_planner": "bc024854f95b7b31f7ed580252a84e85fba565f4adec7b354df776c3a4870591",
       "jobs": "c2439e107d6745524f5b260f11ce2a5f56fc7028bc6469702148aa5f87b0fc43",
       "modular_projects": "4a705b8c18f21d3f7c7aba0768298d89c610fc5eddf7b273702f49c9d1e0180c",
@@ -822,6 +822,7 @@
       "section_id": 6,
       "shape_keys": [
         "count_field",
+        "max_count",
         "order"
       ]
     },
@@ -832,6 +833,7 @@
       "section_id": 6,
       "shape_keys": [
         "count_field",
+        "max_count",
         "order"
       ]
     },
@@ -842,6 +844,7 @@
       "section_id": 6,
       "shape_keys": [
         "count_field",
+        "max_count",
         "order"
       ]
     },
@@ -852,6 +855,7 @@
       "section_id": 6,
       "shape_keys": [
         "count_field",
+        "max_count",
         "order"
       ]
     },
@@ -862,6 +866,7 @@
       "section_id": 6,
       "shape_keys": [
         "count_field",
+        "max_count",
         "order"
       ]
     },

@@ -21,7 +21,7 @@ const SaveHeader := preload("res://scripts/core/save_header.gd")
 const Digest := preload("res://scripts/core/canonical_state_hash.gd")
 
 const EXPECTED_OWNER_COUNT: int = 25
-const EXPECTED_SECTION_SCHEMA_VERSION: int = 9
+const EXPECTED_SECTION_SCHEMA_VERSION: int = 10
 
 const TYPE_U8: int = 0
 const TYPE_U32: int = 1
@@ -44,15 +44,15 @@ const REFUSE_TABLE: StringName = &"SAVE_S6_TABLE"
 # --- BEGIN GENERATED AUXILIARY STATE SCHEMA ---
 # Generated from docs/planning/canonical_state_registry.json and
 # docs/planning/registry_capacity_audit.json by tools/generate_auxiliary_state_schema.py.
-# Registry RWL-CANONICAL-REGISTRY-2026-10-08-UG1 v15.
-# Do not hand-edit. 25 owners, 182 fields, 19 UNPROVED (zero-only) fields.
+# Registry RWL-CANONICAL-REGISTRY-2026-10-08-UG2 v16.
+# Do not hand-edit. 25 owners, 182 fields, 14 UNPROVED (zero-only) fields.
 
-const SECTION_SCHEMA_VERSION: int = 9
-const REGISTRY_VERSION: int = 15
+const SECTION_SCHEMA_VERSION: int = 10
+const REGISTRY_VERSION: int = 16
 const OWNER_COUNT: int = 25
 const FIELD_COUNT: int = 182
 const EMPTY_SECTION_BYTES: int = 12446410
-const MAX_SECTION_BYTES: int = 24967568
+const MAX_SECTION_BYTES: int = 24992144
 
 const OWNER_KEYS: Array[String] = [
 	"buildings", "command_dispatch", "construction_extension", "construction_paid_ledger",
@@ -129,7 +129,7 @@ const RULE_KINDS: Array[int] = [
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1,
-	1, 1, 1, 1, 1, 0, 0, 0, 3, 3, 3, 3, 3, 1, 1, 1, 1, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	1, 1, 1, 1, 1, 0, 0, 0, 2, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
 	2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	1, 1, 1, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 0, 1, 0, 2, 0, 2,
 ]
@@ -141,21 +141,19 @@ const RULE_VALUES: Array[int] = [
 	82944, 32768, 32768, 32768, 32768, 32768, 32768, 32768, 32768, 1024, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 73909, 73909, 73909, 73909, 73909, 73909, 73909, 369545, 73909,
 	73909, 73909, 73909, 73909, 73909, 73909, 73909, 73909, 73909, 512, 512, 8192, 8192, 8192, 8192,
-	8192, 1, 1, 1, 0, 0, 0, 0, 0, 8192, 8192, 8192, 8192, 1, 1, 1, 16384, 16384, 16384, 16384,
-	81920, 81920, 81920, 81920, 81920, 81920, 81920, 81920, 81920, 82944, 82944, 82944, 82944,
-	82944, 82944, 82944, 8192, 8192, 8192, 8192, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 262144, 262144, 1024, 1, 74, 1, 43776, 1, 5436, 1, 2559, 1, 8, 1, 110464, 1, 1, 32, 1,
-	320608, 1, 84184,
+	8192, 1, 1, 1, 1024, 1024, 1024, 1024, 1024, 8192, 8192, 8192, 8192, 1, 1, 1, 16384, 16384,
+	16384, 16384, 81920, 81920, 81920, 81920, 81920, 81920, 81920, 81920, 81920, 82944, 82944,
+	82944, 82944, 82944, 82944, 82944, 8192, 8192, 8192, 8192, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 262144, 262144, 1024, 1, 74, 1, 43776, 1, 5436, 1, 2559, 1, 8, 1,
+	110464, 1, 1, 32, 1, 320608, 1, 84184,
 ]
 
 const UNPROVED_FIELDS: Array[String] = [
-	"inventory._spatial_container_slot", "inventory._spatial_container_generation",
-	"inventory._spatial_location_slot", "inventory._spatial_location_generation",
-	"inventory._spatial_location_revision", "spoil_tips._present", "spoil_tips._retired",
-	"spoil_tips._prepared", "spoil_tips._generation", "spoil_tips._tile",
-	"spoil_tips._project_slot", "spoil_tips._project_generation", "spoil_tips._operation",
-	"spoil_tips._embedded_milli", "spoil_tips._quantity_milli", "spoil_tips._locked_milli",
-	"spoil_tips._incoming_milli", "spoil_tips._earned_mwu", "spoil_tips._retained_quantity",
+	"spoil_tips._present", "spoil_tips._retired", "spoil_tips._prepared", "spoil_tips._generation",
+	"spoil_tips._tile", "spoil_tips._project_slot", "spoil_tips._project_generation",
+	"spoil_tips._operation", "spoil_tips._embedded_milli", "spoil_tips._quantity_milli",
+	"spoil_tips._locked_milli", "spoil_tips._incoming_milli", "spoil_tips._earned_mwu",
+	"spoil_tips._retained_quantity",
 ]
 # --- END GENERATED AUXILIARY STATE SCHEMA ---
 

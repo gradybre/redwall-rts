@@ -295,6 +295,12 @@ static func read_file(path: String, out: PackedByteArray) -> SaveHeader.Refusal:
 	return _ok()
 
 
+static func remove_file(path: String) -> void:
+	"""Delete `path` if it names an existing file; an empty path is a no-op."""
+	if path != "" and FileAccess.file_exists(path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
+
 static func write_atomic(path: String, bytes: PackedByteArray) -> SaveHeader.Refusal:
 	"""Write `<path>.tmp` in chunks, re-read and re-decode it, then rename it over `path`."""
 	var temp: String = path + TEMP_SUFFIX

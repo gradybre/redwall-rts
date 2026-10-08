@@ -887,11 +887,18 @@ func retire_modular_phase(project: Vector2i, authority: ModularContract) -> OpRe
 	if _phase[row] != PHASE_WORK_DONE and _phase[row] != PHASE_REFUNDING:
 		return _refuse(REFUSE_WRONG_PHASE)
 	_retire(row, project, Vector2i(_subject_slot[row], _subject_generation[row]))
+	_clear_retired_extension_row(row)
+	return OpResult.new(true, REFUSE_NONE, row, NULL_REF)
+
+
+func _clear_retired_extension_row(row: int) -> void:
+	"""A retired excavation or modular row returns to the exact never-used clear row (ADR 1228: the
+	worker capacity too, which the frozen section 4 predicate requires of a typeless row)."""
 	_purpose[row] = PURPOSE_BUILD
 	_type_id[row] = -1
 	_phase[row] = PHASE_AWAITING_MATERIALS
 	_refund_policy[row] = REFUND_FULL
-	return OpResult.new(true, REFUSE_NONE, row, NULL_REF)
+	_max_workers[row] = 0
 
 
 func project_of_modular_subject(purpose: int, subject: Vector2i) -> Vector2i:
@@ -1066,10 +1073,7 @@ func retire_excavation_phase(project: Vector2i, authority: ExcavationContract) -
 	if _phase[row] != PHASE_WORK_DONE and _phase[row] != PHASE_REFUNDING:
 		return _refuse(REFUSE_WRONG_PHASE)
 	_retire(row, project, Vector2i(_subject_slot[row], _subject_generation[row]))
-	_purpose[row] = PURPOSE_BUILD
-	_type_id[row] = -1
-	_phase[row] = PHASE_AWAITING_MATERIALS
-	_refund_policy[row] = REFUND_FULL
+	_clear_retired_extension_row(row)
 	return OpResult.new(true, REFUSE_NONE, row, NULL_REF)
 
 

@@ -61,8 +61,9 @@ func test_every_captured_section_decodes_with_its_own_codec() -> void:
 	assert_equal(body.completed_tick, _manager.clock().completed_tick(), "the clock's tick")
 
 
-func test_a_mounted_underground_owner_refuses_until_its_codec_lands() -> void:
-	"""With a spatial inventory endpoint bound, the capture refuses SAVE_UNSUPPORTED_STATE."""
+func test_a_spatial_world_bound_without_its_arena_refuses() -> void:
+	"""ADR 1228: a spatial World bound with no endpoint arena has no canonical image; the capture
+	refuses SAVE_UNSUPPORTED_STATE rather than write one (mounted worlds: test_settlement_save_underground)."""
 	var world: SaveWorld.World = SaveWorld.bind(_settlement, _manager)
 	world.inventory._spatial_world = Vector2i(1, 1)
 	var refusal: SaveHeader.Refusal = Capture.capture_body(world, Capture.Staged.new(),

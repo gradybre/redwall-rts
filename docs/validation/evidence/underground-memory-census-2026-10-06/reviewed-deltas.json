@@ -236,6 +236,11 @@
      "bytes": 26210304,
      "carried_by": "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
      "store": "sections 4+5+6 capture/apply: two Columns images (frozen and extension, 4,893,696 each) and one Ledger (3,317,760), plus the matching FramedOwner and section 5/6 blocks"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "ADR 1228: a retired excavation or modular row also clears its worker capacity (the exact never-used clear row); no storage change"
     }
    ],
    "delta": {
@@ -344,18 +349,22 @@
   "godot/scripts/core/inventory.gd": {
    "charges": [
     {
-     "bytes": 49176,
+     "bytes": 50200,
      "carried_by": "ADR 1228 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
-     "store": "section 6 inventory spatial capture/apply: the 1,024-row endpoint arena (24 B a row plus 12 scalar bytes) captured, and the previous arena held through the post-install audit"
+     "store": "section 6 inventory spatial capture/apply: the 1,024-row endpoint arena (24 B a row plus 12 scalar bytes) captured, and the previous arena held through the post-install audit; section 7's canonical anchor check marks 1,024 endpoint rows (1,024 B)"
     }
    ],
    "delta": {
+    "resizes_added": [
+     "rows.resize(SPATIAL_ENDPOINT_CAPACITY)"
+    ],
     "allocation_sites": {
      ".duplicate(": 10,
+     "PackedByteArray(": 1,
      "PackedInt32Array(": 10,
      "PackedInt64Array(": 1,
      "range(": 1,
-     "return[": 3
+     "return[": 4
     }
    }
   },
@@ -700,9 +709,23 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "no retained-storage change"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "ADR 1228: restore_file() adopts the image's frontier pin into a never-admitted store (scalar reads, no allocation)"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "ADR 1228: restore_file() adopts the image's frontier pin into a never-admitted store and defers the anchor check to the loader's audit() (scalar reads, no allocation)"
     }
    ],
-   "delta": {}
+   "delta": {
+    "allocation_sites": {
+     "range(": 2
+    }
+   }
   },
   "godot/scripts/core/underground_entry_world_bindings.gd": {
    "charges": [
@@ -730,6 +753,11 @@
      "bytes": 161,
      "carried_by": "new contribution",
      "store": "carry controls (ADR 1207), ADR 1215 _air_box and _air_slots, and the borrowed ContactRetirementContext numeric packet (ADR 1202); the Bank air pool is the room_composition row"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "ADR 1228: one bool, _loading_rows, true only inside a cold load's row re-proof; logical byte inside the existing carry-control packet"
     }
    ],
    "delta": {
@@ -757,6 +785,10 @@
      [
       "_contact_retirement",
       "ContactRetirementContext"
+     ],
+     [
+      "_loading_rows",
+      "bool"
      ]
     ],
     "resizes_added": [
@@ -2286,6 +2318,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "first-entry runtime reference; the chain is counted in first_entry_runtime"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "ADR 1228 restore_underground_entry(): a load's entry runtime, adopted in place of the one the first request would create; counted in first_entry_runtime"
     }
    ],
    "delta": {
@@ -2304,7 +2341,7 @@
      ]
     ],
     "allocation_sites": {
-     ".new(": 3
+     ".new(": 4
     }
    }
   }

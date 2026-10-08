@@ -125,7 +125,7 @@ const REGISTRY_PACKED_FIELD_COUNT: int = 694
 ## every self-referential check in this file stayed green.
 const REGISTRY_RECORD_COUNT: int = 810
 const REGISTRY_FIELD_COUNT: int = 820
-const REGISTRY_DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-10-08-UG1"
+const REGISTRY_DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-10-08-UG2"
 ## SAVE-SEQ-R01 v2 advances declaration version to 4 while retaining this exact namespace.
 ## The version is independent of the opaque identity suffix; commands owner becomes 2.
 ## SAVE-J2-R01 advances version5; FISH-ID-R01 advances registry6 and Fishing owner2/section7schema4.
@@ -135,8 +135,9 @@ const REGISTRY_DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-10-08-UG1"
 ## Decision1218 advances registry12, its identity and section6schema6 with the entry progress owner.
 ## Decision1221 advances registry13, its identity and section6schema7 with the haul admission owner.
 ## ADR 1222 Q7(a) advances registry14, its identity and section6schema8 with five owners.
-## ADR 1228 advances registry15, its identity and section6schema9 with seven underground owners.
-const REGISTRY_DECLARATION_VERSION: int = 15
+## ADR 1228 advances registry15, its identity and section6schema9 with seven underground owners,
+## then registry16 (UG2) and section6schema10 to prove Inventory's spatial bound (max_count 1024).
+const REGISTRY_DECLARATION_VERSION: int = 16
 
 ## INV-CANON-R01's two version numbers, pinned as literals and read back from BOTH the registry
 ## JSON and the compiled table. They live in different namespaces -- one is the owner block's
@@ -620,7 +621,7 @@ func test_spatial_buildings_flags_have_mandatory_extension_without_rewriting_sur
 	var data: Dictionary = _registry()
 	var owner: Dictionary = _owner_of(data, 6, "buildings")
 	assert_equal(int(owner["owner_schema_version"]), 1, "mandatory extension begins at schema1")
-	assert_equal(int((data["section_schema_versions"] as Array)[5]), 9, "section6 identity changes (decisions1218, 1221, 1222, 1228)")
+	assert_equal(int((data["section_schema_versions"] as Array)[5]), 10, "section6 identity changes (decisions1218, 1221, 1222, 1228)")
 	var fields: Array = owner["fields"]
 	assert_equal(String(fields[0]["shape"]["declared_capacity"]), "`ROOM_CAPACITY` = 16384", "actual Room arena")
 	assert_equal(String(fields[1]["shape"]["declared_capacity"]), "`FURNITURE_CAPACITY` = 81920", "actual Furniture arena")
@@ -642,7 +643,7 @@ func test_room_revision_holds_and_job_generations_have_explicit_canonical_fields
 	var data: Dictionary = _registry()
 	var owner: Dictionary = _owner_of(data, 6, "room_projects")
 	assert_equal(int(owner["owner_schema_version"]), 1, "new owner begins at schema1")
-	assert_equal(int((data["section_schema_versions"] as Array)[5]), 9, "auxiliary section includes mandatory underground owners")
+	assert_equal(int((data["section_schema_versions"] as Array)[5]), 10, "auxiliary section includes mandatory underground owners")
 	var fields: Array = owner["fields"]
 	for index: int in fields.size():
 		var field: Dictionary = fields[index]

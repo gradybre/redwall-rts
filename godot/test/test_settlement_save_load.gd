@@ -48,6 +48,9 @@ func test_a_saved_settlement_loads_into_a_fresh_one_and_saves_byte_identically()
 	assert_true(refusal.is_ok(), "load: %s %s" % [refusal.code, refusal.detail])
 	assert_false(_target_manager.is_loading(), "the load is closed")
 	assert_equal(_target.residents().population(), _source.residents().population(), "people")
+	assert_true(_target.world_ref() != Vector2i(-1, 0), "the World row is restored")
+	assert_equal(_target.ground_piles().ground_pile_owner_ref(), _target.world_ref(),
+		"ADR 1228: the ground-pile composer owns new piles as the restored World")
 	assert_true(_saved(_target, _target_manager) == first, "the restored world saves identically")
 
 

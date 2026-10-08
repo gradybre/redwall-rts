@@ -1079,11 +1079,11 @@ static func production_walker() -> Walker:
 # Generated from docs/planning/canonical_state_registry.json by
 # tools/generate_canonical_state_table.py. Do not hand-edit: test_canonical_state_hash.gd
 # re-reads that JSON and proves every entry below equals it.
-#   registry_id RWL-CANONICAL-REGISTRY-2026-10-08-UG1, registry_version 15
+#   registry_id RWL-CANONICAL-REGISTRY-2026-10-08-UG2, registry_version 16
 #   75 owners, 820 declared fields, 810 canonical records, 694 persisted packed fields.
 
-const DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-10-08-UG1"
-const DECLARATION_VERSION: int = 15
+const DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-10-08-UG2"
+const DECLARATION_VERSION: int = 16
 const CANONICAL_OWNER_COUNT: int = 75
 const CANONICAL_FIELD_COUNT: int = 820
 const CANONICAL_RECORD_COUNT: int = 810

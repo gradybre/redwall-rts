@@ -396,6 +396,11 @@ These record the engineering choices made while building, step by step.
     deliberately mid-restore state (section 4 has installed the `_named` flags, the names are still cleared).
   - **The settlement's resident list** (`_live_slots`) is not registered state; it is rebuilt as the present
     residents in ascending persistent id, which is the order `create_initial_settlement()` appends them in.
+- **Step 10, the underground body.** Built as [ADR 1228](1228-underground-save-body.md): the mount record and six
+  wire owners in section 6 (registry v15/v16), the declared underground owners' adapters, a re-mount on load and
+  the ADR 1221 restore order. The live entry chain saves to a file at six checkpoints from the surface walk to
+  the installation, loads into a fresh settlement each time and continues byte-identically. The load also binds
+  the ground-pile composer to the restored World row, which the surface load had missed.
 - **Step 2, memory.** Every section-4 capture and apply makes a transient owner image. It is charged to "ADR 1222
   save/load working set" in the reviewed census deltas, and the 09.3 ledger owns the total. It is never resident
   between ticks.

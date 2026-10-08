@@ -388,6 +388,8 @@ var _resolve_source_ref: Vector2i = NULL_REF
 var _carry_content: int = -1
 ## ADR1207: true only while a carried row's identity facts are re-checked without its volume proof.
 var _carry_geometry: bool = false
+## ADR 1228: true only while a cold load re-proves its rows; a set-down paid workpiece is not a blocker.
+var _loading_rows: bool = false
 ## ADR1207 measurement: rows the current (or last) World preparation carried instead of re-proving.
 var _carried_locations: int = 0
 var _resolve_source_hint: int = -1
@@ -2051,7 +2053,8 @@ func _air_obstacles_refusal(record: Record) -> StringName:
 		for row: int in rows.role.size():
 			if not _spend():
 				return &"LOCATION_OPERATION_BUDGET"
-			if rows.role[row] in BLOCKING_ROLES and Space.overlaps(box, rows.box_at(row)):
+			if rows.role[row] in BLOCKING_ROLES and Space.overlaps(box, rows.box_at(row)) \
+					and not _loaded_workpiece_volume(rows, row):
 				return &"LOCATION_ENVELOPE_BLOCKED"
 	return &""
 
@@ -2062,10 +2065,22 @@ func _record_obstacles_refusal(record: Record) -> StringName:
 	for row: int in rows.role.size():
 		if not _spend():
 			return &"LOCATION_OPERATION_BUDGET"
-		if rows.role[row] in BLOCKING_ROLES and Space.overlaps(record.envelope, rows.box_at(row)):
+		if rows.role[row] in BLOCKING_ROLES and Space.overlaps(record.envelope, rows.box_at(row)) \
+				and not _loaded_workpiece_volume(rows, row):
 			var code: StringName = _pending_entry_record_refusal(record, row)
 			if code != &"": return code
 	return &""
+
+
+func _loaded_workpiece_volume(rows: Space.Volumes, row: int) -> bool:
+	"""ADR 1228: during a cold load only, a static paid workpiece -- an unclaimed obstacle owned by a
+	live connector-installation Project -- set down after an endpoint was proved does not block it;
+	WorldRoutes keeps every body out of that piece (`workpiece_occupancy_refusal`)."""
+	if not _loading_rows or rows.role[row] != Space.OBSTACLE:
+		return false
+	var owner: Vector2i = Vector2i(rows.owner_slot[row], rows.owner_generation[row])
+	return _sources._construction.purpose_into(owner, _math) \
+		and _math.value == Construction.PURPOSE_CONNECTOR_INSTALL
 
 
 func _pending_entry_record_refusal(record: Record, row: int) -> StringName:
@@ -2924,6 +2939,14 @@ func _loaded_rows_refusal() -> StringName:
 	_prepare_record_scratch()
 	if not _air_pool_canonical(self, _stage):
 		return &"LOCATION_IMAGE_AIR"
+	_loading_rows = true
+	var code: StringName = _loaded_rows_loop_refusal()
+	_loading_rows = false
+	return code
+
+
+func _loaded_rows_loop_refusal() -> StringName:
+	"""Each row's lifecycle, retention and complete geometry, in row order."""
 	for row: int in _capacity:
 		if not _spend():
 			return &"LOCATION_OPERATION_BUDGET"

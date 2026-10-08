@@ -118,8 +118,11 @@ func test_site_completion_requires_physical_coordinator_and_retry_spends_no_work
 	assert_equal(_construction.state_bytes(), before, "commit-pending work remains exactly retained")
 	var foreign: Contract = Contract.new()
 	assert_equal(_construction.retire_excavation_phase(project, foreign).error, Construction.REFUSE_COORDINATOR_ONLY, "wrong owner cannot retire physical work")
+	var row: int = _construction._directory.get_typed_row(project)
 	assert_true(_construction.retire_excavation_phase(project, _site).ok, "bound coordinator retires after its physical transaction")
 	assert_false(_construction.is_live_project(project), "project identity retires")
+	assert_equal([_construction._purpose[row], _construction._type_id[row], _construction._max_workers[row]],
+		[Construction.PURPOSE_BUILD, -1, 0], "ADR 1228: the retired row is the exact never-used clear row")
 
 
 func test_cancelled_started_brace_prices_refund_per_phase() -> void:

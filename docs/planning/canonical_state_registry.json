@@ -1,6 +1,6 @@
 {
- "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-08-UG1",
- "registry_version": 15,
+ "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-08-UG2",
+ "registry_version": 16,
  "status": "ADOPTED_KEYS_TYPES_AND_ORDINALS_FOR_NAMED_SNAPSHOT",
  "release_save_ready": false,
  "source_commit": "reconciled_to_integration_head_from_197472b9d7f2",
@@ -7666,7 +7666,8 @@
      "source_member": "_spatial_container_slot",
      "shape": {
       "count_field": "_spatial_capacity",
-      "order": "ascending_physical_slot"
+      "order": "ascending_physical_slot",
+      "max_count": 1024
      },
      "ordinal": 3,
      "source_contract": "C193"
@@ -7680,7 +7681,8 @@
      "source_member": "_spatial_container_generation",
      "shape": {
       "count_field": "_spatial_capacity",
-      "order": "ascending_physical_slot"
+      "order": "ascending_physical_slot",
+      "max_count": 1024
      },
      "ordinal": 4,
      "source_contract": "C193"
@@ -7694,7 +7696,8 @@
      "source_member": "_spatial_location_slot",
      "shape": {
       "count_field": "_spatial_capacity",
-      "order": "ascending_physical_slot"
+      "order": "ascending_physical_slot",
+      "max_count": 1024
      },
      "ordinal": 5,
      "source_contract": "C193"
@@ -7708,7 +7711,8 @@
      "source_member": "_spatial_location_generation",
      "shape": {
       "count_field": "_spatial_capacity",
-      "order": "ascending_physical_slot"
+      "order": "ascending_physical_slot",
+      "max_count": 1024
      },
      "ordinal": 6,
      "source_contract": "C193"
@@ -7722,7 +7726,8 @@
      "source_member": "_spatial_location_revision",
      "shape": {
       "count_field": "_spatial_capacity",
-      "order": "ascending_physical_slot"
+      "order": "ascending_physical_slot",
+      "max_count": 1024
      },
      "ordinal": 7,
      "source_contract": "C193"
@@ -12958,7 +12963,7 @@
   1,
   2,
   1,
-  9,
+  10,
   6,
   2,
   2,

@@ -7,7 +7,8 @@ extends RefCounted
 ## underground Session is mounted, movement -- are bound to FRESH instances (`absent_*`). Their
 ## captures are therefore the canonical empty images, and a load proves the incoming records equal
 ## a fresh capture rather than installing them anywhere (DEC-055 Q9). A mounted Session's Space
-## owner and movement are read from the Session's retirement owners (ADR 1222's owner map).
+## owner, movement and owner packet are read from the Session's retirement owners (ADR 1222's owner
+## map); a load re-mounts the target and calls `bind_underground()` again (ADR 1228).
 ##
 ## Stateless apart from the bindings; nothing here captures, encodes or restores.
 ##
@@ -95,6 +96,12 @@ class World:
 	var admissions: DemolitionAdmissionsScript = null
 	var demolition_work: DemolitionWorkScript = null
 	var session: UndergroundSessionScript = null
+	## The mounted Session's owner packet, or null (ADR 1228).
+	var underground: UndergroundSessionScript.Retirement.Owners = null
+	## The settlement's entry runtime, or null before the first entry request (ADR 1228).
+	var entry: RefCounted = null
+	## A load's underground content: the image a mounted save is re-mounted with (ADR 1228).
+	var content: RefCounted = null
 	var space_owner: SpaceOwnerScript = null
 	var movement: MovementScript = null
 	var absent_spatial_world: SpatialWorldScript = null
@@ -122,7 +129,7 @@ static func bind(settlement: Node, manager: Node) -> World:
 	_bind_land(world, settlement)
 	_bind_economy(world, settlement)
 	_bind_absent(world)
-	_bind_underground(world, settlement)
+	bind_underground(world)
 	return world
 
 
@@ -179,12 +186,16 @@ static func _bind_absent(world: World) -> void:
 	world.absent_chronicle = ChronicleScript.new()
 
 
-static func _bind_underground(world: World, s: Node) -> void:
-	"""The mounted Session's Space owner and movement, or a fresh movement while unmounted."""
+static func bind_underground(world: World) -> void:
+	"""The mounted Session's Space owner, owner packet, entry runtime and (once its route owners
+	are composed) movement; a fresh movement while none is. Re-run after a load re-mounts."""
+	var s: Node = world.settlement
 	world.session = s.underground_session()
-	if world.session != null:
-		world.space_owner = world.session._space
-		world.movement = world.session._retirement_owners.world_routes._movement
+	world.underground = world.session._retirement_owners if world.session != null else null
+	world.space_owner = world.session._space if world.session != null else null
+	world.entry = s.underground_entry() if world.session != null else null
+	if world.underground != null and world.underground.world_routes != null:
+		world.movement = world.underground.world_routes._movement
 		world.movement_is_absent = false
 		return
 	var spatial: SpatialWorldScript = world.absent_spatial_world

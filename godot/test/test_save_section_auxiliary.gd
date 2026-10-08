@@ -11,7 +11,7 @@ const SaveHeader := preload("res://scripts/core/save_header.gd")
 const Digest := preload("res://scripts/core/canonical_state_hash.gd")
 const REGISTRY_PATH: String = "res://../docs/planning/canonical_state_registry.json"
 
-## Section 6 owner indexes after ADR 1228 added the underground mount and wire owners (schema 9, 25 owners).
+## Section 6 owner indexes after ADR 1228 added the underground mount and wire owners (schema 10, 25 owners).
 const CROP_WEATHER: int = 4
 const ECOLOGY: int = 7
 const EXCAVATION_INVENTORY: int = 8
@@ -123,7 +123,7 @@ func test_table_rules_and_pinned_lengths() -> void:
 	"""The compiled table is coherent and its rules are the proved ones; unproved stays zero-only."""
 	assert_true(Schema.table_refusal().is_ok(), "table_refusal accepts the compiled table")
 	assert_equal(Schema.EMPTY_SECTION_BYTES, 12446410, "the empty section length")
-	assert_equal(Schema.MAX_SECTION_BYTES, 24967568, "the maximum section length")
+	assert_equal(Schema.MAX_SECTION_BYTES, 24992144, "the maximum section length")
 	assert_equal(Schema.rule_kind_of(0, 0), Schema.RULE_FIXED, "buildings._r_spatial_kind FIXED")
 	assert_equal(Schema.rule_value_of(0, 0), 16384, "at ROOM_CAPACITY")
 	assert_equal(Schema.rule_kind_of(ECOLOGY, 0), Schema.RULE_SCALAR, "ecology._last_day")
@@ -131,8 +131,9 @@ func test_table_rules_and_pinned_lengths() -> void:
 	assert_equal(Schema.rule_kind_of(ROOM_LAYOUT, 3), Schema.RULE_BOUNDED, "_room_slots bounded")
 	assert_equal(Schema.rule_value_of(EXCAVATION_SITES, 27), 369545, "_earned_mwu bound")
 	assert_equal(Schema.rule_value_of(ENTRY_PROGRESS, 1), 2559, "progress_record max_count")
-	assert_equal(Schema.rule_kind_of(INVENTORY, 3), Schema.RULE_UNPROVED, "no proved bound")
-	assert_equal(Schema.UNPROVED_FIELDS.size(), 19, "5 inventory + 14 spoil_tips fields")
+	assert_equal(Schema.rule_kind_of(INVENTORY, 3), Schema.RULE_BOUNDED, "ADR 1228: the spatial arena is bounded")
+	assert_equal(Schema.rule_value_of(INVENTORY, 3), 1024, "at SPATIAL_ENDPOINT_CAPACITY")
+	assert_equal(Schema.UNPROVED_FIELDS.size(), 14, "the 14 spoil_tips fields")
 	assert_false(Schema.count_admissible(SPOIL_TIPS, 6, 1), "an unproved field admits no element")
 
 

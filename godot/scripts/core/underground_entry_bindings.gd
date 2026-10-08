@@ -113,6 +113,11 @@ class AdmissionAuthority extends Placements.Authority:
 		var actual: RefCounted = host.get_ref() if host != null else null
 		if actual != null: actual._discard_timber(placement, project, cold)
 
+	func restoration_refusal(cold: int) -> StringName:
+		"""ADR 1228: judge a load's staged Placement image against the restored Space."""
+		var actual: RefCounted = host.get_ref() if host != null else null
+		return actual._restoration_refusal(cold) if actual != null else REFUSE_ENTRY_COLD
+
 var _entry_frontier: Frontier = null
 var _entry_placements: Placements = null
 var _entry_authority: AdmissionAuthority = null
@@ -682,6 +687,27 @@ func _authority_admission(placement: Vector2i, request: Placements.Request, toke
 			or request.corridor != _entry_candidate.ref or request.section != _entry_section:
 		return REFUSE_ENTRY_COLD
 	return &""
+
+
+func _restoration_refusal(_cold_token: int) -> StringName:
+	"""ADR 1228: during a load, after Placements' own audit has proved every staged Room, section,
+	anchor and Project against the restored owners, prove the staged frontier pin: unpinned (no
+	admission yet) or exactly this composition's bound frontier source. The installed parts'
+	geometry is the restored Space's own image, read back by the next installation's proofs.
+	Only at quiescence, with no entry or timber scope open."""
+	if _entry_busy or _timber_token != 0 or _entry_placements == null or _entry_frontier == null:
+		return REFUSE_ENTRY_COLD
+	return &"" if _restored_frontier_pinned(_entry_placements._stage) else REFUSE_ENTRY_SOURCE
+
+
+func _restored_frontier_pinned(bank: Placements.Bank) -> bool:
+	"""The staged frontier tuple is unpinned (no admission yet) or exactly this bound frontier source's."""
+	var revision: int = bank.header[Placements.H_FRONTIER_REV]
+	for index: int in 32:
+		var digest: int = bank.digests[96 + index]
+		if (revision == 0 and digest != 0) or (revision != 0 and digest != _entry_frontier._digests[index]):
+			return false
+	return revision == 0 or revision == _entry_frontier._header[0]
 
 
 func _refresh_entry_locations(placement: Vector2i, token: int, cold_token: int) -> StringName:

@@ -1976,14 +1976,17 @@ static func _inventory_containers_refusal(block: OwnerRecord) -> SaveHeader.Refu
 
 
 static func _container_anchor_refusal(block: OwnerRecord, slot: int) -> SaveHeader.Refusal:
-	"""DEMO-CONTAIN-R01: an anchor is -1 (unplaced) or a cell in `0..ANCHOR_TILE_COUNT-1`.
+	"""DEMO-CONTAIN-R01: an anchor is -1 (unplaced) or a cell in `0..ANCHOR_TILE_COUNT-1`, or
+	(ADR 1228) `-2 - row` for a row of the spatial endpoint arena, which section 6's `inventory`
+	owner carries and proves against its endpoint.
 
 	Checked on every row. An inactive row's -1 is ALSO pinned by the unused table above, so a
 	live row is where this gate does its own work: a forged 16384 would otherwise index past the
 	caller's tile mask in `containers_anchored_in_into()` the moment the store was published.
 	"""
 	var anchor: int = block.i32_column(30)[slot]
-	if InventoryScript.is_anchor_tile_in_domain(anchor):
+	if InventoryScript.is_anchor_tile_in_domain(anchor) \
+			or (anchor <= -2 and anchor >= -1 - InventoryScript.SPATIAL_ENDPOINT_CAPACITY):
 		return _accepted()
 	return _refuse(REFUSE_SLOT_RANGE,
 		"owner 'inventory' field '_c_anchor_tile' row %d holds anchor %d, outside %d and 0..%d"

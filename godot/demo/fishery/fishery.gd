@@ -30,6 +30,12 @@ extends RefCounted
 ## again, standing on the jetty, before anyone boards (`entry_refusal`); refused, nobody boards and the trip waits on
 ## the board, its reason shown -- and it is checked again each time. The same recheck runs at a bank before a net is
 ## cast and at the ice's edge before anyone steps out.
+##
+## THE FISHING REVAMP (#49, decisions 1711-1713). A completed cycle rolls §5.4's hazard and rare-quality rolls on the
+## FISHING stream (fishing_rolls.gd): a hazard hurts the trip's first fisher -- a boat's helm -- through the infirmary
+## (`hurt`, wired by the village), and a rare success books 25% of the catch EXCELLENT. A BEST CATCH trip (catch_plan.gd,
+## §5.4's auto mode) has its species chosen again at the water. A trap's collection follows its policy (when soaked, or
+## the morning run). Each water's record and the intensive policy are fishery_stewardship.gd's.
 
 const Rules := preload("res://demo/fishery/fishery_rules.gd")
 const Tables := preload("res://demo/fishery/fishery_tables.gd")
@@ -59,6 +65,9 @@ const SimClock := preload("res://scripts/core/sim_clock.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const Text := preload("res://demo/fishery/fishery_text.gd")
 const Recipes := preload("res://demo/preserve/preserve_rules.gd")
+const RollsScript := preload("res://demo/fishery/fishing_rolls.gd")
+const PlanScript := preload("res://demo/fishery/catch_plan.gd")
+const StewardScript := preload("res://demo/fishery/fishery_stewardship.gd")
 
 const NONE: int = -1
 ## A job's steps (see each program below).
@@ -166,6 +175,13 @@ var weather: DemoWeatherScript = null
 var map: WaterMapScript = null
 ## `say(text, warning)`: the notice feed (the Water source).
 var say: Callable = Callable()
+## The fishing revamp (see the header): the rolls, each water's record, `hurt(who, kind, severity, loss) -> bool` (the
+## infirmary's; unbound: a hazard is said and counted, nobody is hurt), and the policy new traps are authorised with.
+var rolls: RollsScript = RollsScript.new()
+var steward: StewardScript = StewardScript.new()
+var hurt: Callable = Callable()
+var collect_policy: int = PlanScript.COLLECT_SOAKED
+var _outcome: RollsScript.Outcome = RollsScript.Outcome.new()
 ## Bumped whenever anything a panel shows changes.
 var revision: int = 0
 ## THE BOOKS (see THE CATCH FEEDS THE PANTRY), milli-U: everything caught, stored, dried and milled.
@@ -292,6 +308,7 @@ func update(usec: int) -> void:
 	"""Advance the fishery by `usec` demo microseconds: the boats, the ice's hour, the traps' soak, the rack's curing,
 	the retries and the deadlines."""
 	_follow_hours()
+	steward.follow(driver)
 	_row_boats(usec)
 	_follow_traps()
 	_follow_rack()
@@ -370,6 +387,9 @@ func trip_refusal(method: int, site: int, species: int, members: PackedInt32Arra
 	may), its code and fix in `refused_code` / `refused_fix`. The Authorise button and its card both run this."""
 	refused_code = ""
 	refused_fix = ""
+	species = planned_species(method, site, species, members)
+	if species == NONE:
+		return _no_fish_refusal(method, site)
 	var why: String = _water_refusal(method, site, species)
 	if why.is_empty():
 		why = _kit_refusal(method)
@@ -382,6 +402,21 @@ func trip_refusal(method: int, site: int, species: int, members: PackedInt32Arra
 	if why.is_empty() and tables.MAX_JOBS - tables.job_count() < Rules.METHOD_CREW[method]:
 		why = _refuse("JOBS", "the fishery's job list is full", "wait for a job to finish")
 	return why
+
+
+## The refusals that are about one species (BEST CATCH tries the next); any other is the water's or the method's.
+const SPECIES_CODES: Array[String] = ["SPECIES_CLOSED", "SPECIES_UNAVAILABLE", "RESTOCKING", "BELOW_STOCK_FLOOR",
+	"GEAR_CANNOT_TAKE_SPECIES", "NOT_FOOD", "NO_CATCH"]
+
+
+func _no_fish_refusal(method: int, site: int) -> String:
+	"""BEST CATCH found nothing: the water's or the method's own reason when there is one (ice, the quota, the places,
+	the weather), else that no fish there may be fished."""
+	var why: String = _water_refusal(method, site, 0)
+	if not why.is_empty() and not SPECIES_CODES.has(refused_code):
+		return why
+	return _refuse("NO_LEGAL_FISH", "no fish there may be fished now (each is closed, out of season or restocking)",
+		"◀ ▶ another site or method")
 
 
 func _refuse(code: String, words: String, fix: String) -> String:
@@ -404,12 +439,24 @@ func _water_refusal(method: int, site: int, species: int) -> String:
 		return iced
 	var code: StringName = driver.refusal(site, species, Rules.METHOD_GEAR[method])
 	if code != Driver.REFUSE_NONE:
-		return _refuse(String(code), Text.driver_words(code, driver.species_key_of(site, species)), _driver_fix(code))
+		return _refuse(String(code), Text.driver_words(code, driver.species_key_of(site, species)) + _reopens(site, species,
+			method, code), _driver_fix(code))
 	if Rules.pantry_item_of(driver.species_row_of(site, species)) == Catalog.NO_ITEM:
 		return _refuse("NOT_FOOD", "%s is not caught here" % driver.species_key_of(site, species), "")
 	if method == Rules.METHOD_BOAT:
 		return _weather_refusal()
 	return ""
+
+
+func _reopens(site: int, species: int, method: int, code: StringName) -> String:
+	"""REQ-SET-046: a closed or out-of-season species' refusal names its reopening day (' — reopens summer 1')."""
+	if code != Fishing.REFUSE_SPECIES_CLOSED and code != Fishing.REFUSE_SPECIES_UNAVAILABLE:
+		return ""
+	if not driver.preview_into(site, species, Rules.METHOD_GEAR[method], 0, _preview):
+		return ""
+	if _preview.availability_per_1000 > 0 and driver.days_to_closure(site, species) != 0:
+		return " — closed by an event: reopening not known"
+	return " — reopens %s" % Text.date_text(_preview.reopen_season, _preview.reopen_day)
 
 
 func _driver_fix(code: StringName) -> String:
@@ -532,10 +579,20 @@ func expected_catch(method: int, site: int, species: int, level: int) -> int:
 
 
 func preview_of(method: int, site: int, species: int, level: int) -> Driver.Preview:
-	"""REQ-SET-055's figures for the card (reused: read it before the next call); null without a fishery."""
-	if driver == null or not driver.preview_into(site, species, Rules.METHOD_GEAR[method], level, _preview):
+	"""REQ-SET-055's figures for the card, for the method's whole crew (reused: read it before the next call); null
+	without a fishery."""
+	if driver == null or not driver.preview_into(site, species, Rules.METHOD_GEAR[method], level, _preview,
+			Rules.METHOD_CREW[method] - 1):
 		return null
 	return _preview
+
+
+func planned_species(method: int, site: int, species: int, members: PackedInt32Array) -> int:
+	"""The species index a trip's choice fishes: a chosen fish as it is; BEST CATCH (catch_plan.gd PLAN_AUTO) §5.4's
+	auto pick at the crew's likely level, NONE when nothing may be fished."""
+	if not PlanScript.is_auto(species):
+		return species
+	return PlanScript.best_species(driver, site, method, _likely_level(method, members), _preview)
 
 
 func _crew_refusal(method: int) -> String:
@@ -585,8 +642,10 @@ func authorise(method: int, site: int, species: int, members: PackedInt32Array) 
 	var why: String = trip_refusal(method, site, species, members)
 	if not why.is_empty():
 		return why
-	var t: int = tables.open_trip(method, site, species)
-	tables.t_item[t] = Rules.pantry_item_of(driver.species_row_of(site, species))
+	var t: int = tables.open_trip(method, site, planned_species(method, site, species, members))
+	tables.t_auto[t] = 1 if PlanScript.is_auto(species) else 0
+	tables.t_collect[t] = collect_policy
+	tables.t_item[t] = Rules.pantry_item_of(driver.species_row_of(site, tables.t_species[t]))
 	tables.t_due[t] = now_tick() + estimate_ticks(method) + Rules.OVERDUE_MARGIN_TICKS
 	_set_aside_kit(t)
 	for seat: int in Rules.METHOD_CREW[method]:
@@ -1386,6 +1445,7 @@ func begin_cycle(t: int, levels: PackedInt32Array) -> String:
 	"""Open trip `t`'s fishing cycle at the water (REQ-SET-044), after the recheck: the effort slots (fishing_driver.gd
 	`begin_cycle`), the gear's durability claimed by the cycle's Job (gear.gd), and room held in a store for the
 	expected catch at the crew's FISH (decision 0222). All or nothing: "" when begun, else why not (nothing taken)."""
+	_replan(t, levels)
 	var why: String = entry_refusal(t)
 	if not why.is_empty():
 		return why
@@ -1396,6 +1456,7 @@ func begin_cycle(t: int, levels: PackedInt32Array) -> String:
 	if not why.is_empty():
 		return why
 	tables.t_cycle[t] = cycle
+	_draw(t, cycle.expedition)
 	tables.t_state[t] = Tables.TRIP_FISHING
 	if tables.t_method[t] != Rules.METHOD_BOAT:
 		_splash(ICE_HOLE if tables.t_method[t] == Rules.METHOD_ICE else _bank_water.get(tables.t_site[t], Vector2.ZERO))
@@ -1436,8 +1497,60 @@ func complete_cycle(t: int, levels: PackedInt32Array) -> int:
 	caught_milli += result.quantity_milli
 	tables.t_state[t] = Tables.TRIP_LANDING
 	_note("%s: caught %s" % [trip_name(t), Text.catch_text(result.quantity_milli, tables.t_item[t])], false)
+	_roll(t, levels, result.quantity_milli)
 	revision += 1
 	return result.quantity_milli
+
+
+func _replan(t: int, levels: PackedInt32Array) -> void:
+	"""A BEST CATCH trip at the water: §5.4's auto pick again for this crew (REQ-SET-046's legal fallback), its catch's
+	item following; kept as it is when nothing may be fished (the recheck then says why)."""
+	if tables.t_auto[t] == 0 or driver == null:
+		return
+	var s: int = PlanScript.best_species(driver, tables.t_site[t], tables.t_method[t], SkillsScript.group_level(levels),
+		_preview)
+	if s == NONE or s == tables.t_species[t]:
+		return
+	tables.t_species[t] = s
+	tables.t_item[t] = Rules.pantry_item_of(driver.species_row_of(tables.t_site[t], s))
+	_note("%s: the best catch here now" % trip_name(t), false)
+
+
+func _draw(t: int, expedition: Vector2i) -> void:
+	"""The departing cycle's two FISHING draws (fishing_rolls.gd `draw_into`), kept on the trip: spent now, whether it
+	completes or is called off (ARCH-RNG-002)."""
+	if rolls.draw_into(expedition, _outcome):
+		tables.t_hazard_roll[t] = _outcome.hazard_roll
+		tables.t_rare_roll[t] = _outcome.rare_roll
+
+
+func _roll(t: int, levels: PackedInt32Array, milli: int) -> void:
+	"""A completed cycle's rolls resolved (fishing_rolls.gd `resolve_into`, on the draws taken at departure): the
+	EXCELLENT share booked, the water's record kept, and a hazard said and given to the trip's first fisher -- a boat's
+	helm -- through the infirmary."""
+	var site: int = tables.t_site[t]
+	var gear: int = Rules.METHOD_GEAR[tables.t_method[t]]
+	steward.record(site, milli)
+	if tables.t_hazard_roll[t] < 0:
+		return
+	_outcome.hazard_roll = tables.t_hazard_roll[t]
+	_outcome.rare_roll = tables.t_rare_roll[t]
+	tables.t_hazard_roll[t] = NONE
+	rolls.resolve_into(gear, driver.danger_of_site(site), SkillsScript.group_level(levels), maxi(levels.size(), 1), milli,
+		_outcome)
+	tables.t_excellent[t] += _outcome.excellent_milli
+	if _outcome.excellent_milli > 0:
+		_note("%s: a fine catch — %s of it excellent" % [trip_name(t), Text.units(_outcome.excellent_milli)], false)
+	if not _outcome.hurt:
+		return
+	_outcome.encounter = RollsScript.encounter_of(driver.habitat_type_of_site(site), SimClock.day_index_at(now_tick()))
+	var j: int = tables.t_seat_job[t * 2]
+	var who: int = tables.j_worker[j] if j >= 0 and tables.j_live[j] == 1 else NONE
+	if who == NONE or not hurt.is_valid() \
+			or not bool(hurt.call(who, _outcome.injury_kind, _outcome.injury_severity, _outcome.injury_loss)):
+		return
+	_note("%s: %s %s" % [trip_name(t), name_of(who),
+		RollsScript.hazard_words(gear, _outcome.encounter)], true)
 
 
 func _take_load(j: int, item: int, milli: int) -> void:
@@ -1614,12 +1727,29 @@ func _follow_traps() -> void:
 	for t: int in Tables.MAX_TRIPS:
 		if tables.t_live[t] == 0 or tables.t_state[t] != Tables.TRIP_SOAKING or now_tick() < tables.t_soak_until[t]:
 			continue
+		if tables.t_collect_at[t] < 0:
+			tables.t_collect_at[t] = _collect_tick(t)
+		if now_tick() < tables.t_collect_at[t]:
+			continue
 		if _collect_of(t) == NONE:
 			var j: int = tables.open_job(Tables.KIND_COLLECT, PROG_COLLECT, t)
 			if j != NONE:
 				tables.j_seat[j] = 0
 				tables.t_seat_job[t * 2] = j
 				revision += 1
+
+
+func _collect_tick(t: int) -> int:
+	"""When a trap that has just soaked is collected, worked out once (catch_plan.gd COLLECTION): now, or under the
+	morning run the next 06:00 -- now when it is the morning already or its fish closes tomorrow."""
+	var now: int = now_tick()
+	if tables.t_collect[t] == PlanScript.COLLECT_SOAKED or driver == null:
+		return now
+	if PlanScript.in_morning(posmod(CalendarScript.hour_index_at(now), SimClock.HOURS_PER_DAY)):
+		return now
+	if PlanScript.closes_soon(driver.days_to_closure(tables.t_site[t], tables.t_species[t])):
+		return now
+	return PlanScript.next_morning_tick(now)
 
 
 func _collect_of(t: int) -> int:

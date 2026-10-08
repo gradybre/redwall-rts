@@ -412,3 +412,21 @@ the L0/T0 station-relative section, or two treads up) and the packet are in ADR 
 
 **For step 5 in any layout:** the descent's end pose on T_{k−1} (root far + 169) reaches far + 0.7 below 128 u,
 inside the staged bearer. The bearer must therefore arrive after the fitter.
+
+### Brendan's answer (2026-10-08, DEC-058): a general working motion from the 310 u station
+
+Verbatim: **"General digging motion, does not need to line up perfectly."**
+
+The treads T1…T5 and the T6 sill are fitted from this plan's tread station: 310 u behind T_{k−1}'s far edge, yaw 0,
+facing down the stair. They use a general paw/claw working motion, and the side-on station is not used.
+
+- The paws need not make exact certified contact with the bearer.
+- The feet-support, non-penetration (deck, riser, bearer, trench walls) and self-clearance proofs are kept.
+
+ADR 1217 step 2d authors the motion. Candidate b clears every kept proof at T1…T5 and the sill with one program,
+and is stopped for review.
+
+**Step 5 still needs:**
+
+- the arrival: the 141 u backward reposition from the descent's end (far + 169) to the 310 u station, tool-free;
+- the bearer delivered after the fitter arrives (step 2c note).

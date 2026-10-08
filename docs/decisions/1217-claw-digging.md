@@ -1,8 +1,8 @@
 # 1217 — Claw digging and paw fitting: no tools for now
 
 Date: 2026-10-07 · Status: Accepted direction (DEC-052). Step 5 done: the runtime digs with claws and fits by
-paw (content 9 active); the pick content stays published and dormant. Step 2c, the side-on tread station, is refused
-and stopped for Brendan's choice.
+paw (content 9 active); the pick content stays published and dormant. Step 2c, the side-on tread station, was refused;
+DEC-058 replaced it with a general working motion (step 2d), stopped for Brendan's review.
 
 ## Decision
 
@@ -372,6 +372,58 @@ The bearer would have to run across the mole, but it runs along its forward axis
 
 **Note for ADR 1209 step 5.** The descent's end pose on T_{k−1} (root far + 169) reaches into the staged bearer.
 So the bearer is delivered after the fitter arrives, in any layout.
+
+### Brendan's answer to step 2c (2026-10-08, DEC-058)
+
+Verbatim: **"General digging motion, does not need to line up perfectly."**
+
+As interpreted and relayed by the coordinator:
+
+- The treads below T0 are fitted with a general paw/claw working motion from ADR 1209's planned tread station: 310 u
+  behind the far edge, facing down the stair.
+- The paws need not make exact certified contact with the bearer, so the exact paw-on-bearer contact and patch
+  requirement is dropped for tread fitting.
+- The work is accounted as fitting by the Job/Work model as usual.
+- The physical safety proofs are kept: feet supported on the tread; no body or limb penetration of the deck, riser,
+  bearer or trench walls; arm self-clearance against the body and legs.
+
+## Step 2d — the tread fitting motion (authored; stopped for Brendan's review)
+
+**Tools** (`claw-work-v1/`):
+
+- `prove_tread_fit.py` authors and proves the motion;
+- `probe_tread_fit.py` is the float search;
+- `render_tread_fit.py` renders the review images;
+- `test_tread_fit.py` holds 6 tests, including a byte-for-byte rebuild.
+
+The evidence is `evidence/tread-fit-v1/` and the packet `evidence/tread-fit-review-v1/`.
+
+**Motion.** It is the approved paw handling seat and seating tap of step 2, built by `author_paw_seat`, unchanged,
+and re-posed at the tread station.
+
+- Adjustments: lean, hip drop, paw spacing, the work point over the bearer, and an absolute work height.
+- One program serves T1…T5 and the sill.
+- **Recommended candidate b:** paws at ±224 over the bearer's far half (z = −300), work height 131 u (the tap's lowest
+  key 1 u above a tread bearer's top), lean 0°, hip drop 96 u, head lift 60°, palms rolled 90°.
+- Candidate c is the same at 160 u.
+
+**Proofs** (the accepted ones, unchanged; all clear with no exception for b and c, tread and sill):
+
+- **World prisms with sole support** against ADR 1209's tread fixture plus the trench side walls. The bearer is
+  hard for every triangle, paws included (the paw skin is the whole prism).
+- **Self-clearance**: each arm against everything without that arm's weight (legs included), and arm against arm.
+- Recovery is the exact reverse of the entry.
+- **Dropped per DEC-058:** the exact contact crossing and patch.
+
+**Why it now clears.** Step 2b required both paws on the bearer's centre line (z = −246), and there they meet the
+legs. Without the contact requirement, the paws work over the bearer's far half, wider apart, and the body stands
+upright with a deeper hip drop. Two exact trials did not clear:
+
+- lean 15° crossed the bearer with the paws during the entry;
+- a work height that followed each bearer (the sill 64 u lower) put the left arm against the body.
+
+**Next, after review:** native capture, integer rows and a content successor with a tread fitting row, then ADR 1209
+steps 5–7 (the arrival at the 310 u station, the tool-free stair gaits M7, runtime stair travel).
 
 ## Step 3 — native capture
 

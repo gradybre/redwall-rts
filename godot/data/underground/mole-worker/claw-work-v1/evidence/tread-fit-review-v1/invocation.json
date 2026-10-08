@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "adr": ["1217", "1209"],
+  "dec": "DEC-058",
+  "production_qualified": false,
+  "paths": ".../ = godot/data/underground/mole-worker/claw-work-v1/",
+  "python": "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+  "staged_inputs": "godot/demo/assets/underground-matrices/{all-cast-v9.ugpal 5b368eb3..., mole-grip-v3.ugpal 08de5453..., world-yaw-v1.ugyaw de8c3b04...} copied from /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/; hash-checked; removed afterwards",
+  "commands": [
+    "$PY -B .../probe_tread_fit.py .../evidence/tread-fit-probe-v1.json",
+    "$PY -B .../prove_tread_fit.py .../evidence/tread-fit-v1/candidate-b --work-y-u 131 --contact-z-u -300 --paw-x-u 224 --lean-degrees 0 --drop-u 96 --head-lift-degrees 60 --right-roll-degrees 90 --left-roll-degrees 90",
+    "$PY -B .../prove_tread_fit.py .../evidence/tread-fit-v1/candidate-c --work-y-u 160 --contact-z-u -300 --paw-x-u 224 --lean-degrees 0 --drop-u 96 --head-lift-degrees 60 --right-roll-degrees 90 --left-roll-degrees 90",
+    "$PY -B .../render_tread_fit.py .../evidence/tread-fit-v1/candidate-b .../evidence/tread-fit-review-v1/candidate-b",
+    "$PY -B .../render_tread_fit.py .../evidence/tread-fit-v1/candidate-c .../evidence/tread-fit-review-v1/candidate-c",
+    "$PY -B .../test_tread_fit.py -v   # 6 tests OK"
+  ],
+  "exact_trials_not_clear": "work 131 / z -300 / x 224 / lean 15 / drop 96 (paws cross the bearer in entry intervals 18-20); work height following each bearer at +3 (sill: left arm vs body)"
+}

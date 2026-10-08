@@ -1469,3 +1469,26 @@ while it is holding a piece. **Re-handle in place.** The piece stays where it wa
 up handling it there and finishes the installation, and nothing is paid twice.
 
 Engineering record: [decision1225](decisions/1225-entry-crew-replacement.md) ("Amendment: installations").
+
+
+### DEC-058 — Treads are fitted with a general paw working motion; exact contact not required
+
+On 2026-10-08 Brendan answered the tread question of [decision1217](decisions/1217-claw-digging.md) step 2c (the
+side-on station does not fit a 512 u tread): **"General digging motion, does not need to line up perfectly."**
+
+As interpreted and relayed by the coordinator session:
+
+- The treads below T0 (T1…T5 and the T6 sill) are fitted with a general paw/claw working motion from ADR 1209's
+  planned tread station: 310 u behind T_{k−1}'s far edge, facing down the stair.
+- The paws need **not** make an exact, certified contact with the bearer. The exact paw-on-bearer contact and patch
+  requirement is dropped for tread fitting.
+- The work is accounted as fitting by the Job/Work model as usual.
+- The physical safety proofs stay:
+  - the feet are supported on the tread;
+  - no body or limb penetrates the deck, the riser, the bearer or the trench walls;
+  - arm-against-body and arm-against-leg self-clearance holds.
+
+Unchanged: the bills (ADR 1209 D3), the tread geometry (D1, D2), and the exact contact still required at L0 and T0.
+
+Engineering records: [decision1217](decisions/1217-claw-digging.md) step 2d and
+[decision1209](decisions/1209-descent-past-t0.md).

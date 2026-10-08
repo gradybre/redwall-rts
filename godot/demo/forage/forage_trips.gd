@@ -23,6 +23,13 @@ extends RefCounted
 ## stands, still in the books, for the next to fetch. CANCEL calls off the seats not yet carrying (their claims and room
 ## given back); a haul in hand is always brought home.
 ##
+## A PREPARED OUTING (review ECO-014; decision 1721, numbers in forage_rules.gd): the same trip, planned to be HOME
+## BEFORE DARK -- not authorised when it could not be, and each forager at its spot claims only what it can gather and
+## still walk home by dusk, TURNING BACK when that is too little -- with the village's CARRY KIT (its carrier two baskets)
+## and a NAMED LEAD if the player asks; each spot REMEMBERS its latest trip home (when, what, how long, who led). A
+## PROTECTED GROVE'S RESERVE (ECO-015): a spot inside a protected grove leaves the grove's share of the woods' stock
+## (`reserve_permille`, demo_orchard.gd `grove_reserve_permille`), above §5.5's floor.
+##
 ## THE BOOKS (milli-U, per kind): everything collected from the basin is in a hand (or set down) or in a store --
 ##     collected == in_hand + stored                                            (`books_balance`)
 ## at every moment; a load moves between two of them in one step.
@@ -43,6 +50,7 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
+const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 
 const NONE: int = -1
 const NULL_REF: Vector2i = DriverScript.NULL_REF
@@ -71,6 +79,15 @@ var say: Callable = Callable()
 var revision: int = 0
 ## Where each kind is gathered (snapped), by index into Rules.KINDS.
 var spot_at: PackedVector2Array = PackedVector2Array()
+## Decision 1721: `reserve_permille(at: Vector2) -> int`, a protected grove's forage reserve at an authored spot, per
+## mille of the kind's capacity (invalid: none).
+var reserve_permille: Callable = Callable()
+## THE PLACES REMEMBERED (decision 1721), per kind index: the calendar tick its latest trip came home (-1: never), what it
+## brought, how long it was out (ticks), and who led it ("": nobody named).
+var note_tick: PackedInt64Array = PackedInt64Array([-1, -1, -1, -1])
+var note_milli: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
+var note_ticks: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
+var note_lead: PackedStringArray = PackedStringArray(["", "", "", ""])
 
 ## THE BOOKS, per kind index: collected from the basin, and shelved in a store.
 var collected_milli: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
@@ -86,6 +103,10 @@ var t_asked: PackedInt64Array = PackedInt64Array()
 var t_got: PackedInt64Array = PackedInt64Array()
 var t_seats: PackedInt32Array = PackedInt32Array()
 var t_posted: PackedInt64Array = PackedInt64Array()
+## Decision 1721: whether the trip has the carry kit, its named lead (NONE), and how many of it turned back for the dark.
+var t_kit: PackedByteArray = PackedByteArray()
+var t_lead: PackedInt32Array = PackedInt32Array()
+var t_turned: PackedInt32Array = PackedInt32Array()
 
 ## The seats (structure of arrays).
 var j_live: PackedByteArray = PackedByteArray()
@@ -119,6 +140,10 @@ var _driving: int = NONE
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 ## Set by `_claim_share` when the refusal was a full store (the seat waits for room) rather than the woods.
 var _room_short: bool = false
+## Set by `_claim_share` when the seat turns back for the dark (decision 1721).
+var _turned_back: bool = false
+## One reused calendar instant (a note's date).
+var _when: SimClock.Calendar = SimClock.Calendar.new(0)
 
 
 func configure(p_cast: DemoCastScript, p_driver: DriverScript, p_pantry: PantryScript, p_calendar: CalendarScript,
@@ -138,8 +163,9 @@ func configure(p_cast: DemoCastScript, p_driver: DriverScript, p_pantry: PantryS
 
 func _size_rows() -> void:
 	"""Every column sized once."""
-	for column: PackedInt32Array in [t_serial, t_kind, t_party, t_seats]:
+	for column: PackedInt32Array in [t_serial, t_kind, t_party, t_seats, t_lead, t_turned]:
 		column.resize(Rules.MAX_TRIPS)
+	t_kit.resize(Rules.MAX_TRIPS)
 	for column: PackedInt64Array in [t_asked, t_got, t_posted]:
 		column.resize(Rules.MAX_TRIPS)
 	t_live.resize(Rules.MAX_TRIPS)
@@ -254,8 +280,8 @@ func trip_refusal(kind_index: int, party: int) -> String:
 	var kind: int = Rules.KINDS[kind_index]
 	if driver.availability(kind) == 0:
 		return "%s are out of season now (they come in %s)" % [Rules.KIND_WORDS[kind_index], season_words(kind_index)]
-	if driver.harvestable_milli(kind) < Rules.MIN_SHARE_MILLI:
-		return nothing_left_words(kind)
+	if harvestable_milli(kind_index) < Rules.MIN_SHARE_MILLI:
+		return nothing_left_words(kind_index)
 	if t_live.count(0) == 0:
 		return "%d foraging trips are out already" % Rules.MAX_TRIPS
 	if j_live.count(0) < party:
@@ -263,27 +289,82 @@ func trip_refusal(kind_index: int, party: int) -> String:
 	return ""
 
 
-func nothing_left_words(kind: int) -> String:
-	"""Why nothing more may be gathered today: the day's quota, or the stock at its floor (or all of it claimed)."""
+func nothing_left_words(kind_index: int) -> String:
+	"""Why nothing more may be gathered today: the day's quota, or the stock at its floor -- and a protected grove's
+	reserve (decision 1721) -- or all of it claimed."""
 	if driver.quota_left_milli() < Rules.MIN_SHARE_MILLI:
 		return "the woods' daily quota is gathered (%s a day this season) — it opens again at midnight" % \
 			Rules.units_text(driver.quota_today_milli())
-	return "the woods keep their last %s (the sustainable floor), and the rest is spoken for" % \
-		Rules.units_text(driver.floor_milli(kind))
+	var floor_words: String = Rules.units_text(driver.floor_milli(Rules.KINDS[kind_index]))
+	var reserve: int = reserve_milli(kind_index)
+	if reserve > 0:
+		floor_words += " and %s more in the protected grove" % Rules.units_text(reserve)
+	return "the woods keep their last %s (the sustainable floor), and the rest is spoken for" % floor_words
 
 
-func trip_milli(kind_index: int, party: int) -> int:
-	"""What a trip would bring home: a basket a forager, bounded by what the basin admits now."""
-	return mini(Rules.ask_milli(party), driver.harvestable_milli(Rules.KINDS[kind_index]))
+func harvestable_milli(kind_index: int) -> int:
+	"""What a trip may still take of `kind_index` now: the basin's own bound (forage_driver.gd: today's quota, the stock
+	above §5.5's floor not claimed), less a protected grove's reserve at its spot (decision 1721)."""
+	var kind: int = Rules.KINDS[kind_index]
+	var bound: int = driver.harvestable_milli(kind)
+	var reserve: int = reserve_milli(kind_index)
+	if reserve <= 0:
+		return bound
+	var above: int = driver.stock_milli(kind) - driver.floor_milli(kind) - reserve - claimed_milli(kind_index)
+	return clampi(above, 0, bound)
+
+
+func reserve_milli(kind_index: int) -> int:
+	"""A protected grove's reserve at `kind_index`'s authored spot, milli-U (0: none)."""
+	if not reserve_permille.is_valid() or not Rules.is_kind(kind_index):
+		return 0
+	var permille: int = int(reserve_permille.call(Rules.SPOT_AT[kind_index]))
+	@warning_ignore("integer_division") var milli: int = driver.capacity_milli(Rules.KINDS[kind_index]) * permille / 1000
+	return milli
+
+
+func claimed_milli(kind_index: int) -> int:
+	"""What the seats out for `kind_index` hold claimed and not yet collected."""
+	var total: int = 0
+	for j: int in Rules.MAX_JOBS:
+		if j_live[j] == 1 and t_kind[j_trip[j]] == kind_index:
+			total += j_claimed[j]
+	return total
+
+
+func trip_milli(kind_index: int, party: int, kit: bool = false) -> int:
+	"""What a trip would bring home: a basket a forager (the kit's carrier two), bounded by what it may take now."""
+	return mini(Rules.ask_with_kit(party, kit), harvestable_milli(kind_index))
 
 
 func order_trip(kind_index: int, party: int, members: PackedInt32Array) -> String:
-	"""Authorise a trip: its seats on the work board, to the selected residents first. "" when authorised."""
-	var why: String = trip_refusal(kind_index, party)
+	"""Authorise a plain trip (no kit, nobody named to lead): `order_outing`."""
+	return order_outing(kind_index, party, members, false, false)
+
+
+func order_outing(kind_index: int, party: int, members: PackedInt32Array, kit: bool, lead: bool) -> String:
+	"""Authorise a trip (decision 1721: with the carry kit, led by the first selected resident): its seats on the work
+	board, to the selected residents first. "" when authorised, else why not."""
+	var why: String = outing_refusal(kind_index, party, members, kit, lead)
 	if not why.is_empty():
 		return why
 	var t: int = t_live.find(0)
-	var total: int = trip_milli(kind_index, party)
+	var total: int = trip_milli(kind_index, party, kit)
+	_open_trip(t, kind_index, party, total, kit)
+	var given := PackedInt32Array()
+	for seat: int in party:
+		var j: int = _open_seat(t, Rules.seat_share_milli(total, party, seat, kit))
+		_give_first(j, members, given)
+		if seat == 0 and lead and j_worker[j] == members[0]:
+			t_lead[t] = members[0]
+	_note("A foraging trip for %s is authorised: %d to %s%s" % [Rules.KIND_WORDS[kind_index], party,
+		Rules.SPOT_NAMES[kind_index], outing_words(t)], false)
+	revision += 1
+	return ""
+
+
+func _open_trip(t: int, kind_index: int, party: int, total: int, kit: bool) -> void:
+	"""Trip row `t` opened for `party` foragers after `total` of `kind_index` (its kit noted; no lead yet)."""
 	t_live[t] = 1
 	t_serial[t] = _next_serial
 	_next_serial += 1
@@ -293,14 +374,129 @@ func order_trip(kind_index: int, party: int, members: PackedInt32Array) -> Strin
 	t_got[t] = 0
 	t_seats[t] = party
 	t_posted[t] = calendar.tick if calendar != null else 0
-	var given := PackedInt32Array()
-	for seat: int in party:
-		var j: int = _open_seat(t, Rules.share_milli(total, party, seat))
-		_give_first(j, members, given)
-	_note("A foraging trip for %s is authorised: %d to %s" % [Rules.KIND_WORDS[kind_index], party,
-		Rules.SPOT_NAMES[kind_index]], false)
-	revision += 1
+	t_kit[t] = 1 if kit else 0
+	t_lead[t] = NONE
+	t_turned[t] = 0
+
+
+func outing_refusal(kind_index: int, party: int, members: PackedInt32Array, kit: bool, lead: bool) -> String:
+	"""Why an outing may not be authorised now ("" when it may): the trip's own refusal, the dark, the kit lent, the
+	lead (decision 1721)."""
+	var why: String = trip_refusal(kind_index, party)
+	if why.is_empty():
+		why = daylight_refusal(kind_index)
+	if why.is_empty() and kit and kit_trip() != NONE:
+		why = "the carry kit is out with the trip to %s" % Rules.SPOT_NAMES[t_kind[kit_trip()]]
+	if why.is_empty() and lead:
+		why = lead_refusal(members)
+	return why
+
+
+func lead_refusal(members: PackedInt32Array) -> String:
+	"""Why the first selected resident may not lead a trip ("" when they may): someone selected, free of a foraging seat,
+	on land and above ground."""
+	if members.is_empty() or _cast == null:
+		return "select the resident who is to lead it"
+	var who: int = members[0]
+	if job_of_worker(who) != NONE:
+		return "%s is on another foraging trip" % name_of(who)
+	var unfit: String = _unfit(who)
+	return "" if unfit.is_empty() else "%s %s" % [name_of(who), unfit]
+
+
+func kit_trip() -> int:
+	"""The trip out with the carry kit (NONE: it is at home)."""
+	for t: int in Rules.MAX_TRIPS:
+		if t_live[t] == 1 and t_kit[t] == 1:
+			return t
+	return NONE
+
+
+func outing_words(t: int) -> String:
+	"""', led by Wenna, with the carry kit' -- trip `t`'s lead and kit, as the news says them."""
+	var words: String = ""
+	if t_lead[t] != NONE:
+		words += ", led by %s" % name_of(t_lead[t])
+	if t_kit[t] == 1:
+		words += ", with the carry kit"
+	return words
+
+
+# --- home before dark (decision 1721) -------------------------------------------------------------------------
+
+func walk_home_ticks(kind_index: int) -> int:
+	"""Calendar ticks from `kind_index`'s spot back to the village square at the slowest pace (and as long out)."""
+	return Rules.walk_ticks(spot_at[kind_index].length() if spot_at.size() > kind_index else Rules.SPOT_AT[kind_index].length())
+
+
+func daylight_left_ticks() -> int:
+	"""Calendar ticks until dusk now (0 at night; a day's worth without a calendar)."""
+	return Rules.daylight_ticks(calendar.now().tick_of_day) if calendar != null else SimClock.TICKS_PER_DAY
+
+
+func daylight_refusal(kind_index: int) -> String:
+	"""Why a party could not go to `kind_index`'s spot, gather the least worth a trip and be home by dusk ("": it can)."""
+	var left: int = daylight_left_ticks()
+	if left <= 0:
+		return "it is night: foraging parties go out from %02d:00" % Rules.DAWN_HOUR
+	var need: int = 2 * walk_home_ticks(kind_index) + _gather_ticks(kind_index, Rules.MIN_SHARE_MILLI)
+	if left < need:
+		return "too late in the day: a party could not gather and be home by dusk (%02d:00)" % Rules.DUSK_HOUR
 	return ""
+
+
+func _gather_ticks(kind_index: int, milli: int) -> int:
+	"""Calendar ticks one forager at FORAGE 0 takes to gather `milli` of `kind_index` today (rounded up)."""
+	var mwu: int = Rules.work_mwu(milli, driver.work_per_u_wu(Rules.KINDS[kind_index], 0))
+	var per_tick: int = maxi(1, Rules.MWU_PER_TICK * _weather_permille())
+	@warning_ignore("integer_division") var ticks: int = (mwu * 1000 + per_tick - 1) / per_tick
+	return ticks
+
+
+func _weather_permille() -> int:
+	"""§5.10's share of the work rate today (80% in heavy rain)."""
+	return ForestRules.weather_permille(weather.event() if weather != null else WeatherScript.EVENT_NONE)
+
+
+func daylight_cap_milli(kind_index: int, level: int) -> int:
+	"""The most a forager at `kind_index`'s spot (FORAGE `level`) may gather now and still walk home by dusk."""
+	var left: int = daylight_left_ticks() - walk_home_ticks(kind_index)
+	return Rules.gatherable_milli(left, driver.work_per_u_wu(Rules.KINDS[kind_index], level), _weather_permille())
+
+
+func home_by_text(kind_index: int, party: int, kit: bool) -> String:
+	"""'home by about 11:40' -- when a trip authorised now would be home (out, gathering its biggest share, back)."""
+	if calendar == null:
+		return ""
+	var share: int = Rules.seat_share_milli(trip_milli(kind_index, party, kit), party, 0, kit)
+	var ticks: int = 2 * walk_home_ticks(kind_index) + _gather_ticks(kind_index, share)
+	return "home by about %s (dusk %02d:00)" % [Rules.clock_text(calendar.now().tick_of_day + ticks), Rules.DUSK_HOUR]
+
+
+# --- the places remembered (decision 1721) ---------------------------------------------------------------------
+
+func _remember(t: int) -> void:
+	"""Trip `t` home with a haul: its spot's note is now this trip's (the latest only: never a stacking bonus)."""
+	var k: int = t_kind[t]
+	var now: int = calendar.tick if calendar != null else 0
+	note_tick[k] = now
+	note_milli[k] = t_got[t]
+	note_ticks[k] = now - t_posted[t]
+	note_lead[k] = name_of(t_lead[t]) if t_lead[t] != NONE else ""
+
+
+func note_line(kind_index: int) -> String:
+	"""What the village remembers of `kind_index`'s spot ("": nothing yet): 'Remembered (Y1 Summer 2): 8.0 U of nuts,
+	out 2 h 10 min, led by Wenna'."""
+	if note_tick[kind_index] < 0:
+		return ""
+	var when: SimClock.Calendar = _when
+	when.set_tick(note_tick[kind_index])
+	@warning_ignore("integer_division") var hours: int = note_ticks[kind_index] / SimClock.TICKS_PER_HOUR
+	@warning_ignore("integer_division") var minutes: int = (note_ticks[kind_index] % SimClock.TICKS_PER_HOUR) * 60 / SimClock.TICKS_PER_HOUR
+	var led: String = ", led by %s" % note_lead[kind_index] if not note_lead[kind_index].is_empty() else ""
+	return "Remembered (Y%d %s %d): %s of %s, out %d h %02d min%s" % [when.year, CalendarScript.SEASON_TITLES[when.season],
+		when.season_day, Rules.units_text(note_milli[kind_index]), Rules.KIND_WORDS[kind_index], hours, minutes, led]
 
 
 func _give_first(j: int, members: PackedInt32Array, given: PackedInt32Array) -> void:
@@ -411,6 +607,11 @@ func eligibility(j: int, who: int) -> String:
 		return "is on another foraging trip"
 	if who == j_failed[j] and j_worker[j] != who:
 		return "could not reach %s last time" % place_words(j)
+	return _unfit(who)
+
+
+func _unfit(who: int) -> String:
+	"""Why `who` may not set out now ("" when they may): in the water, or below ground."""
 	var brain: BrainScript = brain_of(who)
 	if brain.water_hold or brain.in_water:
 		return "in the water"
@@ -462,8 +663,9 @@ func _seat_over(t: int) -> void:
 	trips_done += 1
 	var k: int = t_kind[t]
 	if t_got[t] > 0:
-		_note("The foraging party is back from %s: %s of %s in the stores" % [Rules.SPOT_NAMES[k],
-			Rules.units_text(t_got[t]), Rules.KIND_WORDS[k]], false)
+		_remember(t)
+		_note("The foraging party is back from %s: %s of %s in the stores%s" % [Rules.SPOT_NAMES[k],
+			Rules.units_text(t_got[t]), Rules.KIND_WORDS[k], outing_words(t)], false)
 
 
 func _let_go(j: int) -> void:
@@ -629,6 +831,11 @@ func _at_spot(j: int, brain: BrainScript) -> void:
 		j_step[j] = S_GATHER
 		return
 	j_words[j] = why
+	if _turned_back:
+		t_turned[j_trip[j]] += 1
+		_note("%s turned back at %s: %s" % [name_of(brain.index), place_words(j), why], false)
+		_end_seat(j)
+		return
 	if _room_short:
 		j_wait_usec[j] = Rules.RETRY_USEC
 		_let_go(j)
@@ -642,11 +849,16 @@ func _claim_share(j: int, brain: BrainScript) -> String:
 	var k: int = t_kind[j_trip[j]]
 	var kind: int = Rules.KINDS[k]
 	_room_short = false
+	_turned_back = false
 	if driver.availability(kind) == 0:
 		return "%s are out of season now" % Rules.KIND_WORDS[k]
-	var amount: int = mini(j_share[j], driver.harvestable_milli(kind))
+	var amount: int = mini(j_share[j], harvestable_milli(k))
 	if amount < Rules.MIN_SHARE_MILLI:
-		return nothing_left_words(kind)
+		return nothing_left_words(k)
+	amount = mini(amount, daylight_cap_milli(k, skills.level_of(brain.index)))
+	if amount < Rules.MIN_SHARE_MILLI:
+		_turned_back = true
+		return "too little daylight left to gather and be home by dusk (%02d:00)" % Rules.DUSK_HOUR
 	if not pantry.reserve_near_into(item_of(k), amount, brain.surface_point(), _read):
 		_room_short = true
 		return "no store has room for %s of %s — make room in the Pantry (K)" % [Rules.units_text(amount), Rules.KIND_WORDS[k]]
@@ -825,8 +1037,8 @@ func trip_line(t: int) -> String:
 	var out: int = 0
 	for j: int in Rules.MAX_JOBS:
 		out += 1 if j_live[j] == 1 and j_trip[j] == t and j_worker[j] != NONE else 0
-	return "%s from %s: %d foragers (%d out), %s asked, %s home" % [Rules.KIND_WORDS[k].capitalize(), Rules.SPOT_NAMES[k],
-		t_party[t], out, Rules.units_text(t_asked[t]), Rules.units_text(t_got[t])]
+	return "%s from %s: %d foragers (%d out), %s asked, %s home%s" % [Rules.KIND_WORDS[k].capitalize(), Rules.SPOT_NAMES[k],
+		t_party[t], out, Rules.units_text(t_asked[t]), Rules.units_text(t_got[t]), outing_words(t)]
 
 
 func status_line() -> String:

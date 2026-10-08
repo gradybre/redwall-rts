@@ -885,10 +885,12 @@ func care() -> CareScript:
 
 func _build_forage() -> void:
 	"""FORAGING TRIPS (see the header), after the ferry: the woods' forage basin, the trips into the farm's pantry, the
-	Woods panel's Foraging section; its seats on the work board (`_build_work`)."""
+	Woods panel's Foraging section; its seats on the work board (`_build_work`); the orchard's protected groves' forage
+	reserve (decision 1721)."""
 	_forage = ForageNodeScript.new()
 	add_child(_forage)
 	_forage.configure(_cast as DemoCastScript, _command as DemoCommandScript, _services, _farm.pantry, _forestry.panel)
+	_forage.trips.reserve_permille = _orchard.grove_reserve_permille
 	var world := _world as DemoWorldScript
 	if _forage.place_spots(world.make_piece, world.is_staged) > 0:
 		_seasons.add_trees(_forage.view)

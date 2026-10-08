@@ -10,8 +10,9 @@ extends CanvasLayer
 ##
 ## WHAT IT SHOWS: the orchard's standing line (the date, the picking windows, what has been picked); the SELECTED thing
 ## and its verbs, each with its action card as tooltip (the reason it is refused, when it is); its GROUP's policy
-## (ECO-010: timing, destination, the nursery's share); the NURSERY (ECO-009: saplings and plans, each plan's first
-## fruiting season); the GROVE (ECO-015: protected or not, its record); and the board's orchard jobs.
+## (ECO-010: timing, the fresh-table share and the cart -- decision 1721 -- and the nursery's share); the NURSERY (ECO-009: saplings and plans, each plan's first
+## fruiting season); the GROVE (ECO-015: the selected grove -- the North hollow when no grove is selected -- protected or
+## not, its forage reserve, its record); and the board's orchard jobs.
 
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const Styles := preload("res://demo/ui/woodland_styles.gd")
@@ -29,9 +30,10 @@ const BUTTON_TEXT: Dictionary = {
 	&"drop_plan": "Drop the plan", &"haul": "Send baskets on", &"timing": "Timing", &"dest": "Send to",
 	&"keep": "Keep for nursery", &"protect": "Protected", &"observe": "Observe now",
 	&"service": "Tend the bees", &"feed": "Feed the bees", &"recolonize": "Recolonise",
+	&"move": "Move sapling", &"cart": "Build a cart",
 }
 const SELECTION_ACTIONS: Array[StringName] = [&"tend", &"harvest", &"pick", &"plant_apple", &"plant_pear",
-	&"plan_apple", &"plan_pear", &"drop_plan", &"haul", &"observe", &"service", &"feed", &"recolonize"]
+	&"plan_apple", &"plan_pear", &"drop_plan", &"haul", &"observe", &"service", &"feed", &"recolonize", &"move", &"cart"]
 const GROUP_ACTIONS: Array[StringName] = [&"timing", &"dest", &"keep"]
 const GROVE_ACTIONS: Array[StringName] = [&"protect"]
 const NOTHING: String = "Click an orchard tree, a site's pegs, a hedge bush, the baskets, the nursery, the grove or the skep."
@@ -192,7 +194,7 @@ func show_group(title: String, text: String, timing: String, dest: String, keep:
 	_set_line(&"group_title", title)
 	_set_line(&"group", text)
 	(_buttons[&"timing"] as Button).text = "Timing: %s" % timing
-	(_buttons[&"dest"] as Button).text = "To: %s" % dest
+	(_buttons[&"dest"] as Button).text = "Share: %s" % dest
 	(_buttons[&"keep"] as Button).text = "Keep: %s" % keep
 
 

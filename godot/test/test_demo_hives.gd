@@ -579,7 +579,18 @@ func test_honey_past_the_feed_is_carried_to_the_baskets() -> void:
 	assert_equal(rig.model.apiary.released_milli, 3000, "booked as released")
 	assert_true(_run(rig, func() -> bool: return rig.jobs.find(JobsScript.K_SERVICE, 0) < 0, 600), "ended")
 	for at: int in rig.pantry.storage.count():
-		assert_equal(rig.pantry.reserved_milli_of(at), 0, "no room left held at store %d" % at)
+		assert_equal(rig.pantry.reserved_milli_of(at), _held_by_live_jobs(rig, at), "no room left held at store %d" % at)
+
+
+func _held_by_live_jobs(rig: Rig, at: int) -> int:
+	"""Room the orchard's other live jobs (a berry picking the routine raised meanwhile) still hold at store `at`."""
+	var held: int = 0
+	for j: int in JobsScript.MAX_JOBS:
+		var hold: int = rig.jobs.hold[j]
+		if rig.jobs.is_live(j) and rig.pantry.is_hold(hold) and rig.pantry.hold_location_into(hold, _read) \
+				and _read.value == at:
+			held += rig.pantry.hold_milli(hold)
+	return held
 
 
 func test_a_winter_feeding_draws_the_pantrys_honey() -> void:

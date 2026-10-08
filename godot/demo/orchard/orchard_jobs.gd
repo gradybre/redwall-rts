@@ -17,6 +17,10 @@ extends RefCounted
 ##              feed put by in the hive first (ECO-012), the rest of the honey carried to the old orchard's baskets.
 ##   FEED       a winter feeding: the hive's feed short of the rest of the winter is made up from the pantry's free honey.
 ##   RECOLONIZE §5.6's recolonisation of an abandoned hive in spring: honey 4 U and wood 2 U, 60 WU, then a 3-day wait.
+##   MOVE       (decision 1721, ECO-009) lift a sapling (20 WU), carry it to its new site, replant it (40 WU, compost
+##              4 U): the tree moves only when the replanting is done; let go before that, it is set back in its hole.
+##   CART       (decision 1721, ECO-010) build a group's handcart at its baskets: wood 4 U, 60 WU. The group's hauls then
+##              carry a cart's load; each haul goes where the group's fresh-table share is furthest behind.
 ##
 ## CONSERVATION (decision 0222's rules, as the farm's and the fishery's): ROOM FIRST -- a harvest or a picking reserves
 ## room at its stand before anything is cut, and a haul reserves room at its destination before it loads; with none it
@@ -65,6 +69,8 @@ const K_OBSERVE: int = Rules.K_OBSERVE
 const K_SERVICE: int = Rules.K_SERVICE
 const K_FEED: int = Rules.K_FEED
 const K_RECOLONIZE: int = Rules.K_RECOLONIZE
+const K_MOVE: int = Rules.K_MOVE
+const K_CART: int = Rules.K_CART
 ## The apiary's kinds, in the order the routine raises them.
 const HIVE_KINDS: PackedInt32Array = [K_SERVICE, K_FEED, K_RECOLONIZE]
 const KIND_COUNT: int = Rules.KIND_COUNT
@@ -86,10 +92,12 @@ const PROGRAMS: PackedInt32Array = [
 	S_GO, S_WORK, S_CARRY, NONE,
 	S_GO, S_WORK, NONE, NONE,
 	S_GO, S_WORK, NONE, NONE,
+	S_GO, S_WORK, S_CARRY, S_UNLOAD,
+	S_GO, S_WORK, NONE, NONE,
 ]
 const ORIGIN_ROUTINE: int = 0
 const ORIGIN_PLAYER: int = 1
-## Targets a kind has at most (sites 4, bushes 3, groups 2, plans 6, the grove 1): the cancelled-today table's stride.
+## Targets a kind has at most (sites 4, bushes 3, groups 2, plans 6, the groves 2): the cancelled-today table's stride.
 const MAX_TARGETS: int = 8
 const ARRIVE_M: float = 0.6
 ## Where a worker stands to work a tree: this far from its trunk, toward its stand.
@@ -108,7 +116,7 @@ var calendar: CalendarScript = null
 var weather: DemoWeatherScript = null
 ## `say(text, warning)`: the village news (demo_orchard.gd posts it to the feed, place Farm).
 var say: Callable = Callable()
-## `grove_trees() -> int`: the woods' trees standing in the grove (the observation's count).
+## `grove_trees(grove: int) -> int`: the woods' trees standing in grove `grove` (the observation's count).
 var grove_trees: Callable = Callable()
 var revision: int = 0
 
@@ -282,6 +290,8 @@ func _end_job(j: int) -> void:
 	var who: int = worker[j]
 	if pantry != null and pantry.is_hold(hold[j]):
 		pantry.release(hold[j])
+	if kind[j] == K_MOVE:
+		model.cancel_move(target[j])
 	_tasks[j] = null
 	_clear_row(j)
 	if who != NONE and j != _driving and _cast != null:
@@ -399,17 +409,19 @@ func place_of(j: int, step: int) -> Vector2:
 	if step == S_CARRY or step == S_UNLOAD:
 		return drop_of(j)
 	match kind[j]:
-		K_TEND, K_HARVEST, K_PLANT:
+		K_TEND, K_HARVEST, K_PLANT, K_MOVE:
 			return tree_spot(target[j])
 		K_PICK:
 			return Rules.BUSH_AT[target[j]] + Vector2(-1.0, 0.0)
+		K_CART:
+			return Rules.CART_PARK_AT[target[j]] + Vector2(1.2, 0.0)
 		K_HAUL:
 			return stand_at(target[j])
 		K_PROPAGATE:
 			return Rules.NURSERY_AT + Vector2(0.0, 1.0)
 		K_SERVICE, K_FEED, K_RECOLONIZE:
 			return HiveRules.keeper_spot(target[j])
-	return Rules.GROVE_AT
+	return Rules.GROVE_STONES[target[j]]
 
 
 func tree_spot(site: int) -> Vector2:
@@ -428,6 +440,9 @@ func drop_of(j: int) -> Vector2:
 			return stand_at(Rules.BUSH_GROUP)
 		K_SERVICE:
 			return stand_at(HiveRules.APIARY_STAND_GROUP[target[j]])
+		K_MOVE:
+			var dest: int = model.move_dest[target[j]]
+			return tree_spot(dest if dest != NONE else target[j])
 		K_HAUL:
 			var at: int = destination(j)
 			return pantry.storage.position_of(at) if at >= 0 else stand_at(target[j])
@@ -540,11 +555,22 @@ func _let_go(j: int, brain: BrainScript) -> void:
 	_tasks[j] = null
 	if kind[j] == K_HAUL:
 		_restart_haul(j)
+	elif kind[j] == K_MOVE:
+		_restart_move(j)
 	elif carrying(j) and not load_at[j].is_finite():
 		load_at[j] = brain.surface_point()
 	elif not carrying(j):
 		pos[j] = 0
 	revision += 1
+
+
+func _restart_move(j: int) -> void:
+	"""A move let go before its replanting: the sapling set back in its hole, the move to start again (its destination
+	still spoken for)."""
+	model.set_lifted(target[j], false)
+	pos[j] = 0
+	need_mwu[j] = 0
+	done_mwu[j] = 0
 
 
 func _restart_haul(j: int) -> void:
@@ -579,7 +605,7 @@ func _begin_step(j: int, brain: BrainScript) -> void:
 			brain.task_walk_to(goal[j])
 		return
 	if step == S_UNLOAD:
-		need_mwu[j] = Rules.HAUL_UNLOAD_MWU
+		need_mwu[j] = _need_of(j, S_UNLOAD)
 		done_mwu[j] = 0
 		at_work[j] = 1
 		return
@@ -622,7 +648,7 @@ func _waits_for_room(j: int) -> bool:
 func _need_of(j: int, step: int) -> int:
 	"""Milli-WU job `j`'s work `step` takes."""
 	if step == S_UNLOAD:
-		return Rules.HAUL_UNLOAD_MWU
+		return Rules.MOVE_REPLANT_MWU if kind[j] == K_MOVE else Rules.HAUL_UNLOAD_MWU
 	match kind[j]:
 		K_TEND:
 			return Rules.CARE_MWU
@@ -642,6 +668,10 @@ func _need_of(j: int, step: int) -> int:
 			return HiveRules.FEED_MWU
 		K_RECOLONIZE:
 			return HiveRules.RECOLONIZE_MWU
+		K_MOVE:
+			return Rules.MOVE_LIFT_MWU
+		K_CART:
+			return Rules.CART_BUILD_MWU
 	return Rules.OBSERVE_MWU
 
 
@@ -700,10 +730,12 @@ func _work_frame(j: int, brain: BrainScript, delta: float) -> void:
 func _face_of(j: int) -> Vector2:
 	"""What a worker faces: the tree's trunk, the bush, the stand, the nursery, the grove's heart."""
 	if step_of(j) == S_UNLOAD:
-		return drop_of(j) + Vector2(0.0, -1.0)
+		return Rules.site_centre_m(model.move_dest[target[j]]) if kind[j] == K_MOVE else drop_of(j) + Vector2(0.0, -1.0)
 	match kind[j]:
-		K_TEND, K_HARVEST, K_PLANT:
+		K_TEND, K_HARVEST, K_PLANT, K_MOVE:
 			return Rules.site_centre_m(target[j])
+		K_CART:
+			return Rules.CART_PARK_AT[target[j]]
 		K_PICK:
 			return Rules.BUSH_AT[target[j]]
 		K_HAUL:
@@ -712,13 +744,13 @@ func _face_of(j: int) -> Vector2:
 			return Rules.NURSERY_AT
 		K_SERVICE, K_FEED, K_RECOLONIZE:
 			return HiveRules.centre_m(target[j])
-	return Rules.GROVE_AT
+	return Rules.GROVE_STONES[target[j]]
 
 
 func _clip_of(j: int) -> StringName:
 	"""The work's clip: digging for planting, watching for the grove, else handling."""
 	match kind[j]:
-		K_PLANT:
+		K_PLANT, K_MOVE:
 			return CLIP_DIG
 		K_OBSERVE:
 			return CLIP_WATCH
@@ -758,7 +790,10 @@ func _work_done(j: int) -> void:
 	"""A work step finished: its outcome, then the next step (or the job's end)."""
 	var who: int = worker[j]
 	if step_of(j) == S_UNLOAD:
-		_move_basket(j)
+		if kind[j] == K_MOVE:
+			_note(_replanted(j), false)
+		else:
+			_move_basket(j)
 		_end_job(j)
 		return
 	var outcome: String = _complete(j)
@@ -805,6 +840,10 @@ func start_refusal(j: int) -> String:
 			return _propagate_inputs_refusal(t)
 		K_SERVICE, K_FEED, K_RECOLONIZE:
 			return hive_refusal(kind[j], t)
+		K_MOVE:
+			return move_order_refusal(t)
+		K_CART:
+			return cart_refusal(t)
 	return ""
 
 
@@ -926,26 +965,42 @@ func _room_refusal(j: int, milli: int, item: int, where: String) -> String:
 
 
 func _hold_destination(j: int) -> String:
-	"""A haul's basket chosen (the stand's oldest lot above what the group keeps) and room held for it where the
-	group's policy sends it -- the kitchen's pantry, or the store that keeps it longest."""
+	"""A haul's load chosen (the stand's oldest lot above what the group keeps, up to its cart's or a basket's load) and
+	room held for it where the group's fresh-table share sends it (decision 1721) -- the kitchen's pantry, or the store
+	that keeps it longest -- else the other (a priority, not a guarantee); a cart short of room takes a basket's load."""
 	var group: int = target[j]
 	var chosen: int = _haul_lot(group)
 	if chosen == NONE:
 		return Text.NOTHING_TO_HAUL
 	var item: int = pantry.lot_item(chosen)
-	var milli: int = mini(Rules.HAUL_LOAD_MILLI, _above_keep(group, item))
-	var held: bool
-	if model.group_dest[group] == Rules.DEST_KITCHEN and pantry.storage.index_of_id_into(Rules.KITCHEN_STORE_ID, _read):
-		held = pantry.reserve_at_into(item, milli, _read.value, _read)
-	else:
-		held = pantry.reserve_near_into(item, milli, stand_at(group), _read)
-	if not held:
-		return _room_refusal(j, milli, item, Text.DEST_WORDS[model.group_dest[group]])
+	var above: int = _above_keep(group, item)
+	var milli: int = mini(model.haul_load_milli(group), above)
+	if not _hold_either(group, item, milli) and not (milli > Rules.HAUL_LOAD_MILLI
+			and _hold_either(group, item, mini(Rules.HAUL_LOAD_MILLI, above))):
+		return _room_refusal(j, milli, item, Text.DEST_EITHER)
 	hold[j] = _read.value
 	lot[j] = chosen
 	lot_serial[j] = pantry.lot_serial(chosen)
 	load_item[j] = item
 	return ""
+
+
+func _hold_either(group: int, item: int, milli: int) -> bool:
+	"""Room for `milli` of `item` held (into `_read`) where group `group`'s share sends it first, else the other place."""
+	var kitchen: bool = model.prefers_kitchen(group, milli)
+	return _hold_at(group, item, milli, kitchen) or _hold_at(group, item, milli, not kitchen)
+
+
+func _hold_at(group: int, item: int, milli: int, kitchen: bool) -> bool:
+	"""Room for `milli` of `item` held (into `_read`) at the kitchen's pantry, or the store that keeps it longest."""
+	if kitchen and pantry.storage.index_of_id_into(Rules.KITCHEN_STORE_ID, _read):
+		return pantry.reserve_at_into(item, milli, _read.value, _read)
+	return pantry.reserve_near_into(item, milli, stand_at(group), _read)
+
+
+func kitchen_location() -> int:
+	"""The kitchen pantry's location (NONE: none)."""
+	return _read.value if pantry != null and pantry.storage.index_of_id_into(Rules.KITCHEN_STORE_ID, _read) else NONE
 
 
 func _hold_place(held: int) -> int:
@@ -1007,7 +1062,7 @@ func _complete(j: int) -> String:
 		K_PROPAGATE:
 			return _propagated(t)
 		K_OBSERVE:
-			return _observed()
+			return _observed(t)
 		K_SERVICE:
 			model.apiary.service(t, today())
 			_take_load(j, Catalog.ITEM_HONEY, model.apiary.collect(t, today(), hold_size(j)))
@@ -1015,6 +1070,11 @@ func _complete(j: int) -> String:
 			return _fed(t)
 		K_RECOLONIZE:
 			return _recolonize_paid(t)
+		K_MOVE:
+			model.set_lifted(t, true)
+			revision += 1
+		K_CART:
+			return _cart_built(t)
 	return ""
 
 
@@ -1121,20 +1181,20 @@ func _withdraw(item: int, milli: int) -> void:
 		left -= take
 
 
-func _observed() -> String:
-	"""The grove observed this season: its record's line (ECO-015)."""
+func _observed(grove: int) -> String:
+	"""Grove `grove` observed this season: its record's line (ECO-015)."""
 	var day: int = today()
-	var standing: int = int(grove_trees.call()) if grove_trees.is_valid() else 0
-	var line: String = Text.observation(Hive.season_of_day(day), standing, model.grove_protected)
-	model.record_observation(ModelScript.season_index_of_day(day), Text.dated(calendar, line))
+	var standing: int = int(grove_trees.call(grove)) if grove_trees.is_valid() else 0
+	var line: String = Text.observation(grove, Hive.season_of_day(day), standing, model.is_grove_protected(grove))
+	model.record_observation(grove, ModelScript.season_index_of_day(day), Text.dated(calendar, line))
 	return line
 
 
 func _deliver(j: int, brain: BrainScript) -> void:
 	"""A load at its drop (only standing there): a harvest or a picking stored at the stand against its hold (its
 	group's stand when the hold is spent) -- what fits; the rest kept in hand and tried again until there is room
-	(decision 0222) -- or a haul on to its unloading."""
-	if kind[j] == K_HAUL:
+	(decision 0222) -- or a haul on to its unloading, a moved sapling on to its replanting (decision 1721)."""
+	if kind[j] == K_HAUL or kind[j] == K_MOVE:
 		_advance(j, brain)
 		return
 	var group: int = _drop_group(j)
@@ -1169,6 +1229,7 @@ func _move_basket(j: int) -> void:
 	var at: int = destination(j)
 	var moved: int = _read.value if at >= 0 and pantry.move_upto_into(lot[j], lot_serial[j], load_milli[j], at, hold[j],
 		_read) else 0
+	model.note_hauled(target[j], moved, at >= 0 and at == kitchen_location())
 	if moved < load_milli[j]:
 		_note(Text.short_haul(load_milli[j] - moved, load_item[j]), false)
 
@@ -1193,8 +1254,9 @@ func plan_work() -> void:
 		if _haul_lot(group) != NONE and count_of(K_HAUL, group) == 0:
 			_raise(K_HAUL, group)
 	_plan_nursery_work()
-	if model.grove_seen_season != ModelScript.season_index_of_day(day):
-		_raise(K_OBSERVE, 0)
+	for grove: int in Rules.GROVE_COUNT:
+		if model.grove_seen_season[grove] != ModelScript.season_index_of_day(day):
+			_raise(K_OBSERVE, grove)
 	_plan_hive_work()
 
 
@@ -1299,6 +1361,12 @@ func order_refusal(job_kind: int, job_target: int, job_species: int) -> String:
 			return _propagate_inputs_refusal(job_target)
 		K_SERVICE, K_FEED, K_RECOLONIZE:
 			return hive_refusal(job_kind, job_target)
+		K_MOVE:
+			return move_order_refusal(job_target)
+		K_CART:
+			return cart_refusal(job_target)
+		K_OBSERVE:
+			return "" if Rules.is_grove(job_target) else Text.GONE
 	return ""
 
 
@@ -1376,3 +1444,88 @@ func _note(text: String, warning: bool) -> void:
 func doing_text(j: int, job_serial: int) -> String:
 	"""What job `j`'s worker is doing, in words (orchard_task.gd `label`)."""
 	return Text.doing(self, j) if is_job(j, job_serial) else ""
+
+
+# --- moving a sapling and building a cart (decision 1721) ---------------------------------------------------------------------
+
+func move_target(site: int) -> int:
+	"""Where a move of `site`'s sapling goes: its move's site once ordered, else the first free site (NONE: none)."""
+	if not Rules.is_site(site):
+		return NONE
+	return model.move_dest[site] if model.move_dest[site] != NONE else model.move_options(site)
+
+
+func move_order_refusal(site: int) -> String:
+	"""Why the sapling on `site` may not be moved now, in words ("" when it may): the model's rule, then the compost
+	the replanting takes (§5.6's planting compost 4 U)."""
+	if not Rules.is_site(site):
+		return Text.move_words(ModelScript.REFUSE_NOT_ELIGIBLE)
+	var why: String = Text.move_words(model.move_refusal(site, move_target(site)))
+	if why.is_empty() and _compost() < Rules.MOVE_COMPOST_MILLI:
+		return Text.NO_COMPOST % Text.units(Rules.MOVE_COMPOST_MILLI)
+	return why
+
+
+func order_move(site: int, members: PackedInt32Array) -> String:
+	"""The player moves the sapling on `site` to its first free site: the site spoken for, then the job (given to the
+	nearest of `members`, else left for the board). "" when ordered, else why not."""
+	var why: String = move_order_refusal(site)
+	if not why.is_empty():
+		return why
+	if find(K_MOVE, site) == NONE and not model.reserve_move(site, move_target(site)):
+		return Text.move_words(ModelScript.REFUSE_NO_MOVE_SITE)
+	why = order(K_MOVE, site, NONE, members)
+	if not why.is_empty() and find(K_MOVE, site) == NONE:
+		model.cancel_move(site)
+	return why
+
+
+func _replanted(j: int) -> String:
+	"""A move's replanting done: its compost taken now (all or none) and the tree moved (orchard_model.gd `move_tree`);
+	refused, the sapling is set back where it came from."""
+	var site: int = target[j]
+	var dest: int = model.move_dest[site]
+	var why: String = move_order_refusal(site)
+	if not why.is_empty() or not _take_compost_milli(Rules.MOVE_COMPOST_MILLI):
+		model.set_lifted(site, false)
+		return Text.cannot(self, j, why if not why.is_empty() else Text.NO_COMPOST % Text.units(Rules.MOVE_COMPOST_MILLI))
+	if not model.move_tree(site, today()):
+		model.set_lifted(site, false)
+		return Text.cannot(self, j, Text.move_words(ModelScript.REFUSE_NO_MOVE_SITE))
+	return Text.moved(model, dest)
+
+
+func cart_refusal(group: int) -> String:
+	"""Why group `group` may not build its handcart now ("" when it may): one a group, and its wood (decision 1721)."""
+	if not Rules.is_group(group):
+		return Text.GONE
+	if model.has_cart(group):
+		return Text.HAS_CART
+	var wood: int = stores.wood_milli_u if stores != null else 0
+	if wood < Rules.CART_WOOD_MILLI:
+		return Text.NO_WOOD % [Text.units(Rules.CART_WOOD_MILLI), Text.units(wood)]
+	return ""
+
+
+func _cart_built(group: int) -> String:
+	"""A cart's 60 WU done: its wood taken now (all or none), the cart at the group's baskets."""
+	var why: String = cart_refusal(group)
+	if not why.is_empty() or not stores.take_wood(Rules.CART_WOOD_MILLI):
+		return "Can't build %s's cart: %s" % [Rules.GROUP_NAMES[group].to_lower(), why if not why.is_empty() else Text.GONE]
+	model.add_cart(group)
+	return Text.cart_built(group)
+
+
+func holds_sapling(j: int) -> bool:
+	"""Whether job `j`'s worker has a lifted sapling in its arms (the view's carry)."""
+	return is_live(j) and kind[j] == K_MOVE and worker[j] != NONE and model.lifted[target[j]] == 1
+
+
+func cart_out(group: int) -> int:
+	"""The worker pushing group `group`'s cart on a haul with its load (NONE: the cart stands at the baskets)."""
+	if not model.has_cart(group):
+		return NONE
+	for j: int in MAX_JOBS:
+		if live[j] == 1 and kind[j] == K_HAUL and target[j] == group and in_hand(j):
+			return worker[j]
+	return NONE

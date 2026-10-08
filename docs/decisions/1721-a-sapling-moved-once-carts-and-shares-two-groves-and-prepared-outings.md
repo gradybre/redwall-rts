@@ -173,7 +173,10 @@ planting block) is the world layout's, not this lane's: noted for the coordinato
   `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).` An earlier run (at
   `1623ae17`, while the mutation pass loaded the machine) failed only `test_twenty_workers_at_four_x_cost_little_per_frame`
   (the sound cues' wall-clock budget: p99 501 us against 500, not this lane's code); rerun once on the final commit, it
-  passed.
+  passed. **After merging master** (#235, the balance rerun; #236, fishing) the same CI-style run on the merge
+  `5403bce9`: `9395 test(s), 652369 assertion(s), 0 failure(s)` ·
+  `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 373 tolerated; leaked at exit: 0 object(s), 0 resource(s)` ·
+  `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).`
 - **Analyzer**: `python3 tools/gdscript_warnings.py --max 0 --port 6127` (the clean checkout of `703c1b47`) →
   `0 GDScript warning(s) in 0 of 1057 file(s)`. **Found on the way:** runs on the default `--port 6018` reported
   hundreds of spurious warnings (existing files "missing", members of other branches absent) while other lanes ran the

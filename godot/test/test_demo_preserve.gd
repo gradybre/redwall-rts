@@ -646,3 +646,19 @@ func test_the_emergency_action_releases_the_reserve() -> void:
 	assert_true(f.revision > revision, "the panels learn")
 	f.release_ration_reserve(false)
 	assert_equal(f.ration_reserve.held_milli(Catalog.CAT_DRIED_FISH), 1000, "restored: held again")
+
+
+func test_the_reserve_gathers_each_hour_and_when_dried_fish_is_stored() -> void:
+	"""Food that comes in by other ways (nuts from a trip) is held at the fishery's next game hour; dried fish off the
+	rack is held as it is stored."""
+	var rig := _reserve_rig([])
+	var f: FisheryScript = rig.fishery
+	assert_true(rig.pantry.add_into(Catalog.ITEM_NUTS, 2000, 0, _read), "nuts brought in")
+	f._follow_hours()
+	assert_equal(f.ration_reserve.held_milli(Catalog.CAT_NUTS), 0, "the same hour: not yet")
+	rig.calendar.tick += SimClock.TICKS_PER_HOUR
+	f._follow_hours()
+	assert_equal(f.ration_reserve.held_milli(Catalog.CAT_NUTS), 1000, "the next hour: held")
+	assert_true(rig.pantry.add_into(Catalog.ITEM_DRIED_FISH, 3000, 0, _read), "dried fish off the rack")
+	f._book_stored(Catalog.ITEM_DRIED_FISH, 3000)
+	assert_equal(f.ration_reserve.held_milli(Catalog.CAT_DRIED_FISH), 1000, "held as it is stored")

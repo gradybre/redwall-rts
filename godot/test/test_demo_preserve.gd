@@ -721,10 +721,15 @@ func _reserve_node(rig: Rig) -> DemoFisheryScript:
 
 func test_the_reserve_stepper_steps_a_batch_within_its_range() -> void:
 	"""UI-SET-099's stepper: a batch (3 U) a press, never below none nor above ten batches (R6, R7); the line says so."""
-	var node := _reserve_node(_rig())
+	var rig := _rig()
+	assert_true(rig.pantry.add_into(Catalog.ITEM_DRIED_FISH, 2000, 0, _read), "dried fish in store")
+	var node := _reserve_node(rig)
 	assert_equal(node.reserve_text(), DemoFisheryScript.RESERVE_NONE, "no reserve: the line says how to keep one")
+	var revision: int = node.fishery.revision
 	assert_equal(node.step_reserve(1), "Ration reserve: keep 3.0 U of rations", "a batch up")
 	assert_equal(node.fishery.ration_reserve.target_milli, 3000, "3 U")
+	assert_true(node.fishery.revision > revision, "the panels learn")
+	assert_equal(node.fishery.ration_reserve.held_milli(Catalog.CAT_DRIED_FISH), 1000, "held at once, not next hour")
 	assert_true(node.step_reserve(-1).begins_with("Ration reserve: none"), "back to none")
 	node.step_reserve(-1)
 	assert_equal(node.fishery.ration_reserve.target_milli, 0, "never below none")

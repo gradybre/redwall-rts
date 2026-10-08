@@ -437,3 +437,17 @@ So nothing was implemented ahead of approval.
 | All four, with P2 and P3 also in the prefix | about 3,900, plus about 1,500 saved in the prefix | about tick 7,060 (15:25) |
 
 Recommended: P1 + P2 + P4, with P2 applied to the prefix too, then P3 only if more margin is wanted.
+
+### Brendan's choice (DEC-059, 2026-10-08)
+
+Brendan chose P1, P2 (the prefix included) and P3, and not P4. He also chose a **shift change** for crew needs: at
+the GDD seek thresholds the crew hands off at a safe point by ADR 1225's path. Order of work:
+
+1. P3, a bundle successor with the new amounts;
+2. P1;
+3. P2, proved with the accepted provers, or stopped for review if a joining motion is needed;
+4. the shift change.
+
+The target is the default schedule's first work block (§ Target). The ledger rows of the stair runtime (+22,269 B,
+increments 6a and 6b) were added to `docs/systems_architecture.md` §2.3 in the same commit. They had been missing
+since 6a, which is why `ready07_arithmetic.py` failed.

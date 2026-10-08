@@ -1516,3 +1516,33 @@ Unchanged: the bills (ADR 1209 D3), the tread geometry (D1, D2), and the exact c
 
 Engineering records: [decision1217](decisions/1217-claw-digging.md) step 2d and
 [decision1209](decisions/1209-descent-past-t0.md).
+
+
+### DEC-059 — The descent is built in one work period; the crew changes shift when tired or hungry
+
+On 2026-10-08, after ADR 1229 increment 6b's first full run, Brendan decided **"Reduce time to build them greatly."**
+He then chose from the measured proposal in [decision1229](decisions/1229-stair-travel-runtime.md) (§ Build time),
+as relayed by the coordinator session:
+
+- **P1 — chain the treads.** T1's haul brings all six treads' wood to M at once. After each tread is fitted, the
+  fitter steps forward, makes one descent and steps back onto the next tread's station. It no longer climbs back to
+  M between treads. This amends the approved per-tread episode order of ADR 1209 and ADR 1229 increment 5 ("…install,
+  step forward, turn, ascend" for every tread) and ADR 1202's material leg for treads.
+- **P2 — one claw entry and recovery per cube.** Brace, cut and finish at one station run without the entry and
+  recovery clips between them. This applies to the first-entry prefix too. The hand-over between phases must be
+  proved with the accepted provers; a new joining motion would come back for review.
+- **P3 — work amounts × 0.47.**
+  - Brace, cut and finish become 940, 1,880 and 1,410 milli-WU (were 2,000, 4,000 and 3,000: DEC-052,
+    SET-MOVE-ECON-001).
+  - Each tread's fastening becomes 5,640 milli-WU (was 12,000: ADR 1209 D3).
+  - Bills of material are unchanged.
+- **Not P4.** The cut-station order and the station paths stay as they are.
+- **Shift change for crew needs.** When the crew's hunger or rest reaches its GDD §5.2 seek threshold (hunger
+  ≤ 3,500, rest ≤ 2,500), the crew hands the entry over at a safe point by ADR 1225's replacement path. It then goes
+  to eat or sleep. An idle mole carries on, and the tired mole can be picked again later.
+
+Goal: on the default schedule the live chain finishes the whole entry, prefix and descent to T6, inside the first
+work block. The settlement's double tick of the entry's haul Jobs stays as it is for now (ADR 1226 addendum).
+
+Engineering records: [decision1229](decisions/1229-stair-travel-runtime.md) and
+[decision1225](decisions/1225-entry-crew-replacement.md).

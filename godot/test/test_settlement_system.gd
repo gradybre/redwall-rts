@@ -323,7 +323,14 @@ var _boundaries: Array[int] = []
 
 
 func before_each() -> void:
-	"""Build a settlement outside the scene tree, so `_ready()` never binds the autoload clock."""
+	"""Build a settlement outside the scene tree, so `_ready()` never binds the autoload clock.
+
+	The command queue still FOLLOWS the autoload's clock (`_ensure_command_clock()`), so a suite
+	that left it advanced would stamp this suite's commands past every tick `_game` reaches. That
+	leak is named here, at its first victim, rather than as three unrelated failures (decision 1236).
+	"""
+	assert_equal(GameManager.clock().completed_tick(), 0,
+		"an earlier suite left the GameManager autoload's clock advanced (decision 1236)")
 	_settlement = SettlementSystemScript.new()
 	_boundaries = []
 

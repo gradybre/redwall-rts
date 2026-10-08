@@ -19,6 +19,7 @@ extends "res://test/framework/test_case.gd"
 ## ever partial. `REACHED_CASES` states that; a change that makes one reachable fails here and must add
 ## it. Their columns are still in every tick's fingerprint.
 
+const AutoloadClockReset := preload("res://test/fixtures/autoload_clock_reset.gd")
 const SettlementSystemScript := preload("res://scripts/systems/settlement_system.gd")
 const SettlementSave := preload("res://scripts/core/settlement_save.gd")
 const SaveHeader := preload("res://scripts/core/save_header.gd")
@@ -66,9 +67,7 @@ func after_each() -> void:
 	for node: Node in _nodes:
 		node.free()
 	_nodes.clear()
-	GameManager.unbind_simulation()
-	GameManager.scheduler_events().clear()
-	GameManager.clock().set_pause(SimClockScript.CRITICAL, false)
+	assert_true(AutoloadClockReset.release(), "the autoload is handed back at tick 0")
 
 
 func _settlement() -> Node:

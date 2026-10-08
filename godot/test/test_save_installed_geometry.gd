@@ -7,11 +7,11 @@ extends "res://test/framework/test_case.gd"
 ## refusal), a Placement claiming one more installed group than Space holds refuses, and a Space whose
 ## installed region lost its owner refuses. Each tamper is undone before the next check.
 
+const AutoloadClockReset := preload("res://test/fixtures/autoload_clock_reset.gd")
 const Geometry := preload("res://scripts/core/save_installed_geometry.gd")
 const Chain := preload("res://test/fixtures/underground_entry_chain.gd")
 const Settlement := preload("res://scripts/systems/settlement_system.gd")
 const Placements := preload("res://scripts/core/underground_connector_placements.gd")
-const SimClockScript := preload("res://scripts/core/sim_clock.gd")
 
 ## ADR 1228's goal chain stops by tick 4800 (`ENTRY_DESCENT_UNBUILT`); its paid L0 installation
 ## completes before that. The run stops at the first boundary with an installed group.
@@ -27,9 +27,7 @@ func after_each() -> void:
 	if _host != null:
 		_host.free()
 		_host = null
-	GameManager.unbind_simulation()
-	GameManager.scheduler_events().clear()
-	GameManager.clock().set_pause(SimClockScript.CRITICAL, false)
+	assert_true(AutoloadClockReset.release(), "the autoload is handed back at tick 0")
 
 
 func _boxes(values: Array) -> PackedInt32Array:

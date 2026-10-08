@@ -6,6 +6,7 @@ extends "res://test/framework/test_case.gd"
 ## corrupted file refuses before the target is touched; a refusal after the load opened leaves the
 ## target empty and the manager out of LOAD.
 
+const AutoloadClockReset := preload("res://test/fixtures/autoload_clock_reset.gd")
 const SettlementSystemScript := preload("res://scripts/systems/settlement_system.gd")
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const SettlementSave := preload("res://scripts/core/settlement_save.gd")
@@ -28,9 +29,10 @@ func before_each() -> void:
 
 
 func after_each() -> void:
-	"""Free all four nodes."""
+	"""Free all four nodes; leave the autoload as the other suites expect it."""
 	for node: Node in [_source, _source_manager, _target, _target_manager]:
 		node.free()
+	assert_true(AutoloadClockReset.release(), "the autoload is handed back at tick 0")
 
 
 func _saved(settlement: Node, manager: Node) -> PackedByteArray:
@@ -83,16 +85,6 @@ func _advance(settlement: Node, ticks: int) -> void:
 	assert_equal(GameManager.clock().completed_tick(), target, "the clock reached its target")
 
 
-func _cleanup_autoload() -> void:
-	"""Leave the autoload as the other suites expect it."""
-	GameManager.unbind_simulation()
-	GameManager.scheduler_events().clear()
-	GameManager.clock().set_pause(SimClockScript.CRITICAL, false)
-
-
-const SimClockScript := preload("res://scripts/core/sim_clock.gd")
-
-
 func test_a_loaded_settlement_continues_exactly_like_the_original() -> void:
 	"""Save at tick 300, run the source to 1200; load into a new settlement, run it to 1200:
 	the two saves at 1200 are byte-identical."""
@@ -106,7 +98,6 @@ func test_a_loaded_settlement_continues_exactly_like_the_original() -> void:
 	assert_equal(GameManager.clock().completed_tick(), 300, "the clock went back to the save")
 	_advance(_target, 900)
 	assert_true(_saved(_target, GameManager) == expected, "the continuation is byte-identical")
-	_cleanup_autoload()
 
 
 # --- the load's proof (ADR 1235) ------------------------------------------------------------------

@@ -8,13 +8,13 @@ extends "res://test/framework/test_case.gd"
 ## fresh settlement and run on to the next checkpoint, where its save is byte-identical to the
 ## uninterrupted run's.
 
+const AutoloadClockReset := preload("res://test/fixtures/autoload_clock_reset.gd")
 const Chain := preload("res://test/fixtures/underground_entry_chain.gd")
 const Settlement := preload("res://scripts/systems/settlement_system.gd")
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const SettlementSave := preload("res://scripts/core/settlement_save.gd")
 const SaveHeader := preload("res://scripts/core/save_header.gd")
 const SaveUnderground := preload("res://scripts/core/save_underground_adapters.gd")
-const SimClockScript := preload("res://scripts/core/sim_clock.gd")
 const SaveFile := preload("res://scripts/core/save_file.gd")
 
 ## 100 ms host frames: exactly three ticks at 1x.
@@ -42,9 +42,7 @@ func after_each() -> void:
 	for node: Node in _nodes:
 		node.free()
 	_nodes.clear()
-	GameManager.unbind_simulation()
-	GameManager.scheduler_events().clear()
-	GameManager.clock().set_pause(SimClockScript.CRITICAL, false)
+	assert_true(AutoloadClockReset.release(), "the autoload is handed back at tick 0")
 	if FileAccess.file_exists(SAVE_PATH):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
 

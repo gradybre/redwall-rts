@@ -119,7 +119,9 @@ func test_autosave_timing_follows_the_cadence_and_autumns_last_week() -> void:
 
 
 func test_the_scheduler_waits_for_quiescence_then_reports_busy_after_thirty_ticks() -> void:
-	"""A queued save is taken at the first quiescent poll; one still busy after 30 ticks is dropped."""
+	"""A queued save is taken at the first quiescent poll; one still busy after 30 ticks is dropped.
+	The wait counts ticks, so the world runs here (a paused one reports at once: test_ui_save_session)."""
+	assert_true(_manager.start_game(), "a running clock")
 	var scheduler: Slots.Scheduler = Slots.Scheduler.new()
 	scheduler.request(Slots.KIND_DAILY, "daily_1", 0)
 	_settlement._stock_retry_pending = true

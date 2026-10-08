@@ -5,8 +5,11 @@ extends Node
 const HudScript := preload("res://scripts/ui/hud.gd")
 const ResidentStageScript := preload("res://scripts/presentation/resident_stage.gd")
 const StarterColonyScript := preload("res://scripts/core/starter_colony.gd")
+const UiSaveControls := preload("res://scripts/ui/ui_save_controls.gd")
 
 @onready var _hud: HudScript = $UI/HUD as HudScript
+## ADR 1222 step 11's save controls; null in a host that instances this scene (`_enable_saves`).
+var _save_controls: UiSaveControls = null
 @onready var _resident_stage: ResidentStageScript = \
 	$World/Entities/ResidentStage as ResidentStageScript
 
@@ -36,12 +39,27 @@ func _ready() -> void:
 	_attach_resident_stage()
 	GameManager.start_game()
 	UIManager.push_alert("Mossflower stirs.")
+	_enable_saves()
 	print("[Main] boot complete: %s  food-days %s  ready %d NP  fuel-days %s" % [
 		GameManager.get_state_name(),
 		EconomySystem.food_days_text(),
 		EconomySystem.ready_nutrition_points(),
 		EconomySystem.fuel_days_text(),
 	])
+
+
+func _enable_saves() -> void:
+	"""Turn the save controls on and run launch recovery (ADR 1222 step 11), only when this scene IS
+	the game. A host that instances it (the live demo, decision 0196) draws its own world, cast and
+	services, none of which the settlement save carries, so a save there would not restore what the
+	player sees; the controls stay off and no autosave runs."""
+	if get_parent() != get_tree().root:
+		return
+	_save_controls = UiSaveControls.new()
+	_save_controls.name = "SaveControls"
+	add_child(_save_controls)
+	_save_controls.bind(SettlementSystem, GameManager, _hud)
+	_save_controls.enable()
 
 
 func _generate_initial_world() -> bool:
@@ -112,15 +130,21 @@ func _exit_tree() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	"""Toggle the player pause reason on UI §5's `time_pause` action.
+	"""Toggle the player pause reason on UI §5's `time_pause` action, and quicksave on `save_quick`.
 
 	UI §5 puts pause on Space with world focus (and Ctrl+Space outside text/rebind contexts).
 	Escape is NOT pause: it is `ui_cancel`, which dismisses exactly one layer, falling through
 	to `open_menu` once the dismissal stack is empty. The prototype bound pause to a `cancel`
 	action on Escape; that was a wrong behaviour, not merely a wrong name.
+
+	`save_quick` (F5) queues the quicksave for the next quiescent boundary, paused or not
+	(UI §5; ADR 1222 step 11).
 	"""
 	if event.is_action_pressed(&"time_pause"):
 		GameManager.toggle_pause()
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed(&"save_quick") and _save_controls != null:
+		_save_controls.request_quicksave()
 		get_viewport().set_input_as_handled()
 
 

@@ -1427,6 +1427,9 @@ taking the recommended option each time. The coordinator session relayed the ans
    - Manual saves are unbounded, and there is one quicksave slot.
    - The daily autosave is taken at the first safe boundary after midnight.
    - The prewinter save is taken at the first midnight of autumn's last week. It stays on when autosave is Off.
+   - **Confirmed 2026-10-08 (Brendan, in chat):** seasons are 12 days and the calendar has no week, so
+     "autumn's last week" is its last seven days. The prewinter save fires at the first midnight of those
+     days: the midnight that begins autumn day 6 of 12.
 5. **A busy save.** A save requested while some state cannot yet be saved waits up to a bounded number of
    ticks, then reports an error.
 6. **Pre-demolition quicksave.** It is taken when the order is placed. It applies to any building, but not to a

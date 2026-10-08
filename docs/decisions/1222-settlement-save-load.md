@@ -404,6 +404,49 @@ These record the engineering choices made while building, step by step.
 - **Step 2, memory.** Every section-4 capture and apply makes a transient owner image. It is charged to "ADR 1222
   save/load working set" in the reviewed census deltas, and the 09.3 ledger owns the total. It is never resident
   between ticks.
+- **Step 11, the save controls (partial: the browser waits on Brendan).** `scripts/ui/ui_save_session.gd`
+  is the one path between the HUD and `settlement_save_slots.gd`. `scripts/ui/ui_save_controls.gd`, a node
+  `main.gd` adds, owns one, polls it every frame (also while paused) and turns its signals into notices
+  and UI-SET-085. **Why not UIManager:** `ui_manager.gd` and `ui_notices.gd` are reviewed witnesses of the
+  underground memory census (`tools/underground_room_memory.py`, an immutable manifest), so editing either
+  breaks `underground_memory_budget.py --check`. The controls therefore use the HUD's existing notice
+  categories ("Settlement notice" for a save, a load and a recovery report; "Action refused" for a
+  refusal) with the save's own wording in the message. Built:
+  - **F5** (`save_quick`, `main.gd`): the quicksave at the next quiescent boundary.
+  - **Autosaves:** the poll that first sees a new absolute day queues that midnight's daily slot on the
+    cadence and the prewinter slot whatever the cadence (Off keeps prewinter). A day that moved by anything
+    but one (the first poll, a load) only resynchronises: a missed midnight is never saved late.
+  - **Busy (Q5):** the 30-tick wait is counted in completed ticks, so **while the world is paused a busy
+    save is reported at once** (`SAVE_BUSY`) instead of waiting for a boundary that cannot come.
+  - **Pre-demolition quicksave (Q6):** `order_demolition()` saves the slot, then places "evacuate, then
+    demolish". A busy running world holds the order behind the queued save and places it when that save
+    finishes or is dropped. **A save that fails for any other reason is reported and the order is still
+    placed:** the slot is a safety copy, not a gate, and every development world that holds unsupported
+    state would otherwise be unable to demolish anything. No UI places a demolition yet (UI-SET-034 is
+    unavailable), so this is the entry point that panel must call.
+  - **Launch recovery (Q10):** `enable()` runs the slots' recovery once and raises one notice per file
+    kept, renamed `.corrupt` or removed (code `SAVE_RECOVERY_<ACTION>`).
+  - **Development-only (Q8/Q9):** every Settlement saved notice ends "Development save: it loads only in
+    this exact build of the game."; a refusal (`SAVE_UNSUPPORTED_STATE` and the rest) reaches UI-SET-085 as
+    the code, a plain reason and the recovery action, and is kept as an error notice.
+  - **Only the game scene turns the controls on.** `main.gd` adds and enables them when it is the scene root. The
+    live demo instances `main.tscn` and draws a world, cast and services the settlement save does not
+    carry, so there no controls exist: no autosave runs and F5 does nothing (a session that was never
+    enabled refuses `SAVE_SESSION_DISABLED`).
+
+  **Not built, because §4 leaves choices only Brendan can make:** the save browser (UI-SET-076/077), the
+  game menu (UI-SET-078) and F9's confirmation, which by §4 is the browser's Load (066). `quickload_row()`
+  and `load_slot()` are the calls those surfaces make. UI-SET-076/077 stay UNAVAILABLE, now naming the
+  missing browser rather than missing files. The open choices: which of §4's three tabs (Manual, Autosave,
+  Prewinter) holds the quicksave and the pre-demolition quicksave; how a manual save is named; how a
+  recovered `.rollback` file is offered; where the development-only statement sits in the browser; and
+  whether 078's Settings and Main menu, which have no owner, show as Unavailable.
+
+  **Also open:** UI §3 auto-pauses on a save error (CRITICAL). No acknowledgement surface exists for a
+  CRITICAL that is not the clock's overload, so a save error is an Error notice and does not pause.
+
+  **Measured cost** (generated settlement, this Mac, 2026-10-08): a save takes about 33 s and writes
+  56,989,480 bytes; a load about 66 s. Every autosave therefore stalls the frame it runs in for that long.
 
 ## Brendan's answers (DEC-055, 2026-10-07)
 
@@ -412,6 +455,10 @@ this lane, as integration lead, to edit the shared registry, header, version and
 requires.
 
 The underground §6 body and mount record (ADR 1221 option B) are built inside this plan, at step 10.
+
+**Prewinter timing, confirmed (2026-10-08).** Brendan confirmed in chat that the prewinter save fires at the first
+midnight of autumn's last seven days: entering autumn day 6 of 12 (`settlement_save_slots.gd`,
+`PREWINTER_SEASON_DAY`). DEC-055 Q4 records it.
 
 **Engineering choice for Q5.** A busy save waits at most **30 ticks**, one real second at 1x. Every underground
 quiescence gate is synchronous within a tick, so a boundary that still refuses after 30 ticks is a stuck owner,

@@ -11,7 +11,8 @@ extends RefCounted
 ## AUTOSAVE (Q4, Q5). `Scheduler.on_midnight()` queues the daily autosave on the cadence the
 ## player chose (daily, every 3 days, off) and the prewinter save at the first midnight of
 ## autumn's last week, whatever the cadence. `Scheduler.poll()` saves each queued slot at the first
-## quiescent boundary; one that is still SAVE_BUSY after BUSY_WAIT_TICKS is dropped and reported.
+## quiescent boundary; one that is still SAVE_BUSY after BUSY_WAIT_TICKS, or at once while the
+## world is paused, is dropped and reported.
 ## The calendar has no week of its own (12-day seasons), so "the last week" is the last seven days:
 ## the prewinter save fires entering autumn day PREWINTER_SEASON_DAY.
 ##
@@ -187,13 +188,15 @@ class Scheduler:
 		return _pending.size()
 
 	func poll(settlement: Node, manager: Node) -> Array[Dictionary]:
-		"""Try every queued save now; return one {kind, name, code, detail} row per finished one."""
+		"""Try every queued save now; return one {kind, name, code, detail} row per finished one. The
+		wait is counted in completed ticks, so while the world is paused (no tick can pass) a busy
+		save is reported at once instead of waiting for a boundary that cannot come."""
 		var finished: Array[Dictionary] = []
 		var waiting: Array[Dictionary] = []
 		for row: Dictionary in _pending:
 			var refusal: SaveHeader.Refusal = Slots.save_slot(settlement, manager, row["kind"], row["name"])
 			var waited: int = manager.clock().completed_tick() - int(row["tick"])
-			if refusal.code == REFUSE_BUSY and waited < BUSY_WAIT_TICKS:
+			if refusal.code == REFUSE_BUSY and waited < BUSY_WAIT_TICKS and not manager.is_paused():
 				waiting.append(row)
 				continue
 			finished.append({"kind": row["kind"], "name": row["name"], "code": refusal.code,

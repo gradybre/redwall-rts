@@ -221,11 +221,12 @@ func test_no_reason_claims_a_store_that_now_exists_is_missing() -> void:
 				"compact %d does not claim '%s'" % [reason, phrase])
 
 
-func test_the_save_rows_name_the_missing_save_files_not_a_missing_codec() -> void:
-	"""UI-SET-076/077: the codec exists; nothing writes or reads a save file on disk yet."""
+func test_the_save_rows_name_the_missing_browser_not_missing_save_files() -> void:
+	"""UI-SET-076/077: save files are written and read (ADR 1222 step 11); the browser panel is the gap."""
 	for id: int in [76, 77]:
 		var label: String = _availability.unavailable_label(id)
-		assert_true(label.contains("save file on disk"), "UI-SET-%03d names the file gap" % id)
+		assert_true(label.contains("browser"), "UI-SET-%03d names the browser gap" % id)
+		assert_false(label.contains("nothing writes"), "UI-SET-%03d no longer claims no files" % id)
 		assert_true(label.contains("task 09"), "UI-SET-%03d names task 09" % id)
 
 

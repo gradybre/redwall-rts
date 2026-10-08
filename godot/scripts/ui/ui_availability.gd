@@ -112,7 +112,7 @@ const COMPACT_TEXTS: Array[String] = [
 	"",
 	"no build or room commands wired",
 	"needs camera picking and multi-select",
-	"no save files written yet (task 09)",
+	"save browser not built yet (task 09)",
 	"needs the ManualTask store",
 	"no system supplies heating demand",
 	"needs the recipe order store",
@@ -134,8 +134,9 @@ const REASON_TEXTS: Array[String] = [
 		+ " room, demolish or bed command is wired and no panel reads them; task 06 owns both",
 	"resident poses are stored, but the interface binds no camera to pick or project them and"
 		+ " keeps no multi-selection",
-	"the save codec encodes sections in memory, but some sections are still unwritten and nothing"
-		+ " writes or reads a save file on disk; task 09 owns it",
+	"save files are written and read on disk (F5 quicksave, the daily and prewinter autosaves and the"
+		+ " pre-demolition quicksave, ADR 1222 step 11), but the browser panel is not built: its"
+		+ " unspecified layout choices wait on Brendan; task 09 owns it",
 	"no ManualTask store exists; blocker U6 leaves its indexing unspecified",
 	"no implemented system supplies a daily heating demand to divide fuel by",
 	"no recipe order or production station store exists",

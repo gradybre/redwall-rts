@@ -355,3 +355,85 @@ installs T1-T6, each from the tread above. On the flexible schedule the live `ru
 - `test_save_section_auxiliary.gd` and `test_canonical_state_hash.gd`: the new `max_count`.
 - Census, registry (`underground_entry_stair_path.gd`, `_prism_boxes`, `_prism_key`), consumer pins (Contacts, Routes,
   WorldRoutes) and the capacity audit follow.
+
+## Build time: measurement and proposal (2026-10-08, awaiting Brendan)
+
+Brendan's decision (in chat, after increment 6b's first run stalled at T3): **"Reduce time to build them greatly."**
+
+### Target
+
+The values come from GDD §5.2 and §5.3.
+
+- **Needs.** Rest decays 375 an hour awake; seek sleep is at 2,500 or below and collapse at 500 or below. Hunger
+  decays 250 an hour for an adult small mole; eat is at 3,500 or below.
+- **Start state.** The generated settlement's crew starts at 06:00 with hunger 7,500 and rest 7,500. Rest therefore
+  reaches the seek-sleep line after 13.3 h (tick 10,000, 19:20), and hunger reaches the eat line at tick 12,000
+  (22:00).
+- **Schedule.** The default schedule lets the crew work 06:00–18:00 (ANYTHING and WORK). It rests 18:00–20:00
+  (SOCIAL) and sleeps from 22:00.
+- **The crew's needs are not met.** While it holds the entry chain it is never fed and never put to bed. That is a
+  separate gap, not addressed here.
+
+**Target:** the whole entry (prefix and descent) finishes inside the first work block with margin:
+
+- by about 17:15 (tick 8,470);
+- so the descent takes at most about 3,800 ticks (5.1 game hours) after the prefix's 4,670.
+
+At that tick rest is about 3,265 and hunger 4,675, both above their seek lines.
+
+### Measured (live chain, `run_tick`, the flexible schedule so that no schedule pause hides the work)
+
+The same ticks were measured with and without the needs held up. Haul handling is double-ticked by the settlement
+(ADR 1226 addendum).
+
+| Where the ticks go | Prefix L0/T0 (1–4,670) | Descent cuts (8 cubes) | T1–T6 (6 treads) |
+|---|---:|---:|---:|
+| Cut Work (`EARN`), mWU and rate | 594 (54,000; 91/tick) | 832 (72,000; 86.5/tick) | – |
+| Claw entry / recovery between the three phases of a cube | 546 / 810 (18 ops) | 728 / 1,168 (24 ops; 30 + 49 each) | – |
+| Travel to cut stations (each via M, about 20,000 u) | 701 (6) | 1,461 (8; about 183 each) | – |
+| Fastening Work (`EARN`, 12,000 mWU each) | 501 (2 groups) | – | 822 (137 each; 87.6/tick) |
+| Handling / INSTALL entry / recovery | 122 / 60 / 103 | – | 366 / 180 / 318 |
+| Walk to M before each tread (from a station: step forward, half-turn, ascents, approach, walk) | – | – | 1,221 (141, 156, 186, 216, 246, 276) |
+| Haul trips (walk to R, lift, carry, set down, home) | 427 (9 trips) + 324 walk to M | 194 (4) + 235 walk to M | 324 (6 trips, 1 wood each) |
+| M → crossing arrival, then down the stair to the station | 54 + 55 | – | 324 + 810 (58 + 30(k−1) each) |
+| Stair motion inside the above | – | – | 21 descents (630), 15 ascents (450), 5 half-turns (225), 17 steps |
+| Crew's surface walk to H | 366 | – | – |
+| **Total** | **4,669** | **4,618** | **4,371** (590, 636, 696, 756, 816, 876) |
+
+- **Round trips.** T2–T6 each climb back to the crossing arrival and walk to M, then come back down. That is 15
+  ascents, 5 half-turns and 15 repeated descents (about 1,125 ticks of stair motion), plus about 190 ticks of
+  surface walk and haul per tread.
+- **Schedule waits (default schedule, same start).** 18:00–20:00 pauses the crew at a resting point for 1,468 ticks
+  in the descent's cuts.
+- **The stall.** At 22:00 the crew pauses at R's stand on T3's haul. Its rest reaches 0 at tick 15,000, and the
+  chain never resumes. The descent needs 8,989 working ticks (12.0 h) after the prefix, which ended at 12:13.
+- **Work is a fifth of the descent.** Cut and fastening Work together are 1,654 of 8,989 ticks. The rest is
+  motion overhead, travel and the per-tread round trips.
+
+### Proposal (nothing below is implemented; each needs Brendan's approval)
+
+| # | Change | Ticks saved (descent) | What changes | Risk |
+|---|---|---:|---|---|
+| P1 | **Chain the treads down without climbing back.** T1's haul brings all six treads' wood to M at once (the same six trips). After T_k commits, the fitter steps forward, makes one descent and steps back onto T_(k+1)'s station; no M visit between treads. | about 1,950 (3,780 → about 1,590 for T2–T6, plus 240 more haul at T1) | The approved episode order (§ Increment 5: "…install, step forward, turn, ascend" per tread) and ADR 1202's material leg for treads. Contacts' reach rule is unchanged; the edges exist. No balance number and no new motion. | Medium: installer and foreman sequencing, save record legs. The crew ends at the bottom, as now. |
+| P2 | **Keep the claw in WORK across brace → cut → finish at one station.** Enter once and recover once per cube, not per phase. | 1,264 (8 × 2 × 79); 948 more if applied to the prefix | The phase transition (ADR 1191/1210 enter-and-recover per Project). The dig loop must hand from one phase's row to the next without recovery, so a new transition proof or Brendan's motion approval is needed. | Medium–high: REQ-SET-034 rest still needs READY, so a rest hour would recover as now. |
+| P3 | **Lower work amounts.** Factor 0.47, not a clean number. Brace 2,000 → 940, cut 4,000 → 1,880, finish 3,000 → 1,410 mWU (DEC-052, SET-MOVE-ECON-001). Each tread's fastening 12,000 → 5,640 mWU (ADR 1209 D3). Bills of wood unchanged. | about 880 (cuts 441, treads 436); about 550 more in the prefix if applied there | Balance numbers Brendan owns (DEC-052, D3), and a create-only bundle successor (Frontier/Recipes), with pins and `docs/gameplay_balance.md` rows. | Low technically; a design choice. |
+| P4 | **Cut the four left stations, then the four right.** Use direct same-side paths (1,024 u, about 10 ticks), not a perimeter walk via M for every station. | about 1,000 | The Frontier's episode order (a bundle successor) and the work area's path topology. 6a's requalification budget must be re-measured, and so must each cube's cut-order support. | Medium: cold budgets were tight in 6a. |
+
+**Engineering-only savings.** None were found that change no approved order, motion or number:
+
+- the M visits, the per-tread climbs and the per-phase entry/recovery are all in the approved plan;
+- the station-to-station travel only shortens with P4's reorder.
+
+So nothing was implemented ahead of approval.
+
+**Combinations.**
+
+| Option | Descent ticks | Entry finishes |
+|---|---:|---|
+| Today | 8,989 | – |
+| P1 + P2 + P4 | about 4,770 | tick 9,440 (18:35): misses the target |
+| P1 + P2 (also applied to the prefix) + P4 | about 4,770, plus 948 saved in the prefix | tick 8,490 (17:19): meets it with no balance change |
+| All four | about 3,900 | about tick 8,560 (17:25) |
+| All four, with P2 and P3 also in the prefix | about 3,900, plus about 1,500 saved in the prefix | about tick 7,060 (15:25) |
+
+Recommended: P1 + P2 + P4, with P2 applied to the prefix too, then P3 only if more margin is wanted.

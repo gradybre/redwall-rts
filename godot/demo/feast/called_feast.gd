@@ -323,7 +323,7 @@ func refusal(theme: int, day: int, host: int, with_override: bool) -> String:
 	refused_fix = ""
 	var why: String = _plan_refusal(theme, day, host)
 	if why.is_empty():
-		why = _supply_refusal(theme, with_override)
+		why = _supply_refusal(theme, day, with_override)
 	return why
 
 
@@ -355,10 +355,11 @@ func _plan_refusal(theme: int, day: int, host: int) -> String:
 		else "a day at least %d game hours after it" % Rules.INTERVAL_HOURS)
 
 
-func _supply_refusal(theme: int, with_override: bool) -> String:
-	"""The feast's half: every input (REQ-SET-099), the service wood, the seats, REQ-SET-101's reserves."""
+func _supply_refusal(theme: int, day: int, with_override: bool) -> String:
+	"""The feast's half: every input (REQ-SET-099; its supper's own food counted), the service wood, the seats,
+	REQ-SET-101's reserves."""
 	var e: int = residents()
-	var short: PackedStringArray = menu.shortfalls(theme, e)
+	var short: PackedStringArray = menu.shortfalls(theme, e, Rules.feast_key(day))
 	if not short.is_empty():
 		var more: String = " (and %d more: see The themes)" % (short.size() - 1) if short.size() > 1 else ""
 		return _refuse("NEEDS", short[0] + more, "")

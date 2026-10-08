@@ -602,6 +602,59 @@ func test_the_other_drinks_are_poured_for_those_who_came() -> void:
 	assert_true(short.feast.menu.extras_words(Rules.ORCHARD, RESIDENTS).contains("not poured"), "said so")
 
 
+func test_a_feast_counts_the_food_its_own_supper_already_holds() -> void:
+	"""Brendan's ruling on 1701 P6 (b): today's supper planned as a hotpot holds every bean and green there is; a Hearth
+	feast called for that supper counts them (the feast replaces that meal), is held, and the kitchen cooks its courses
+	from them -- while a feast for another supper, or with a batch already cooked, does not count them."""
+	var v: Village = _village()
+	_stock(v, PEA, 4000)
+	_stock(v, CABBAGE, 4000)
+	_stock(v, Catalog.ITEM_FLOUR, 60000)
+	_stock(v, Catalog.ITEM_NUTS, 20000)
+	_stock(v, Catalog.ITEM_HERB, 1000)
+	v.calendar.tick = tick_at(DAY, 10)
+	v.kitchen.update()
+	var key: int = Rules.feast_key(DAY)
+	var beans: int = MealRules.input_selector(MealRules.DISH_BEAN_HOTPOT, 0)
+	assert_equal(v.kitchen.held_for_meal_milli(key, beans), 4000, "today's supper holds the beans")
+	assert_equal(v.feast.menu.free_of(beans), 0, "none of them free")
+	assert_false(v.feast.menu.shortfalls(Rules.HEARTH, RESIDENTS).is_empty(), "free food alone: short")
+	assert_true(v.feast.menu.shortfalls(Rules.HEARTH, RESIDENTS, Rules.feast_key(DAY + 1)).size() > 0, "another supper: short")
+	assert_equal(v.feast.menu.shortfalls(Rules.HEARTH, RESIDENTS, key), PackedStringArray(), "its own supper's food counted")
+	v.feast.choice_day = DAY
+	assert_true(Words.theme_ready_words(v.feast, Rules.HEARTH).contains("every course can be made"), "the themes say so")
+	assert_true("\n".join(Words.preview_lines(v.feast, Rules.HEARTH, DAY, 1)).contains("beans 4.0 U (free 4.0 U)"),
+		"the plan counts them")
+	assert_equal(v.feast.refusal(Rules.HEARTH, DAY + 1, 1, true), "needs beans: 4.0 U (0.0 U free) — the fields (Farm ▸ the planner) (and 1 more: see The themes)",
+		"tomorrow's feast may not count today's supper")
+	assert_equal(v.feast.hold(Rules.HEARTH, DAY, 1, true), "", "held")
+	assert_true(v.kitchen.occasion_adopted(), "the supper is the feast's now")
+	assert_equal(v.kitchen.held_for_meal_milli(key, beans), 0, "an occasion's meal is not counted again")
+	var f: FeastScript = v.feast
+	assert_true(_run(v, func() -> bool: return f.state == FeastScript.ST_IDLE, 30000), "tallied (%s)" % Words.status_line(f))
+	assert_equal(_cooked(v, MealRules.DISH_BEAN_HOTPOT), 2, "both hotpot batches cooked from the supper's beans")
+	assert_true(Rules.covered(f.every_course, RESIDENTS), "and eaten: %s" % f.last_line)
+
+
+func test_a_supper_with_a_batch_cooked_lends_the_feast_nothing() -> void:
+	"""The hook gives 0 for a meal not planned, nothing for no supper named, and 0 once a batch of the meal is cooked."""
+	var v: Village = _village()
+	_stock(v, PEA, 4000)
+	_stock(v, CABBAGE, 4000)
+	v.calendar.tick = tick_at(DAY, 10)
+	v.kitchen.update()
+	var beans: int = MealRules.input_selector(MealRules.DISH_BEAN_HOTPOT, 0)
+	assert_equal(v.kitchen.held_for_meal_milli(Rules.feast_key(DAY + 9), beans), 0, "a meal not planned")
+	assert_equal(v.feast.menu.available_of(beans, MenuScript.NO_KEY), 0, "no supper named: the free food alone")
+	assert_equal(v.feast.menu.available_of(beans, Rules.feast_key(DAY)), 4000, "the supper's own")
+	var key: int = Rules.feast_key(DAY)
+	assert_true(_run(v, func() -> bool: return v.kitchen._wip_key == key, 30000), "today's supper at the cauldron")
+	assert_equal(v.kitchen.batches_cooked, 0, "nothing cooked yet")
+	assert_equal(v.kitchen.held_for_meal_milli(key, beans), 0, "a batch at the cauldron: 0")
+	assert_true(_run(v, func() -> bool: return v.kitchen.batches_cooked > 0, 30000), "a batch of today's supper cooked")
+	assert_equal(v.kitchen.held_for_meal_milli(Rules.feast_key(DAY), beans), 0, "nothing cooked is undone: 0")
+
+
 # --- the buffs -------------------------------------------------------------------------------------------------------
 
 func test_a_buff_is_granted_once_and_never_stacks_or_extends() -> void:

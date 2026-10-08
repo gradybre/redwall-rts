@@ -17,6 +17,10 @@ extends RefCounted
 ## all of it free, poured proportionally to attended/E at the supper's end and the rest given back, as the regatta pours
 ## its drinks (regatta_menu.gd THE FEAST'S DRINKS). The mead rule (decision 1625): a feast or table drink only, no
 ## intoxication, no effect on a buff -- and never required. The Hearth feast pours only its infusion (P3).
+## THE SUPPER'S OWN FOOD (Brendan's ruling on 1701 P6, 2026-10-07: (b)): a feast called for a supper the kitchen has
+## already planned counts the food that supper's ordinary meal holds, since the feast replaces that meal: the kitchen
+## lets it go when it adopts the occasion and tops the courses up from it (kitchen.gd `held_for_meal_milli`). The
+## reservation itself is unchanged: what the free food lacks at confirmation the kitchen's own top-up takes.
 ## EVERY COURSE IS REQUIRED for a called feast (REQ-SET-100: "complete ingredient/portion requirements ... before
 ## accepting the plan"): the plan is refused naming what is short, where the regatta holds its feast with a missing
 ## course (decision 0682's reading for the once-a-season occasion, kept there).
@@ -43,6 +47,8 @@ const SOURCES: Dictionary = {
 	Catalog.CAT_MEAD: "the brewery's mead (honey and water, 72 h in a vat)",
 }
 const SOURCE_FIELDS: String = "the fields (Farm ▸ the planner)"
+## No supper named: only the free food counts (`available_of`).
+const NO_KEY: int = -1
 ## THE OTHER DRINK(S), and their names: cider, by Brendan's ruling (a list, so a later ruling is a row).
 const EXTRA_DRINKS: PackedInt32Array = [Catalog.ITEM_CIDER]
 const EXTRA_NAMES: Array[String] = ["cider"]
@@ -73,6 +79,14 @@ func configure(p_kitchen: KitchenScript, p_stores: StoresScript) -> void:
 func free_of(selector: int) -> int:
 	"""Selector `selector`'s food in the pantry nobody has set aside, milli-U."""
 	return kitchen.takes.free_milli_of_crop(kitchen.pantry, selector) if kitchen != null else 0
+
+
+func available_of(selector: int, key: int) -> int:
+	"""Selector `selector`'s food a feast at supper `key` may count: what nobody has set aside, and what that supper's
+	own ordinary meal holds, which the feast replaces (kitchen.gd `held_for_meal_milli`; Brendan's ruling on 1701 P6).
+	`key` NO_KEY: the free food alone."""
+	var held: int = kitchen.held_for_meal_milli(key, selector) if kitchen != null and key != NO_KEY else 0
+	return free_of(selector) + held
 
 
 static func course_dish(theme: int, second: bool) -> int:
@@ -114,21 +128,23 @@ static func source_of(category: int) -> String:
 
 # --- what is short ------------------------------------------------------------------------------------------------
 
-func shortfalls(theme: int, eligible: int) -> PackedStringArray:
-	"""Every input the theme for E is short of now, as "needs X: n (m free) — from where" (REQ-SET-099: the specific
-	reason and the missing quantity); empty when the whole menu can be made."""
+func shortfalls(theme: int, eligible: int, key: int = NO_KEY) -> PackedStringArray:
+	"""Every input the theme for E at supper `key` is short of now, as "needs X: n (m free) — from where" (REQ-SET-099:
+	the specific reason and the missing quantity), counting what that supper already holds (`available_of`); empty
+	when the whole menu can be made."""
 	var out := PackedStringArray()
 	for course: int in 2:
 		var dish: int = course_dish(theme, course == 1)
 		var batches: int = course_batches(theme, course == 1, eligible)
 		for k: int in MealRules.INPUT_N[dish]:
 			var need: int = batches * MealRules.input_milli(dish, k)
-			var free: int = free_of(MealRules.input_selector(dish, k))
+			var free: int = available_of(MealRules.input_selector(dish, k), key)
 			if free < need:
 				out.append(_needs(input_word(dish, k), need, free, MealRules.input_category(dish, k)))
 	var bev: int = bev_need_milli(theme, eligible)
-	if free_of(bev_selector(theme)) < bev:
-		out.append(_needs(bev_words(theme), bev, free_of(bev_selector(theme)), bev_selector(theme)))
+	var bev_free: int = available_of(bev_selector(theme), key)
+	if bev_free < bev:
+		out.append(_needs(bev_words(theme), bev, bev_free, bev_selector(theme)))
 	var water: int = RegattaRules.infusion_water_milli(eligible) if Rules.BEVERAGE[theme] == Rules.BEV_INFUSION else 0
 	var butt: int = stores.water_milli_u if stores != null else 0
 	if butt < water:

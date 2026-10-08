@@ -2528,6 +2528,17 @@ func days_of_meals_after_milli(set_aside: PackedInt64Array) -> int:
 	return days
 
 
+func held_for_meal_milli(key: int, selector: int) -> int:
+	"""Selector `selector`'s food the planned ordinary meal `key` holds, which an occasion set on that meal would take
+	over (`_adopt_occasion` lets it go and tops the occasion's courses up from it): what a feast called for that supper may
+	count as its own (decision 1701, Brendan's ruling on its P6). 0 when the meal is not planned, already an occasion's,
+	or has a batch cooked or at the cauldron (nothing cooked is undone)."""
+	var s: int = _slot_index_of(key)
+	if s < 0 or _slot_cooked[s] > 0 or _wip_key == key or _slot_take[s] == occasion_take:
+		return 0
+	return takes.live_milli(pantry, _slot_take[s], -1, selector)
+
+
 func ledger_lines() -> PackedStringArray:
 	"""What is behind the Ready food figure, for the ledger -- one line, as the shell's ledger is a fixed size: the
 	portions held and the raw grain and roots ("5 portions · grain 18.0 · roots 12.0 U"; the water, wood and cook are

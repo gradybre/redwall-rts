@@ -2708,6 +2708,8 @@ suppers (today's before 15:00), with a keeper who does not cook it (`feast/`).
   ("needs mead: 2.0 U (0.0 U free) — the brewery's mead"), the service wood, the seats (ceil(E/3)), and REQ-SET-101's
   reserves after it -- ready food without the feast's reservation and §5.8's fuel-days over the hearths and the
   kitchen -- unless **Override reserves** is on for this feast.
+- **Its own supper's food counts**: a feast called for a supper the kitchen has already planned counts the food that
+  meal holds, since the feast replaces it (Brendan's ruling on 1701 P6).
 - **Called**, everything is reserved (both courses in the kitchen's occasion, the beverage, the service wood); **Cancel**
   before 17:00 gives it all back. At 17:00 it is served; once the kitchen finalizes the supper it is tallied: who came,
   the beverage poured for them, the buff when 80% ate every course, +5 friendship a pair, one chronicle line.

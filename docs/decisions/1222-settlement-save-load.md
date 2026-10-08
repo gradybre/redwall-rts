@@ -404,7 +404,7 @@ These record the engineering choices made while building, step by step.
 - **Step 2, memory.** Every section-4 capture and apply makes a transient owner image. It is charged to "ADR 1222
   save/load working set" in the reviewed census deltas, and the 09.3 ledger owns the total. It is never resident
   between ticks.
-- **Step 11, the save controls (partial: the browser waits on Brendan).** `scripts/ui/ui_save_session.gd`
+- **Step 11, the save controls.** `scripts/ui/ui_save_session.gd`
   is the one path between the HUD and `settlement_save_slots.gd`. `scripts/ui/ui_save_controls.gd`, a node
   `main.gd` adds, owns one, polls it every frame (also while paused) and turns its signals into notices
   and UI-SET-085. **Why not UIManager:** `ui_manager.gd` and `ui_notices.gd` are reviewed witnesses of the
@@ -434,13 +434,51 @@ These record the engineering choices made while building, step by step.
     carry, so there no controls exist: no autosave runs and F5 does nothing (a session that was never
     enabled refuses `SAVE_SESSION_DISABLED`).
 
-  **Not built, because §4 leaves choices only Brendan can make:** the save browser (UI-SET-076/077), the
-  game menu (UI-SET-078) and F9's confirmation, which by §4 is the browser's Load (066). `quickload_row()`
-  and `load_slot()` are the calls those surfaces make. UI-SET-076/077 stay UNAVAILABLE, now naming the
-  missing browser rather than missing files. The open choices: which of §4's three tabs (Manual, Autosave,
-  Prewinter) holds the quicksave and the pre-demolition quicksave; how a manual save is named; how a
-  recovered `.rollback` file is offered; where the development-only statement sits in the browser; and
-  whether 078's Settings and Main menu, which have no owner, show as Unavailable.
+  **The browser and the game menu (built 2026-10-08, after Brendan's answers -- DEC-055).** Earlier this
+  paragraph read "Not built, because §4 leaves choices only Brendan can make"; he made them:
+  - **UI-SET-076 Save browser** (`scripts/ui/ui_save_browser.gd`, rows from `ui_save_rows.gd`): "Save and load
+    settlements", tabs Manual / Autosave / Prewinter. The quicksave and the pre-demolition quicksave are
+    Autosave rows with the five dailies; Prewinter holds its one slot. The development-only note is the line
+    under the title, on every tab.
+  - **UI-SET-077 rows**: title (a manual save's name, else its slot's), the in-game date from the file's own
+    header tick, the real-time stamp, "Save format 2, development save" and the validity column. Validity is
+    `SaveFile.peek_refusal()`: header, table and the five identities against this build, reading the first
+    1,224 bytes and section 1's 44-byte provenance prefix only (Q2: the browser never opens a whole save); a
+    CRC or body fault is still found by the load itself. The game has no settlement-name owner, so a row is
+    titled by its save.
+  - **Manual saves**: Save writes `save_NNN` (one past the highest in use, `Slots.next_manual_name()`); Rename
+    rewrites only the sidecar label (`Slots.rename_slot()`; 1-64 characters, no control characters), so the
+    file, its slot name and its bytes never change. Overwrite takes a second, explicit step whose own UI-SET-066
+    names the save it replaces, with UI-SET-067 "Keep <save>" (§4 077 "overwrite confirmation explicit").
+  - **Recovered rows**: each kept `<slot>.rwlsave.rollback` (Q10) is a row "Recovered: the settlement before
+    loading <slot>" in its slot's tab. Loading one only reads it; the file is kept. **A load never replaces a
+    kept checkpoint any more**: `Slots.checkpoint_path()` writes a load's own checkpoint to `<slot>~N.rwlsave.rollback`
+    while `<slot>.rwlsave.rollback` exists. Before this, loading a slot again silently deleted its recovered
+    file, against "never delete a save".
+  - **Load** is UI-SET-066 "Load <save>, <in-game date>", disabled with its reason for no selection or an
+    unloadable row. **F9** opens the browser alone on the quicksave with Load focused: that button, naming the
+    save and its date, is §5's confirmation; nothing loads until it is pressed. With no quicksave, Load is
+    disabled and the status line says so. A successful load closes every modal.
+  - **UI-SET-078 Game menu** (`ui_game_menu.gd`): Resume, Save, Load, Settings, Main menu, Quit game. Settings
+    ("no settings store exists yet") and Main menu ("there is no main menu scene yet") are shown disabled with
+    the lock icon and the reason, to the eye and in the accessible description. Save and Load open the browser
+    on the Manual tab over the menu; closing the browser returns to the menu. Quit game (UI-SET-092) quits at
+    once when nothing moved since the session's last save or load, else first shows the dirty-save warning, whose
+    066 quits and whose 067 keeps playing.
+  - **Opening and pause**: UI-SET-019 opens the menu through the shell's host-menu seam (`set_menu_handler`),
+    Escape opens it when no shell workspace owns the input, F9 opens the browser. While either modal shows, the
+    MENU pause reason is held (§3); closing releases MENU only, so a PLAYER pause stays. While a modal is open
+    `main.gd` passes it every key (no F5, F9 or Space reaches the world).
+  - **Where they live**: `ui_save_controls.gd` hosts both on a §3 layer-80 CanvasLayer, laid out on the HUD
+    shell's own §1.2 geometry (`modal` rectangle and scale S), with SCRIM blocking the world and a focus ring
+    trapping Tab. They are not built into `ui_shell.gd`'s registry tree, which builds the HUD's permanent zones
+    and one workspace frame; `ui_availability.gd` therefore names their host for 076/077/078
+    (`REASON_SAVE_CONTROLS_HOST`, index 3 renamed as decision 0511 did) instead of claiming the shell drives
+    them. `ui_manager.gd` and `ui_notices.gd` (census witnesses) are untouched.
+  - **Seen**: frames at 1920x1080 and 1280x720 of the menu, the quit warning, F9's browser, the Manual tab
+    and the overwrite step were captured from the running game and looked at.
+  - **Not built**: UI-SET-079-081 (settings rows, key rebinding) have no settings store; a narrow-layout
+    browser uses the same frame clamped to the modal rectangle.
 
   **Also open:** UI §3 auto-pauses on a save error (CRITICAL). No acknowledgement surface exists for a
   CRITICAL that is not the clock's overload, so a save error is an Error notice and does not pause.

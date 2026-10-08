@@ -54,6 +54,11 @@ const AUTOSAVE_DAILY: int = 1
 const AUTOSAVE_EVERY_3_DAYS: int = 3
 const PREWINTER_SEASON_DAY: int = SimClockScript.DAYS_PER_SEASON - 6
 const MAX_NAME_LENGTH: int = 64
+## DEC-055 (2026-10-08): a manual save is auto-named `save_NNN`; the player may rename it (its label).
+const MANUAL_PREFIX: String = "save_"
+## Separates a slot name from the index of a second checkpoint while a recovered one is kept.
+const CHECKPOINT_MARK: String = "~"
+const REFUSE_LABEL: StringName = &"SAVE_LABEL_INVALID"
 const REFUSE_SLOT: StringName = &"SAVE_SLOT_INVALID"
 const REFUSE_BUSY: StringName = &"SAVE_BUSY"
 
@@ -100,16 +105,14 @@ static func save_slot(settlement: Node, manager: Node, kind: String, name: Strin
 	var meta: Dictionary = {"kind": kind, "name": name, "label": label,
 		"tick": manager.clock().completed_tick(), "saved_unix": int(Time.get_unix_time_from_system()),
 		"format_version": SaveHeader.FORMAT_VERSION}
-	var file: FileAccess = FileAccess.open(path.get_basename() + META_EXTENSION, FileAccess.WRITE)
-	if file != null:
-		file.store_string(JSON.stringify(meta, "", true))
-		file.close()
+	_write_meta(path, meta)
 	return _ok()
 
 
 static func load_slot(settlement: Node, manager: Node, kind: String, name: String,
 		content: RefCounted = null) -> SaveHeader.Refusal:
-	"""Load one slot into `settlement`, with `<file>.rollback` as the disk checkpoint."""
+	"""Load one slot into `settlement`, with `<file>.rollback` as the disk checkpoint (or, while a
+	recovered checkpoint of that slot is kept there, the first free `<name>~N.rwlsave.rollback`)."""
 	if not valid_slot(kind, name):
 		return _no(REFUSE_SLOT, "'%s/%s' is not a save slot" % [kind, name])
 	var path: String = slot_path(kind, name)
@@ -117,7 +120,111 @@ static func load_slot(settlement: Node, manager: Node, kind: String, name: Strin
 	var read: SaveHeader.Refusal = SaveFile.read_file(path, bytes)
 	if not read.is_ok():
 		return read
-	return SettlementSave.load_bytes(settlement, manager, bytes, content, path + ROLLBACK_SUFFIX)
+	return SettlementSave.load_bytes(settlement, manager, bytes, content, checkpoint_path(kind, name))
+
+
+static func checkpoint_path(kind: String, name: String) -> String:
+	"""Where a load of `kind/name` writes its rollback checkpoint: `<file>.rollback`, unless a kept
+	(recovered, DEC-055 Q10) checkpoint is already there, which a load must never replace."""
+	var path: String = slot_path(kind, name) + ROLLBACK_SUFFIX
+	var index: int = 2
+	while FileAccess.file_exists(path):
+		path = "%s/%s/%s%s%d%s%s" % [root, kind, name, CHECKPOINT_MARK, index, SAVE_EXTENSION,
+			ROLLBACK_SUFFIX]
+		index += 1
+	return path
+
+
+# --- the browser's rows (UI-SET-076/077; DEC-055 Q2, Q10) -----------------------------------------
+
+static func list_recovered(kind: String) -> Array[Dictionary]:
+	"""Every kept rollback checkpoint of `kind` (Q10: offered as recovered), by file name. `name` is
+	the slot whose load it guarded; `saved_unix` is the file's modification time."""
+	var rows: Array[Dictionary] = []
+	var directory: String = "%s/%s" % [root, kind]
+	if not KINDS.has(kind) or not DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(directory)):
+		return rows
+	var names: PackedStringArray = DirAccess.get_files_at(directory)
+	names.sort()
+	for file_name: String in names:
+		if file_name.ends_with(SAVE_EXTENSION + ROLLBACK_SUFFIX):
+			rows.append({"kind": kind, "file": file_name, "recovered": true,
+				"name": recovered_slot_name(file_name),
+				"saved_unix": FileAccess.get_modified_time("%s/%s" % [directory, file_name])})
+	return rows
+
+
+static func recovered_slot_name(file_name: String) -> String:
+	"""The slot a kept checkpoint file guarded: its name before any `~N` mark and the suffixes."""
+	return file_name.trim_suffix(SAVE_EXTENSION + ROLLBACK_SUFFIX).get_slice(CHECKPOINT_MARK, 0)
+
+
+static func load_recovered(settlement: Node, manager: Node, kind: String, file_name: String,
+		content: RefCounted = null) -> SaveHeader.Refusal:
+	"""Load a kept rollback checkpoint. The checkpoint itself is only read and is kept afterwards
+	(Q10: never delete a save); this load's own checkpoint goes to the next free path."""
+	var listed: bool = false
+	for row: Dictionary in list_recovered(kind):
+		listed = listed or row["file"] == file_name
+	if not listed:
+		return _no(REFUSE_SLOT, "'%s/%s' is not a recovered save" % [kind, file_name])
+	var bytes: PackedByteArray = PackedByteArray()
+	var read: SaveHeader.Refusal = SaveFile.read_file("%s/%s/%s" % [root, kind, file_name], bytes)
+	if not read.is_ok():
+		return read
+	return SettlementSave.load_bytes(settlement, manager, bytes, content,
+		checkpoint_path(kind, recovered_slot_name(file_name)))
+
+
+static func next_manual_name() -> String:
+	"""The automatic name of a new manual save: `save_NNN`, one past the highest in use."""
+	var highest: int = 0
+	for row: Dictionary in list_slots(KIND_MANUAL):
+		var name: String = String(row["name"])
+		if name.begins_with(MANUAL_PREFIX) and name.trim_prefix(MANUAL_PREFIX).is_valid_int():
+			highest = maxi(highest, name.trim_prefix(MANUAL_PREFIX).to_int())
+	return "%s%03d" % [MANUAL_PREFIX, highest + 1]
+
+
+static func valid_label(label: String) -> bool:
+	"""A player's name for a manual save: 1-64 characters, none of them a control character."""
+	if label.strip_edges().is_empty() or label.length() > MAX_NAME_LENGTH:
+		return false
+	for index: int in label.length():
+		var code: int = label.unicode_at(index)
+		if code < 32 or (code >= 127 and code < 160):
+			return false
+	return true
+
+
+static func rename_slot(kind: String, name: String, label: String) -> SaveHeader.Refusal:
+	"""Give a manual save the player's own name. Only the browser sidecar changes: the save file,
+	its slot name and its bytes are untouched (the label is outside the canonical hash, Q2)."""
+	if kind != KIND_MANUAL or not valid_slot(kind, name) or not FileAccess.file_exists(slot_path(kind, name)):
+		return _no(REFUSE_SLOT, "'%s/%s' is not a manual save" % [kind, name])
+	if not valid_label(label):
+		return _no(REFUSE_LABEL, "a save's name is 1-64 characters with no control characters")
+	var meta: Dictionary = _meta_row(kind, name)
+	meta["label"] = label.strip_edges()
+	return _write_meta(slot_path(kind, name), meta)
+
+
+static func _write_meta(path: String, meta: Dictionary) -> SaveHeader.Refusal:
+	"""Write one browser sidecar next to its save."""
+	var file: FileAccess = FileAccess.open(path.get_basename() + META_EXTENSION, FileAccess.WRITE)
+	if file == null:
+		return _no(SaveFile.REFUSE_IO, "cannot write the sidecar of %s" % path)
+	file.store_string(JSON.stringify(meta, "", true))
+	file.close()
+	return _ok()
+
+
+static func row_validity(kind: String, file_name: String,
+		out_header: SaveHeader.Header = null) -> SaveHeader.Refusal:
+	"""UI-SET-077's validity: the file's header, table and identities against this build, read
+	without opening the whole save (Q2). A row that passes may still refuse on load (CRC, body).
+	`out_header` receives the file's completed tick when its header parses."""
+	return SaveFile.peek_refusal("%s/%s/%s" % [root, kind, file_name], out_header)
 
 
 static func list_slots(kind: String) -> Array[Dictionary]:

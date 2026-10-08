@@ -1452,6 +1452,18 @@ byte-identical, the format canonical and versioned, and Q3's "no compression". T
 save under 1 s and a load under 2 s on the development Mac at the generated settlement; ADR 1235 records how and
 the numbers reached.
 
+**2026-10-08 (Brendan, in chat): the save browser and the game menu.** For the choices UI §4 left open:
+
+- The quicksave and the pre-demolition quicksave live in the **Autosave** tab (UI-SET-076's Manual / Autosave /
+  Prewinter), beside the five daily autosaves.
+- Manual saves are **auto-named, with an optional rename**: a new manual save is `save_NNN`; renaming changes the
+  name the browser shows, not the file.
+- A recovered rollback file (Q10) is a row **marked "Recovered" in its tab**.
+- The **development-only note sits in the browser header**, under the title, on every tab.
+- The game menu (UI-SET-078) shows **Settings and Main menu as unavailable, each with its reason**.
+- **F9 confirms through the browser's Load**: F9 opens the browser on the quicksave with Load focused, and Load
+  names the save and its in-game date.
+
 Engineering record: [decision1222](decisions/1222-settlement-save-load.md); speed:
 [decision1235](decisions/1235-fast-settlement-saves.md).
 

@@ -30,6 +30,8 @@ const SaveHeader := preload("res://scripts/core/save_header.gd")
 signal save_finished(kind: String, name: String, code: StringName, detail: String)
 signal load_finished(kind: String, name: String, code: StringName, detail: String)
 signal demolition_placed(building_ref: Vector2i, code: StringName)
+## A manual save was renamed (only its browser sidecar changed).
+signal slot_renamed(kind: String, name: String, code: StringName)
 
 const REFUSE_NONE: StringName = &""
 const REFUSE_NOT_BOUND: StringName = &"SAVE_SESSION_NOT_BOUND"
@@ -52,6 +54,9 @@ var _held_orders: Array[Vector2i] = []
 var _last_refusal: StringName = REFUSE_NONE
 ## Off until the game scene turns it on (`main.gd`); a host that instances the game keeps it off.
 var _enabled: bool = false
+## The completed tick of the last save or load this session made of the bound world; -1 for none.
+## The game menu's Quit warns about unsaved progress against it (UI-SET-092).
+var _last_saved_tick: int = -1
 
 
 func bind(settlement: Node, manager: Node) -> void:
@@ -61,6 +66,7 @@ func bind(settlement: Node, manager: Node) -> void:
 	_scheduler = Slots.Scheduler.new()
 	_held_orders.clear()
 	_last_day = -1
+	_last_saved_tick = -1
 
 
 func set_enabled(enabled: bool) -> void:
@@ -128,8 +134,44 @@ func save_slot(kind: String, name: String, label: String = "") -> SaveHeader.Ref
 	if not is_bound():
 		return SaveHeader.Refusal.new(_unavailable(), "the save controls are off or unbound")
 	var refusal: SaveHeader.Refusal = Slots.save_slot(_settlement, _manager, kind, name, label)
+	_note_saved(refusal)
 	save_finished.emit(kind, name, refusal.code, refusal.detail)
 	return refusal
+
+
+func save_new_manual() -> SaveHeader.Refusal:
+	"""The browser's Save: a new manual save, auto-named `save_NNN` (DEC-055, 2026-10-08)."""
+	return save_slot(Slots.KIND_MANUAL, Slots.next_manual_name())
+
+
+func overwrite_manual(name: String) -> SaveHeader.Refusal:
+	"""Save over an existing manual save after the browser's explicit confirmation, keeping the
+	player's name for it."""
+	var label: String = ""
+	for row: Dictionary in Slots.list_slots(Slots.KIND_MANUAL):
+		if row.get("name", "") == name:
+			label = String(row.get("label", ""))
+	return save_slot(Slots.KIND_MANUAL, name, label)
+
+
+func rename_manual(name: String, label: String) -> SaveHeader.Refusal:
+	"""The browser's optional rename of a manual save: its sidecar label, never its bytes."""
+	if not is_bound():
+		return SaveHeader.Refusal.new(_unavailable(), "the save controls are off or unbound")
+	var refusal: SaveHeader.Refusal = Slots.rename_slot(Slots.KIND_MANUAL, name, label)
+	slot_renamed.emit(Slots.KIND_MANUAL, name, refusal.code)
+	return refusal
+
+
+func has_unsaved_progress() -> bool:
+	"""Whether the bound world has moved since this session last saved or loaded it."""
+	return is_bound() and _manager.clock().completed_tick() != _last_saved_tick
+
+
+func _note_saved(refusal: SaveHeader.Refusal) -> void:
+	"""Remember the tick a successful save or load left the world at."""
+	if refusal.is_ok():
+		_last_saved_tick = _manager.clock().completed_tick()
 
 
 func load_slot(kind: String, name: String) -> SaveHeader.Refusal:
@@ -137,11 +179,25 @@ func load_slot(kind: String, name: String) -> SaveHeader.Refusal:
 	are dropped; the next poll resynchronises the calendar instead of taking a missed autosave."""
 	if not is_bound():
 		return SaveHeader.Refusal.new(_unavailable(), "the save controls are off or unbound")
-	var refusal: SaveHeader.Refusal = Slots.load_slot(_settlement, _manager, kind, name)
+	return _finish_load(kind, name, Slots.load_slot(_settlement, _manager, kind, name))
+
+
+func load_recovered(kind: String, file_name: String) -> SaveHeader.Refusal:
+	"""Load a recovered rollback checkpoint (DEC-055 Q10) after the player confirmed it; the file
+	itself is kept."""
+	if not is_bound():
+		return SaveHeader.Refusal.new(_unavailable(), "the save controls are off or unbound")
+	return _finish_load(kind, file_name,
+		Slots.load_recovered(_settlement, _manager, kind, file_name))
+
+
+func _finish_load(kind: String, name: String, refusal: SaveHeader.Refusal) -> SaveHeader.Refusal:
+	"""After a load: drop the replaced world's queued saves and held orders, then report it."""
 	if refusal.is_ok():
 		_scheduler = _rescheduled()
 		_held_orders.clear()
 		_last_day = -1
+		_note_saved(refusal)
 	load_finished.emit(kind, name, refusal.code, refusal.detail)
 	return refusal
 
@@ -261,6 +317,8 @@ func poll() -> int:
 		return 0
 	var finished: Array[Dictionary] = _scheduler.poll(_settlement, _manager)
 	for row: Dictionary in finished:
+		if row["code"] == REFUSE_NONE:
+			_last_saved_tick = _manager.clock().completed_tick()
 		save_finished.emit(row["kind"], row["name"], row["code"], row["detail"])
 		if row["kind"] == Slots.KIND_DEMOLITION:
 			_release_held_orders()

@@ -373,6 +373,36 @@ static func read_file(path: String, out: PackedByteArray) -> SaveHeader.Refusal:
 	return _ok()
 
 
+static func peek_refusal(path: String, out_header: SaveHeader.Header = null) -> SaveHeader.Refusal:
+	"""A save browser row's check (DEC-055 Q2): the header, the section table and the five
+	identities against this build, reading only the first 1224 bytes and section 1's 44-byte
+	provenance prefix -- never the whole file. CRCs and the body digest are left to the load.
+	`out_header` receives the parsed header's completed tick and format version when it parses."""
+	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return _no(REFUSE_IO, "cannot open %s (error %d)" % [path, FileAccess.get_open_error()])
+	var length: int = file.get_length()
+	var head: PackedByteArray = file.get_buffer(mini(length, SaveHeader.body_offset()))
+	var header: SaveHeader.Header = SaveHeader.Header.new()
+	var descriptors: Array[SaveHeader.Descriptor] = []
+	var checked: SaveHeader.Refusal = SaveHeader.decode_header_into(head, header)
+	if checked.is_ok() and out_header != null:
+		out_header.completed_tick = header.completed_tick
+	if checked.is_ok():
+		checked = SaveHeader.header_refusal(header, length)
+	if checked.is_ok():
+		checked = SaveHeader.decode_section_table(head, descriptors)
+	if checked.is_ok():
+		checked = SaveHeader.section_table_refusal(descriptors, header)
+	if checked.is_ok() and descriptors[0].byte_length < PROVENANCE_PREFIX_BYTES:
+		checked = _no(REFUSE_BODY_SHAPE, "section 1 is shorter than its provenance prefix")
+	if checked.is_ok():
+		file.seek(descriptors[0].offset)
+		checked = identity_refusal(header, file.get_buffer(PROVENANCE_PREFIX_BYTES))
+	file.close()
+	return checked
+
+
 static func remove_file(path: String) -> void:
 	"""Delete `path` if it names an existing file; an empty path is a no-op."""
 	if path != "" and FileAccess.file_exists(path):

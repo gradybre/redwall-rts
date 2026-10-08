@@ -138,14 +138,29 @@ func _unhandled_input(event: InputEvent) -> void:
 	action on Escape; that was a wrong behaviour, not merely a wrong name.
 
 	`save_quick` (F5) queues the quicksave for the next quiescent boundary, paused or not
-	(UI §5; ADR 1222 step 11).
+	(UI §5; ADR 1222 step 11). While the game menu or the save browser is open, they own the keys.
 	"""
+	if _save_controls != null and _save_controls.modal_open():
+		return
 	if event.is_action_pressed(&"time_pause"):
 		GameManager.toggle_pause()
 		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed(&"save_quick") and _save_controls != null:
-		_save_controls.request_quicksave()
+	elif _save_controls != null and _save_action(event):
 		get_viewport().set_input_as_handled()
+
+
+func _save_action(event: InputEvent) -> bool:
+	"""UI §5's save keys: F5 quicksaves at the next boundary, F9 opens the save browser on the
+	quicksave (its Load names the save and date and is the confirmation), and Escape -- reaching
+	here only when no panel took it -- opens the game menu (UI-SET-078). True when one acted."""
+	if event.is_action_pressed(&"save_quick"):
+		_save_controls.request_quicksave()
+		return true
+	if event.is_action_pressed(&"load_quick"):
+		return _save_controls.open_quickload()
+	if event.is_action_pressed(&"open_menu") and _hud != null and not _hud.shell().workspace_owns_input():
+		return _save_controls.open_game_menu()
+	return false
 
 
 func _seed_stores() -> void:

@@ -1,7 +1,8 @@
 extends RefCounted
 ## The fishery's words: refusals, previews, lines for the Water panel, the cards and the feed. Decision 0431 (live
-## demo). Pure functions of the fishery's state; one formatter for quantities (farm_text.gd `units_text`), one for game
-## time (action_card.gd `hours_text`), so a figure reads the same everywhere.
+## demo). Pure functions of the fishery's state; one formatter for quantities (goods_measures.gd, decisions 1011 and
+## 1801: each amount in its good's natural measure, fish counted one a U), one for game time (action_card.gd
+## `hours_text`), so a figure reads the same everywhere.
 
 const Rules := preload("res://demo/fishery/fishery_rules.gd")
 const Driver := preload("res://demo/water/fishing_driver.gd")
@@ -9,6 +10,7 @@ const Fishing := preload("res://scripts/core/fishing.gd")
 const FarmText := preload("res://demo/farm/farm_text.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const SEASON_NAMES: Array[String] = ["spring", "summer", "autumn", "winter"]
 
@@ -57,12 +59,15 @@ static func risk_text(per_10000: int) -> String:
 
 
 static func stock_line(p: Driver.Preview) -> String:
-	"""REQ-SET-055's stock and quota: 'Perch: 720.0 / 900.0 U (80%) · quota left 25.5 / 52.5 U today'."""
+	"""REQ-SET-055's stock and quota, fish counted (1011 P3; the quota is the water's, every species'): 'Stock: about 720
+	perch (80% of 900 perch) · quota 52 fish a day, 25 fish left' ('Stock: no perch (0% ...' when none). All round
+	down: never more fish than there are."""
 	@warning_ignore("integer_division") var percent: int = p.stock_milli * 100 / maxi(p.capacity_milli, 1)
 	var state: String = " · restocking" if p.restocking else ""
-	return "%s: %s / %s (%d%%)%s · quota left %s / %s today" % [species_label(p.species_key).capitalize(),
-		units(p.stock_milli), units(p.capacity_milli), percent, state, units(p.remaining_quota_milli),
-		units(p.quota_milli)]
+	var stock: String = Measures.amount(p.species_key, p.stock_milli)
+	return "Stock: %s (%d%% of %s)%s · quota %s a day, %s left" % ["about " + stock if p.stock_milli > 0 else stock,
+		percent, Measures.amount(p.species_key, p.capacity_milli), state, Measures.amount(&"fish", p.quota_milli),
+		Measures.amount(&"fish", p.remaining_quota_milli)]
 
 
 static func closure_line(p: Driver.Preview) -> String:
@@ -89,6 +94,16 @@ static func method_title(method: int, site: int, species: StringName) -> String:
 	return "Ice-fish %s for %s" % [Rules.SITE_NAMES[site], species_label(species)]
 
 
+static func catch_good(item: int) -> StringName:
+	"""The good a catch is counted as: its pantry item's key ('perch'), else fish."""
+	return Catalog.ITEM_KEYS[item] if Catalog.is_pantry_item(item) else &"fish"
+
+
 static func catch_text(milli: int, item: int) -> String:
-	"""'9.6 U of perch'."""
-	return "%s of %s" % [units(milli), Catalog.ITEM_LABELS[item].to_lower() if Catalog.is_pantry_item(item) else "fish"]
+	"""A catch caught or carried, rounded down: '9 perch' (one fish a U, P3), 'no perch'."""
+	return Measures.amount(catch_good(item), milli)
+
+
+static func catch_need(milli: int, item: int) -> String:
+	"""The room a catch needs, rounded up: '10 perch' for 9.6 U."""
+	return Measures.need(catch_good(item), milli)

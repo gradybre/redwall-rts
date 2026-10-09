@@ -237,7 +237,7 @@ func test_dry_fruit_says_what_is_missing() -> void:
 	var f: FisheryScript = rig.fishery
 	rig.pantry.add_into(APPLE, 3000, 0, _read)
 	assert_equal(f.batch_refusal(Recipes.R_DRY_FRUIT),
-		"the stores hold 3.0 U of fruit nobody has set aside; a batch takes 4.0 U", "short")
+		"the stores have 3 bowls of fruit free; a batch takes 4 bowls of fruit", "short")
 	assert_equal([f.refused_code, f.refused_fix], ["NO_FRUIT", Recipes.IN_FIX[1]], "code and fix")
 	assert_equal(f.order_batch(Recipes.R_DRY_FRUIT, PackedInt32Array()), f.batch_refusal(Recipes.R_DRY_FRUIT), "the order agrees")
 	assert_equal(f.tables.job_count(), 0, "nothing opened")
@@ -273,15 +273,16 @@ func test_rations_say_what_is_missing() -> void:
 	var f: FisheryScript = rig.fishery
 	rig.pantry.add_into(Catalog.ITEM_FLOUR, 2000, 0, _read)
 	rig.pantry.add_into(Catalog.ITEM_DRIED_FISH, 1000, 0, _read)
-	assert_true(f.batch_refusal(Recipes.R_RATION).begins_with("the stores hold 0 U of nuts"), f.batch_refusal(Recipes.R_RATION))
+	assert_equal(f.batch_refusal(Recipes.R_RATION), "the stores have no nuts free; a batch takes 2 handfuls of nuts",
+		"no nuts, and a batch's handfuls")
 	assert_equal(f.refused_code, "NO_NUTS", "its code")
 	rig.pantry.add_into(Catalog.ITEM_NUTS, 1000, 0, _read)
 	_services.stores.water_milli_u = 500
-	assert_equal(f.batch_refusal(Recipes.R_RATION), "it needs 1.0 U of water in the butt", "no water")
+	assert_equal(f.batch_refusal(Recipes.R_RATION), "it needs a jug of water in the butt", "no water")
 	_services.stores.water_milli_u = 5000
 	assert_equal(f.batch_refusal(Recipes.R_RATION), "", "it can")
 	rig.takes.reserve_into(rig.pantry, rig.takes.new_take(), Catalog.CAT_FLOUR, 2000, 0, _read)
-	assert_true(f.batch_refusal(Recipes.R_RATION).contains("of flour nobody has set aside"), "the kitchen's flour is not free")
+	assert_true(f.batch_refusal(Recipes.R_RATION).contains("the stores have no flour free"), "the kitchen's flour is not free")
 
 
 func test_a_ration_batch_cancelled_after_it_started_spoils_half() -> void:
@@ -569,7 +570,7 @@ func test_a_kitchen_that_gives_no_grain_back_refuses_the_mill() -> void:
 	short.pantry.add_into(WHEAT, Rules.MILL_IN_MILLI - 1, 0, _read)
 	var little := _kitchen_grain(short, 1000)
 	assert_equal(short.fishery.grain_available_milli(), Rules.MILL_IN_MILLI - 1, "free and spare: one milli-U short")
-	assert_true(short.fishery.mill_refusal().contains("or the kitchen holds beyond its next meal"), "the kitchen named")
+	assert_true(short.fishery.mill_refusal().contains("free (counting the kitchen's beyond its next meal)"), "the kitchen named")
 	assert_equal(short.fishery.refused_code, "NO_GRAIN", "one milli-U short in all")
 	assert_true(little.asked.is_empty(), "nothing asked of the kitchen")
 
@@ -726,14 +727,14 @@ func test_the_reserve_stepper_steps_a_batch_within_its_range() -> void:
 	var node := _reserve_node(rig)
 	assert_equal(node.reserve_text(), DemoFisheryScript.RESERVE_NONE, "no reserve: the line says how to keep one")
 	var revision: int = node.fishery.revision
-	assert_equal(node.step_reserve(1), "Ration reserve: keep 3.0 U of rations", "a batch up")
+	assert_equal(node.step_reserve(1), "Ration reserve: keep 3 rations", "a batch up")
 	assert_equal(node.fishery.ration_reserve.target_milli, 3000, "3 U")
 	assert_true(node.fishery.revision > revision, "the panels learn")
 	assert_equal(node.fishery.ration_reserve.held_milli(Catalog.CAT_DRIED_FISH), 1000, "held at once, not next hour")
 	assert_true(node.step_reserve(-1).begins_with("Ration reserve: none"), "back to none")
 	node.step_reserve(-1)
 	assert_equal(node.fishery.ration_reserve.target_milli, 0, "never below none")
-	assert_equal(node.step_reserve(100), "Ration reserve: keep 30.0 U of rations", "up to the cap")
+	assert_equal(node.step_reserve(100), "Ration reserve: keep 30 rations", "up to the cap")
 	node.step_reserve(1)
 	assert_equal(node.fishery.ration_reserve.target_milli, RationReserveScript.TARGET_CAP_MILLI, "never above it")
 	node.step_reserve(1 << 61)
@@ -747,8 +748,8 @@ func test_release_shows_what_it_frees_then_frees_it_and_keeps_them_again() -> vo
 	it and says so; the line and the card then offer to keep them again, and that press holds the food again."""
 	var rig := _reserve_rig([[Catalog.ITEM_DRIED_FISH, 1000], [Catalog.ITEM_NUTS, 1000], [Catalog.ITEM_FLOUR, 2000]])
 	var node := _reserve_node(rig)
-	var held: String = "1.0 U dried fish, 1.0 U nuts, 2.0 U flour"
-	assert_equal(node.reserve_text(), "Ration reserve: keep 6.0 U (0 U owned)\nHolding %s" % held, "the line")
+	var held: String = "a string of dried fish, 2 handfuls of nuts, 2 scoops of flour"
+	assert_equal(node.reserve_text(), "Ration reserve: keep 6 rations (none owned)\nHolding %s" % held, "the line")
 	var card: CardScript = node.release_card()
 	assert_true(card.is_ok() and card.result.begins_with("Frees %s at once" % held), card.result)
 	assert_equal(node.toggle_release(), "Food reserves released: %s free for the kitchen and the hungry" % held,
@@ -787,9 +788,9 @@ func test_release_frees_1740_s_kept_dried_fish_with_no_reserve() -> void:
 		assert_true(rig.pantry.add_into(int(pair[0]), int(pair[1]), 0, _read), "stocked")
 	var node := _reserve_node(rig)
 	assert_equal(node.fishery.ration_keep_milli(Catalog.CAT_DRIED_FISH), 1000, "1740's keep")
-	assert_true(node.reserve_text().ends_with("\nHolding 1.0 U dried fish kept from raw eating"), node.reserve_text())
+	assert_true(node.reserve_text().ends_with("\nHolding a string of dried fish kept from raw eating"), node.reserve_text())
 	var card: CardScript = node.release_card()
-	assert_true(card.is_ok() and card.result.begins_with("Frees 1.0 U dried fish kept from raw eating"), card.result)
+	assert_true(card.is_ok() and card.result.begins_with("Frees a string of dried fish kept from raw eating"), card.result)
 	node.toggle_release()
 	assert_equal(node.fishery.ration_keep_milli(Catalog.CAT_DRIED_FISH), 0, "freed")
 	assert_equal(node.release_card().result, DemoFisheryScript.KEEP_AGAIN_KEEP, "no reserve: keeping the keep again")
@@ -801,7 +802,7 @@ func test_after_a_release_the_line_card_and_answers_agree() -> void:
 	line counts the rations owned (M20)."""
 	var rig := _reserve_rig([[Catalog.ITEM_RATION, 3000]])
 	var node := _reserve_node(rig)
-	assert_true(node.reserve_text().begins_with("Ration reserve: keep 6.0 U (3.0 U owned)"), node.reserve_text())
+	assert_true(node.reserve_text().begins_with("Ration reserve: keep 6 rations (3 rations owned)"), node.reserve_text())
 	node.toggle_release()
 	node.step_reserve(-1)
 	assert_equal(node.step_reserve(-1),
@@ -851,3 +852,34 @@ func test_the_reserve_row_is_dressed_and_routes_only_its_own() -> void:
 	assert_true(mill.fishery.pantry.add_into(WHEAT, 3000, 0, _read), "grain")
 	mill.on_action(WaterPanelScript.ACTION_MILL)
 	assert_equal(mill.fishery.tables.job_count(), 1, "Mill grain still reaches the mill")
+
+
+func test_the_stations_lines_and_cards_count_in_natural_measures() -> void:
+	"""Decision 1801 (slice 6): the Water panel's pantry lines and the stations' cards word each good in its own
+	measure (1011 §1): fresh fish counted, dried fish in strings, flour in scoops, honey in jars (halves), drinks in
+	jugs, apples and pears together as fruit in bowls; nothing held is "no ..."; the locker's rope in coils, iron in
+	bars."""
+	var rig := _rig()
+	var stock: Array = [[16, 9000], [Catalog.ITEM_DRIED_FISH, 3000], [Catalog.ITEM_FLOUR, 3000],
+		[Catalog.ITEM_HONEY, 1500], [Catalog.ITEM_MEAD, 8000], [Catalog.ITEM_APPLE, 3000], [Catalog.ITEM_PEAR, 2000],
+		[Catalog.ITEM_RATION, 3000]]
+	for pair: Array in stock:
+		assert_true(rig.pantry.add_into(int(pair[0]), int(pair[1]), 0, _read), "stocked")
+	var node := _reserve_node(rig)
+	assert_true(node.stations_text().ends_with("\nIn the pantry: 9 fish · 3 strings of dried fish · 3 scoops of flour"),
+		node.stations_text())
+	assert_true(node.preserves_text().ends_with("\nIn the pantry: 5 bowls of fruit · no dried fruit · 3 rations · "
+		+ "no berry jam · no nut cheese · no apple vinegar · no pickles"), node.preserves_text())
+	assert_true(node.brewing_text().ends_with("\nIn the pantry: 1½ jars of honey · 8 jugs of mead · no cordial · no ale · "
+		+ "no cider"), node.brewing_text())
+	assert_true(node.gear_text().ends_with(". Rope: 4 coils; iron: 2 bars"), node.gear_text())
+	assert_equal(node.trips_text(), "No trips out. Caught so far: no fish; landed in the stores: no fish", "no trips")
+	var none := PackedInt32Array()
+	assert_true(node.dry_card(none).result.begins_with("3 strings of dried fish (keeps 720 h"), node.dry_card(none).result)
+	assert_true(node.mill_card(none).result.begins_with("3 scoops of flour in the pantry"), node.mill_card(none).result)
+	assert_true(node.batch_card(Recipes.R_RATION, none).result.begins_with("3 rations (keeps"),
+		node.batch_card(Recipes.R_RATION, none).result)
+	assert_true(node.batch_card(Recipes.R_MEAD, none).result.begins_with("4 jugs of mead (keeps"),
+		node.batch_card(Recipes.R_MEAD, none).result)
+	assert_true(node.batch_card(Recipes.R_MEAD, none).result.contains(
+		"Note: the stores already hold 8 jugs of mead, two feasts' worth (6 jugs)"), "the drink's warning")

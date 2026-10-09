@@ -61,7 +61,6 @@ const ALLOWLIST: Dictionary = {
 	"res://demo/tunnel/tunnel_control.gd": 1,
 	"res://demo/tunnel/tunnel_stores.gd": 1,
 	"res://demo/ui/action_card.gd": 1,
-	"res://demo/water/water_overlay.gd": 1,
 	"res://demo/waterplay/demo_waterplay.gd": 1,
 	"res://demo/waterplay/water_panel.gd": 2,
 	"res://demo/work/spoil_work.gd": 1,

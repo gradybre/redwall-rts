@@ -29,6 +29,7 @@ const FishingDriverScript := preload("res://demo/water/fishing_driver.gd")
 const Fishing := preload("res://scripts/core/fishing.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const LensPalette := preload("res://demo/lenses/lens_palette.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const ZONE_SHADER_CODE: String = """
 shader_type spatial;
@@ -157,16 +158,16 @@ func refresh_text() -> void:
 
 static func site_text(driver: FishingDriverScript, site: int,
 		preview: FishingDriverScript.Preview) -> String:
-	"""One site's label, two short lines: the site, its habitat quota left and free slots; then each
-	species' stock and state (hand net)."""
+	"""One site's label, two short lines: the site, its habitat quota (UI-SET-050: fish counted, a day) and what is
+	left of it, and free slots; then each species' stock, counted and rounded down, and state (hand net):
+	"stream_run  quota 52 fish a day, 52 fish left  slots 4 / 4" / "480 trout open   ..."."""
 	var species_words: PackedStringArray = PackedStringArray()
 	for species: int in Fishing.SPECIES_PER_HABITAT:
 		driver.preview_into(site, species, Fishing.GEAR_HAND_NET, 0, preview)
-		species_words.append("%s %.0f %s" % [preview.species_key, preview.stock_milli / 1000.0,
-			_state(preview)])
-	return "%s  quota %.1f / %.1f U  slots %d / %d\n%s" % [FishingDriverScript.SITE_KEYS[site],
-		preview.remaining_quota_milli / 1000.0, preview.quota_milli / 1000.0, preview.slots_free,
-		preview.slots_total, "   ".join(species_words)]
+		species_words.append("%s %s" % [Measures.amount(preview.species_key, preview.stock_milli), _state(preview)])
+	return "%s  quota %s a day, %s left  slots %d / %d\n%s" % [FishingDriverScript.SITE_KEYS[site],
+		Measures.amount(&"fish", preview.quota_milli), Measures.amount(&"fish", preview.remaining_quota_milli),
+		preview.slots_free, preview.slots_total, "   ".join(species_words)]
 
 
 static func _state(preview: FishingDriverScript.Preview) -> String:

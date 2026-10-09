@@ -305,7 +305,7 @@ func _a_deep_drink_warns() -> void:
 	_village.get("_fishery").call(&"refresh_panel")
 	panel.call(&"scroll_to_line", &"brewing")
 	var card: String = _flat((panel.call(&"button", &"brew_mead") as Button).tooltip_text)
-	_check("the Brew mead card notes the stock", card.contains("Note: the stores already hold 8.0 U of mead"),
+	_check("the Brew mead card notes the stock", card.contains("Note: the stores already hold 8 jugs of mead"),
 		card.replace("\n", " / "))
 	var said: String = _village.get("_fishery").call(&"batch_answer", Recipes.R_MEAD, PackedInt32Array())
 	_check("the order is placed and warned of", said.begins_with("Brew mead: on the work board — the stores already hold"),
@@ -385,8 +385,8 @@ func _the_reserve_row() -> void:
 	_village.get("_fishery").get("fishery").call(&"top_up_ration_reserve")
 	var panel: CanvasLayer = _reserve_panel()
 	var text: String = panel.call(&"line", &"reserve")
-	_check("the reserve line says what it keeps and holds", text.begins_with("Ration reserve: keep 6.0 U (")
-		and text.contains("1.0 U dried fish"), text.replace("\n", " / "))
+	_check("the reserve line says what it keeps and holds", text.begins_with("Ration reserve: keep 6 rations (")
+		and text.contains("a string of dried fish"), text.replace("\n", " / "))
 	for key: StringName in [&"reserve_fewer", &"reserve_more", &"reserve_release"]:
 		var button: Button = panel.call(&"button", key)
 		_check("%s is shown" % key, button != null and button.is_visible_in_tree() and not button.text.is_empty(),
@@ -410,7 +410,7 @@ func _keep_more_pressed() -> void:
 	Keep fewer is clicked."""
 	_check("Keep more: 9 U", int(_reserve().get("target_milli")) == 9000, str(_reserve().get("target_milli")))
 	var line: String = _village.get("_waterplay").get("panel").call(&"line", &"reserve")
-	_check("the panel's own refresh shows it", line.begins_with("Ration reserve: keep 9.0 U ("), line.replace("\n", " / "))
+	_check("the panel's own refresh shows it", line.begins_with("Ration reserve: keep 9 rations ("), line.replace("\n", " / "))
 	_press(&"reserve_fewer")
 
 

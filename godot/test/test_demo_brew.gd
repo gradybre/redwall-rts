@@ -247,10 +247,12 @@ func test_brewing_says_what_is_missing() -> void:
 	"""No honey: refused with the apiary as its fix; berries short for the cordial: berries named."""
 	var rig := _rig()
 	var f: FisheryScript = rig.fishery
-	assert_true(f.batch_refusal(Recipes.R_MEAD).contains("of honey nobody has set aside"), f.batch_refusal(Recipes.R_MEAD))
+	assert_true(f.batch_refusal(Recipes.R_MEAD).begins_with("the stores have no honey free; a batch takes 3 jars of honey"),
+		f.batch_refusal(Recipes.R_MEAD))
 	assert_equal([f.refused_code, f.refused_fix], ["NO_HONEY", Recipes.IN_FIX[5]], "the apiary")
 	rig.pantry.add_into(Catalog.ITEM_HONEY, 1000, 0, _read)
-	assert_true(f.batch_refusal(Recipes.R_CORDIAL).contains("of berries"), "the cordial's berries")
+	assert_true(f.batch_refusal(Recipes.R_CORDIAL).begins_with("the stores have no berries free; a batch takes 2 bowls of berries"),
+		"the cordial's berries")
 	assert_equal(f.refused_code, "NO_BERRIES", "its code")
 
 

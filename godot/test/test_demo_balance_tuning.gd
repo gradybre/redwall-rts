@@ -173,7 +173,7 @@ func test_a_drink_two_feasts_deep_is_warned_of_one_milli_unit_either_side() -> v
 	assert_equal(below.drink_stock_warning(Recipes.R_MEAD), "", "under two feasts' worth: no warning")
 	var at := _fishery_with(Catalog.ITEM_MEAD, Recipes.DRINK_STOCK_WARN_MILLI)
 	var words: String = at.drink_stock_warning(Recipes.R_MEAD)
-	assert_true(words.contains("already hold 6.0 U of mead, two feasts' worth (6.0 U)"), words)
+	assert_true(words.contains("already hold 6 jugs of mead, two feasts' worth (6 jugs)"), words)
 
 
 func test_every_drink_is_warned_of_and_nothing_else() -> void:
@@ -229,7 +229,8 @@ func test_a_second_batch_cannot_be_ordered_against_water_already_held() -> void:
 	fishery.stores.water_milli_u = 2 * Recipes.WATER_MILLI[Recipes.R_MEAD] - 1
 	var why: String = fishery.batch_refusal(Recipes.R_MEAD)
 	assert_equal(fishery.refused_code, "NO_WATER", "refused for water: %s" % why)
-	assert_true(why.contains("set aside for batches already ordered"), why)
+	assert_equal(why, "it needs 3 jugs of water in the butt, with 3 jugs of water set aside for batches already ordered",
+		"the water held, said")
 	fishery.stores.water_milli_u += 1
 	assert_equal(fishery.batch_refusal(Recipes.R_MEAD), "", "6 U in the butt: a second mead")
 

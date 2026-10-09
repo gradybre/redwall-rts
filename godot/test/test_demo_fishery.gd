@@ -318,11 +318,12 @@ func test_making_gear_spends_the_recipe_and_refuses_short() -> void:
 	var f: FisheryScript = rig.fishery
 	assert_equal(f.make_refusal(LockerScript.KIND_ICE_KIT), "", "an ice kit can be made")
 	f.locker.take_material(LockerScript.MAT_IRON, 2000)
-	assert_true(f.make_refusal(LockerScript.KIND_ICE_KIT).contains("iron"), "no iron: refused, naming it")
+	assert_equal(f.make_refusal(LockerScript.KIND_ICE_KIT), "it needs a bar of iron; the locker holds no iron (the village makes none)",
+		"no iron: refused, naming it")
 	assert_equal(f.refused_code, "NO_IRON", "its code")
 	assert_true(f.make_refusal(LockerScript.KIND_OUTFIT).contains("cloth"), "outfits are not made here")
 	_services.stores.wood_milli_u = 1000
-	assert_true(f.make_refusal(LockerScript.KIND_NET).contains("wood"), "no wood: refused")
+	assert_equal(f.make_refusal(LockerScript.KIND_NET), "it needs 2 logs; the stores hold a log", "short of wood: refused")
 
 
 func test_mend_takes_a_boat_too_worn_to_sail_before_worn_gear() -> void:
@@ -902,7 +903,8 @@ func test_the_mill_refuses_grain_the_kitchen_has_set_aside() -> void:
 	rig.pantry.add_into(13, 4000, 0, _read)
 	var take: int = rig.takes.new_take()
 	rig.takes.reserve_into(rig.pantry, take, FarmingScript.CROP_GRAIN, 2000, 0, _read)
-	assert_true(f.mill_refusal().contains("2.0 U of grain nobody has set aside"), "refused, saying why")
+	assert_true(f.mill_refusal().begins_with("the stores have 2 scoops of grain free"), "refused, saying why")
+	assert_true(f.mill_refusal().contains("; a batch takes 3 scoops of grain"), "and what a batch takes")
 	assert_equal(f.refused_code, "NO_GRAIN", "its code")
 
 
@@ -1022,3 +1024,27 @@ func test_the_work_board_lists_claims_and_cancels_fishery_jobs() -> void:
 	assert_equal(source.cancel(0), "", "called off")
 	assert_equal(f.tables.trip_count(), 0, "gone")
 	assert_true(f.fleet.is_free(0), "the boat free")
+
+
+func test_the_fishery_s_words_count_fish_one_a_unit() -> void:
+	"""Decision 1801 (slice 6), 1011 P3: a catch is counted in its species ("9 perch"), rounded down; the room it needs
+	rounded up ("10 perch"); a non-pantry catch is "fish"; REQ-SET-055's stock line says "about" the stock, its share
+	of the water's capacity, and the water's quota in fish a day."""
+	assert_equal(Text.catch_text(9600, 19), "9 perch", "a catch, down")
+	assert_equal(Text.catch_need(9600, 19), "10 perch", "its room, up")
+	assert_equal(Text.catch_text(1000, 16), "a trout", "one fish")
+	assert_equal(Text.catch_text(0, 16), "no trout", "none")
+	assert_equal(Text.catch_text(3000, Catalog.NO_ITEM), "3 fish", "not a pantry item: fish")
+	var p := Driver.Preview.new()
+	p.species_key = &"perch"
+	p.stock_milli = 720400
+	p.capacity_milli = 900000
+	p.quota_milli = 52500
+	p.remaining_quota_milli = 25500
+	assert_equal(Text.stock_line(p), "Stock: about 720 perch (80% of 900 perch) · quota 52 fish a day, 25 fish left",
+		"the stock and the quota")
+	p.stock_milli = 0
+	p.remaining_quota_milli = 0
+	p.restocking = true
+	assert_equal(Text.stock_line(p), "Stock: no perch (0% of 900 perch) · restocking · quota 52 fish a day, no fish left",
+		"none left")

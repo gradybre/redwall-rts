@@ -38,9 +38,9 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
 const CrewScript := preload("res://demo/tunnel/tunnel_crew.gd")
-const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
 const WorkIds := preload("res://demo/work/work_ids.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const PICK_M: float = 0.9
 const MOUTH_PICK_M: float = 1.2
@@ -58,7 +58,7 @@ const DONE_ALREADY: Array[String] = ["", "tunnel %d is already wide", "tunnel %d
 const NOTHING_TO_REPAIR: String = "tunnel %d needs no repair"
 const NO_MOLE: String = "nobody free who fits a bore can dig it"
 const NO_WORKER: String = "nobody who fits tunnel %d's bore is free"
-const SHORT: String = "the demo stores are short (need wood %s, stone %s)"
+const SHORT: String = "the demo stores are short (need %s)"
 const POSTED: String = "%s: %s is on the way to tunnel %d"
 ## THE DECISION's checks, and the codes an action card gives them.
 const REFUSED_BY_NONE: int = 0
@@ -353,7 +353,18 @@ func _cost_refusal(job: int) -> String:
 	jobs.cost_into(selected, job, _cost)
 	if _works.stores.can_pay(_cost[0], _cost[1]):
 		return ""
-	return SHORT % [StoresScript.units_text(_cost[0]), StoresScript.units_text(_cost[1])]
+	return SHORT % cost_words(_cost[0], _cost[1])
+
+
+static func cost_words(wood_milli: int, stone_milli: int) -> String:
+	"""A job's price in its measures, rounded up, naming only what it takes: "2 logs and 4 blocks of stone", "a log"
+	(goods_measures.gd; decision 1801)."""
+	var parts := PackedStringArray()
+	if wood_milli > 0:
+		parts.append(Measures.need(&"wood", wood_milli))
+	if stone_milli > 0 or parts.is_empty():
+		parts.append(Measures.need(&"stone", stone_milli))
+	return " and ".join(parts)
 
 
 func _choose_worker(job: int, selection: PackedInt32Array) -> bool:

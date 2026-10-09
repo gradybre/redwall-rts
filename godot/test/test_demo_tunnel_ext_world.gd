@@ -859,7 +859,7 @@ func test_orders_are_refused_with_their_reasons() -> void:
 	space.tunnels.reopen(0)
 	works.stores.wood_milli_u = 499
 	assert_false(actions.order(JobsScript.JOB_LANTERNS, PackedInt32Array()), "short")
-	assert_equal(works.log_lines[-1], "Can't: the demo stores are short (need wood 0.5 U, stone 0.0 U)", "said")
+	assert_equal(works.log_lines[-1], "Can't: the demo stores are short (need 2 quarter logs)", "said")
 
 
 func test_a_job_goes_to_the_selected_resident_else_the_nearest_free_one() -> void:
@@ -993,14 +993,14 @@ func test_a_dig_s_cost_is_told_through_its_ground() -> void:
 	0207), laid as a piece: an entrance ramp of RAMP_RUN_U (4096 u: its shaft and 4 quanta), a 0.45 m bore
 	(1) and an exit ramp of RAMP_RUN_U (4 and its shaft) -- 11 quanta, as the uniform rule's shaft + 9 +
 	shaft: two of loam, five of clay (147 ticks) and four of rock -- 1413 ticks, 47 s -- and
-	2 x 2000 + 5 x 2400 + 4 x 1200 = 20.8 U of spoil. (Fails while underground_graph.gd rounds the exit
+	2 x 2000 + 5 x 2400 + 4 x 1200 = 20.8 U of spoil, 10 baskets of earth (2 U each, rounded down). (Fails while underground_graph.gd rounds the exit
 	ramp's foot so the ramp is stored 4097 u long and cuts a fifth bore quantum: 12 m³, 23 U, 52 s.)"""
 	var tool := _tool(PackedInt32Array([0]))
 	tool.begin_plan()
 	assert_true(tool.lay_ground(Vector2(3.0, 2.8)), "entrance")
 	assert_true(tool.lay_ground(Vector2(9.6, -2.48)), "exit")
 	assert_true(tool.confirm(), "dug")
-	assert_equal(_notices[-1], "Digging a 8.5 m tunnel: 11 m³ to cut, 20 U of spoil, about 47 s", "told")
+	assert_equal(_notices[-1], "Digging a 8.5 m tunnel: 11 m³ to cut, 10 baskets of earth to heap, about 47 s", "told")
 
 
 func test_the_panel_shows_the_selected_tunnel_and_its_repair() -> void:
@@ -1894,7 +1894,7 @@ func test_a_cellar_s_racks_are_not_taken_out_below_its_food_from_the_panel() -> 
 	ext.select_room(ref[0])
 	ext.set_stored(func(_room_row: int) -> int: return 12)
 	assert_equal(ext.fit_action(&"fit:take:5", PackedInt32Array()), 7, "refused")
-	assert_equal(ext.works.log_lines[-1], "Can't: Root cellar %d holds 12 U of food: its racks cannot drop below that" % (ref[0] + 1),
+	assert_equal(ext.works.log_lines[-1], "Can't: Root cellar %d holds 2 baskets of food: its racks cannot drop below that" % (ref[0] + 1),
 		"said")
 
 

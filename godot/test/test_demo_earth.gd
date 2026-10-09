@@ -642,7 +642,7 @@ func test_the_village_wiring_keeps_cleared_earth_in_the_stores() -> void:
 			break
 	assert_equal(stores.earth_milli_u, 2000, "the exit heap's 2 U kept in the stores")
 	assert_equal(spoil.task_text(3), "", "done")
-	assert_true(DemoSpoilScript.SELECTED_TEXT.contains("U of earth"), "the heap is earth")
+	assert_true(DemoSpoilScript.SELECTED_TEXT.begins_with("Spoil heap: %s. "), "the heap's earth, in its measure")
 	assert_true(DemoSpoilScript.HAULING_TEXT == "Hauling earth to the stores", "and goes to the stores")
 	for node: Node in [spoil, command, camera]:
 		node.free()

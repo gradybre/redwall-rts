@@ -4,12 +4,14 @@ extends RefCounted
 ##
 ## A HOME: its comfort (room_fixtures.gd COMFORT) with its word, who sleeps in it and whether its hearth burns (a
 ## large bed, decision 0211, is a bed the palette offers beside the burrow bed, in the same alcoves). A
-## CELLAR: what it holds of its racks' capacity, and the cool rule's verdict with its spoilage. Then the palette, a
+## CELLAR: what it holds of its racks' capacity, in baskets of mixed food (a capacity carries no weight: decision 1011
+## P5, 1801), and the cool rule's verdict with its spoilage. Then the palette, a
 ## row a kind -- how many are in, how many are planned, of how many places, and the cost -- and the suggested layout
 ## with what it would cost now. `answer` is what a fit-out button said.
 
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const FixturesScript := preload("res://demo/burrow/room_fixtures.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const NO_STORE: String = "No store yet: give it a shelf, a rack, a bin or hanging stores"
 ## A fit-out button's action: "fit:add:<kind>", "fit:take:<kind>", "fit:suggest" (tunnel_panel.gd).
@@ -54,15 +56,20 @@ static func _home_body(graph: RefCounted, r: int, night: RefCounted) -> String:
 
 
 static func _cellar_body(graph: RefCounted, r: int, stored_u: int) -> String:
-	"""A cellar's store and the cool rule."""
+	"""A cellar's store and the cool rule: "Holds 4 baskets of food (up to 6 baskets)"."""
 	var fit: FixturesScript = graph.fit
 	var capacity := fit.capacity_u(graph, r)
 	if capacity <= 0:
 		return NO_STORE
 	var cool := fit.cool(graph, r)
 	var spoil := RoomsScript.CELLAR_SPOILAGE_PERMILLE if cool == FixturesScript.COOL_YES else RoomsScript.WARM_CELLAR_SPOILAGE_PERMILLE
-	return "Holds %d of %d U\n%s (food ages at %d per mille)" % [stored_u, capacity, _first_up(FixturesScript.COOL_WORDS[cool]),
-		spoil]
+	return "Holds %s (up to %s)\n%s (food ages at %d per mille)" % [food_words(stored_u), Measures.exact_cell(&"food",
+		capacity * Measures.MILLI_PER_U), _first_up(FixturesScript.COOL_WORDS[cool]), spoil]
+
+
+static func food_words(stored_u: int) -> String:
+	"""Whole U of a cellar's food in baskets of mixed food: "4 baskets of food", "no food"."""
+	return Measures.amount(&"food", stored_u * Measures.MILLI_PER_U)
 
 
 static func _first_up(text: String) -> String:
@@ -101,7 +108,7 @@ static func suggest_text(graph: RefCounted, r: int) -> String:
 	that the room is fitted out."""
 	var cost: Vector3i = graph.fit.missing_cost(graph, r)
 	if cost != Vector3i.ZERO:
-		return "Suggested layout (%s)" % FixturesScript.amounts_text(cost.x, cost.y, cost.z)
+		return "Suggested layout (%s)" % FixturesScript.cost_words(cost.x, cost.y, cost.z)
 	var fit: FixturesScript = graph.fit
 	for f in RoomsScript.fixture_count(graph.rooms.template[r]):
 		if fit.phase_of(graph, r, f) == FixturesScript.PLANNED:
@@ -142,12 +149,12 @@ static func _refusal_words(graph: RefCounted, r: int, parts: PackedStringArray, 
 		FixturesScript.REFUSE_SHORT:
 			var suggest := parts[1] == FIT_SUGGEST
 			var cost: Vector3i = graph.fit.missing_cost(graph, r)
-			var needs := FixturesScript.amounts_text(cost.x, cost.y, cost.z) if suggest else FixturesScript.cost_text(int(parts[2]))
+			var needs := FixturesScript.cost_words(cost.x, cost.y, cost.z) if suggest else FixturesScript.cost_text(int(parts[2]))
 			return ["the " + ("suggested layout" if suggest else kind_name), needs, stores.holdings_text()]
 		FixturesScript.REFUSE_NONE_TO_TAKE:
 			return [room, kind_name]
 		FixturesScript.REFUSE_HOLDS_FOOD:
-			return [room, int(stored.call(r)) if stored.is_valid() else 0]
+			return [room, food_words(int(stored.call(r)) if stored.is_valid() else 0)]
 		FixturesScript.REFUSE_NO_NOOK:
 			return [room, nook_words(graph.fit.nook_refused)]
 	return [room]

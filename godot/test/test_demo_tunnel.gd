@@ -1083,7 +1083,7 @@ func test_enter_digs_a_good_route_and_sends_the_digger() -> void:
 	assert_equal(digger.order, BrainScript.ORDER_DIG, "who is sent")
 	assert_equal(digger.dig_tunnel, 0, "to that tunnel")
 	assert_equal(marks[-1], [Vector3(-8.0, 0.0, 4.0), true], "an ember marker at the entrance")
-	assert_equal(notices[-1], "Digging a 17.9 m tunnel: 20 m³ to cut, 40 U of spoil, about 79 s", "what it costs (through the authored ground)")
+	assert_equal(notices[-1], "Digging a 17.9 m tunnel: 20 m³ to cut, 20 baskets of earth to heap, about 79 s", "what it costs (through the authored ground)")
 	assert_true(tool.network.heap_radius_m[0] > 0.0 and tool.network.heap_radius_m[1] > 0.0, "its heaps placed")
 	assert_equal(cast.space().obstacles.size(), 3, "and standing as obstacles beside the circle")
 

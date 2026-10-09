@@ -22,9 +22,6 @@ const UNITS: String = "(?i)\\b(a|per|each|every) unit\\b|(\\d|%[-+ #0-9.]*[dis])
 
 ## path -> the most findings the file may still hold (see ALLOWLIST).
 const ALLOWLIST: Dictionary = {
-	"res://demo/burrow/modular_demo_mode.gd": 1,
-	"res://demo/burrow/room_fixtures.gd": 1,
-	"res://demo/burrow/room_text.gd": 1,
 	"res://demo/farm/farm_crop_roles.gd": 1,
 	"res://demo/farm/farm_plan_rows.gd": 2,
 	"res://demo/farm/farm_season.gd": 1,
@@ -41,11 +38,7 @@ const ALLOWLIST: Dictionary = {
 	"res://demo/guide/field_guide.gd": 11,
 	"res://demo/guide/help_topics.gd": 1,
 	"res://demo/guide/practice_stories.gd": 8,
-	"res://demo/hall/hall_panel.gd": 2,
 	"res://demo/hives/hive_text.gd": 2,
-	"res://demo/infirmary/care_desk.gd": 2,
-	"res://demo/infirmary/care_tasks.gd": 2,
-	"res://demo/infirmary/care_text.gd": 4,
 	"res://demo/kitchen/kitchen.gd": 4,
 	"res://demo/kitchen/kitchen_tab.gd": 1,
 	"res://demo/kitchen/kitchen_text.gd": 1,
@@ -53,17 +46,10 @@ const ALLOWLIST: Dictionary = {
 	"res://demo/orchard/orchard_text.gd": 3,
 	"res://demo/preserve/preserve_text.gd": 3,
 	"res://demo/sound/sound_table.json": 1,
-	"res://demo/spoil/demo_spoil.gd": 1,
-	"res://demo/spoil/spoil_crew.gd": 1,
-	"res://demo/stores/cellar_bar.gd": 1,
-	"res://demo/stores/cellar_projects.gd": 1,
-	"res://demo/tunnel/dig_readout.gd": 2,
-	"res://demo/tunnel/tunnel_control.gd": 1,
 	"res://demo/tunnel/tunnel_stores.gd": 1,
 	"res://demo/ui/action_card.gd": 1,
 	"res://demo/waterplay/demo_waterplay.gd": 1,
 	"res://demo/waterplay/water_panel.gd": 2,
-	"res://demo/work/spoil_work.gd": 1,
 }
 
 var _patterns: Array[RegEx] = []

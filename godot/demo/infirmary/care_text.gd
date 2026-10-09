@@ -1,10 +1,12 @@
 extends RefCounted
 ## The infirmary's words: the resident card's lines, the news and incident lines, the infirmary section's lines.
 ## Decision 0622. Pure: everything is read from the arguments. Plain words (UI §7: the severity is said, never only
-## coloured), and the GDD's numbers as the player meets them -- health out of 100, herbs and cloth in U, care in WU.
+## coloured), and the GDD's numbers as the player meets them -- health out of 100, care in WU, herbs and cloth in their
+## natural measures (bunches of herbs, bolts and lengths of cloth: scripts/ui/goods_measures.gd; decision 1801).
 
 const Rules := preload("res://demo/infirmary/care_rules.gd")
 const Injury := preload("res://scripts/core/injury.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 @warning_ignore_start("integer_division")
 
@@ -85,8 +87,8 @@ static func short_word(hurt: bool, kind: int, health: int) -> String:
 static func hurt_notice(who: String, kind: int, severity: int, loss: int, cause: String) -> String:
 	"""The news line when someone is hurt."""
 	var lost := " and lost %d health" % loss if loss > 0 else ""
-	return "%s is hurt%s: %s%s. Needs treatment — herb 1 U and cloth 0.5 U, an hour's care at a bed" % [who,
-		"" if cause.is_empty() else " " + cause, injury_words(kind, severity), lost]
+	return "%s is hurt%s: %s%s. Needs treatment — %s, an hour's care at a bed" % [who,
+		"" if cause.is_empty() else " " + cause, injury_words(kind, severity), lost, treatment_words()]
 
 
 static func hurt_summary(who: String, kind: int) -> String:
@@ -97,19 +99,26 @@ static func hurt_summary(who: String, kind: int) -> String:
 static func treated_notice(healer: String, patient: String, kind: int, health: int) -> String:
 	"""The news line when a treatment is done."""
 	var rest := "" if health >= Rules.UP_HEALTH else "; resting until health %d" % Rules.UP_HEALTH
-	return "%s treated %s's %s (herb 1 U, cloth 0.5 U): health %d%s" % [healer, patient,
-		KIND_NOUNS[clampi(kind, 0, KIND_NOUNS.size() - 1)], health, rest]
+	return "%s treated %s's %s (%s): health %d%s" % [healer, patient,
+		KIND_NOUNS[clampi(kind, 0, KIND_NOUNS.size() - 1)], treatment_words(), health, rest]
+
+
+static func treatment_words() -> String:
+	"""What one treatment takes, from the rule (REQ-SET-173): "a bunch of herbs and a length of cloth"."""
+	return "%s and %s" % [Measures.exact(&"herb", Rules.CARE_HERB_MILLI), Measures.exact(&"cloth", Rules.CARE_CLOTH_MILLI)]
 
 
 static func supplies_line(herb_milli: int, cloth_milli: int) -> String:
-	"""The care supplies: "Herbs 11.0 U on the hall's shelf · cloth 23.5 U in the village stores" (the one cloth the
-	buildings draw on too; decision 0993)."""
-	return "Herbs %s U on the hall's shelf · cloth %s U in the village stores" % [units(herb_milli), units(cloth_milli)]
+	"""The care supplies: "Herbs on the hall's shelf: 11 bunches · cloth in the village stores: 2½ bolts" (the one cloth
+	the buildings draw on too; decision 0993)."""
+	return "Herbs on the hall's shelf: %s · cloth in the village stores: %s" % [Measures.amount_cell(&"herb", herb_milli),
+		Measures.amount_cell(&"cloth", cloth_milli)]
 
 
 static func patch_line(patch_milli: int, floor_milli: int) -> String:
-	"""The herb patch: "Herb patch 128.0 U (gathered down to 32.0 U)"."""
-	return "Herb patch by the south road: %s U (gathered down to %s U)" % [units(patch_milli), units(floor_milli)]
+	"""The herb patch: "Herb patch by the south road: 128 bunches (gathered down to 32 bunches)"."""
+	return "Herb patch by the south road: %s (gathered down to %s)" % [Measures.amount_cell(&"herb", patch_milli),
+		Measures.exact_cell(&"herb", floor_milli)]
 
 
 static func units(milli: int) -> String:

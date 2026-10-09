@@ -8,6 +8,7 @@ const WorldView := preload("res://demo/burrow/modular_world_view.gd")
 const Rig := preload("res://demo/camera/demo_camera.gd")
 const Look := preload("res://demo/world/world_look.gd")
 const Clock := preload("res://scripts/core/sim_clock.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const SURFACE_LAYER: int = 64
 const SECTION_LAYER: int = 128
 const MARKS_LAYER: int = 256
@@ -400,8 +401,10 @@ func _build_toolbar() -> void:
 
 
 func _refresh_toolbar() -> void:
-	"""Read the original economy and clock, never the legacy demonstration's private goods/calendar."""
-	_stock.text = "Settlement stores · Wood %d U · Stone %d U" % [EconomySystem.stock_units(&"wood"), EconomySystem.stock_units(&"stone")]
+	"""Read the original economy and clock, never the legacy demonstration's private goods/calendar. The stores in
+	their measures: "Settlement stores · 40 logs · 20 blocks of stone" (goods_measures.gd; decision 1801)."""
+	_stock.text = "Settlement stores · %s · %s" % [Measures.amount(&"wood", EconomySystem.stock_milli(&"wood")),
+		Measures.amount(&"stone", EconomySystem.stock_milli(&"stone"))]
 	_clock_words.text = "%s · %dx" % [GameManager.get_calendar_text(), GameManager.get_speed()]
 	_pause.text = "Resume" if GameManager.clock().has_pause_reason(Clock.PLAYER) else "Pause"
 	_pause.tooltip_text = "Player pause only. %s" % ", ".join(GameManager.get_pause_reason_names())

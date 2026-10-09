@@ -18,6 +18,7 @@ extends RefCounted
 const Rules := preload("res://demo/stores/cellar_rules.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const MAX_CELLARS: int = 2
 const NONE: int = -1
@@ -248,10 +249,12 @@ func cancel(c: int) -> String:
 
 
 func refund_text(c: int) -> String:
-	"""What a cancel would return now, in words ('returns 8.0 wood and 12.0 stone')."""
+	"""What a cancel would return now, in words ('returns 8 logs and 12 blocks of stone'; goods_measures.gd, decision
+	1801)."""
 	var begun: bool = work_usec[c] > 0
-	return "returns %s wood and %s stone%s" % [units_text(Rules.refund_milli(delivered[_cell(c, Rules.MAT_WOOD)], begun)),
-		units_text(Rules.refund_milli(delivered[_cell(c, Rules.MAT_STONE)], begun)), " (80%: the work has begun)" if begun else ""]
+	return "returns %s and %s%s" % [Measures.amount(&"wood", Rules.refund_milli(delivered[_cell(c, Rules.MAT_WOOD)], begun)),
+		Measures.amount(&"stone", Rules.refund_milli(delivered[_cell(c, Rules.MAT_STONE)], begun)),
+		" (80%: the work has begun)" if begun else ""]
 
 
 static func units_text(milli: int) -> String:
@@ -275,13 +278,20 @@ func percent(c: int) -> int:
 
 
 func status_text(c: int) -> String:
-	"""'Cellar 1: materials being fetched — wood 8.0 / 20.0, stone 12.0 / 60.0 (13%)', or '… built: holds 2000 U'."""
+	"""'Cellar 1: materials being fetched — wood 8 of 20 logs, stone 12 of 60 blocks (13%)', or '… built — holds 400
+	baskets of food' (a capacity: no weight, decision 1011 P5)."""
 	var label: String = Rules.LABEL % (c + 1)
 	if state[c] == STATE_DONE:
-		return "%s: built — holds %d U, food keeps as in a cool cellar" % [label, Rules.capacity_u()]
-	return "%s: %s — wood %s / %s, stone %s / %s (%d%%)" % [label, STATE_WORDS[state[c]],
-		units_text(delivered[_cell(c, Rules.MAT_WOOD)]), units_text(Rules.cost_milli(Rules.MAT_WOOD)),
-		units_text(delivered[_cell(c, Rules.MAT_STONE)]), units_text(Rules.cost_milli(Rules.MAT_STONE)), percent(c)]
+		return "%s: built — holds %s, food keeps as in a cool cellar" % [label, capacity_words()]
+	return "%s: %s — wood %s, stone %s (%d%%)" % [label, STATE_WORDS[state[c]],
+		Measures.have_need(&"wood", delivered[_cell(c, Rules.MAT_WOOD)], Rules.cost_milli(Rules.MAT_WOOD)),
+		Measures.have_need(&"stone", delivered[_cell(c, Rules.MAT_STONE)], Rules.cost_milli(Rules.MAT_STONE)), percent(c)]
+
+
+static func capacity_words() -> String:
+	"""What a cellar building holds, in baskets of mixed food ("400 baskets of food"): cellar_rules.gd's capacity in
+	its own U (CAPACITY IN U, decision 0612), worded as a capacity, with no weight."""
+	return Measures.exact(&"food", Rules.capacity_u() * Measures.MILLI_PER_U)
 
 
 func door_of(c: int) -> Vector2:

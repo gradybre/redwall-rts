@@ -177,8 +177,11 @@ func test_cancel_after_work_began_returns_eighty_percent() -> void:
 	assert_equal(project.cancel(), ProjectsScript.REFUSE_NOT_PLANNED, "nothing planned")
 	project.plan_at(SITE, 0.0)
 	_deliver_all(project)
+	assert_true(project.status_text().begins_with("Infirmary: being built — wood 40 logs — enough, stone 30 blocks — enough, cloth 1½ bolts — enough"),
+		project.status_text())
 	project.add_work(1)
-	assert_true(project.refund_text().contains("(80%"), project.refund_text())
+	assert_equal(project.refund_text(), "returns 32 logs, 24 blocks of stone, a bolt of cloth (80%: the work has begun)",
+		"in measures")
 	project.cancel()
 	assert_equal([project.in_stock(Rules.MAT_WOOD), project.in_stock(Rules.MAT_STONE), project.in_stock(Rules.MAT_CLOTH)],
 		[32000, 24000, 9600], "80% back")
@@ -335,7 +338,8 @@ func test_the_tool_places_says_why_and_is_put_away() -> void:
 	tool.move_to(Vector2(0.0, 6.0))
 	assert_true(tool.place(), "placed")
 	assert_false(tool.armed, "put away")
-	assert_equal(said[0], "Infirmary planned: wood 40.0, stone 30.0 and cloth 12.0 to fetch, then 1000 WU of building", "said")
+	assert_equal(said[0], "Infirmary planned: 40 logs, 30 blocks of stone and 1½ bolts of cloth to fetch, then 1000 WU of building",
+		"said")
 	var esc := InputEventKey.new()
 	esc.keycode = KEY_ESCAPE
 	esc.pressed = true

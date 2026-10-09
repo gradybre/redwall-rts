@@ -99,9 +99,12 @@ func test_the_costs_are_the_table_s() -> void:
 	var words: Array[String] = []
 	for kind in RoomsScript.FIXTURE_KINDS:
 		words.append(FixturesScript.cost_text(kind))
-	assert_equal(words, ["2 planks", "6 stone", "2 planks", "2 planks", "1 wood", "2 planks", "2 planks", "1 wood", "1 wood",
-		"4 planks"] as Array[String], "bed, hearth, table, shelf, rug, rack, bin, hanging stores, lantern, large bed")
+	assert_equal(words, ["2 planks", "6 blocks of stone", "2 planks", "2 planks", "a log", "2 planks", "2 planks", "a log",
+		"a log", "4 planks"] as Array[String], "bed, hearth, table, shelf, rug, rack, bin, hanging stores, lantern, large bed")
 	assert_equal(FixturesScript.amounts_text(0, 0, 0), "nothing", "a free thing")
+	assert_equal(FixturesScript.cost_words(0, 0, 0), "nothing", "a free thing, in measures")
+	assert_equal(FixturesScript.cost_words(10000, 3000, 6000), "10 planks, 3 logs, 6 blocks of stone", "a layout's price")
+	assert_equal(FixturesScript.cost_words(0, 500, 0), "2 quarter logs", "below a log")
 
 
 # --- ordering: all or nothing, refused in words ---------------------------------------------------
@@ -165,10 +168,10 @@ func test_the_short_refusal_says_what_is_needed_and_held() -> void:
 	var stores := _stores(1, 2, 3)
 	var code := graph.fit.order(graph, r, RoomsScript.FIX_BED, stores)
 	assert_equal(RoomTextScript.answer(graph, r, PackedStringArray(["fit", "add", "0"]), code, stores, Callable()),
-		"Can't: the demo stores are short: the bed needs 2 planks (they hold 1 planks, 2 wood, 3 stone)", "in words")
+		"Can't: the demo stores are short: the bed needs 2 planks (they hold a plank, 2 logs, 3 blocks of stone)", "in words")
 	code = graph.fit.suggest(graph, r, stores)
 	assert_equal(RoomTextScript.answer(graph, r, PackedStringArray(["fit", "suggest"]), code, stores, Callable()),
-		"Can't: the demo stores are short: the suggested layout needs 10 planks, 3 wood, 6 stone (they hold 1 planks, 2 wood, 3 stone)",
+		"Can't: the demo stores are short: the suggested layout needs 10 planks, 3 logs, 6 blocks of stone (they hold a plank, 2 logs, 3 blocks of stone)",
 		"the layout's")
 
 
@@ -237,8 +240,11 @@ func test_a_cellar_keeps_racks_for_the_food_it_holds() -> void:
 	assert_equal(graph.fit.take_out(graph, r, RoomsScript.FIX_RACK, stores, 21), FixturesScript.REFUSE_HOLDS_FOOD, "the rack holds it")
 	assert_equal(graph.fit.capacity_u(graph, r), 50, "nothing taken")
 	assert_equal(RoomTextScript.answer(graph, r, PackedStringArray(["fit", "take", "5"]), FixturesScript.REFUSE_HOLDS_FOOD, stores,
-		func(_room_row: int) -> int: return 21), "Can't: Root cellar %d holds 21 U of food: its racks cannot drop below that" % (r + 1),
-		"in words")
+		func(_room_row: int) -> int: return 21), "Can't: Root cellar %d holds 4 baskets of food: its racks cannot drop below that" % (r + 1),
+		"in words: 21 U is 4 baskets of food, rounded down")
+	assert_true(RoomTextScript.body(graph, r, null, func(_room_row: int) -> int: return 21).begins_with(
+		"Holds 4 baskets of food (up to 10 baskets)\n"), "its store: 50 U of racks is 10 baskets, a capacity with no weight")
+	assert_true(RoomTextScript.body(graph, r, null, Callable()).begins_with("Holds no food (up to 10 baskets)\n"), "empty")
 	assert_equal(graph.fit.take_out(graph, r, RoomsScript.FIX_SHELF, stores, 30), FixturesScript.REFUSE_NONE, "the shelf may go")
 	assert_equal(graph.fit.take_out(graph, r, RoomsScript.FIX_RACK, stores, 30), FixturesScript.REFUSE_HOLDS_FOOD, "30 U: not below it")
 	assert_equal(graph.fit.take_out(graph, r, RoomsScript.FIX_RACK, stores, 0), FixturesScript.REFUSE_NONE, "empty, it may")
@@ -702,7 +708,7 @@ func test_the_palette_says_what_is_in_coming_and_can_be_done() -> void:
 	assert_equal([rows[0]["add"], rows[0]["take"]], [true, true], "add and take")
 	assert_equal([rows[1]["text"], rows[1]["add"], rows[1]["take"]], ["Large bed: 0 of 3 in · 4 planks", true, false],
 		"the large bed row: the same alcoves")
-	assert_equal([rows[2]["text"], rows[2]["add"], rows[2]["take"]], ["Hearth: 0 of 1 in · 6 stone", true, false], "the hearth row")
+	assert_equal([rows[2]["text"], rows[2]["add"], rows[2]["take"]], ["Hearth: 0 of 1 in · 6 blocks of stone", true, false], "the hearth row")
 	graph.fit.suggest(graph, r, _stores(20, 20, 20))
 	rows = RoomTextScript.palette_rows(graph, r)
 	assert_false(rows[0]["add"], "every bed place taken")

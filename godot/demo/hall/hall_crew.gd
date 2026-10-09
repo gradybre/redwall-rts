@@ -34,7 +34,7 @@ const PropsScript := preload("res://demo/props/demo_props.gd")
 const PlacesScript := preload("res://demo/kitchen/kitchen_places.gd")
 const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
-const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const WorkIds := preload("res://demo/work/work_ids.gd")
 
 const NOBODY: int = -1
@@ -468,7 +468,7 @@ func doing_text(row: int) -> String:
 		return words % project_noun(p)
 	var mat: String = Rules.MAT_NAMES[maxi(load_mat[row], 0)]
 	if step[row] == STEP_CARRY or step[row] == STEP_PUT_DOWN:
-		mat = "%s %s" % [StoresScript.units_text(load_milli[row]), mat]
+		mat = Measures.amount(StringName(mat), load_milli[row])
 	return words % mat
 
 

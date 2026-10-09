@@ -110,8 +110,10 @@ func refund(wood: int, stone: int, planks: int) -> void:
 
 
 func holdings_text() -> String:
-	"""What the stock holds, in whole units, for a refusal: "0 planks, 40 wood, 20 stone"."""
-	@warning_ignore("integer_division") return "%d planks, %d wood, %d stone" % [plank_milli_u / 1000, wood_milli_u / 1000, stone_milli_u / 1000]
+	"""What the stock holds, for a refusal: "no planks, 40 logs, 20 blocks of stone" (goods_measures.gd; decision
+	1801)."""
+	return "%s, %s, %s" % [Measures.amount(&"planks", plank_milli_u), Measures.amount(&"wood", wood_milli_u),
+		Measures.amount(&"stone", stone_milli_u)]
 
 
 func add_wood(milli_u: int) -> void:

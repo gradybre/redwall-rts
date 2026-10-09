@@ -17,6 +17,7 @@ extends RefCounted
 
 const Rules := preload("res://demo/infirmary/infirmary_rules.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const NONE: int = -1
 const STATE_NONE: int = 0
@@ -309,16 +310,18 @@ func percent() -> int:
 
 
 func refund_text() -> String:
-	"""What a cancel would return now, in words."""
+	"""What a cancel would return now, in words: "returns 8 logs, no stone, no cloth" (goods_measures.gd; decision
+	1801)."""
 	var begun: bool = work_usec > 0
 	var parts := PackedStringArray()
 	for mat: int in Rules.MAT_COUNT:
-		parts.append("%s %s" % [units_text(Rules.refund_milli(delivered[mat], begun)), Rules.MAT_WORDS[mat]])
+		parts.append(Measures.amount(StringName(Rules.MAT_KEYS[mat]), Rules.refund_milli(delivered[mat], begun)))
 	return "returns %s%s" % [", ".join(parts), " (80%: the work has begun)" if begun else ""]
 
 
 func status_text() -> String:
-	"""'Infirmary: materials being fetched — wood 8.0 / 40.0, stone 0.0 / 30.0, cloth 0.0 / 12.0 (5%)', or built."""
+	"""'Infirmary: materials being fetched — wood 8 of 40 logs, stone 0 of 30 blocks, cloth 0 of 1½ bolts (5%)', or
+	built."""
 	if state == STATE_NONE:
 		return "No infirmary yet: the hurt rest in their own beds or by the hall"
 	if state == STATE_DONE:
@@ -326,7 +329,8 @@ func status_text() -> String:
 			beds_free(), Rules.PATIENT_BEDS]
 	var parts := PackedStringArray()
 	for mat: int in Rules.MAT_COUNT:
-		parts.append("%s %s / %s" % [Rules.MAT_WORDS[mat], units_text(delivered[mat]), units_text(Rules.cost_milli(mat))])
+		parts.append("%s %s" % [Rules.MAT_WORDS[mat], Measures.have_need(StringName(Rules.MAT_KEYS[mat]), delivered[mat],
+			Rules.cost_milli(mat))])
 	return "%s: %s — %s (%d%%)" % [Rules.LABEL, STATE_WORDS[state], ", ".join(parts), percent()]
 
 

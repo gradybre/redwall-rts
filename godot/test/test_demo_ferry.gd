@@ -35,6 +35,8 @@ const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const RouterScript := preload("res://demo/tunnel/tunnel_router.gd")
+const BoatRowsScript := preload("res://demo/routes/boat_rows.gd")
+const IceScript := preload("res://demo/fishery/pond_ice.gd")
 const WorkIds := preload("res://demo/work/work_ids.gd")
 const FerryWork := preload("res://demo/work/ferry_work.gd")
 const TaskRecord := preload("res://demo/work/work_task.gd")
@@ -464,9 +466,9 @@ func test_a_closed_ferry_is_not_offered_and_a_waiting_passenger_goes_by_land() -
 	_helm(rig, 4, 2)
 	_stock_far(rig, 1000)
 	var near: Vector2 = rig.ferry.stage_land(FerryScript.NEAR)
-	assert_true(rig.ferry.offer_cost_m(2, near, false) < INF, "offered while open")
+	assert_true(_offered(rig, 2, near), "offered while open")
 	_storm(rig, true)
-	assert_equal(rig.ferry.offer_cost_m(2, near, false), INF, "not offered in a storm")
+	assert_false(_offered(rig, 2, near), "not offered in a storm")
 	_storm(rig, false)
 	assert_equal(rig.ferry.order_send(PackedInt32Array([4])), "", "sent")
 	var brain: BrainScript = rig.ferry.brain_of(2)
@@ -486,6 +488,97 @@ func test_a_closed_ferry_is_not_offered_and_a_waiting_passenger_goes_by_land() -
 	for code: int in brain.path_tunnel.slice(brain.path_index):
 		assert_false(RouterScript.is_crossing_code(code) and RouterScript.crossing_row(code) == CrossingsScript.FERRY_ROW,
 			"its new route does not take the ferry")
+
+
+func _offered(rig: Rig, walker: int, from: Vector2) -> bool:
+	"""Whether the ferry's boat row (decision 1821) lists a boarding for `walker` setting out from `from`."""
+	var rows := BoatRowsScript.new()
+	rows.clear_row(0)
+	rig.ferry.fill_boat_row(rows, 0, walker, from, false)
+	return rows.offered(0)
+
+
+func _filled(rig: Rig, walker: int) -> BoatRowsScript:
+	"""The ferry's boat row 0 filled for `walker` (at 800 mm/s)."""
+	var rows := BoatRowsScript.new()
+	rows.pace_mm_s = 800
+	rows.clear_row(0)
+	rig.ferry.fill_boat_row(rows, 0, walker, rig.ferry.stage_land(FerryScript.NEAR), false)
+	return rows
+
+
+static func _boardings(rows: BoatRowsScript, stage: int) -> PackedInt64Array:
+	"""Row 0's boardings at `stage`, in ticks from now."""
+	var at: int = stage * BoatRowsScript.MAX_BOARDINGS
+	return rows.boards.slice(at, at + rows.board_count[stage])
+
+
+func test_the_ferrys_boat_row_lists_the_timetable_from_each_stage_and_its_ride() -> void:
+	"""Decision 1821. At 09:00 with a helm: open between the stage's land ends; its ride is both decks at 600 mm/s (3379 u
+	+ 3404 u = 6624 mm: 332 ticks) and the row (10362 u at 819 u/s: 380 ticks); its longest wait 2 game hours. At the
+	ferry stage the boardings are the departures from 10:00 every two hours to 18:00, then 06:00 next day, eight in all
+	(the first is `wait_ticks`); at the far stage each one a row later."""
+	var rig: Rig = _rig(9)
+	_helm(rig, 4, 2)
+	assert_equal(rig.ferry.ride_ticks(), 332 + 380, "the ride")
+	var rows: BoatRowsScript = _filled(rig, 2)
+	assert_true(rows.offered(0), "offered")
+	assert_equal(rows.land_a[0], rig.ferry.stage_land(FerryScript.NEAR), "end a: the ferry stage")
+	assert_equal(rows.land_b[0], rig.ferry.stage_land(FerryScript.FAR), "end b: the far stage")
+	assert_equal(rows.ride_ticks[0], 712, "its ride")
+	assert_equal(rows.max_wait_ticks[0], Rules.MAX_WAIT_TICKS, "its longest wait")
+	var hour: int = SimClock.TICKS_PER_HOUR
+	var near: PackedInt64Array = _boardings(rows, FerryScript.NEAR)
+	assert_equal(near, PackedInt64Array([hour, 3 * hour, 5 * hour, 7 * hour, 9 * hour, 21 * hour, 23 * hour, 25 * hour]),
+		"10:00, 12:00, 14:00, 16:00, 18:00, then 06:00, 08:00, 10:00")
+	assert_equal(near[0], rig.ferry.wait_ticks(FerryScript.NEAR), "the first is the one in sight")
+	var far: PackedInt64Array = _boardings(rows, FerryScript.FAR)
+	assert_equal(far.size(), BoatRowsScript.MAX_BOARDINGS, "eight at the far stage")
+	for k: int in far.size():
+		assert_equal(far[k], near[k] + 380, "far boarding %d: a row after its departure" % k)
+
+
+func test_a_seat_booked_at_a_stage_offers_the_next_boarding_there() -> void:
+	"""One passenger a crossing: with resident 5 waiting at the ferry stage, resident 2 is offered the boarding after,
+	and the far stage's are unchanged; resident 5 itself still has its own."""
+	var rig: Rig = _rig(9)
+	_helm(rig, 4, 2)
+	var before: PackedInt64Array = _boardings(_filled(rig, 2), FerryScript.NEAR)
+	rig.ferry.begin_passenger(rig.ferry.brain_of(5), false)
+	var rows: BoatRowsScript = _filled(rig, 2)
+	assert_equal(_boardings(rows, FerryScript.NEAR)[0], before[1], "the next departure")
+	assert_equal(_boardings(rows, FerryScript.FAR).size(), BoatRowsScript.MAX_BOARDINGS, "the far stage's all offered")
+	assert_equal(_boardings(_filled(rig, 5), FerryScript.NEAR)[0], before[0], "its own seat")
+	rig.ferry.abandon_passenger(rig.ferry.brain_of(5))
+
+
+func test_unstaffed_iced_or_frozen_the_ferrys_row_is_not_offered() -> void:
+	"""No helm in the village; ice on the pond; a hard freeze: no boarding listed, so no row (REQ-SET-144; 0437)."""
+	var rig: Rig = _rig(9)
+	assert_false(_filled(rig, 2).offered(0), "unstaffed")
+	_helm(rig, 4, 2)
+	assert_true(_filled(rig, 2).offered(0), "staffed")
+	rig.ferry.ice.thickness_um = IceScript.FROZEN_UM
+	assert_false(_filled(rig, 2).offered(0), "ice on the pond")
+	rig.ferry.ice.thickness_um = 0
+	rig.weather.observe(0, 1, 12, -120, 0, WeatherCore.EVENT_HARD_FREEZE)
+	assert_false(_filled(rig, 2).offered(0), "a hard freeze")
+	assert_false(_filled(rig, -1).offered(0), "nobody")
+
+
+func test_the_wait_is_priced_from_when_the_walker_reaches_the_stage() -> void:
+	"""The fix of decision 1821. A walker 40 m from the ferry stage at 800 mm/s gets there 1500 ticks from now (two game
+	hours): the 10:00 boat (750 ticks) has gone, so it boards the 12:00 one (2250), a wait of 750, then rides. Priced
+	from now, as before 1821, it would have been the 10:00 boat."""
+	var rig: Rig = _rig(9)
+	_helm(rig, 4, 2)
+	var rows: BoatRowsScript = _filled(rig, 2)
+	var hour: int = SimClock.TICKS_PER_HOUR
+	assert_equal(BoatRowsScript.ticks_to_cover(40000, 800), 2 * hour, "40 m at 0.8 m/s")
+	assert_equal(rows.first_boarding(0, FerryScript.NEAR, 2 * hour), 3 * hour, "the 12:00 boat")
+	assert_equal(rows.far_mm(0, FerryScript.NEAR, 40000), BoatRowsScript.distance_in(3 * hour + 712, 800),
+		"off at the far stage: 12:00 plus the ride, as metres at its pace")
+	assert_equal(rows.far_mm(0, FerryScript.NEAR, 0), BoatRowsScript.distance_in(hour + 712, 800), "from the stage: 10:00")
 
 
 func test_a_held_crossing_whose_crew_cannot_reach_it_keeps_its_boat() -> void:

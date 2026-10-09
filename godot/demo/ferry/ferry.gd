@@ -1,4 +1,4 @@
-extends RefCounted
+extends "res://demo/boats/boat_service.gd"
 ## THE FERRY: one fixed two-landing cargo ferry from the ferry stage on the run to the far stage at the stream's mouth,
 ## with a staffed timetable, a departure threshold and weather closure; cargo first -- the far copse's windfall wood --
 ## and a passenger seat the router may choose. Decision 0437 (review ECO-041; water part B lane 3; Brendan's approval of
@@ -31,9 +31,11 @@ extends RefCounted
 ## crew needs a helm. A resident doing a job is driven by a thin task (ferry_task.gd), so the night, a meal call or an
 ## order takes it off cleanly -- except on a stage's deck or afloat (`water_hold`, MOVE-REQ-007).
 ##
-## PASSENGERS (the router's crossing row, water_crossings.gd FERRY_ROW). The ferry is offered to a trip that crosses the
-## water while it is open, staffed and boardable within MAX_WAIT_TICKS: its cost is the deck walks, the row and the
-## wait for the next boarding, as metres at the walker's pace. A passenger walks to the stage's land end, waits, boards
+## PASSENGERS (the router's crossing row: boat row 0, water_crossings.gd FERRY_ROW; decision 1821). The ferry is a boat
+## row's service (boat_service.gd): for each trip over the water it lists, at each stage, its next boardings with the
+## seat free (`fill_boat_row`: the one in sight now, then the timetable's) and its ride (both decks and the row), all in
+## integer ticks, nothing while closed or unstaffed; the router prices the wait from when the walker REACHES the stage,
+## at most MAX_WAIT_TICKS (it was priced from now, before 1821). A passenger walks to the stage's land end, waits, boards
 ## the second seat when the boat loads there, rides, and steps off at the other stage. Any refusal ends the leg where it
 ## stands -- closed, the wait too long, the seat taken, an order given meanwhile -- and it plans again by land.
 
@@ -56,6 +58,8 @@ const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const Yard := preload("res://demo/forestry/forest_yard.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
+const BoatRows := preload("res://demo/routes/boat_rows.gd")
+const WaterRules := preload("res://demo/water/water_rules.gd")
 
 const NONE: int = -1
 const MAX_JOBS: int = 12
@@ -66,6 +70,8 @@ const JOBS_FULL_WORDS: String = "the ferry's job list is full — a crossing wai
 ## step after the crew does (with nothing to load, the crew would otherwise push off the step it sat down, leaving the
 ## waiting passenger on the stage -- seen live).
 const BOARD_GRACE_STEPS: int = 30
+## The slowest walk a crew's walk to the stage is reckoned at (mm a second; the old 0.1 m/s floor).
+const MIN_WALK_MM_S: int = 100
 ## The two stages: the ferry stage on the village side (the boat's home) and the far stage.
 const NEAR: int = 0
 const FAR: int = 1
@@ -1277,8 +1283,8 @@ func wait_ticks(from: int) -> int:
 
 
 func _row_ticks() -> int:
-	"""Calendar ticks the ferry's row takes, one way."""
-	return _ticks_of(Rules.row_seconds(Routes.route_length_u(Routes.FERRY_BOAT)))
+	"""Calendar ticks the ferry's row takes, one way (rounded up)."""
+	return BoatRows.ticks_to_cover(Routes.route_length_u(Routes.FERRY_BOAT), FleetScript.ROW_SPEED_U_S)
 
 
 func _crew_walk_ticks() -> int:
@@ -1288,28 +1294,46 @@ func _crew_walk_ticks() -> int:
 	if who == NONE:
 		return maxi(next_departure - now_tick(), 0)
 	var brain: BrainScript = brain_of(who)
-	return _ticks_of(brain.position.distance_to(stage_land(NEAR)) / maxf(brain.walk_speed, 0.1))
+	var mm: int = roundi(brain.position.distance_to(stage_land(NEAR)) * float(BoatRows.MM_PER_M))
+	return BoatRows.ticks_to_cover(mm, maxi(roundi(brain.walk_speed * float(BoatRows.MM_PER_M)), MIN_WALK_MM_S))
 
 
-static func _ticks_of(seconds: float) -> int:
-	"""Calendar ticks `seconds` demo seconds take at 1x."""
-	return int(seconds * float(SimClock.TICKS_PER_HOUR) * 1000000.0 / float(CalendarScript.HOUR_USEC))
+func ride_ticks() -> int:
+	"""A passenger's ride, stage to stage, in calendar ticks: down one stage's deck and up the other's at
+	Rules.DECK_WALK_MM_S, and the row between them (each rounded up)."""
+	var decks_u: int = 0
+	for stage: int in 2:
+		var jetty: int = STAGE_JETTY[stage]
+		decks_u += Routes.leg_length_u(Routes.JETTY_LANDS_U[jetty], Routes.JETTY_ENDS_U[jetty])
+	@warning_ignore("integer_division") var decks_mm: int = decks_u * BoatRows.MM_PER_M / WaterRules.UNITS_PER_M
+	return BoatRows.ticks_to_cover(decks_mm, Rules.DECK_WALK_MM_S) + _row_ticks()
 
 
-func offer_cost_m(walker: int, from: Vector2, loaded: bool) -> float:
-	"""What the ferry costs `walker` setting out from `from` (carrying, when `loaded`), as metres at its pace (INF: not
-	offered): both decks walked, the row, and the wait for its next boarding at the stage nearer `from`."""
+func fill_boat_row(rows: BoatRows, r: int, walker: int, _from: Vector2, _loaded: bool) -> void:
+	"""The ferry's boat row for `walker` (see PASSENGERS): open between the two stages with its ride and its longest
+	wait, and at each stage its boardings with the seat free -- none while closed, unstaffed or held."""
 	if walker < 0 or walker >= p_state.size() or fleet == null:
-		return INF
-	var stage: int = NEAR if from.distance_to(stage_land(NEAR)) <= from.distance_to(stage_land(FAR)) else FAR
-	var wait: int = wait_ticks(stage)
-	if wait == NONE or wait > Rules.MAX_WAIT_TICKS or _booked(stage, walker):
-		return INF
-	var deck_m: float = 2.0 * Routes.jetty_land_m(STAGE_JETTY[NEAR]).distance_to(Routes.jetty_end_m(STAGE_JETTY[NEAR]))
-	var seconds: float = deck_m / Rules.DECK_WALK_M_S + Rules.row_seconds(Routes.route_length_u(Routes.FERRY_BOAT)) \
-		+ Rules.ticks_seconds(wait)
-	var brain: BrainScript = brain_of(walker)
-	return seconds * brain.walk_speed * (BrainScript.CARRY_WALK_FRACTION if loaded else 1.0)
+		return
+	rows.open_row(r, stage_land(NEAR), stage_land(FAR), ride_ticks(), Rules.MAX_WAIT_TICKS)
+	for stage: int in 2:
+		_list_boardings(rows, r, stage, walker)
+
+
+func _list_boardings(rows: BoatRows, r: int, stage: int, walker: int) -> void:
+	"""Stage `stage`'s boardings, in ticks from now: the one in sight (`wait_ticks`; skipped when another passenger has
+	booked its seat), then each later scheduled departure from home (the far stage a row later), MAX_BOARDINGS at most."""
+	var first: int = wait_ticks(stage)
+	if first == NONE:
+		return
+	if not _booked(stage, walker):
+		rows.add_boarding(r, stage, first)
+	var offset: int = _row_ticks() if stage == FAR else 0
+	var now: int = now_tick()
+	var depart: int = now + first - offset
+	while rows.board_count[r * 2 + stage] < BoatRows.MAX_BOARDINGS:
+		depart = Rules.departure_tick_at_or_after(depart + 1)
+		if not rows.add_boarding(r, stage, depart + offset - now):
+			return
 
 
 func _booked(stage: int, walker: int) -> bool:

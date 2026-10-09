@@ -27,6 +27,11 @@ extends RefCounted
 ## CROSSINGS (demo/waterplay/): a finished bridge, or a swimmer's link across the stream, offered as a pair
 ## of ends (`add_crossing`) at its own cost in metres-at-walk-speed; at most MAX_CROSSING_PAIRS a plan.
 ##
+## BOAT ROWS (decision 1821, demo/routes/boat_rows.gd). A boat crossing (`add_boat_crossing`: the ferry) has no fixed
+## cost: the boat runs to a timetable. When the search settles one of its landings, the edge to the other is priced from
+## that label -- the wait for the first boarding from when the walker gets there, then the ride (`_relax_boat`). A
+## timetable is FIFO, so the labels and the lazy surface bounds stay exact.
+##
 ## WEATHER, LANTERNS AND QUEUES (demo). Costs are compared as WALKING TIME in metres-at-walk-speed: a
 ## surface edge is its length times 1000 / `surface_permille` (the weather's), while a tunnel edge -- dry and
 ## sheltered -- is the network's walk (already over each bore's speed: a lit one is quicker). A surface leg
@@ -60,6 +65,7 @@ const MAX_NODES: int = FIRST_STOP + Rules.MAX_MOUTHS + 2 * MAX_CROSSING_PAIRS
 ## Cache keys: a stop's key times this plus the other's. A mouth's key is its row; a crossing end's
 ## MAX_MOUTHS + 2 x row + end.
 const MOUTH_KEY: int = 1 << 16
+const BoatRowsScript := preload("res://demo/routes/boat_rows.gd")
 const VIA_SURFACE: int = 0
 const VIA_TUNNEL: int = 1
 const VIA_CROSSING: int = 2
@@ -111,6 +117,9 @@ var _mouth: PackedInt32Array = PackedInt32Array()
 var _wait: PackedFloat32Array = PackedFloat32Array()
 var _partner: PackedInt32Array = PackedInt32Array()
 var _partner_cost: PackedFloat32Array = PackedFloat32Array()
+## Per stop: its boat row in `_boats` (-1: not a boat crossing's landing; see BOAT ROWS).
+var _boat: PackedInt32Array = PackedInt32Array()
+var _boats: BoatRowsScript = null
 var _count: int = 0
 var _graph: GraphScript = null
 var _class: int = PathsScript.CLASS_NONE
@@ -139,7 +148,7 @@ func _init() -> void:
 	"""Size every column for MAX_NODES once."""
 	for column: PackedVector2Array in [_node]:
 		column.resize(MAX_NODES)
-	for column: PackedInt32Array in [_key, _mouth, _partner, _prev, _crossed, _chain]:
+	for column: PackedInt32Array in [_key, _mouth, _partner, _prev, _crossed, _chain, _boat]:
 		column.resize(MAX_NODES)
 	for column: PackedFloat32Array in [_wait, _partner_cost, _dist]:
 		column.resize(MAX_NODES)
@@ -160,6 +169,7 @@ func clear_pairs() -> void:
 	_count = FIRST_STOP
 	_graph = null
 	_class = PathsScript.CLASS_NONE
+	_boats = null
 
 
 func use_paths(graph: GraphScript, fit_class: int) -> void:
@@ -177,6 +187,7 @@ func add_mouth(m: int, at: Vector2, wait_m: float) -> void:
 	_mouth[u] = m
 	_wait[u] = wait_m
 	_partner[u] = -1
+	_boat[u] = -1
 	_count += 1
 	mouth_count += 1
 
@@ -194,8 +205,22 @@ func add_crossing(row: int, end_a: Vector2, end_b: Vector2, cost_m: float) -> bo
 		_wait[u] = 0.0
 		_partner[u] = _count + 1 - end
 		_partner_cost[u] = cost_m
+		_boat[u] = -1
 	_count += 2
 	crossing_count += 1
+	return true
+
+
+func add_boat_crossing(row: int, boats: BoatRowsScript, r: int) -> bool:
+	"""Offer boat row `r` of `boats` as crossing `row` between its landings, priced from the timetable as the search
+	reaches each landing (see BOAT ROWS). False (nothing offered) as `add_crossing`, or when `r` is not open."""
+	if boats == null or r < 0 or r >= BoatRowsScript.MAX_ROWS or boats.open[r] == 0:
+		return false
+	if not add_crossing(row, boats.land_a[r], boats.land_b[r], 0.0):
+		return false
+	_boat[_count - 2] = r
+	_boat[_count - 1] = r
+	_boats = boats
 	return true
 
 
@@ -366,7 +391,19 @@ func _relax_all(u: int) -> void:
 			_relax(u, v, _tunnel_cost[u * MAX_NODES + v], VIA_TUNNEL)
 	var partner := _partner[u] if u >= FIRST_STOP else -1
 	if partner >= 0 and _done[partner] == 0:
-		_relax(u, partner, _partner_cost[u], VIA_CROSSING)
+		if _boat[u] >= 0:
+			_relax_boat(u, partner)
+		else:
+			_relax(u, partner, _partner_cost[u], VIA_CROSSING)
+
+
+func _relax_boat(u: int, partner: int) -> void:
+	"""Relax a boat crossing from landing u, settled now, to its partner: the far landing's label in integer millimetres
+	at the walker's pace from the timetable (boat_rows.gd WAITING FOR THE BOAT); no edge when it cannot board in time."""
+	var at_mm: int = ceili(_dist[u] * float(BoatRowsScript.MM_PER_M))
+	var far: int = _boats.far_mm(_boat[u], (_key[u] - Rules.MAX_MOUTHS) % 2, at_mm)
+	if far != BoatRowsScript.NONE:
+		_relax_to(u, partner, float(far) / float(BoatRowsScript.MM_PER_M), VIA_CROSSING)
 
 
 func _settle_nearest() -> bool:
@@ -389,7 +426,11 @@ func _comes_before(u: int, v: int) -> bool:
 
 func _relax(u: int, v: int, cost: float, via: int) -> void:
 	"""Route v through u when that is strictly shorter -- or exactly as short through fewer tunnels."""
-	var total := _dist[u] + cost
+	_relax_to(u, v, _dist[u] + cost, via)
+
+
+func _relax_to(u: int, v: int, total: float, via: int) -> void:
+	"""Route v through u at label `total` when that is strictly shorter -- or exactly as short through fewer tunnels."""
 	var crossed := _crossed[u] + (0 if via == VIA_SURFACE else 1)
 	if total < _dist[v] or (total == _dist[v] and crossed < _crossed[v]):
 		_dist[v] = total

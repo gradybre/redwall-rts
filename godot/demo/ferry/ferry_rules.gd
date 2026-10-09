@@ -63,8 +63,10 @@ const FAR_STACK_AT: Vector2 = Vector2(34.6, 20.2)
 ## Where a passenger waits by a stage, inland of its land end (m, before snapping).
 const NEAR_WAIT_AT: Vector2 = Vector2(22.3, 15.9)
 const FAR_WAIT_AT: Vector2 = Vector2(35.0, 21.6)
-## Walking a stage's deck (m/s; the fishery's DECK_WALK_M_S: a careful walk).
-const DECK_WALK_M_S: float = 0.6
+## Walking a stage's deck (the fishery's DECK_WALK_M_S, 0.6 m/s: a careful walk), in mm a second for the boat row's
+## ride (decision 1821) and in m/s for the walk drawn.
+const DECK_WALK_MM_S: int = 600
+const DECK_WALK_M_S: float = DECK_WALK_MM_S * 0.001
 ## A passenger is offered the ferry only when its wait for a boarding is at most this (game hours, as ticks): a longer
 ## wait is no crossing to plan for (the router plans round by land instead).
 const MAX_WAIT_HOURS: int = 2
@@ -133,11 +135,6 @@ static func gather_mwu(milli: int) -> int:
 static func row_seconds(length_u: int) -> float:
 	"""Demo seconds the ferry boat takes to row `length_u` (boat_fleet.gd ROW_SPEED_U_S, at its ordinary pace)."""
 	return float(length_u) / float(FleetScript.ROW_SPEED_U_S)
-
-
-static func ticks_seconds(ticks: int) -> float:
-	"""Demo seconds `ticks` calendar ticks take at 1x."""
-	return float(CalendarScript.usec_for_ticks(ticks)) / 1000000.0
 
 
 static func units_text(milli: int) -> String:

@@ -137,6 +137,12 @@ Every row was checked against the record named.
 | 1742's questions (F10, R5) and #240 | F10 **(c) leave it**: rations may be eaten any time. R5 **add the controls**: a field to set the reserve's target and a Release button for emergencies, per UI-SET-099 and §5.10 (built in the Water panel's Preserves section). **Merge #240 after that, the extra missed meals included**; R1–R4 accepted as built, provisional. The REQ-SET-117 amendment stays a proposal. (Relayed by the coordinator) | 1742; `docs/balance/2026-10-07-year-matrix-rerun.md` |
 | Measures phase 2 (MEAS-2) timing | MEAS-2 (natural measures in place of "U", DEC-049 and 1011) runs **after the digging revamp lands**, as one pass over the demo, the tunnel and burrow stores and the settlement UI. Until then new lanes may keep using the existing U helpers. (Relayed by the coordinator) | `docs/handoff/BACKLOG.md` MEAS-2; DEC-049; 1011 |
 
+## 2026-10-09
+
+| Topic | Ruling | Recorded in |
+|---|---|---|
+| Boat crossing rows (1821's P1–P5, PR #242) | All five approved as recommended: P1 (a) boat rows 1–7 unused until needed, river trade's boats only once trade is scoped; P2 (a) fishing boats stay task-driven, never crossing rows; P3 (a) no margin at the landing; P4 (a) Q-D17 (river trade) still held, not asked; P5 (a) the ferry keeps skipping a departure due while a crossing is out. The ferry's wait priced from the walker's arrival stands as a fix inside the approved ferry. (Relayed by the coordinator) | 1821 |
+
 ## Standing rules (not dated rulings)
 
 - **Windows builds only when Brendan asks** (his standing instruction; README §3.10).

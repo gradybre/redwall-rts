@@ -1,7 +1,7 @@
 {
  "root": "assets/library/ (gitignored; binaries are local only)",
- "count": 1750,
- "total_bytes": 21860919340,
+ "count": 1752,
+ "total_bytes": 21862976746,
  "files": [
   {
    "family": "building",
@@ -15688,6 +15688,24 @@
    "path": "assets/library/icon/sheet_flax_linen_wax/sheet.png",
    "bytes": 952944,
    "sha256": "d916a5780359a6e1fdb3c2e3c39823178597c47a66d391650ac9826e8de6b73a"
+  },
+  {
+   "family": "icon",
+   "key": "sheet_dishes_feasts_breakfasts",
+   "stage": "concept",
+   "task_id": "01a121b3-a6d1-736d-a23c-8d5b0b8008c4",
+   "path": "assets/library/icon/sheet_dishes_feasts_breakfasts/sheet.png",
+   "bytes": 1080856,
+   "sha256": "d13e16260892e1a461a73a0af29d94721287d7e69f704ac6ebf716548b79e221"
+  },
+  {
+   "family": "icon",
+   "key": "sheet_dishes_suppers",
+   "stage": "concept",
+   "task_id": "01a121b4-1c00-7232-9bb7-94c58cdd265e",
+   "path": "assets/library/icon/sheet_dishes_suppers/sheet.png",
+   "bytes": 976550,
+   "sha256": "8137ef4a1298b676a39fa33bfadb6c69a6765cb948a6062c964a9aa1520f684d"
   }
  ]
 }

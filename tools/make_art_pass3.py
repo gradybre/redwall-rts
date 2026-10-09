@@ -23,8 +23,9 @@ The keys, sizes and the code each file serves are in docs/art-reference/art_pass
 	python3 tools/make_art_pass3.py --check-ice     # water_iced.gdshader is still water.gdshader plus its ICE lines
 	python3 tools/make_art_pass3.py --icons         # cut every icon sheet (no Blender; needs Pillow)
 
-ICONS (Brendan's ruling, 2026-10-02: item and dish icons stay in the 3D-render style of the pantry icons). One
-nano-banana-2 3x3 sheet conditioned on pass 1's sheet_foods_a, cut here exactly as pass 1 cut its sheets
+ICONS (Brendan's ruling, 2026-10-02: item and dish icons stay in the 3D-render style of the pantry icons). Each sheet
+is one nano-banana-2 3x3 sheet conditioned on pass 1's sheet_foods_a (pass 3's nine, 0972's flax, linen and wax, and
+1831's eleven dishes), cut here exactly as pass 1 cut its sheets
 (make_demo_food_art.py, decision 0941, on art/new-foods; the cutter is repeated here so this branch stands alone):
 the cell's border-connected background flood-filled out, the edge softened, the subject centred in a transparent
 ICON_PX square with ICON_MARGIN_PX each side on its longest axis. Written to godot/demo/assets/icons/<key>.png, with
@@ -251,6 +252,12 @@ EDGE_SOFT = 22.0
 ICON_SHEET = "icon/sheet_preserves_finds/sheet.png"
 ## The flax, linen and beeswax sheet (decision 0972): a row per good, the main form first and two alternates after.
 FLAX_SHEET = "icon/sheet_flax_linen_wax/sheet.png"
+## The eleven dishes that had no icon (decision 1831): the feasts' four courses and two breakfasts on one sheet, five
+## suppers on the other. Their spare cells hold empty vessels, which are not dishes and are not cut.
+DISH_SHEET_FEASTS = "icon/sheet_dishes_feasts_breakfasts/sheet.png"
+DISH_SHEET_SUPPERS = "icon/sheet_dishes_suppers/sheet.png"
+## The decision that made each sheet; a sheet not named here is art pass 3's own (0971).
+SHEET_DECISIONS = {FLAX_SHEET: "0972", DISH_SHEET_FEASTS: "1831", DISH_SHEET_SUPPERS: "1831"}
 ## icon key: (sheet, column, row). The keys are proposed; the features that use them name the final ones.
 ICONS = {
 	"item_jam": (ICON_SHEET, 0, 0), "item_pickles": (ICON_SHEET, 1, 0), "item_dried_fruit": (ICON_SHEET, 2, 0),
@@ -259,6 +266,12 @@ ICONS = {
 	"item_flax": (FLAX_SHEET, 0, 0), "item_flax_fibre": (FLAX_SHEET, 1, 0), "item_flax_seed": (FLAX_SHEET, 2, 0),
 	"item_linen": (FLAX_SHEET, 0, 1), "item_linen_bolt": (FLAX_SHEET, 1, 1), "item_linen_thread": (FLAX_SHEET, 2, 1),
 	"item_wax": (FLAX_SHEET, 0, 2), "item_wax_candles": (FLAX_SHEET, 1, 2), "item_wax_comb": (FLAX_SHEET, 2, 2),
+	"dish_feast_fish": (DISH_SHEET_FEASTS, 0, 0), "dish_berry_tart": (DISH_SHEET_FEASTS, 1, 0),
+	"dish_nut_roast": (DISH_SHEET_FEASTS, 2, 0), "dish_orchard_crumble": (DISH_SHEET_FEASTS, 0, 1),
+	"dish_porridge": (DISH_SHEET_FEASTS, 1, 1), "dish_barleymeal": (DISH_SHEET_FEASTS, 2, 1),
+	"dish_soup": (DISH_SHEET_SUPPERS, 0, 0), "dish_beetroot_soup": (DISH_SHEET_SUPPERS, 1, 0),
+	"dish_vole_stew": (DISH_SHEET_SUPPERS, 2, 0), "dish_fish_stew": (DISH_SHEET_SUPPERS, 0, 1),
+	"dish_poached_dace": (DISH_SHEET_SUPPERS, 1, 1),
 }
 
 
@@ -312,21 +325,39 @@ def fit_icon(cut):
 	return icon
 
 
+def decision_of(sheet_path: str) -> str:
+	"""The decision that made `sheet_path` (art pass 3's own, 0971, unless SHEET_DECISIONS names another)."""
+	return SHEET_DECISIONS.get(sheet_path, "0971")
+
+
+def cuttable_keys(lib: pathlib.Path) -> list[str]:
+	"""The ICONS keys whose sheet is in `lib` (a library mirror may lack a later sheet: its keys are skipped)."""
+	return [key for key, (sheet_path, _, _) in ICONS.items() if (lib / sheet_path).is_file()]
+
+
 def make_icons(lib: pathlib.Path) -> int:
-	"""Cut every icon of every sheet in ICONS into OUT/icons/; write their rows to OUT/art_pass3_icons.json."""
+	"""Cut every icon whose sheet is in the library into OUT/icons/; write their rows to OUT/art_pass3_icons.json.
+	A key whose sheet is missing is named and skipped (its panel keeps its stand-in); 1, and the record left as it was,
+	when nothing could be cut."""
 	from PIL import Image
 	sheets = {}
 	(OUT / "icons").mkdir(parents=True, exist_ok=True)
 	rows = {}
+	cuttable = cuttable_keys(lib)
 	for key, (sheet_path, column, row) in ICONS.items():
+		if key not in cuttable:
+			print(f"  {key:20} skipped: {sheet_path} is not in {lib}", flush=True)
+			continue
 		if sheet_path not in sheets:
 			sheets[sheet_path] = Image.open(lib / sheet_path)
 		target = OUT / "icons" / f"{key}.png"
 		fit_icon(cut_cell(sheets[sheet_path], column, row)).save(target)
 		rows[key] = {"icon": f"{RES}/icons/{key}.png", "px": ICON_PX, "sheet": sheet_path, "cell": [column, row],
 			"sheet_sha256": sha256(lib / sheet_path), "sha256": sha256(target), "tool": "tools/make_art_pass3.py",
-			"decision": "0972" if sheet_path == FLAX_SHEET else "0971"}
-		print(f"  {key:18} {sheet_path} {column},{row}", flush=True)
+			"decision": decision_of(sheet_path)}
+		print(f"  {key:20} {sheet_path} {column},{row}", flush=True)
+	if not rows:
+		return 1
 	(OUT / "art_pass3_icons.json").write_text(json.dumps(rows, indent=1, sort_keys=True) + "\n")
 	return 0
 

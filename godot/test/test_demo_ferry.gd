@@ -570,6 +570,52 @@ func test_a_crossing_under_way_comes_for_whoever_waits_and_takes_no_departure_wh
 	assert_true(near[1] >= far[0] + 380, "the next departure from home no sooner than it is home again (%d)" % near[1])
 
 
+func _underway(rig: Rig, stage: int, state: int, phase: int, progress_u: int) -> void:
+	"""Put a crossing under way (serial 7) at `stage` in `state`, its boat in fleet `phase` at `progress_u`."""
+	rig.ferry.x_serial = 7
+	rig.ferry.x_stage = stage
+	rig.ferry.x_state = state
+	rig.fishery.fleet.phase[Routes.FERRY_BOAT] = phase
+	rig.fishery.fleet.progress_u[Routes.FERRY_BOAT] = progress_u
+
+
+func test_loading_at_home_lists_this_crossing_and_no_departure_due_while_it_is_out() -> void:
+	"""The re-review's finding (decision 1821). At 09:00, loading at home: it boards at home now and at the far stage a
+	row on (380), ready by those. It is home again no sooner than two rows on (760), after the 10:00 departure (750),
+	which is therefore not posted: the next listed is 12:00 (2250; the far stage 2630), ready by its departure."""
+	var rig: Rig = _rig(9)
+	_helm(rig, 4, 2)
+	_underway(rig, FerryScript.NEAR, FerryScript.X_LOADING, FleetScript.PHASE_MOORED, 0)
+	var hour: int = SimClock.TICKS_PER_HOUR
+	var rows: BoatRowsScript = _filled(rig, 2)
+	assert_equal(_boardings(rows, FerryScript.NEAR).slice(0, 2), PackedInt64Array([0, 3 * hour]), "home: now, then 12:00")
+	assert_equal(_boardings(rows, FerryScript.FAR).slice(0, 2), PackedInt64Array([380, 3 * hour + 380]), "far")
+	assert_equal(_boardings(rows, FerryScript.FAR, true).slice(0, 2), PackedInt64Array([380, 3 * hour]), "far: ready by")
+	assert_equal(rig.ferry.wait_ticks(FerryScript.FAR), 380, "a passenger at the far stage: this crossing")
+	_underway(rig, FerryScript.NEAR, FerryScript.X_NONE, FleetScript.PHASE_MOORED, 0)
+	rig.ferry.x_serial = 0
+
+
+func test_rowing_home_lists_nothing_of_this_crossing_and_no_departure_before_it_is_home() -> void:
+	"""At 09:40, rowing home with its whole row (380) still to go: it loads nowhere again, and the 10:00 departure (250
+	ticks off) falls while it is out, so both stages' first boarding is the 12:00 crossing (1750; the far stage 2130)."""
+	var rig: Rig = _rig(9)
+	_helm(rig, 4, 2)
+	rig.calendar.tick += 500
+	var fleet: FleetScript = rig.fishery.fleet
+	_underway(rig, FerryScript.NEAR, FerryScript.X_ROWING, FleetScript.PHASE_BACK, fleet.course_len_u[Routes.FERRY_BOAT])
+	var rows: BoatRowsScript = _filled(rig, 2)
+	assert_equal(_boardings(rows, FerryScript.NEAR)[0], 1750, "home: 12:00")
+	assert_equal(_boardings(rows, FerryScript.FAR)[0], 2130, "far: 12:00 plus the row")
+	assert_equal(_boardings(rows, FerryScript.FAR, true)[0], 1750, "ready by 12:00")
+	assert_equal(rig.ferry.wait_ticks(FerryScript.NEAR), 1750, "a passenger at home waits for 12:00")
+	@warning_ignore("integer_division") var half_u: int = fleet.course_len_u[Routes.FERRY_BOAT] / 2
+	_underway(rig, FerryScript.FAR, FerryScript.X_ROWING, FleetScript.PHASE_OUT, half_u)
+	assert_equal(rig.ferry.wait_ticks(FerryScript.FAR), 190, "rowing out, halfway: the far stage in half a row")
+	_underway(rig, FerryScript.NEAR, FerryScript.X_NONE, FleetScript.PHASE_MOORED, 0)
+	rig.ferry.x_serial = 0
+
+
 func test_rowing_home_the_boat_boards_nobody_at_home() -> void:
 	"""At home a crossing loads only setting out: loading there, a passenger boards now; rowing home (it only unloads
 	there), the wait at home is the next departure, not the row; rowing out to the far stage, the far stage waits a

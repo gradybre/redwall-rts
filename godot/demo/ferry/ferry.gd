@@ -1268,11 +1268,15 @@ func seat_free() -> bool:
 
 func wait_ticks(from: int) -> int:
 	"""Calendar ticks a passenger at stage `from` waits to board (NONE: no boarding in sight -- closed, unstaffed, or the
-	boat held): a crossing posted and waiting for its crew, the crew's walk to the ferry stage (plus the row out, for the
-	far stage); at once where this crossing's boat loads (the far stage: or is rowing to, its row; at home it loads only
-	setting out -- rowing home it only unloads); else its next call there -- the next scheduled departure from home, plus
-	its row out for the far stage."""
-	return _wait_when_boardable(from) if boardable() else NONE
+	boat held): the crossing under way where it will still load there (`_underway_board`), else the first scheduled
+	departure it can take once home again (`_first_departure`), plus the row out for the far stage."""
+	if not boardable():
+		return NONE
+	var under: int = _underway_board(from)
+	if under != NONE:
+		return under
+	var now: int = now_tick()
+	return _first_departure(now) - now + (_row_ticks() if from == FAR else 0)
 
 
 func boardable() -> bool:
@@ -1280,18 +1284,58 @@ func boardable() -> bool:
 	return is_open() and staffed() and x_state != X_HELD
 
 
-func _wait_when_boardable(from: int) -> int:
-	"""`wait_ticks` once `boardable` holds."""
-	if x_serial != 0 and x_state == X_WAITING:
-		return _crew_walk_ticks() + (_row_ticks() if from == FAR else 0)
-	if x_serial != 0 and x_stage == from and (from == FAR or x_state == X_LOADING):
-		return _row_ticks() if x_state == X_ROWING else 0
-	var depart: int = maxi(next_departure - now_tick(), 0)
-	if x_serial != 0:
-		depart = maxi(depart, _row_ticks())
-	if from == FAR:
-		depart += _row_ticks()
-	return depart
+func _underway_board(stage: int) -> int:
+	"""When the crossing under way loads at `stage`, in ticks from now (NONE: none under way, or it will not load there
+	again). Posted for its crew: the crew's walk to the ferry stage (and the row out to the far stage). Loading at home:
+	now (the far stage: a row on). Rowing out: the far stage when it gets there. At the far stage: now, there. Homeward
+	-- rowing home, unloading or stepping off at home -- it loads nowhere: at home a crossing loads only setting out."""
+	if x_serial == 0:
+		return NONE
+	var row_out: int = _row_ticks() if stage == FAR else 0
+	match x_state:
+		X_WAITING:
+			return _crew_walk_ticks() + row_out
+		X_LOADING, X_UNLOADING:
+			if x_stage == NEAR:
+				return row_out if x_state == X_LOADING else NONE
+			return 0 if stage == FAR else NONE
+		X_ROWING:
+			return _row_left_ticks() if x_stage == FAR and stage == FAR else NONE
+	return NONE
+
+
+func _home_again(now: int) -> int:
+	"""The earliest tick the crossing under way can be home to take a scheduled departure (none under way: `now`): the
+	rest of its round trip -- the crew's walk, the rows still to row. A departure due while it is out is not posted
+	(`_follow_timetable`). A lower bound: loading and unloading take a little longer still."""
+	if x_serial == 0:
+		return now
+	var row: int = _row_ticks()
+	match x_state:
+		X_WAITING:
+			return now + _crew_walk_ticks() + 2 * row
+		X_LOADING, X_UNLOADING:
+			if x_stage == NEAR:
+				return now + (2 * row if x_state == X_LOADING else 0)
+			return now + row
+		X_ROWING:
+			return now + _row_left_ticks() + (row if x_stage == FAR else 0)
+	return now
+
+
+func _first_departure(now: int) -> int:
+	"""The first scheduled departure from home the ferry can take: the timetable's next, and none before the crossing under
+	way is home again."""
+	var home: int = _home_again(now)
+	return next_departure if home <= now else maxi(next_departure, Rules.departure_tick_at_or_after(home))
+
+
+func _row_left_ticks() -> int:
+	"""Calendar ticks left of the ferry boat's row under way (out: to the far stage; back: to its berth)."""
+	var boat: int = Routes.FERRY_BOAT
+	var left: int = fleet.progress_u[boat] if fleet.phase[boat] == FleetScript.PHASE_BACK \
+		else fleet.course_len_u[boat] - fleet.progress_u[boat]
+	return BoatRows.ticks_to_cover(left, FleetScript.ROW_SPEED_U_S)
 
 
 func _row_ticks() -> int:
@@ -1337,26 +1381,24 @@ func fill_boat_row(rows: BoatRows, r: int, walker: int, _from: Vector2, _carryin
 
 
 func _list_boardings(rows: BoatRows, r: int, stage: int, walker: int) -> void:
-	"""Stage `stage`'s boardings, in ticks from now (see boat_rows.gd A ROW): the one in sight (`wait_ticks`; skipped
-	when another passenger has booked its seat), then each later scheduled departure from home (the far stage a row
-	later, and none due before the crossing under way is home again), MAX_BOARDINGS at most. A crossing under way comes
-	whenever the walker gets there (ready by its boarding); a scheduled one is posted only for a passenger already waiting
-	when it leaves home (ready by its departure)."""
-	var first: int = _wait_when_boardable(stage)
-	var offset: int = _row_ticks() if stage == FAR else 0
+	"""Stage `stage`'s boardings, in ticks from now (see boat_rows.gd A ROW), MAX_BOARDINGS at most: the crossing under
+	way, if it will load there (ready by its boarding: it comes whatever), then each scheduled departure from the first it
+	can take (`_first_departure`; the far stage a row later), ready by the departure -- one is posted only for a passenger
+	already waiting when it leaves home. The next boarding is skipped when another passenger has booked its seat."""
 	var now: int = now_tick()
-	if not _booked(stage, walker):
-		rows.add_boarding(r, stage, first if x_serial != 0 else maxi(first - offset, 0), first)
-	var depart: int = maxi(now + first - offset, _home_again(now) - 1)
-	for k: int in BoatRows.MAX_BOARDINGS * 2:
+	var skip: bool = _booked(stage, walker)
+	var under: int = _underway_board(stage)
+	if under != NONE:
+		if not skip:
+			rows.add_boarding(r, stage, under, under)
+		skip = false
+	var offset: int = _row_ticks() if stage == FAR else 0
+	var depart: int = _first_departure(now)
+	for k: int in BoatRows.MAX_BOARDINGS:
+		if not skip:
+			rows.add_boarding(r, stage, maxi(depart - now, 0), maxi(depart + offset - now, 0))
+		skip = false
 		depart = Rules.departure_tick_at_or_after(depart + 1)
-		rows.add_boarding(r, stage, depart - now, depart + offset - now)
-
-
-func _home_again(now: int) -> int:
-	"""The earliest tick the crossing under way can be home to take a scheduled departure: its far stage's boarding and
-	the row back (none under way: `now`). A departure due while it is out is not posted (`_follow_timetable`)."""
-	return now + _wait_when_boardable(FAR) + _row_ticks() if x_serial != 0 else now
 
 
 func _booked(stage: int, walker: int) -> bool:

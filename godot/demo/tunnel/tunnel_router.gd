@@ -33,7 +33,8 @@ extends RefCounted
 ## timetable is FIFO, so the labels and the lazy surface bounds stay exact. The longest wait a boat's passenger accepts
 ## is not FIFO, so it is checked once a route is found with every surface edge on it real (`_drop_long_waits`): a boat
 ## leg whose wait at its landing's exact label is over the limit takes that landing's boat out of this plan, and the
-## search runs again.
+## search runs again. It judges the EARLIEST arrival at the landing: a later way there that would wait within the limit
+## is not tried -- the walker routed would arrive at the earliest and be refused there (ferry.gd `passenger_refusal`).
 ##
 ## WEATHER, LANTERNS AND QUEUES (demo). Costs are compared as WALKING TIME in metres-at-walk-speed: a
 ## surface edge is its length times 1000 / `surface_permille` (the weather's), while a tunnel edge -- dry and

@@ -121,6 +121,8 @@ func test_strings_with_escapes_and_hashes_are_read_whole() -> void:
 	assert_equal(scan_source('var a := "say \\"hi\\" # then 9 U"').size(), 1, "a # inside a string")
 	assert_equal(scan_source("var a := \"it's\" + '\\'s 9 U'").size(), 1, "an escaped single quote")
 	assert_equal(scan_source('var a := "#" # 9 U').size(), 0, "a real comment after a string")
+	assert_equal(scan_source('var a := str(n) + "\\u00a0U"').size(), 1, "an escaped no-break space and U, alone")
+	assert_equal(scan_source('var a := str(n) + "\u00a0U"').size(), 1, "a no-break space and U, alone")
 	assert_equal(scan_source('var a := "open\nvar b := 9 # 9 U"').size(), 0, "an unclosed string ends at its line")
 
 
@@ -131,6 +133,8 @@ func test_a_triple_quoted_string_that_is_a_value_is_linted() -> void:
 	assert_equal(scan_source('func f() -> void: """3 units"""').size(), 0, "an inline docstring")
 	assert_equal(scan_source('var t := (\n\t"""12 U""")').size(), 1, "a value on a line of its own is text")
 	assert_equal(scan_source('var t := [\n\t"""12 U""",\n]').size(), 1, "an array element is text")
+	assert_equal(scan_source('var d := {"k": """12 U"""}').size(), 1, "a value after a dictionary key's ':' is text")
+	assert_equal(scan_source('func f() -> void: "x"\n"""12 U"""').size(), 1, "a string ends the header: what follows is text")
 
 
 func test_json_values_are_linted() -> void:

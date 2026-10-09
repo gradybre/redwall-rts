@@ -1308,8 +1308,10 @@ func _home_again(now: int) -> int:
 	rest of its round trip -- the crew's walk and boarding, the rows still to row, and a whole STOP at each stage still to
 	call at (`_stop_ticks`). A departure due while it is out is not posted (`_follow_timetable`), so this errs late: a
 	departure it hides is only a later boat priced, never a boat that does not come. The crew's walk to the stage is
-	reckoned at twice its straight line (`_crew_walk_ticks`, a straight line): a crew detouring further than that is the
-	one case it can still be early in, and a passenger then waits for the next departure or goes by land at the stage."""
+	reckoned at twice its straight line (`_crew_walk_ticks`, a straight line). Until the crew is on the deck it can be
+	early still: a crew detouring further, called away (the night, a meal, an order) and the job claimed again, standing
+	down while a rescue has the boat, or no crew claiming it yet. A passenger then waits for the next departure, or goes
+	by land from the stage (`passenger_refusal`). Decision 1821 P5."""
 	var row: int = _row_ticks()
 	var stop: int = _stop_ticks()
 	match x_state:

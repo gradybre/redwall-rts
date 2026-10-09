@@ -365,6 +365,7 @@ func test_a_boat_row_needs_an_open_row_and_counts_toward_the_cap() -> void:
 	assert_false(router.add_boat_crossing(BoatRows.ROW0 + R, rows, R), "closed")
 	assert_false(router.add_boat_crossing(BoatRows.ROW0 + R, null, R), "no table")
 	rows.open_row(R, LANDING_A, LANDING_B, RIDE, MAX_WAIT)
+	rows.open_row(BoatRows.MAX_ROWS - 1, LANDING_A, LANDING_B, RIDE, MAX_WAIT)
 	assert_false(router.add_boat_crossing(BoatRows.ROW0 + R, rows, BoatRows.MAX_ROWS), "out of the table")
 	assert_false(router.add_boat_crossing(BoatRows.ROW0 + R, rows, -1), "negative")
 	for k: int in RouterScript.MAX_CROSSING_PAIRS - 1:
@@ -447,6 +448,20 @@ func test_a_landing_label_is_read_in_whole_millimetres_rounded_up() -> void:
 	assert_equal(_boat_legs(legs, BoatRows.ROW0 + R), 1, "by boat")
 
 
+func test_a_router_reused_forgets_the_last_plans_boats_and_long_waits() -> void:
+	"""One router, two plans: the first's boat is over its limit (a wait of 91) and taken out of that plan; the second,
+	within it, takes the boat -- the first plan's mark is not kept. After each plan the router holds no table."""
+	var router := RouterScript.new()
+	var out := PackedVector2Array()
+	var legs := PackedInt32Array()
+	_plan(_rows([300], [], 89), START, GOAL, out, legs, router)
+	assert_equal(_boat_legs(legs, BoatRows.ROW0 + R), 0, "a wait of 90 over a limit of 89: by land")
+	assert_null(router._boats, "the table let go")
+	_plan(_rows([300], []), START, GOAL, out, legs, router)
+	assert_equal(_boat_legs(legs, BoatRows.ROW0 + R), 1, "within the limit: by boat")
+	assert_null(router._boats, "and let go again")
+
+
 func test_one_plans_boat_rows_come_from_one_table() -> void:
 	"""A second table's row offered to the same plan is refused, said once; after `clear_pairs` it may be offered."""
 	var router := RouterScript.new()
@@ -526,6 +541,25 @@ func test_a_row_its_service_leaves_closed_is_not_offered_from_a_trip_before() ->
 	boat.closed = true
 	assert_false(crossings.offers_for(1, WEST_BANK, EAST_BANK, true), "closed: not offered")
 	assert_false(crossings.boat_rows.offered(1), "the row left closed")
+
+
+func test_boat_rows_are_offered_only_while_a_pair_is_left() -> void:
+	"""Two open bridges and seven fixture boats for a carrier across the run: the bridges and the first six boats fill the
+	plan's eight pairs; the seventh boat's row is cleared and not filled, never written past the picks."""
+	var play: WaterplayScript = _village()
+	var crossings: CrossingsScript = play.crossings
+	play.bridges.phase[0] = play.bridges.PHASE_OPEN
+	play.bridges.phase[1] = play.bridges.PHASE_OPEN
+	for r: int in range(1, BoatRows.MAX_ROWS):
+		var boat: FixtureBoat = FixtureBoat.new()
+		boat.end_a = WEST_BANK
+		boat.end_b = EAST_BANK
+		boat.at_a = PackedInt64Array([0])
+		crossings.add_boat_service(boat)
+	assert_true(crossings.offers_for(0, WEST_BANK, EAST_BANK, true), "offered")
+	for r: int in range(1, BoatRows.MAX_ROWS - 1):
+		assert_true(crossings.boat_rows.offered(r), "boat row %d" % r)
+	assert_false(crossings.boat_rows.offered(BoatRows.MAX_ROWS - 1), "no pair left for the last")
 
 
 func test_every_boat_row_after_the_ferrys_can_be_served_and_no_more() -> void:

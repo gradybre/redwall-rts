@@ -542,14 +542,18 @@ func test_every_boat_row_after_the_ferrys_can_be_served_and_no_more() -> void:
 
 
 func test_a_walkers_pace_for_the_boat_rows_is_the_pace_it_walks() -> void:
-	"""Its walk speed in mm/s (resident_brain.gd `base_speed`); a placeholder with no carry clip carries at its walk;
-	never zero."""
+	"""Its walk speed in mm/s (resident_brain.gd `base_speed`); a placeholder with no carry clip carries at its walk, one
+	with one at the carry's own pace; never zero."""
 	var play: WaterplayScript = _village()
 	var brain: BrainScript = (_cast.actor(0) as DemoActorScript).brain
 	brain.walk_speed = 0.8
 	assert_equal(play.crossings.pace_mm_s(0, false), 800, "walking")
 	assert_equal(play.crossings.pace_mm_s(0, true), 800, "carrying, with no carry clip")
 	assert_equal(brain.base_speed(true), brain.walk_speed, "the brain's own reading")
+	brain._carry_speed = 0.5
+	assert_equal(play.crossings.pace_mm_s(0, true), 500, "carrying at its carry clip's pace")
+	assert_equal(play.crossings.pace_mm_s(0, false), 800, "walking unladen at its walk")
+	brain._carry_speed = 0.0
 	brain.walk_speed = 0.0
 	assert_equal(play.crossings.pace_mm_s(0, false), 1, "never zero")
 

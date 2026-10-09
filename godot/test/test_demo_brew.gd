@@ -307,7 +307,7 @@ func test_the_guide_has_the_drinks() -> void:
 		assert_equal(entry.summary, PreserveText.summary(item), Catalog.ITEM_KEYS[item])
 	var fields: PackedStringArray = PreserveText.guide_fields(Catalog.ITEM_MEAD, 0)
 	assert_true(fields[0].contains("No one is made drunk"), fields[0])
-	assert_true(fields[1].contains("honey 3.0 U, water 3.0 U make 4.0 U, 20 WU and 72 hours at the brewery"), fields[1])
+	assert_true(fields[1].contains("3 jars of honey, 3 jugs of water make 4 jugs of mead, 20 WU and 72 hours at the brewery"), fields[1])
 	assert_equal(fields[2], PreserveText.DRINK_ALTERNATIVE, "the infusion")
 
 

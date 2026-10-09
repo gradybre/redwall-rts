@@ -111,6 +111,7 @@ const NightScript := preload("res://demo/burrow/night_routine.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const ROLE_NONE: int = 0
 const ROLE_COOK: int = TaskScript.ROLE_COOK
@@ -2355,7 +2356,7 @@ func preview_cook_into(card: CardScript, members: PackedInt32Array) -> void:
 	card.who = d.who
 	card.worker = d.worker
 	card.prerequisites = PackedStringArray(["the food fetched from the stores by the cook",
-		"water in the village's butt", "0.1 U of wood a batch"])
+		"water in the village's butt", "%s a batch" % Words.batch_wood()])
 	if not d.ok():
 		card.refuse(d.code, d.reason, d.fix)
 
@@ -2364,13 +2365,14 @@ func preview_draw_into(card: CardScript, members: PackedInt32Array) -> void:
 	"""The Draw water order's action card, from `decide_draw`."""
 	var d: Decision = decide_draw(members)
 	card.reset("Draw water at the well")
-	card.result = "%s%s into the water butt by the well (it holds %s of %s)" % ["Up to " if d.worker < 0 else "",
-		Words.units(d.amount), Words.units(stores.water_milli_u), Words.units(StoresScript.WATER_CAP_MILLI_U)]
+	card.result = "%s%s into the water butt by the well (it has %s of its %s)" % ["Up to " if d.worker < 0 else "",
+		Measures.amount(&"water", d.amount), Measures.amount_cell(&"water", stores.water_milli_u),
+		Measures.exact_cell(&"water", StoresScript.WATER_CAP_MILLI_U)]
 	if d.amount > 0:
 		@warning_ignore("integer_division") card.work_usec = CalendarScript.usec_for_ticks(d.amount * Rules.DRAW_MWU_PER_MILLI / Rules.MWU_PER_TICK)
 	card.who = d.who
 	card.worker = d.worker
-	card.prerequisites = PackedStringArray(["a resident to carry it (a mouse carries 12 U, an otter 16, the badger 24)"])
+	card.prerequisites = PackedStringArray(["a resident to carry it (a mouse carries 12 kg, an otter 16 kg, the badger 24 kg)"])
 	if not d.ok():
 		card.refuse(d.code, d.reason, d.fix)
 
@@ -2785,13 +2787,17 @@ func held_for_meal_milli(key: int, selector: int) -> int:
 
 func ledger_lines() -> PackedStringArray:
 	"""What is behind the Ready food figure, for the ledger -- one line, as the shell's ledger is a fixed size: the
-	portions held and the raw grain and roots ("5 portions · grain 18.0 · roots 12.0 U"; the water, wood and cook are
-	the Kitchen tab's)."""
-	var grain: String = Words.units(_crop_milli(Rules.INPUT_CROP[Rules.DISH_PORRIDGE]))
-	var roots: String = Words.units(_crop_milli(Rules.INPUT_CROP[Rules.DISH_SOUP]))
-	var fish: int = _crop_milli(Rules.INPUT_CROP[Rules.DISH_FISH_STEW])
-	var line: String = "%d portions · grain %s · roots %s" % [store.portions(), grain.trim_suffix(" U"), roots]
-	return PackedStringArray([line if fish == 0 else "%s · fish %s" % [line.trim_suffix(" U"), Words.units(fish)]])
+	portions held and the raw grain and roots ("5 portions · 18 scoops of grain · 2½ baskets of roots"; the water, wood
+	and cook are the Kitchen tab's)."""
+	var line: String = "%d portions · %s · %s" % [store.portions(), _crop_words(Rules.INPUT_CROP[Rules.DISH_PORRIDGE]),
+		_crop_words(Rules.INPUT_CROP[Rules.DISH_SOUP])]
+	var fish: int = Rules.INPUT_CROP[Rules.DISH_FISH_STEW]
+	return PackedStringArray([line if _crop_milli(fish) == 0 else "%s · %s" % [line, _crop_words(fish)]])
+
+
+func _crop_words(crop: int) -> String:
+	"""Every milli-U of crop row `crop` in the pantry, in its category's measure ("18 scoops of grain")."""
+	return Measures.amount(Rules.selector_good(crop), _crop_milli(crop))
 
 
 func stock_rows() -> Array[PackedStringArray]:
@@ -2803,7 +2809,8 @@ func stock_rows() -> Array[PackedStringArray]:
 		if held > 0:
 			rows.append(PackedStringArray(["%s (ready food)" % Rules.DISH_NAMES[dish], "%d portions" % held, "—",
 				"Kitchen (pot and table)", "spoils in %d h" % store.hours_left_of(dish, PantryScript.season_of_hour(_hour_seen))]))
-	rows.append(PackedStringArray(["Water", Words.units(stores.water_milli_u), Words.units(water_on_the_way()),
+	rows.append(PackedStringArray(["Water", Measures.amount_cell(&"water", stores.water_milli_u),
+		Measures.amount_cell(&"water", water_on_the_way()),
 		"Water butt by the well", "never spoils"]))
 	return rows
 
@@ -2819,9 +2826,10 @@ func stock_row_dishes() -> PackedInt32Array:
 
 
 func reserved_text(item: int, location: int) -> String:
-	"""'2.0 U for the kitchen' -- what of `item` at `location` the kitchen reserves ('' none)."""
+	"""'2 bunches for the kitchen' -- what of `item` at `location` the kitchen reserves ('' none), for the item's own
+	stock cell."""
 	var held: int = takes.with_cook_milli(pantry, item, location)
-	return "%s for the kitchen" % Words.units(held) if held > 0 else ""
+	return "%s for the kitchen" % Measures.amount_cell(Catalog.ITEM_KEYS[item], held) if held > 0 else ""
 
 
 func days_text() -> String:

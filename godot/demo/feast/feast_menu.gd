@@ -35,6 +35,7 @@ const TakesScript := preload("res://demo/kitchen/ingredient_takes.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const RegattaMenuScript := preload("res://demo/regatta/regatta_menu.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 ## Where each missing input comes from, by category (the "needs X" words' fix).
 const SOURCES: Dictionary = {
@@ -112,6 +113,11 @@ static func bev_selector(theme: int) -> int:
 	return Catalog.CAT_HERB if Rules.BEVERAGE[theme] == Rules.BEV_INFUSION else Catalog.CAT_MEAD
 
 
+static func bev_good(theme: int) -> StringName:
+	"""The good the beverage's amounts are worded as: herbs or mead."""
+	return MealRules.selector_good(bev_selector(theme))
+
+
 static func bev_words(theme: int) -> String:
 	"""'herbs' or 'mead'."""
 	return "herbs" if Rules.BEVERAGE[theme] == Rules.BEV_INFUSION else "mead"
@@ -130,7 +136,7 @@ static func source_of(category: int) -> String:
 # --- what is short ------------------------------------------------------------------------------------------------
 
 func shortfalls(theme: int, eligible: int, key: int = NO_KEY) -> PackedStringArray:
-	"""Every input the theme for E at supper `key` is short of now, as "needs X: n (m free) — from where" (REQ-SET-099:
+	"""Every input the theme for E at supper `key` is short of now, as "needs X: m of n free — from where" (REQ-SET-099:
 	the specific reason and the missing quantity), counting what that supper already holds (`available_of`); empty
 	when the whole menu can be made."""
 	var out := PackedStringArray()
@@ -141,21 +147,23 @@ func shortfalls(theme: int, eligible: int, key: int = NO_KEY) -> PackedStringArr
 			var need: int = batches * MealRules.input_milli(dish, k)
 			var free: int = available_of(MealRules.input_selector(dish, k), key)
 			if free < need:
-				out.append(_needs(input_word(dish, k), need, free, MealRules.input_category(dish, k)))
+				out.append(_needs(input_word(dish, k), MealRules.input_good(dish, k), need, free,
+					MealRules.input_category(dish, k)))
 	var bev: int = bev_need_milli(theme, eligible)
 	var bev_free: int = free_of(bev_selector(theme))
 	if bev_free < bev:
-		out.append(_needs(bev_words(theme), bev, bev_free, bev_selector(theme)))
+		out.append(_needs(bev_words(theme), bev_good(theme), bev, bev_free, bev_selector(theme)))
 	var water: int = RegattaRules.infusion_water_milli(eligible) if Rules.BEVERAGE[theme] == Rules.BEV_INFUSION else 0
 	var butt: int = stores.water_milli_u if stores != null else 0
 	if butt < water:
-		out.append("needs water in the butt: %s (%s there) — Draw water (Pantry ▸ Kitchen)" % [units(water), units(butt)])
+		out.append("needs water in the butt: %s there — Draw water (Pantry ▸ Kitchen)" % Measures.have_need(&"water", butt,
+			water))
 	return out
 
 
-static func _needs(word: String, need: int, free: int, category: int) -> String:
-	"""'needs mead: 3.0 U (0.0 U free) — the brewery's mead'."""
-	return "needs %s: %s (%s free) — %s" % [word, units(need), units(free), source_of(category)]
+static func _needs(word: String, good: StringName, need: int, free: int, category: int) -> String:
+	"""'needs mead: 0 of 3 jugs free — the brewery's mead' (the free beside the need in the need's measure)."""
+	return "needs %s: %s free — %s" % [word, Measures.have_need(good, free, need), source_of(category)]
 
 
 func set_aside(theme: int, eligible: int, out: PackedInt64Array) -> void:
@@ -308,16 +316,16 @@ func _pour_extras(eligible: int, guests: int, hour_index: int) -> void:
 
 
 func extras_words(theme: int, eligible: int) -> String:
-	"""'Also poured, if there: cider 2.0 U (free 0.0 U) — not poured: the brewery has not made enough; no one is made
-	drunk' ("" for a theme that pours none)."""
+	"""'Also poured, if there: cider 0 of 2 jugs free — not poured: the brewery has not made enough; no one is made
+	drunk', or 'cider 2 jugs — enough' ("" for a theme that pours none)."""
 	if not pours_extras(theme):
 		return ""
 	var need: int = RegattaMenuScript.drink_need_milli(eligible)
 	var parts := PackedStringArray()
 	for k: int in EXTRA_DRINKS.size():
 		var free: int = free_of(extra_selector(k))
-		parts.append("%s %s (free %s)%s" % [EXTRA_NAMES[k], units(need), units(free),
-			"" if free >= need else " — not poured: the brewery has not made enough"])
+		parts.append("%s %s%s" % [EXTRA_NAMES[k], Measures.have_need(Catalog.ITEM_KEYS[EXTRA_DRINKS[k]], free, need),
+			"" if free >= need else " free — not poured: the brewery has not made enough"])
 	return "Also poured, if there: %s; no one is made drunk" % ", ".join(parts)
 
 

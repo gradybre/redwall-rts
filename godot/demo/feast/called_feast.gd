@@ -37,6 +37,7 @@ const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const FuelScript := preload("res://demo/winter/hearth_fuel.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const NONE: int = -1
 const ST_IDLE: int = 0
@@ -364,7 +365,7 @@ func _supply_refusal(theme: int, day: int, with_override: bool) -> String:
 		var more: String = " (and %d more: see The themes)" % (short.size() - 1) if short.size() > 1 else ""
 		return _refuse("NEEDS", short[0] + more, "")
 	if stores.wood_milli_u < RegattaRules.service_wood_milli(e):
-		return _refuse("NO_WOOD", "the service needs %s of wood" % MenuScript.units(RegattaRules.service_wood_milli(e)),
+		return _refuse("NO_WOOD", "the service needs %s" % Measures.need(&"wood", RegattaRules.service_wood_milli(e)),
 			"Woods ▸")
 	if seats_now() < RegattaRules.seats_needed(e):
 		return _refuse("NO_SEATS", "the hall seats %d; the feast needs %d" % [seats_now(), RegattaRules.seats_needed(e)], "")

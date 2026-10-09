@@ -308,7 +308,7 @@ func test_the_guide_has_the_new_recipes() -> void:
 		var entry: FieldGuideScript.Entry = guide.entry(guide.index_of(FieldGuideScript.item_id(item)))
 		assert_equal(entry.summary, PreserveText.summary(item), Catalog.ITEM_KEYS[item])
 	assert_true(PreserveText.guide_fields(Catalog.ITEM_ALE, 0)[0].contains("No one is made drunk"), "ale")
-	assert_true(PreserveText.guide_fields(Catalog.ITEM_CHEESE, 1600)[1].contains("nuts 2.0 U, water 1.0 U make 2.0 U, 16 WU and 24 hours at the preserving table"),
+	assert_true(PreserveText.guide_fields(Catalog.ITEM_CHEESE, 1600)[1].contains("4 handfuls of nuts, a jug of water make 2 rounds of nut cheese, 16 WU and 24 hours at the preserving table"),
 		PreserveText.guide_fields(Catalog.ITEM_CHEESE, 1600)[1])
 	assert_true(PreserveText.guide_fields(Catalog.ITEM_JAM, 850)[2].contains("Fresh berries"), "jam's alternative")
 

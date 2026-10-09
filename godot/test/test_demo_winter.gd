@@ -235,11 +235,20 @@ func test_the_twelve_day_projection() -> void:
 	fuel.note_cooking(0, 0)
 	fuel.note_cooking(1000, 1)
 	assert_equal(fuel.projection_milli(), 12 * 9000, "the hall and home 1, 1 U cooking")
-	assert_true(Text.projection_line(fuel).contains("108.0 U") and Text.projection_line(fuel).contains("37%"),
+	assert_true(Text.projection_line(fuel).begins_with("Winter needs 108 logs (12 days: 2 hearths at 4 logs, cooking a log a day) — the stores hold 40 logs, 37%"),
 		Text.projection_line(fuel))
 
 
 # --- the hall's tier (decision 1652; batch 7 ruling 5, decision 0902) ---------------------------------------
+
+func test_the_winters_wood_is_worded_in_logs() -> void:
+	"""Decision 1801: wood in store is floored to logs, a need or a rate raised, a rule's rate exact (a tier-2 hall's
+	cold spring day is 1.5 U: six quarter logs); nothing saved says so."""
+	assert_equal([Text.wood(40999), Text.wood_rate(40001), Text.wood_rule(1500)], ["40 logs", "41 logs", "6 quarter logs"],
+		"stock down, need up, rule exact")
+	assert_equal([Text.wood(0), Text.wood_rate(900)], ["no wood", "4 quarter logs"], "none; under a log")
+	assert_equal([Text.saving_words(8000), Text.saving_words(0)], ["saves about 8 logs a day", "saves no wood"], "saved")
+
 
 func test_the_tier_factor_is_the_gdds_and_the_halls() -> void:
 	"""§5.9 / REQ-SET-136: x1.00 at tier 1, x0.75 at tier 2, the same factor the hall's own rules give for each tier
@@ -285,14 +294,14 @@ func test_the_figures_sum_each_hearth_at_its_own_rate() -> void:
 	assert_equal([fuel.rate_of(HALL), fuel.rate_of(1), fuel.heating_day_milli()], [3000, 4000, 7000], "today")
 	assert_equal(fuel.fuel_days_hundredths(), Rules.fuel_days_hundredths(fuel.wood_milli(), 7000, 0), "fuel-days")
 	assert_equal(fuel.last_heated_hour(), 100 + Rules.hours_of_fuel(fuel.wood_milli(), 7000, 0), "the last heated hour")
-	assert_true(Text.demand_line(fuel).contains("1 hearth at 4.0 U, the hall at 3.0 U"), Text.demand_line(fuel))
+	assert_true(Text.demand_line(fuel).begins_with("Burning 7 logs a day: 1 hearth at 4 logs, the hall at 3 logs"), Text.demand_line(fuel))
 	fuel.note_cooking(0, 4)
 	fuel.note_cooking(1000, 5)
 	assert_equal(fuel.projection_milli(), 12 * (7000 + 1000), "twelve days at 7 U and 1 U of cooking")
-	assert_true(Text.projection_line(fuel).contains("1 hearth at 4.0 U, the hall at 3.0 U"), Text.projection_line(fuel))
+	assert_true(Text.projection_line(fuel).begins_with("Winter needs 96 logs (12 days: 1 hearth at 4 logs, the hall at 3 logs, cooking a log a day)"), Text.projection_line(fuel))
 	fuel.pass_hour(101, SPRING, 90, 90)
-	assert_true(Text.demand_line(fuel).contains("1 hearth at 2.0 U, the hall at 1.5 U"), "today's rates: " + Text.demand_line(fuel))
-	assert_true(Text.projection_line(fuel).contains("1 hearth at 4.0 U, the hall at 3.0 U"), "winter's: " + Text.projection_line(fuel))
+	assert_true(Text.demand_line(fuel).contains("1 hearth at 2 logs, the hall at 6 quarter logs"), "today's rates: " + Text.demand_line(fuel))
+	assert_true(Text.projection_line(fuel).contains("1 hearth at 4 logs, the hall at 3 logs"), "winter's: " + Text.projection_line(fuel))
 	fuel.pass_hour(101, SUMMER, 220, 220)
 	assert_equal([fuel.heating_day_milli(), fuel.winter_day_milli()], [0, 7000], "summer: none today, 7 U a winter day")
 	assert_equal(fuel.reduced_count(), 1, "one hearth at a reduced rate")
@@ -456,7 +465,7 @@ func test_the_hud_model_reads_the_winter_and_keeps_planks_in_the_ledger() -> voi
 	model.stores = stores
 	var figure: Array[int] = [Rules.NO_DEMAND]
 	model.fuel = func() -> int: return figure[0]
-	model.fuel_detail = func() -> PackedStringArray: return PackedStringArray(["Burning 5.0 U a day"])
+	model.fuel_detail = func() -> PackedStringArray: return PackedStringArray(["Burning 5 logs a day"])
 	var figures := PackedInt64Array()
 	figures.resize(ModelScript.CELL_COUNT)
 	model.read_into(figures)
@@ -468,9 +477,9 @@ func test_the_hud_model_reads_the_winter_and_keeps_planks_in_the_ledger() -> voi
 	assert_equal(model.value_text(ModelScript.CELL_FUEL, figures[ModelScript.CELL_FUEL]), "1.5 days", "days")
 	assert_true(model.is_warning(ModelScript.CELL_FUEL, 150), "warning")
 	assert_true(model.tooltip(ModelScript.CELL_FUEL, 150).begins_with("Heating fuel: 1.5 days. Burning"), "its tooltip")
-	assert_true(model.tooltip(ModelScript.CELL_WOOD, 40000).contains("(planks: 2.5 U)"), "planks in Wood's tooltip")
+	assert_true(model.tooltip(ModelScript.CELL_WOOD, 40000).contains("(and 2 planks)"), "planks in Wood's tooltip")
 	var ledger: String = model.ledger_text(figures)
-	assert_true(ledger.contains("Wood: 40.0 U · planks 2.5 U in store"), ledger)
+	assert_true(ledger.contains("Wood: 40 logs · 2 planks in store"), ledger)
 	assert_true(ledger.contains("\nHeating fuel: 1.5 days\n"), "the fuel's one ledger line: " + ledger)
 
 
@@ -1016,7 +1025,7 @@ func test_consolidation_neither_lets_the_infirmary_go_out_nor_counts_it_as_saved
 	var v: Village = made[0]
 	assert_equal(v.winter.fuel.burning_count(), 2, "the hall and the infirmary")
 	var preview: String = v.winter.consolidate_preview()
-	assert_true(preview.contains("saves about %s a day" % Text.units(0)), preview)
+	assert_true(preview.contains("(saves no wood)"), preview)
 	assert_equal(v.winter.consolidate()[1], 0, "no hearth let go")
 	assert_equal(v.winter.fuel.banked[FuelScript.INFIRMARY], 0, "the infirmary still lit")
 

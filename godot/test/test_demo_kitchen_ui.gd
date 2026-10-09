@@ -125,7 +125,7 @@ func test_the_ledger_shows_the_stock_behind_the_days() -> void:
 	var model := ModelScript.new()
 	model.bind_meals(kitchen)
 	var line: String = model.ledger_line(ModelScript.CELL_FOOD, kitchen.days_of_meals_milli())
-	assert_equal(line, "Ready food: 1.1 days · raw 0 days\n0 portions · grain 20.0 · roots 0.0 U", "the ledger")
+	assert_equal(line, "Ready food: 1.1 days · raw 0 days\n0 portions · 20 scoops of grain · no roots", "the ledger")
 	assert_true(("Ready food: %s · raw %s" % [Words.days_value(12500), Words.days_value(12500)]).length() <= 37,
 		"the longest line keeps to the ledger's width")
 	assert_equal(model.tooltip(ModelScript.CELL_FOOD, kitchen.days_of_meals_milli()), "Ready food: 1.1 days of meals "
@@ -160,8 +160,8 @@ func test_the_pantry_shows_the_kitchen_tab_and_marks_the_dishes_cookable() -> vo
 	panel.show_tab(PantryPanelScript.TAB_RECIPES)
 	panel.select_item(OATS)
 	var oats: PackedStringArray = panel.cookable_text().split("\n")
-	assert_equal(oats[0], "Cookable (active): Wild oat porridge — cooked as the GDD's porridge: 2.0 U of grain (wheat, barley or oats) + water 2.0 U → 2 portions of 1800 NP, 12 WU, keeps 24 h; for breakfast.", "oats: the porridge")
-	assert_true(oats[1].begins_with("Cookable (active): Barleymeal porridge — cooked as the GDD's porridge: 2.0 U of grain (barley or oats)"), "and the barleymeal")
+	assert_equal(oats[0], "Cookable (active): Wild oat porridge — cooked as the GDD's porridge: 2 scoops of grain (wheat, barley or oats) + 2 jugs of water → 2 portions of 1800 NP, 12 WU, keeps 24 h; for breakfast.", "oats: the porridge")
+	assert_true(oats[1].begins_with("Cookable (active): Barleymeal porridge — cooked as the GDD's porridge: 2 scoops of grain (barley or oats)"), "and the barleymeal")
 	assert_equal(oats[oats.size() - 1], Words.CHOICE_NOTE, "then how the cook picks")
 	panel.select_item(CARROT)
 	var carrot: String = panel.cookable_text()
@@ -169,13 +169,13 @@ func test_the_pantry_shows_the_kitchen_tab_and_marks_the_dishes_cookable() -> vo
 		assert_true(carrot.contains("Cookable (active): %s —" % dish_name), "carrot: " + dish_name)
 	assert_false(carrot.contains("Wild-beetroot soup"), "not the beetroot soup: it takes beetroot and onion")
 	panel.select_item(CABBAGE)
-	assert_true(panel.cookable_text().begins_with("Cookable (active): Bean hotpot — cooked as the GDD's bean_hotpot: 2.0 U of beans (pea or broad bean) + 2.0 U of greens"), "cabbage: the hotpot")
+	assert_true(panel.cookable_text().begins_with("Cookable (active): Bean hotpot — cooked as the GDD's bean_hotpot: 2 scoops of beans (pea or broad bean) + 2 bowls of greens or roots (radish, turnip"), "cabbage: the hotpot")
 	panel.select_item(Catalog.ITEM_FLOUR)
-	assert_true(panel.cookable_text().begins_with("Cookable (active): Haversack hardtack — cooked as a recipe from Rakkety Tam: 2.0 U of flour"),
+	assert_true(panel.cookable_text().begins_with("Cookable (active): Haversack hardtack — cooked as a recipe from Rakkety Tam: 2 scoops of flour"),
 		"flour: the hardtack, its book named (decision 0603)")
 	assert_false(panel.cookable_text().contains("DEC-") or panel.cookable_text().contains("Brendan"),
 		"no ruling or person in player text")
-	assert_true(panel.cookable_text().contains("Rakkety Tam: 2.0 U of flour + water 0.5 U → 2 portions"),
+	assert_true(panel.cookable_text().contains("Rakkety Tam: 2 scoops of flour + 2 cups of water → 2 portions"),
 		"a category named by its one item is said once")
 	assert_true(panel.cookable_text().contains("Waiting (needs potato: grown in the fields, not yet planted in the demo): Turnip, potato and beetroot pie"),
 		"and the root pie, waiting and said why")
@@ -199,10 +199,10 @@ func test_the_stocks_table_shows_portions_water_and_what_the_kitchen_holds() -> 
 	var rows := PackedStringArray()
 	for row in panel.stock_row_count() + 2:
 		rows.append(" | ".join(panel.shown_stock_row(row)))
-	assert_true(rows.has("Oats | 10.0 U · 8.0 U for the kitchen | — | Covered store | all in 24d"), "oats: two breakfasts' reserved")
-	assert_true(rows.has("Carrot | 20.0 U · 12.0 U for the kitchen | — | Covered store | all in 10d"), "carrot: two suppers'")
+	assert_true(rows.has("Oats | 10.0 U · 8 scoops for the kitchen | — | Covered store | all in 24d"), "oats: two breakfasts' reserved")
+	assert_true(rows.has("Carrot | 20.0 U · 2 baskets for the kitchen | — | Covered store | all in 10d"), "carrot: two suppers'")
 	assert_true(rows.has("Togget's vegetable soup (ready food) | 2 portions | — | Kitchen (pot and table) | spoils in 24 h"), "the portions")
-	assert_true(rows.has("Water | 6.0 U | 0.0 U | Water butt by the well | never spoils"), "the water")
+	assert_true(rows.has("Water | 6 jugs | none | Water butt by the well | never spoils"), "the water")
 
 
 # --- the cards -------------------------------------------------------------------------------------
@@ -219,9 +219,9 @@ func test_the_cook_card_is_the_orders_decision() -> void:
 	kitchen.preview_cook_into(card, PackedInt32Array())
 	assert_false(card.is_ok(), "refused")
 	assert_equal(card.code, KitchenScript.NO_WATER, "the order's code")
-	assert_equal(card.reason, "the water butt holds 0.0 U; togget's vegetable soup needs 1.0 U a batch (2.0 U for the meal)", "the reason")
+	assert_equal(card.reason, "the water butt holds 0 of 2 jugs for the meal (togget's vegetable soup takes 1 jug a batch)", "the reason")
 	assert_equal(card.fix, "Pantry (K) ▸ Kitchen ▸ Draw water", "the fix")
-	assert_true(card.text().begins_with("Cook supper now\nCan't now: the water butt holds 0.0 U;"), "the card leads with it")
+	assert_true(card.text().begins_with("Cook supper now\nCan't now: the water butt holds 0 of 2 jugs"), "the card leads with it")
 	var d: KitchenScript.Decision = kitchen.decide_meal()
 	assert_equal(Words.cant(card.reason, card.fix), Words.cant(d.reason, d.fix), "the same words as the order")
 	stores.add_water(10000)
@@ -242,12 +242,12 @@ func test_the_draw_card_and_a_full_butt() -> void:
 	kitchen.preview_draw_into(card, PackedInt32Array([1]))
 	assert_true(card.is_ok(), "allowed")
 	assert_equal(card.who, "Assign selected: Mouse 1", "the selected")
-	assert_true(card.result.begins_with("12.0 U into the water butt by the well"), card.result)
+	assert_true(card.result.begins_with("12 jugs of water into the water butt by the well (it has none of its 4 buckets)"), card.result)
 	for brain: RefCounted in kitchen._brains:
 		brain.set(&"resting", true)
 	kitchen.preview_draw_into(card, PackedInt32Array())
-	assert_equal([card.who, card.result.begins_with("Up to 24.0 U into the water butt")], ["Queue for anyone free: "
-		+ "whoever is nearest the well, when someone is", true], "queued: up to the largest carry, never 0.0 U")
+	assert_equal([card.who, card.result.begins_with("Up to 2 buckets of water into the water butt")], ["Queue for anyone free: "
+		+ "whoever is nearest the well, when someone is", true], "queued: up to the largest carry, never none")
 	stores.add_water(StoresScript.WATER_CAP_MILLI_U)
 	kitchen.preview_draw_into(card, PackedInt32Array([1]))
 	assert_equal(card.code, KitchenScript.BUTT_FULL, "full")
@@ -255,6 +255,20 @@ func test_the_draw_card_and_a_full_butt() -> void:
 
 
 # --- the resident ------------------------------------------------------------------------------
+
+func test_the_kitchens_words_name_their_measures() -> void:
+	"""Decision 1801: the kitchen's lines word each amount in its good's measure (1011's table) -- a raw meal eaten in
+	bunches, the wood a batch burns as a bundle of kindling, the butt's water in buckets and jugs."""
+	assert_equal(Words.raw_line("Mouse 0", 2250, CARROT, Rules.MEAL_SUPPER),
+		"Mouse 0, hungry with no supper, ate 2 bunches of carrots raw", "a raw meal, floored to whole bunches")
+	assert_equal(Words.batch_wood(), "a bundle of kindling", "0.1 U of wood a batch")
+	assert_equal(Words.no_fuel_reason(300, 900), "the stores hold 1 of 4 quarter logs for the meal (a bundle of kindling a batch)",
+		"the wood short, in the need's measure")
+	assert_equal(Words.butt_full_reason(40000, 0), "the butt is full (4 buckets)", "full")
+	assert_equal(Words.butt_full_reason(30000, 10000), "the butt will be full: it holds 3 buckets, with 10 jugs on its way",
+		"filling")
+	assert_equal(Words.draw_ordered(12000, "Mouse 1"), "Draw 12 jugs of water for the kitchen · Mouse 1", "a mouse's 12 kg")
+
 
 func test_the_fed_line_and_the_roster_word() -> void:
 	"""Alone: fed state, fullness, NP today against the GDD's need, the last meal; in a list or the roster, the word."""

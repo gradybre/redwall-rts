@@ -8,6 +8,7 @@ const RegattaRules := preload("res://demo/regatta/regatta_rules.gd")
 const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 const FeastScript := preload("res://demo/feast/called_feast.gd")
 const MenuScript := preload("res://demo/feast/feast_menu.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 
 static func preview_lines(feast: FeastScript, theme: int, day: int, host: int) -> PackedStringArray:
@@ -32,32 +33,36 @@ static func preview_lines(feast: FeastScript, theme: int, day: int, host: int) -
 
 
 static func course_words(menu: MenuScript, dish: int, batches: int, key: int = MenuScript.NO_KEY) -> String:
-	"""'feast fish x2 (12 portions): fresh fish 8.0 U (free 3.0 U), roots 4.0 U (free 9.0 U), herbs 1.0 U (...)' -- free
-	counting what supper `key` already holds (`available_of`)."""
+	"""'feast fish x2 (12 portions), free in the pantry: fresh fish 3 of 8 fish, roots 4 bowls — enough, herbs ...' --
+	each input's free food beside its need, in the need's measure, counting what supper `key` already holds
+	(`available_of`)."""
 	var parts := PackedStringArray()
 	for k: int in MealRules.INPUT_N[dish]:
-		parts.append("%s %s (free %s)" % [MenuScript.input_word(dish, k), MenuScript.units(batches * MealRules.input_milli(dish, k)),
-			MenuScript.units(menu.available_of(MealRules.input_selector(dish, k), key))])
-	return "%s x%d (%d portions): %s" % [MealRules.DISH_SHORT[dish], batches, batches * MealRules.PORTIONS_PER_BATCH[dish],
-		", ".join(parts)]
+		parts.append("%s %s" % [MenuScript.input_word(dish, k), Measures.have_need(MealRules.input_good(dish, k),
+			menu.available_of(MealRules.input_selector(dish, k), key), batches * MealRules.input_milli(dish, k))])
+	return "%s x%d (%d portions), free in the pantry: %s" % [MealRules.DISH_SHORT[dish], batches,
+		batches * MealRules.PORTIONS_PER_BATCH[dish], ", ".join(parts)]
 
 
 static func beverage_words(menu: MenuScript, theme: int, e: int) -> String:
-	"""The beverage: the warm infusion's water and herb, or the mead, with what is free."""
+	"""The beverage: the warm infusion's water and herb, or the mead, with what is free beside its need: "Mead, free in
+	the pantry: 1 of 3 jugs; a feast drink only, no one is made drunk"."""
 	var need: int = MenuScript.bev_need_milli(theme, e)
 	var free: int = menu.free_of(MenuScript.bev_selector(theme))
 	if Rules.BEVERAGE[theme] == Rules.BEV_INFUSION:
-		return "Warm infusion: water %s, herbs %s (free %s), made at the service" % [
-			MenuScript.units(RegattaRules.infusion_water_milli(e)), MenuScript.units(need), MenuScript.units(free)]
-	return "Mead: %s (free %s) — a feast drink only; no one is made drunk" % [MenuScript.units(need), MenuScript.units(free)]
+		return "Warm infusion: %s, made at the service; herbs, free in the pantry: %s" % [
+			Measures.need(&"water", RegattaRules.infusion_water_milli(e)),
+			Measures.have_need(MenuScript.bev_good(theme), free, need)]
+	return "Mead, free in the pantry: %s; a feast drink only, no one is made drunk" % Measures.have_need(
+		MenuScript.bev_good(theme), free, need)
 
 
 static func service_words(feast: FeastScript, e: int, host: int) -> String:
 	"""Seats, seatings, service wood and the staffing (2 cooks + 1 keeper; the demo has no cooking skill to check)."""
 	var seats: int = feast.seats_now()
-	return "Seats %d (%d needed) · %d seating%s at supper · service wood %s set aside now · %s and a helper cook, %s keeps it (no cooking skill to check)" % [
+	return "Seats %d (%d needed) · %d seating%s at supper · service wood (%s) set aside now · %s and a helper cook, %s keeps it (no cooking skill to check)" % [
 		seats, RegattaRules.seats_needed(e), Rules.waves(e, seats), "" if Rules.waves(e, seats) == 1 else "s",
-		MenuScript.units(RegattaRules.service_wood_milli(e)), feast.name_of(feast.cook()), feast.name_of(host)]
+		Measures.need_cell(&"wood", RegattaRules.service_wood_milli(e)), feast.name_of(feast.cook()), feast.name_of(host)]
 
 
 static func buff_words(theme: int, e: int) -> String:
@@ -68,7 +73,7 @@ static func buff_words(theme: int, e: int) -> String:
 
 
 static func theme_ready_words(feast: FeastScript, theme: int) -> String:
-	"""'Harvest: ready' or 'Harvest: needs mead: 3.0 U (0.0 U free) — ...' -- each theme cooks when its food exists."""
+	"""'Harvest: ready' or 'Harvest: needs mead: 0 of 3 jugs free — ...' -- each theme cooks when its food exists."""
 	var short: PackedStringArray = feast.menu.shortfalls(theme, feast.residents(), Rules.feast_key(feast.choice_day))
 	if short.is_empty():
 		return "%s: every course can be made" % Rules.THEME_NAMES[theme]

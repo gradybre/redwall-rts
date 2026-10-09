@@ -319,6 +319,16 @@ func test_the_board_and_the_roster_say_what_is_made() -> void:
 	assert_true(f.doing_text(1, f.tables.j_serial[1]).begins_with("Packing rations"), f.doing_text(1, f.tables.j_serial[1]))
 
 
+func test_the_preserves_count_their_np_by_their_measure() -> void:
+	"""Decision 1801: the guide's raw NP is per measure ("1400 NP for a bag of dried fruit", "2400 NP for a ration"), and
+	a drink is poured at a jug for every four guests."""
+	assert_true(PreserveText.guide_fields(Catalog.ITEM_DRIED_FRUIT, 1400)[0].contains("(1400 NP for a bag of dried fruit)"),
+		PreserveText.guide_fields(Catalog.ITEM_DRIED_FRUIT, 1400)[0])
+	assert_true(PreserveText.guide_fields(Catalog.ITEM_RATION, 2400)[0].contains("(2400 NP for a ration)"), "a ration")
+	assert_true(PreserveText.DRINK_USE.contains("a jug for every four guests"), "the feast's drink")
+	assert_true(PreserveText.CORDIAL_USE.contains("a jug for every four who ate"), "the table drink")
+
+
 func test_the_guide_has_the_preserves() -> void:
 	"""The field guide's dried fruit and rations: their use, recipe and shelf (decision 1611)."""
 	var guide := FieldGuideScript.new()
@@ -326,7 +336,7 @@ func test_the_guide_has_the_preserves() -> void:
 		var entry: FieldGuideScript.Entry = guide.entry(guide.index_of(FieldGuideScript.item_id(item)))
 		assert_equal(entry.summary, PreserveText.summary(item), "%s's summary" % Catalog.ITEM_KEYS[item])
 	var fields: PackedStringArray = PreserveText.guide_fields(Catalog.ITEM_RATION, 2400)
-	assert_true(fields[1].contains("flour 2.0 U, dried fish 1.0 U, nuts 1.0 U, water 1.0 U make 3.0 U, 24 WU"), fields[1])
+	assert_true(fields[1].contains("2 scoops of flour, a string of dried fish, 2 handfuls of nuts, a jug of water make 3 rations, 24 WU"), fields[1])
 	assert_true(PreserveText.guide_fields(Catalog.ITEM_DRIED_FRUIT, 1400)[1].contains("12 hours at the rack"), "the wait")
 	assert_true(PreserveText.is_station_good(Catalog.ITEM_RATION) and not PreserveText.is_station_good(APPLE), "which are")
 	assert_equal(PreserveText.recipe_of(Catalog.ITEM_DRIED_FISH), -1, "the fish row's dried fish is the guide's own")

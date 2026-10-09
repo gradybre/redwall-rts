@@ -17,6 +17,7 @@ const FuelScript := preload("res://demo/winter/hearth_fuel.gd")
 const WinterScript := preload("res://demo/winter/demo_winter.gd")
 const FarmUi := preload("res://demo/farm/farm_ui.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 
 const LAYER: int = 2
@@ -161,7 +162,7 @@ func refresh() -> void:
 	var days: int = fuel.fuel_days_hundredths()
 	_headline.text = Text.hud_line(days)
 	_headline.add_theme_color_override(&"font_color", Palette.CLAY if Text.is_warning(days) else Palette.INK)
-	_lines.text = "\n".join(PackedStringArray(["Wood in the village stores: %s" % Text.units(fuel.wood_milli())])
+	_lines.text = "\n".join(PackedStringArray(["Wood in the village stores: %s" % Measures.amount_cell(&"wood", fuel.wood_milli())])
 		+ _winter.detail_lines())
 	var target: int = fuel.projection_milli()
 	_progress.visible = _winter.projection_shown()

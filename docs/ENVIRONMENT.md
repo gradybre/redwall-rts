@@ -70,7 +70,7 @@ it. They form the **slow tier**, declared in `godot/test/slow_suites.json` with 
 
 - **Per commit:** `./tools/run_tests.sh --fast` plus `--suite` runs of the suites your change touches (slow ones
   included when you touched them). `--fast` took 1,580 s (26 min) at `cda8d64f`; a focused run is minutes.
-- **At a milestone, before a merge, and in CI:** the complete run. CI's eight shards always run both tiers;
+- **At a milestone, before a merge, and in CI:** the complete run. CI's ten shards always run both tiers;
   `--fast` is never a full-suite claim.
 - **A suite crosses 60 s either way:** re-measure (`--suite` prints `CI_SUITE_TIME`) and edit the list. A slow
   entry naming a suite that no longer exists fails `--fast` and CI's shard plan.

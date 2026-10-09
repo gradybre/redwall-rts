@@ -10,7 +10,9 @@
     "test_underground_connector_delivery.gd": 74,
     "test_underground_connector_workpieces.gd": 61,
     "test_underground_entry_world_bindings.gd": 62,
-    "test_underground_host.gd": 745,
+    "test_underground_host.gd": 257,
+    "test_underground_host_crew_loss.gd": 342,
+    "test_underground_host_whole_chain.gd": 401,
     "test_underground_paid_assembly_handling.gd": 360
   }
 }

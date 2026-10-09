@@ -17,7 +17,7 @@
 # zero; raising one needs a decision record that names what is allowed and why.
 #
 # Usable locally as well as in CI: ./tools/run_tests.sh
-# Optional CI selection: ./tools/run_tests.sh --shard 0/8 --output-dir artifacts/test-shards
+# Optional CI selection: ./tools/run_tests.sh --shard 0/10 --output-dir artifacts/test-shards
 # Focused local run:     ./tools/run_tests.sh --suite test_a.gd [--suite test_b.gd ...]
 #   Same guards and zero allowances; only suite selection changes. A focused pass is never a full-suite claim.
 # Test tiers (decision 1240):  ./tools/run_tests.sh --fast   every suite except the slow tier

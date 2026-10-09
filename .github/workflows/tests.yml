@@ -18,14 +18,15 @@ permissions:
 
 jobs:
   godot-shards:
-    name: Godot suite shard ${{ matrix.shard }} / 8
+    name: Godot suite shard ${{ matrix.shard }} / 10
     runs-on: ubuntu-latest
-    # 15 minutes is the wall-clock target; 30 remains a separate hang guard.
+    # 15 minutes is the wall-clock target; 30 remains a separate hang guard. Ten shards, not eight, since
+    # the underground suites grew past what eight hold under the guard (decision 1243).
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     env:
       # docs/ENVIRONMENT.md: 4.7 is the only version anything has been run
       # against. Pin it rather than tracking latest, so an engine release
@@ -71,7 +72,7 @@ jobs:
       - name: Run the suite shard
         # Same registry, assertion, unexpected-diagnostic and zero-leak gates as a full run.
         # Each complete manifest is audited before execution; the aggregate audits observed files.
-        run: ./tools/run_tests.sh --shard ${{ matrix.shard }}/8 --output-dir artifacts/test-shards
+        run: ./tools/run_tests.sh --shard ${{ matrix.shard }}/10 --output-dir artifacts/test-shards
 
       - name: Save shard evidence even on failure
         if: always()
@@ -276,7 +277,7 @@ jobs:
           merge-multiple: true
 
       - name: Every discovered test file executed exactly once
-        run: python3 tools/ci_test_shards.py verify --reports artifacts/test-shards --count 8
+        run: python3 tools/ci_test_shards.py verify --reports artifacts/test-shards --count 10
 
   contracts:
     name: Specification contracts

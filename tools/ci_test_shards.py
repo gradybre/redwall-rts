@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Allocate and audit the existing Godot suite without changing its runner.
 
-    ./tools/run_tests.sh --shard 0/8 --output-dir artifacts/test-shards
-    python3 tools/ci_test_shards.py verify --reports artifacts/test-shards --count 8
-    python3 tools/ci_test_shards.py verify --reports artifacts/test-shards --count 8 --baseline-log full.log
+    ./tools/run_tests.sh --shard 0/10 --output-dir artifacts/test-shards
+    python3 tools/ci_test_shards.py verify --reports artifacts/test-shards --count 10
+    python3 tools/ci_test_shards.py verify --reports artifacts/test-shards --count 10 --baseline-log full.log
     python3 tools/ci_test_shards.py tier fast    # JSON list of the fast tier (every suite not declared slow)
 
 Test tiers (decision 1240): godot/test/slow_suites.json declares the slow tier. `./tools/run_tests.sh

@@ -147,7 +147,8 @@ func test_the_field_guide_has_an_entry_for_each_orchard_good() -> void:
 		if item == Catalog.ITEM_BERRIES:
 			assert_true(all.contains("(700 NP for a bowl of berries)"), "berries: raw NP a bowl (decision 1801)")
 		else:
-			assert_true(all.contains("%d NP a unit" % MealRules.raw_np_per_u(item)), "%s: its raw NP" % entry.title)
+			var per: String = "an apple" if item == Catalog.ITEM_APPLE else "a pear"
+			assert_true(all.contains("%d NP %s" % [MealRules.raw_np_per_u(item), per]), "%s: its raw NP" % entry.title)
 		if item == Catalog.ITEM_BERRIES:
 			assert_true(entry.here.contains("berry hedge"), "the forage entry names the hedge too: " + entry.here)
 		else:
@@ -402,11 +403,11 @@ func test_the_panel_shows_what_it_is_told() -> void:
 	assert_equal(panel.button(&"harvest").tooltip_text, "Harvest\nCan't now: not yet", "its card")
 	panel.show_group("", "", "", "", "")
 	assert_false((panel.get("_group_box") as Control).visible, "no group: hidden")
-	panel.show_group("The old orchard", "text", "staggered", "kitchen", "4.0 U")
+	panel.show_group("The old orchard", "text", "staggered", "kitchen", "4 apples, 4 pears")
 	assert_true((panel.get("_group_box") as Control).visible, "a group: shown")
 	assert_equal(panel.button(&"timing").text, "Timing: staggered", "timing")
 	assert_equal(panel.button(&"dest").text, "Share: kitchen", "the fresh-table share")
-	assert_equal(panel.button(&"keep").text, "Keep: 4.0 U", "keep")
+	assert_equal(panel.button(&"keep").text, "Keep: 4 apples, 4 pears", "keep")
 	panel.show_nursery("The nursery", "plans")
 	panel.show_grove("The North hollow", "record", false)
 	assert_equal(panel.button(&"protect").text, "Protected: no", "the grove's toggle")
@@ -495,9 +496,28 @@ func test_a_card_says_the_verb_the_refusal_the_cost_and_the_work() -> void:
 	assert_true(cards.grove_text(0).contains("never felled"), "protected")
 	assert_true(cards.policy_tip(&"timing", 0).contains("As each ripens"), "the timing's card")
 	assert_true(cards.policy_tip(&"protect", -1).contains("firewood"), "the grove's card")
-	assert_equal(cards.keep_word(0), "4.0 U", "the old orchard keeps one sapling's fruit")
+	assert_equal(cards.keep_word(0), "4 apples, 4 pears", "the old orchard keeps one sapling's fruit (4 U of each)")
 	assert_equal(cards.dest_word(1), "fresh 0%", "the east orchard's fresh-table share")
 	assert_equal(cards.timing_word(-1), "", "no group")
+
+
+func test_the_orchard_says_its_amounts_in_natural_measures() -> void:
+	"""Decision 1801: apples and pears counted, in baskets from two; a load a basket or a cart carries as its weight
+	(a carry is mass); the rule's own doses in theirs."""
+	var cards := _cards(1)
+	assert_true(cards.status_line().ends_with("picked: no apples, no pears, no berries"), cards.status_line())
+	assert_true(Text.fruit_words(Rules.APPLE).begins_with("apple: 16 baskets a year once mature (96 days)"), "80 U of apples")
+	assert_true(Text.fruit_words(Rules.PEAR).begins_with("pear: 22 baskets a year"), "110 U of pears")
+	assert_equal([Text.load_words(Rules.CART_LOAD_MILLI), Text.load_words(Rules.HAUL_LOAD_MILLI),
+		Text.load_words(Rules.PICK_LOAD_MILLI)], ["10 kg", "2.5 kg", "1.25 kg"], "40, 10 and 5 U of fruit at 250 g")
+	assert_equal([Text.each_fruit(8000), Text.each_fruit(0)], ["8 apples, 8 pears", "none"], "kept of each fruit")
+	assert_equal(Text.no_compost(Hive.PLANT_COMPOST_MILLI), "no compost to hand (2 baskets of compost needed)", "4 U")
+	assert_equal(Text.no_room(5100, Catalog.ITEM_APPLE, "the covered store"),
+		"no room for 6 apples at the covered store — make room in the Pantry (K)", "the room needed, rounded up")
+	assert_equal(Text.short_haul(12500, Catalog.ITEM_PEAR),
+		"2½ baskets of pears stayed at the baskets: the store could not take it all", "12.5 U of pears")
+	assert_equal(CardsScript.nursery_rule(), "Saplings for the orchard: §5.6 propagation takes 4 apples or 4 pears, a "
+		+ "basket of compost, 2 jugs of water and 120 WU, then 12 days.", "the nursery's rule from its constants")
 
 
 func test_each_grove_says_its_forage_reserve() -> void:

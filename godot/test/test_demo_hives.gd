@@ -285,7 +285,7 @@ func test_winter_eats_the_feed_or_costs_strength() -> void:
 	assert_equal(apiary.strength(0), 7500, "an unfed day: -500")
 	assert_equal(apiary.feed_shortfall_milli(0, WINTER_DAY + 3), 4500, "nine days' feed short")
 	assert_equal(apiary.feed_shortfall_milli(0, SUMMER_DAY), 0, "nothing owed outside winter")
-	assert_true(HiveText.deficit_line(apiary, 0, WINTER_DAY + 3).contains("winter feed short by 4.5 U"), "shown")
+	assert_true(HiveText.deficit_line(apiary, 0, WINTER_DAY + 3).contains("winter feed short by 4½ jars of honey"), "shown: 4.5 U, in half jars")
 
 
 func test_the_winter_feed_is_put_by_first() -> void:
@@ -363,7 +363,7 @@ func test_wildlife_takes_honey_in_summer_and_autumn() -> void:
 	model.close_day(hit, 120)
 	assert_equal(model.apiary.lost_milli, 2000, "2 U taken")
 	assert_equal(model.apiary.wildlife_visits, 1, "one visit")
-	assert_true(model.apiary.news[model.apiary.news.size() - 1].contains("2.0 U of honey gone"), "advised")
+	assert_true(model.apiary.news[model.apiary.news.size() - 1].contains("2 jars of honey gone"), "advised")
 	_set_hive(model.apiary, 8000, 6000, 500, 0)
 	model.close_day(_first_hit_day(hit + 1, 100), 120)
 	assert_equal(model.apiary.lost_milli, 2500, "min(2 U, 0.5 U)")
@@ -458,7 +458,7 @@ func test_the_readout_says_which_crops_benefit() -> void:
 	assert_true(text.contains("the old apple") and text.contains("the old pear"), text)
 	assert_true(text.contains("beans in bed 3, bed 4, bed 5, bed 6"), text)
 	assert_true(text.contains("Strength 80%"), text)
-	assert_true(text.contains("winter feed 0.0 U of 6.0 U"), text)
+	assert_true(text.contains("winter feed 0 of 6 jars"), text)
 	assert_equal(cards.title(CardsScript.SEL_APIARY, 0), "The apiary", "its title")
 	assert_equal(cards.shown_actions(CardsScript.SEL_APIARY, 0), [&"service", &"feed", &"recolonize"], "its verbs")
 	assert_equal(cards.job_of(&"service", CardsScript.SEL_APIARY, 0), Vector3i(Rules.K_SERVICE, 0, -1), "its job")
@@ -474,7 +474,7 @@ func test_the_refusals_in_words() -> void:
 	assert_equal(HiveText.service_refusal(apiary, 0, 2), "", "owed on day 2")
 	assert_true(HiveText.service_refusal(apiary, 0, WINTER_DAY).begins_with("winter:"), "winter")
 	assert_true(HiveText.feed_refusal(apiary, 0, SUMMER_DAY, 9000).begins_with("the hive puts by"), "not in summer")
-	assert_equal(HiveText.feed_refusal(apiary, 0, WINTER_DAY, 0), HiveText.NO_FREE_HONEY % "6.0 U", "no free honey")
+	assert_equal(HiveText.feed_refusal(apiary, 0, WINTER_DAY, 0), HiveText.NO_FREE_HONEY % "6 jars of honey", "no free honey")
 	assert_equal(HiveText.feed_refusal(apiary, 0, WINTER_DAY, 500), "", "owed, and honey to give")
 	_set_hive(apiary, 8000, 6000, 0, 0)
 	assert_true(HiveText.feed_refusal(apiary, 0, WINTER_DAY, 500).begins_with("its feed lasts"), "fed")
@@ -482,9 +482,9 @@ func test_the_refusals_in_words() -> void:
 	_set_hive(apiary, 0, 0, 0, 0)
 	assert_equal(HiveText.service_refusal(apiary, 0, 2), HiveText.ABANDONED, "abandoned")
 	assert_equal(HiveText.feed_refusal(apiary, 0, WINTER_DAY, 500), HiveText.ABANDONED, "no feeding an empty hive")
-	assert_true(HiveText.recolonize_refusal(apiary, 0, 2, 3999, 9000).begins_with("it needs 4.0 U of free honey"),
+	assert_true(HiveText.recolonize_refusal(apiary, 0, 2, 3999, 9000).begins_with("it needs 4 jars of free honey (the stores hold 3½ jars)"),
 		"short of honey")
-	assert_true(HiveText.recolonize_refusal(apiary, 0, 2, 4000, 1999).begins_with("it needs 2.0 U of wood"), "short of wood")
+	assert_true(HiveText.recolonize_refusal(apiary, 0, 2, 4000, 1999).begins_with("it needs 2 logs (the stores hold 1 log)"), "short of wood")
 	assert_equal(HiveText.recolonize_refusal(apiary, 0, 2, 4000, 2000), "", "it can")
 	assert_equal(HiveText.recolonize_refusal(apiary, 0, SUMMER_DAY, 4000, 2000), HiveText.NOT_SPRING, "not in summer")
 
@@ -502,7 +502,7 @@ func test_the_readout_lines() -> void:
 	assert_equal(HiveText.deficit_line(apiary, 0, 2), "No deficits: the hive is empty.", "empty")
 	assert_true(apiary.start_recolonize(0, 2), "started")
 	assert_equal(HiveText.state_line(apiary, 0, 2), "Abandoned · a swarm settles on day 5", "the wait")
-	assert_equal(HiveText.stock_line(apiary, 0), "In the hive: honey 0.0 U, wax 0.0 U · winter feed 0.0 U of 6.0 U · wax on the shelf 0.0 U", "stock")
+	assert_equal(HiveText.stock_line(apiary, 0), "In the hive: honey none, wax none · winter feed 0 of 6 jars · wax on the shelf none", "stock")
 	assert_equal(HiveText.pollination_line(PackedStringArray(), PackedStringArray(), false),
 		"Pollinates within 12 m (x1.10 yield): no orchard tree; beans in no field bed. Not while it is weak.", "none")
 	assert_equal(HiveText.recolonize_words(ApiaryScript.REFUSE_UNDER_WAY), HiveText.UNDER_WAY, "under way")
@@ -516,7 +516,9 @@ func test_honey_has_its_source_and_its_guide_entry() -> void:
 	assert_false(MealRules.waits(MealRules.DISH_CORDIAL), "the raspberry cordial can be made")
 	var fields: PackedStringArray = HiveText.guide_fields("Cooked in: a cordial.", 1200, 1440)
 	assert_equal(fields.size(), 4, "the guide's four fields")
-	assert_true(fields[1].contains("6.0 U") and fields[3].contains("1440"), "the winter feed and the shelf")
+	assert_true(fields[1].contains("up to 2 jars of honey a day") and fields[1].contains("(6 jars of honey)")
+		and fields[3].contains("1440"), "the day's honey, the winter feed and the shelf")
+	assert_true(fields[0].contains("(1200 NP a jar)"), "the food value per jar, honey's measure (a jar is 1 U)")
 	var guide := FieldGuideScript.new()
 	var entry: FieldGuideScript.Entry = guide.entry(guide.index_of(FieldGuideScript.item_id(Catalog.ITEM_HONEY)))
 	assert_equal(entry.summary, HiveText.GUIDE_SUMMARY, "the guide's honey")

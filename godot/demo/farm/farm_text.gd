@@ -11,7 +11,9 @@ extends RefCounted
 ## UNITS (decision 0222, the review's F28). A farm quantity is milli-U; the player reads it through ONE
 ## formatter, `units_text`, wherever it appears -- stock, totals, capacity, yield and a carried load:
 ## tenths of a unit, floored, so a figure never claims food that is not there; and never "0 U" for
-## something -- below a tenth reads "<0.1 U". Totals are summed in milli-U first.
+## something -- below a tenth reads "<0.1 U". Totals are summed in milli-U first. SUPERSEDED for the player by
+## decision 1801 (natural measures, decision 1011): every farm amount is now worded by scripts/ui/goods_measures.gd in
+## its good's own measure ("5 bunches of carrots"), and `units_text` stays only until its last caller is converted.
 ##
 ## PLAYER TERMS (decision 0251, review finding F34). The sim keeps moisture, fertility and health on 0..10000 and
 ## its factors per 1000; the panel says them as a player reads them: percentages of the whole scale, "points" of
@@ -27,6 +29,7 @@ const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const JobsScript := preload("res://demo/farm/farm_jobs.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const SEASONS: Array[String] = ["Spring", "Summer", "Autumn", "Winter"]
 const SOILS: Array[String] = ["loam", "clay", "sand"]
@@ -109,13 +112,15 @@ static func rotation_text(factor: int) -> String:
 
 static func pick_row(sim: SimScript, bed: int, item: int) -> String:
 	"""One crop-picker row: the family, when it matures, its harvest in THIS bed (and the table's base), and its
-	rotation effect here -- 'root crop · matures in 5 days · this bed: about 5.1 U (base 6.0 U) · fresh rotation...'.
-	Both quantities go through the one `units_text` (UNITS, decision 0222)."""
+	rotation effect here -- 'root crop · matures in 5 days · this bed: about 5 bunches (base 6 bunches) · fresh
+	rotation...'. The row sits beside its crop's name, so both amounts are in the crop's measure without naming it
+	again (goods_measures.gd's cell form, decision 1801): the estimate rounded down, the table's base exact."""
 	var crop: int = Catalog.crop_of(item)
+	var good: StringName = Catalog.ITEM_KEYS[item]
 	var line: String = "%s crop · matures in %s · this bed: about %s (base %s) · %s" % [
 		Catalog.FAMILY_NAMES[Catalog.family_of(item)], span_text(FarmingScript.CROP_GROWTH_HOURS[crop]),
-		units_text(sown_estimate_milli(sim, bed, item)), units_text(FarmingScript.CROP_BASE_YIELD_MILLI[crop]),
-		rotation_text(sim.rotation_preview(bed, item))]
+		Measures.amount_cell(good, sown_estimate_milli(sim, bed, item)),
+		Measures.exact_cell(good, FarmingScript.CROP_BASE_YIELD_MILLI[crop]), rotation_text(sim.rotation_preview(bed, item))]
 	if FarmingScript.CROP_FERTILITY_COST[crop] < 0:
 		line += " · feeds the soil: %s fertility points" % points_text(-FarmingScript.CROP_FERTILITY_COST[crop], true)
 	return line
@@ -283,12 +288,12 @@ static func works_line(sim: SimScript, bed: int) -> String:
 
 
 static func yield_line(sim: SimScript, bed: int, read: IntMath.IntResult) -> String:
-	"""'Harvest now: 5.1 U of carrot' / 'Expected harvest: ...' -- the ONE figure ('' with nothing standing)."""
+	"""'Harvest now: 5 bunches of carrots' / 'Expected harvest: ...' -- the ONE figure ('' with nothing standing)."""
 	var item: int = sim.item_of(bed)
 	if not Catalog.is_item(item) or not _standing(sim, bed) or not sim.expected_yield_into(bed, read):
 		return ""
 	var what: String = "Harvest now" if sim.stage_of(bed) == SimScript.STAGE_RIPE else "Expected harvest"
-	return "%s: %s of %s" % [what, units_text(read.value), Catalog.ITEM_LABELS[item].to_lower()]
+	return "%s: %s" % [what, Measures.amount(Catalog.ITEM_KEYS[item], read.value)]
 
 
 static func _standing(sim: SimScript, bed: int) -> bool:
@@ -299,22 +304,24 @@ static func _standing(sim: SimScript, bed: int) -> bool:
 
 
 static func harvest_breakdown(sim: SimScript, bed: int, read: IntMath.IntResult) -> String:
-	"""The Details view's multiplication behind the expected harvest: 'Base 6.0 U × fertility 0.85 × health 1.00 ×
-	rotation 1.00 = 5.1 U', and for a ripe crop past its grace the daily loss that brings it to the harvest now
-	('' with nothing standing)."""
+	"""The Details view's multiplication behind the expected harvest: 'Base 6 bunches × fertility 0.85 × health 1.00 ×
+	rotation 1.00 = 5 bunches' (in the crop's measure, below the yield line that names it: the base exact, the
+	products rounded down), and for a ripe crop past its grace the daily loss that brings it to the harvest now ('' with
+	nothing standing)."""
 	var item: int = sim.item_of(bed)
 	if not Catalog.is_item(item) or not _standing(sim, bed) or not sim.expected_yield_into(bed, read):
 		return ""
 	var harvest: int = read.value
+	var good: StringName = Catalog.ITEM_KEYS[item]
 	var base: int = FarmingScript.CROP_BASE_YIELD_MILLI[Catalog.crop_of(item)]
 	@warning_ignore("integer_division") var health: int = sim.health_of(bed) / FarmingScript.HEALTH_FACTOR_DIVISOR
 	@warning_ignore("integer_division") var formula: int = base * sim.fertility_factor_of(bed) * health * sim.rotation_preview(bed, item) / 1000000000
-	var line: String = "Base %s × fertility %s × health %s × rotation %s = %s" % [units_text(base),
+	var line: String = "Base %s × fertility %s × health %s × rotation %s = %s" % [Measures.exact_cell(good, base),
 		factor_text(sim.fertility_factor_of(bed)), factor_text(health), factor_text(sim.rotation_preview(bed, item)),
-		units_text(formula)]
+		Measures.amount_cell(good, formula)]
 	if harvest < formula and sim.ripe_hours_into(bed, read):
 		line += "; ripe %s: −10%% a day after the first %s, so %s" % [span_text(read.value),
-			span_text(FarmingScript.RIPE_GRACE_HOURS), units_text(harvest)]
+			span_text(FarmingScript.RIPE_GRACE_HOURS), Measures.amount_cell(good, harvest)]
 	return line
 
 

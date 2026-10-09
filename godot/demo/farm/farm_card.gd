@@ -18,13 +18,14 @@ const Text := preload("res://demo/farm/farm_text.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 ## Refusal codes in the player's words (an unknown code falls back to its own words, lower case).
 const WORDS: Dictionary = {
 	&"NOT_RIPE": "the crop is not ripe yet",
 	&"NOTHING_GROWING": "nothing is growing to water",
-	&"NO_EARTH": "no spoil heap or store holds %s of earth",
-	&"NOT_ENOUGH_COMPOST": "not enough compost: %s from the compost store",
+	&"NO_EARTH": "no spoil heap or store holds %s",
+	&"NOT_ENOUGH_COMPOST": "not enough compost: a bed takes %s from the store",
 	&"COMPOST_NOT_ELIGIBLE": "this bed has had its compost this season",
 	&"ALREADY_DONE": "it is done on this bed already",
 	&"NO_CROP_STANDING": "there is no crop to cover",
@@ -62,9 +63,9 @@ const FIXES: Dictionary = {
 }
 ## What each verb needs (by farm_jobs.gd KIND_*).
 const NEEDS: Array[String] = ["an empty bed, not resting; the crop's soil and sowing season",
-	"a growing crop", "a ripe crop", "a withered or blighted crop", "once a season a bed; %s of compost",
-	"a crop standing, not yet covered", "%s of earth on one heap or in the stores",
-	"%s of earth on one heap or in the stores",
+	"a growing crop", "a ripe crop", "a withered or blighted crop", "once a season a bed; %s",
+	"a crop standing, not yet covered", "%s on one heap or in the stores",
+	"%s on one heap or in the stores",
 	"a wet or waterlogged bed", "a finished tunnel under the bed, no outlet fitted yet"]
 const COMPOST_STORE: String = "Compost (store)"
 const EARTH: String = "Earth (one heap or the stores)"
@@ -74,13 +75,19 @@ static func reason_words(code: StringName) -> String:
 	"""A refusal code in the player's words (see WORDS), a dose stated from its own constant."""
 	if WORDS.has(code):
 		var words: String = WORDS[code]
-		return words % CardScript.amount_text(dose_milli(code == &"NOT_ENOUGH_COMPOST")) if words.contains("%s") else words
+		return words % dose_text(code == &"NOT_ENOUGH_COMPOST") if words.contains("%s") else words
 	return String(code).to_lower().replace("_", " ")
 
 
 static func dose_milli(compost: bool) -> int:
 	"""The dose a verb takes: compost's REQ-SET-076 dose, or the earth a raise or a bank takes from one source."""
 	return FarmingScript.COMPOST_MILLI_PER_TILE if compost else JobsScript.EARTH_PER_JOB_MILLI
+
+
+static func dose_text(compost: bool) -> String:
+	"""The dose in its natural measure, from its own constant: "a basket of compost", "a basket of earth" (decision
+	1801)."""
+	return Measures.exact(&"compost" if compost else &"earth", dose_milli(compost))
 
 
 static func fix_for(code: StringName) -> String:
@@ -94,7 +101,7 @@ static func fill(card: CardScript, sim: SimScript, kind: int, bed: int, earth_mi
 	sow_item: a picker row's crop, else the chosen one)."""
 	card.result = result_text(sim, kind, bed, read, sow_item)
 	var needs: String = NEEDS[kind]
-	card.prerequisites.append(needs % CardScript.amount_text(dose_milli(kind == JobsScript.KIND_COMPOST)) if needs.contains("%s") else needs)
+	card.prerequisites.append(needs % dose_text(kind == JobsScript.KIND_COMPOST) if needs.contains("%s") else needs)
 	match kind:
 		JobsScript.KIND_COMPOST:
 			card.add_cost(COMPOST_STORE, &"compost", sim.compost_milli, sim.farming().compost_milli_per_tile())
@@ -115,7 +122,7 @@ static func result_text(sim: SimScript, kind: int, bed: int, read: IntMath.IntRe
 			var line: String = Text.yield_line(sim, bed, read)
 			return (line if not line.is_empty() else "Harvest the crop") + ", carried to the store"
 		JobsScript.KIND_CLEAR:
-			return "Clear: the bed is empty again (+%s compost to the store)" % CardScript.amount_text(
+			return "Clear: the bed is empty again (+%s to the store)" % Measures.exact(&"compost",
 				FarmingScript.CLEARING_COMPOST_MILLI)
 		JobsScript.KIND_COVER:
 			return "Cover with straw: frost spares the crop tonight (off at 06:00)"

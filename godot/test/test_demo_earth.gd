@@ -303,7 +303,7 @@ func test_no_earth_anywhere_refuses_raise_on_the_card_and_the_order() -> void:
 	var card := CardScript.new()
 	_crew.preview_into(card, JobsScript.KIND_RAISE, BED_LOAM, PackedInt32Array([1]))
 	assert_equal(card.code, JobsScript.REFUSE_NO_EARTH, "no earth")
-	assert_equal(card.reason, "no spoil heap or store holds 2.0 U of earth", "the words")
+	assert_equal(card.reason, "no spoil heap or store holds a basket of earth", "the words")
 	assert_equal(card.fix, "Dig tunnel (B): its earth heaps up at the mouth", "the fix")
 	assert_equal(_crew.order(JobsScript.KIND_RAISE, BED_LOAM, PackedInt32Array([1]), JobsScript.ORIGIN_PLAYER),
 		"Can't raise: " + card.reason, "the order's words")
@@ -337,8 +337,8 @@ func test_a_raise_cancelled_mid_carry_walks_its_earth_back_to_the_heap() -> void
 	assert_true(back >= 0 and _crew.jobs.load_milli[back] == DOSE, "an earth return with the 2 U")
 	assert_equal(_crew.jobs.worker[back], 1, "the same carrier")
 	assert_equal(_crew.cancel_bed(BED_LOAM), 0, "a return is not production: nothing more to cancel")
-	assert_equal(_crew.task_text(1), "Carrying 2.0 U of earth back to the spoil heap", "the party panel")
-	assert_equal(_notices[-1], "Raise cancelled: Placeholder 1 carries the 2.0 U of earth back to the spoil heap", "said")
+	assert_equal(_crew.task_text(1), "Carrying a basket of earth back to the spoil heap", "the party panel: 2 U of earth is a basket")
+	assert_equal(_notices[-1], "Raise cancelled: Placeholder 1 carries a basket of earth back to the spoil heap", "said")
 	var seen := {"loaded": false, "tip_off": INF}
 	var watch := func() -> bool:
 		var r: int = _row_of(JobsScript.KIND_RETURN_EARTH, BED_LOAM)
@@ -356,7 +356,7 @@ func test_a_raise_cancelled_mid_carry_walks_its_earth_back_to_the_heap() -> void
 	assert_equal(_tunnels.spoil_left(_network, source), _tunnels.heaped_milli(_network, source), "the heap whole again")
 	assert_equal(_tunnels.built_milli, 0, "nothing built")
 	assert_false(_sim.is_raised(BED_LOAM), "not raised")
-	assert_true(_notices[_notices.size() - 1].contains("tipped 2.0 U of earth back to the spoil heap"), _notices[-1])
+	assert_true(_notices[_notices.size() - 1].contains("tipped a basket of earth back to the spoil heap"), _notices[-1])
 	assert_equal(heaps.size(), 2, "two heaps")
 
 
@@ -417,7 +417,7 @@ func test_earth_fetched_from_the_stores_goes_back_to_the_stores() -> void:
 	assert_true(_run(180.0, _carrying(JobsScript.KIND_RAISE, BED_LOAM), 2000), "carrying")
 	assert_equal(_stores.earth_milli_u, 0, "taken from the stores")
 	_crew.cancel_bed(BED_LOAM)
-	assert_equal(_crew.task_text(1), "Carrying 2.0 U of earth back to the stores", "the party panel")
+	assert_equal(_crew.task_text(1), "Carrying a basket of earth back to the stores", "the party panel")
 	assert_true(_run(180.0, _idle(), 2000), "carried back")
 	assert_true(_balanced, _first_off)
 	assert_equal(_stores.earth_milli_u, 2000, "back in the stores")
@@ -437,7 +437,7 @@ func test_a_carrier_called_away_keeps_the_earth_on_the_board_and_a_cancel_then_r
 	assert_equal(_crew.jobs.load_milli[row], DOSE, "with its earth")
 	_check_books(dug, -1)
 	assert_equal(_crew.cancel_bed(BED_LOAM), 1, "cancelled while it waits")
-	assert_equal(_notices[-1], "Raise cancelled: the field crew carries the 2.0 U of earth back to the spoil heap", "said")
+	assert_equal(_notices[-1], "Raise cancelled: the field crew carries a basket of earth back to the spoil heap", "said")
 	assert_true(_run(240.0, _idle(), dug), "carried back")
 	assert_true(_balanced, _first_off)
 	assert_equal(_tunnels.total_spoil(_network), dug, "every heap whole again")
@@ -477,7 +477,7 @@ func test_an_earth_return_that_cannot_get_through_puts_its_earth_back_where_it_c
 	assert_equal(incidents.revision, 0, "nothing raised at all")
 	assert_true(_balanced, _first_off)
 	assert_equal(_stores.earth_milli_u, 2000, "put back in the stores")
-	assert_true(_notices[_notices.size() - 1].contains("the 2.0 U of earth was put back to the stores"), _notices[-1])
+	assert_true(_notices[_notices.size() - 1].contains("a basket of earth was put back to the stores"), _notices[-1])
 	assert_equal(_brain(1).order, BrainScript.ORDER_NONE, "the worker free")
 
 
@@ -535,7 +535,7 @@ func test_earth_whose_heap_has_gone_goes_to_the_stores_or_waits_in_hand() -> voi
 	assert_true(stepped.call(120.0, waiting), "nowhere to put it: it waits on the board")
 	assert_equal(crew.jobs.load_milli[_read.value], DOSE, "still holding the 2 U")
 	assert_equal(crew.jobs.blocked[_read.value], JobsScript.BLOCK_WAY, "waiting for the next hour")
-	assert_equal(_notices[-1], "The 2.0 U of earth has nowhere to go back to: it waits on the board", "said")
+	assert_equal(_notices[-1], "The earth (1 basket) has nowhere to go back to: it waits on the board", "said")
 	assert_equal(books[1], 1, "the books balanced every frame, with no stores")
 
 

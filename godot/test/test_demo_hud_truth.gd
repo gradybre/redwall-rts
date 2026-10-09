@@ -552,18 +552,18 @@ func test_one_expected_harvest_with_its_breakdown_on_demand() -> void:
 	"""The panel's one figure; the Details view's multiplication equals it while growing, and names the daily loss
 	that brings a ripe crop down to it past its grace."""
 	var sim := SimScript.new()
-	assert_equal(Text.yield_line(sim, BED_CARROTS, _read), "Expected harvest: 5.1 U of carrot", "one figure")
+	assert_equal(Text.yield_line(sim, BED_CARROTS, _read), "Expected harvest: 5 bunches of carrots", "one figure")
 	assert_equal(Text.harvest_breakdown(sim, BED_CARROTS, _read),
-		"Base 6.0 U × fertility 0.85 × health 1.00 × rotation 1.00 = 5.1 U", "its multiplication")
+		"Base 6 bunches × fertility 0.85 × health 1.00 × rotation 1.00 = 5 bunches", "its multiplication")
 	assert_equal(Text.harvest_breakdown(sim, BED_LOAM, _read), "", "nothing standing: no breakdown")
 	assert_equal(Text.yield_line(sim, BED_LOAM, _read), "", "nor a figure")
 	sim.advance_usec(24 * HOUR_USEC)
-	assert_equal(Text.yield_line(sim, BED_CARROTS, _read), "Harvest now: 5.1 U of carrot", "ripe, in its grace")
+	assert_equal(Text.yield_line(sim, BED_CARROTS, _read), "Harvest now: 5 bunches of carrots", "ripe, in its grace")
 	sim.advance_usec(76 * HOUR_USEC)
 	assert_true(sim.expected_yield_into(BED_CARROTS, _read), "a harvest")
 	assert_equal(_read.value, 4590, "one day past the grace: 10% of 5.1 U lost")
-	assert_equal(Text.harvest_breakdown(sim, BED_CARROTS, _read), "Base 6.0 U × fertility 0.85 × health 1.00 × rotation "
-		+ "1.00 = 5.1 U; ripe 76 h: −10% a day after the first 2 days, so 4.5 U", "and why")
+	assert_equal(Text.harvest_breakdown(sim, BED_CARROTS, _read), "Base 6 bunches × fertility 0.85 × health 1.00 × "
+		+ "rotation 1.00 = 5 bunches; ripe 76 h: −10% a day after the first 2 days, so 4 bunches", "and why")
 	assert_true(Text.raw_line(sim, BED_CARROTS).begins_with("Readings (of 10000): moisture "), "raw readings stay in Details")
 
 
@@ -584,7 +584,10 @@ func test_treatments_say_their_effect_in_points() -> void:
 	assert_true(sim.harvest(BED_CARROTS).ok, "the carrots harvested")
 	var again: int = Text.sown_estimate_milli(sim, BED_CARROTS, CARROT)
 	assert_equal(again, Text.estimate_milli(6000, sim.fertility_factor_of(BED_CARROTS), 850), "roots again: the 850 rotation")
-	assert_true(Text.pick_row(sim, BED_CARROTS, CARROT).contains("this bed: about %s" % Text.units_text(again)), "in the picker")
+	assert_true(again >= 1000 and again < 10000, "under two baskets: carrots in bunches of 1 U")
+	@warning_ignore("integer_division") var bunches: int = again / 1000
+	assert_true(Text.pick_row(sim, BED_CARROTS, CARROT).contains("this bed: about %d bunch%s (base 6 bunches)" % [bunches,
+		"" if bunches == 1 else "es"]), "in the picker")
 
 
 func test_the_moisture_meter_bands_and_positions() -> void:
@@ -716,9 +719,9 @@ func test_the_meter_redraws_on_any_change_and_the_panel_shows_it_with_a_bed() ->
 	assert_equal(panel.meter().margin, FarmingScript.MOISTURE_NEAR_MARGIN, "and the farm's band margin")
 	assert_equal(panel.details_text(), "", "Details closed")
 	panel.toggle_details()
-	assert_true(panel.details_text().begins_with("Base 6.0 U × fertility 0.85"), "opened: the breakdown")
+	assert_true(panel.details_text().begins_with("Base 6 bunches × fertility 0.85"), "opened: the breakdown")
 	assert_true(panel.details_text().contains("\nReadings (of 10000): moisture "), "and the raw readings")
-	assert_equal(panel.line_text(8), "Expected harvest: 5.1 U of carrot", "one expected harvest")
+	assert_equal(panel.line_text(8), "Expected harvest: 5 bunches of carrots", "one expected harvest")
 	assert_equal(panel._fallow.tooltip_text, Text.rest_tip(), "Rest says its effect in points")
 	assert_true(panel.verb_button(JobsScript.KIND_COMPOST).tooltip_text.contains("Compost: +15 fertility points"),
 		"an enabled verb says its effect (on its action card, decision 0332)")

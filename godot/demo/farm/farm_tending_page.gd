@@ -13,7 +13,7 @@ const NOTE_PX: int = 14
 const INTRO: String = "Standing orders for a group of beds. A policy orders the same jobs as the bed's own buttons, only on growing crops, and spends at most the group's budget a day (the work of each job, the walks not counted). Only what it could not do is posted to the news. It never digs a ditch, raises a bed or turns the weir's sluice: those stay your choice."
 const POLICY_TIPS: Array[String] = [
 	"With a frost due (announced at noon the day before), Cover each growing bed that is not covered or raised",
-	"Water each growing bed below its crop's range, once a day (§5.6 tending: 0.25 U of well water)",
+	"Water each growing bed below its crop's range, once a day (§5.6 tending: a cup of well water)",
 	"Open a fitted outlet over a dry tunnel to Drain when a bed is too wet; say which wet beds need a ditch, raising or the sluice",
 	"Sow each empty bed with the crop you chose for it, else its rotation's next crop (the bed panel's Rotation ▸), when its season and soil allow",
 ]

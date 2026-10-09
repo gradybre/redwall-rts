@@ -436,7 +436,7 @@ func test_a_cart_is_built_for_its_wood() -> void:
 	"""A cart: refused without 4 U of wood; built at the baskets in 60 WU with the wood taken at the end; one a group."""
 	var rig := _rig(3)
 	_services.stores.wood_milli_u = 3999
-	assert_true(rig.jobs.order(JobsScript.K_CART, 1, -1, PackedInt32Array()).contains("of wood"), "short of wood")
+	assert_true(rig.jobs.order(JobsScript.K_CART, 1, -1, PackedInt32Array()).contains("a cart needs 4 logs (the stores hold 3 logs)"), "short of wood")
 	_services.stores.wood_milli_u = Rules.CART_WOOD_MILLI
 	assert_equal(rig.jobs.cart_refusal(1), "", "exactly enough")
 	_services.stores.wood_milli_u = 10000
@@ -577,7 +577,7 @@ func test_the_cards_say_the_move_and_the_cart() -> void:
 	assert_true(cards.tree_text(3).contains("Moved once already"), cards.tree_text(3))
 	assert_true(cards.stand_text(0).contains("no cart") and cards.stand_text(0).contains("0% wanted"), cards.stand_text(0))
 	card = cards.card_text(&"cart", CardsScript.SEL_STAND, 0, PackedInt32Array(), "")
-	assert_true(card.contains("40.0 U") and card.contains("Wood"), card)
+	assert_true(card.contains("up to 10 kg") and card.contains("2.5 kg") and card.contains("Wood"), card)
 	model.add_cart(0)
 	model.group_fresh_pct[0] = 75
 	assert_true(cards.stand_text(0).contains("a handcart") and cards.stand_text(0).contains("75% wanted"), cards.stand_text(0))

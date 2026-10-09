@@ -907,4 +907,4 @@ func test_the_pantry_says_why_and_what_is_being_moved() -> void:
 	assert_equal(rows.moving_text(pantry, 0), "", "nothing moving")
 	pantry.begin_carry_into(lot, pantry.lot_serial(lot), 2000, _read)
 	rows.update(pantry, 0)
-	assert_equal(rows.moving_text(pantry, 0), "2.0 U being moved to a cooler store", "in hand")
+	assert_equal(rows.moving_text(pantry, 0), "2 bunches being moved to a cooler store", "in hand")

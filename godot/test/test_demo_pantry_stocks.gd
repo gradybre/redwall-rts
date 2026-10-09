@@ -115,7 +115,7 @@ func test_the_recipe_list_marks_the_picked_ingredient_and_never_reorders() -> vo
 	panel.item_button(LETTUCE).pressed.emit()
 	assert_equal(panel.selected_item, LETTUCE, "picked")
 	assert_true(panel.item_button(LETTUCE).button_pressed and not panel.item_button(WHEAT).button_pressed, "pressed alone")
-	assert_equal(panel.item_button(WHEAT).text, "Wheat · 2.0 U in store", "its stock")
+	assert_equal(panel.item_button(WHEAT).text, "Wheat · 2 scoops in store", "its stock: 2 U of wheat is 2 scoops (a sack only from 2)")
 	assert_equal(panel.item_button(LETTUCE).get_index(), LETTUCE, "catalog order, stock or none")
 	assert_equal(panel.item_button(WHEAT).get_index(), WHEAT, "wheat in stock is not moved up")
 	assert_true(panel.dish_title().begins_with("Lettuce feeds "), "its dishes")
@@ -130,8 +130,8 @@ func test_a_row_per_ingredient_per_store() -> void:
 	_add(pantry, CARROT, 2100, CELLAR)
 	var panel := _panel(SimScript.new(), pantry)
 	panel.toggle()
-	assert_equal(_rows_of(panel), [PackedStringArray(["Carrot", "3.0 U", "—", "Covered store", "all in 10d"]),
-		PackedStringArray(["Carrot", "2.1 U", "—", "Root cellar", "all in 22d 23h"])] as Array[PackedStringArray],
+	assert_equal(_rows_of(panel), [PackedStringArray(["Carrot", "3 bunches", "—", "Covered store", "all in 10d"]),
+		PackedStringArray(["Carrot", "2 bunches", "—", "Root cellar", "all in 22d 23h"])] as Array[PackedStringArray],
 		"roots 240 h: 240 spring hours in the store; 281 at ×0.35 then 270 at summer's ×0.525 = 551 h in the cellar")
 
 
@@ -147,7 +147,7 @@ func test_food_about_to_spoil_comes_first_and_says_so() -> void:
 	var panel := _panel(SimScript.new(), pantry)
 	panel.toggle()
 	var rows: Array[PackedStringArray] = _rows_of(panel)
-	assert_equal(rows[0], PackedStringArray(["Lettuce", "3.7 U", "—", "Covered store", "Soon: 1.2 U in 1d 10h"]),
+	assert_equal(rows[0], PackedStringArray(["Lettuce", "3 lettuces", "—", "Covered store", "Soon: 1 lettuce in 1d 10h"]),
 		"cabbage row 144 h, 110 gone: 34 h left, the older lot of two")
 	assert_equal(rows[1][0], "Radish", "then the catalog's order")
 	assert_equal(rows[2][0], "Wheat", "and on")
@@ -199,7 +199,7 @@ func test_equally_soon_rows_keep_the_catalog_order() -> void:
 
 func test_incoming_is_not_in_store() -> void:
 	"""A harvest on its way (a hold, at the slowest-spoiling store with room: the cellar) is incoming, not
-	stock: barley and the cellar's carrots read 0 U in store and their amount incoming; the cellar's row has
+	stock: barley and the cellar's carrots read "none" in store and their amount incoming; the cellar's row has
 	it as reserved, and its free room is less by it."""
 	var pantry := _pantry()
 	_add(pantry, CARROT, 5100, COVERED)
@@ -207,14 +207,15 @@ func test_incoming_is_not_in_store() -> void:
 	assert_true(pantry.reserve_near_into(CARROT, 1000, Vector2.ZERO, _read), "more carrots' room reserved")
 	var panel := _panel(SimScript.new(), pantry)
 	panel.toggle()
-	assert_equal(_rows_of(panel), [PackedStringArray(["Carrot", "5.1 U", "—", "Covered store", "all in 10d"]),
-		PackedStringArray(["Carrot", "0 U", "1.0 U", "Root cellar", "—"]),
-		PackedStringArray(["Barley", "0 U", "4.3 U", "Root cellar", "—"])] as Array[PackedStringArray], "in store and incoming")
-	assert_equal(panel.store_row_cells(COVERED), PackedStringArray(["Covered store", "5.1 U", "0 U", "394.9 U", "400.0 U", "×1.00"]),
-		"the store: stock, nothing reserved")
-	assert_equal(panel.store_row_cells(CELLAR), PackedStringArray(["Root cellar", "0 U", "5.3 U", "54.7 U", "60.0 U", "×0.35"]),
-		"the cellar: 60 less 5.3 reserved")
-	assert_true(panel.total_text().begins_with("5.1 U of food in store"), "the total is stock alone")
+	assert_equal(_rows_of(panel), [PackedStringArray(["Carrot", "5 bunches", "—", "Covered store", "all in 10d"]),
+		PackedStringArray(["Carrot", "none", "1 bunch", "Root cellar", "—"]),
+		PackedStringArray(["Barley", "none", "4 scoops", "Root cellar", "—"])] as Array[PackedStringArray], "in store and incoming")
+	assert_equal(panel.store_row_cells(COVERED), PackedStringArray(["Covered store", "1 basket", "none", "78 baskets", "80 baskets", "×1.00"]),
+		"the store in baskets of food (5 U): 5.1 U is 1 basket (floored to the half), 394.9 U 78, its 400 U 80")
+	assert_equal(panel.store_row_cells(CELLAR), PackedStringArray(["Root cellar", "none", "1 basket", "10 baskets", "12 baskets", "×0.35"]),
+		"the cellar: 60 U (12 baskets) less 5.3 U reserved; 54.7 U is 10 baskets (whole from ten)")
+	assert_true(panel.total_text().begins_with("a basket of food in store"), "the total is stock alone")
+	assert_equal(panel.total_tooltip(), "In store: a basket of food — 1.27 kg", "its weight in the tooltip (5.1 U x 250 g, to 10 g)")
 
 
 func test_lots_and_holds_alike_add_up_per_row() -> void:
@@ -227,8 +228,8 @@ func test_lots_and_holds_alike_add_up_per_row() -> void:
 	assert_true(pantry.reserve_near_into(CARROT, 700, Vector2.ZERO, _read), "another")
 	var panel := _panel(SimScript.new(), pantry)
 	panel.toggle()
-	assert_equal(_rows_of(panel), [PackedStringArray(["Carrot", "3.0 U", "1.2 U", "Covered store", "1.0 U in 10d"])] as Array[PackedStringArray],
-		"one row: 3.0 U in store, 1.2 U incoming, the first lot (1.0 U) next")
+	assert_equal(_rows_of(panel), [PackedStringArray(["Carrot", "3 bunches", "1 bunch", "Covered store", "1 bunch in 10d"])] as Array[PackedStringArray],
+		"one row: 3 U in store, 1.2 U incoming, the first lot (1 U) next")
 
 
 func test_a_hold_names_its_item_until_released() -> void:
@@ -268,9 +269,9 @@ func test_a_store_taken_away_while_open_leaves_its_rows_gone_not_another_s() -> 
 	shelves.remove_at(0)
 	pantry.refresh_locations()
 	panel.refresh()
-	assert_equal(_rows_of(panel), [PackedStringArray(["Carrot", "0 U", "—", "(store gone)", "—"]),
-		PackedStringArray(["Wheat", "3.0 U", "—", "Root cellar B", "all in 79d 18h"]),
-		PackedStringArray(["Carrot", "2.0 U", "—", "Covered store", "all in 10d"])] as Array[PackedStringArray],
+	assert_equal(_rows_of(panel), [PackedStringArray(["Carrot", "none", "—", "(store gone)", "—"]),
+		PackedStringArray(["Wheat", "3 scoops", "—", "Root cellar B", "all in 79d 18h"]),
+		PackedStringArray(["Carrot", "2 bunches", "—", "Covered store", "all in 10d"])] as Array[PackedStringArray],
 		"cellar A gone: its row empty; cellar B, now index 1, still its own; the carrots moved, a new row")
 
 
@@ -292,7 +293,7 @@ func test_the_first_lot_to_spoil_at_one_store() -> void:
 
 func test_the_order_is_kept_while_the_pantry_is_open() -> void:
 	"""Open: a new row goes at the end even when it spoils sooner; a row whose stock has gone stays in its
-	place reading 0 U; figures change in place. Reopened, the order is made afresh."""
+	place reading "none"; figures change in place. Reopened, the order is made afresh."""
 	var pantry := _pantry()
 	_add(pantry, WHEAT, 8000, COVERED)
 	_add(pantry, LETTUCE, 1000, COVERED)
@@ -304,7 +305,7 @@ func test_the_order_is_kept_while_the_pantry_is_open() -> void:
 	_age(pantry, 50)
 	panel.refresh()
 	assert_equal(_names(panel), ["Lettuce", "Wheat", "Radish"] as Array[String], "radish new: at the end; nothing moved")
-	assert_equal(panel.shown_stock_row(0), PackedStringArray(["Lettuce", "0 U", "—", "Covered store", "—"]), "spoiled: kept, 0 U")
+	assert_equal(panel.shown_stock_row(0), PackedStringArray(["Lettuce", "none", "—", "Covered store", "—"]), "spoiled: kept, none")
 	panel.toggle()
 	panel.toggle()
 	assert_equal(_names(panel), ["Radish", "Wheat"] as Array[String], "reopened: made afresh, the spoiled row gone")
@@ -383,7 +384,7 @@ func test_a_reserved_only_pantry_is_not_empty() -> void:
 	var panel := _panel(SimScript.new(), pantry)
 	panel.toggle()
 	assert_false(panel.empty_shown(), "not empty")
-	assert_equal(panel.shown_stock_row(0)[2], "1.0 U", "incoming")
+	assert_equal(panel.shown_stock_row(0)[2], "1 scoop", "incoming: 1 U of wheat")
 
 
 func test_the_suggestion_button_opens_its_bed() -> void:

@@ -400,7 +400,7 @@ func test_the_village_s_cellars_take_the_farm_s_harvest() -> void:
 	assert_equal(farm.pantry.milli_at(CARROT, 0), 0, "not the covered store")
 	assert_true(farm.storage.index_of_id_into(&"root_cellar:%d:0" % by_store, _read), "the cellar by the store")
 	assert_equal(farm.pantry.milli_at(CARROT, _read.value), 0, "is passed over")
-	assert_true(_feed_has("Harvested 5.1 U of carrot into the root cellar %d" % (by_beds + 1), NoticesScript.LEVEL_NOTE),
+	assert_true(_feed_has("Harvested 5 bunches of carrots into the root cellar %d" % (by_beds + 1), NoticesScript.LEVEL_NOTE),
 		"the crew's report is in the feed")
 
 

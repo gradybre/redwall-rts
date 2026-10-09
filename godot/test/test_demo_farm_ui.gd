@@ -180,7 +180,7 @@ func test_a_harvest_is_carried_to_the_store_as_its_own_item() -> void:
 	assert_equal(pantry.units_of(CARROT), 5, "counted as 5 carrots")
 	assert_equal(sim.stage_of(BED_CARROTS), SimScript.STAGE_EMPTY, "the bed is empty")
 	assert_equal(sim.chosen_of(BED_CARROTS), SimScript.NO_ITEM, "and asks for a new crop")
-	assert_true(_notices.has("Harvested 5.1 U of carrot into the covered store"), "said how much")
+	assert_true(_notices.has("Harvested 5 bunches of carrots into the covered store"), "said how much: 5.1 U is 5 bunches")
 
 
 func test_watering_fetches_water_at_the_well_first() -> void:
@@ -350,7 +350,7 @@ func test_a_harvest_is_hauled_with_the_carry_walk() -> void:
 	assert_true(_run(cast, crew, 120.0, hauling), "hauling")
 	cast.advance(DT)
 	assert_true(_brain(cast, 3).carrying, "with the carry walk")
-	assert_equal(crew.task_text(3), "Carrying 5.1 U of carrot to the covered store", "says so, and how much")
+	assert_equal(crew.task_text(3), "Carrying 5 bunches of carrots to the covered store", "says so, and how much")
 
 
 func _dig_tunnel(network: GraphScript, from_m: Vector2, to_m: Vector2) -> PackedInt32Array:
@@ -491,7 +491,7 @@ func test_the_panel_words_come_from_the_rules() -> void:
 	assert_equal(Text.rotation_text(1100), "legume after a change: harvest +10%", "legume")
 	assert_equal(Text.rotation_text(1000), "fresh rotation: no change to the harvest", "fresh")
 	var sim := SimScript.new()
-	assert_equal(Text.pick_row(sim, BED_LOAM, PEA), "legume crop · matures in 6 days · this bed: about 5.9 U (base 7.0 U) · "
+	assert_equal(Text.pick_row(sim, BED_LOAM, PEA), "legume crop · matures in 6 days · this bed: about 5 scoops (base 7 scoops) · "
 		+ "fresh rotation: no change to the harvest · feeds the soil: +8 fertility points", "a legume says it feeds the soil")
 	assert_equal(Text.pick_reason(sim, BED_CLAY, RADISH), "needs loam or sand (this bed is clay)", "soil")
 	assert_equal(Text.pick_reason(sim, BED_LOAM, PEA), "sow in Spring 5–10; Summer 1–3", "window")
@@ -507,7 +507,7 @@ func test_the_panel_words_come_from_the_rules() -> void:
 	assert_equal(Text.fertility_effect_line(sim, BED_CARROTS), "Fertility effect on yield: −15%", "its effect")
 	assert_equal(Text.health_line(sim, BED_CARROTS), "Crop health: 100%", "health")
 	assert_equal(Text.stage_line(sim, BED_CARROTS, _read), "Growing 80% — ripe in about 24 h", "growing")
-	assert_equal(Text.yield_line(sim, BED_CARROTS, _read), "Expected harvest: 5.1 U of carrot", "yield")
+	assert_equal(Text.yield_line(sim, BED_CARROTS, _read), "Expected harvest: 5 bunches of carrots", "yield")
 	assert_equal(Text.works_line(sim, BED_CARROTS), "Ground: as dug", "untouched")
 	sim.advance_usec(24 * HOUR_USEC)
 	assert_equal(Text.stage_line(sim, BED_CARROTS, _read), "Ripe — full yield for 48 h more, withers in 120 h", "just ripe")
@@ -992,16 +992,16 @@ func test_the_pantry_panel_breaks_the_food_out_by_item() -> void:
 	panel.configure(sim, pantry, recipes)
 	assert_true(panel.toggle(), "open")
 	assert_equal(panel.stock_row_count(), 1, "one row: the carrots in the cellar")
-	assert_equal(panel.shown_stock_row(0), PackedStringArray(["Carrot", "5.1 U", "—", "Root cellar", "all in 22d 23h"]),
+	assert_equal(panel.shown_stock_row(0), PackedStringArray(["Carrot", "5 bunches", "—", "Root cellar", "all in 22d 23h"]),
 		"carrots: 281 spring hours at ×0.35, then 270 at summer's ×0.525 = 551 h")
-	assert_equal(panel.store_row_cells(0), PackedStringArray(["Covered store", "0 U", "0 U", "400.0 U", "400.0 U", "×1.00"]), "store")
-	assert_equal(panel.store_row_cells(1), PackedStringArray(["Root cellar", "5.1 U", "0 U", "54.9 U", "60.0 U", "×0.35"]), "cellar")
+	assert_equal(panel.store_row_cells(0), PackedStringArray(["Covered store", "none", "none", "80 baskets", "80 baskets", "×1.00"]), "store: 400 U is 80 baskets of food")
+	assert_equal(panel.store_row_cells(1), PackedStringArray(["Root cellar", "1 basket", "none", "10 baskets", "12 baskets", "×0.35"]), "cellar")
 	panel.show_tab(PantryPanelScript.TAB_RECIPES)
 	panel.select_item(CARROT)
 	assert_equal(panel.dish_title(), "Carrot feeds 109 dishes (and 15 more through prepared parts)", "dishes")
-	assert_equal(panel.item_button(CARROT).text, "Carrot · 5.1 U in store", "its stock on its button")
+	assert_equal(panel.item_button(CARROT).text, "Carrot · 5 bunches in store", "its stock on its button")
 	assert_equal(panel.item_button(RADISH).text, "Radish · none in store", "none")
-	assert_true(panel.total_text().begins_with("5.1 U of food in store"), "total")
+	assert_true(panel.total_text().begins_with("a basket of food in store"), "total: 5.1 U is a basket of food")
 	assert_false(panel.toggle(), "closed")
 
 

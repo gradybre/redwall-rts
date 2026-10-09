@@ -22,17 +22,11 @@ const UNITS: String = "(?i)\\b(a|per|each|every) unit\\b|(\\d|%[-+ #0-9.]*[dis])
 
 ## path -> the most findings the file may still hold (see ALLOWLIST).
 const ALLOWLIST: Dictionary = {
-	"res://demo/farm/farm_crop_roles.gd": 1,
 	"res://demo/farm/farm_plan_rows.gd": 2,
-	"res://demo/farm/farm_season.gd": 1,
 	"res://demo/farm/farm_tending.gd": 1,
-	"res://demo/farm/farm_tending_page.gd": 1,
 	"res://demo/farm/farm_text.gd": 3,
 	"res://demo/feast/feast_menu.gd": 1,
 	"res://demo/forestry/forest_rules.gd": 1,
-	"res://demo/hives/hive_text.gd": 2,
-	"res://demo/orchard/orchard_cards.gd": 3,
-	"res://demo/orchard/orchard_text.gd": 3,
 	"res://demo/tunnel/tunnel_stores.gd": 1,
 	"res://demo/ui/action_card.gd": 1,
 }

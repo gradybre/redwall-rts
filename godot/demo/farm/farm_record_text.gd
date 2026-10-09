@@ -1,13 +1,15 @@
 extends RefCounted
 ## The after-action record's words (decision 0451): a closed day's line for the village news and the planner's Record
-## tab, a season's totals, and the table's cells. Pure functions of farm_record.gd; every quantity through farm_text.gd's
-## one formatter (`units_text`, decision 0222).
+## tab, a season's totals, and the table's cells. Pure functions of farm_record.gd; every quantity in its natural
+## measure through scripts/ui/goods_measures.gd (decision 1801): a day's totals as mixed food ("2 baskets of food"), each
+## item in its own measure ("5 bunches of carrots"), spoiled food as `spoiled_food`; the cell form wherever the words
+## around a figure already name the food ("food used 1½ baskets", the table's columns).
 
 const RecordScript := preload("res://demo/farm/farm_record.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
-const Text := preload("res://demo/farm/farm_text.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 ## "Spoiled" is food spoiled in store and portions spoiled on the table; a cancelled batch's spoiled food was already
 ## withdrawn (in "Food used"), so only the day's line names it.
@@ -33,10 +35,10 @@ static func season_name(absolute_season: int) -> String:
 static func day_line(record: RecordScript, k: int) -> String:
 	"""Kept day `k` in full: what it produced, consumed, spoiled and missed."""
 	var parts := PackedStringArray()
-	parts.append("harvested %s%s" % [Text.units_text(record.value(k, RecordScript.F_HARVESTED)),
+	parts.append("harvested %s%s" % [Measures.amount(&"food", record.value(k, RecordScript.F_HARVESTED)),
 		_items(record, k, RecordScript.G_HARVESTED)])
-	parts.append("food used %s (cooked %s, eaten raw %s)" % [Text.units_text(record.value(k, RecordScript.F_USED)),
-		Text.units_text(record.value(k, RecordScript.F_COOKED)), Text.units_text(record.value(k, RecordScript.F_RAW))])
+	parts.append("food used %s (cooked %s, eaten raw %s)" % [_food(record.value(k, RecordScript.F_USED)),
+		_food(record.value(k, RecordScript.F_COOKED)), _food(record.value(k, RecordScript.F_RAW))])
 	parts.append("%d portions eaten" % record.value(k, RecordScript.F_PORTIONS))
 	parts.append(_spoiled_words(record.value(k, RecordScript.F_SPOILED), record.value(k, RecordScript.F_PORTIONS_SPOILED),
 		record.value(k, RecordScript.F_KITCHEN_SPOILED)))
@@ -46,10 +48,11 @@ static func day_line(record: RecordScript, k: int) -> String:
 
 
 static func day_summary(record: RecordScript, k: int) -> String:
-	"""Kept day `k` in one short line, for the news strip: 'Spring 3's record: +5.1 U harvested · 16 portions eaten · 1
-	went without'."""
-	var line: String = "%s's record: +%s harvested · %d portions eaten" % [day_name(record.value(k, RecordScript.F_DAY)),
-		Text.units_text(record.value(k, RecordScript.F_HARVESTED)), record.value(k, RecordScript.F_PORTIONS)]
+	"""Kept day `k` in one short line, for the news strip: 'Spring 3's record: +1 basket harvested · 16 portions eaten · 1
+	went without' ('nothing harvested' for none)."""
+	var harvested: int = record.value(k, RecordScript.F_HARVESTED)
+	var line: String = "%s's record: %s · %d portions eaten" % [day_name(record.value(k, RecordScript.F_DAY)),
+		"+%s harvested" % _food(harvested) if harvested > 0 else "nothing harvested", record.value(k, RecordScript.F_PORTIONS)]
 	var without: int = record.value(k, RecordScript.F_WITHOUT)
 	var lost: int = record.value(k, RecordScript.F_LOST)
 	if without > 0:
@@ -60,13 +63,13 @@ static func day_summary(record: RecordScript, k: int) -> String:
 
 
 static func season_line(record: RecordScript, absolute_season: int) -> String:
-	"""A season's totals over its kept days: 'Spring, year 1 (12 days): harvested 40.2 U · ...'."""
+	"""A season's totals over its kept days: 'Spring, year 1 (12 days): harvested 8 baskets of food · ...'."""
 	var days: int = record.season_days(absolute_season)
 	if days == 0:
 		return "%s: no day of it has closed yet." % season_name(absolute_season)
 	var parts := PackedStringArray()
-	parts.append("harvested %s" % Text.units_text(record.season_total(absolute_season, RecordScript.F_HARVESTED)))
-	parts.append("food used %s" % Text.units_text(record.season_total(absolute_season, RecordScript.F_USED)))
+	parts.append("harvested %s" % Measures.amount(&"food", record.season_total(absolute_season, RecordScript.F_HARVESTED)))
+	parts.append("food used %s" % _food(record.season_total(absolute_season, RecordScript.F_USED)))
 	parts.append("%d portions eaten" % record.season_total(absolute_season, RecordScript.F_PORTIONS))
 	parts.append(_spoiled_words(record.season_total(absolute_season, RecordScript.F_SPOILED), record.season_total(
 		absolute_season, RecordScript.F_PORTIONS_SPOILED), record.season_total(absolute_season, RecordScript.F_KITCHEN_SPOILED)))
@@ -79,32 +82,37 @@ static func table_cells_into(record: RecordScript, k: int, out: PackedStringArra
 	"""Kept day `k`'s cells, TABLE_TITLES order."""
 	out.resize(TABLE_COLUMNS)
 	out[0] = day_name(record.value(k, RecordScript.F_DAY))
-	out[1] = Text.units_text(record.value(k, RecordScript.F_HARVESTED))
-	out[2] = Text.units_text(record.value(k, RecordScript.F_USED))
+	out[1] = _food(record.value(k, RecordScript.F_HARVESTED))
+	out[2] = _food(record.value(k, RecordScript.F_USED))
 	out[3] = "%d" % record.value(k, RecordScript.F_PORTIONS)
-	out[4] = "%s · %d portions" % [Text.units_text(record.value(k, RecordScript.F_SPOILED)),
+	out[4] = "%s · %d portions" % [Measures.amount_cell(&"spoiled_food", record.value(k, RecordScript.F_SPOILED)),
 		record.value(k, RecordScript.F_PORTIONS_SPOILED)]
 	out[5] = "%d" % record.value(k, RecordScript.F_WITHOUT)
 	out[6] = "%d" % record.value(k, RecordScript.F_LOST)
 
 
 static func _items(record: RecordScript, k: int, group: int) -> String:
-	"""' (carrot 5.1 U, radish 2.0 U)' -- the items a group moved that day ('' for none)."""
+	"""' (5 bunches of carrots, 2 bunches of radishes)' -- the items a group moved that day ('' for none)."""
 	var parts := PackedStringArray()
 	for item: int in Catalog.PANTRY_ITEM_COUNT:
 		var milli: int = record.item_value(k, group, item)
 		if milli > 0:
-			parts.append("%s %s" % [Catalog.ITEM_LABELS[item].to_lower(), Text.units_text(milli)])
+			parts.append(Measures.amount(Catalog.ITEM_KEYS[item], milli))
 	return " (%s)" % ", ".join(parts) if not parts.is_empty() else ""
 
 
 static func _spoiled_words(in_store: int, portions: int, kitchen_milli: int) -> String:
-	"""'spoiled 1.2 U in store, 2 portions' (and a cancelled batch's spoiled food)."""
-	var words: String = "spoiled %s in store, %d portion%s" % [Text.units_text(in_store), portions,
+	"""'spoiled 1 bowl in store, 2 portions' (and a cancelled batch's spoiled food)."""
+	var words: String = "spoiled %s in store, %d portion%s" % [Measures.amount_cell(&"spoiled_food", in_store), portions,
 		"" if portions == 1 else "s"]
 	if kitchen_milli > 0:
-		words += ", %s from a cancelled batch" % Text.units_text(kitchen_milli)
+		words += ", %s from a cancelled batch" % Measures.amount_cell(&"spoiled_food", kitchen_milli)
 	return words
+
+
+static func _food(milli: int) -> String:
+	"""Mixed food in the cell form, where the words around it already say it is food: '1½ baskets', 'none'."""
+	return Measures.amount_cell(&"food", milli)
 
 
 static func _missed_words(without: int, lost: int, lost_beds: int) -> String:

@@ -43,6 +43,7 @@ const FarmingScript := preload("res://scripts/core/farming.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const SowingScript := preload("res://demo/farm/farm_sowing.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const GROUP_FIELD: int = 0
 const GROUP_GARDEN: int = 1
@@ -368,9 +369,10 @@ func tomorrow_water_milli(group: int) -> int:
 
 
 func tomorrow_text(group: int) -> String:
-	"""'In the next day: at most 8 WU of work and 1.0 U of well water (budget 8 WU a day; 2 used today)'."""
-	return "In the next day: at most %d WU of work and %s of well water (budget %d WU a day; %d WU used today)" % [
-		tomorrow_wu(group), _units(tomorrow_water_milli(group)), budget_wu(group), spent_wu[group]]
+	"""'In the next day: at most 8 WU of work and a jug of water from the well (budget 8 WU a day; 2 WU used today)':
+	the most it may draw, so rounded up (goods_measures.gd `need`, decision 1801)."""
+	return "In the next day: at most %d WU of work and %s from the well (budget %d WU a day; %d WU used today)" % [
+		tomorrow_wu(group), Measures.need(&"water", tomorrow_water_milli(group)), budget_wu(group), spent_wu[group]]
 
 
 static func beds_words(beds: PackedInt32Array) -> String:

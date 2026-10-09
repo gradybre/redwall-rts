@@ -361,7 +361,7 @@ func test_a_short_compost_store_is_the_only_compost_cost_and_earth_never_stands_
 	assert_equal(Array(card.cost_names), [FarmCard.COMPOST_STORE], "the compost store only")
 	assert_equal([int(card.cost_have[0]), int(card.cost_need[0])], [1000, 2000], "have / need")
 	assert_equal(card.short_row(), 0, "the store is short")
-	assert_equal(card.reason, "not enough compost: 2.0 U from the compost store", "no heap offered")
+	assert_equal(card.reason, "not enough compost: a bed takes a basket of compost from the store", "no heap offered")
 	assert_equal(card.code, "NOT_ENOUGH_COMPOST", "the order's code")
 	assert_equal(crew.order(FarmJobs.KIND_COMPOST, BED_CARROTS, PackedInt32Array(), FarmJobs.ORIGIN_PLAYER),
 		"Can't compost: " + card.reason, "the order's words")
@@ -1139,9 +1139,9 @@ func test_a_raise_card_shows_the_heap_it_needs() -> void:
 		assert_equal(Array(card.cost_names), [FarmCard.EARTH], "earth")
 		assert_equal([int(card.cost_have[0]), int(card.cost_need[0])], [crew.most_earth(), FarmJobs.EARTH_PER_JOB_MILLI],
 			"the fullest source against a dose")
-		assert_true(card.prerequisites[0].begins_with("2.0 U of earth on one heap or in the stores"), "needs, from the dose")
+		assert_true(card.prerequisites[0].begins_with("a basket of earth on one heap or in the stores"), "needs, from the dose")
 		assert_true(card.result.contains("earth adds no fertility"), card.result)
-	assert_equal(card.reason, "no spoil heap or store holds 2.0 U of earth", "the dose in the refusal")
+	assert_equal(card.reason, "no spoil heap or store holds a basket of earth", "the dose in the refusal")
 
 
 func test_the_bed_panels_buttons_dim_name_resident_0_and_scope_cancel() -> void:

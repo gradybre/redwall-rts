@@ -199,8 +199,8 @@ func test_the_stocks_table_shows_portions_water_and_what_the_kitchen_holds() -> 
 	var rows := PackedStringArray()
 	for row in panel.stock_row_count() + 2:
 		rows.append(" | ".join(panel.shown_stock_row(row)))
-	assert_true(rows.has("Oats | 10.0 U · 8 scoops for the kitchen | — | Covered store | all in 24d"), "oats: two breakfasts' reserved")
-	assert_true(rows.has("Carrot | 20.0 U · 2 baskets for the kitchen | — | Covered store | all in 10d"), "carrot: two suppers'")
+	assert_true(rows.has("Oats | 10 scoops · 8 scoops for the kitchen | — | Covered store | all in 24d"), "oats: two breakfasts' reserved")
+	assert_true(rows.has("Carrot | 4 baskets · 2 baskets for the kitchen | — | Covered store | all in 10d"), "carrot: two suppers'")
 	assert_true(rows.has("Togget's vegetable soup (ready food) | 2 portions | — | Kitchen (pot and table) | spoils in 24 h"), "the portions")
 	assert_true(rows.has("Water | 6 jugs | none | Water butt by the well | never spoils"), "the water")
 

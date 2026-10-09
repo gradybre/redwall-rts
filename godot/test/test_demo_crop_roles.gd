@@ -62,9 +62,9 @@ func test_the_two_differences_are_the_rows_own_numbers() -> void:
 	assert_equal(Roles.traits_text(RADISH), "keeps 10 days · ripens in 5 days", "roots: 240 h, 120 h")
 	assert_equal(Roles.traits_text(LETTUCE), "sown in summer and autumn · keeps 6 days", "cabbage row: windows, 144 h")
 	assert_equal(Roles.traits_text(BROAD_BEAN), "gives the soil 800 fertility · keeps 20 days", "beans: -800, 480 h")
-	assert_equal(Roles.traits_text(OATS), "10 U a bed · ripens in 8 days", "grain: 10 U, 192 h")
+	assert_equal(Roles.traits_text(OATS), "10 scoops a bed · ripens in 8 days", "grain: 10 U (10 scoops; a sack only from 2), 192 h")
 	assert_equal(Roles.trait_text(FarmingScript.CROP_FLAX, Roles.TRAIT_SOWN), "sown in spring", "flax: spring 1-6")
-	assert_equal(Roles.trait_text(FarmingScript.CROP_FLAX, Roles.TRAIT_YIELD), "5 U a bed", "flax: 5 U")
+	assert_equal(Roles.trait_text(FarmingScript.CROP_FLAX, Roles.TRAIT_YIELD), "20 handfuls a bed", "flax: 5 U, no whole bundle (4 U) or half: 20 handfuls")
 	assert_equal(Roles.trait_text(FarmingScript.CROP_ROOTS, 99), "", "an unknown trait says nothing")
 	assert_equal(Roles.ROLE_TRAITS.size(), Roles.ROLE_COUNT * 2, "two differences a role, no more")
 

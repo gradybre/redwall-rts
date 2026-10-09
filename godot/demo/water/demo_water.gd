@@ -24,8 +24,8 @@ extends Node3D
 ##                               water's zones are its last step.
 ##   set_flood_rise(level)       raise the stream to `level` (0..1) of its bank: a flood (demo/events/).
 ##
-## UNDERGROUND VIEW (U, demo/tunnel/tunnel_view.gd; decision 0206): the water, its bank film and its
-## dressing are on the surface layer, which the U view does not draw; the view's cap shows the water as a
+## UNDERGROUND (U, demo/tunnel/tunnel_view.gd; decision 0206): the water, its bank film and its
+## dressing are on the surface layer, which Underground does not draw; its cap shows the water as a
 ## hatched no-dig band instead. Nothing here hides or fades for it. MOVE-REQ-015: presentation only.
 ##
 ## Everything here is presentation except the map's integers and the fishing store, and nothing

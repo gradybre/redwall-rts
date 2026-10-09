@@ -20,6 +20,7 @@ const PropsScript := preload("res://demo/props/demo_props.gd")
 const MarksScript := preload("res://demo/control/demo_marks.gd")
 const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 ## A click this far beyond a heap's drawn rim still picks it (metres; demo value).
 const PICK_SLACK_M: float = 0.3
@@ -27,7 +28,7 @@ const PICK_SLACK_M: float = 0.3
 const RING_GAP_M: float = 0.15
 const NOTHING: int = -1
 const DROP_POI: StringName = &"stockpile"
-const SELECTED_TEXT: String = "Spoil heap: %.1f U of earth. Right-click it (or C) with residents selected to dig it out and haul it to the stores"
+const SELECTED_TEXT: String = "Spoil heap: %s. Right-click it (or C) with residents selected to dig it out and haul it to the stores"
 const EMPTY_TEXT: String = "Spoil heap: cleared"
 const CLEARING_TEXT: String = "Clearing a spoil heap"
 const HAULING_TEXT: String = "Hauling earth to the stores"
@@ -161,7 +162,7 @@ func select(h: int) -> void:
 	var r: float = drawn_radius_m(crew.spoil_left(h)) + RING_GAP_M
 	_ring.position = Vector3(_network.heap_at[h].x, MarksScript.LIFT_M, _network.heap_at[h].y)
 	_ring.scale = Vector3(r, 1.0, r)
-	_command.say(SELECTED_TEXT % (crew.spoil_left(h) / 1000.0))
+	_command.say(SELECTED_TEXT % Measures.amount(&"earth", crew.spoil_left(h)))
 
 
 func clear_selected() -> String:

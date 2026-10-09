@@ -39,6 +39,8 @@ const RECORD_DAYS: int = SimClock.DAYS_PER_SEASON
 ## A prediction gives up after this many days (two years: never reached by §5.4's recruitment term, 0.5% K a day).
 const PREDICT_MAX_DAYS: int = 2 * SimClock.DAYS_PER_YEAR
 const PERCENT: int = 100
+## The good a water's mixed species are counted as (goods_measures.gd: fish, one a U).
+const FISH: StringName = &"fish"
 
 ## Per water: the landed ring (RECORD_DAYS slots, milli-U), the stock at the day's start (milli-U).
 var landed: PackedInt64Array = PackedInt64Array()
@@ -140,16 +142,19 @@ static func days_words(days: int) -> String:
 	return "in about %d days" % days if days >= 0 else "not within two years"
 
 
-func record_line(driver: Driver, water: int, units: Callable) -> String:
-	"""One water's record: 'The stream: landed 24.0 U in 12 days · stock 1680.0 U (+12.0 U today) · 1 of 4 places in
-	use · intensive off · trout restocking: above 40% in about 5 days'. `units(milli)` formats a quantity."""
+func record_line(driver: Driver, water: int, amount: Callable) -> String:
+	"""One water's record: 'The stream: landed 24 fish in 12 days · stock 1,680 fish (+12 fish today) · 1 of 4 places
+	in use · intensive off · trout restocking: above 40% in about 5 days'. `amount(good, milli)` words a quantity of a
+	good (goods_measures.gd `amount`; every species summed is counted as fish, decision 1011 P3)."""
 	var site: int = WATER_SITE[water]
 	var store: Fishing = driver.store()
 	var slot: int = store.habitat_slot_of(driver.habitat_ref_of_site(site)).value
 	var now: int = stock_now(driver, water)
 	var change: int = now - stock_at_dawn[water]
-	var parts := PackedStringArray(["%s: landed %s in %d days" % [WATER_NAMES[water], units.call(landed_recent(water)),
-		RECORD_DAYS], "stock %s (%s%s today)" % [units.call(now), "+" if change >= 0 else "−", units.call(absi(change))],
+	var today: String = "no change today" if change == 0 else "%s%s today" % ["+" if change > 0 else "−",
+		amount.call(FISH, absi(change))]
+	var parts := PackedStringArray(["%s: landed %s in %d days" % [WATER_NAMES[water], amount.call(FISH,
+		landed_recent(water)), RECORD_DAYS], "stock %s (%s)" % [amount.call(FISH, now), today],
 		"%d of %d places in use" % [store.effort_slots_used_of(slot).value, store.effort_slots_of(slot).value],
 		"intensive %s" % ("ON (10% floor)" if driver.intensive(site) else "off")])
 	for s: int in Fishing.SPECIES_PER_HABITAT:

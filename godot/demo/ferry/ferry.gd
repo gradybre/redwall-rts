@@ -440,7 +440,7 @@ func _windfall(day: int) -> void:
 		var spot: int = posmod(day + k, count)
 		if copse_milli[spot] == 0:
 			_fall(spot, Rules.pile_milli(day))
-			_note("Windfall is down in %s: %s" % [Rules.COPSE_NAME, Rules.units_text(copse_milli[spot])], false)
+			_note("Windfall is down in %s: %s" % [Rules.COPSE_NAME, StoresScript.Measures.amount(&"wood", copse_milli[spot])], false)
 			return
 
 
@@ -452,7 +452,7 @@ func _follow_timetable() -> void:
 			_post_crossing("the %s departure" % hour_words(next_departure))
 		next_departure = Rules.departure_tick_at_or_after(now + 1)
 	if x_serial == 0 and far_stack_milli >= Rules.THRESHOLD_MILLI and is_open() and _day_now() and staffed():
-		_post_crossing("the far stage's stack reached %s" % Rules.units_text(Rules.THRESHOLD_MILLI))
+		_post_crossing("the far stage's stack reached %s" % StoresScript.Measures.exact(&"wood", Rules.THRESHOLD_MILLI))
 	if x_state == X_HELD and x_job == NONE and is_open():
 		var j: int = _open_job(KIND_CREW)
 		if j == NONE:
@@ -991,7 +991,7 @@ func _gathered(j: int) -> void:
 func _consign(j: int, brain: BrainScript) -> void:
 	"""The wood put down on the far stage's stack (in hand -> far stack): the job is done."""
 	far_stack_milli += j_load[j]
-	_note("%s brought %s of windfall to %s" % [name_of(brain.index), Rules.units_text(j_load[j]), Routes.FAR_STAGE_NAME], false)
+	_note("%s brought windfall to %s: %s" % [name_of(brain.index), Routes.FAR_STAGE_NAME, StoresScript.Measures.amount(&"wood", j_load[j])], false)
 	j_load[j] = 0
 	_end_job(j)
 
@@ -1014,8 +1014,8 @@ func _store(j: int, brain: BrainScript) -> void:
 	stores.add_wood(milli)
 	stored_milli += milli
 	j_load[j] = 0
-	_note("%s stacked %s of ferried wood: the stores hold %s" % [name_of(brain.index), Rules.units_text(milli),
-		Rules.units_text(stores.wood_milli_u)], false)
+	_note("%s stacked the ferried wood, %s: the stores hold %s" % [name_of(brain.index), StoresScript.Measures.amount(&"wood", milli),
+		StoresScript.Measures.amount(&"wood", stores.wood_milli_u)], false)
 	_end_job(j)
 
 
@@ -1176,7 +1176,7 @@ func _unloaded() -> void:
 	near_stack_milli += aboard_milli
 	ferried_milli += aboard_milli
 	if aboard_milli > 0:
-		_note("The ferry landed %s of wood at %s" % [Rules.units_text(aboard_milli), Routes.FERRY_STAGE_NAME], false)
+		_note("The ferry landed %s at %s" % [StoresScript.Measures.amount(&"wood", aboard_milli), Routes.FERRY_STAGE_NAME], false)
 	aboard_milli = 0
 	revision += 1
 
@@ -1623,7 +1623,7 @@ func doing_text(j: int, serial: int) -> String:
 		S_GATHER:
 			return "gathering windfall in %s" % Rules.COPSE_NAME
 		S_TO_FAR_STACK, S_TO_LOG_STACK:
-			return "carrying %s of wood to %s" % [Rules.units_text(j_load[j]), place_words(j)]
+			return "carrying %s to %s" % [StoresScript.Measures.amount(&"wood", j_load[j]), place_words(j)]
 		S_PICK:
 			return "taking up ferried wood"
 		S_BOARD:

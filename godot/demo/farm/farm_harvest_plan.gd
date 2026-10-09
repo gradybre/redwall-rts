@@ -53,6 +53,7 @@ const FarmingScript := preload("res://scripts/core/farming.gd")
 const StockAge := preload("res://scripts/core/stock_age.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const STRATEGY_STEADY: int = 0
 const STRATEGY_PRESERVE: int = 1
@@ -431,14 +432,14 @@ func suggestion(day: Day) -> String:
 
 
 func over_words(day: Day) -> String:
-	"""A day's overloads in words ('' for none)."""
+	"""A day's overloads in words ('' for none): the room and the food at risk as mixed food ("12 baskets of food")."""
 	var parts := PackedStringArray()
 	if day.over & OVER_WORK:
 		parts.append("more work than the field crew's day")
 	if day.over & OVER_ROOM:
-		parts.append("more than the stores' free room (%s)" % Rows.units(room_milli()))
+		parts.append("more than the stores' free room (%s)" % Measures.amount(&"food", room_milli()))
 	if day.over & OVER_KEEPING:
-		parts.append("about %s would spoil before the kitchen eats it" % Rows.units(day.at_risk_milli))
+		parts.append("about %s would spoil before the kitchen eats it" % Measures.amount(&"food", day.at_risk_milli))
 	return "; ".join(parts)
 
 

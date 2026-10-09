@@ -1,6 +1,6 @@
 extends RefCounted
-## THE STANDING ORDERS (decision 0711; feature #38, approved by Brendan 2026-10-01): goals the player sets -- "keep 20 U
-## of planks", "keep 3 days of meals" -- for which the village queues the work itself, so the player manages goals
+## THE STANDING ORDERS (decision 0711; feature #38, approved by Brendan 2026-10-01): goals the player sets -- "keep 20
+## planks", "keep 3 days of meals" -- for which the village queues the work itself, so the player manages goals
 ## rather than tasks. Presentation only: the demo's jobs, never the simulation's. Session only (the demo cannot save).
 ##
 ## AN ORDER is a row of packed columns (MAX_ORDERS rows, sized once): its KIND and ITEM (the good, standing_kinds.gd),
@@ -178,13 +178,13 @@ func _add_refusal(of_kind: int, of_item: int, of_amount: int) -> String:
 		return REFUSE_SAME % Kinds.good_name(of_kind, of_item)
 	if count() >= MAX_ORDERS:
 		return REFUSE_FULL
-	return _amount_refusal(of_kind, of_amount)
+	return _amount_refusal(of_kind, of_item, of_amount)
 
 
-func _amount_refusal(of_kind: int, of_amount: int) -> String:
-	"""Why `of_amount` is no amount for the kind ("" when it is)."""
+func _amount_refusal(of_kind: int, of_item: int, of_amount: int) -> String:
+	"""Why `of_amount` is no amount for the good ("" when it is)."""
 	if of_amount <= 0 or of_amount > Kinds.MAX_AMOUNT[of_kind]:
-		return REFUSE_AMOUNT % Kinds.amount_text(of_kind, Kinds.MAX_AMOUNT[of_kind])
+		return REFUSE_AMOUNT % Kinds.target_text(of_kind, Kinds.MAX_AMOUNT[of_kind], of_item)
 	return ""
 
 
@@ -242,7 +242,7 @@ func set_amount(o: int, of_amount: int) -> String:
 		return REFUSE_NO_ORDER
 	if built_in[o] == 1:
 		return REFUSE_BUILT_IN
-	var why: String = _amount_refusal(kind[o], of_amount)
+	var why: String = _amount_refusal(kind[o], item[o], of_amount)
 	if not why.is_empty():
 		return why
 	amount[o] = of_amount
@@ -500,7 +500,7 @@ func incident_state(of_serial: int) -> int:
 
 
 func title_of(o: int) -> String:
-	"""The order as given: "Keep 20.0 U of planks"."""
+	"""The order as given: "Keep 20 planks"."""
 	return Kinds.title(kind[o], item[o], amount[o]) if is_live(o) else ""
 
 

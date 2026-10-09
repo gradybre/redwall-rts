@@ -289,6 +289,8 @@ func test_windfall_is_gathered_ferried_and_stacked_as_the_stores_wood() -> void:
 	var rig: Rig = _rig(9)
 	_helm(rig, 4, 2)
 	var wood_before: int = _services.stores.wood_milli_u
+	var said := PackedStringArray()
+	rig.ferry.say = func(text: String, _warning: bool) -> void: said.append(text)
 	assert_equal(rig.ferry.order_gather(PackedInt32Array()), "", "gathering ordered")
 	assert_equal(rig.ferry.job_count(), 2, "a job a pile")
 	var stored := func() -> bool: return rig.ferry.stored_milli == 2750 and rig.ferry.job_count() == 0
@@ -300,6 +302,12 @@ func test_windfall_is_gathered_ferried_and_stacked_as_the_stores_wood() -> void:
 	assert_equal(rig.ferry.x_serial, 0, "no crossing left")
 	assert_true(rig.fishery.fleet.is_free(Routes.FERRY_BOAT), "the ferry boat given back, free for a rescue")
 	assert_equal(rig.ferry.pile_count(), 0, "the copse gathered")
+	var brought: int = 0
+	for line: String in said:
+		brought += 1 if line.ends_with(" brought windfall to " + Routes.FAR_STAGE_NAME + ": a log") else 0
+		assert_false(line.contains(" U "), "no U in the news: " + line)
+	assert_equal(brought, 2, "the 1.5 U and 1.25 U piles are a log each (logs are whole, floored): %s" % " | ".join(said))
+	rig.ferry.say = Callable()
 
 
 func _stock_far(rig: Rig, milli: int) -> void:

@@ -6,10 +6,10 @@ extends RefCounted
 const Rules := preload("res://demo/winter/winter_rules.gd")
 const FuelScript := preload("res://demo/winter/hearth_fuel.gd")
 const ColdScript := preload("res://demo/winter/cold_exposure.gd")
-const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const FarmText := preload("res://demo/farm/farm_text.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 ## UI-SET-003's two states, and its caption.
 const CAPTION: String = "Heating fuel"
@@ -47,9 +47,24 @@ static func is_warning(hundredths: int) -> bool:
 	return hundredths != Rules.NO_DEMAND and hundredths < Rules.WARN_FUEL_HUNDREDTHS
 
 
-static func units(milli: int) -> String:
-	"""Milli-U in the stores' words: "12.5 U"."""
-	return StoresScript.units_text(maxi(milli, 0))
+static func wood(milli: int) -> String:
+	"""Wood in store, in logs (goods_measures.gd, rounded down): "40 logs", "no wood"."""
+	return Measures.amount(&"wood", milli)
+
+
+static func wood_rate(milli: int) -> String:
+	"""A rate or a need of wood, in logs (rounded up, never understated): "4 logs", "4 quarter logs"."""
+	return Measures.need(&"wood", milli)
+
+
+static func wood_rule(milli: int) -> String:
+	"""A rule's wood (a hearth's day at its tier and season, BURN RATES), unrounded: "4 logs", "6 quarter logs"."""
+	return Measures.exact(&"wood", milli)
+
+
+static func saving_words(milli: int) -> String:
+	"""What letting hearths go out saves: "saves about 8 logs a day", or "saves no wood"."""
+	return "saves about %s a day" % wood_rate(milli) if milli > 0 else "saves no wood"
 
 
 static func degrees(tenths: int) -> String:
@@ -97,26 +112,27 @@ static func state_line(fuel: FuelScript, source: int) -> String:
 
 
 static func demand_line(fuel: FuelScript) -> String:
-	"""Today's demand: "Burning 4.0 U a day: 1 hearth at 4.0 U, cooking 1.0 U (three-day mean)"; a tier-2 hearth is
-	named at its own rate ("2 hearths at 4.0 U, the hall at 3.0 U", decision 1652)."""
+	"""Today's demand: "Burning 5 logs a day: 1 hearth at 4 logs, cooking 4 quarter logs (three-day mean)"; a tier-2
+	hearth is named at its own rate ("2 hearths at 4 logs, the hall at 3 logs", decision 1652)."""
 	var hearths: int = fuel.burning_count()
 	if fuel.heating_day_milli() <= 0:
 		return "%s — %d %s, none needed today (%s mean)" % [NO_DEMAND, hearths, "hearth" if hearths == 1 else "hearths",
 			degrees(fuel.day_mean_tenths)]
-	return "Burning %s a day: %s, cooking %s (three-day mean)" % [units(fuel.heating_day_milli()
-		+ fuel.cook_mean_milli()), hearths_words(fuel, fuel.day_rate_milli, false), units(fuel.cook_mean_milli())]
+	return "Burning %s a day: %s, cooking %s (three-day mean)" % [wood_rate(fuel.heating_day_milli()
+		+ fuel.cook_mean_milli()), hearths_words(fuel, fuel.day_rate_milli, false), wood_rate(fuel.cook_mean_milli())]
 
 
 static func hearths_words(fuel: FuelScript, full_milli: int, winter: bool) -> String:
-	"""The burning hearths at their rates: "2 hearths at 4.0 U" at the full rate `full_milli`, then each tier-2 hearth by
-	name at its own ("the hall at 3.0 U"; `winter`: its winter rate, else today's). Allocates: words, never per frame."""
+	"""The burning hearths at their rates (rule constants, unrounded): "2 hearths at 4 logs" at the full rate
+	`full_milli`, then each tier-2 hearth by name at its own ("the hall at 3 logs", or on a cold spring day "6 quarter
+	logs"; `winter`: its winter rate, else today's). Allocates: words, never per frame."""
 	var full: int = fuel.burning_count() - fuel.reduced_count()
 	var parts := PackedStringArray()
 	if full > 0:
-		parts.append("%d %s at %s" % [full, "hearth" if full == 1 else "hearths", units(full_milli)])
+		parts.append("%d %s at %s" % [full, "hearth" if full == 1 else "hearths", wood_rule(full_milli)])
 	for s: int in FuelScript.SOURCES:
 		if fuel.hearth[s] == 1 and fuel.banked[s] == 0 and fuel.tier[s] >= Rules.TIER_2:
-			parts.append("%s at %s" % [source_name(s), units(fuel.winter_rate_of(s) if winter else fuel.rate_of(s))])
+			parts.append("%s at %s" % [source_name(s), wood_rule(fuel.winter_rate_of(s) if winter else fuel.rate_of(s))])
 	return ", ".join(parts) if not parts.is_empty() else "0 hearths"
 
 
@@ -127,12 +143,12 @@ static func last_heated_line(fuel: FuelScript) -> String:
 
 
 static func projection_line(fuel: FuelScript) -> String:
-	"""REQ-SET-114 / ruling 6: "Winter needs 60.0 U (12 days: 1 hearth at 4 U, cooking 1.0 U a day) — the stores hold
-	40.0 U, 66%"."""
+	"""REQ-SET-114 / ruling 6: "Winter needs 60 logs (12 days: 1 hearth at 4 logs, cooking a log a day) — the stores
+	hold 40 logs, 66%"."""
 	var target: int = fuel.projection_milli()
-	return "Winter needs %s (%d days: %s, cooking %s a day) — the stores hold %s, %d%%" % [units(target),
-		Rules.PROJECTION_DAYS, hearths_words(fuel, Rules.WINTER_DAY_MILLI, true), units(fuel.cook_mean_milli()),
-		units(fuel.wood_milli()), Rules.div(Rules.permille_of(fuel.wood_milli(), target), 10)]
+	return "Winter needs %s (%d days: %s, cooking %s a day) — the stores hold %s, %d%%" % [wood_rate(target),
+		Rules.PROJECTION_DAYS, hearths_words(fuel, Rules.WINTER_DAY_MILLI, true), wood_rate(fuel.cook_mean_milli()),
+		wood(fuel.wood_milli()), Rules.div(Rules.permille_of(fuel.wood_milli(), target), 10)]
 
 
 static func warning_line(fuel: FuelScript, affected: PackedInt32Array) -> String:

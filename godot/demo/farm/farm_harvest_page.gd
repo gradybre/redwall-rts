@@ -188,7 +188,7 @@ static func bed_cells_into(plan: PlanScript, row: PlanScript.Row, out: PackedStr
 	out[1] = PlanScript.role_words(row.item) if Catalog.is_item(row.item) else "—"
 	out[2] = plan.day_text(row.sow_day) if row.state == PlanScript.ROW_PLANNED else ("sown" if row.state == PlanScript.ROW_STANDING else "—")
 	out[3] = plan.day_text(row.ripe_day) if row.ripe_day != PlanScript.NO_DAY else "—"
-	out[4] = Rows.units(row.milli) if row.milli > 0 else "—"
+	out[4] = Rows.harvest_cell(row.item, row.milli) if row.milli > 0 else "—"
 	var booked: String = plan.booking_text(row.bed)
 	out[5] = booked if not booked.is_empty() else ROW_WORDS[row.state]
 
@@ -215,9 +215,10 @@ static func day_cells_into(plan: PlanScript, day: PlanScript.Day, out: PackedStr
 	for bed: int in day.beds:
 		beds.append("Bed %d" % (bed + 1))
 	out[1] = ", ".join(beds)
-	out[2] = Rows.units(day.milli)
+	out[2] = Rows.harvest_cell(Catalog.NO_ITEM, day.milli)
 	out[3] = "%s of %s (%d hands)" % [_minutes(day.work_usec), _minutes(plan.hands_usec()), plan.hands()]
-	out[4] = plan.over_words(day) if day.over != 0 else "fits: %s free; eaten before it spoils" % Rows.units(plan.room_milli())
+	out[4] = plan.over_words(day) if day.over != 0 else "fits: %s free; eaten before it spoils" % Rows.harvest_cell(
+		Catalog.NO_ITEM, plan.room_milli())
 
 
 static func _minutes(usec: int) -> String:

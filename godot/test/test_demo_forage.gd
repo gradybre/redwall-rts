@@ -303,6 +303,9 @@ func test_a_trip_goes_out_gathers_and_brings_the_haul_home() -> void:
 	assert_equal(t.order_trip(NUTS, 2, PackedInt32Array([1, 2])), "", "authorised")
 	assert_equal(t.job_count(), 2, "two seats")
 	assert_true(t.job_of_worker(1) >= 0 and t.job_of_worker(2) >= 0, "to the selected first")
+	assert_true(t.trip_line(t.first_trip()).begins_with("Nuts from the hazel brake: 2 foragers ("), t.trip_line(t.first_trip()))
+	assert_true(t.trip_line(t.first_trip()).contains("), 16 handfuls asked, none home"),
+		"8 U of nuts asked: 16 handfuls of 0.5 U (decision 1011): " + t.trip_line(t.first_trip()))
 	var carried: Array[bool] = [false]
 	assert_true(_run(rig, func() -> bool:
 		for j: int in Rules.MAX_JOBS:
@@ -317,8 +320,12 @@ func test_a_trip_goes_out_gathers_and_brings_the_haul_home() -> void:
 	assert_equal(t.driver.open_claims(), 0, "no claim left")
 	assert_equal(t.driver.jobs.job_count(), 0, "no FORAGE Job row left")
 	assert_equal([t.skills.xp[1], t.skills.xp[2]], [200, 200], "§5.3: 10 XP a WU of the 20 WU each gathered (4 U at 5 WU)")
-	assert_true(said[said.size() - 1].contains("back from the hazel brake: 8.0 U of nuts"), said[said.size() - 1])
+	assert_true(said[said.size() - 1].contains("back from the hazel brake: 16 handfuls of nuts"), said[said.size() - 1])
 	assert_equal(t.trips_done, 1, "one trip done")
+	assert_equal(t.quota_words(&"nuts"), "26 handfuls left of 42 handfuls of nuts",
+		"summer's 21.128 U less the 8 U haul, in the chosen kind's handfuls (floored)")
+	assert_equal(t.status_line(), "Foraging: 0 trips out · the woods' quota today: 2½ baskets left of 4 baskets of food",
+		"the shared quota as mixed food: 13.128 U is 2½ baskets of 5 U, 21.128 U is 4 baskets (floored to halves)")
 
 
 func test_cancel_gives_the_claims_and_room_back() -> void:

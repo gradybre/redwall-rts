@@ -61,6 +61,7 @@ extends RefCounted
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const AllocationScript := preload("res://demo/burrow/bed_allocation.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 ## underground_graph.gd SEG_LINK (not preloaded: the graph preloads this script).
 const LINK_KIND: int = RoomsScript.LINK_KIND
 
@@ -114,7 +115,7 @@ const REFUSE_NO_NOOK: int = 8
 const REASONS: Array[String] = ["", "%s is not dug out yet", "a %s has no place in a %s",
 	"every place for a %s in %s is taken", "the demo stores are short: %s needs %s (they hold %s)",
 	"%s is fitted out already", "%s has no %s to take out",
-	"%s holds %d U of food: its racks cannot drop below that",
+	"%s holds %s: its racks cannot drop below that",
 	"%s has no alcove where a large bed's nook can be dug: %s"]
 
 ## Per (room, place) -- row r * PLACES + place: its phase, who is putting it in (-1: nobody), their work so far (demo
@@ -209,16 +210,17 @@ static func is_storage(kind: int) -> bool:
 
 
 static func cost_text(kind: int) -> String:
-	"""What a fixture of `kind` costs, in words: "2 planks", "6 stone"."""
-	return amounts_text(COST_PLANKS_MILLI[kind], COST_WOOD_MILLI[kind], COST_STONE_MILLI[kind])
+	"""What a fixture of `kind` costs, in words: "2 planks", "6 blocks of stone", "a log"."""
+	return cost_words(COST_PLANKS_MILLI[kind], COST_WOOD_MILLI[kind], COST_STONE_MILLI[kind])
 
 
-static func amounts_text(planks: int, wood: int, stone: int) -> String:
-	"""Whole units of planks, wood and stone in words, the ones that are not nothing ("8 planks, 2 wood")."""
+static func cost_words(planks: int, wood: int, stone: int) -> String:
+	"""Planks, wood and stone (milli-U) as a price in their measures, rounded up, the ones that are not nothing: "8
+	planks, 2 logs" (goods_measures.gd; decision 1801); "nothing" for none."""
 	var parts := PackedStringArray()
-	for pair: Array in [[planks, "planks"], [wood, "wood"], [stone, "stone"]]:
+	for pair: Array in [[planks, &"planks"], [wood, &"wood"], [stone, &"stone"]]:
 		if int(pair[0]) > 0:
-			@warning_ignore("integer_division") parts.append("%d %s" % [int(pair[0]) / 1000, pair[1]])
+			parts.append(Measures.need(pair[1], int(pair[0])))
 	return ", ".join(parts) if not parts.is_empty() else "nothing"
 
 

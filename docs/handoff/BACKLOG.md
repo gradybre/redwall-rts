@@ -38,6 +38,7 @@ Feature numbers (#9, #18 …) are Brendan's feature-list numbers of 2026-10-01; 
 | [DEMO-D8](#demo-d8) | Movement invalidation on demolition | settlement | 1161–1170 |
 | [DEMO-D9](#demo-d9) | Independent QA and a visible run of demolition | settlement | 1171–1180 |
 | [MEAS-2](#meas-2) | Measures phase 2 and the Underground rename | demo + settlement UI | 1181–1190 |
+| [MEAS-FOLLOWUPS](#meas-followups) | MEAS-2's follow-ups: settlement short cells, the story's load, the Cellar tooltip, the renders | settlement UI + demo + art | from 1831 |
 | [BLD-PANEL](#bld-panel) | The shared Buildings panel, thumbnails, one herb patch | demo | 1191–1200 |
 | [FLAX](#flax) | Flax, and the flax → rope / linen chain | demo | 1201–1210 |
 | [GOALS-2](#goals-2) | Goals "First crossing" and "Regatta day" | demo | 1211–1220 |
@@ -412,6 +413,33 @@ next" (Brendan, 2026-10-02; 0537), and the R-H rulings above.
     Do not "fix" it here (open question Q-D6).
   - Flax, wax and mead rows exist in the table (§1, P9) though the demo has none of these goods yet; FLAX and HIVES
     use them.
+- **Status (2026-10-09): built** on `feat/measures-phase-2`, decision **1801** (range 1801–1819, replacing 1181–1190).
+  Its follow-ups are the next packet.
+
+<a id="meas-followups"></a>
+## MEAS-FOLLOWUPS — what MEAS-2 left for other lanes
+
+- **Approval:** Brendan's rulings on 1801, 2026-10-09 (relayed by the coordinator; RULINGS.md 2026-10-09): P-M4 (b)
+  and P-M6 (b) "as recommended", as follow-ups, not on the MEAS-2 branch. The other two items are defects found by
+  MEAS-2 and the UI art owner's re-render that 1011 §4a assigns.
+- **The items:**
+  1. **P-M4 (b), the settlement HUD's short cell values** (a settlement UI lane). UI-SET-004/005's readout ("180 logs
+     available; none reserved") is wider than the 104–144 px cell, so the settlement HUD's Wood and Stone cells draw
+     "See ledger". Let a counter carry a short cell value ("180 logs", or the Wood level) beside its full ledger
+     readout: a change to `scripts/ui/hud.gd`'s one-string contract and to `scripts/systems/ui_manager.gd`.
+     `ui_manager.gd` is a pinned reviewed witness of the underground memory pack, so the lane also adds its reviewed
+     projection row the ADR 1212 way (as 1801 did) and regenerates the pack.
+  2. **P-M6 (b), the crossing story's load** (`godot/demo/guide/practice_stories.gd`): each carrier takes 6 logs (30
+     kg) a trip, against a mouse's 12 kg carry. Make it 2 logs (10 kg) a trip and recompute the story's rounds (a
+     story fixture, not a balance figure); `test_demo_guide_pages.gd` pins the story's fixtures.
+  3. **The Cellar bar's Build tooltip is never seen** (`godot/demo/stores/cellar_bar.gd`): `configure()` sets it and
+     `refresh()` clears it at once (`FarmUi.set_enabled(_build, true, "")`). Re-apply it when the button is enabled
+     (or give the button a card). A test that fails without the fix.
+  4. **The UI reference renders still say "180 U" / "100 U"** (`docs/design/ui_refinement/render_targets.py`,
+     `woodland_art_prompt.txt`): the UI art owner re-renders them under the art process (1011 §4a); they are hashed
+     reference visuals and are not hand-edited.
+- **Depends on:** MEAS-2 merged.
+- **Decisions:** the lane's own range (from 1831 up, checked with `decision_numbers.py`).
 
 ---
 

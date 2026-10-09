@@ -13,6 +13,11 @@ extends RefCounted
 ## gear_locker.gd. A table changing changes its entry; nothing the demo lacks (the GDD's other dishes, hunting, mead,
 ## ferries) has one. test_demo_guide_pages.gd checks each against its table.
 ## `bind_pantry` adds a live "In the pantry now" line to a crop.
+##
+## AMOUNTS IN NATURAL MEASURES (decisions 1011 and 1801): every amount is worded by goods_measures.gd, naming its good --
+## a table's rule figure unrounded ("2 logs makes 2 planks", "a bundle of kindling a batch"), a live stock rounded down,
+## a capacity with no weight ("80 baskets of food"). A raw-food figure is NP per the good's small measure ("800 NP for a
+## bunch of carrots"), not per catalogue unit.
 
 const SearchScript := preload("res://demo/guide/guide_search.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
@@ -42,6 +47,7 @@ const ForageRules := preload("res://demo/forage/forage_rules.gd")
 const OrchardText := preload("res://demo/orchard/orchard_text.gd")
 const HiveText := preload("res://demo/hives/hive_text.gd")
 const PreserveText := preload("res://demo/preserve/preserve_text.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const KIND_CROP: int = 0
 const KIND_DISH: int = 1
@@ -62,6 +68,9 @@ static var DISH_IDS: Array[StringName] = []
 ## The catch's waters, by item from Catalog.FIRST_CATCH (fishing_driver.gd HABITATS: the stream is the river habitat,
 ## the pond the lake's).
 const CATCH_WATERS: Array[String] = ["the stream", "the stream", "the stream", "the pond", "the pond", "the pond"]
+## The sizes (milli-U) a good's small measure is looked for among, smallest first: a quarter, a half, one or two U (a
+## handful of herbs, a handful of nuts, a bunch, a cabbage).
+const SMALL_MEASURE_MILLI: PackedInt32Array = [250, 500, 1000, 2000]
 
 
 ## One entry.
@@ -156,14 +165,14 @@ func _crop_uses(item: int, links: Array[StringName]) -> String:
 	for dish: int in Rules.DISH_COUNT:
 		if Rules.is_input(dish, item):
 			parts.append("%s (%s): %s makes %d portions" % [Rules.DISH_NAMES[dish], Rules.DISH_MEAL_WORDS[meal_of(dish)],
-				FarmText.units_text(input_milli(dish, item)), Rules.PORTIONS_PER_BATCH[dish]])
+				Measures.exact(Catalog.ITEM_KEYS[item], input_milli(dish, item)), Rules.PORTIONS_PER_BATCH[dish]])
 			links.append(DISH_IDS[dish])
 	for recipe: int in PreserveText.Recipes.rows_taking(item):
 		parts.append("made into %s at %s" % [PreserveText.good_words(recipe),
 			PreserveText.Recipes.STATION_NAMES[PreserveText.Recipes.STATION[recipe]]])
 	_link_rows(item, links)
 	if Rules.raw_np_per_u(item) > 0:
-		parts.append("eaten raw by a hungry resident when a meal is missed (%d NP a unit)" % Rules.raw_np_per_u(item))
+		parts.append("eaten raw by a hungry resident when a meal is missed (%s)" % raw_np_text(item))
 	if parts.is_empty():
 		return "None of the demo's dishes cooks it yet: it is grown and stored."
 	var text: String = "; ".join(parts)
@@ -247,8 +256,8 @@ func _dish(dish: int) -> Entry:
 		Rules.SHELF_HOURS[dish], _tastes_text(dish)]
 	var food: String = KitchenWords.inputs_text(dish, 1).replace(" + ", " and ")
 	@warning_ignore("integer_division")
-	var requires: String = "%s, %s of water and %s of wood a batch; %d WU of cooking at the cauldron.%s" % [food,
-		FarmText.units_text(Rules.WATER_MILLI[dish]), FarmText.units_text(Rules.WOOD_MILLI_PER_BATCH),
+	var requires: String = "%s, %s and %s a batch; %d WU of cooking at the cauldron.%s" % [food,
+		Measures.exact(&"water", Rules.WATER_MILLI[dish]), Measures.exact(&"wood", Rules.WOOD_MILLI_PER_BATCH),
 		Rules.WORK_MWU[dish] / 1000, " Waiting: %s." % Rules.DISH_WAITS[dish] if Rules.waits(dish) else ""]
 	var summary: String = "Cooked for %s" % Rules.DISH_MEAL_WORDS[meal] if Rules.is_meal_dish(dish) else (
 		"Cooked for a feast" if Rules.is_occasion_dish(dish) else "A drink")
@@ -311,20 +320,20 @@ func _station_goods_fields(item: int, links: Array[StringName]) -> PackedStringA
 	if item == Catalog.ITEM_DRIED_FISH:
 		@warning_ignore("integer_division")
 		return PackedStringArray([
-			("The village's reserve: eaten raw by a hungry resident when a meal is missed (%d NP a unit), all but the "
-				+ "%s a batch of rations takes. %s") % [
-				Rules.raw_np_per_u(item), FarmText.units_text(PreserveText.Recipes.input_milli(PreserveText.Recipes.R_RATION,
+			("The village's reserve: eaten raw by a hungry resident when a meal is missed (%s), all but what a batch of "
+				+ "rations takes (%s). %s") % [
+				raw_np_text(item), Measures.exact(&"dried_fish", PreserveText.Recipes.input_milli(PreserveText.Recipes.R_RATION,
 				Catalog.CAT_DRIED_FISH)), _dishes_taking(item, links)],
-			"Drying fresh fish at the rack: %s of fish makes %s, %d WU and %d hours' curing." % [
-				FarmText.units_text(FisheryRules.DRY_IN_MILLI), FarmText.units_text(FisheryRules.DRY_OUT_MILLI),
+			"Drying fresh fish at the rack: %s makes %s, %d WU and %d hours' curing." % [
+				Measures.exact(&"fish", FisheryRules.DRY_IN_MILLI), Measures.exact(&"dried_fish", FisheryRules.DRY_OUT_MILLI),
 				FisheryRules.DRY_WORK_MWU / 1000, FisheryRules.DRY_PASSIVE_HOURS],
 			"Fresh fish, cooked in the fish stew while it keeps (%d game hours)." % Catalog.shelf_hours_of(Catalog.FIRST_CATCH),
 			"Keeps %d game hours in store; the Pantry (K) lists it." % shelf])
 	@warning_ignore("integer_division")
 	return PackedStringArray([
 		"%s It is not eaten raw." % _dishes_taking(item, links),
-		"Milling grain: %s of grain makes %s, %d WU." % [FarmText.units_text(FisheryRules.MILL_IN_MILLI),
-			FarmText.units_text(FisheryRules.MILL_OUT_MILLI), FisheryRules.MILL_WORK_MWU / 1000],
+		"Milling grain: %s makes %s, %d WU." % [Measures.exact(&"grain", FisheryRules.MILL_IN_MILLI),
+			Measures.exact(&"flour", FisheryRules.MILL_OUT_MILLI), FisheryRules.MILL_WORK_MWU / 1000],
 		"Unground grain cooks as porridge.", "Keeps %d game hours in store; the Pantry (K) lists it." % shelf])
 
 
@@ -380,7 +389,7 @@ func _forage_goods(item: int) -> Entry:
 	var links: Array[StringName] = [&"station_foraging", &"station_store"]
 	var uses: String = _forage_use(item, links) + "."
 	if raw > 0:
-		uses += " Eaten raw by a hungry resident when a meal is missed (%d NP a unit)." % raw
+		uses += " Eaten raw by a hungry resident when a meal is missed (%s)." % raw_np_text(item)
 	if item == Catalog.ITEM_NUTS or item == Catalog.ITEM_HERB:
 		links.append(&"occasion_regatta")
 	var made: Entry = make(item_id(item), KIND_GOODS, Catalog.ITEM_LABELS[item], "Gathered in the woods",
@@ -442,7 +451,7 @@ static func _forage_use(item: int, links: Array[StringName]) -> String:
 	"""What a forage item is for in the demo: the dishes that take it (each linked; the nuts' include the feast's nut
 	loaf), or, for herbs, the feast's warm infusion and the infirmary's treatments."""
 	if item == Catalog.ITEM_HERB:
-		return "The feast's warm infusion: %s of herb for every twelve guests; and the infirmary's treatments, 1 U each, from the care shelf it is carried to" % FarmText.units_text(RegattaRules.INFUSION_HERB_MILLI)
+		return "The feast's warm infusion: %s for every twelve guests; and the infirmary's treatments, a bunch each, from the care shelf it is carried to" % Measures.exact(&"herb", RegattaRules.INFUSION_HERB_MILLI)
 	return _dishes_taking(item, links).trim_suffix(".")
 
 
@@ -462,16 +471,16 @@ func _add_materials() -> void:
 static func _material_wood() -> Entry:
 	"""The material wood entry."""
 	return make(&"material_wood", KIND_MATERIAL, "Wood", "Logs from the woods", PackedStringArray([
-		"Heating: every lit hearth burns %s a day in winter (the great hall's %s); sawn into planks (%s of wood makes %s of planks); a log bridge's log (%s); a pier (%s each); the kitchen's fire (%s a batch); a lantern, a rag rug or hanging stores (%s each); bracing tunnels." % [
-			FarmText.units_text(WinterRules.WINTER_DAY_MILLI), FarmText.units_text(_great_hall_winter_milli()),
-			FarmText.units_text(ForestRules.SAW_BATCH_MILLI), FarmText.units_text(ForestRules.SAW_BATCH_MILLI),
-			FarmText.units_text(SwimRules.LOG_WOOD_MILLI), FarmText.units_text(SwimRules.PIER_WOOD_MILLI),
-			FarmText.units_text(Rules.WOOD_MILLI_PER_BATCH), FarmText.units_text(Fixtures.COST_WOOD_MILLI[RoomsScript.FIX_RUG])],
-		"Felling a mature tree (%s of logs, hauled to the log stack), or gathering deadfall (%s to %s a pile, no felling)." % [
-			FarmText.units_text(ForestRules.TREE_WOOD_MILLI), FarmText.units_text(ForestRules.DEADFALL_MIN_MILLI),
-			FarmText.units_text(ForestRules.DEADFALL_MAX_MILLI)],
+		"Heating: every lit hearth burns %s a day in winter (the great hall's %s); sawn into planks (%s makes %s); a log bridge's trunk (%s); a pier (%s each); the kitchen's fire (%s a batch); a lantern, a rag rug or hanging stores (%s each); bracing tunnels." % [
+			_wood(WinterRules.WINTER_DAY_MILLI), _wood(_great_hall_winter_milli()),
+			_wood(ForestRules.SAW_BATCH_MILLI), _planks(ForestRules.SAW_BATCH_MILLI),
+			_wood(SwimRules.LOG_WOOD_MILLI), _wood(SwimRules.PIER_WOOD_MILLI),
+			_wood(Rules.WOOD_MILLI_PER_BATCH), _wood(Fixtures.COST_WOOD_MILLI[RoomsScript.FIX_RUG])],
+		"Felling a mature tree (%s, hauled to the log stack), or gathering deadfall (%s to %s a pile, no felling)." % [
+			_wood(ForestRules.TREE_WOOD_MILLI), Measures.exact_cell(&"wood", ForestRules.DEADFALL_MIN_MILLI),
+			_wood(ForestRules.DEADFALL_MAX_MILLI)],
 		"Deadfall in protected woods; planks where a bridge or furniture needs them.",
-		"The village stores open with %s; the top bar's Wood." % FarmText.units_text(StoresScript.START_WOOD_MILLI_U)]),
+		"The village stores open with %s; the top bar's Wood." % Measures.amount(&"wood", StoresScript.START_WOOD_MILLI_U)]),
 		[&"material_planks", &"skill_felling", &"station_sawhorse", &"station_bridges", &"dish_porridge", &"station_hearths"])
 
 
@@ -479,26 +488,26 @@ static func _material_planks() -> Entry:
 	"""The material planks entry."""
 	return make(&"material_planks", KIND_MATERIAL, "Planks", "Sawn wood", PackedStringArray([
 		"A plank footbridge (%s a metre of deck); beds (%s), a large bed (%s), shelves, racks, root bins and a table." % [
-			FarmText.units_text(SwimRules.PLANK_MILLI_PER_M), FarmText.units_text(Fixtures.COST_PLANKS_MILLI[RoomsScript.FIX_BED]),
-			FarmText.units_text(Fixtures.COST_PLANKS_MILLI[RoomsScript.FIX_BIG_BED])],
+			_planks(SwimRules.PLANK_MILLI_PER_M), _planks(Fixtures.COST_PLANKS_MILLI[RoomsScript.FIX_BED]),
+			_planks(Fixtures.COST_PLANKS_MILLI[RoomsScript.FIX_BIG_BED])],
 		"Sawing logs at the sawhorse (%d WU a batch)." % ForestRules.SAW_WU,
-		"A log bridge needs a log, not planks.", "The plank stack by the workbench; the top bar's ledger and the Wood cell's tooltip."]),
+		"A log bridge needs a trunk (6 logs), not planks.", "The plank stack by the workbench; the top bar's ledger and the Wood cell's tooltip."]),
 		[&"material_wood", &"station_sawhorse", &"station_bridges", &"station_burrow"])
 
 
 static func _material_stone() -> Entry:
 	"""The material stone entry."""
 	return make(&"material_stone", KIND_MATERIAL, "Stone", "Quarried stone", PackedStringArray([
-		"A hearth (%s); bracing tunnels against floods and collapses." % FarmText.units_text(Fixtures.COST_STONE_MILLI[RoomsScript.FIX_HEARTH]),
+		"A hearth (%s); bracing tunnels against floods and collapses." % Measures.exact(&"stone", Fixtures.COST_STONE_MILLI[RoomsScript.FIX_HEARTH]),
 		"The village's opening stock; a diver's find adds a little.", "None in this demo.",
-		"The village stores open with %s; the top bar's Stone." % FarmText.units_text(StoresScript.START_STONE_MILLI_U)]),
+		"The village stores open with %s; the top bar's Stone." % Measures.amount(&"stone", StoresScript.START_STONE_MILLI_U)]),
 		[&"station_tunnels", &"station_burrow"])
 
 
 static func _material_earth() -> Entry:
 	"""The material earth entry."""
 	return make(&"material_earth", KIND_MATERIAL, "Earth", "Dug out of tunnels", PackedStringArray([
-		"Raising a bed (drains it, warmer at night) or banking one (keeps half of a dry day's loss): 2 U each. Earth is never compost.",
+		"Raising a bed (drains it, warmer at night) or banking one (keeps half of a dry day's loss): a basket of earth each. Earth is never compost.",
 		"Digging tunnels and rooms: it piles on the spoil heaps; Clear hauls a heap to the stores.",
 		"Drain a wet bed with a ditch instead (no earth needed).", "The spoil heaps by every tunnel mouth, and the stores."]),
 		[&"station_tunnels", &"station_beds", &"skill_digging"])
@@ -507,8 +516,8 @@ static func _material_earth() -> Entry:
 static func _material_compost() -> Entry:
 	"""The material compost entry."""
 	return make(&"material_compost", KIND_MATERIAL, "Compost", "Plant waste", PackedStringArray([
-		"Composting a bed (raises its fertility); planting a sapling (0.25 U).",
-		"A cleared crop (0.5 U), and spoiled food at 4 : 2 (the Pantry's compost button).",
+		"Composting a bed (raises its fertility); planting a sapling (a spadeful).",
+		"A cleared crop (2 spadefuls), and spoiled food at 4 : 2 (the Pantry's compost button).",
 		"Resting a bed fallow raises fertility without compost.", "The farm's compost store."]),
 		[&"station_beds", &"station_store"])
 
@@ -517,10 +526,10 @@ static func _material_water() -> Entry:
 	"""The material water entry."""
 	return make(&"material_water", KIND_MATERIAL, "Water", "Drawn at the well", PackedStringArray([
 		"Cooking: %s for a batch of porridge, %s for soup, %s for the fish stew." % [
-			FarmText.units_text(Rules.WATER_MILLI[Rules.DISH_PORRIDGE]), FarmText.units_text(Rules.WATER_MILLI[Rules.DISH_SOUP]),
-			FarmText.units_text(Rules.WATER_MILLI[Rules.DISH_FISH_STEW])],
+			_water(Rules.WATER_MILLI[Rules.DISH_PORRIDGE]), _water(Rules.WATER_MILLI[Rules.DISH_SOUP]),
+			_water(Rules.WATER_MILLI[Rules.DISH_FISH_STEW])],
 		"Anyone free draws it into the butt (Keep water drawn, in the Kitchen tab).", "None: the dishes need it.",
-		"The butt by the well holds %s." % FarmText.units_text(StoresScript.WATER_CAP_MILLI_U)]),
+		"The butt by the well holds %s." % _water(StoresScript.WATER_CAP_MILLI_U)]),
 		[&"station_kitchen", &"dish_porridge", &"dish_soup", &"dish_fish_stew"])
 
 
@@ -528,14 +537,14 @@ static func _material_gear() -> Entry:
 	"""Fishing gear, from gear_locker.gd: what each piece is made of, and mending."""
 	var parts := PackedStringArray()
 	for kind: int in [GearLocker.KIND_NET, GearLocker.KIND_TRAP, GearLocker.KIND_ICE_KIT]:
-		@warning_ignore("integer_division") parts.append("a %s (%s of wood, %s of %s, %d WU)" % [GearLocker.KIND_NAMES[kind],
-			FarmText.units_text(GearLocker.MAKE_WOOD_MILLI[kind]), FarmText.units_text(GearLocker.MAKE_MATERIAL_MILLI[kind]),
-			GearLocker.MAT_NAMES[GearLocker.MAKE_MATERIAL[kind]], GearLocker.MAKE_MWU[kind] / 1000])
+		@warning_ignore("integer_division") parts.append("a %s (%s, %s, %d WU)" % [GearLocker.KIND_NAMES[kind],
+			_wood(GearLocker.MAKE_WOOD_MILLI[kind]), Measures.exact(GearLocker.MAT_KEYS[GearLocker.MAKE_MATERIAL[kind]],
+			GearLocker.MAKE_MATERIAL_MILLI[kind]), GearLocker.MAKE_MWU[kind] / 1000])
 	@warning_ignore("integer_division") return make(&"material_gear", KIND_MATERIAL, "Fishing gear", "Nets, traps and ice kits", PackedStringArray([
 		"A trip takes its method's gear: a hand net, a trap, the boat, or an ice kit with a winter outfit; each wears with use.",
 		"Made at the gear locker: %s." % "; ".join(parts),
-		"Mend gear instead of making it again (%s of wood and %s of rope, %d WU)." % [FarmText.units_text(GearLocker.MEND_WOOD_MILLI),
-			FarmText.units_text(GearLocker.MEND_ROPE_MILLI), GearLocker.MEND_MWU / 1000],
+		"Mend gear instead of making it again (%s and %s, %d WU)." % [_wood(GearLocker.MEND_WOOD_MILLI),
+			Measures.exact(&"rope", GearLocker.MEND_ROPE_MILLI), GearLocker.MEND_MWU / 1000],
 		"The gear locker; the Water panel's Fishing lists each piece's wear."]), [&"station_fishing", &"material_wood"])
 
 
@@ -559,6 +568,45 @@ func _add_stations() -> void:
 	_add(_station_hearths())
 
 
+static func _wood(milli: int) -> String:
+	"""A rule's wood, unrounded: "4 logs", "a bundle of kindling"."""
+	return Measures.exact(&"wood", milli)
+
+
+static func _planks(milli: int) -> String:
+	"""A rule's planks, unrounded: "2 planks", "a plank"."""
+	return Measures.exact(&"planks", milli)
+
+
+static func _water(milli: int) -> String:
+	"""A rule's water, unrounded: "2 jugs of water", "20 buckets of water"."""
+	return Measures.exact(&"water", milli)
+
+
+static func _food_room(capacity_u: int) -> String:
+	"""A food store's room (whole catalogue units) in baskets of food, with no weight (DEC-049 P5): "80 baskets"."""
+	return Measures.exact_cell(&"food", capacity_u * 1000)
+
+
+static func raw_np_text(item: int) -> String:
+	"""What `item` gives a hungry resident eaten raw, per its small measure (decision 1011 §4: not "NP a unit"):
+	"800 NP for a bunch of carrots", "1200 NP for a cabbage", "800 NP for a handful of nuts"."""
+	var key: StringName = Catalog.ITEM_KEYS[item]
+	var milli: int = small_measure_milli(key)
+	@warning_ignore("integer_division") var np: int = Rules.raw_np_per_u(item) * milli / 1000
+	return "%d NP for %s" % [np, Measures.exact(key, milli)]
+
+
+static func small_measure_milli(key: StringName) -> int:
+	"""The size of the good's smallest whole measure among SMALL_MEASURE_MILLI: the first that goods_measures.gd shows as
+	exactly one measure ("1 bunch", "1 handful", "1 cabbage") rather than a half or a weight; one U when none is."""
+	for milli: int in SMALL_MEASURE_MILLI:
+		var cell: String = Measures.exact_cell(key, milli)
+		if cell.begins_with("1 ") and not cell.ends_with(" g") and not cell.ends_with(" kg"):
+			return milli
+	return 1000
+
+
 static func _great_hall_winter_milli() -> int:
 	"""A tier-2 (great hall) hearth's winter day, x0.75 (decision 1652)."""
 	return WinterRules.day_demand_milli(WeatherScript.SEASON_WINTER, 0, WinterRules.TIER2_FUEL_PERMILLE)
@@ -570,11 +618,11 @@ static func _station_hearths() -> Entry:
 		PackedStringArray([
 		"A lit hearth holds its room at %s (the great hall's at %s, burning %s a winter day): anyone inside warms up (%d exposure-hours an hour), and a home's hearth adds to its comfort while it burns." % [
 			FarmText.degrees_text(WinterRules.HEATED_TENTHS) + " °C", FarmText.degrees_text(WinterRules.HEATED_TIER2_TENTHS) + " °C",
-			FarmText.units_text(_great_hall_winter_milli()), WinterRules.div(WinterRules.CLEAR_MILLI_PER_HOUR, 1000)],
-		"Wood from the stores: %s a day in winter, %s on a spring or autumn day under %s °C, none in summer (1 U heats a hearth %d hours). A burrow home's hearth costs %s of stone." % [
-			FarmText.units_text(WinterRules.WINTER_DAY_MILLI), FarmText.units_text(WinterRules.SHOULDER_DAY_MILLI),
+			_wood(_great_hall_winter_milli()), WinterRules.div(WinterRules.CLEAR_MILLI_PER_HOUR, 1000)],
+		"Wood from the stores: %s a day in winter, %s on a spring or autumn day under %s °C, none in summer (a log heats a hearth %d hours). A burrow home's hearth costs %s." % [
+			_wood(WinterRules.WINTER_DAY_MILLI), _wood(WinterRules.SHOULDER_DAY_MILLI),
 			FarmText.degrees_text(WinterRules.SHOULDER_BELOW_TENTHS), WinterRules.HEARTH_HOURS_PER_U,
-			FarmText.units_text(Fixtures.COST_STONE_MILLI[RoomsScript.FIX_HEARTH])],
+			Measures.exact(&"stone", Fixtures.COST_STONE_MILLI[RoomsScript.FIX_HEARTH])],
 		"Without wood a hearth goes out and its room cools halfway to the outside air each hour; below 0 °C residents build up exposure and after %d hours are Chilled (working at %d%%) until warmed through." % [
 			WinterRules.div(WinterRules.CHILLED_AT_MILLI, 1000), WinterRules.div(WinterRules.CHILLED_WORK_PERMILLE, 10)],
 		"The hall's hearth, and one in each burrow home fitted with one; the top bar's Heating fuel."]),
@@ -592,7 +640,7 @@ static func _station_beds() -> Entry:
 static func _station_store() -> Entry:
 	"""The station store entry."""
 	return make(&"station_store", KIND_STATION, StorageScript.STORE_LABEL, "Where harvests go", PackedStringArray([
-		"Keeping food (%d U); spoils at the GDD's covered-store rate (%d per mille)." % [StorageScript.STORE_CAPACITY_U,
+		"Keeping food (%s); spoils at the GDD's covered-store rate (%d per mille)." % [_food_room(StorageScript.STORE_CAPACITY_U),
 			StockAge.STORE_FACTOR[StockAge.STORAGE_COVERED_STORE]],
 		"Room for the harvest (a harvest reserves its room before it is cut).",
 		"A cool root cellar keeps food about three times as long; the kitchen pantry slows it a little.",
@@ -602,8 +650,8 @@ static func _station_store() -> Entry:
 static func _station_kitchen() -> Entry:
 	"""The station kitchen entry."""
 	return make(&"station_kitchen", KIND_STATION, "The kitchen", "Cauldron, kitchen pantry and hall tables", PackedStringArray([
-		"Cooking breakfast and supper; the %s keeps %d U at %d per mille." % [KitchenNode.PANTRY_LABEL.to_lower(),
-			KitchenNode.PANTRY_CAPACITY_U, StockAge.STORE_FACTOR[StockAge.STORAGE_PANTRY]],
+		"Cooking breakfast and supper; the %s keeps %s at %d per mille." % [KitchenNode.PANTRY_LABEL.to_lower(),
+			Measures.exact(&"food", KitchenNode.PANTRY_CAPACITY_U * 1000), StockAge.STORE_FACTOR[StockAge.STORAGE_PANTRY]],
 		"A cook (the keeper, or anyone free), food, water in the butt and wood.", "Raw food for the hungry when a meal is missed.",
 		"The cauldron east of the square; the hall's tables; the Pantry's Kitchen tab."]),
 		[&"dish_porridge", &"dish_soup", &"dish_fish_stew", &"material_water", &"skill_cooking"])
@@ -620,8 +668,8 @@ static func _station_burrow() -> Entry:
 	"""The station burrow entry."""
 	return make(&"station_burrow", KIND_STATION, "Burrow home", "A dug home with beds", PackedStringArray([
 		"Beds for the night (a bed %s, a large bed %s), a hearth, table, rug, lantern: comfort." % [
-			FarmText.units_text(Fixtures.COST_PLANKS_MILLI[RoomsScript.FIX_BED]),
-			FarmText.units_text(Fixtures.COST_PLANKS_MILLI[RoomsScript.FIX_BIG_BED])],
+			_planks(Fixtures.COST_PLANKS_MILLI[RoomsScript.FIX_BED]),
+			_planks(Fixtures.COST_PLANKS_MILLI[RoomsScript.FIX_BIG_BED])],
 		"Dug by a digger from the Dig tool (H); fitted out from the stores.", "Without a bed a resident sleeps on the hall's floor.",
 		"Wherever you dig one."]), [&"skill_digging", &"material_planks", &"station_tunnels"])
 
@@ -630,8 +678,9 @@ static func _station_cellar() -> Entry:
 	"""The station cellar entry."""
 	return make(&"station_cellar", KIND_STATION, "Root cellar", "A cool store below ground", PackedStringArray([
 		"Keeping food at the GDD's cellar rate (%d per mille) while it is 1 m down, racked, and no hearth is near." % StockAge.STORE_FACTOR[StockAge.STORAGE_CELLAR],
-		"Dug from the Dig tool (C), then racked: a shelf %d U, a pantry rack %d U, a root bin %d U." % [
-			Fixtures.CAPACITY_U[RoomsScript.FIX_SHELF], Fixtures.CAPACITY_U[RoomsScript.FIX_RACK], Fixtures.CAPACITY_U[RoomsScript.FIX_BIN]],
+		"Dug from the Dig tool (C), then racked: a shelf holds %s, a pantry rack %s, a root bin %s." % [
+			Measures.exact(&"food", Fixtures.CAPACITY_U[RoomsScript.FIX_SHELF] * 1000),
+			_food_room(Fixtures.CAPACITY_U[RoomsScript.FIX_RACK]), _food_room(Fixtures.CAPACITY_U[RoomsScript.FIX_BIN])],
 		"The covered store (faster spoiling).", "Wherever you dig one; harvests go there first."]),
 		[&"station_store", &"skill_digging", &"material_planks"])
 
@@ -649,8 +698,8 @@ static func _station_bridges() -> Entry:
 	"""The station bridges entry."""
 	@warning_ignore("integer_division") return make(&"station_bridges", KIND_STATION, "Bridges", "Dry ways over the stream", PackedStringArray([
 		"Crossing the stream dry, carrying or not, the badger too.",
-		"A plank footbridge: %s a metre of deck (and a pier per 2.5 m over 3.5 m). A log bridge: one %s log, at most 5.5 m of deck." % [
-			FarmText.units_text(SwimRules.PLANK_MILLI_PER_M), FarmText.units_text(SwimRules.LOG_WOOD_MILLI)],
+		"A plank footbridge: %s a metre of deck (and a pier per 2.5 m over 3.5 m). A log bridge: one trunk (%s), at most 5.5 m of deck." % [
+			_planks(SwimRules.PLANK_MILLI_PER_M), _wood(SwimRules.LOG_WOOD_MILLI)],
 		"The ford (wading at %d%% pace); swimming, unladen." % (SwimRules.WADE_PERMILLE / 10),
 		"Three sites on the stream, or any two banks (the Water panel)."]),
 		[&"material_planks", &"material_wood", &"skill_bridges", &"safety_wading"])
@@ -675,7 +724,7 @@ static func _station_rack_mill() -> Entry:
 		"Drying fish or fruit into the village's reserve (%d slots, shared); grinding grain into flour (%d at a time)." % [
 			FisheryRules.RACK_SLOTS, FisheryRules.MILL_SLOTS],
 		"Fresh fish or fruit for the rack (%s a batch); grain for the mill (%s a batch); a resident to work each batch." % [
-			FarmText.units_text(FisheryRules.DRY_IN_MILLI), FarmText.units_text(FisheryRules.MILL_IN_MILLI)],
+			Measures.exact(&"fish", FisheryRules.DRY_IN_MILLI), Measures.exact(&"grain", FisheryRules.MILL_IN_MILLI)],
 		"Cook fresh fish in the stew instead of drying it.",
 		"The Water panel's Drying rack and mill: Dry fish, Mill grain; its Preserves: Dry fruit (decision 1611)."]),
 		[&"goods_dried_fish", &"goods_flour", &"station_store"])
@@ -685,10 +734,10 @@ static func _station_ferry() -> Entry:
 	"""The ferry and the far copse (decision 0437), from ferry_rules.gd."""
 	return make(&"station_ferry", KIND_STATION, "The ferry", "The far copse's wood across the run", PackedStringArray([
 		"Carrying the far copse's windfall from the far stage to the ferry stage, %s a crossing; a passenger may ride in its second seat when the boat is the quicker way." %
-			FarmText.units_text(FerryRules.BOAT_CARGO_MILLI),
+			_wood(FerryRules.BOAT_CARGO_MILLI),
 		"A helm (fishing %d), open water -- no storm, hard freeze, flood or pond ice -- and its boat free; it departs %02d:00-%02d:00 every %d game hours when anything waits, or at once at %s on the far stage." % [
 			FisheryRules.HELM_MIN_LEVEL, FerryRules.FIRST_DEPARTURE_HOUR, FerryRules.LAST_DEPARTURE_HOUR, FerryRules.EVERY_HOURS,
-			FarmText.units_text(FerryRules.THRESHOLD_MILLI)],
+			_wood(FerryRules.THRESHOLD_MILLI)],
 		"Carry the wood round by the ford, or build a bridge.",
 		"The ferry stage on the run below the fisher shelter; the far stage at the stream's mouth; the Water panel's Ferry."]),
 		[&"material_wood", &"station_fishing", &"station_bridges", &"occasion_regatta"])
@@ -699,7 +748,7 @@ static func _station_foraging() -> Entry:
 	return make(&"station_foraging", KIND_STATION, "Foraging trips", "Nuts, mushrooms, herbs and berries from the woods",
 		PackedStringArray([
 		"Sending %d to %d foragers into the woods for one kind; they come back hours later with up to %s each." % [
-			ForageRules.PARTY_MIN, ForageRules.PARTY_MAX, FarmText.units_text(ForageRules.BASKET_MILLI)],
+			ForageRules.PARTY_MIN, ForageRules.PARTY_MAX, Measures.weight(&"berries", ForageRules.BASKET_MILLI)],
 		"The kind in season (nuts summer to winter, mushrooms spring to autumn, herbs all year, berries summer and autumn); the woods' daily quota and their stock above the sustainable floor; room in a store.",
 		"The fields and the water feed the village; the woods add the feast's nuts and herbs.",
 		"%s; the Woods panel's Foraging." % ", ".join(ForageRules.SPOT_NAMES)]),
@@ -711,7 +760,7 @@ static func _occasion_regatta() -> Entry:
 	return make(&"occasion_regatta", KIND_STATION, "The regatta", "A race and a feast, once a season", PackedStringArray([
 		"Once a season, the first in summer: a race between the two rowboats and the %s feast at the day's supper, remembered in the chronicle." % RegattaRules.THEME_NAME,
 		"A day and a host; two helms; the main course's beans and %s (bean hotpot), the nut loaf's flour and nuts and the infusion's herb for all three courses (and %s); %s of wood for its service; 3 days of food and wood after it, or your override." % [
-			Rules.IN_WORDS[Rules.INPUT_FIRST[Rules.DISH_BEAN_HOTPOT] + 1], RegattaRules.BUFF_NAME, FarmText.units_text(RegattaRules.service_wood_milli(9))],
+			Rules.IN_WORDS[Rules.INPUT_FIRST[Rules.DISH_BEAN_HOTPOT] + 1], RegattaRules.BUFF_NAME, Measures.need(&"wood", RegattaRules.service_wood_milli(9))],
 		"Skip the season: no penalty, nothing withheld.",
 		"The pond and the boathouse jetty; the hall's tables; the Water panel's Regatta, or the Feast command."]),
 		[&"dish_bean_hotpot", &"dish_nut_loaf", &"station_fishing", &"station_kitchen", &"station_foraging"])
@@ -862,4 +911,4 @@ func live_line(k: int) -> String:
 	var item: int = _entries[k].item
 	if _pantry == null or not Catalog.is_pantry_item(item):
 		return ""
-	return "In the pantry now: %s." % FarmText.units_text(_pantry.milli_of(item))
+	return "In the pantry now: %s." % Measures.amount(Catalog.ITEM_KEYS[item], _pantry.milli_of(item))

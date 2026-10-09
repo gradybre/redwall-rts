@@ -132,8 +132,12 @@ class JointPackTests(unittest.TestCase):
             # Keep the cached SHA and parsed columns unchanged deliberately.
             index = dict(self.index, **{name: original._replace(
                          text=original.text + "\nfunc hidden_allocation() -> void:\n\tvar extra: Array = []\n")})
-            with self.subTest(owner=name), self.assertRaisesRegex(
-                    AssertionError, "room memory: current reviewed source changed: " + name):
+            # ADR1212 (decision 1801): a projected owner (ui_manager since Brendan's B1 (a)) is replayed from its
+            # reviewed bytes and its current storage recounted, so the injected allocation is the census's refusal.
+            projected = json.loads((budget.ROOT / budget.room_memory.PROJECTION).read_bytes())["inputs"]
+            message = ("current census: unreviewed storage delta: " + path) if path in projected \
+                else "room memory: current reviewed source changed: " + name
+            with self.subTest(owner=name), self.assertRaisesRegex(AssertionError, message):
                 budget.build(index)
 
     def test_ordinary_provider_is_additional_to_existing_entry_and_cold_charges(self) -> None:

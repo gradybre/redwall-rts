@@ -466,12 +466,14 @@ func test_a_mouth_arch_hangs_a_lit_lantern() -> void:
 # --- the brace cost in the readout -------------------------------------------------------------------
 
 func test_the_readout_prices_the_bracing() -> void:
-	"""brace_text: a quantum's wood and stone times the quanta, to the tenth of a unit, rounded down."""
-	var wood := JobsScript.BRACE_WOOD_MILLI_U * 13
-	var stone := JobsScript.BRACE_STONE_MILLI_U * 13
-	@warning_ignore("integer_division") assert_equal(ReadoutScript.brace_text(13), "brace %d.%d wood + %d.%d stone" % [wood / 1000, wood % 1000 / 100,
-		stone / 1000, stone % 1000 / 100], "13 quanta")
-	assert_equal(ReadoutScript.brace_text(0), "brace 0.0 wood + 0.0 stone", "nothing")
+	"""brace_text: a quantum's wood and stone times the quanta, as a cost in logs and blocks of stone, rounded up
+	(decision 1801): 13 quanta at 250 milli-U each are 3.25 U of each, 4 logs and 4 blocks; 3 quanta's 0.75 U are 3
+	quarter logs and, below a block, 3.75 kg of stone."""
+	assert_equal([JobsScript.BRACE_WOOD_MILLI_U, JobsScript.BRACE_STONE_MILLI_U], [250, 250], "a quantum's price")
+	assert_equal(ReadoutScript.brace_text(13), "brace 4 logs + 4 blocks of stone", "13 quanta")
+	assert_equal(ReadoutScript.brace_text(3), "brace 3 quarter logs + 3.75 kg of stone", "3 quanta")
+	assert_equal(ReadoutScript.brace_text(0), "nothing to brace", "nothing")
+	assert_equal(ReadoutScript.spoil_text(28999), "14 baskets of earth", "spoil in baskets, rounded down")
 	assert_equal(ReadoutScript.tenths(3790), "3.7", "rounded down")
 	assert_equal(ReadoutScript.tenths(4000), "4.0", "whole")
 	assert_equal(ReadoutScript.tenths(99), "0.0", "under a tenth")

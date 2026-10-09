@@ -5,6 +5,7 @@ extends "res://demo/work/work_source.gd"
 
 const CrewScript := preload("res://demo/spoil/spoil_crew.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const BY_ORDER: String = "a heap is cleared by those you order to it — give its worker another order to stop"
 const RETRYING: String = "can't reach it, trying again"
@@ -57,7 +58,8 @@ func fill(task: TaskScript, row: int) -> void:
 	task.reset(id, row)
 	task.key = key(row)
 	task.action = "Clear"
-	task.target = "spoil heap %d (%.1f U left)" % [_crew.heap[row] + 1, _crew.spoil_left(_crew.heap[row]) / 1000.0]
+	task.target = "spoil heap %d (%s left)" % [_crew.heap[row] + 1, Measures.amount_cell(&"earth",
+		_crew.spoil_left(_crew.heap[row]))]
 	task.worker = _crew.worker[row]
 	task.activity = WorkIds.ACT_HAUL
 	task.carrying = _crew.load_milli[row] > 0

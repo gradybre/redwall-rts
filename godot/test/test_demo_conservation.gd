@@ -16,8 +16,7 @@ const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const TunnelsScript := preload("res://demo/farm/farm_tunnels.gd")
 const FarmCrewScript := preload("res://demo/farm/farm_crew.gd")
 const FarmJobs := preload("res://demo/farm/farm_jobs.gd")
-const Text := preload("res://demo/farm/farm_text.gd")
-const HudScript := preload("res://demo/farm/farm_hud.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const PantryPanelScript := preload("res://demo/farm/farm_pantry_panel.gd")
 const BedPanelScript := preload("res://demo/farm/farm_bed_panel.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
@@ -200,7 +199,7 @@ func test_a_full_store_leaves_the_crop_standing_until_there_is_room() -> void:
 	var crew := _crew(cast, sim, pantry, PackedInt32Array([0]))
 	assert_true(pantry.add_into(WHEAT, 399000, 0, _read), "the store nearly full")
 	var said: String = crew.order(FarmJobs.KIND_HARVEST, BED_CARROTS, PackedInt32Array([3]), FarmJobs.ORIGIN_PLAYER)
-	assert_true(said.contains("no store has room for 5.1 U of carrot"), "the order says why: " + said)
+	assert_true(said.contains("no store has room for 6 bunches of carrots"), "the order says why: " + said)
 	assert_true(said.contains("Pantry"), "and where to make room")
 	_run(cast, crew, 30.0, func() -> bool: return false)
 	assert_equal(sim.stage_of(BED_CARROTS), SimScript.STAGE_RIPE, "not cut")
@@ -236,8 +235,8 @@ func test_a_store_filling_en_route_keeps_the_rest_carried_and_reroutes() -> void
 	assert_true(crew.jobs.job_of_worker_into(3, _read), "by the same carrier")
 	_run(cast, crew, 5.0, func() -> bool: return false)
 	assert_equal(_all_carrots(sim, crew, pantry), CARROT_YIELD, "conserved while it waits")
-	assert_true(crew.shortage_text(BED_CARROTS).contains("2.1 U of carrot"), "the bed shows what waits for room")
-	assert_true(_said("store has room for the other 2.1 U"), "the shortage is said")
+	assert_true(crew.shortage_text(BED_CARROTS).contains("3 bunches of carrots"), "the bed shows what waits for room")
+	assert_true(_said("store has room for the rest (3 bunches of carrots)"), "the shortage is said")
 	_cellar_u[1] = 10
 	pantry.refresh_locations()
 	var walking_on := func() -> bool: return crew.jobs.is_live(0) and crew.jobs.current_step(0) == FarmJobs.STEP_CARRY_STORE
@@ -548,7 +547,7 @@ func test_a_harvest_card_waits_for_room_as_its_order_does() -> void:
 	crew.preview_into(card, FarmJobs.KIND_HARVEST, BED_CARROTS, PackedInt32Array([3]))
 	assert_true(card.is_ok(), "not refused: the order queues it")
 	assert_equal(card.worker, ActionCard.NOBODY, "nobody is sent")
-	assert_true(card.who.contains("no store has room for 5.1 U of carrot"), "it waits for room: " + card.who)
+	assert_true(card.who.contains("no store has room for 6 bunches of carrots"), "it waits for room: " + card.who)
 	var said: String = crew.order(FarmJobs.KIND_HARVEST, BED_CARROTS, PackedInt32Array([3]), FarmJobs.ORIGIN_PLAYER)
 	assert_true(said.contains(FarmCrewScript.room_words(CARROT_YIELD, CARROT)), "the order's words are the card's: " + said)
 	assert_equal(crew.jobs.worker[0], FarmJobs.NOBODY, "the order sent nobody either")
@@ -649,24 +648,24 @@ func test_the_pantry_row_names_the_next_lot_to_spoil() -> void:
 	panel.toggle()
 	assert_true(pantry.next_spoil_into(CARROT, sim.calendar.hour_index(), _read), "a forecast")
 	assert_equal(_read.value, 200, "the covered store's lot: 200 spring hours")
-	assert_equal(panel.shown_stock_row(0), PackedStringArray(["Carrot", "2.0 U", "—", "Covered store", "all in 8d 8h"]),
+	assert_equal(panel.shown_stock_row(0), PackedStringArray(["Carrot", "2 bunches", "—", "Covered store", "all in 8d 8h"]),
 		"the covered store's lot: 200 h")
-	assert_equal(panel.shown_stock_row(1), PackedStringArray(["Carrot", "3.1 U", "—", "Root cellar", "all in 22d 23h"]),
+	assert_equal(panel.shown_stock_row(1), PackedStringArray(["Carrot", "3 bunches", "—", "Root cellar", "all in 22d 23h"]),
 		"the cellar's: 281 spring hours at ×0.35, then 270 at summer's ×0.525 = 551 h")
 
 
 # --- F28: figures sum milli-units, and read the same everywhere ----------------------------------------
 
-func test_units_read_with_one_decimal_and_never_hide_a_little() -> void:
-	"""The one formatter: tenths, floored; nothing is '0 U'; below a tenth is '<0.1 U'."""
-	assert_equal(Text.units_text(0), "0 U", "none")
-	assert_equal(Text.units_text(50), "<0.1 U", "a little")
-	assert_equal(Text.units_text(100), "0.1 U", "a tenth")
-	assert_equal(Text.units_text(900), "0.9 U", "under one")
-	assert_equal(Text.units_text(5100), "5.1 U", "a harvest")
-	assert_equal(Text.units_text(400000), "400.0 U", "a capacity")
-	assert_equal(HudScript.food_text(14400), "14.4 U", "the HUD's Food cell")
-	assert_equal(HudScript.food_text(400), "0.4 U", "a nearly empty pantry is not 0")
+func test_amounts_read_down_and_never_hide_a_little() -> void:
+	"""The one formatter (F28's rule, decision 0222, kept by goods_measures.gd; decisions 1011 and 1801): amounts round
+	down and nothing present reads none -- below the smallest measure an amount is its weight."""
+	assert_equal(Measures.amount_cell(&"carrot", 0), "none", "none")
+	assert_equal(Measures.amount_cell(&"carrot", 50), "12 g", "a little: its weight, never none")
+	assert_equal(Measures.amount_cell(&"carrot", 900), "225 g", "under a bunch")
+	assert_equal(Measures.amount_cell(&"carrot", 5100), "5 bunches", "a harvest, floored")
+	assert_equal(Measures.amount_cell(&"food", 400000), "80 baskets", "a capacity")
+	assert_equal(Measures.amount_cell(&"food", 14400), "2½ baskets", "the HUD's Food cell")
+	assert_equal(Measures.amount_cell(&"food", 400), "100 g", "a nearly empty pantry is not none")
 
 
 func test_fractional_stock_sums_before_it_is_rounded() -> void:
@@ -681,10 +680,10 @@ func test_fractional_stock_sums_before_it_is_rounded() -> void:
 	panel.configure(sim, pantry, null)
 	panel.toggle()
 	assert_equal(pantry.total_milli(), 14400, "the authoritative total")
-	assert_true(panel.total_text().begins_with("14.4 U of food in store"), "header: " + panel.total_text())
+	assert_true(panel.total_text().begins_with("2½ baskets of food in store"), "header: " + panel.total_text())
 	assert_equal(panel.stock_row_count(), Catalog.ITEM_COUNT, "a row each")
-	assert_equal(panel.shown_stock_row(CARROT).slice(0, 2), PackedStringArray(["Carrot", "0.9 U"]), "row")
-	assert_equal(panel.store_row_cells(0), PackedStringArray(["Covered store", "14.4 U", "0 U", "385.6 U", "400.0 U", "×1.00"]),
+	assert_equal(panel.shown_stock_row(CARROT).slice(0, 2), PackedStringArray(["Carrot", "225 g"]), "row: 0.9 U of carrots is under a bunch, so its weight")
+	assert_equal(panel.store_row_cells(0), PackedStringArray(["Covered store", "2½ baskets", "none", "77 baskets", "80 baskets", "×1.00"]),
 		"store row")
 
 
@@ -845,7 +844,7 @@ func test_a_waiting_carrier_called_away_resumes_toward_the_store_with_room() -> 
 	assert_true(_run(cast, crew, 90.0, func() -> bool: return _carried(crew) > 0), "cut and carried")
 	_cellar_u[0] = 3
 	pantry.refresh_locations()
-	assert_true(_run(cast, crew, 90.0, func() -> bool: return _said("store has room for the other")), "waiting")
+	assert_true(_run(cast, crew, 90.0, func() -> bool: return _said("store has room for the rest")), "waiting")
 	var brain := _brain(cast, 3)
 	brain.order_move(brain.position + Vector2(-2.0, 0.0))
 	assert_true(_run(cast, crew, 5.0, func() -> bool: return crew.jobs.worker[0] == FarmJobs.NOBODY), "called away")
@@ -887,7 +886,7 @@ func test_the_first_to_spoil_is_not_the_oldest() -> void:
 	_nodes.append(panel)
 	panel.configure(sim, pantry, null)
 	panel.toggle()
-	assert_equal(panel.shown_stock_row(0), PackedStringArray(["Carrot", "2.0 U", "—", "Covered store", "all in 10d"]),
+	assert_equal(panel.shown_stock_row(0), PackedStringArray(["Carrot", "2 bunches", "—", "Covered store", "all in 10d"]),
 		"the covered store's row: 240 h")
 	assert_true(pantry.first_to_spoil_at_into(CARROT, 1, sim.calendar.hour_index(), _read), "the cellar's lot")
 	assert_true(pantry.lot_spoil_hours(_read.value, sim.calendar.hour_index()) > 240, "spoils later")

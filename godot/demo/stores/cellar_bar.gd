@@ -9,13 +9,14 @@ const ProjectsScript := preload("res://demo/stores/cellar_projects.gd")
 const Rules := preload("res://demo/stores/cellar_rules.gd")
 const FarmUi := preload("res://demo/farm/farm_ui.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 signal build_requested
 signal cancel_requested(cellar: int)
 
-const HEADING: String = "Cellar buildings — %d U each, food keeps 2.8× as long as in the covered store"
+const HEADING: String = "Cellar buildings — each holds %s, kept 2.8× as long as in the covered store"
 const BUILD: String = "Build a cellar…"
-const BUILD_TIP: String = "Place a cellar building: wood %s and stone %s, fetched from the stores, then %d WU of building"
+const BUILD_TIP: String = "Place a cellar building: %s and %s, fetched from the stores, then %d WU of building"
 const NOTE_PX: int = 14
 const UNLOCK_CHECK_S: float = 1.0
 
@@ -36,13 +37,13 @@ func configure(projects: ProjectsScript, locked: Callable) -> void:
 	_projects = projects
 	_locked = locked
 	add_theme_constant_override(&"separation", 4)
-	add_child(FarmUi.label(HEADING % Rules.capacity_u(), NOTE_PX, Palette.UMBER, true))
+	add_child(FarmUi.label(HEADING % ProjectsScript.capacity_words(), NOTE_PX, Palette.UMBER, true))
 	for c: int in ProjectsScript.MAX_CELLARS:
 		_add_line(c)
 	_build = FarmUi.button(BUILD)
 	_build.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	_build.tooltip_text = BUILD_TIP % [ProjectsScript.units_text(Rules.cost_milli(Rules.MAT_WOOD)),
-		ProjectsScript.units_text(Rules.cost_milli(Rules.MAT_STONE)), Rules.work_wu()]
+	_build.tooltip_text = BUILD_TIP % [Measures.need(&"wood", Rules.cost_milli(Rules.MAT_WOOD)),
+		Measures.need(&"stone", Rules.cost_milli(Rules.MAT_STONE)), Rules.work_wu()]
 	_build.pressed.connect(func() -> void: build_requested.emit())
 	add_child(_build)
 	refresh()

@@ -1,13 +1,13 @@
 extends RefCounted
 ## The kitchen's words: what a resident is doing for it, its news lines, its refusals and their fixes, and the panels'
-## lines. Decision 0381. Presentation only; every quantity in the stores' one units form (tunnel_stores.gd
-## `units_text`, the HUD's), and the command grammar is the action cards' (demo/ui/action_card.gd, decision 0332).
+## lines. Decision 0381. Presentation only; every quantity in its good's natural measure (scripts/ui/goods_measures.gd,
+## decisions 1011 and 1801), and the command grammar is the action cards' (demo/ui/action_card.gd, decision 0332).
 
 const Rules := preload("res://demo/kitchen/meal_rules.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
-const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const NOTHING_PLANNED: String = "No meal is planned yet"
 ## The content library's book keys (CONTENT-LIB-001 §2) as the player reads them.
@@ -55,11 +55,6 @@ static func tab_note() -> String:
 	"""TAB_NOTE with the meals' hours (meal_rules.gd CALL_HOUR, COOK_RISE_HOUR, COOK_FROM_HOUR)."""
 	return TAB_NOTE % [Rules.CALL_HOUR[Rules.MEAL_BREAKFAST], Rules.CALL_HOUR[Rules.MEAL_SUPPER], Rules.COOK_RISE_HOUR,
 		Rules.COOK_FROM_HOUR[Rules.MEAL_SUPPER]]
-
-
-static func units(milli: int) -> String:
-	"""A quantity in the HUD's form ("2.0 U")."""
-	return StoresScript.units_text(milli)
 
 
 static func meal_words(key: int) -> String:
@@ -141,6 +136,11 @@ static func _item_word(item: int) -> String:
 	return Catalog.ITEM_LABELS[item].to_lower() if Catalog.is_pantry_item(item) else "food"
 
 
+static func _item_good(item: int) -> StringName:
+	"""A pantry item's good (goods_measures.gd's key); mixed food for anything else."""
+	return Catalog.ITEM_KEYS[item] if Catalog.is_pantry_item(item) else &"food"
+
+
 # --- news ---------------------------------------------------------------------------------------------
 
 static func call_line(key: int) -> String:
@@ -167,8 +167,8 @@ static func tally_line(key: int, ate: int, without: int) -> String:
 
 
 static func raw_line(name: String, milli: int, item: int, key: int) -> String:
-	"""A raw emergency meal (REQ-SET-013)."""
-	return "%s, hungry with no %s, ate %s of raw %s" % [name, meal_words(key), units(milli), _item_word(item)]
+	"""A raw emergency meal (REQ-SET-013): "..., ate 2 bunches of radishes raw"."""
+	return "%s, hungry with no %s, ate %s raw" % [name, meal_words(key), Measures.amount(_item_good(item), milli)]
 
 
 static func no_meal_line(key: int, reason: String, fix: String) -> String:
@@ -203,16 +203,18 @@ static func no_food_reason(dish: int, other_has: bool) -> String:
 	"""No food for a batch of `dish`'s first input (nor for the other meal's first dish, unless `other_has`)."""
 	var other: int = Rules.other(dish)
 	var line: String = "the pantry has no %s for %s (%s a batch: %s)" % [input_words(dish, 0),
-		Rules.DISH_NAMES[dish].to_lower(), units(Rules.input_milli(dish, 0)), Rules.items_text(Rules.input_selector(dish, 0))]
+		Rules.DISH_NAMES[dish].to_lower(), Measures.exact_cell(Rules.input_good(dish, 0), Rules.input_milli(dish, 0)),
+		Rules.items_text(Rules.input_selector(dish, 0))]
 	if not other_has:
 		line += ", nor %s for %s" % [input_words(other, 0), Rules.DISH_NAMES[other].to_lower()]
 	return line
 
 
 static func no_side_reason(dish: int, k: int, have: int) -> String:
-	"""Not a batch's input `k` (one past the first: the fish stew's roots, the hotpot's greens)."""
-	return "the pantry has %s of %s for %s; a batch takes %s" % [units(have), input_words(dish, k),
-		Rules.DISH_NAMES[dish].to_lower(), units(Rules.input_milli(dish, k))]
+	"""Not a batch's input `k` (one past the first: the fish stew's roots, the hotpot's greens): "the pantry is short
+	of roots for fish stew: 1 of 2 bowls a batch"."""
+	return "the pantry is short of %s for %s: %s a batch" % [input_words(dish, k), Rules.DISH_NAMES[dish].to_lower(),
+		Measures.have_need(Rules.input_good(dish, k), have, Rules.input_milli(dish, k))]
 
 
 static func input_words(dish: int, k: int) -> String:
@@ -222,14 +224,26 @@ static func input_words(dish: int, k: int) -> String:
 
 
 static func inputs_text(dish: int, batches: int) -> String:
-	"""All of `dish`'s food for `batches` batches: "2.0 U of fresh fish (dace) + 2.0 U of roots (radish, ... or onion)"."""
+	"""All of `dish`'s food for `batches` batches: "2 fish (dace) + 2 bowls of roots (radish, ... or onion)" -- one
+	batch as the recipe states it (`exact`), several as a requirement (`need`)."""
 	var parts := PackedStringArray()
 	for k: int in Rules.INPUT_N[dish]:
 		var words: String = input_words(dish, k)
 		var items: String = Rules.IN_ITEMS_TEXT[Rules.INPUT_FIRST[dish] + k]
-		parts.append("%s of %s" % [units(Rules.input_milli(dish, k) * batches), words] if words == items
-			else "%s of %s (%s)" % [units(Rules.input_milli(dish, k) * batches), words, items])
+		var good: StringName = Rules.input_good(dish, k)
+		var milli: int = Rules.input_milli(dish, k) * batches
+		var amount: String = Measures.exact(good, milli) if batches == 1 else Measures.need(good, milli)
+		amount = _named(amount, good, words)
+		parts.append(amount if words == items else "%s (%s)" % [amount, items])
 	return " + ".join(parts)
+
+
+static func _named(amount: String, good: StringName, words: String) -> String:
+	"""An amount that names its good after its measure ("2 bowls of roots") named as the recipe calls the input instead
+	("2 bowls of greens or roots", "40 g of greens or roots"); a counted amount ("2 fish") is left as it is."""
+	var suffix: String = " of " + Measures.noun(good)
+	return amount.trim_suffix(suffix) + " of " + words if amount.ends_with(suffix) and words != Measures.noun(good) \
+		else amount
 
 
 static func waiting_line(dish: int) -> String:
@@ -238,21 +252,29 @@ static func waiting_line(dish: int) -> String:
 
 
 static func no_water_reason(dish: int, have: int, need: int) -> String:
-	"""Not a batch's water in the butt."""
-	return "the water butt holds %s; %s needs %s a batch (%s for the meal)" % [units(have),
-		Rules.DISH_NAMES[dish].to_lower(), units(Rules.WATER_MILLI[dish]), units(need)]
+	"""Not a batch's water in the butt: "the water butt holds 3 of 6 jugs for the meal (porridge takes 2 jugs a
+	batch)"."""
+	return "the water butt holds %s for the meal (%s takes %s a batch)" % [Measures.have_need(&"water", have, need),
+		Rules.DISH_NAMES[dish].to_lower(), Measures.exact_cell(&"water", Rules.WATER_MILLI[dish])]
 
 
 static func no_fuel_reason(have: int, need: int) -> String:
-	"""Not a batch's wood in the stores."""
-	return "the stores hold %s of wood; the meal needs %s (0.1 U a batch)" % [units(have), CardScript.need_text(need)]
+	"""Not a batch's wood in the stores: "the stores hold 3 of 9 bundles of kindling for the meal (a bundle of kindling
+	a batch)"."""
+	return "the stores hold %s for the meal (%s a batch)" % [Measures.have_need(&"wood", have, need), batch_wood()]
+
+
+static func batch_wood() -> String:
+	"""A batch's wood (BAL-SUPPLY-004, meal_rules.gd WOOD_MILLI_PER_BATCH) in words: "a bundle of kindling"."""
+	return Measures.exact(&"wood", Rules.WOOD_MILLI_PER_BATCH)
 
 
 static func butt_full_reason(have: int, coming: int) -> String:
 	"""The butt is full, or will be."""
 	if coming > 0:
-		return "the butt will be full: it holds %s and %s is on its way" % [units(have), units(coming)]
-	return "the butt is full (%s)" % units(have)
+		return "the butt will be full: it holds %s, with %s on its way" % [Measures.amount_cell(&"water", have),
+			Measures.amount_cell(&"water", coming)]
+	return "the butt is full (%s)" % Measures.amount_cell(&"water", have)
 
 
 static func cant(reason: String, fix: String) -> String:
@@ -289,7 +311,7 @@ static func cook_ordered(key: int, dish: int, batches: int, who: String) -> Stri
 
 static func draw_ordered(amount: int, who: String) -> String:
 	"""The Draw water order's answer."""
-	return "Draw %s of water for the kitchen · %s" % [units(amount), who]
+	return "Draw %s for the kitchen · %s" % [Measures.amount(&"water", amount), who]
 
 
 # --- the resident panel and the roster ---------------------------------------------------------------
@@ -334,17 +356,17 @@ static func days_text(milli_days: int) -> String:
 
 
 static func cookable_line(dish: int) -> String:
-	"""The Recipes tab's mark for one dish: "Cookable (active): Wild oat porridge — cooked as the GDD's porridge: 2.0 U of
-	grain (wheat, barley or oats) + water 2.0 U → 2 portions of 1800 NP, 12 WU, keeps 24 h; for breakfast." -- or
+	"""The Recipes tab's mark for one dish: "Cookable (active): Wild oat porridge — cooked as the GDD's porridge: 2 scoops
+	of grain (wheat, barley or oats) + 2 jugs of water → 2 portions of 1800 NP, 12 WU, keeps 24 h; for breakfast." -- or
 	"Waiting (needs hazelnut: gathered by foragers): ..." for a dish an ingredient keeps waiting, and "a recipe
 	from The Outcast of Redwall" for a row confirmed outside the GDD (DEC-045, decision 0603: player text names the book,
 	never the ruling)."""
 	@warning_ignore("integer_division")
-	return "%s: %s — cooked as %s: %s + water %s → %d portions of %d NP, %d WU, keeps %d h; %s." % [
+	return "%s: %s — cooked as %s: %s + %s → %d portions of %d NP, %d WU, keeps %d h; %s." % [
 		"Waiting (%s)" % Rules.DISH_WAITS[dish] if Rules.waits(dish) else "Cookable (active)", Rules.DISH_NAMES[dish],
 		"the GDD's %s" % Rules.GDD_ROWS[dish] if Rules.ROW_ADOPTED[dish] == 1 else _book_recipe(dish),
 		inputs_text(dish, 1),
-		units(Rules.WATER_MILLI[dish]), Rules.PORTIONS_PER_BATCH[dish], Rules.NP_PER_PORTION[dish],
+		Measures.exact(&"water", Rules.WATER_MILLI[dish]), Rules.PORTIONS_PER_BATCH[dish], Rules.NP_PER_PORTION[dish],
 		Rules.WORK_MWU[dish] / 1000, Rules.SHELF_HOURS[dish], _for_meal(dish)]
 
 

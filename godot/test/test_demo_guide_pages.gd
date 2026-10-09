@@ -27,7 +27,6 @@ const Fixtures := preload("res://demo/burrow/room_fixtures.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const SwimRules := preload("res://demo/waterplay/swim_rules.gd")
 const StockAge := preload("res://scripts/core/stock_age.gd")
-const FarmText := preload("res://demo/farm/farm_text.gd")
 const CastRoutines := preload("res://demo/cast/cast_routines.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const MenuScript := preload("res://demo/ui/demo_menu.gd")
@@ -167,7 +166,9 @@ func test_the_field_guide_has_exactly_the_demo_s_crops_and_dishes() -> void:
 	for dish: int in Rules.DISH_COUNT:
 		var dish_entry: FieldGuideScript.Entry = guide.entry(guide.index_of(FieldGuideScript.DISH_IDS[dish]))
 		assert_equal(dish_entry.title, Rules.DISH_NAMES[dish], "the dish's name")
-		assert_true(dish_entry.requires.contains(FarmText.units_text(Rules.INPUT_MILLI[dish])), "its input")
+		assert_false(dish_entry.requires.contains(" U "), "%s: no U in its input" % dish_entry.title)
+	var porridge: FieldGuideScript.Entry = guide.entry(guide.index_of(FieldGuideScript.DISH_IDS[0]))
+	assert_true(porridge.requires.contains("2 scoops of grain"), "porridge's grain, exact: " + porridge.requires)
 
 
 func test_the_field_guide_has_the_catch_dried_fish_flour_and_gear() -> void:
@@ -184,10 +185,10 @@ func test_the_field_guide_has_the_catch_dried_fish_flour_and_gear() -> void:
 			"%s keeps the catalog's hours" % entry.title)
 	var stew: FieldGuideScript.Entry = guide.entry(guide.index_of(FieldGuideScript.DISH_IDS[Rules.DISH_FISH_STEW]))
 	assert_equal(stew.summary, "Cooked for supper", "the stew is supper's")
-	assert_true(stew.requires.contains(FarmText.units_text(Rules.SIDE_MILLI[Rules.DISH_FISH_STEW]) + " of roots"),
-		stew.requires)
+	assert_true(stew.requires.contains("2 bowls of roots"), stew.requires)
 	var gear: String = guide.entry(guide.index_of(&"material_gear")).requires
-	assert_true(gear.contains(FarmText.units_text(GearLocker.MAKE_WOOD_MILLI[GearLocker.KIND_TRAP])), gear)
+	assert_equal(GearLocker.MAKE_WOOD_MILLI[GearLocker.KIND_TRAP], 4000, "the trap's wood")
+	assert_true(gear.contains("a trap (4 logs, 2 coils of rope, "), gear)
 	assert_true(guide.index_of(&"station_rack_mill") >= 0 and guide.index_of(&"station_fishing") >= 0, "the stations")
 
 
@@ -196,15 +197,41 @@ func test_field_guide_figures_are_the_tables_own() -> void:
 	species' swimming are the figures in the demo's tables."""
 	var guide := FieldGuideScript.new()
 	var planks: String = guide.entry(guide.index_of(&"material_planks")).uses
-	assert_true(planks.contains(FarmText.units_text(Fixtures.COST_PLANKS_MILLI[RoomsScript.FIX_BED])), planks)
-	assert_true(planks.contains(FarmText.units_text(SwimRules.PLANK_MILLI_PER_M)), planks)
-	assert_true(guide.entry(guide.index_of(&"material_stone")).uses.contains(
-		FarmText.units_text(Fixtures.COST_STONE_MILLI[RoomsScript.FIX_HEARTH])), "the hearth's stone")
+	assert_equal([Fixtures.COST_PLANKS_MILLI[RoomsScript.FIX_BED], Fixtures.COST_PLANKS_MILLI[RoomsScript.FIX_BIG_BED],
+		SwimRules.PLANK_MILLI_PER_M, Fixtures.COST_STONE_MILLI[RoomsScript.FIX_HEARTH]], [2000, 4000, 1000, 6000],
+		"the tables' figures")
+	assert_true(planks.contains("A plank footbridge (a plank a metre of deck); beds (2 planks), a large bed (4 planks)"),
+		planks)
+	assert_true(guide.entry(guide.index_of(&"material_stone")).uses.contains("A hearth (6 blocks of stone)"),
+		"the hearth's stone")
 	assert_true(guide.entry(guide.index_of(&"station_cellar")).uses.contains(
 		str(StockAge.STORE_FACTOR[StockAge.STORAGE_CELLAR])), "the cellar's rate")
 	var swim: String = guide.entry(guide.index_of(&"skill_swimming")).requires
 	for k: int in SwimRules.SPECIES.size():
 		assert_true(swim.contains("%s %s" % [SwimRules.SPECIES[k], SwimRules.SWIM_WORDS[k]]), SwimRules.SPECIES[k])
+
+
+func test_field_guide_amounts_are_in_natural_measures() -> void:
+	"""Decision 1801: the guide's rule figures in their goods' measures, unrounded; raw food per its small measure; a
+	store's room in baskets of food, with no weight."""
+	var guide := FieldGuideScript.new()
+	var wood: FieldGuideScript.Entry = guide.entry(guide.index_of(&"material_wood"))
+	assert_true(wood.uses.contains("every lit hearth burns 4 logs a day in winter (the great hall's 3 logs)"), wood.uses)
+	assert_true(wood.uses.contains("sawn into planks (2 logs makes 2 planks)"), wood.uses)
+	assert_true(wood.uses.contains("the kitchen's fire (a bundle of kindling a batch)"), wood.uses)
+	assert_true(wood.requires.contains("Felling a mature tree (12 logs, hauled to the log stack), or gathering deadfall "
+		+ "(1 log to 2 logs a pile"), wood.requires)
+	assert_true(wood.here.contains("open with 40 logs;"), wood.here)
+	assert_true(guide.entry(guide.index_of(&"material_water")).here.contains("holds 4 buckets of water."), "the butt")
+	assert_true(guide.entry(guide.index_of(&"station_store")).uses.begins_with("Keeping food (80 baskets);"), "its room")
+	var cellar: String = guide.entry(guide.index_of(&"station_cellar")).requires
+	assert_true(cellar.contains("a shelf holds 4 baskets of food, a pantry rack 6 baskets, a root bin 5 baskets."), cellar)
+	assert_true(guide.entry(guide.index_of(FieldGuideScript.crop_id(2))).uses.contains("(800 NP for a bunch of carrots)"),
+		"a carrot eaten raw")
+	assert_true(guide.entry(guide.index_of(FieldGuideScript.crop_id(6))).uses.contains("(1200 NP for a cabbage)"),
+		"a cabbage is two units")
+	assert_equal(FieldGuideScript.raw_np_text(Catalog.ITEM_NUTS), "800 NP for a handful of nuts", "a handful is half")
+	assert_equal(FieldGuideScript.small_measure_milli(&"honey"), 1000, "a jar, not half of one")
 
 
 func test_field_guide_links_resolve_and_nothing_absent_is_described() -> void:
@@ -230,7 +257,8 @@ func test_field_guide_search_and_live_stock() -> void:
 	var pantry := PantryScript.new(StorageScript.new(Vector2.ZERO))
 	pantry.add_into(2, 5100, 0, _read)
 	guide.bind_pantry(pantry)
-	assert_equal(guide.live_line(guide.index_of(FieldGuideScript.crop_id(2))), "In the pantry now: 5.1 U.", "live")
+	assert_equal(guide.live_line(guide.index_of(FieldGuideScript.crop_id(2))), "In the pantry now: 5 bunches of carrots.",
+		"live, rounded down (a basket only from two)")
 
 
 func test_the_field_guide_page_opens_entries_and_links() -> void:
@@ -320,10 +348,11 @@ func test_the_stories_teach_by_their_real_rules() -> void:
 	stories.choose(0)
 	assert_true(stories.outcome.begins_with("refused"), stories.outcome)
 	stories.choose(2)
-	assert_true(stories.outcome.contains("of planks spent"), stories.outcome)
+	assert_true(stories.outcome.begins_with("24 logs delivered") and stories.outcome.ends_with(" planks spent"),
+		stories.outcome)
 	stories.start(StoriesScript.STORY_DELIVERY)
 	stories.choose(0)
-	assert_true(stories.outcome.begins_with("0 U stored"), stories.outcome)
+	assert_true(stories.outcome.begins_with("nothing stored; the crop fell from "), stories.outcome)
 	stories.choose(2)
 	assert_true(stories.outcome.contains("root cellar"), stories.outcome)
 	stories.start(StoriesScript.STORY_PANTRY)
@@ -338,9 +367,33 @@ func test_the_stories_teach_by_their_real_rules() -> void:
 	for c: int in 3:
 		stories.choose(c)
 		outcomes.append(stories.outcome)
-	assert_equal(outcomes, PackedStringArray(["17 of 24 days fed in full; 90.0 U spoiled",
-		"24 of 24 days fed in full; 0 U spoiled", "23 of 24 days fed in full; 15.0 U spoiled"]),
+	assert_equal(outcomes, PackedStringArray(["17 of 24 days fed in full; 18 baskets of food spoiled",
+		"24 of 24 days fed in full; no food spoiled", "23 of 24 days fed in full; 3 baskets of food spoiled"]),
 		"the winter pantry by the pantry's own ageing and the kitchen's order (soonest to spoil eaten first)")
+
+
+func test_the_stories_say_their_fixtures_in_natural_measures() -> void:
+	"""Decision 1801: the situations' figures are the fixtures' own, in logs, baskets and sacks; the runs' lines too."""
+	assert_equal([StoriesScript.LOGS_MILLI, StoriesScript.LOAD_MILLI, StoriesScript.ROOTS_MILLI, StoriesScript.OATS_MILLI],
+		[24000, 6000, 150000, 100000], "the fixtures")
+	assert_true(StoriesScript.SITUATIONS[StoriesScript.STORY_CROSSING].contains(
+		"24 logs must reach the log stack. A crew of three carries 6 logs each a trip."), "the crossing")
+	assert_true(StoriesScript.SITUATIONS[StoriesScript.STORY_PANTRY].contains("30 baskets of carrots and 5 sacks of oats."),
+		"the pantry")
+	var stories := StoriesScript.new()
+	stories.start(StoriesScript.STORY_CROSSING)
+	stories.choose(0)
+	assert_equal(stories.outcome, "refused at the water -- no wood delivered", "nothing over")
+	assert_true(stories.log_lines[0].begins_with("The crew walks down the bank with 6 logs each"), stories.log_lines[0])
+	stories.start(StoriesScript.STORY_DELIVERY)
+	stories.choose(2)
+	var lines: String = "\n".join(stories.log_lines)
+	assert_true(lines.contains("The covered store holds 20 sacks of oats."), lines)
+	assert_true(lines.contains("A root cellar is dug and racked: shelves for 6 baskets of food."), lines)
+	stories.start(StoriesScript.STORY_PANTRY)
+	stories.choose(0)
+	assert_true(stories.log_lines[0] == "Laid in: 30 baskets of carrots in the covered store, none in the cellar, "
+		+ "5 sacks of oats.", stories.log_lines[0])
 
 
 func test_the_practice_page_runs_a_story_with_debrief_and_restart() -> void:
@@ -365,7 +418,7 @@ func _project_world() -> WorldScript:
 
 
 func test_a_project_completes_into_the_chronicle_once() -> void:
-	"""'Wood for winter': wood in store reaches 60.0 U. Below it, nothing; reached, it is done and one Village entry
+	"""'Wood for winter': wood in store reaches 60 logs. Below it, nothing; reached, it is done and one Village entry
 	goes into the history with its before and after; looked at again, no second entry."""
 	var world := _project_world()
 	var facts := FactsScript.new()
@@ -385,7 +438,7 @@ func test_a_project_completes_into_the_chronicle_once() -> void:
 	assert_equal(notices.repeats(0), 1, "posted once, not folded twice")
 	assert_equal(notices.source(0), NoticesScript.SOURCE_VILLAGE, "the Village's")
 	assert_equal(notices.target_kind(0), NoticesScript.TARGET_BED, "Go to its place")
-	assert_true(notices.text(0).begins_with("Project complete: \"Wood for winter\" -- wood in store, 40.0 U -> 60.0 U"),
+	assert_true(notices.text(0).begins_with("Project complete: \"Wood for winter\" -- wood in store, 40 logs -> 60 logs (target 60 logs)."),
 		notices.text(0))
 
 
@@ -401,7 +454,7 @@ func test_projects_are_three_named_and_from_now_counts_from_the_pin() -> void:
 	assert_equal(projects.progress(projects.projects[0], world, facts), 0, "from now: nothing yet")
 	world.pantry.delivered_milli = 14000
 	projects.update(world, facts)
-	assert_true(projects.projects[0].done, "5.0 U since the pin")
+	assert_true(projects.projects[0].done, "a basket of food since the pin")
 	projects.add("b", 0, 1000, world, facts)
 	projects.add("c", 0, 1000, world, facts)
 	assert_equal(projects.add("d", 0, 1000, world, facts), ProjectsScript.REFUSE_FULL, "three at most")

@@ -79,7 +79,7 @@ func show_order(book: BookScript, o: int, board: BoardScript, task: TaskScript) 
 		else "On: it queues work whenever the good falls below its amount"
 	var editable: bool = book.built_in[o] == 0
 	var k: int = book.kind[o]
-	var step: String = Kinds.amount_text(k, Kinds.STEP[k]) if editable else ""
+	var step: String = Kinds.target_text(k, Kinds.STEP[k], book.item[o]) if editable else ""
 	FarmUi.set_enabled(_less, editable and book.amount[o] > Kinds.STEP[k], BUILT_IN_WHY if not editable
 		else "it is at its least")
 	FarmUi.set_enabled(_more, editable and book.amount[o] < Kinds.MAX_AMOUNT[k], BUILT_IN_WHY if not editable

@@ -34,6 +34,7 @@ const DemoCommandScript := preload("res://demo/control/demo_command.gd")
 const WaterplayScript := preload("res://demo/waterplay/demo_waterplay.gd")
 const PanelScript := preload("res://demo/waterplay/water_panel.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const CastNav := preload("res://demo/cast/cast_nav.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
@@ -146,14 +147,14 @@ func sync_incident() -> void:
 
 
 func stranded_words() -> String:
-	"""'The ferry is closed (a storm): 3.0 U of wood waits at the far stage' ('' when nothing is stranded)."""
+	"""'The ferry is closed (a storm): 3 logs at the far stage' ('' when nothing is stranded)."""
 	if ferry.is_open():
 		return ""
 	var parts := PackedStringArray()
 	if ferry.far_stack_milli > 0:
-		parts.append("%s of wood waits at %s" % [Rules.units_text(ferry.far_stack_milli), Routes.FAR_STAGE_NAME])
+		parts.append("%s at %s" % [Measures.amount(&"wood", ferry.far_stack_milli), Routes.FAR_STAGE_NAME])
 	if ferry.aboard_milli > 0:
-		parts.append("%s is aboard" % Rules.units_text(ferry.aboard_milli))
+		parts.append("%s aboard" % Measures.amount(&"wood", ferry.aboard_milli))
 	if ferry.x_state == FerryScript.X_HELD:
 		parts.append("the boat is held at %s" % Routes.FAR_STAGE_NAME)
 	if parts.is_empty():
@@ -216,7 +217,7 @@ func status_lines() -> String:
 	"""The ferry's state, its timetable and its crew."""
 	var lines := PackedStringArray([ferry.status_line()])
 	lines.append("Departures %02d:00–%02d:00 every %d game hours while staffed; at once when %s waits at %s" % [
-		Rules.FIRST_DEPARTURE_HOUR, Rules.LAST_DEPARTURE_HOUR, Rules.EVERY_HOURS, Rules.units_text(Rules.THRESHOLD_MILLI),
+		Rules.FIRST_DEPARTURE_HOUR, Rules.LAST_DEPARTURE_HOUR, Rules.EVERY_HOURS, Measures.exact(&"wood", Rules.THRESHOLD_MILLI),
 		Routes.FAR_STAGE_NAME])
 	var crew: int = ferry.fleet.crew_of(Routes.FERRY_BOAT, FleetScript.HELM) if ferry.fleet != null else -1
 	var rider: int = ferry.fleet.crew_of(Routes.FERRY_BOAT, Rules.PASSENGER_SEAT) if ferry.fleet != null else -1
@@ -227,16 +228,18 @@ func status_lines() -> String:
 
 
 func cargo_line() -> String:
-	"""'Far stage: 3.0 U · aboard: — · ferry stage: 1.5 U · ferried in all: 9.0 U'."""
+	"""'Far stage: 3 logs · aboard: none · ferry stage: 1 log · ferried in all: 9 logs, stored: 9 logs'."""
 	return "Far stage: %s · aboard: %s · ferry stage: %s · ferried in all: %s, stored: %s" % [
-		Rules.units_text(ferry.far_stack_milli), Rules.units_text(ferry.aboard_milli), Rules.units_text(ferry.near_stack_milli),
-		Rules.units_text(ferry.ferried_milli), Rules.units_text(ferry.stored_milli)]
+		Measures.amount_cell(&"wood", ferry.far_stack_milli), Measures.amount_cell(&"wood", ferry.aboard_milli),
+		Measures.amount_cell(&"wood", ferry.near_stack_milli), Measures.amount_cell(&"wood", ferry.ferried_milli),
+		Measures.amount_cell(&"wood", ferry.stored_milli)]
 
 
 func copse_line() -> String:
 	"""The far copse's windfall: the piles lying and what is being gathered."""
 	return "%s: %d piles lying (%s) · in hands: %s · a pile falls each midnight" % [COPSE_TITLE,
-		ferry.pile_count(), Rules.units_text(ferry.lying_milli()), Rules.units_text(ferry.in_hand_milli())]
+		ferry.pile_count(), Measures.amount_cell(&"wood", ferry.lying_milli()),
+		Measures.amount_cell(&"wood", ferry.in_hand_milli())]
 
 
 func benefit_line() -> String:
@@ -284,8 +287,8 @@ func _way(from: Vector2, to: Vector2) -> float:
 func gather_card(members: PackedInt32Array) -> CardScript:
 	"""Gather the far copse's card: `ferry.gather_refusal`, the windfall, the work, who."""
 	_card.reset("Gather the far copse's windfall")
-	_card.result = "%s of wood (%d piles) gathered and carried to %s; the ferry rows it to %s, a hauler stacks it" % [
-		Rules.units_text(ferry.lying_milli()), ferry.pile_count(), Routes.FAR_STAGE_NAME, Routes.FERRY_STAGE_NAME]
+	_card.result = "Gathered and carried to %s: %s (%d piles); the ferry rows it to %s, a hauler stacks it" % [
+		Routes.FAR_STAGE_NAME, Measures.amount(&"wood", ferry.lying_milli()), ferry.pile_count(), Routes.FERRY_STAGE_NAME]
 	_card.prerequisites.append("windfall lying in %s (a pile a day); the far bank is reached over the ford or by ferry" % Rules.COPSE_NAME)
 	var why: String = ferry.gather_refusal()
 	if not why.is_empty():
@@ -301,8 +304,8 @@ func send_card(members: PackedInt32Array) -> CardScript:
 	"""Send the ferry's card: `ferry.send_refusal`, the crossing, the helm."""
 	_card.reset("Send the ferry now")
 	_card.result = "A round trip: %s loaded at %s (up to %s), passengers in the second seat; the boat back at %s" % [
-		Rules.units_text(mini(ferry.far_stack_milli, Rules.BOAT_CARGO_MILLI)), Routes.FAR_STAGE_NAME,
-		Rules.units_text(Rules.BOAT_CARGO_MILLI), Routes.FERRY_STAGE_NAME]
+		Measures.amount(&"wood", mini(ferry.far_stack_milli, Rules.BOAT_CARGO_MILLI)), Routes.FAR_STAGE_NAME,
+		Measures.exact(&"wood", Rules.BOAT_CARGO_MILLI), Routes.FERRY_STAGE_NAME]
 	_card.prerequisites.append("open water (no storm, hard freeze, flood or ice), a helm with fishing 1, the ferry boat free")
 	var why: String = ferry.send_refusal()
 	if not why.is_empty():

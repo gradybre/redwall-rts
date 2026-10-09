@@ -23,8 +23,17 @@ extends RefCounted
 ## in its WARNING state (`is_warning`: UI §7's fuel warning). Its tooltip adds the breakdown (today's demand, the last
 ## heated hour, the winter projection), which its click opens in full (demo/winter/fuel_panel.gd); its ledger line is the
 ## one line, the shell's ledger being a fixed size. PLANKS, which held the slot, move to the ledger -- on Wood's line,
-## "Wood: 40.0 U · planks 2.5 U in store", short enough for the ledger's one line (296 px), so the ledger keeps its eight
+## "Wood: 40 logs · 3 planks in store", short enough for the ledger's one line (296 px), so the ledger keeps its eight
 ## lines -- and to the Wood cell's tooltip.
+##
+## NATURAL MEASURES (decision 1011 §3, DEC-049; MEAS-2, decision 1801). No cell says "U". Wood is a WORD LEVEL -- none /
+## very low / running low / enough / plenty -- judged by goods_measures.gd `wood_level` from the winter's own owners
+## (`bind_fuel`): `firewood_urgent()` (under 2 fuel-days or a hearth out: Heating fuel's own warning), `firewood_wanted()`
+## (the Firewood order stands) and the fuel's twelve-day `projection_milli()`. No threshold is made here. The words are a
+## state, so they draw in the 16 px disclosure role as Heating fuel's "No demand" does ("running low" is 106 px in the
+## 18 px value face, past the 1280x720 cell's 101; 91 px at 16). With no winter bound the cell shows the count, "40
+## logs". Stone is a count in blocks (P1: it has no use rate to judge a level by). The tooltip and the ledger keep the
+## figures, with the weight in the tooltip.
 ##
 ## UNAVAILABLE IS NOT ZERO. A figure whose owner is absent (a suite that builds no farm; `food` unset) is
 ## UNKNOWN, reported by `known()` and worded UNAVAILABLE -- never 0, which would read as an empty store.
@@ -36,12 +45,12 @@ extends RefCounted
 ## portions, the grain and the roots; the shell's ledger is a fixed size). Without a kitchen it is the pantry's total, as
 ## before.
 ##
-## THE SAME WORDS AS THE PANELS. Food is `FarmHud.food_text` of the pantry's own milli-U total (the Pantry
-## headline's figure, in the farm's one units form: farm_text.gd UNITS, decision 0222); materials are `StoresScript.units_text`, the formatter the stores' panels print. Nothing here
-## re-rounds a figure its panel shows differently.
+## THE SAME WORDS AS THE PANELS. Every amount is goods_measures.gd's, the module every panel words its amounts with:
+## food the pantry's own milli-U total in baskets of food (the Pantry headline's figure), wood in logs, stone in blocks,
+## planks counted. Nothing here re-rounds a figure its panel shows differently.
 
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
-const FarmHud := preload("res://demo/farm/farm_hud.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
@@ -73,8 +82,12 @@ const DAYS_TIP: String = "of meals (portions held and cookable, over a day's por
 const RAW_LINE: String = "%s: %s · raw %s"
 const RAW_TIP: String = " Eaten raw: %s more (berries, fruit, honey, nuts, jam, cheese and other food eaten as it is)."
 ## Wood's ledger line with the planks on it, and the planks in the Wood tooltip (see HEATING FUEL).
-const WOOD_LINE: String = "Wood: %s · planks %s in store"
-const PLANKS_NOTE: String = " (planks: %s)"
+const WOOD_LINE: String = "Wood: %s · %s in store"
+const PLANKS_NOTE: String = " (and %s)"
+## The Wood tooltip with its level (see NATURAL MEASURES): the level, the wood and its weight, the winter's need.
+const WOOD_TIP: String = "Wood: %s — %s (%s) in the village stores; winter needs %s%s. Click for the ledger."
+## The goods the amount cells word, in the cells' order ("" for a cell that is not an amount).
+const CELL_GOODS: Array[StringName] = [&"food", &"", &"wood", &"stone", &"", &""]
 
 ## The village's one stores (wood, stone, planks); null: those three are unknown.
 var stores: StoresScript = null
@@ -93,6 +106,11 @@ var fuel: Callable = Callable()
 var fuel_detail: Callable = Callable()
 ## () -> int: bumped whenever the fuel's breakdown may read differently (demo_winter.gd `stamp`). Unset: 0.
 var fuel_stamp: Callable = Callable()
+## The Wood level's three readings (see NATURAL MEASURES): () -> bool the winter's `firewood_urgent` and
+## `firewood_wanted`, () -> int its fuel's `projection_milli`. Unset: no level, the count.
+var wood_urgent: Callable = Callable()
+var wood_wanted: Callable = Callable()
+var wood_projection: Callable = Callable()
 ## () -> int: how many residents live in the village (the cast). Unset: unknown.
 var residents: Callable = Callable()
 ## () -> int: beds installed in the dug homes. Unset: unknown.
@@ -120,20 +138,34 @@ func bind_meals(kitchen: RefCounted) -> void:
 
 
 func bind_fuel(winter: Object) -> void:
-	"""The Heating fuel cell reads the winter (see HEATING FUEL)."""
+	"""The Heating fuel cell reads the winter (see HEATING FUEL), and the Wood cell's level its Firewood order's own
+	readings (see NATURAL MEASURES)."""
 	fuel = Callable(winter, &"fuel_days_hundredths")
 	fuel_detail = Callable(winter, &"detail_lines")
 	fuel_stamp = Callable(winter, &"stamp")
+	wood_urgent = Callable(winter, &"firewood_urgent")
+	wood_wanted = Callable(winter, &"firewood_wanted")
+	wood_projection = Callable(winter.get(&"fuel") as Object, &"projection_milli")
 
 
 func stamp() -> int:
-	"""What the ledger and the tooltips show beyond the six figures -- the planks, the fuel's breakdown and the raw
-	reserve beside Ready food (decision 1736) -- as one integer that changes when they do (demo_hud_counters.gd repaints
-	on it)."""
+	"""What the ledger and the tooltips show beyond the six figures -- the planks, the fuel's breakdown, the raw
+	reserve beside Ready food (decision 1736) and the Wood level (decision 1801) -- as one integer that changes when they
+	do (demo_hud_counters.gd repaints on it)."""
 	var planks: int = stores.plank_milli_u if stores != null else 0
 	var detail: int = int(fuel_stamp.call()) if fuel_stamp.is_valid() else 0
 	var raw: int = raw_reserve.hourly_days_milli() if raw_reserve != null else 0
-	return planks ^ (detail << 32) ^ (raw << 16)
+	var level: int = wood_level(stores.wood_milli_u) + 1 if stores != null else 0
+	return planks ^ (detail << 32) ^ (raw << 16) ^ (level << 56)
+
+
+func wood_level(wood_milli: int) -> int:
+	"""The Wood cell's level (goods_measures.gd LEVEL_*) from the winter's readings, or -1 with no winter bound (the
+	cell then shows the count)."""
+	if not wood_urgent.is_valid() or not wood_wanted.is_valid() or not wood_projection.is_valid():
+		return -1
+	return Measures.wood_level(wood_milli, bool(wood_urgent.call()), bool(wood_wanted.call()),
+		int(wood_projection.call()))
 
 
 func known(cell: int) -> bool:
@@ -176,11 +208,16 @@ func _text(cell: int, figure: int) -> String:
 		return KitchenWords.days_value(figure)
 	if cell == CELL_FUEL:
 		return WinterText.cell_value(figure)
+	if cell == CELL_WOOD and wood_level(figure) >= 0:
+		return Measures.level_words(wood_level(figure))
 	return figure_text(cell, figure)
 
 
 func is_state(cell: int, figure: int) -> bool:
-	"""Whether a known cell's value is a state in words rather than a figure: Heating fuel's no demand."""
+	"""Whether a known cell's value is a state in words rather than a figure: Heating fuel's no demand, and the Wood
+	level (see NATURAL MEASURES)."""
+	if cell == CELL_WOOD:
+		return known(cell) and wood_level(figure) >= 0
 	return cell == CELL_FUEL and known(cell) and figure == WinterText.Rules.NO_DEMAND
 
 
@@ -190,28 +227,42 @@ func is_warning(cell: int, figure: int) -> bool:
 
 
 static func figure_text(cell: int, figure: int) -> String:
-	"""A known figure in its panel's words: food "12.4 U", materials "40.0 U", residents and beds a count."""
-	match cell:
-		CELL_FOOD:
-			return FarmHud.food_text(figure)
-		CELL_FUEL:
-			return WinterText.cell_value(figure)
-		CELL_WOOD, CELL_STONE:
-			return StoresScript.units_text(figure)
+	"""A known figure in its cell's words: food "6½ baskets" (of food), wood "40 logs", stone "20 blocks", residents
+	and beds a count."""
+	if cell == CELL_FUEL:
+		return WinterText.cell_value(figure)
+	if not CELL_GOODS[cell].is_empty():
+		return Measures.amount_cell(CELL_GOODS[cell], figure)
 	return "%d" % figure
 
 
 func tooltip(cell: int, figure: int) -> String:
-	"""A cell's hover and accessible text: "Wood: 40.0 U in the village stores. Click for the ledger."."""
+	"""A cell's hover and accessible text, with the amount's weight: "Wood: plenty — 40 logs (200 kg) in the village
+	stores; winter needs 30 logs (and 3 planks). Click for the ledger."."""
 	if not known(cell):
 		return "%s: %s" % [CAPTIONS[cell], UNAVAILABLE]
 	if cell == CELL_FUEL:
 		return "%s. %s. Click for the ledger." % [WinterText.hud_line(figure), ". ".join(_fuel_lines())]
+	if cell == CELL_WOOD and wood_level(figure) >= 0:
+		return WOOD_TIP % [Measures.level_words(wood_level(figure)), Measures.amount(&"wood", figure),
+			Measures.weight(&"wood", figure), Measures.need(&"wood", int(wood_projection.call())), _planks_note()]
 	var where: String = DAYS_TIP if cell == CELL_FOOD and food_days else WHERE[cell]
-	if cell == CELL_WOOD and stores != null:
-		where += PLANKS_NOTE % StoresScript.units_text(stores.plank_milli_u)
+	if cell == CELL_WOOD:
+		where += _planks_note()
 	var raw: String = RAW_TIP % raw_days_text() if cell == CELL_FOOD and raw_reserve != null else ""
-	return "%s: %s %s.%s Click for the ledger." % [CAPTIONS[cell], _text(cell, figure), where, raw]
+	return "%s: %s %s.%s Click for the ledger." % [CAPTIONS[cell], _tip_figure(cell, figure), where, raw]
+
+
+func _tip_figure(cell: int, figure: int) -> String:
+	"""A tooltip's figure: an amount with its weight ("40 logs (200 kg)"; none has none), else the cell's words."""
+	if (cell == CELL_FOOD and food_days) or CELL_GOODS[cell].is_empty() or figure <= 0:
+		return _text(cell, figure)
+	return "%s (%s)" % [figure_text(cell, figure), Measures.weight(CELL_GOODS[cell], figure)]
+
+
+func _planks_note() -> String:
+	"""The planks beside the wood in its tooltip: " (and 3 planks)"; nothing without stores."""
+	return PLANKS_NOTE % Measures.amount(&"planks", stores.plank_milli_u) if stores != null else ""
 
 
 func raw_days_text() -> String:
@@ -239,13 +290,14 @@ func ledger_text(figures: PackedInt64Array) -> String:
 
 
 func ledger_line(cell: int, figure: int) -> String:
-	"""One ledger line: "Wood: 40.0 U in the village stores", "Beds: 3 in 1 burrow home", or "...: Unavailable"."""
+	"""One ledger line: "Wood: 40 logs · 3 planks in store", "Beds: 3 in 1 burrow home", or "...: Unavailable". The
+	ledger keeps the figures where a cell shows a level (see NATURAL MEASURES)."""
 	if not known(cell):
 		return "%s: %s" % [CAPTIONS[cell], UNAVAILABLE]
 	if cell == CELL_FUEL:
 		return WinterText.hud_line(figure)
 	if cell == CELL_WOOD and stores != null:
-		return WOOD_LINE % [_text(cell, figure), StoresScript.units_text(stores.plank_milli_u)]
+		return WOOD_LINE % [figure_text(cell, figure), Measures.amount(&"planks", stores.plank_milli_u)]
 	var where: String = _where(cell)
 	if cell == CELL_BEDS and homes.is_valid():
 		var count: int = int(homes.call())

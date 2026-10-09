@@ -56,6 +56,7 @@ const SimClock := preload("res://scripts/core/sim_clock.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const HiveRules := preload("res://demo/hives/hive_rules.gd")
 const HiveText := preload("res://demo/hives/hive_text.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const MAX_JOBS: int = 16
 const NONE: int = -1
@@ -920,7 +921,7 @@ func _plant_inputs_refusal(j: int) -> String:
 	if not why.is_empty():
 		return Text.plant_words(why)
 	if _compost() < Hive.PLANT_COMPOST_MILLI:
-		return Text.NO_COMPOST % Text.units(Hive.PLANT_COMPOST_MILLI)
+		return Text.no_compost(Hive.PLANT_COMPOST_MILLI)
 	return ""
 
 
@@ -940,11 +941,11 @@ func _propagate_inputs_refusal(plan: int) -> String:
 		return Text.PLAN_GONE
 	var item: int = Catalog.item_of_orchard_species(model.plan_species[plan])
 	if pantry == null or _at_stands(item) < Hive.NURSERY_FRUIT_MILLI:
-		return Text.NO_FRUIT % [Text.units(Hive.NURSERY_FRUIT_MILLI), Catalog.ITEM_LABELS[item].to_lower()]
+		return Text.NO_FRUIT % Measures.need(Catalog.ITEM_KEYS[item], Hive.NURSERY_FRUIT_MILLI)
 	if _compost() < Hive.NURSERY_COMPOST_MILLI:
-		return Text.NO_COMPOST % Text.units(Hive.NURSERY_COMPOST_MILLI)
+		return Text.no_compost(Hive.NURSERY_COMPOST_MILLI)
 	if stores == null or stores.water_milli_u < Hive.NURSERY_WATER_MILLI:
-		return Text.NO_WATER % Text.units(Hive.NURSERY_WATER_MILLI)
+		return Text.NO_WATER % Measures.need(&"water", Hive.NURSERY_WATER_MILLI)
 	return ""
 
 
@@ -1133,7 +1134,7 @@ func _fed(apiary: int) -> String:
 	var got: int = int(_take_honey.call(want)) if _take_honey.is_valid() and want > 0 else 0
 	if got <= 0 or not model.apiary.add_feed(apiary, got):
 		return ""
-	return "%s of honey put by in %s for the winter" % [Text.units(got), HiveRules.APIARY_NAMES[apiary]]
+	return "%s put by in %s for the winter" % [Text.cap(Measures.amount(&"honey", got)), HiveRules.APIARY_NAMES[apiary]]
 
 
 func _recolonize_paid(apiary: int) -> String:
@@ -1187,7 +1188,7 @@ func _planted(j: int) -> String:
 	var site: int = target[j]
 	var why: String = _plant_inputs_refusal(j)
 	if not why.is_empty() or not _take_compost_milli(Hive.PLANT_COMPOST_MILLI):
-		return Text.cannot(self, j, why if not why.is_empty() else Text.NO_COMPOST % Text.units(Hive.PLANT_COMPOST_MILLI))
+		return Text.cannot(self, j, why if not why.is_empty() else Text.no_compost(Hive.PLANT_COMPOST_MILLI))
 	model.take_sapling(site, species[j], _from_plan(j))
 	model.plant(site, species[j], today())
 	return Text.planted(model, site, today())
@@ -1200,7 +1201,7 @@ func _propagated(plan: int) -> String:
 		return why
 	var item: int = Catalog.item_of_orchard_species(model.plan_species[plan])
 	if not _take_compost_milli(Hive.NURSERY_COMPOST_MILLI):
-		return Text.NO_COMPOST % Text.units(Hive.NURSERY_COMPOST_MILLI)
+		return Text.no_compost(Hive.NURSERY_COMPOST_MILLI)
 	stores.take_water(Hive.NURSERY_WATER_MILLI)
 	_withdraw(item, Hive.NURSERY_FRUIT_MILLI)
 	model.start_growing(plan, today())
@@ -1406,7 +1407,7 @@ func order_refusal(job_kind: int, job_target: int, job_species: int) -> String:
 			var from_plan: bool = plan != NONE and model.plan_state[plan] == ModelScript.PLAN_READY
 			var why: String = Text.plant_words(model.plant_refusal(job_target, job_species, today(), from_plan))
 			return why if not why.is_empty() or _compost() >= Hive.PLANT_COMPOST_MILLI \
-				else Text.NO_COMPOST % Text.units(Hive.PLANT_COMPOST_MILLI)
+				else Text.no_compost(Hive.PLANT_COMPOST_MILLI)
 		K_HAUL:
 			return "" if _haul_lot(job_target) != NONE else Text.NOTHING_TO_HAUL
 		K_PROPAGATE:
@@ -1520,7 +1521,7 @@ func move_order_refusal(site: int) -> String:
 		return Text.move_words(ModelScript.REFUSE_NOT_ELIGIBLE)
 	var why: String = Text.move_words(model.move_refusal(site, move_target(site)))
 	if why.is_empty() and _compost() < Rules.MOVE_COMPOST_MILLI:
-		return Text.NO_COMPOST % Text.units(Rules.MOVE_COMPOST_MILLI)
+		return Text.no_compost(Rules.MOVE_COMPOST_MILLI)
 	return why
 
 
@@ -1553,7 +1554,7 @@ func _replanted(j: int) -> String:
 	var dest: int = model.move_dest[site]
 	var why: String = Text.move_words(model.replant_refusal(site, today()))
 	if why.is_empty() and not _take_compost_milli(Rules.MOVE_COMPOST_MILLI):
-		why = Text.NO_COMPOST % Text.units(Rules.MOVE_COMPOST_MILLI)
+		why = Text.no_compost(Rules.MOVE_COMPOST_MILLI)
 	if why.is_empty() and not model.move_tree(site, today()):
 		why = Text.move_words(ModelScript.REFUSE_NO_MOVE_SITE)
 	if not why.is_empty():
@@ -1570,7 +1571,7 @@ func cart_refusal(group: int) -> String:
 		return Text.HAS_CART
 	var wood: int = stores.wood_milli_u if stores != null else 0
 	if wood < Rules.CART_WOOD_MILLI:
-		return Text.NO_WOOD % [Text.units(Rules.CART_WOOD_MILLI), Text.units(wood)]
+		return Text.NO_WOOD % [Measures.need(&"wood", Rules.CART_WOOD_MILLI), Measures.amount_cell(&"wood", wood)]
 	return ""
 
 

@@ -1,15 +1,17 @@
 extends RefCounted
 ## The orchard's words (decision 0671): every refusal, outcome, doing line and readout the jobs, the panel and the
-## village news say, in one place. Presentation only.
+## village news say, in one place. Presentation only. Amounts are in their natural measures through goods_measures.gd
+## (decision 1801): apples and pears counted, in baskets from two; berries in bowls and baskets; compost, water and wood
+## in theirs; a load a basket or a cart can carry is a weight (decision 1011 §4: a carry is mass).
 
 const Rules := preload("res://demo/orchard/orchard_rules.gd")
 const Hive := preload("res://scripts/core/orchard_hive.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
-const FarmText := preload("res://demo/farm/farm_text.gd")
 const ModelScript := preload("res://demo/orchard/orchard_model.gd")
 const HiveRules := preload("res://demo/hives/hive_rules.gd")
 const ForageRules := preload("res://demo/forage/forage_rules.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const KIND_NAMES: Array[String] = ["Tend", "Harvest", "Pick berries", "Haul baskets", "Plant", "Propagate", "Observe",
 	"Tend the bees", "Feed the bees", "Recolonise the hive", "Move", "Build a cart"]
@@ -23,8 +25,8 @@ const HOLDS_FULL: String = "the pantry's reservations are all in use — it wait
 const DROUGHT_DRY: String = "%s went untended in the drought: the butt ran dry"
 const BEARS_NOTHING: String = "it bears nothing this year (its health is spent: tend it next spring)"
 const NO_COMPOST: String = "no compost to hand (%s needed)"
-const NO_FRUIT: String = "the pantry holds under %s of %s"
-const NO_WATER: String = "the butt holds under %s of water"
+const NO_FRUIT: String = "the pantry holds under %s"
+const NO_WATER: String = "the butt holds under %s"
 const PLAN_GONE: String = "the plan is no longer waiting"
 const THE_STAND: String = "the baskets"
 const BOARD_FULL: String = "the orchard's job board is full"
@@ -34,7 +36,7 @@ const DELIVERY_GOES_ON: String = "a delivery always finishes: its fruit is alrea
 ## Where a haul may go (decision 1721: by the group's fresh-table share, to the other when the first has no room).
 const DEST_EITHER: String = "the kitchen pantry or any store"
 const HAS_CART: String = "the group has its cart already"
-const NO_WOOD: String = "a cart needs %s of wood (the stores hold %s)"
+const NO_WOOD: String = "a cart needs %s (the stores hold %s)"
 const LIFTED: String = "it is out of the ground, on its way to its new site"
 const MOVE_THROUGH_ORDER: String = "a move is ordered with Move sapling, which speaks for its new site first"
 ## ECO-015's seasonal sightings: insects and the trees' own year (mammals and birds are never targets or pest icons).
@@ -56,9 +58,27 @@ static func a_species(species: int) -> String:
 	return ("an %s" if species == Rules.APPLE else "a %s") % Rules.SPECIES_NAMES[species]
 
 
-static func units(milli: int) -> String:
-	"""A quantity in the Pantry's one form ("5.1 U")."""
-	return FarmText.units_text(milli)
+static func fruit_good(species: int) -> StringName:
+	"""The good an orchard species is picked as ("apple", "pear"; mixed fruit for no species)."""
+	var item: int = Catalog.item_of_orchard_species(species)
+	return Catalog.ITEM_KEYS[item] if item != Catalog.NO_ITEM else &"fruit"
+
+
+static func load_words(milli: int) -> String:
+	"""A load a basket or a cart carries, as its weight (decision 1011 §4: a carry is mass): "2.5 kg", "10 kg"."""
+	return Measures.weight(&"fruit", milli)
+
+
+static func each_fruit(milli: int) -> String:
+	"""An amount kept of each orchard fruit, exact: "4 apples, 4 pears" ("none" for nothing)."""
+	if milli <= 0:
+		return Measures.NONE_CELL
+	return "%s, %s" % [Measures.exact_cell(&"apple", milli), Measures.exact_cell(&"pear", milli)]
+
+
+static func no_compost(milli: int) -> String:
+	"""NO_COMPOST for a dose: "no compost to hand (2 baskets of compost needed)"."""
+	return NO_COMPOST % Measures.need(&"compost", milli)
 
 
 static func day_text(day: int) -> String:
@@ -90,7 +110,7 @@ static func tend_refusal(model: ModelScript, site: int, season: int, drought: bo
 	if model.tended_today(site):
 		return "it has been tended today"
 	if drought and stores != null and int(stores.get(&"water_milli_u")) < Hive.CARE_DROUGHT_WATER_MILLI:
-		return "a drought: tending needs %s of water from the butt" % units(Hive.CARE_DROUGHT_WATER_MILLI)
+		return "a drought: tending needs %s from the butt" % Measures.need(&"water", Hive.CARE_DROUGHT_WATER_MILLI)
 	return ""
 
 
@@ -149,19 +169,20 @@ static func moved(model: ModelScript, dest: int) -> String:
 static func cart_built(group: int) -> String:
 	"""A group's handcart built (decision 1721)."""
 	return "%s has a handcart: its hauls carry up to %s a trip" % [cap(Rules.GROUP_NAMES[group].to_lower()),
-		units(Rules.CART_LOAD_MILLI)]
+		load_words(Rules.CART_LOAD_MILLI)]
 
 
 static func no_room(milli: int, item: int, where: String) -> String:
-	"""A full store, as the farm says it: "no room for 5.1 U of apple at ... — make room in the Pantry (K)"."""
-	return "%s for %s of %s at %s — make room in the Pantry (K)" % [NO_ROOM_HEAD, units(milli),
-		Catalog.ITEM_LABELS[item].to_lower(), where]
+	"""A full store, as the farm says it: "no room for 6 apples at ... — make room in the Pantry (K)" (the room still
+	needed, rounded up)."""
+	return "%s for %s at %s — make room in the Pantry (K)" % [NO_ROOM_HEAD, Measures.need(Catalog.ITEM_KEYS[item], milli),
+		where]
 
 
 static func short_haul(milli: int, item: int) -> String:
 	"""A haul that could not set all its basket down (the store had shrunk, its lot had gone): the rest stays put."""
-	return "%s of %s stayed at the baskets: the store could not take it all" % [units(milli),
-		Catalog.ITEM_LABELS[item].to_lower()]
+	return "%s stayed at the baskets: the store could not take it all" % cap(Measures.amount(Catalog.ITEM_KEYS[item],
+		milli))
 
 
 static func cannot(jobs: RefCounted, j: int, why: String) -> String:
@@ -204,22 +225,22 @@ const BUSH_FRUIT: Array[String] = ["raspberries", "blackberries", "strawberries"
 
 
 static func doing(jobs: RefCounted, j: int) -> String:
-	"""What a worker is doing, for the party panel: "Picking the old apple", "Carrying 12.0 U of apple to the baskets"."""
+	"""What a worker is doing, for the party panel: "Picking the old apple", "Carrying 2 baskets of apples to the
+	baskets"."""
 	var carried: int = int(jobs.get(&"load_milli")[j])
 	var item: int = int(jobs.get(&"load_item")[j])
 	if carried > 0 and item >= 0:
-		return "Carrying %s of %s to %s" % [units(carried), Catalog.ITEM_LABELS[item].to_lower(),
+		return "Carrying %s to %s" % [Measures.amount(Catalog.ITEM_KEYS[item], carried),
 			"the store" if int(jobs.get(&"kind")[j]) == Rules.K_HAUL else THE_STAND]
 	return "%s — %s" % [KIND_NAMES[int(jobs.get(&"kind")[j])], target_words(jobs, j)]
 
 
 static func picked(model: ModelScript, site: int, milli: int) -> String:
-	"""A tree picked: "The old apple was picked: 31.2 U of apple"."""
+	"""A tree picked: "The old apple was picked: 6 baskets of apples"."""
 	var item: int = Catalog.item_of_orchard_species(model.species_of(site))
 	if milli <= 0:
 		return "%s bore nothing this year" % cap(tree_name(model, site))
-	return "%s was picked: %s of %s" % [cap(tree_name(model, site)), units(milli),
-		Catalog.ITEM_LABELS[item].to_lower()]
+	return "%s was picked: %s" % [cap(tree_name(model, site)), Measures.amount(Catalog.ITEM_KEYS[item], milli)]
 
 
 static func planted(model: ModelScript, site: int, day: int) -> String:
@@ -285,9 +306,9 @@ static func plan_line(model: ModelScript, plan: int) -> String:
 
 
 static func fruit_words(species: int) -> String:
-	"""A species' fruit and yield, from §5.6's table: "apple: 80 U a year from 96 days, Autumn 1–6"."""
-	@warning_ignore("integer_division") var yield_u: int = Hive.SPECIES_YIELD_MILLI[species] / 1000
-	return "%s: %d U a year once mature (%d days), Autumn %d–%d" % [Rules.SPECIES_NAMES[species], yield_u,
+	"""A species' fruit and yield, from §5.6's table: "apple: 16 baskets a year once mature (96 days), Autumn 1–6"."""
+	return "%s: %s a year once mature (%d days), Autumn %d–%d" % [Rules.SPECIES_NAMES[species],
+		Measures.exact_cell(fruit_good(species), Hive.SPECIES_YIELD_MILLI[species]),
 		Hive.SPECIES_MATURITY_DAYS[species],
 		Hive.SPECIES_HARVEST_FIRST_DAY[species], Hive.SPECIES_HARVEST_LAST_DAY[species]]
 
@@ -298,7 +319,15 @@ static func guide_fields(item: int, uses: String) -> Array:
 	(field_guide.gd `_dishes_taking`)."""
 	var species: int = Catalog.ORCHARD_SPECIES_ITEM.find(item)
 	return ["Picked from the orchard's trees", PackedStringArray([
-		"Fruit (§5.7): eaten raw by a hungry resident when a meal is missed (900 NP a unit). %s" % uses,
+		"Fruit (§5.7): eaten raw by a hungry resident when a meal is missed (900 NP %s). %s" % [
+			_a_fruit(species), uses],
 		cap(fruit_words(species)) + "; a young tree gives a fifth of that from its first full year.",
-		"The nursery turns 4 U into a sapling (with compost 2 and water 2).",
+		"The nursery turns %s into a sapling (with %s and %s)." % [Measures.exact(fruit_good(species),
+			Hive.NURSERY_FRUIT_MILLI), Measures.exact(&"compost", Hive.NURSERY_COMPOST_MILLI),
+			Measures.exact(&"water", Hive.NURSERY_WATER_MILLI)],
 		"Keeps %d game hours in store; the Pantry (K) lists it." % Catalog.shelf_hours_of(item)])]
+
+
+static func _a_fruit(species: int) -> String:
+	"""Per one of the fruit's smallest measure, for a food value: "an apple", "a pear" (one catalogue unit each)."""
+	return Measures.exact(fruit_good(species), Measures.MILLI_PER_U)

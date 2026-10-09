@@ -55,7 +55,7 @@
 		"step_tunnel": {
 			"files": ["res://demo/assets/sound/step_tunnel_01.ogg", "res://demo/assets/sound/step_tunnel_02.ogg", "res://demo/assets/sound/step_tunnel_03.ogg", "res://demo/assets/sound/step_tunnel_04.ogg"],
 			"bus": "work", "positional": true, "loop": false, "volume_db": -9.0, "range_m": 12.0, "gap_ms": 90, "voices": 2,
-			"equivalent": "The resident's walk through the tunnel (U view)"
+			"equivalent": "The resident's walk through the tunnel (Underground)"
 		},
 		"step_wade": {
 			"files": ["res://demo/assets/sound/step_wade_01.ogg", "res://demo/assets/sound/step_wade_02.ogg", "res://demo/assets/sound/step_wade_03.ogg"],

@@ -51,6 +51,7 @@ const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const ForestRules := preload("res://demo/forestry/forest_rules.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const NONE: int = -1
 const NULL_REF: Vector2i = DriverScript.NULL_REF
@@ -223,6 +224,18 @@ static func item_of(kind_index: int) -> int:
 	return Catalog.item_of_patch(Rules.KINDS[kind_index])
 
 
+static func good_of(kind_index: int) -> StringName:
+	"""The good kind index `kind_index` is worded as (goods_measures.gd, decision 1801): its pantry item's key."""
+	return Catalog.ITEM_KEYS[item_of(kind_index)]
+
+
+func quota_words(good: StringName) -> String:
+	"""The basin's daily quota, what is left of it and the day's whole, in `good`'s measure (every forage good weighs
+	250 g a U, so the shared quota reads truly in any of them): "21 handfuls left of 42 handfuls of nuts"."""
+	return "%s left of %s" % [Measures.amount_cell(good, driver.quota_left_milli()),
+		Measures.amount(good, driver.quota_today_milli())]
+
+
 # --- the books -------------------------------------------------------------------------------------------
 
 func in_hand_milli(kind_index: int) -> int:
@@ -294,11 +307,11 @@ func nothing_left_words(kind_index: int) -> String:
 	reserve (decision 1721) -- or all of it claimed."""
 	if driver.quota_left_milli() < Rules.MIN_SHARE_MILLI:
 		return "the woods' daily quota is gathered (%s a day this season) — it opens again at midnight" % \
-			Rules.units_text(driver.quota_today_milli())
-	var floor_words: String = Rules.units_text(driver.floor_milli(Rules.KINDS[kind_index]))
+			Measures.amount(good_of(kind_index), driver.quota_today_milli())
+	var floor_words: String = Measures.need(good_of(kind_index), driver.floor_milli(Rules.KINDS[kind_index]))
 	var reserve: int = reserve_milli(kind_index)
 	if reserve > 0:
-		floor_words += " and %s more in the protected grove" % Rules.units_text(reserve)
+		floor_words += " and %s more in the protected grove" % Measures.need_cell(good_of(kind_index), reserve)
 	return "the woods keep their last %s (the sustainable floor), and the rest is spoken for" % floor_words
 
 
@@ -486,7 +499,7 @@ func _remember(t: int) -> void:
 
 
 func note_line(kind_index: int) -> String:
-	"""What the village remembers of `kind_index`'s spot ("": nothing yet): 'Remembered (Y1 Summer 2): 8.0 U of nuts,
+	"""What the village remembers of `kind_index`'s spot ("": nothing yet): 'Remembered (Y1 Summer 2): 8 handfuls of nuts,
 	out 2 h 10 min, led by Wenna'."""
 	if note_tick[kind_index] < 0:
 		return ""
@@ -495,8 +508,8 @@ func note_line(kind_index: int) -> String:
 	@warning_ignore("integer_division") var hours: int = note_ticks[kind_index] / SimClock.TICKS_PER_HOUR
 	@warning_ignore("integer_division") var minutes: int = (note_ticks[kind_index] % SimClock.TICKS_PER_HOUR) * 60 / SimClock.TICKS_PER_HOUR
 	var led: String = ", led by %s" % note_lead[kind_index] if not note_lead[kind_index].is_empty() else ""
-	return "Remembered (Y%d %s %d): %s of %s, out %d h %02d min%s" % [when.year, CalendarScript.SEASON_TITLES[when.season],
-		when.season_day, Rules.units_text(note_milli[kind_index]), Rules.KIND_WORDS[kind_index], hours, minutes, led]
+	return "Remembered (Y%d %s %d): %s, out %d h %02d min%s" % [when.year, CalendarScript.SEASON_TITLES[when.season],
+		when.season_day, Measures.amount(good_of(kind_index), note_milli[kind_index]), hours, minutes, led]
 
 
 func _give_first(j: int, members: PackedInt32Array, given: PackedInt32Array) -> void:
@@ -664,8 +677,8 @@ func _seat_over(t: int) -> void:
 	var k: int = t_kind[t]
 	if t_got[t] > 0:
 		_remember(t)
-		_note("The foraging party is back from %s: %s of %s in the stores%s" % [Rules.SPOT_NAMES[k],
-			Rules.units_text(t_got[t]), Rules.KIND_WORDS[k], outing_words(t)], false)
+		_note("The foraging party is back from %s: %s in the stores%s" % [Rules.SPOT_NAMES[k],
+			Measures.amount(good_of(k), t_got[t]), outing_words(t)], false)
 
 
 func _let_go(j: int) -> void:
@@ -868,7 +881,7 @@ func _hold_and_claim(j: int, k: int, amount: int, brain: BrainScript) -> String:
 	var kind: int = Rules.KINDS[k]
 	if not pantry.reserve_near_into(item_of(k), amount, brain.surface_point(), _read):
 		_room_short = true
-		return "no store has room for %s of %s — make room in the Pantry (K)" % [Rules.units_text(amount), Rules.KIND_WORDS[k]]
+		return "no store has room for %s — make room in the Pantry (K)" % Measures.need(good_of(k), amount)
 	j_hold[j] = _read.value
 	var job: Vector2i = driver.open_claim(kind, amount)
 	if job == NULL_REF:
@@ -926,8 +939,7 @@ func _deliver(j: int, brain: BrainScript) -> void:
 	if _room_for_haul(j, brain):
 		_begin_walk(j, brain)
 		return
-	j_words[j] = "no store has room for %s of %s — make room in the Pantry (K)" % [Rules.units_text(j_load[j]),
-		Rules.KIND_WORDS[k]]
+	j_words[j] = "no store has room for %s — make room in the Pantry (K)" % Measures.need(good_of(k), j_load[j])
 	j_wait_usec[j] = Rules.RETRY_USEC
 
 
@@ -949,7 +961,7 @@ func doing_text(j: int, serial: int) -> String:
 		S_GATHER:
 			return "gathering %s at %s" % [Rules.KIND_WORDS[k], Rules.SPOT_NAMES[k]]
 		S_TO_STORE:
-			return "carrying %s of %s home to %s" % [Rules.units_text(j_load[j]), Rules.KIND_WORDS[k], place_words(j)]
+			return "carrying %s home to %s" % [Measures.amount(good_of(k), j_load[j]), place_words(j)]
 	return "foraging: going to %s for %s" % [Rules.SPOT_NAMES[k], Rules.KIND_WORDS[k]]
 
 
@@ -1039,18 +1051,19 @@ func season_words(kind_index: int) -> String:
 
 
 func trip_line(t: int) -> String:
-	"""'Nuts from the hazel brake: 2 foragers, 8.0 U asked, 4.0 U home'."""
+	"""'Nuts from the hazel brake: 2 foragers (2 out), 16 handfuls asked, 8 handfuls home'."""
 	var k: int = t_kind[t]
 	var out: int = 0
 	for j: int in Rules.MAX_JOBS:
 		out += 1 if j_live[j] == 1 and j_trip[j] == t and j_worker[j] != NONE else 0
 	var turned: String = " · %d turned back for the dark" % t_turned[t] if t_turned[t] > 0 else ""
 	return "%s from %s: %d foragers (%d out), %s asked, %s home%s%s" % [Rules.KIND_WORDS[k].capitalize(),
-		Rules.SPOT_NAMES[k], t_party[t], out, Rules.units_text(t_asked[t]), Rules.units_text(t_got[t]), outing_words(t),
-		turned]
+		Rules.SPOT_NAMES[k], t_party[t], out, Measures.need_cell(good_of(k), t_asked[t]),
+		Measures.amount_cell(good_of(k), t_got[t]), outing_words(t), turned]
 
 
 func status_line() -> String:
-	"""The Routes layer's and the panel's line: 'Foraging: 1 trip out · today's quota 9.8 of 21.1 U left'."""
-	return "Foraging: %d trip%s out · the woods' quota today %s of %s left" % [trip_count(),
-		"" if trip_count() == 1 else "s", Rules.units_text(driver.quota_left_milli()), Rules.units_text(driver.quota_today_milli())]
+	"""The Routes layer's and the panel's line: 'Foraging: 1 trip out · the woods' quota today: 1½ baskets left of 4
+	baskets of food' (the quota is shared by every kind: mixed food, goods_measures.gd)."""
+	return "Foraging: %d trip%s out · the woods' quota today: %s" % [trip_count(), "" if trip_count() == 1 else "s",
+		quota_words(&"food")]

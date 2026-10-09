@@ -125,7 +125,7 @@ func test_a_heap_is_cleared_into_the_stores_with_nothing_lost() -> void:
 	assert_equal(crew.spoil_left(site[1]), 2000, "the exit heap")
 	assert_true(heaped > CrewScript.LOAD_MILLI, "more than one basket: %d" % heaped)
 	var said: String = crew.order(heap, PackedInt32Array([1, 2]))
-	assert_true(said.begins_with("Clearing the spoil heap"), said)
+	assert_true(said.begins_with("Clearing the spoil heap (13 baskets of earth): "), "26 U in baskets of earth: " + said)
 	assert_equal(crew.workers_on(heap), 2, "two on it")
 	var balanced: Array[bool] = [true]
 	_run(crew, 240.0, func() -> void:
@@ -211,7 +211,7 @@ func test_a_heap_is_picked_under_the_pointer_and_selected() -> void:
 	assert_equal(spoil.heap_at_point(at + Vector2(rim + SpoilScript.PICK_SLACK_M + 0.05, 0.0)), SpoilScript.NOTHING,
 		"beyond it")
 	spoil.select(site[0])
-	assert_true(command.panel().notice().begins_with("Spoil heap: "), command.panel().notice())
+	assert_true(command.panel().notice().begins_with("Spoil heap: 13 baskets of earth. Right-click"), command.panel().notice())
 	spoil.select(SpoilScript.NOTHING)
 	assert_equal(spoil.selected_heap, SpoilScript.NOTHING, "let go")
 	assert_equal(spoil.task_text(1), "", "not clearing: no words")

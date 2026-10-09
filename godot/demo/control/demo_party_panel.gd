@@ -70,7 +70,7 @@ signal release_requested
 signal follow_requested
 
 const TITLE: String = "Demo party"
-const HINT: String = "Click or drag: select · Shift: add · Right-click: move / work · R: release · Esc: clear · B: dig tool · U: underground"
+const HINT: String = "Click or drag: select · Shift: add · Right-click: move / work · R: release · Esc: clear · B: dig tool · U: Underground"
 const DIG_BUTTON: String = "Dig tunnel (B)"
 ## The Dig button's hover tip (decision 0205: every action button says what it does and its key).
 const DIG_TIP: String = "Dig tunnel (B) — the Dig tool: drag a tunnel from where it starts to where it ends (start on a tunnel to branch off it), or click its points and press Enter; Esc drops it, B closes the tool"

@@ -4,7 +4,7 @@ extends RefCounted
 ##
 ## THE VOICE. A keeper setting down the season (setting_bible.md CULT-002, "a keeper records the season's most
 ## consequential events"; the Chronicle row of §13.3, "record the real event before interpretation"). Every line states
-## a recorded fact first; the colour is in the framing only ("Into store came 41.2 U..."). Original wording throughout:
+## a recorded fact first; the colour is in the framing only ("Into store came 8 baskets of food..."). Original wording throughout:
 ## no line, name or phrase from any book (the setting's lore rule), and plain enough to read at a glance (DEC-017 keeps
 ## dialect for a resident's own quoted words, never for the record).
 ##
@@ -52,7 +52,7 @@ const CLOSINGS: Array[String] = ["So ends the record of %s.", "Here ends the pag
 	"Thus passed %s; the next page waits."]
 
 # --- the harvest and the table ----------------------------------------------------------------------------------------
-const HARVEST: Array[String] = ["Into store came %s: %s.", "The stores took in %s: %s.", "%s was brought into store: %s."]
+const HARVEST: Array[String] = ["Into store came %s: %s.", "The stores took in %s: %s.", "The village brought %s into store: %s."]
 const HARVEST_NONE: String = "Nothing was brought into store."
 const FIRST_HARVEST: String = "For the first time, food from the village's own work came into store."
 const PORTIONS: Array[String] = ["At table, the village ate %s.", "The kitchen fed the village %s.",

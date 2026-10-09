@@ -404,7 +404,7 @@ func _seasonal_notes(h: int) -> void:
 	var season: int = Rules.hour_season(h)
 	if season == WeatherScript.SEASON_AUTUMN:
 		_services.notices.post(NoticesScript.SOURCE_VILLAGE, NoticesScript.LEVEL_NOTE,
-			"Winter is next. %s" % Text.projection_line(fuel), "Winter is next: %s of wood wanted" % Text.units(
+			"Winter is next. %s" % Text.projection_line(fuel), "Winter is next: %s wanted" % Text.wood_rate(
 			fuel.projection_milli()))
 	elif season == WeatherScript.SEASON_WINTER and _summary_day < 0:
 		_summary_day = Rules.day_of_hour(h)
@@ -754,8 +754,8 @@ func consolidate_preview() -> String:
 	_preview.fill(0)
 	var now_empty: String = "no home is empty yet" if empty.is_empty() else "%s %s empty already" % [Text.names_of(empty),
 		"is" if empty.size() == 1 else "are"]
-	return "Packs the %d %s into the fewest homes with a hearth (%d), then lets the hearths of the homes left empty go out (saves about %s a day); %s" % [
-		beds_count(), "sleeper" if beds_count() == 1 else "sleepers", kept, Text.units(saving), now_empty]
+	return "Packs the %d %s into the fewest homes with a hearth (%d), then lets the hearths of the homes left empty go out (%s); %s" % [
+		beds_count(), "sleeper" if beds_count() == 1 else "sleepers", kept, Text.saving_words(saving), now_empty]
 
 
 # --- the readouts -----------------------------------------------------------------------------------------

@@ -122,8 +122,3 @@ static func recolonize_ends_in_spring(day: int) -> bool:
 	"""Whether a recolonisation started on `day` ends its 3-day wait still in spring (§5.6: "recolonized in spring")."""
 	return Hive.season_of_day(day) == Hive.SEASON_SPRING \
 		and Hive.season_of_day(day + RECOLONIZE_WAIT_DAYS) == Hive.SEASON_SPRING
-
-
-static func units(milli: int) -> String:
-	"""'6.0 U'."""
-	return ForestRules.units_text(milli)

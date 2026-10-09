@@ -323,7 +323,7 @@ func _after_treatment(fisher: int, herbalist: int) -> void:
 	"""Said in the news; the incident resolved once the fisher is up again; the frame."""
 	var state: RefCounted = _desk().get("state")
 	var notices: RefCounted = _village.get("_services").get("notices")
-	_check("the treatment in the news", bool(notices.call(&"has_text", "%s treated %s's bite (herb 1 U, cloth 0.5 U): health %d"
+	_check("the treatment in the news", bool(notices.call(&"has_text", "%s treated %s's bite (a bunch of herbs and a length of cloth): health %d"
 		% [_name(herbalist), _name(fisher), int(state.call(&"health", fisher))])) or herbalist < 0)
 	var incidents: RefCounted = _village.get("_services").get("incidents")
 	var serial: int = int(incidents.call(&"serial_of", "care:hurt:%d" % fisher))

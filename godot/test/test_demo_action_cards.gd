@@ -120,7 +120,7 @@ func test_a_card_puts_the_refusal_and_its_fix_first() -> void:
 	var card := CardScript.new()
 	card.reset("Build a plank footbridge")
 	card.result = "Bridged"
-	card.add_cost("Planks", 0, 4700)
+	card.add_cost("Planks", &"planks", 0, 4700)
 	card.work_usec = CalendarScript.HOUR_USEC * 3
 	card.who = "Queue for the bridgewright"
 	card.interrupts = "Interrupts: x — goes back to it after"
@@ -128,7 +128,7 @@ func test_a_card_puts_the_refusal_and_its_fix_first() -> void:
 	card.refuse("MATERIAL", "it needs 4.7 U planks", "Woods ▸ Saw planks")
 	var lines := card.text().split("\n")
 	assert_equal(Array(lines), ["Build a plank footbridge", "Can't now: it needs 4.7 U planks", "To fix: Woods ▸ Saw planks",
-		"Bridged", "Planks: have 0.0 U · need 4.7 U", "Work: about 3.0 game hours, plus the walk",
+		"Bridged", "Planks: 0 of 5 planks", "Work: about 3.0 game hours, plus the walk",
 		"Who: Queue for the bridgewright", "Interrupts: x — goes back to it after", "Needs: planks"],
 		"in order")
 	assert_false(card.is_ok(), "refused")
@@ -361,7 +361,7 @@ func test_a_short_compost_store_is_the_only_compost_cost_and_earth_never_stands_
 	assert_equal(Array(card.cost_names), [FarmCard.COMPOST_STORE], "the compost store only")
 	assert_equal([int(card.cost_have[0]), int(card.cost_need[0])], [1000, 2000], "have / need")
 	assert_equal(card.short_row(), 0, "the store is short")
-	assert_equal(card.reason, "not enough compost: 2.0 U from the compost store", "no heap offered")
+	assert_equal(card.reason, "not enough compost: a bed takes a basket of compost from the store", "no heap offered")
 	assert_equal(card.code, "NOT_ENOUGH_COMPOST", "the order's code")
 	assert_equal(crew.order(FarmJobs.KIND_COMPOST, BED_CARROTS, PackedInt32Array(), FarmJobs.ORIGIN_PLAYER),
 		"Can't compost: " + card.reason, "the order's words")
@@ -586,7 +586,7 @@ func test_the_woods_assignment_preview_is_who_the_order_sends() -> void:
 		"the crew changed: named anew")
 	assert_equal(forestry.crew.point_of(ForestJobs.KIND_SAW, ForestJobs.NO_TARGET), Yard.log_stack_at(),
 		"a sawing is at the log stack (its nearest is measured from there)")
-	assert_equal(Array(card.prerequisites), ["2.0 U of wood in the stores"], "a saw batch's wood")
+	assert_equal(Array(card.prerequisites), ["2 logs in the stores"], "a saw batch's wood")
 
 
 # --- the tunnels and the fit-out -------------------------------------------------------------------
@@ -800,8 +800,8 @@ func test_a_bridge_card_costs_what_the_build_pays() -> void:
 	assert_true(said.begins_with("Can't build a plank footbridge: " + card.reason + " -- "), "the build's words: " + said)
 	assert_false(card.reason.contains(" -- "), "its fix on its own line, not twice")
 	assert_equal(card.fix, WaterplayScript.build_fix(SwimRules.KIND_PLANK), "saw planks")
-	assert_true(card.fix.ends_with("(2.0 U wood makes 2.0 U planks)"), "the saw's batch: " + card.fix)
-	assert_true(card.text().contains("Planks: have 0.0 U · need 4."), card.text())
+	assert_true(card.fix.ends_with("(2 logs make 2 planks)"), "the saw's batch: " + card.fix)
+	assert_true(card.text().contains("Planks: 0 of 5 planks"), card.text())
 	_services.stores.add_planks(6000)
 	card = play.build_card(SwimRules.KIND_PLANK, PackedInt32Array())
 	assert_true(card.is_ok(), card.text())
@@ -1004,7 +1004,7 @@ func test_the_tunnels_panel_buttons_are_their_cards() -> void:
 	ext.refresh_panel()
 	var add: Button = ext.panel.button(StringName("fit:add:%d" % RoomsScript.FIX_BED))
 	assert_true(add.disabled, "no planks: no bed")
-	assert_true(add.tooltip_text.contains("Planks: have 0.0 U · need 2.0 U"), add.tooltip_text)
+	assert_true(add.tooltip_text.contains("Planks: 0 of 2 planks"), add.tooltip_text)
 	var take: Button = ext.panel.button(StringName("fit:take:%d" % RoomsScript.FIX_BED))
 	assert_true(take.disabled and take.tooltip_text.contains("Can't now: "), "none to take out")
 	var suggest: Button = ext.panel.button(&"fit:suggest")
@@ -1054,11 +1054,16 @@ func test_a_cards_edges() -> void:
 	them); a long line keeps every continuation indented; a refusal can be cleared."""
 	var card := CardScript.new()
 	card.reset("v")
-	card.add_cost("X", 2000, 2000)
+	card.add_cost("X", &"wood", 2000, 2000)
 	assert_equal(card.short_row(), -1, "have == need: not short")
-	card.add_cost("Compost", 100, 250)
-	assert_equal(card.cost_line(1), "Compost: have 0.1 U · need 0.25 U", "a quarter unit, exactly")
-	assert_equal(CardScript.need_text(4700), "4.7 U", "tenths as the HUD prints them")
+	assert_equal(card.cost_line(0), "X: 2 logs — enough", "have == need: enough")
+	assert_equal(card.short_text(0), "", "and nothing short")
+	card.add_cost("Compost", &"compost", 100, 250)
+	assert_equal(card.cost_line(1), "Compost: under 1 of 1 spadeful", "a spadeful (0.25 U) needed, less than one held")
+	assert_equal(card.short_text(1), "150 g of compost", "what is short, in a sentence: under a spadeful, its weight")
+	card.add_cost("Planks", &"planks", 1000, 4700)
+	assert_equal(card.cost_line(2), "Planks: 1 of 5 planks", "4.7 planks needed: 5, never understated")
+	assert_equal(card.short_text(2), "4 planks", "3.7 short: 4 planks")
 	card.work_usec = 0
 	assert_true(card.text().contains("Work: about 0 game minutes"), "no work is still work said")
 	var words := PackedStringArray()
@@ -1133,9 +1138,9 @@ func test_a_raise_card_shows_the_heap_it_needs() -> void:
 		assert_equal(Array(card.cost_names), [FarmCard.EARTH], "earth")
 		assert_equal([int(card.cost_have[0]), int(card.cost_need[0])], [crew.most_earth(), FarmJobs.EARTH_PER_JOB_MILLI],
 			"the fullest source against a dose")
-		assert_true(card.prerequisites[0].begins_with("2.0 U of earth on one heap or in the stores"), "needs, from the dose")
+		assert_true(card.prerequisites[0].begins_with("a basket of earth on one heap or in the stores"), "needs, from the dose")
 		assert_true(card.result.contains("earth adds no fertility"), card.result)
-	assert_equal(card.reason, "no spoil heap or store holds 2.0 U of earth", "the dose in the refusal")
+	assert_equal(card.reason, "no spoil heap or store holds a basket of earth", "the dose in the refusal")
 
 
 func test_the_bed_panels_buttons_dim_name_resident_0_and_scope_cancel() -> void:
@@ -1488,12 +1493,35 @@ func test_a_crew_joins_only_as_far_as_its_room() -> void:
 
 
 func test_a_planting_card_needs_a_quarter_unit_of_compost() -> void:
-	"""Planting's need is stated exactly: 0.25 U of compost, not the floored 0.2."""
+	"""Planting's need is stated exactly: a spadeful of compost (0.25 U), not a floored figure."""
 	var forestry := _forestry()
 	assert_true(forestry.stand.blow_down_into(WEST_OAK, 1, Vector2.UP, _read), "felled")
 	forestry.select_tree(WEST_OAK)
 	var card: CardScript = forestry.action_card(ForestPanel.ACTION_PLANT, PackedInt32Array())
-	assert_equal(Array(card.prerequisites), ["a cleared spot within reach; 0.25 U of compost"], "its need")
+	assert_equal(Array(card.prerequisites), ["a cleared spot within reach; a spadeful of compost"], "its need")
+	assert_equal(forestry.text.tree_title(WEST_OAK, 1), "Cleared spot — plant a sapling (a spadeful of compost, 4 WU)", "the title")
+	assert_true(forestry.text.tree_text(WEST_OAK).contains("\nTrunk lying: 12 logs to haul"), forestry.text.tree_text(WEST_OAK))
+
+
+func test_the_woods_cards_word_their_results_in_logs_and_planks() -> void:
+	"""Decision 1801 (slice 5): a woods card's result in the good's own measure, from 1011's table worked by hand -- a
+	felled tree's 12 U is 12 logs, a haul trip's 6 U is 6 logs, a pile of 1.5 U is a log (logs are whole, floored), a
+	saw batch's 2 U makes 2 planks."""
+	var card := CardScript.new()
+	card.reset("Fell")
+	ForestCard.fill(card, ForestJobs.KIND_FELL, 12000, 40000, 0)
+	assert_equal(card.result, "Felled: a trunk of 12 logs lies ready to haul to the log stack", "felling")
+	card.reset("Haul")
+	ForestCard.fill(card, ForestJobs.KIND_HAUL, 12000, 40000, 0)
+	assert_equal(card.result, "Carried to the log stack: 12 logs (6 logs a trip), wood in the stores", "hauling")
+	card.reset("Gather")
+	ForestCard.fill(card, ForestJobs.KIND_GATHER, 1500, 40000, 0)
+	assert_equal(card.result, "The nearest pile (a log) gathered into the stores' wood", "deadfall")
+	card.reset("Saw")
+	ForestCard.fill(card, ForestJobs.KIND_SAW, 2000, 40000, 0)
+	assert_equal(card.result, "Sawn at the sawhorse: 2 logs into 2 planks", "sawing")
+	assert_equal(Array(card.prerequisites), ["2 logs in the stores"], "its need")
+	assert_equal(card.cost_line(0), "Wood (stores): 2 logs — enough", "its cost row")
 
 
 func test_a_fixture_card_skips_who_cannot_reach_and_names_a_later_waiting_fixture_only_if_first() -> void:

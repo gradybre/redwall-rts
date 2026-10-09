@@ -135,8 +135,3 @@ static func gather_mwu(milli: int) -> int:
 static func row_seconds(length_u: int) -> float:
 	"""Demo seconds the ferry boat takes to row `length_u` (boat_fleet.gd ROW_SPEED_U_S, at its ordinary pace)."""
 	return float(length_u) / float(FleetScript.ROW_SPEED_U_S)
-
-
-static func units_text(milli: int) -> String:
-	"""'4.5 U' (tenths)."""
-	return ForestRules.units_text(milli)

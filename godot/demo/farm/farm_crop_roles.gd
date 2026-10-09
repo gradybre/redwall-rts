@@ -40,6 +40,7 @@ const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 const PreserveText := preload("res://demo/preserve/preserve_text.gd")
 const Text := preload("res://demo/farm/farm_text.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const ROLE_KEEPING_ROOT: int = 0
 const ROLE_FRESH_GREENS: int = 1
@@ -70,6 +71,9 @@ const ROLE_TRAITS: PackedInt32Array = [
 ]
 ## The mill grinds the grain row (fishery.gd `mill_refusal` and `order_mill` reserve CROP_GRAIN: §5.7's `flour`).
 const MILL_CROP: int = FarmingScript.CROP_GRAIN
+## The good each §5.6 crop row is measured as (beans, cabbage, flax, grain, roots: goods_measures.gd's rows of the same
+## names), for a row's own figure such as its yield a bed (decision 1801).
+const CROP_GOODS: Array[StringName] = [&"beans", &"cabbage", &"flax", &"grain", &"roots"]
 const MILL_USE: String = "the mill (flour)"
 const RAW_USE: String = "eaten raw in a pinch"
 const NO_USE: String = "no dish in the village yet"
@@ -100,7 +104,7 @@ static func trait_text(crop: int, trait_kind: int) -> String:
 		TRAIT_FEEDS_SOIL:
 			return "gives the soil %d fertility" % -FarmingScript.CROP_FERTILITY_COST[crop]
 		TRAIT_YIELD:
-			@warning_ignore("integer_division") return "%d U a bed" % (FarmingScript.CROP_BASE_YIELD_MILLI[crop] / 1000)
+			return "%s a bed" % Measures.exact_cell(CROP_GOODS[crop], FarmingScript.CROP_BASE_YIELD_MILLI[crop])
 	return ""
 
 

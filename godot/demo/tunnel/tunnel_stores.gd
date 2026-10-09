@@ -11,7 +11,7 @@ extends RefCounted
 ##
 ## PLANKS (the stock the next step's bridges and boats build from): sawn at the sawhorse from this
 ## stock's wood (demo/forestry/), `plank_milli_u`. The API: `add_planks`, `can_pay_planks`,
-## `pay_planks` -- all or nothing, like `pay` -- and `units_text` for the panels. `take_wood` is the
+## `pay_planks` -- all or nothing, like `pay`. The panels word every amount with scripts/ui/goods_measures.gd. `take_wood` is the
 ## sawyer's all-or-nothing draw on the wood.
 ##
 ## EARTH (decision 0401): the earth cleared off the tunnels' spoil heaps is kept here, by the open stockpile,
@@ -38,6 +38,7 @@ extends RefCounted
 ## falls only when the cloth is actually taken (REQ-SET-124). A load carried back, or a cancel's refund, is `add_cloth`.
 
 const FindsScript := preload("res://demo/tunnel/tunnel_finds.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const START_WOOD_MILLI_U: int = 40000
 const START_STONE_MILLI_U: int = 20000
@@ -109,8 +110,10 @@ func refund(wood: int, stone: int, planks: int) -> void:
 
 
 func holdings_text() -> String:
-	"""What the stock holds, in whole units, for a refusal: "0 planks, 40 wood, 20 stone"."""
-	@warning_ignore("integer_division") return "%d planks, %d wood, %d stone" % [plank_milli_u / 1000, wood_milli_u / 1000, stone_milli_u / 1000]
+	"""What the stock holds, for a refusal: "no planks, 40 logs, 20 blocks of stone" (goods_measures.gd; decision
+	1801)."""
+	return "%s, %s, %s" % [Measures.amount(&"planks", plank_milli_u), Measures.amount(&"wood", wood_milli_u),
+		Measures.amount(&"stone", stone_milli_u)]
 
 
 func add_wood(milli_u: int) -> void:
@@ -265,16 +268,13 @@ func add_find(kind: int) -> void:
 	revision += 1
 
 
-static func units_text(milli_u: int) -> String:
-	"""Milli-U as the panel shows it: whole units and one decimal, floored ("12.5 U")."""
-	@warning_ignore("integer_division") return "%d.%d U" % [milli_u / 1000, (milli_u % 1000) / 100]
-
-
 func stock_line() -> String:
-	"""The panels' stores line -- the same figures, in the same words, as the top bar's Wood, Stone and Planks -- and the
-	earth kept by the stockpile, which the top bar does not show (see EARTH)."""
-	return "Village stores: wood %s · stone %s · planks %s · earth %s" % [units_text(wood_milli_u),
-		units_text(stone_milli_u), units_text(plank_milli_u), units_text(earth_milli_u)]
+	"""The panels' stores line -- the same figures, in the same measures, as the top bar's Wood, Stone and Planks -- and
+	the earth kept by the stockpile, which the top bar does not show (see EARTH): "Village stores: 40 logs · 20 blocks
+	of stone · 3 planks · no earth" (goods_measures.gd; decision 1801)."""
+	return "Village stores: %s · %s · %s · %s" % [Measures.amount(&"wood", wood_milli_u),
+		Measures.amount(&"stone", stone_milli_u), Measures.amount(&"planks", plank_milli_u),
+		Measures.amount(&"earth", earth_milli_u)]
 
 
 func finds_line() -> String:

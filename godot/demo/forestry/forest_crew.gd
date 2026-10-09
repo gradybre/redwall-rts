@@ -32,6 +32,7 @@ extends RefCounted
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 const Rules := preload("res://demo/forestry/forest_rules.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const StandScript := preload("res://demo/forestry/forest_stand.gd")
 const ZonesScript := preload("res://demo/forestry/forest_zones.gd")
 const DeadfallScript := preload("res://demo/forestry/forest_deadfall.gd")
@@ -370,7 +371,7 @@ func _fell_refusal(t: int) -> String:
 
 
 func _plant_refusal(t: int) -> String:
-	"""A sapling goes on a cleared spot within reach, with 0.25 U of compost to hand."""
+	"""A sapling goes on a cleared spot within reach, with a spadeful of compost to hand."""
 	if _stand.state_of(t) != StandScript.STATE_CLEARED or not _stand.is_tree(t):
 		return StandScript.REFUSE_NOT_CLEARED
 	if not _compost_left.is_valid() or int(_compost_left.call()) < Rules.PLANT_COMPOST_MILLI:
@@ -404,9 +405,9 @@ func reason_text(code: String, target: int) -> String:
 		REFUSE_GROVE:
 			return "it stands in a protected grove — never felled (the Orchard panel's grove)"
 		"NO_COMPOST":
-			return "no compost to plant with (0.25 U needed)"
+			return "no compost to plant with: a sapling takes %s" % Measures.exact(&"compost", Rules.PLANT_COMPOST_MILLI)
 		"NOT_ENOUGH_WOOD":
-			return "the demo stores hold under %s of wood" % Rules.units_text(Rules.SAW_BATCH_MILLI)
+			return "the demo stores hold under %s" % Measures.need(&"wood", Rules.SAW_BATCH_MILLI)
 		JobsScript.REFUSE_ENOUGH_HANDS:
 			return "the trunk has all the haulers it can take"
 		REFUSE_ALL_BUSY:
@@ -495,8 +496,8 @@ func _cancel(row: int) -> void:
 	var planks: bool = jobs.kind[row] == JobsScript.KIND_SAW and jobs.step[row] > SAW_WORK_STEP
 	jobs.become_delivery(row, JobsScript.KIND_CARRY_PLANKS if planks else JobsScript.KIND_CARRY_LOGS)
 	var who: String = worker_name(row)
-	_say("%s carries the %s of %s on to the %s" % [who if not who.is_empty() else "The crew", Rules.units_text(milli),
-		"planks" if planks else "logs", "plank stack" if planks else "log stack"])
+	_say("%s carries the %s on to the %s" % [who if not who.is_empty() else "The crew",
+		Measures.amount(&"planks" if planks else &"wood", milli), "plank stack" if planks else "log stack"])
 
 
 # --- per frame ----------------------------------------------------------------------------------
@@ -780,7 +781,7 @@ func _begin_planting(row: int) -> String:
 	if jobs.paid[row] == 1:
 		return ""
 	if not _compost_take.is_valid() or not bool(_compost_take.call(Rules.PLANT_COMPOST_MILLI)):
-		return "Can't plant: no compost to plant with (0.25 U needed)"
+		return "Can't plant: " + reason_text("NO_COMPOST", jobs.target[row])
 	jobs.paid[row] = 1
 	return ""
 
@@ -839,8 +840,8 @@ func _end_fell(row: int) -> String:
 	if not _stand.fell_into(t, _calendar.now().absolute_day, away, skills.gnaws_wood(who), _read):
 		return "Can't fell: %s" % reason_text(_read.error, t)
 	_credit(row, Rules.SKILL_FELLING, Rules.FELL_WU)
-	_say("%s %s the %s %s: %s of wood lie ready to haul" % [name_of(who), "gnawed down" if skills.gnaws_wood(who) else "felled",
-		_tree_name(t), _where(t), Rules.units_text(_read.value)])
+	_say("%s %s the %s %s: %s lie ready to haul" % [name_of(who), "gnawed down" if skills.gnaws_wood(who) else "felled",
+		_tree_name(t), _where(t), Measures.amount(&"wood", _read.value)])
 	jobs.become(row, JobsScript.KIND_HAUL)
 	return ""
 
@@ -867,13 +868,13 @@ func _end_drop(row: int) -> String:
 	jobs.load_milli[row] = 0
 	_stores.add_wood(milli)
 	if jobs.kind[row] == JobsScript.KIND_CARRY_LOGS:
-		_say("%s stacked %s of logs: the demo stores hold %s of wood" % [name_of(jobs.worker[row]), Rules.units_text(milli),
-			Rules.units_text(_stores.wood_milli_u)])
+		_say("%s stacked %s: the demo stores hold %s" % [name_of(jobs.worker[row]), Measures.amount(&"wood", milli),
+			Measures.amount(&"wood", _stores.wood_milli_u)])
 	elif jobs.kind[row] == JobsScript.KIND_GATHER:
-		_say("%s gathered %s of deadfall into the stores" % [name_of(jobs.worker[row]), Rules.units_text(milli)])
+		_say("%s gathered deadfall into the stores: %s" % [name_of(jobs.worker[row]), Measures.amount(&"wood", milli)])
 	elif _stand.trunk_milli[jobs.target[row]] <= 0 and jobs.on_target(JobsScript.KIND_HAUL, jobs.target[row]) == 1:
-		_say("The %s's logs are all stacked: the demo stores hold %s of wood" % [_tree_name(jobs.target[row]),
-			Rules.units_text(_stores.wood_milli_u)])
+		_say("The %s's logs are all stacked: the demo stores hold %s" % [_tree_name(jobs.target[row]),
+			Measures.amount(&"wood", _stores.wood_milli_u)])
 	return ""
 
 
@@ -890,8 +891,8 @@ func _end_stack_planks(row: int) -> String:
 	var milli: int = jobs.load_milli[row]
 	jobs.load_milli[row] = 0
 	_stores.add_planks(milli)
-	_say("%s sawed %s of planks: the stack holds %s" % [name_of(jobs.worker[row]), Rules.units_text(milli),
-		Rules.units_text(_stores.plank_milli_u)])
+	_say("%s sawed %s: the stack holds %s" % [name_of(jobs.worker[row]), Measures.amount(&"planks", milli),
+		Measures.amount(&"planks", _stores.plank_milli_u)])
 	return ""
 
 
@@ -1354,7 +1355,7 @@ func task_text(who: int) -> String:
 	var code: int = jobs.current_step(row)
 	match code:
 		JobsScript.STEP_CARRY_STACK:
-			return "Carrying %s of logs to the log stack" % Rules.units_text(jobs.load_milli[row])
+			return "Carrying %s to the log stack" % Measures.amount(&"wood", jobs.load_milli[row])
 		JobsScript.STEP_CARRY_SAW:
 			return "Carrying logs to the sawhorse"
 		JobsScript.STEP_CARRY_PLANKS:

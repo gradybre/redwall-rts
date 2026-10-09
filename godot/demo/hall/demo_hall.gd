@@ -191,8 +191,8 @@ func _on_done(project: int) -> void:
 	var by: String = " by %s" % names if not names.is_empty() else ""
 	if project == Rules.PROJECT_UPGRADE:
 		tapestry.add_entry(TapestryScript.KIND_STAGE, "Stage 2: the great hall raised",
-			"Raised%s: stone 40, wood 20 and cloth 8 built in. A hearth here burns a quarter less, and the common room's "
-			% by + "comfort target is now %d." % projects.comfort_target(), KEY_STAGE_2)
+			"Raised%s: %s built in. A hearth here burns a quarter less, and the common room's "
+			% [by, PanelScript.package_words()] + "comfort target is now %d." % projects.comfort_target(), KEY_STAGE_2)
 		_say("The great hall is raised%s: warmer, a hearth burns a quarter less (stage 2 of 2)" % by)
 		return
 	var n: int = project - Rules.PROJECT_BANNER_FIRST + 1
@@ -215,7 +215,8 @@ func plan_upgrade() -> String:
 	if not why.is_empty():
 		return "Can't plan the upgrade: %s" % why
 	var sent: int = crew.give_selected(Rules.PROJECT_UPGRADE, _selected())
-	_say("The hall's upgrade is planned: stone 40, wood 20 and cloth 8 to carry in from the stores, then 1200 WU")
+	_say("The hall's upgrade is planned: %s to carry in from the stores, then %d WU" % [PanelScript.package_words(),
+		Rules.UPGRADE_WU])
 	return "Upgrade planned. %s" % _sent_words(sent)
 
 

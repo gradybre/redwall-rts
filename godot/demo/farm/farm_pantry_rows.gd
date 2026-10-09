@@ -9,13 +9,15 @@ extends RefCounted
 ## store's figures. Each update is ONE pass over the lots and one over the holds (`update`), into
 ## packed figures per row: in store, incoming, the first lot there to spoil and its calendar hours
 ## (`lot_spoil_hours`, the very sum the hourly ageing makes). Zero stock with a harvest incoming reads
-## "0 U" in store and the incoming amount, never "none".
+## "none" in store and the incoming amount. Each figure is in its item's own measure, in the cell form the item's
+## column already names ("3 bunches"; goods_measures.gd, decision 1801); a store's figures are mixed food, its capacity
+## in baskets with no weight (1011 P5).
 ##
 ## ORDER. Rows are put in order only when the table is BUILT (`rebuild`: the Pantry opening, or its Stocks
 ## tab chosen): food that spoils within SOON_HOURS first, soonest first (a tie keeps the catalog's order);
 ## then the rest in the catalog's item order, store by store. While the Pantry stays open the order is
 ## KEPT (`update`): figures change in place, a row that appears goes at the end, and a row whose stock
-## has gone stays where it is reading "0 U", so nothing moves under the pointer (the review's P1: numeric
+## has gone stays where it is reading "none", so nothing moves under the pointer (the review's P1: numeric
 ## changes do not reorder the focused row).
 ##
 ## STORES are rows too (`store_cells`): stored, reserved for harvests on their way, free, capacity and
@@ -32,6 +34,7 @@ const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
 const Text := preload("res://demo/farm/farm_text.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 ## Food that spoils within this many game hours is "soon" and goes first (demo value: two game days).
 const SOON_HOURS: int = 48
@@ -181,13 +184,13 @@ func is_soon(row: int) -> bool:
 
 
 func available_text(row: int) -> String:
-	"""What the row's store holds of its item ("0 U" once it has gone)."""
-	return Text.units_text(milli[row])
+	"""What the row's store holds of its item, in its measure ("3 bunches"; "none" once it has gone)."""
+	return Measures.amount_cell(Catalog.ITEM_KEYS[item[row]], milli[row])
 
 
 func incoming_text(row: int) -> String:
 	"""What is on its way to the row's store, or a dash."""
-	return Text.units_text(incoming[row]) if incoming[row] > 0 else NONE_TEXT
+	return Measures.amount_cell(Catalog.ITEM_KEYS[item[row]], incoming[row]) if incoming[row] > 0 else NONE_TEXT
 
 
 func store_text(pantry: PantryScript, row: int) -> String:
@@ -196,12 +199,12 @@ func store_text(pantry: PantryScript, row: int) -> String:
 
 
 func spoil_text(pantry: PantryScript, row: int) -> String:
-	"""'all in 6d 16h' (the whole of it is one lot), '2.0 U in 3d 4h' (the first of several), with
+	"""'all in 6d 16h' (the whole of it is one lot), '2 bunches in 3d 4h' (the first of several), with
 	'Soon: ' before it within SOON_HOURS; a dash with nothing in store."""
 	if first_lot[row] == NO_LOT:
 		return NONE_TEXT
 	var lot_milli: int = pantry.lot_milli(first_lot[row])
-	var amount: String = "all" if lot_milli == milli[row] else Text.units_text(lot_milli)
+	var amount: String = "all" if lot_milli == milli[row] else Measures.amount_cell(Catalog.ITEM_KEYS[item[row]], lot_milli)
 	return "%s%s in %s" % ["Soon: " if is_soon(row) else "", amount, until_text(hours[row])]
 
 
@@ -216,12 +219,13 @@ static func until_text(span_hours: int) -> String:
 
 static func store_cells(pantry: PantryScript, at: int) -> PackedStringArray:
 	"""One store's row: name, stored, reserved for harvests on their way, free, capacity and its ageing
-	rate ('×0.35')."""
+	rate ('×0.35'). The figures are mixed food in baskets ("80 baskets"), a capacity with no weight (1011 P5)."""
 	var storage := pantry.storage
 	var permille: int = storage.permille_of(at)
-	@warning_ignore("integer_division") return PackedStringArray([storage.label_of(at), Text.units_text(pantry.used_milli_of(at)),
-		Text.units_text(pantry.reserved_milli_of(at)), Text.units_text(pantry.room_milli_of(at)),
-		Text.units_text(storage.capacity_milli_of(at)), "×%d.%02d" % [permille / 1000, (permille % 1000) / 10]])
+	@warning_ignore("integer_division") return PackedStringArray([storage.label_of(at),
+		Measures.amount_cell(&"food", pantry.used_milli_of(at)), Measures.amount_cell(&"food", pantry.reserved_milli_of(at)),
+		Measures.amount_cell(&"food", pantry.room_milli_of(at)), Measures.amount_cell(&"food", storage.capacity_milli_of(at)),
+		"×%d.%02d" % [permille / 1000, (permille % 1000) / 10]])
 
 
 static func why_text(pantry: PantryScript) -> String:
@@ -239,11 +243,11 @@ static func why_text(pantry: PantryScript) -> String:
 
 
 func moving_text(pantry: PantryScript, row: int) -> String:
-	"""'5.0 U being moved to a cooler store' when some of the row's food is in a carrier's hands (see STORES), else ''."""
+	"""'5 bunches being moved to a cooler store' when some of the row's food is in a carrier's hands (see STORES), else ''."""
 	if location[row] == GONE:
 		return ""
 	var held: int = pantry.carried_milli_at(item[row], location[row])
-	return MOVING % Text.units_text(held) if held > 0 else ""
+	return MOVING % Measures.amount_cell(Catalog.ITEM_KEYS[item[row]], held) if held > 0 else ""
 
 
 func suggest(sim: SimScript) -> bool:

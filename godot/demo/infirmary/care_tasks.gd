@@ -15,6 +15,7 @@ extends RefCounted
 
 const SleepTaskScript := preload("res://demo/burrow/sleep_task.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 ## Where a patient rests.
 const WHERE_BED: int = 0
@@ -332,7 +333,7 @@ class Gather extends "res://demo/tunnel/tunnel_task.gd":
 	func label() -> String:
 		"""What the panel says."""
 		if stage == STAGE_CARRYING:
-			return "Carrying %.1f U of herbs to the hall's shelf" % (float(load_milli) / 1000.0)
+			return "Carrying %s to the hall's shelf" % Measures.amount(&"herb", load_milli)
 		if stage == STAGE_PICKING:
-			return "Gathering herbs — %.1f of %.1f U" % [float(load_milli) / 1000.0, float(trip_milli) / 1000.0]
+			return "Gathering herbs — %s" % Measures.have_need(&"herb", load_milli, trip_milli)
 		return "Going to gather herbs"

@@ -237,7 +237,7 @@ func test_ale_brews_from_barley_alone() -> void:
 	var rig := _rig()
 	var f: FisheryScript = rig.fishery
 	rig.pantry.add_into(13, 5000, 0, _read)
-	assert_true(f.batch_refusal(Recipes.R_ALE).begins_with("the stores hold 0 U of barley"), f.batch_refusal(Recipes.R_ALE))
+	assert_true(f.batch_refusal(Recipes.R_ALE).begins_with("the stores have no barley free"), f.batch_refusal(Recipes.R_ALE))
 	assert_equal(f.refused_code, "NO_BARLEY", "wheat is no barley")
 	rig.pantry.add_into(Catalog.ITEM_BARLEY, 3000, 0, _read)
 	assert_equal(f.order_batch(Recipes.R_ALE, PackedInt32Array()), "", "ordered")
@@ -255,7 +255,7 @@ func test_cider_is_pressed_from_apples_alone() -> void:
 	var rig := _rig()
 	var f: FisheryScript = rig.fishery
 	rig.pantry.add_into(Catalog.ITEM_PEAR, 6000, 0, _read)
-	assert_equal(f.batch_refusal(Recipes.R_CIDER), "the stores hold 0 U of apple nobody has set aside; a batch takes 4.0 U", "pears are no apples")
+	assert_equal(f.batch_refusal(Recipes.R_CIDER), "the stores have no apples free; a batch takes 4 apples", "pears are no apples")
 	rig.pantry.add_into(Catalog.ITEM_APPLE, 4000, 0, _read)
 	assert_equal(f.order_batch(Recipes.R_CIDER, PackedInt32Array()), "", "ordered")
 	var j: int = f.tables.j_live.find(1)
@@ -283,7 +283,7 @@ func test_ale_and_cider_follow_the_mead_rule_at_the_feast() -> void:
 	var menu := MenuScript.new()
 	menu.configure(kitchen, _services.stores)
 	menu.reserve(kitchen.takes.new_take(), 9, 0)
-	assert_true(menu.drinks_words(9).contains("ale 3.0 U (free 0.0 U)") and menu.drinks_words(9).contains("cider 3.0 U (free 2.0 U)"),
+	assert_true(menu.drinks_words(9).contains("ale 3 jugs (free none)") and menu.drinks_words(9).contains("cider 3 jugs (free 2 jugs)"),
 		"each drink by its own name, its 3 U set aside: %s" % menu.drinks_words(9))
 	assert_equal(Array(menu.drinks_planned), [3000, 0, 3000, 3000], "mead, ale and cider set aside")
 	menu.second_planned = true
@@ -308,7 +308,7 @@ func test_the_guide_has_the_new_recipes() -> void:
 		var entry: FieldGuideScript.Entry = guide.entry(guide.index_of(FieldGuideScript.item_id(item)))
 		assert_equal(entry.summary, PreserveText.summary(item), Catalog.ITEM_KEYS[item])
 	assert_true(PreserveText.guide_fields(Catalog.ITEM_ALE, 0)[0].contains("No one is made drunk"), "ale")
-	assert_true(PreserveText.guide_fields(Catalog.ITEM_CHEESE, 1600)[1].contains("nuts 2.0 U, water 1.0 U make 2.0 U, 16 WU and 24 hours at the preserving table"),
+	assert_true(PreserveText.guide_fields(Catalog.ITEM_CHEESE, 1600)[1].contains("4 handfuls of nuts, a jug of water make 2 rounds of nut cheese, 16 WU and 24 hours at the preserving table"),
 		PreserveText.guide_fields(Catalog.ITEM_CHEESE, 1600)[1])
 	assert_true(PreserveText.guide_fields(Catalog.ITEM_JAM, 850)[2].contains("Fresh berries"), "jam's alternative")
 
@@ -376,7 +376,7 @@ func test_apples_sour_into_vinegar_and_roots_pickle_in_it() -> void:
 	var rig := _rig()
 	var f: FisheryScript = rig.fishery
 	rig.pantry.add_into(Catalog.ITEM_APPLE, 4000, 0, _read)
-	assert_equal(f.batch_refusal(Recipes.R_PICKLES).begins_with("the stores hold 0 U of roots"), true, "no roots yet")
+	assert_equal(f.batch_refusal(Recipes.R_PICKLES).begins_with("the stores have no roots free"), true, "no roots yet")
 	assert_equal([f.refused_code, f.refused_fix], ["NO_ROOTS", Recipes.IN_FIX[14]], "the roots' code and fix")
 	assert_equal(f.order_batch(Recipes.R_VINEGAR, PackedInt32Array([1])), "", "vinegar ordered")
 	assert_true(_run(rig, func() -> bool: return f.tables.s_state[FIRST_VAT] == Tables.SLOT_CURING), "souring")
@@ -397,7 +397,7 @@ func test_pickles_without_vinegar_say_so() -> void:
 	var rig := _rig()
 	var f: FisheryScript = rig.fishery
 	rig.pantry.add_into(5, 3000, 0, _read)
-	assert_true(f.batch_refusal(Recipes.R_PICKLES).contains("of vinegar nobody has set aside"), f.batch_refusal(Recipes.R_PICKLES))
+	assert_true(f.batch_refusal(Recipes.R_PICKLES).contains("the stores have no apple vinegar free"), f.batch_refusal(Recipes.R_PICKLES))
 	assert_equal([f.refused_code, f.refused_fix], ["NO_VINEGAR", Recipes.IN_FIX[15]], "its code and fix")
 
 
@@ -544,7 +544,7 @@ func test_potatoes_are_refused_and_an_onion_pickles() -> void:
 	var f: FisheryScript = rig.fishery
 	rig.pantry.add_into(Catalog.ITEM_POTATO, 3000, 0, _read)
 	rig.pantry.add_into(Catalog.ITEM_VINEGAR, 1000, 0, _read)
-	assert_true(f.batch_refusal(Recipes.R_PICKLES).begins_with("the stores hold 0 U of roots"), f.batch_refusal(Recipes.R_PICKLES))
+	assert_true(f.batch_refusal(Recipes.R_PICKLES).begins_with("the stores have no roots free"), f.batch_refusal(Recipes.R_PICKLES))
 	assert_equal(f.refused_code, "NO_ROOTS", "its code")
 	assert_true(f.order_batch(Recipes.R_PICKLES, PackedInt32Array([2])) != "", "not ordered")
 	assert_equal(rig.pantry.milli_of(Catalog.ITEM_POTATO), 3000, "the potatoes untouched")

@@ -67,11 +67,11 @@ const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const FarmCellars := preload("res://demo/farm/farm_cellars.gd")
-const Text := preload("res://demo/farm/farm_text.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
 const FarmCard := preload("res://demo/farm/farm_card.gd")
 const InterruptScript := preload("res://demo/control/work_interrupt.gd")
 const WorkIds := preload("res://demo/work/work_ids.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 ## THE DECISION (decision 0332, review F33/F44). `decide` answers what an order of a verb on a bed would do now --
 ## its refusal, the same job already on the board, and who takes it -- and is the ONE function both `order` and the
@@ -452,8 +452,7 @@ func cancel_bed(bed: int) -> int:
 			continue
 		jobs.become_delivery(row)
 		var who: String = worker_name(row)
-		_say("Harvest cancelled: %s carries the %s of %s on to store" % [who if who != "" else "the crew",
-			Text.units_text(jobs.load_milli[row]), _item_word(row)])
+		_say("Harvest cancelled: %s carries %s on to store" % [who if who != "" else "the crew", _load_words(row)])
 	return cancelled
 
 
@@ -764,8 +763,8 @@ func _end_drop(row: int) -> void:
 	saying how much. Some left: carried on to a store with room, or kept, waiting, until there is one. An earth
 	return's tip instead puts its earth back at its source (see EARTH IS CONSERVED TOO)."""
 	if jobs.kind[row] == JobsScript.KIND_RETURN_EARTH:
-		_tip_back(row, "%s tipped %s of earth back %s" % [_name_of(jobs.worker[row]),
-			Text.units_text(jobs.load_milli[row]), _source_words(jobs.heap[row])])
+		_tip_back(row, "%s tipped %s back %s" % [_name_of(jobs.worker[row]),
+			Measures.amount(&"earth", jobs.load_milli[row]), _source_words(jobs.heap[row])])
 		return
 	var stored: int = 0
 	if _here_into(row, _read):
@@ -779,7 +778,7 @@ func _end_drop(row: int) -> void:
 	_release_hold(row)
 	if jobs.kind[row] == JobsScript.KIND_HARVEST:
 		_log_harvest(row)
-	_finish(row, "Harvested %s of %s into the %s" % [Text.units_text(stored), _item_word(row),
+	_finish(row, "Harvested %s into the %s" % [Measures.amount(_load_good(row), stored),
 		_pantry.storage.label_of(jobs.location[row]).to_lower()])
 
 
@@ -806,8 +805,8 @@ func _carry_on(row: int, stored: int) -> void:
 		_take_hold(row, _busy.value)
 		jobs.blocked[row] = JobsScript.BLOCK_NONE
 		jobs.back_to_carry(row)
-		_say("%s%s carries the %s%s of %s on to the %s" % [took, _name_of(jobs.worker[row]), "other " if stored > 0 else "",
-			Text.units_text(jobs.load_milli[row]), _item_word(row), _pantry.storage.label_of(jobs.location[row]).to_lower()])
+		_say("%s%s carries %s on to the %s" % [took, _name_of(jobs.worker[row]), _rest_words(_load_words(row), stored > 0),
+			_pantry.storage.label_of(jobs.location[row]).to_lower()])
 		return
 	if _here_into(row, _read):
 		jobs.elapsed_usec[row] = 0
@@ -819,11 +818,11 @@ func _carry_on(row: int, stored: int) -> void:
 
 
 func _took_text(row: int, stored: int) -> String:
-	"""'The covered store took 3.0 U of carrot: ' for a part put down ('' for none)."""
+	"""'The covered store took 3 bunches of carrots: ' for a part put down ('' for none)."""
 	if stored <= 0:
 		return ""
-	return "The %s took %s of %s: " % [_pantry.storage.label_of(jobs.location[row]).to_lower(), Text.units_text(stored),
-		_item_word(row)]
+	return "The %s took %s: " % [_pantry.storage.label_of(jobs.location[row]).to_lower(),
+		Measures.amount(_load_good(row), stored)]
 
 
 func _drop(row: int) -> void:
@@ -981,8 +980,7 @@ func cancel_row(row: int) -> String:
 		_finish(row, "")
 		return ""
 	jobs.become_delivery(row)
-	_say("Harvest cancelled: %s carries the %s of %s on to store" % [_carrier_words(row),
-		Text.units_text(jobs.load_milli[row]), _item_word(row)])
+	_say("Harvest cancelled: %s carries %s on to store" % [_carrier_words(row), _load_words(row)])
 	return ""
 
 
@@ -1119,13 +1117,13 @@ func _return_earth(row: int, why: String) -> void:
 	the earth back where it came from now."""
 	var lead: String = why + ": " if why != "" else ""
 	if jobs.kind[row] == JobsScript.KIND_RETURN_EARTH:
-		_tip_back(row, "%sthe %s of earth was put back %s" % [lead, Text.units_text(jobs.load_milli[row]),
+		_tip_back(row, "%s%s was put back %s" % [lead, Measures.amount(&"earth", jobs.load_milli[row]),
 			_source_words(jobs.heap[row])])
 		return
 	jobs.become_earth_return(row)
 	var who: String = worker_name(row)
-	_say("%s%s carries the %s of earth back %s" % [lead, who if who != "" else "the field crew",
-		Text.units_text(jobs.load_milli[row]), _source_words(jobs.heap[row])])
+	_say("%s%s carries %s back %s" % [lead, who if who != "" else "the field crew",
+		Measures.amount(&"earth", jobs.load_milli[row]), _source_words(jobs.heap[row])])
 
 
 func _tip_back(row: int, text: String) -> void:
@@ -1135,8 +1133,8 @@ func _tip_back(row: int, text: String) -> void:
 	var milli: int = jobs.load_milli[row]
 	if not _tunnels.return_spoil_into(_network, jobs.heap[row], milli, _read):
 		if not _tunnels.return_spoil_into(_network, TunnelsScript.STORE, milli, _read):
-			_park(row, "The %s of earth has nowhere to go back to: it waits on the board" % Text.units_text(milli),
-				JobsScript.BLOCK_WAY)
+			_park(row, "The earth (%s) has nowhere to go back to: it waits on the board" % Measures.amount_cell(
+				&"earth", milli), JobsScript.BLOCK_WAY)
 			return
 	jobs.load_milli[row] = 0
 	_finish(row, text)
@@ -1194,23 +1192,36 @@ func _flag_shortage(row: int, partly: bool) -> void:
 
 
 func _shortage_words(row: int, partly: bool = false) -> String:
-	"""'no store has room for 5.1 U of carrot — make room in the Pantry (K)' ('the other 2.1 U' once part
-	of a load is stored)."""
+	"""'no store has room for 6 bunches of carrots — make room in the Pantry (K)' ('the rest (3 bunches of carrots)'
+	once part of a load is stored)."""
 	return room_words(_need_milli(row), _harvest_item(row), partly)
 
 
 static func room_words(need_milli: int, item: int, partly: bool = false) -> String:
-	"""A harvest's shortage, the order's and the action card's words alike: 'no store has room for 5.1 U of carrot —
-	make room in the Pantry (K)' ('the other 2.1 U' once part of a load is stored)."""
-	var word: String = Catalog.ITEM_LABELS[item].to_lower() if Catalog.is_item(item) else "harvest"
-	return "no store has room for %s%s of %s — %s" % ["the other " if partly else "", Text.units_text(need_milli), word,
-		MAKE_ROOM]
+	"""A harvest's shortage, the order's and the action card's words alike: 'no store has room for 6 bunches of carrots —
+	make room in the Pantry (K)' ('the rest (3 bunches of carrots)' once part of a load is stored): the room still
+	needed, rounded up (goods_measures.gd `need`; mixed food for a harvest with no crop)."""
+	return "no store has room for %s — %s" % [_rest_words(Measures.need(good_of(item), need_milli), partly), MAKE_ROOM]
 
 
-func _item_word(row: int) -> String:
-	"""The item a job's harvest is, lower case ("harvest" when it has none)."""
-	var item: int = _harvest_item(row)
-	return Catalog.ITEM_LABELS[item].to_lower() if Catalog.is_item(item) else "harvest"
+static func _rest_words(amount: String, partly: bool) -> String:
+	"""An amount, or -- once part of a load is stored -- the rest of it: 'the rest (a bunch of carrots)'."""
+	return "the rest (%s)" % amount if partly else amount
+
+
+static func good_of(item: int) -> StringName:
+	"""The good a harvest is measured as: its crop's, else mixed food (decision 1801)."""
+	return Catalog.ITEM_KEYS[item] if Catalog.is_pantry_item(item) else &"food"
+
+
+func _load_good(row: int) -> StringName:
+	"""The good job `row`'s harvest is measured as (see `good_of`)."""
+	return good_of(_harvest_item(row))
+
+
+func _load_words(row: int) -> String:
+	"""What job `row` carries, in its measure: "3 bunches of carrots" (rounded down)."""
+	return Measures.amount(_load_good(row), jobs.load_milli[row])
 
 
 func _store_word(row: int) -> String:
@@ -1251,9 +1262,9 @@ func task_text(who: int) -> String:
 		JobsScript.STEP_GO_HEAP:
 			return what + (" — to the stores for earth" if jobs.heap[row] == TunnelsScript.STORE else " — to the spoil heap")
 		JobsScript.STEP_CARRY_HEAP:
-			return "Carrying %s of earth back %s" % [Text.units_text(jobs.load_milli[row]), _source_words(jobs.heap[row])]
+			return "Carrying %s back %s" % [Measures.amount(&"earth", jobs.load_milli[row]), _source_words(jobs.heap[row])]
 		JobsScript.STEP_CARRY_STORE:
-			return "Carrying %s of %s to the %s" % [Text.units_text(jobs.load_milli[row]), _item_word(row), _store_word(row)]
+			return "Carrying %s to the %s" % [_load_words(row), _store_word(row)]
 		JobsScript.STEP_CARRY_BED:
 			return what + " — carrying"
 	return what

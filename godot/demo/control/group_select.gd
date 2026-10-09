@@ -70,7 +70,7 @@ const IDLE_NONE: String = "Nobody is idle: everyone is working, resting or in th
 const SIMILAR: String = "Selected every %s in view: %d"
 const SEND_ARMED: String = "Click where to send the %d selected (a work spot: they work it) — Esc cancels"
 const SEND_CANCELLED: String = "Send to… cancelled"
-const SEND_BELOW: String = "In the underground view, right-click where to send them"
+const SEND_BELOW: String = "Underground: right-click where to send them"
 const DROPPED: String = "%s left the selection"
 
 ## The input map's control-group actions (UI §5), by digit.
@@ -345,7 +345,7 @@ func put_on_crew(crew: int) -> int:
 
 func arm_send(on: bool) -> bool:
 	"""Make the next left click on the world the group's destination (`on`, with two or more selected -- the group's own
-	button -- on the surface: the U view gives its clicks to the tunnels, so there it says to right-click; the notice says
+	button -- on the surface: Underground gives its clicks to the tunnels, so there it says to right-click; the notice says
 	so), or stop waiting (its prompt cleared). Whether it now waits."""
 	var count: int = _command.selection_count()
 	var below: bool = on and _command.underground_view()

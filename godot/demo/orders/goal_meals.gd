@@ -8,7 +8,7 @@ extends "res://demo/orders/goal_crop.gd"
 ## (REQ-SET-113).
 
 const KitchenScript := preload("res://demo/kitchen/kitchen.gd")
-const KitchenText := preload("res://demo/kitchen/kitchen_text.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const NO_FIRE: String = "the kitchen's fire has no wood (%s a batch) — keep wood stocked"
 const NONE_RIPE_MEALS: String = "nothing a dish takes is ripe yet (%d beds growing) — the order harvests them as they ripen"
@@ -62,7 +62,7 @@ static func dish_of(item: int) -> int:
 func raise_into(item: int, tracked: Callable, out: IntMath.IntResult) -> String:
 	"""No wood for the fire: say so. Else the first ripe dish crop's harvest (goal_crop.gd)."""
 	if _kitchen.stores != null and _kitchen.stores.wood_milli_u < MealRules.WOOD_MILLI_PER_BATCH:
-		return NO_FIRE % KitchenText.units(MealRules.WOOD_MILLI_PER_BATCH)
+		return NO_FIRE % Measures.need(&"wood", MealRules.WOOD_MILLI_PER_BATCH)
 	return super(item, tracked, out)
 
 

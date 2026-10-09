@@ -12,6 +12,7 @@ const BridgesScript := preload("res://demo/waterplay/bridges.gd")
 const CrewScript := preload("res://demo/waterplay/bridge_crew.gd")
 const SwimRules := preload("res://demo/waterplay/swim_rules.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const MATERIALS: String = "Materials: %s — paid when it was planned, nothing missing; %s"
 const ROUTE: String = "Route across: %s, carrying — no swimming%s"
@@ -19,12 +20,12 @@ const CONDITION: String = "Condition: sound — the demo's bridges need no upkee
 
 
 static func shortage_line(kind: int, card: CardScript) -> String:
-	"""What a `kind` bridge lacks, from its Build card's have / need: "Plank footbridge: missing 4.7 U planks" ("" when
+	"""What a `kind` bridge lacks, from its Build card's have / need: "Plank footbridge: missing 5 planks" ("" when
 	nothing is short)."""
 	var missing := PackedStringArray()
 	for k: int in card.cost_names.size():
 		if card.cost_need[k] > card.cost_have[k]:
-			missing.append("%s %s" % [CardScript.need_text(card.cost_need[k] - card.cost_have[k]), card.cost_names[k].to_lower()])
+			missing.append(card.short_text(k))
 	if missing.is_empty():
 		return ""
 	var what: String = SwimRules.KIND_NAMES[kind]
@@ -32,12 +33,12 @@ static func shortage_line(kind: int, card: CardScript) -> String:
 
 
 static func material_words(bridges: BridgesScript, row: int) -> String:
-	"""What a planned bridge was paid with ("4.7 U planks and 2.0 U wood", "a 6.0 U log")."""
+	"""What a planned bridge was paid with, as its cost was stated ("5 planks and 2 logs", "a trunk of 6 logs")."""
 	if bridges.kind[row] == SwimRules.KIND_LOG:
-		return "a %s log" % SwimRules.units_text(SwimRules.LOG_WOOD_MILLI)
-	var planks: String = "%s planks" % SwimRules.units_text(SwimRules.plank_milli(bridges.deck_u[row]))
+		return SwimRules.log_words()
+	var planks: String = Measures.need(&"planks", SwimRules.plank_milli(bridges.deck_u[row]))
 	var wood: int = bridges.piers[row] * SwimRules.PIER_WOOD_MILLI
-	return planks if wood == 0 else "%s and %s wood" % [planks, SwimRules.units_text(wood)]
+	return planks if wood == 0 else "%s and %s" % [planks, Measures.need(&"wood", wood)]
 
 
 static func where_words(crew: CrewScript, row: int) -> String:

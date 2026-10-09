@@ -10,6 +10,7 @@ extends "res://test/framework/test_case.gd"
 ## real ground map with its cells overwritten, so a test controls exactly what each quantum cuts.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
 const FarmWeatherScript := preload("res://demo/farm/farm_weather.gd")
@@ -793,11 +794,11 @@ func test_the_demo_stores_pay_all_or_nothing() -> void:
 	assert_false(stores.pay(1000, 20001), "stone short")
 	assert_equal(stores.wood_milli_u, 40000, "no wood taken")
 	assert_true(stores.pay(1750, 1750), "brace a 7-quantum tunnel")
-	assert_equal(StoresScript.units_text(stores.wood_milli_u), "38.2 U", "38.25 floored to a tenth")
+	assert_equal(Measures.amount(&"wood", stores.wood_milli_u), "38 logs", "38.25 floored to whole logs")
 	assert_false(stores.pay(-1, 0), "no negative spend")
 	stores.add_stone(-5)
 	assert_equal(stores.stone_milli_u, 18250, "no negative income")
-	assert_equal(StoresScript.units_text(999), "0.9 U", "under a unit")
+	assert_equal(Measures.amount(&"wood", 999), "3 quarter logs", "under a log")
 	assert_equal(stores.finds_line(), "Finds: 0 flint · 0 clay · 0 root stores · 0 relics", "nothing yet")
 	stores.add_find(FindsScript.FIND_ROOT_STORE)
 	stores.add_find(FindsScript.FIND_RELIC)

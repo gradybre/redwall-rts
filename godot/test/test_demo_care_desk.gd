@@ -264,7 +264,7 @@ func test_no_herbs_the_patient_waits_and_the_herbalist_gathers_then_treats() -> 
 	_run(v, 20000, func() -> bool: return v.desk.state.herb_milli > 0)
 	assert_equal(v.desk.state.herb_milli, Rules.HERB_TRIP_MILLI, "a trip's load on the shelf")
 	assert_equal(v.desk.state.patch_milli, patch_before - Rules.HERB_TRIP_MILLI, "taken from the patch")
-	assert_true(v.notices.has_text("resident 1 brought 4.0 U of herbs to the shelf (4.0 U)"), "said")
+	assert_true(v.notices.has_text("resident 1 brought 4 bunches of herbs to the shelf (4 bunches on it)"), "said")
 	_run(v, 8000, _treated.bind(v, 0))
 	assert_true(_treated(v, 0), "then treated")
 

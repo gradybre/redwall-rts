@@ -2620,6 +2620,16 @@
      ]
     ]
    }
+  },
+  "godot/scripts/systems/ui_manager.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "MEAS-2 (decision 1801): the Wood and Stone counters worded in natural measures; two static text helpers, no member, packet or resize"
+    }
+   ],
+   "delta": {}
   }
  },
  "scope": "ADR 1212 reviewed storage deltas between manifest-3 reviewed bytes and the current source."

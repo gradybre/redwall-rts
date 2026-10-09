@@ -189,7 +189,8 @@ func test_all_delivered_starts_the_work_and_the_work_builds_it_into_a_store() ->
 	assert_equal(entry[StorageScript.KEY_CLASS], StockAge.STORAGE_CELLAR, "a cellar")
 	assert_equal(entry[StorageScript.KEY_WHY], Rules.WHY, "its why")
 	assert_equal(entry[StorageScript.KEY_POSITION], projects.door_of(0), "at its door")
-	assert_equal(projects.status_text(0), "Cellar 1: built — holds 2000 U, food keeps as in a cool cellar", "its words")
+	assert_equal(projects.status_text(0), "Cellar 1: built — holds 400 baskets of food, food keeps as in a cool cellar",
+		"its words: its 2000 U (at 500 g, decision 0612) as baskets of food, no weight")
 
 
 func test_cancel_refunds_by_req_set_126_and_a_built_cellar_cannot_be_cancelled() -> void:
@@ -198,7 +199,7 @@ func test_cancel_refunds_by_req_set_126_and_a_built_cellar_cannot_be_cancelled()
 	var projects := ProjectsScript.new(stores)
 	projects.plan_at(SITE, 0.0)
 	_deliver_all(projects)
-	assert_equal(projects.refund_text(0), "returns 20.0 wood and 60.0 stone", "before")
+	assert_equal(projects.refund_text(0), "returns 20 logs and 60 blocks of stone", "before")
 	assert_equal(projects.cancel(0), "", "cancelled")
 	assert_equal(stores.wood_milli_u, 20000, "all the wood back")
 	assert_equal(stores.stone_milli_u, 60000, "all the stone back")
@@ -206,7 +207,7 @@ func test_cancel_refunds_by_req_set_126_and_a_built_cellar_cannot_be_cancelled()
 	projects.plan_at(SITE, 0.0)
 	_deliver_all(projects)
 	projects.add_work(0, 1)
-	assert_equal(projects.refund_text(0), "returns 16.0 wood and 48.0 stone (80%: the work has begun)", "after")
+	assert_equal(projects.refund_text(0), "returns 16 logs and 48 blocks of stone (80%: the work has begun)", "after")
 	projects.cancel(0)
 	assert_equal(stores.wood_milli_u, 16000, "80% of the wood")
 	assert_equal(stores.stone_milli_u, 48000, "80% of the stone")
@@ -238,7 +239,8 @@ func test_progress_is_half_delivery_and_half_work() -> void:
 	assert_equal(projects.percent(0), 75, "half the work")
 	projects.add_work(0, half - 1)
 	assert_equal(projects.percent(0), 99, "not done yet")
-	assert_true(projects.status_text(0).begins_with("Cellar 1: being built — wood 20.0 / 20.0, stone 60.0 / 60.0"), "words")
+	assert_true(projects.status_text(0).begins_with("Cellar 1: being built; wood 20 logs — enough, stone 60 blocks — enough"),
+		projects.status_text(0))
 
 
 # --- the store it becomes ------------------------------------------------------------------------------
@@ -665,7 +667,7 @@ func test_the_tool_places_where_allowed_says_why_where_not_and_is_put_away() -> 
 	tool.move_to(Vector2(0.0, 6.0))
 	assert_true(tool.place(), "placed")
 	assert_false(tool.armed, "put away")
-	assert_equal(said[0], "Cellar 1 planned: wood 20.0 and stone 60.0 to fetch, then 900 WU of building", "said")
+	assert_equal(said[0], "Cellar 1 planned: 20 logs and 60 blocks of stone to fetch, then 900 WU of building", "said")
 	assert_almost_equal(absf(angle_difference(PlaceScript.face_of(Vector2(0.0, 6.0)), PI)), 0.0, "faces the square")
 	var esc := InputEventKey.new()
 	esc.keycode = KEY_ESCAPE
@@ -720,11 +722,13 @@ func test_the_pantry_bar_lists_cellars_and_refuses_a_third() -> void:
 	_nodes.append(bar)
 	bar.configure(projects, func() -> String: return locked[0])
 	assert_true(bar.build_refusal().is_empty(), "open")
+	assert_equal((bar.get_child(0) as Label).text,
+		"Cellar buildings — each holds 400 baskets of food, kept 2.8× as long as in the covered store", "its heading")
 	projects.plan_at(SITE, 0.0)
 	bar.refresh()
 	assert_true(bar.line_text(0).begins_with("Cellar 1: materials being fetched"), "its line")
 	assert_true(bar.cancel_button(0).visible, "its Cancel")
-	assert_true(bar.cancel_button(0).tooltip_text.contains("returns 0.0 wood and 0.0 stone"), "what it returns")
+	assert_true(bar.cancel_button(0).tooltip_text.contains("returns no wood and no stone"), "what it returns")
 	projects.plan_at(Vector2(-8.0, 0.0), 0.0)
 	bar.refresh()
 	assert_equal(bar.build_refusal(), ProjectsScript.REFUSE_FULL, "two planned")

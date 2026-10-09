@@ -16,7 +16,7 @@ const Text := preload("res://demo/guide/guide_text.gd")
 const SimScript := preload("res://demo/farm/farm_sim.gd")
 const JobsScript := preload("res://demo/farm/farm_jobs.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
-const FarmText := preload("res://demo/farm/farm_text.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const FarmWeather := preload("res://demo/farm/farm_weather.gd")
 const KitchenScript := preload("res://demo/kitchen/kitchen.gd")
 const Rules := preload("res://demo/kitchen/meal_rules.gd")
@@ -91,14 +91,17 @@ static func confirm_text(step: int, world: WorldScript, facts: FactsScript) -> S
 		StepsScript.STEP_MEET:
 			return Text.STEP_CONFIRM[step] % world.resident_name(facts.met_who)
 		StepsScript.STEP_HARVEST:
-			var item: String = Catalog.ITEM_LABELS[facts.harvested_item].to_lower() \
-				if Catalog.is_item(facts.harvested_item) else "food"
-			return Text.STEP_CONFIRM[step] % [FarmText.units_text(facts.harvested_milli), item]
+			return Text.STEP_CONFIRM[step] % Measures.amount(good_of(facts.harvested_item), facts.harvested_milli)
 		StepsScript.STEP_SUPPER:
 			return Text.STEP_CONFIRM[step] % facts.supper_line
 		StepsScript.STEP_SEASON:
 			return Text.STEP_CONFIRM[step] % choice_confirm(world, facts)
 	return ""
+
+
+static func good_of(item: int) -> StringName:
+	"""A pantry item's good as goods_measures.gd knows it (farm_catalog.gd ITEM_KEYS); mixed food for no item."""
+	return Catalog.ITEM_KEYS[item] if Catalog.is_pantry_item(item) else &"food"
 
 
 static func choice_confirm(world: WorldScript, facts: FactsScript) -> String:
@@ -156,9 +159,8 @@ static func _delivery_under_way(world: WorldScript, out: Status) -> bool:
 		var row: int = world.farm_job_on(bed, DELIVER_KINDS)
 		if row < 0 or world.jobs.load_milli[row] <= 0:
 			continue
-		var item: int = world.jobs.load_item[row]
-		out.state = Text.DELIVERY_UNDER_WAY % [world.job_worker(row), FarmText.units_text(world.jobs.load_milli[row]),
-			Catalog.ITEM_LABELS[item].to_lower() if Catalog.is_item(item) else "food"]
+		out.state = Text.DELIVERY_UNDER_WAY % [world.job_worker(row),
+			Measures.amount(good_of(world.jobs.load_item[row]), world.jobs.load_milli[row])]
 		out.next = Text.NEXT_WAIT_DELIVERY
 		out.aim(NoticesScript.TARGET_BED, bed, WorldScript.bed_point(bed))
 		return true

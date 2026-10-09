@@ -351,14 +351,19 @@ class RoomMemoryWitnessTests(unittest.TestCase):
         self.assertEqual(result["current_publication_metadata"]["joint"], 248632)
 
     def test_injected_ui_alias_text_cannot_use_the_current_disk_or_cached_hash(self):
+        # ADR1212 (decision 1801, Brendan's B1 (a)): ui_manager is projected. Injected text is replaced by its
+        # reviewed manifest-3 bytes before anything executes; a storage change is refused by the current census, and
+        # a method with no storage is admitted there, as for every projected input.
         _, _, current = room.verified_inputs(self.index)
         source = current["ui_manager"]
-        for suffix in ("\nvar extra: Array = [1, 2]\n", "\nfunc hidden_callback():\n\tpass\n"):
-            changed = source._replace(text=source.text + suffix)
-            with self.subTest(suffix=suffix), mock.patch.object(room, "producer") as execute:
-                with self.assertRaisesRegex(ValueError, "current reviewed source changed: ui_manager"):
-                    room.build(dict(self.index, ui_manager=changed))
-                execute.assert_not_called()
+        self.refuses_current_change("ui_manager", source._replace(text=source.text + "\nvar extra: Array = [1, 2]\n"),
+                                    "current reviewed source changed: ui_manager")
+        changed = source._replace(text=source.text + "\nfunc hidden_callback():\n\tpass\n")
+        archived = set()
+        _, _, replayed = room.verified_inputs(dict(self.index, ui_manager=changed), archived)
+        self.assertIn(changed.relative_path, archived)
+        self.assertEqual(hashlib.sha256(replayed["ui_manager"].text.encode()).hexdigest(),
+                         self.manifest["sources"]["ui_manager"]["sha256"])
 
     def test_notice_dependency_value_or_body_changes_refuse_before_import(self):
         path = room.ROOT / self.manifest["ui_alias"]["dependency"]["path"]

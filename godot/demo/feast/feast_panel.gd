@@ -261,7 +261,7 @@ func call_card() -> CardScript:
 	"""Call the feast's card: the feast's own `refusal`, its wood, its result."""
 	var e: int = feast.residents()
 	_card.reset("Call the %s feast for %s" % [Rules.THEME_NAMES[feast.choice_theme], feast.day_text(feast.choice_day)])
-	_card.add_cost("Wood", feast.stores.wood_milli_u if feast.stores != null else 0, RegattaRules.service_wood_milli(e))
+	_card.add_cost("Wood", &"wood", feast.stores.wood_milli_u if feast.stores != null else 0, RegattaRules.service_wood_milli(e))
 	_card.result = "%s at the %02d:00 supper for %d; %s if 80%% eat every course" % [
 		FeastScript.served_words(feast.choice_theme), Rules.FEAST_HOUR, e, Rules.BUFF_NAMES[feast.choice_theme]]
 	_card.prerequisites.append("every course's food and its %s free; a keeper who does not cook" % MenuScript.bev_words(

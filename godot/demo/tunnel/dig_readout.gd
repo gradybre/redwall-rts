@@ -2,8 +2,8 @@ extends RefCounted
 ## The Dig tool's cost readout at the pointer. Decision 0208 (design docs/design/underground_revamp.md §2
 ## "Planning", §4 "Ghost preview"). Presentation only: it reads the rules and the ground, and writes nothing.
 ##
-## e.g. "14.2 m · 16 quanta · 2.1 h (crew of 3)" over "32 U spoil · brace 4.0 wood + 4.0 stone · clay 4 m (slow),
-## sand 2 m (weak: brace)":
+## e.g. "14.2 m · 16 quanta · 2.1 h (crew of 3)" over "16 baskets of earth · brace 4 logs + 4 blocks of stone · clay
+## 4 m (slow), sand 2 m (weak: brace)" (amounts in natural measures, scripts/ui/goods_measures.gd; decision 1801):
 ##   * LENGTH as the panel shows lengths (tunnel_plan.gd `length_text`);
 ##   * QUANTA as the network will cut them (underground_graph.gd THE DIG TIMELINE): a shaft at each end that
 ##     opens a mouth, and every started metre of each segment the piece is cut into (at its ramps' feet and
@@ -12,18 +12,18 @@ extends RefCounted
 ##     dig's 30 Hz ticks; decision 0421) -- minutes under an hour, else hours to the tenth (`time_text`) -- each
 ##     quantum at its ground's dig ticks (tunnel_ground.gd), over the crew's rate (tunnel_crew.gd: the pipeline for
 ##     the crew that would work the face, times the digger's skill);
-##   * SPOIL as each quantum's ground posts it (ECON-002, by ground);
+##   * SPOIL as each quantum's ground posts it (ECON-002, by ground), in baskets of earth (2 U each), rounded down;
 ##   * THE BRACE COST (decision 0211; design §4 "Cost readout": "brace cost (wood 250 + stone 250 milli-U a quantum,
 ##     ECON-002)"): what bracing the dug piece would take from the demo stores -- the Brace job's own price
 ##     (tunnel_jobs.gd BRACE_WOOD_MILLI_U, BRACE_STONE_MILLI_U) on every quantum it cuts, shafts included, as each
-##     segment's job charges it -- to the tenth of a unit;
+##     segment's job charges it -- in logs and blocks of stone, rounded up (a cost is never understated);
 ##   * GROUND: the metres of bore through each ground that matters -- clay (slow), sand (weak: brace), rock
 ##     (needs a breaker), wet ground (seeps: brace) -- loam, the plain case, unnamed.
 ## A ROOM's readout (`room_text`, decision 0209) is the room tool's: its own quanta cell by cell, its door ramp,
 ## and its proposed passage, the room at its crew's three-face rate.
 ## LEVELS (decision 0212): each quantum's ground is read on its own level (tunnel_ground.gd THE GROUND AT DEPTH;
 ## a link's by the level its floor lies nearer there). A LINK's readout names its kind and grade and gives its run
-## and its slope: e.g. "Stairs down · 5.2 m run, 6.6 m slope · 7 quanta · 12 min (crew of 2)" over "13 U spoil ·
+## and its slope: e.g. "Stairs down · 5.2 m run, 6.6 m slope · 7 quanta · 12 min (crew of 2)" over "6 baskets of earth ·
 ## 16 timber risers, 4:5 (38.7°) · clay 3 m (slow)" -- its quanta the started metres of its slope, each stair
 ## quantum's time STAIR_WORK_PERMILLE of a bore's (tunnel_rules.gd LINKS).
 
@@ -34,6 +34,7 @@ const PlanScript := preload("res://demo/tunnel/tunnel_plan.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 ## Ticks of the dig's 30 Hz clock in a demo-calendar hour.
 @warning_ignore("integer_division") const TICKS_PER_CALENDAR_HOUR: int = CalendarScript.HOUR_USEC * Rules.TICKS_PER_SECOND / Rules.USEC_PER_SECOND
@@ -58,7 +59,7 @@ static func text(plan: PlanScript, ground: GroundScript, rate_permille: int, cre
 	@warning_ignore("integer_division") var ticks: int = tally[T_TICKS] * Rules.PERMILLE / maxi(rate_permille, 1)
 	var first := PackedStringArray([PlanScript.length_text(plan.length_u()), "%d quanta" % tally[T_QUANTA],
 		"%s (%s)" % [time_text(ticks), "crew of %d" % crew if crew > 1 else "one digger"]])
-	@warning_ignore("integer_division") var second := PackedStringArray(["%d U spoil" % (tally[T_SPOIL] / 1000), brace_text(tally[T_QUANTA])])
+	var second := PackedStringArray([spoil_text(tally[T_SPOIL]), brace_text(tally[T_QUANTA])])
 	if plan.is_link():
 		first[0] = link_heading(plan.link_kind, plan.length_u())
 		second[1] = grade_text(plan.link_kind, plan.length_u())
@@ -95,10 +96,18 @@ static func _metres(u: int) -> String:
 	@warning_ignore("integer_division") return "%d.%d m" % [tenths_value / 10, tenths_value % 10]
 
 
+static func spoil_text(milli_u: int) -> String:
+	"""The spoil a dig will heap, in baskets of earth, rounded down (see SPOIL): "16 baskets of earth"."""
+	return Measures.amount(&"earth", milli_u)
+
+
 static func brace_text(quanta: int) -> String:
-	"""What bracing `quanta` quanta costs, in words (see THE BRACE COST): "brace 4.0 wood + 4.0 stone"."""
-	return "brace %s wood + %s stone" % [tenths(JobsScript.BRACE_WOOD_MILLI_U * quanta),
-		tenths(JobsScript.BRACE_STONE_MILLI_U * quanta)]
+	"""What bracing `quanta` quanta costs, in words (see THE BRACE COST): "brace 4 logs + 4 blocks of stone"; "nothing
+	to brace" for none."""
+	if quanta <= 0:
+		return "nothing to brace"
+	return "brace %s + %s" % [Measures.need(&"wood", JobsScript.BRACE_WOOD_MILLI_U * quanta),
+		Measures.need(&"stone", JobsScript.BRACE_STONE_MILLI_U * quanta)]
 
 
 static func tenths(milli_u: int) -> String:
@@ -190,7 +199,7 @@ static func room_text(kind: int, centre: Vector2i, turns: int, passage: PlanScri
 	"""The room tool's readout (room_tool.gd): the room's name, all its quanta -- its cells, its door ramp and
 	shaft (on level 1), and its proposed passage -- the hours its crew takes (the room at its ROOM_FACES faces'
 	rate `rate_room`, the rest at `rate_one`), its spoil, and its passage (or that it stands alone). e.g.
-	"Burrow home · 33 quanta · 48 min (crew of 3)" over "66 U spoil · passage 3.2 m to Tunnel 4"."""
+	"Burrow home · 33 quanta · 48 min (crew of 3)" over "33 baskets of earth · passage 3.2 m to Tunnel 4"."""
 	var cells := _tally()
 	var rest := _tally()
 	var way := _tally()
@@ -204,7 +213,7 @@ static func room_text(kind: int, centre: Vector2i, turns: int, passage: PlanScri
 		"crew of %d" % crew if crew > 1 else "one digger"]
 	var joined := "passage %s to %s" % [PlanScript.length_text(passage.length_u()), passage_to] if passage.count >= 2 \
 			else "standalone: dig a tunnel to one of its sockets later"
-	@warning_ignore("integer_division") return "%s\n%d U spoil · %s" % [first, (cells[T_SPOIL] + rest[T_SPOIL] + way[T_SPOIL]) / 1000, joined]
+	return "%s\n%s · %s" % [first, spoil_text(cells[T_SPOIL] + rest[T_SPOIL] + way[T_SPOIL]), joined]
 
 
 static func time_text(ticks: int) -> String:

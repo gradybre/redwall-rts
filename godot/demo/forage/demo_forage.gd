@@ -29,6 +29,7 @@ const DemoCommandScript := preload("res://demo/control/demo_command.gd")
 const PanelScript := preload("res://demo/forestry/forest_panel.gd")
 const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const PANEL_REFRESH_S: float = 0.25
 
@@ -203,17 +204,20 @@ func refresh_section() -> void:
 
 
 func woods_line() -> String:
-	"""What the woods hold of the chosen kind now (GDD §5.5's figures): its stock, its floor, the season, the quota."""
+	"""What the woods hold of the chosen kind now (GDD §5.5's figures): its stock, its most, its floor, the season, the
+	quota -- in the kind's own measure (goods_measures.gd, decision 1801): "The woods' nuts: 12 sacks (at most 15 sacks;
+	keeps 3 sacks) · ..."."""
 	var d: DriverScript = trips.driver
 	var kind: int = Rules.KINDS[choice_kind]
+	var good: StringName = TripsScript.good_of(choice_kind)
 	var season: String = "in season now" if d.availability(kind) > 0 else "out of season now"
 	var reserve: int = trips.reserve_milli(choice_kind)
-	var keeps: String = Rules.units_text(d.floor_milli(kind))
+	var keeps: String = Measures.need_cell(good, d.floor_milli(kind))
 	if reserve > 0:
-		keeps += ", and %s in the protected grove" % Rules.units_text(reserve)
-	return "The woods' %s: %s of %s (keeps %s) · %s (%s) · today's quota %s of %s left" % [Rules.KIND_WORDS[choice_kind],
-		Rules.units_text(d.stock_milli(kind)), Rules.units_text(d.capacity_milli(kind)), keeps,
-		season, trips.season_words(choice_kind), Rules.units_text(d.quota_left_milli()), Rules.units_text(d.quota_today_milli())]
+		keeps += ", and %s in the protected grove" % Measures.need_cell(good, reserve)
+	return "The woods' %s: %s (at most %s; keeps %s) · %s (%s) · today's quota: %s" % [Rules.KIND_WORDS[choice_kind],
+		Measures.amount_cell(good, d.stock_milli(kind)), Measures.exact_cell(good, d.capacity_milli(kind)), keeps,
+		season, trips.season_words(choice_kind), trips.quota_words(good)]
 
 
 func trip_preview() -> String:
@@ -223,9 +227,10 @@ func trip_preview() -> String:
 		return "Can't now: %s" % why
 	var kind: int = Rules.KINDS[choice_kind]
 	var milli: int = trips.trip_milli(choice_kind, choice_party, choice_kit)
-	return "A trip to %s: about %s home, %s · %d WU a unit gathering · injury risk %d in 10000 each hour's work (shown, not rolled)" % [
-		Rules.SPOT_NAMES[choice_kind], Rules.units_text(milli), trips.home_by_text(choice_kind, choice_party, choice_kit),
-		trips.driver.work_per_u_wu(kind, 0), trips.driver.injury_per_10000(0)]
+	var good: StringName = TripsScript.good_of(choice_kind)
+	return "A trip to %s: about %s home, %s · gathering %d WU for %s · injury risk %d in 10000 each hour's work (shown, not rolled)" % [
+		Rules.SPOT_NAMES[choice_kind], Measures.amount(good, milli), trips.home_by_text(choice_kind, choice_party, choice_kit),
+		trips.driver.work_per_u_wu(kind, 0), Measures.exact(good, Rules.MILLI_PER_U), trips.driver.injury_per_10000(0)]
 
 
 func _members() -> PackedInt32Array:
@@ -248,10 +253,11 @@ func trip_card(members: PackedInt32Array) -> CardScript:
 	"""Authorise trip's card: `trips.trip_refusal`, the haul, the work, who goes."""
 	_card.reset("Forage %s at %s" % [Rules.KIND_WORDS[choice_kind], Rules.SPOT_NAMES[choice_kind]])
 	var milli: int = trips.trip_milli(choice_kind, choice_party, choice_kit)
-	_card.result = "%d foragers bring about %s of %s home to the stores, %s (a basket each, at most %s%s)" % [
-		choice_party, Rules.units_text(milli), Rules.KIND_WORDS[choice_kind],
-		trips.home_by_text(choice_kind, choice_party, choice_kit), Rules.units_text(Rules.BASKET_MILLI),
-		"; the kit's carrier %s" % Rules.units_text(Rules.KIT_BASKET_MILLI) if choice_kit else ""]
+	var good: StringName = TripsScript.good_of(choice_kind)
+	_card.result = "%d foragers bring about %s home to the stores, %s (at most %s each%s)" % [
+		choice_party, Measures.amount(good, milli), trips.home_by_text(choice_kind, choice_party, choice_kit),
+		Measures.exact_cell(good, Rules.BASKET_MILLI),
+		"; the kit's carrier %s" % Measures.exact_cell(good, Rules.KIT_BASKET_MILLI) if choice_kit else ""]
 	_card.prerequisites.append("%s in season (%s); the woods' daily quota and their stock above the sustainable floor" % [
 		Rules.KIND_WORDS[choice_kind].capitalize(), trips.season_words(choice_kind)])
 	_card.prerequisites.append(outing_prerequisites())

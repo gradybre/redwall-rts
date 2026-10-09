@@ -11,12 +11,13 @@ const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const RoomTextScript := preload("res://demo/burrow/room_text.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
 const ForestRules := preload("res://demo/forestry/forest_rules.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 const CODES: Array[String] = ["", "NOT_DUG", "NOT_HERE", "FULL", "STORES_SHORT", "NOTHING_TO_ADD", "NONE_TO_TAKE",
 	"HOLDS_FOOD", "NO_NOOK"]
 ## How to put a refusal right (by room_fixtures.gd REFUSE_*; '' where nothing will).
 const FIXES: Array[String] = ["", "wait for the room to be dug out", "", "take one out (−) first",
-	"Woods ▸ Saw planks (%s wood makes %s planks); Fell and Haul logs for wood", "", "",
+	"Woods ▸ Saw planks (%s make %s); Fell and Haul logs for wood", "", "",
 	"let the cellar's food be eaten or moved first", ""]
 const WHO_CAN: String = "who can reach the room"
 const QUEUE: String = "the nearest free resident who can reach the room, by day (up to %d at once)"
@@ -92,19 +93,20 @@ static func _first_waiting(graph: RefCounted, r: int, f_new: int) -> String:
 static func _costs(card: CardScript, stores: RefCounted, cost: Vector3i) -> void:
 	"""Cost rows (planks, wood, stone) for the parts that are not nothing."""
 	if cost.x > 0:
-		card.add_cost("Planks", stores.plank_milli_u, cost.x)
+		card.add_cost("Planks", &"planks", stores.plank_milli_u, cost.x)
 	if cost.y > 0:
-		card.add_cost("Wood", stores.wood_milli_u, cost.y)
+		card.add_cost("Wood", &"wood", stores.wood_milli_u, cost.y)
 	if cost.z > 0:
-		card.add_cost("Stone", stores.stone_milli_u, cost.z)
+		card.add_cost("Stone", &"stone", stores.stone_milli_u, cost.z)
 
 
 static func _refuse(card: CardScript, graph: RefCounted, r: int, parts: PackedStringArray, code: int, stores: RefCounted,
 		stored: Callable) -> void:
 	"""The refusal in the order's own words (room_text.gd `answer`, without its "Can't: ") and its fix."""
 	var words := RoomTextScript.answer(graph, r, parts, code, stores, stored)
-	var batch := CardScript.amount_text(ForestRules.SAW_BATCH_MILLI)
-	card.refuse(CODES[code], words.trim_prefix("Can't: "), FIXES[code] % [batch, batch] if FIXES[code].contains("%s") else FIXES[code])
+	var batch: Array = [Measures.exact(&"wood", ForestRules.SAW_BATCH_MILLI), Measures.exact(&"planks",
+		ForestRules.SAW_BATCH_MILLI)]
+	card.refuse(CODES[code], words.trim_prefix("Can't: "), FIXES[code] % batch if FIXES[code].contains("%s") else FIXES[code])
 
 
 static func _who(card: CardScript, r: int, members: PackedInt32Array, crew: FixtureCrewScript, names: PackedStringArray) -> void:

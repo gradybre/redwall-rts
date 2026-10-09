@@ -17,6 +17,7 @@ const Tasks := preload("res://demo/waterplay/rescue_tasks.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
@@ -149,21 +150,21 @@ func degrees() -> String:
 
 
 static func cost_words(survey: BridgesScript.Survey) -> String:
-	"""What a surveyed bridge costs, e.g. "4.7 U planks and 1.0 U wood for 1 pier"."""
+	"""What a surveyed bridge costs, e.g. "5 planks and a log for 1 pier" (goods_measures.gd: a cost rounds up)."""
 	if survey.kind == Rules.KIND_LOG:
-		return "one %s log" % Rules.units_text(Rules.LOG_WOOD_MILLI)
-	var piers: String = "" if survey.piers == 0 else " and %s wood for %d pier%s" % [Rules.units_text(survey.wood_milli),
+		return Rules.log_words()
+	var piers: String = "" if survey.piers == 0 else " and %s for %d pier%s" % [Measures.need(&"wood", survey.wood_milli),
 		survey.piers, "" if survey.piers == 1 else "s"]
-	return "%s planks%s" % [Rules.units_text(survey.planks_milli), piers]
+	return "%s%s" % [Measures.need(&"planks", survey.planks_milli), piers]
 
 
 static func short_line(survey: BridgesScript.Survey, stores: StoresScript) -> String:
 	"""The stores' refusal, with the way to put it right."""
 	if survey.kind == Rules.KIND_LOG:
-		return "Can't build a log bridge: it needs a %s log -- fell a tree (Woods), or bring wood to the log stack (it holds %s)" % [
-			Rules.units_text(Rules.LOG_WOOD_MILLI), Rules.units_text(stores.wood_milli_u)]
-	return "Can't build a plank footbridge: it needs %s; the stores hold %s planks and %s wood -- saw planks at the sawhorse (Woods)" % [
-		cost_words(survey), Rules.units_text(stores.plank_milli_u), Rules.units_text(stores.wood_milli_u)]
+		return "Can't build a log bridge: it needs %s -- fell a tree (Woods), or bring wood to the log stack (it holds %s)" % [
+			Rules.log_words(), Measures.amount(&"wood", stores.wood_milli_u)]
+	return "Can't build a plank footbridge: it needs %s; the stores hold %s and %s -- saw planks at the sawhorse (Woods)" % [
+		cost_words(survey), Measures.amount(&"planks", stores.plank_milli_u), Measures.amount(&"wood", stores.wood_milli_u)]
 
 
 static func site_answer(plank: BridgesScript.Survey, log_survey: BridgesScript.Survey) -> String:

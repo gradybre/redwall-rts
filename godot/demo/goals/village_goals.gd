@@ -14,7 +14,8 @@ extends RefCounted
 ## the calendar -- and, after Brendan's ruling on decision 0901's question (option (b), 2026-10-01; decision 1651), the
 ## ferry's first crossing and the first regatta day, read off their own latched counts (`ferry`, `regatta`).
 ##
-## A row: [id, group, title, why, what the news says, parts]; a part: [key, label, target, unit, measure kind (M_*)].
+## A row: [id, group, title, why, what the news says, parts]; a part: [key, label, target, unit, measure kind (M_*)],
+## and for a part counted in a good (MILLI) its good's key (goods_measures.gd: "8 baskets" of mixed food, "60 logs").
 
 const BookScript := preload("res://demo/goals/goal_book.gd")
 const LedgerScript := preload("res://demo/goals/goals_ledger.gd")
@@ -91,8 +92,8 @@ const GOALS: Array = [
 		[&"held", "All of these held through winter days 9-11", 1, FLAG, M_NONE]]],
 	[&"harvest_home", VILLAGE, "Harvest home",
 		"Food in store is food the kitchen can cook through the cold months; a crop cut but left lying, or carried but not shelved, is not in store yet.",
-		"40 U of the village's own harvest has been brought into store.",
-		[[&"harvested", "Harvested into store", 40000, MILLI, M_HARVESTED]]],
+		"8 baskets of the village's own harvest have been brought into store.",
+		[[&"harvested", "Harvested into store", 40000, MILLI, M_HARVESTED, &"food"]]],
 	[&"every_dish", VILLAGE, "Every dish on the table",
 		"Porridge wants grain, soup wants roots and the fish stew a catch from the stream: a village that can cook them all is not at the mercy of one crop.",
 		"each of the kitchen's everyday dishes has been cooked.",
@@ -107,8 +108,8 @@ const GOALS: Array = [
 		[[&"food_days", "Ready food of the village's own", 4000, DAYS, M_OWN_FOOD_DAYS]]],
 	[&"winter_wood", VILLAGE, "Wood for the cold",
 		"Every batch the kitchen cooks burns wood, and the tunnels' bracing and lanterns are paid in it: a woodpile laid in before winter keeps the pot on.",
-		"60 U of wood is stacked in store.",
-		[[&"wood", "Wood in store", 60000, MILLI, M_WOOD]]],
+		"60 logs are stacked in store.",
+		[[&"wood", "Wood in store", 60000, MILLI, M_WOOD, &"wood"]]],
 	[&"over_water", VILLAGE, "Over the water",
 		"The stream cuts the village in two. A bridge is the dry way to the far bank, in flood and in ice.",
 		"a bridge stands open over the stream.",
@@ -162,7 +163,8 @@ func register_all(book: BookScript) -> int:
 			var kind: int = int(spec[4])
 			var measure: Callable = value.bind(kind) if kind != M_NONE else Callable()
 			var target: int = Rules.everyday_dish_count() if int(spec[2]) == EVERYDAY_DISHES else int(spec[2])
-			parts.append(BookScript.part(StringName(spec[0]), String(spec[1]), target, int(spec[3]), measure))
+			var good: StringName = StringName(spec[5]) if spec.size() > 5 else &""
+			parts.append(BookScript.part(StringName(spec[0]), String(spec[1]), target, int(spec[3]), measure, good))
 		if book.register(StringName(row[0]), String(row[2]), String(row[3]), parts, int(row[1]), String(row[4])).is_empty():
 			taken += 1
 	return taken

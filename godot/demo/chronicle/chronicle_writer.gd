@@ -32,7 +32,7 @@ extends RefCounted
 
 const RecordScript := preload("res://demo/farm/farm_record.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
-const FarmText := preload("res://demo/farm/farm_text.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const Ledger := preload("res://demo/people/people_ledger.gd")
 const PeopleText := preload("res://demo/people/people_text.gd")
 const BookScript := preload("res://demo/chronicle/chronicle_book.gd")
@@ -228,7 +228,7 @@ func _table_lines(s: int) -> void:
 		if _first(FIRST_FOOD):
 			_lines.append(Text.FIRST_HARVEST)
 		var words: String = Text.HARVEST[Text.pick(seed_value, s, SLOT_HARVEST, Text.HARVEST.size())]
-		_lines.append(Text.capitalised(words % [FarmText.units_text(stored), top_items(s)]))
+		_lines.append(Text.capitalised(words % [Measures.amount(&"food", stored), top_items(s)]))
 	else:
 		_lines.append(Text.HARVEST_NONE)
 	var portions: int = record.season_total(s, RecordScript.F_PORTIONS)
@@ -253,7 +253,8 @@ func _hunger_lines(s: int, portions: int) -> void:
 
 
 func top_items(s: int) -> String:
-	"""'carrot 12.0 U, barley 9.5 U and turnip 6.2 U' -- the season's largest stores by item (and how many more)."""
+	"""'2 baskets of carrots, 9 scoops of barley and 6 turnips' -- the season's largest stores by item, each in its natural
+	measure (goods_measures.gd), and how many more."""
 	var amounts := PackedInt64Array()
 	var kinds: int = 0
 	for item: int in Catalog.PANTRY_ITEM_COUNT:
@@ -265,7 +266,7 @@ func top_items(s: int) -> String:
 		var best: int = 0
 		for item: int in amounts.size():
 			best = item if amounts[item] > amounts[best] else best
-		parts.append("%s %s" % [Catalog.ITEM_LABELS[best].to_lower(), FarmText.units_text(amounts[best])])
+		parts.append(Measures.amount(Catalog.ITEM_KEYS[best], amounts[best]))
 		amounts[best] = -1
 	if kinds > TOP_ITEMS:
 		parts.append(Text.MORE_KINDS % (kinds - TOP_ITEMS))

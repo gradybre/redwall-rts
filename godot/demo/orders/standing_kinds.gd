@@ -7,13 +7,14 @@ extends RefCounted
 ## catalog grows (farm_catalog.gd ITEM_COUNT, ITEM_LABELS) -- so a crop added to the catalog slots in with no change
 ## here. FIREWOOD is the winter's built-in order (decision 0571): listed, never offered to add.
 ##
-## Every amount is integer: milli-U for goods, milli-days for meals (1000 = a day). The numbers below are demo values
-## (decision 0711): the first amount offered, the step of the − and + buttons, the most allowed, the hysteresis BAND,
-## and how many of its jobs an order keeps on the boards at once -- the band and the jobs held at once approved as
-## built by Brendan's rulings of 2026-10-01.
+## Every amount is integer: milli-U for goods, milli-days for meals (1000 = a day). A good's amount is worded in its
+## natural measure (goods_measures.gd; decisions 1011, 1801): "Keep 20 planks", "Keep 2 baskets of carrots". The
+## numbers below are demo values (decision 0711): the first amount offered, the step of the − and + buttons, the most
+## allowed, the hysteresis BAND, and how many of its jobs an order keeps on the boards at once -- the band and the jobs
+## held at once approved as built by Brendan's rulings of 2026-10-01.
 
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
-const FarmText := preload("res://demo/farm/farm_text.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const KitchenText := preload("res://demo/kitchen/kitchen_text.gd")
 const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 
@@ -41,7 +42,7 @@ const STEP: Array[int] = [5000, 10000, 500, 5000, 0]
 const MAX_AMOUNT: Array[int] = [200000, 400000, 10000, 100000, 0]
 ## THE BAND (hysteresis): an order starts working when its good falls BELOW its amount, and stops raising work once the
 ## good and the work under way reach the amount plus the band; it is satisfied again at amount plus band. One saw
-## batch for planks, a large deadfall pile for wood, one meal for the village's meals, a unit of a crop.
+## batch for planks, a large deadfall pile for wood, one meal for the village's meals, 1000 milli-U of a crop.
 const BAND: Array[int] = [ForestRules.SAW_BATCH_MILLI, ForestRules.DEADFALL_MAX_MILLI, 500, 1000, 0]
 ## How many of its jobs an order keeps on the boards at once (the Firewood's one at a time is decision 0571's).
 const MAX_JOBS: Array[int] = [2, 2, 3, 3, 1]
@@ -78,15 +79,35 @@ static func good_name(kind: int, item: int) -> String:
 	return GOOD_WORDS[kind] if is_kind(kind) else "?"
 
 
-static func amount_text(kind: int, amount: int) -> String:
-	"""An amount in the kind's unit, as the player reads it: "20.0 U", "3.0 days"."""
+static func good_key(kind: int, item: int) -> StringName:
+	"""The good an order of `kind` keeps, as goods_measures.gd knows it: &"planks", &"wood" (the Firewood's too), a
+	crop's own key (farm_catalog.gd ITEM_KEYS); &"" for the meals, which are counted in days."""
+	match kind:
+		KIND_PLANKS: return &"planks"
+		KIND_WOOD, KIND_FIREWOOD: return &"wood"
+		KIND_CROP: return Catalog.ITEM_KEYS[item] if Catalog.is_item(item) else &""
+	return &""
+
+
+static func amount_text(kind: int, amount: int, item: int = NO_ITEM) -> String:
+	"""An amount of the kind's good in a sentence: "20 planks", "2 baskets of carrots", "no wood" (rounded down: what is
+	there or coming), "3.0 days" for the meals."""
 	if is_kind(kind) and UNITS[kind] == UNIT_MILLI_DAYS:
 		return KitchenText.days_value(amount)
-	return FarmText.units_text(maxi(amount, 0))
+	return Measures.amount(good_key(kind, item), maxi(amount, 0))
+
+
+static func target_text(kind: int, amount: int, item: int = NO_ITEM) -> String:
+	"""An amount the player set (or a rule's: a step, the most allowed), unrounded: "20 planks", "3.0 days"."""
+	if is_kind(kind) and UNITS[kind] == UNIT_MILLI_DAYS:
+		return KitchenText.days_value(amount)
+	return Measures.exact(good_key(kind, item), maxi(amount, 0))
 
 
 static func title(kind: int, item: int, amount: int) -> String:
-	"""The order as the player gave it: "Keep 20.0 U of planks", "Keep 3.0 days of meals"."""
+	"""The order as the player gave it: "Keep 20 planks", "Keep 2 baskets of carrots", "Keep 3.0 days of meals"."""
 	if kind == KIND_FIREWOOD:
 		return "Firewood for the winter"
-	return "Keep %s of %s" % [amount_text(kind, amount), good_name(kind, item)]
+	if is_kind(kind) and UNITS[kind] == UNIT_MILLI_DAYS:
+		return "Keep %s of %s" % [target_text(kind, amount), good_name(kind, item)]
+	return "Keep %s" % target_text(kind, amount, item)

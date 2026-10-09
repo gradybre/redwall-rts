@@ -21,7 +21,7 @@ const STEP_TEACH: Array[String] = [
 ]
 const STEP_CONFIRM: Array[String] = [
 	"%s is selected. The Demo party panel (left) shows what they are doing, their skills and what you can order them to do.",
-	"%s of %s came into store. The Pantry (K) shows every lot and when it spoils.",
+	"%s came into store. The Pantry (K) shows every lot and when it spoils.",
 	"%s. The village ate what it grew.",
 	"%s",
 ]
@@ -47,7 +47,7 @@ const NEXT_SELECT_LIST: String = "Open Residents (L) and click a row to select a
 const RIPE_BED: String = "The %s is ripe."
 const NEXT_HARVEST: String = "Select a resident and right-click the bed, or click the bed and press Harvest."
 const HARVEST_UNDER_WAY: String = "Under way: %s is harvesting the %s."
-const DELIVERY_UNDER_WAY: String = "Under way: %s is carrying %s of %s to store."
+const DELIVERY_UNDER_WAY: String = "Under way: %s is carrying %s to store."
 const NEXT_WAIT_DELIVERY: String = "It counts once it is shelved. Speed time up (2x, 4x) to see it sooner."
 const STORE_FULL: String = "No store has room for the harvest: the crop stands uncut."
 const NEXT_MAKE_ROOM: String = "Open the Pantry (K): compost spoiled food, or rack a root cellar (Dig tool, C)."

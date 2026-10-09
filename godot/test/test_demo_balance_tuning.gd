@@ -18,7 +18,6 @@ const StorageScript := preload("res://demo/farm/farm_storage.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const FieldGuideScript := preload("res://demo/guide/field_guide.gd")
-const FarmText := preload("res://demo/farm/farm_text.gd")
 const WHEAT: int = 13
 
 var _read: IntMath.IntResult = IntMath.IntResult.new()
@@ -267,7 +266,7 @@ func test_the_rations_dried_fish_is_one_batch_s_and_nothing_else_is_kept() -> vo
 	assert_equal(Recipes.input_milli(Recipes.R_RATION, Catalog.CAT_HONEY), 0, "none of what it does not take")
 	var guide := FieldGuideScript.new()
 	var uses: String = guide.entry(guide.index_of(FieldGuideScript.item_id(Catalog.ITEM_DRIED_FISH))).uses
-	assert_true(uses.contains("all but the %s a batch of rations takes" % FarmText.units_text(dried)), uses)
+	assert_true(uses.contains("all but what a batch of rations takes (a string of dried fish)."), uses)
 
 
 func test_the_dried_fish_is_kept_only_while_rations_wait_on_it_alone() -> void:

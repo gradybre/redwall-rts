@@ -12,8 +12,8 @@ extends RefCounted
 ## RESTART builds the fixture again from nothing: every run of a choice from the same start gives the same story.
 ##
 ## THE STORIES (fixture values below are the story's own, said in its text; the rules are the demo's):
-##   CROSSING  Two felled oaks lie across the stream: 24 U of logs for the log stack, a crew of three carrying 6 U a
-##             trip. Swim them over (refused: a loaded resident never swims -- swim_rules.gd), carry them round by the
+##   CROSSING  Two felled oaks lie across the stream: 24 logs for the log stack, a crew of three each carrying 6 logs
+##             a trip. Swim them over (refused: a loaded resident never swims -- swim_rules.gd), carry them round by the
 ##             ford (wading at WADE_PERMILLE, carrying at the brain's CARRY_WALK_FRACTION), or build a plank
 ##             footbridge at the neck first (bridges.gd's own survey and cost; the bridgewright's work rate).
 ##   DELIVERY  A ripe carrot bed and a covered store with no room (farm_pantry.gd's room rule, decision 0222): leave
@@ -27,7 +27,7 @@ const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
 const SimScript := preload("res://demo/farm/farm_sim.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
-const FarmText := preload("res://demo/farm/farm_text.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const Rules := preload("res://demo/kitchen/meal_rules.gd")
 const StockAge := preload("res://scripts/core/stock_age.gd")
 const SwimRules := preload("res://demo/waterplay/swim_rules.gd")
@@ -48,9 +48,9 @@ const STORY_PANTRY: int = 2
 const STORY_COUNT: int = 3
 const TITLES: Array[String] = ["A loaded crew at the stream", "A delivery with nowhere to go", "A winter pantry"]
 const SITUATIONS: Array[String] = [
-	"Two oaks were felled across the stream: 24 U of logs must reach the log stack. A crew of three carries 6 U a trip. How do they bring it over?",
+	"Two oaks were felled across the stream: 24 logs must reach the log stack. A crew of three carries 6 logs each a trip. How do they bring it over?",
 	"The carrot bed is ripe, but the covered store is full to the roof. A harvest is never cut with nowhere to go. What do you do?",
-	"A household of four lays in its last harvest on Autumn 1: 150 U of roots and 100 U of oats. Nothing grows again until spring, 24 days away. Where do the roots go?",
+	"A household of four lays in its last harvest on Autumn 1: 30 baskets of carrots and 5 sacks of oats. Nothing grows again until spring, 24 days away. Where do the carrots go?",
 ]
 const CHOICES: Array = [
 	["Swim the logs over", "Carry them round by the ford", "Build a plank footbridge first"],
@@ -77,6 +77,8 @@ const SKILL_PERMILLE_PER_LEVEL: int = 50
 const STORE_FILL_ITEM: int = 15
 const CARROT_BED: int = 2
 const CARROT: int = 2
+## The carrot's good (farm_catalog.gd ITEM_KEYS[CARROT]), for its amounts in natural measures (goods_measures.gd).
+const CARROT_KEY: StringName = &"carrot"
 const WAIT_HOURS: int = 72
 const RIPEN_LIMIT_HOURS: int = 400
 const COOK_ROOM_MILLI: int = 10000
@@ -85,6 +87,8 @@ const CELLAR_CAPACITY_U: int = 30
 const HOUSEHOLD: int = 4
 const ROOTS_ITEM: int = 2
 const OATS_ITEM: int = 15
+## The household's roots are carrots (ROOTS_ITEM is farm_catalog.gd's carrot).
+const ROOTS_KEY: StringName = &"carrot"
 const ROOTS_MILLI: int = 150000
 const OATS_MILLI: int = 100000
 const DAYS: int = 24
@@ -161,15 +165,16 @@ func _run_crossing(which: int, lines: PackedStringArray) -> String:
 	var stack: Vector2 = Yard.log_stack_at()
 	var rounds: int = ceili(float(LOGS_MILLI) / float(LOAD_MILLI * CREW))
 	if which == 0:
-		lines.append("The crew walks down the bank with 6 U of logs each and stops at the water: a loaded resident never swims.")
+		lines.append("The crew walks down the bank with %s each and stops at the water: a loaded resident never swims." %
+			Measures.exact(&"wood", LOAD_MILLI))
 		lines.append("Nothing crossed. The logs still lie on the far bank.")
-		return "refused at the water -- 0 U delivered"
+		return "refused at the water -- %s delivered" % Measures.amount(&"wood", 0)
 	if which == 1:
 		var trip_s: float = _ford_round_s(map, pile, stack)
 		@warning_ignore("integer_division") lines.append("Each round trip by the ford: %s (wading at %d%% pace, carrying at %d%%)." % [
 			CardScript.hours_text(int(trip_s * 1.0e6)), SwimRules.WADE_PERMILLE / 10, int(BrainScript.CARRY_WALK_FRACTION * 100.0)])
-		lines.append("%d rounds for %s: %s in all." % [rounds, FarmText.units_text(LOGS_MILLI), CardScript.hours_text(int(trip_s * rounds * 1.0e6))])
-		return "%s delivered, %s" % [FarmText.units_text(LOGS_MILLI), CardScript.hours_text(int(trip_s * rounds * 1.0e6))]
+		lines.append("%d rounds for %s: %s in all." % [rounds, Measures.amount(&"wood", LOGS_MILLI), CardScript.hours_text(int(trip_s * rounds * 1.0e6))])
+		return "%s delivered, %s" % [Measures.amount(&"wood", LOGS_MILLI), CardScript.hours_text(int(trip_s * rounds * 1.0e6))]
 	return _bridge_first(bridges, neck, pile, stack, rounds, lines)
 
 
@@ -188,17 +193,17 @@ func _bridge_first(bridges: BridgesScript, neck: PackedVector2Array, pile: Vecto
 	var survey := BridgesScript.Survey.new()
 	if not bridges.survey_candidate_into(0, SwimRules.KIND_PLANK, survey) or survey.planks_milli > PLANKS_IN_STORE_MILLI:
 		lines.append("No footbridge can be built at the neck: %s." % survey.reason)
-		return "no bridge -- 0 U delivered"
+		return "no bridge -- %s delivered" % Measures.amount(&"wood", 0)
 	var build_usec: int = _build_usec(survey)
 	var trip_s: float = _bridge_round_s(neck, pile, stack)
-	lines.append("The bridgewright builds a %s footbridge at the neck: %s of planks, %s of work." % [
-		"%.1f m" % (float(survey.deck_u) / 1024.0), FarmText.units_text(survey.planks_milli), CardScript.hours_text(build_usec)])
+	lines.append("The bridgewright builds a %s footbridge at the neck: %s, %s of work." % [
+		"%.1f m" % (float(survey.deck_u) / 1024.0), Measures.need(&"planks", survey.planks_milli), CardScript.hours_text(build_usec)])
 	lines.append("Each round trip over it: %s, dry and at full carrying pace." % CardScript.hours_text(int(trip_s * 1.0e6)))
 	var total: int = build_usec + int(trip_s * rounds * 1.0e6)
 	lines.append("%d rounds for %s: %s in all, the building included. The bridge stays." % [rounds,
-		FarmText.units_text(LOGS_MILLI), CardScript.hours_text(total)])
-	return "%s delivered, %s with the building; %s of planks spent" % [FarmText.units_text(LOGS_MILLI),
-		CardScript.hours_text(total), FarmText.units_text(survey.planks_milli)]
+		Measures.amount(&"wood", LOGS_MILLI), CardScript.hours_text(total)])
+	return "%s delivered, %s with the building; %s spent" % [Measures.amount(&"wood", LOGS_MILLI),
+		CardScript.hours_text(total), Measures.need(&"planks", survey.planks_milli)]
 
 
 static func _build_usec(survey: BridgesScript.Survey) -> int:
@@ -243,8 +248,8 @@ func _run_delivery(which: int, lines: PackedStringArray) -> String:
 	var pantry := PantryScript.new(StorageScript.new(Vector2.ZERO))
 	var fill: bool = pantry.add_into(STORE_FILL_ITEM, StorageScript.STORE_CAPACITY_U * 1000, 0, _read)
 	var crop: int = _read.value if sim.expected_yield_into(CARROT_BED, _read) else 0
-	lines.append("The carrot bed is ripe: %s expected. The covered store holds %s of oats%s." % [
-		FarmText.units_text(crop), FarmText.units_text(pantry.total_milli()), "" if fill else " (could not fill)"])
+	lines.append("The carrot bed is ripe: %s expected. The covered store holds %s%s." % [
+		Measures.amount(CARROT_KEY, crop), Measures.amount(&"oats", pantry.total_milli()), "" if fill else " (could not fill)"])
 	if which == 0:
 		return _wait_standing(sim, crop, lines)
 	if which == 1:
@@ -254,7 +259,7 @@ func _run_delivery(which: int, lines: PackedStringArray) -> String:
 			"capacity_u": CELLAR_CAPACITY_U, "spoilage_permille": StockAge.STORE_FACTOR[StockAge.STORAGE_CELLAR],
 			"label": "Root cellar"}])
 		pantry.refresh_locations()
-		lines.append("A root cellar is dug and racked: %d U of shelves." % CELLAR_CAPACITY_U)
+		lines.append("A root cellar is dug and racked: shelves for %s." % Measures.exact(&"food", CELLAR_CAPACITY_U * 1000))
 	return _deliver(pantry, crop, lines)
 
 
@@ -272,8 +277,9 @@ func _wait_standing(sim: SimScript, crop: int, lines: PackedStringArray) -> Stri
 	var standing: bool = sim.stage_of(CARROT_BED) == SimScript.STAGE_RIPE
 	var now: int = _read.value if standing and sim.expected_yield_into(CARROT_BED, _read) else 0
 	lines.append("Three days on, nobody has made room. The crop still stands, %s." % (
-		"now %s" % FarmText.units_text(now) if now > 0 else "withered"))
-	return "0 U stored; the crop fell from %s to %s" % [FarmText.units_text(crop), FarmText.units_text(now)]
+		"now %s" % Measures.amount(CARROT_KEY, now) if now > 0 else "withered"))
+	return "nothing stored; the crop fell from %s to %s" % [Measures.amount(CARROT_KEY, crop),
+		Measures.amount_cell(CARROT_KEY, now)]
 
 
 func _cook_room(pantry: PantryScript, lines: PackedStringArray) -> void:
@@ -287,15 +293,15 @@ func _cook_room(pantry: PantryScript, lines: PackedStringArray) -> void:
 		var take: int = mini(left, pantry.lot_milli(lot))
 		if pantry.withdraw_into(lot, pantry.lot_serial(lot), take, _read):
 			left -= take
-	@warning_ignore("integer_division") lines.append("The kitchen cooks %s of oats into porridge (%d portions): that much room is free." % [
-		FarmText.units_text(COOK_ROOM_MILLI - left), (COOK_ROOM_MILLI - left) / Rules.INPUT_MILLI[Rules.DISH_PORRIDGE] * 2])
+	@warning_ignore("integer_division") lines.append("The kitchen cooks %s into porridge (%d portions): that much room is free." % [
+		Measures.amount(&"oats", COOK_ROOM_MILLI - left), (COOK_ROOM_MILLI - left) / Rules.INPUT_MILLI[Rules.DISH_PORRIDGE] * 2])
 
 
 func _deliver(pantry: PantryScript, crop: int, lines: PackedStringArray) -> String:
 	"""The harvest reserves its room, is cut, carried and shelved (a real reservation and delivery)."""
 	if not pantry.reserve_near_into(CARROT, crop, Vector2.ZERO, _read):
-		lines.append("Still no room for %s: the crop stands." % FarmText.units_text(crop))
-		return "0 U stored"
+		lines.append("Still no room for %s: the crop stands." % Measures.amount(CARROT_KEY, crop))
+		return "nothing stored"
 	var hold: int = _read.value
 	pantry.hold_location_into(hold, _read)
 	var where: int = _read.value
@@ -303,8 +309,8 @@ func _deliver(pantry: PantryScript, crop: int, lines: PackedStringArray) -> Stri
 	pantry.release(hold)
 	@warning_ignore("integer_division") var hours: int = Catalog.shelf_hours_of(CARROT) * 1000 / pantry.storage.permille_of(where)
 	lines.append("The carrots are cut, carried and shelved in the %s: %s, keeping about %d hours there." % [
-		pantry.storage.label_of(where).to_lower(), FarmText.units_text(_read.value), hours])
-	return "%s stored in the %s" % [FarmText.units_text(_read.value), pantry.storage.label_of(where).to_lower()]
+		pantry.storage.label_of(where).to_lower(), Measures.amount(CARROT_KEY, _read.value), hours])
+	return "%s stored in the %s" % [Measures.amount(CARROT_KEY, _read.value), pantry.storage.label_of(where).to_lower()]
 
 
 # --- PANTRY ------------------------------------------------------------------------------------------
@@ -322,13 +328,14 @@ func _run_pantry(which: int, lines: PackedStringArray) -> String:
 	if in_cellar > 0:
 		pantry.add_into(ROOTS_ITEM, in_cellar, 1, _read)
 	pantry.add_into(OATS_ITEM, OATS_MILLI, 0, _read)
-	lines.append("Laid in: %s of carrots in the covered store, %s in the cellar, %s of oats." % [
-		FarmText.units_text(ROOTS_MILLI - in_cellar), FarmText.units_text(in_cellar), FarmText.units_text(OATS_MILLI)])
+	lines.append("Laid in: %s in the covered store, %s in the cellar, %s." % [
+		Measures.amount(ROOTS_KEY, ROOTS_MILLI - in_cellar), Measures.amount_cell(ROOTS_KEY, in_cellar),
+		Measures.amount(&"oats", OATS_MILLI)])
 	var short_days: int = 0
 	for day: int in DAYS:
 		short_days += 1 if _eat_day(pantry, day, lines) else 0
 		_age_day(pantry, AUTUMN if day < SimClock.DAYS_PER_SEASON else WINTER, day, lines)
-	return "%d of %d days fed in full; %s spoiled" % [DAYS - short_days, DAYS, FarmText.units_text(pantry.spoiled_milli)]
+	return "%d of %d days fed in full; %s spoiled" % [DAYS - short_days, DAYS, Measures.amount(&"food", pantry.spoiled_milli)]
 
 
 func _eat_day(pantry: PantryScript, day: int, lines: PackedStringArray) -> bool:
@@ -353,7 +360,7 @@ func _age_day(pantry: PantryScript, season: int, day: int, lines: PackedStringAr
 	for hour: int in SimClock.HOURS_PER_DAY:
 		pantry.age_hour(season)
 	if pantry.spoiled_milli > before:
-		lines.append("%s: %s of food spoiled in store." % [_day_text(day), FarmText.units_text(pantry.spoiled_milli - before)])
+		lines.append("%s: %s spoiled in store." % [_day_text(day), Measures.amount(&"food", pantry.spoiled_milli - before)])
 
 
 static func _food_of(pantry: PantryScript, dish: int) -> int:

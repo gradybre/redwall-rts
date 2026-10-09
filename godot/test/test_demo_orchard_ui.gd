@@ -144,7 +144,10 @@ func test_the_field_guide_has_an_entry_for_each_orchard_good() -> void:
 		var all: String = entry.uses + entry.requires + entry.alternatives + entry.here
 		assert_equal(entry.title, Catalog.ITEM_LABELS[item], "titled")
 		assert_true(all.contains("%d game hours" % Catalog.shelf_hours_of(item)), "%s keeps its hours" % entry.title)
-		assert_true(all.contains("%d NP a unit" % MealRules.raw_np_per_u(item)), "%s: its raw NP" % entry.title)
+		if item == Catalog.ITEM_BERRIES:
+			assert_true(all.contains("(700 NP for a bowl of berries)"), "berries: raw NP a bowl (decision 1801)")
+		else:
+			assert_true(all.contains("%d NP a unit" % MealRules.raw_np_per_u(item)), "%s: its raw NP" % entry.title)
 		if item == Catalog.ITEM_BERRIES:
 			assert_true(entry.here.contains("berry hedge"), "the forage entry names the hedge too: " + entry.here)
 		else:

@@ -3,44 +3,35 @@ extends "res://test/framework/test_case.gd"
 ## funding, the modular Router and Inventory's spatial endpoint arena. Each is captured from the live
 ## entry chain while it holds state, refused on damage without a write, and restored exactly, with
 ## the derived indexes rebuilt.
+##
+## The state is the committed `underground_entry` checkpoint at its first funded BRACE after tick 2000
+## (decision 1240): loaded through the real save loader instead of replaying the chain from tick 0
+## before every test. `test_checkpoint_equivalence.gd` proves it equals that replay.
 
-const Chain := preload("res://test/fixtures/underground_entry_chain.gd")
+const AutoloadClockReset := preload("res://test/fixtures/autoload_clock_reset.gd")
+const Recipes := preload("res://test/fixtures/checkpoint_recipes.gd")
+const Store := preload("res://test/fixtures/checkpoint_store.gd")
 const Settlement := preload("res://scripts/systems/settlement_system.gd")
 const Session := preload("res://scripts/core/underground_session.gd")
 const Inventory := preload("res://scripts/core/inventory.gd")
-
-## A tick by which the crew has hauled and the first paid phases hold Sites, funding and Router state.
-const MID_CHAIN_TICK: int = 2000
-const EARNING: int = 4 # The foreman's STAGE_EARN: a funded phase is being worked.
 
 var _host: Node = null
 
 
 func before_each() -> void:
-	"""A mounted settlement whose first entry has run to MID_CHAIN_TICK."""
+	"""A mounted settlement whose first entry has hauled and is working a paid BRACE (DEC-059: phases
+	are short, so this is the first BRACE in progress after tick 2000; its funding receipts are held)."""
 	_host = Settlement.new()
-	var content: Chain.Content = Chain.load_content()
-	assert_true(content != null, "the production actor image loads")
-	assert_equal(Chain.mount_and_compose(_host, content), &"", "mounted and composed")
-	assert_equal(Chain.begin_entry(_host), &"", "the entry begins")
-	var tick: int = Chain.run_ticks(_host, 1, MID_CHAIN_TICK)
-	assert_true(tick > 0, "the chain runs")
-	# DEC-059: phases are short; carry on to the next paid BRACE in progress, so funding receipts are held.
-	while tick > 0 and tick < MID_CHAIN_TICK + 2000 and not _bracing():
-		tick = Chain.run_ticks(_host, tick, tick)
-	assert_true(_bracing(), "a paid brace is in progress")
-
-
-func _bracing() -> bool:
-	"""The foreman is working a funded BRACE phase (its inputs hold funding receipts)."""
-	var foreman: RefCounted = _host.underground_entry()._foreman
-	return foreman._stage == EARNING and foreman._tasks[foreman._index].operation == foreman.Contract.OP_BRACE
+	assert_equal(Store.load_into(_host, GameManager, Recipes.UNDERGROUND, Recipes.BRACE_POINT,
+		Recipes.underground_content()), "", "the checkpoint loads")
+	assert_true(Recipes.is_bracing(_host), "a paid brace is in progress")
 
 
 func after_each() -> void:
-	"""Free the host."""
+	"""Free the host; leave the autoload as the other suites expect it."""
 	_host.free()
 	_host = null
+	assert_true(AutoloadClockReset.release(), "the autoload is handed back at tick 0")
 
 
 func _owners() -> Session.Retirement.Owners:

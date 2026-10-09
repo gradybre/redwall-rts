@@ -596,6 +596,20 @@ func test_loading_at_home_lists_this_crossing_and_no_departure_due_while_it_is_o
 	rig.ferry.x_serial = 0
 
 
+func test_a_departure_the_crossing_under_way_may_still_be_out_for_is_not_listed() -> void:
+	"""The third review's finding (decision 1821): at 08:48, loading at home, the 10:00 departure is 900 ticks off. The
+	rows alone (760) would be home before it, but the calls at each stage take longer (home really at about 1020), so it
+	may never be posted: the next listed at home is 12:00 (2400)."""
+	var rig: Rig = _rig(9)
+	_helm(rig, 4, 2)
+	rig.calendar.tick -= 150
+	_underway(rig, FerryScript.NEAR, FerryScript.X_LOADING, FleetScript.PHASE_MOORED, 0)
+	var near: PackedInt64Array = _boardings(_filled(rig, 2), FerryScript.NEAR)
+	assert_equal(near.slice(0, 2), PackedInt64Array([0, 2400]), "now, then 12:00 -- not 10:00 (900)")
+	_underway(rig, FerryScript.NEAR, FerryScript.X_NONE, FleetScript.PHASE_MOORED, 0)
+	rig.ferry.x_serial = 0
+
+
 func test_rowing_home_lists_nothing_of_this_crossing_and_no_departure_before_it_is_home() -> void:
 	"""At 09:40, rowing home with its whole row (380) still to go: it loads nowhere again, and the 10:00 departure (250
 	ticks off) falls while it is out, so both stages' first boarding is the 12:00 crossing (1750; the far stage 2130)."""
@@ -617,22 +631,23 @@ func test_rowing_home_lists_nothing_of_this_crossing_and_no_departure_before_it_
 
 
 func test_each_state_of_a_crossing_under_way_boards_where_it_still_loads_and_is_home_when_its_rows_are_done() -> void:
-	"""At 09:00 (row 380; half the course 190), per state: when it next loads at home and at the far stage (-1: not
-	again) and how soon it can be home. Posted with no crew yet: from the 10:00 departure (750). Homeward and stepping
-	off, nowhere and now; at the far stage, there now and home a row on; none under way, nowhere and now."""
+	"""At 09:00 (row 380; half the course 190; a deck walk 165; a stop 480: two deck walks and a full boat's 12 U
+	handled at 80 mWU a tick), per state: when it next loads at home and at the far stage (-1: not again) and by when it
+	is surely home -- the crew's walk and boarding, the rows and a whole stop at each stage still to call at. Posted with
+	no crew yet: from the 10:00 departure (750). None under way: nowhere, and home now."""
 	var rig: Rig = _rig(9)
 	_helm(rig, 4, 2)
 	var full: int = rig.fishery.fleet.course_len_u[Routes.FERRY_BOAT]
 	@warning_ignore("integer_division") var half: int = full / 2
 	var cases: Array = [
-		[FerryScript.NEAR, FerryScript.X_WAITING, FleetScript.PHASE_MOORED, 0, 750, 1130, 1510],
-		[FerryScript.NEAR, FerryScript.X_LOADING, FleetScript.PHASE_MOORED, 0, 0, 380, 760],
-		[FerryScript.NEAR, FerryScript.X_UNLOADING, FleetScript.PHASE_MOORED, 0, -1, -1, 0],
-		[FerryScript.NEAR, FerryScript.X_HOMING, FleetScript.PHASE_MOORED, 0, -1, -1, 0],
-		[FerryScript.FAR, FerryScript.X_ROWING, FleetScript.PHASE_OUT, half, -1, 190, 570],
-		[FerryScript.FAR, FerryScript.X_UNLOADING, FleetScript.PHASE_ON_STATION, full, -1, 0, 380],
-		[FerryScript.FAR, FerryScript.X_LOADING, FleetScript.PHASE_ON_STATION, full, -1, 0, 380],
-		[FerryScript.NEAR, FerryScript.X_ROWING, FleetScript.PHASE_BACK, half, -1, -1, 190]]
+		[FerryScript.NEAR, FerryScript.X_WAITING, FleetScript.PHASE_MOORED, 0, 750, 1130, 2 * 750 + 165 + 760 + 960],
+		[FerryScript.NEAR, FerryScript.X_LOADING, FleetScript.PHASE_MOORED, 0, 0, 380, 760 + 960],
+		[FerryScript.NEAR, FerryScript.X_UNLOADING, FleetScript.PHASE_MOORED, 0, -1, -1, 480],
+		[FerryScript.NEAR, FerryScript.X_HOMING, FleetScript.PHASE_MOORED, 0, -1, -1, 165],
+		[FerryScript.FAR, FerryScript.X_ROWING, FleetScript.PHASE_OUT, half, -1, 190, 190 + 380 + 960],
+		[FerryScript.FAR, FerryScript.X_UNLOADING, FleetScript.PHASE_ON_STATION, full, -1, 0, 380 + 960],
+		[FerryScript.FAR, FerryScript.X_LOADING, FleetScript.PHASE_ON_STATION, full, -1, 0, 380 + 960],
+		[FerryScript.NEAR, FerryScript.X_ROWING, FleetScript.PHASE_BACK, half, -1, -1, 190 + 480]]
 	var now: int = rig.ferry.now_tick()
 	for c: Array in cases:
 		_underway(rig, c[0], c[1], c[2], c[3])
@@ -645,21 +660,19 @@ func test_each_state_of_a_crossing_under_way_boards_where_it_still_loads_and_is_
 
 
 func test_rowing_home_the_boat_boards_nobody_at_home() -> void:
-	"""At home a crossing loads only setting out: loading there, a passenger boards now; rowing home (it only unloads
-	there), the wait at home is the next departure, not the row; rowing out to the far stage, the far stage waits a
-	row."""
+	"""At home a crossing loads only setting out: loading there, a passenger boards now; rowing home, all but moored (it
+	only unloads there), the wait at home is the next departure it is surely home for (10:00), not the row; rowing out
+	to the far stage from the berth, the far stage waits a row."""
 	var rig: Rig = _rig(9)
 	_helm(rig, 4, 2)
-	rig.ferry.x_serial = 7
-	rig.ferry.x_stage = FerryScript.NEAR
-	rig.ferry.x_state = FerryScript.X_LOADING
+	_underway(rig, FerryScript.NEAR, FerryScript.X_LOADING, FleetScript.PHASE_MOORED, 0)
 	assert_equal(rig.ferry.wait_ticks(FerryScript.NEAR), 0, "loading at home: now")
-	rig.ferry.x_state = FerryScript.X_ROWING
+	_underway(rig, FerryScript.NEAR, FerryScript.X_ROWING, FleetScript.PHASE_BACK, 0)
 	assert_equal(rig.ferry.wait_ticks(FerryScript.NEAR), SimClock.TICKS_PER_HOUR, "rowing home: the 10:00 departure")
-	rig.ferry.x_stage = FerryScript.FAR
+	_underway(rig, FerryScript.FAR, FerryScript.X_ROWING, FleetScript.PHASE_OUT, 0)
 	assert_equal(rig.ferry.wait_ticks(FerryScript.FAR), 380, "rowing out: the row")
+	_underway(rig, FerryScript.NEAR, FerryScript.X_NONE, FleetScript.PHASE_MOORED, 0)
 	rig.ferry.x_serial = 0
-	rig.ferry.x_state = FerryScript.X_NONE
 
 
 func test_a_seat_booked_at_a_stage_offers_the_next_boarding_there() -> void:

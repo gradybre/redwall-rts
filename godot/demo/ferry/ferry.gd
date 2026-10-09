@@ -1305,22 +1305,43 @@ func _underway_board(stage: int) -> int:
 
 
 func _home_again(now: int) -> int:
-	"""The earliest tick the crossing under way can be home to take a scheduled departure (none under way: `now`): the
-	rest of its round trip -- the crew's walk, the rows still to row. A departure due while it is out is not posted
-	(`_follow_timetable`). A lower bound: loading and unloading take a little longer still."""
+	"""A tick the crossing under way is surely home again by, to take a scheduled departure (none under way: `now`): the
+	rest of its round trip -- the crew's walk and boarding, the rows still to row, and a whole STOP at each stage still to
+	call at (`_stop_ticks`). A departure due while it is out is not posted (`_follow_timetable`), so this errs late: a
+	departure it hides is only a later boat priced, never a boat that does not come. The crew's walk to the stage is
+	reckoned at twice its straight line (`_crew_walk_ticks`, a straight line): a crew detouring further than that is the
+	one case it can still be early in, and a passenger then waits for the next departure or goes by land at the stage."""
 	if x_serial == 0:
 		return now
 	var row: int = _row_ticks()
+	var stop: int = _stop_ticks()
 	match x_state:
 		X_WAITING:
-			return now + _crew_walk_ticks() + 2 * row
-		X_LOADING, X_UNLOADING:
-			if x_stage == NEAR:
-				return now + (2 * row if x_state == X_LOADING else 0)
-			return now + row
+			return now + 2 * _crew_walk_ticks() + _deck_ticks() + 2 * row + 2 * stop
+		X_LOADING:
+			return now + (2 * row + 2 * stop if x_stage == NEAR else row + 2 * stop)
+		X_UNLOADING:
+			return now + (stop if x_stage == NEAR else row + 2 * stop)
 		X_ROWING:
-			return now + _row_left_ticks() + (row if x_stage == FAR else 0)
+			return now + _row_left_ticks() + (row + 2 * stop if x_stage == FAR else stop)
+		X_HOMING:
+			return now + _deck_ticks()
 	return now
+
+
+func _stop_ticks() -> int:
+	"""An upper bound on a call at a stage, in ticks: riders stepping off and on (two deck walks) and a full boat's cargo
+	handled at the slowest work rate (level 0: fishery_rules.gd MWU_PER_TICK)."""
+	var handle: int = Rules.handle_mwu(Rules.BOAT_CARGO_MILLI)
+	@warning_ignore("integer_division") var handle_ticks: int = (handle + FisheryRules.MWU_PER_TICK - 1) / FisheryRules.MWU_PER_TICK
+	return 2 * _deck_ticks() + handle_ticks
+
+
+func _deck_ticks() -> int:
+	"""Ticks to walk the ferry stage's deck (Rules.DECK_WALK_MM_S), rounded up."""
+	var deck_u: int = Routes.leg_length_u(Routes.JETTY_LANDS_U[STAGE_JETTY[NEAR]], Routes.JETTY_ENDS_U[STAGE_JETTY[NEAR]])
+	@warning_ignore("integer_division") var deck_mm: int = deck_u * BoatRows.MM_PER_M / WaterRules.UNITS_PER_M
+	return BoatRows.ticks_to_cover(deck_mm, Rules.DECK_WALK_MM_S)
 
 
 func _first_departure(now: int) -> int:

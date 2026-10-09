@@ -29,6 +29,10 @@ const COMMIT: int = 2
 const PRODUCTIVE: int = 3
 ## Prepare before payment; a connector may publish its prepared workpiece after paid start.
 const START: int = 4
+## Reuse the existing synchronous publication tuple; these are not saved phase or economic actions.
+const PAUSE_PREPARE: int = 5
+const PAUSE_RELEASE: int = 6
+const PAUSE_DONE: int = 7
 
 class Quote extends RefCounted:
 	## Two or three component-owned reusable quotes suffice; no entity owns one.
@@ -199,6 +203,10 @@ class Owner extends RefCounted:
 
 	func final_funding_refusal(_project: Vector2i, _action: int) -> StringName:
 		"""Connector-only final source/contact proof after observers and before irreversible payment."""
+		return REFUSE_AUTHORITY
+
+	func pause_release(_project: Vector2i) -> StringName:
+		"""An actual connector must recover its source before releasing workers; base cannot grant that operation."""
 		return REFUSE_AUTHORITY
 
 	func discard_transition(_project: Vector2i, _action: int) -> void:

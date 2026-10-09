@@ -76,6 +76,24 @@ class ShardGuards(unittest.TestCase):
                             next(i for i, group in enumerate(plan["shards"]) if "test_b.gd" in group))
         self.assertEqual(plan["estimated_usec"], [1100, 1000])
 
+    def test_tiers_partition_the_corpus_and_default_to_all_fast(self) -> None:
+        # Decision 1240: no slow_suites.json means everything is fast; with one, fast + slow == corpus, disjoint.
+        self.assertEqual(shards.tier("fast", self.repo), shards.discover(self.repo))
+        shards.write_json(self.repo / shards.SLOW_SUITES, {"slow": {"test_c.gd": 61, "test_a.gd": 300}})
+        self.assertEqual(shards.tier("slow", self.repo), ["test_a.gd", "test_c.gd"])
+        self.assertEqual(shards.tier("fast", self.repo), ["test_b.gd", "test_d.gd"])
+        self.assertEqual(shards.make_plan(2, self.repo, self.absent_weights)["suites"], shards.discover(self.repo))
+
+    def test_a_slow_tier_naming_a_missing_suite_or_unmeasured_fails_tier_and_plan(self) -> None:
+        for slow in ({"test_gone.gd": 61}, {"test_a.gd": 0}, {"test_a.gd": "61"}, ["test_a.gd"]):
+            shards.write_json(self.repo / shards.SLOW_SUITES, {"slow": slow})
+            with self.subTest(slow=slow), self.assertRaises(shards.InvalidRun):
+                shards.tier("fast", self.repo)
+            with self.subTest(slow=slow, plan=True), self.assertRaises(shards.InvalidRun):
+                shards.make_plan(2, self.repo, self.absent_weights)
+        with self.assertRaises(shards.InvalidRun):
+            shards.tier("medium", self.repo)
+
     def test_bad_indices_and_counts_fail(self) -> None:
         for spec in ("-1/2", "2/2", "0/0", "1", "x/2", "0/-2"):
             with self.subTest(spec=spec), self.assertRaises(shards.InvalidRun):
@@ -198,6 +216,8 @@ class RealRunner(unittest.TestCase):
         for name in ("run_tests.gd", "framework/test_case.gd"):
             shutil.copy(REPO / "godot/test" / name, self.repo / "godot/test" / name)
         (self.repo / "docs/validation/state_registry_coverage.py").write_text('print("fixture registry preflight")\n')
+        # run_tests.sh also preflights the mole publication's source pins (ADR 1192); the fixture has no publication.
+        (self.repo / "tools/renew_source_pins.py").write_text('print("fixture source pin preflight")\n')
         self.output = self.repo / "artifacts"
 
     def suite(self, name: str, body: str) -> None:

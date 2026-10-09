@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "adr": "1209",
+  "production_qualified": false,
+  "cwd": "repository root",
+  "python": "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+  "staged_inputs": "76 gitignored godot/demo/assets files listed by the accepted source closure, cloned from /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets, each verified against its pinned SHA-256, removed after the run",
+  "commands": [
+    "$PY godot/data/underground/mole-worker/evidence/contact-qualification/probe_tread_install.py godot/data/underground/mole-worker/evidence/contact-qualification/tread-install-v1/probe.json",
+    "$PY godot/data/underground/mole-worker/evidence/contact-qualification/author_tread_install.py godot/data/underground/mole-worker/evidence/contact-qualification/tread-install-v1/candidate-v1 --x-u 128 --z-u -278 --lean-degrees 50 --azimuth-degrees 30 --torso-degrees -30",
+    "$PY godot/data/underground/mole-worker/evidence/contact-qualification/author_tread_install.py godot/data/underground/mole-worker/evidence/contact-qualification/tread-install-v1/candidate-v2 --x-u 128 --z-u -262 --lean-degrees 50 --azimuth-degrees 30 --torso-degrees -35",
+    "$PY godot/data/underground/mole-worker/evidence/contact-qualification/author_tread_install.py godot/data/underground/mole-worker/evidence/contact-qualification/tread-install-v1/candidate-v3 --x-u 128 --z-u -246 --lean-degrees 60 --azimuth-degrees 30 --torso-degrees -25",
+    "$PY godot/data/underground/mole-worker/evidence/contact-qualification/render_tread_install.py godot/data/underground/mole-worker/evidence/contact-qualification/tread-install-v1/candidate-vN godot/data/underground/mole-worker/evidence/contact-qualification/tread-install-review-v1/candidate-vN",
+    "$PY godot/data/underground/mole-worker/evidence/contact-qualification/test_tread_install.py"
+  ]
+}

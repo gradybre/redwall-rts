@@ -99,6 +99,22 @@ func test_crc32_of_nothing_is_zero_and_of_one_byte_is_known() -> void:
 		"a CRC is always a u32")
 
 
+func test_crc32_native_matches_the_byte_loop() -> void:
+	"""ADR 1235: the gzip-trailer CRC equals the byte-at-a-time reference on many shapes."""
+	var shapes: Array[PackedByteArray] = [PackedByteArray([0]), "123456789".to_ascii_buffer()]
+	var zeros: PackedByteArray = PackedByteArray()
+	zeros.resize(200000)
+	shapes.append(zeros)
+	var mixed: PackedByteArray = PackedByteArray()
+	mixed.resize(70001)
+	for index: int in mixed.size():
+		mixed[index] = (index * 2654435761) >> 13 & 0xff
+	shapes.append(mixed)
+	for bytes: PackedByteArray in shapes:
+		assert_equal(SaveHeader.crc32_of(bytes), SaveHeader.crc32_by_bytes(bytes),
+			"%d bytes" % bytes.size())
+
+
 func test_crc32_streams_incrementally_to_the_same_value() -> void:
 	"""ARCH-SAVE-003 streams in 65536-byte chunks, so the register must be resumable."""
 	var whole: PackedByteArray = "123456789".to_ascii_buffer()

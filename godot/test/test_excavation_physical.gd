@@ -404,7 +404,7 @@ func test_real_cut_uses_actual_spatial_endpoint_and_refuses_surface_alias() -> v
 	assert_true(_sites.bind_worker(_site).ok, "actual worker contact binds")
 	assert_true(_sites.begin_phase_work(_site, 0).ok, "actual first-cut reservation")
 	assert_equal(_inventory.container_reserved_mass_g(output), 2000, "actual finite reservation")
-	assert_equal(_finish_work(job), 50, "actual integer paid labor")
+	assert_equal(_finish_work(job), 24, "actual integer paid labor")
 	assert_true(_sites.settle_phase(_site).ok, "actual output and promotion commit")
 	assert_equal(_inventory.container_policy(output), Inventory.POLICY_GROUND_PILE, "same row is a real pile")
 	assert_equal(_inventory.spatial_location_of(output), LocationFixture.LOWER, "full retained location")
@@ -458,7 +458,7 @@ func test_spatial_output_revision_change_stops_productivity_before_xp_and_wear()
 	assert_true(_gear.state_bytes() == gear_before, "no tool wear")
 	assert_true(_inventory.state_bytes() == inventory_before, "no output claim change")
 	locations.revision -= 1
-	assert_equal(_finish_work(job), 50, "all original work remains")
+	assert_equal(_finish_work(job), 24, "all original work remains")
 	assert_true(_sites.settle_phase(_site).ok, "original valid endpoint completes")
 
 
@@ -479,7 +479,7 @@ func test_two_real_cut_projects_keep_each_others_spatial_output_reservation() ->
 	assert_equal(_inventory.container_reserved_mass_g(_output), 2000, "only first reservation released")
 	assert_equal(_inventory.container_policy(_output), Inventory.UNSET_POLICY, "shared empty staging stays legal")
 	assert_equal(_inventory.spatial_location_revision_of(_output), locations.revision, "remaining endpoint retained")
-	assert_equal(_finish_work(second_job), 50, "neighbor still performs all paid labor")
+	assert_equal(_finish_work(second_job), 24, "neighbor still performs all paid labor")
 	assert_true(_sites.settle_phase(second).ok, "neighbor publishes its actual output")
 	assert_equal(_inventory.container_policy(_output), Inventory.POLICY_GROUND_PILE, "shared row promotes")
 	assert_equal(_sites.virgin_sourced_milli(), 2000, "canceled cut creates no geological output")
@@ -517,17 +517,17 @@ func test_unstarted_spatial_cut_cancellation_preserves_another_paid_project() ->
 
 func test_real_worker_brace_cut_finish_matches_adopted_arithmetic_and_wear() -> void:
 	"""One 1m3 quantum costs 9WU, wood250/stone250, outputs earth2000, and takes 113 base ticks."""
-	assert_equal(_complete(Contract.OP_BRACE), 25, "brace is exactly 25 base ticks")
+	assert_equal(_complete(Contract.OP_BRACE), 12, "brace is exactly 12 base ticks (DEC-059: 940 mWU)")
 	assert_equal(_phase(), Sites.BRACED, "installed support precedes every cut")
-	assert_equal(_complete(Contract.OP_CUT), 50, "cut is exactly 50 base ticks")
+	assert_equal(_complete(Contract.OP_CUT), 24, "cut is exactly 24 base ticks (1,880 mWU)")
 	assert_equal(_phase(), Sites.OPEN_UNFINISHED, "open unfinished differs from supported usable void")
-	assert_equal(_complete(Contract.OP_FINISH), 38, "finish caps its last accepted tick")
+	assert_equal(_complete(Contract.OP_FINISH), 18, "finish caps its last accepted tick")
 	assert_equal(_phase(), Sites.SUPPORTED_VOID, "finished empty shell is supported")
 	assert_equal(_inventory.total_live_milli(_items.compiled_id(&"excavated_earth")), 2000, "actual earth exists")
 	assert_equal(_sites.virgin_sourced_milli(), 2000, "one geological source event")
 	assert_equal(_inventory.total_live_milli(_items.compiled_id(&"wood")), 0, "brace wood consumed")
 	assert_equal(_inventory.total_live_milli(_items.compiled_id(&"stone")), 0, "brace stone consumed")
-	assert_equal(_work.wear_remainder_of(_resident).value, 9000, "actual contributor retains wear across phases")
+	assert_equal(_work.wear_remainder_of(_resident).value, 4230, "actual contributor retains wear across phases")
 	assert_false(_sites.open_phase(_site, Contract.OP_CUT).ok, "finished quantum cannot cut twice")
 	assert_equal(_sites.legacy_save_refusal(), &"EXCAVATION_VERSIONED_CODEC_REQUIRED", "retired projects retain required physical history")
 
@@ -608,14 +608,14 @@ func test_started_brace_cancel_returns_80_percent_and_requires_full_new_input() 
 	assert_equal(_inventory.total_live_milli(_items.compiled_id(&"wood")), 200, "actual wood refund")
 	assert_equal(_inventory.total_live_milli(_items.compiled_id(&"stone")), 200, "actual stone refund")
 	var resumed: int = _open(Contract.OP_BRACE)
-	assert_equal(_jobs.remaining_mwu_of(resumed).value, 1600, "new phase reads physical earned work")
+	assert_equal(_jobs.remaining_mwu_of(resumed).value, 540, "new phase reads physical earned work")
 	assert_true(_sites.bind_worker(_site).ok, "actual worker rebinds")
 	assert_false(_sites.begin_phase_work(_site, 1).ok, "retained work alone is not funding")
 	_deliver(Contract.OP_BRACE, resumed)
 	assert_true(_sites.begin_phase_work(_site, 1).ok, "full new phase bill funds resumed work")
-	assert_equal(_finish_work(resumed), 20, "only remaining WU is performed")
+	assert_equal(_finish_work(resumed), 7, "only remaining WU is performed")
 	assert_true(_sites.settle_phase(_site).ok, "funded remaining work installs support")
-	assert_equal(_work.wear_remainder_of(_resident).value, 2000, "cancellation never resets contributor wear")
+	assert_equal(_work.wear_remainder_of(_resident).value, 940, "cancellation never resets contributor wear")
 
 
 func test_unopened_support_close_has_salvage_but_no_earth_input_or_output() -> void:
@@ -671,8 +671,8 @@ func test_material_free_cancel_and_resume_retains_actual_cut_work_without_refund
 	assert_equal(_sites.virgin_sourced_milli(), 0, "partial cut has not published earth")
 	assert_equal(_inventory.container_reserved_mass_g(_output), 0, "actual pending output claim releases")
 	var resumed: int = _start(Contract.OP_CUT)
-	assert_equal(_jobs.remaining_mwu_of(resumed).value, 3200, "full retained physical work survives rebinding")
-	assert_equal(_finish_work(resumed), 40, "only unpaid remaining labor advances")
+	assert_equal(_jobs.remaining_mwu_of(resumed).value, 1080, "full retained physical work survives rebinding")
+	assert_equal(_finish_work(resumed), 14, "only unpaid remaining labor advances")
 	assert_true(_sites.settle_phase(_site).ok, "one actual cut output commits")
 	assert_equal(_sites.virgin_sourced_milli(), 2000, "one geological source after resumption")
 	assert_equal(_sites.earth_conservation_refusal(), &"", "cancellation/rebind conservation holds")
@@ -690,9 +690,9 @@ func test_paused_paid_phase_resumes_with_same_wip_after_real_worker_rebind() -> 
 	assert_true(_sites.bind_worker(_site).ok, "face registers actual rebind")
 	assert_true(_sites.resume_phase_work(_site).ok, "paid phase resumes without another delivery")
 	assert_equal(_inventory.state_bytes(), inventory_before, "resuming consumes no second input")
-	assert_equal(_finish_work(job), 24, "remaining 1920mWU only")
+	assert_equal(_finish_work(job), 11, "remaining 860mWU only")
 	assert_true(_sites.settle_phase(_site).ok, "same paid brace completes")
-	assert_equal(_work.wear_remainder_of(_resident).value, 2000, "actual wear combines both intervals")
+	assert_equal(_work.wear_remainder_of(_resident).value, 940, "actual wear combines both intervals")
 
 
 func test_required_tool_gate_never_allows_unclaimed_bare_hands_work() -> void:
@@ -736,7 +736,7 @@ func test_blocked_output_commit_preserves_ready_work_and_retry_charges_no_additi
 	"""A completed cut waits for actual contact without returning to productive work or minting output."""
 	_complete(Contract.OP_BRACE)
 	var job: int = _start(Contract.OP_CUT)
-	assert_equal(_finish_work(job), 50, "actual cut labor completes")
+	assert_equal(_finish_work(job), 24, "actual cut labor completes")
 	var work_before: PackedByteArray = _work.state_bytes()
 	var inventory_before: PackedByteArray = _inventory.state_bytes()
 	var sites_before: PackedByteArray = _sites.state_bytes()
@@ -748,7 +748,7 @@ func test_blocked_output_commit_preserves_ready_work_and_retry_charges_no_additi
 	assert_false(_work.tick_solo(job).ok, "work-ready phase cannot spend extra productive ticks")
 	_space.block_output = &""
 	assert_true(_sites.settle_phase(_site).ok, "same work-ready phase retries")
-	assert_equal(_work.wear_remainder_of(_resident).value, 6000, "exact paid brace+cut contributor wear")
+	assert_equal(_work.wear_remainder_of(_resident).value, 2820, "exact paid brace+cut contributor wear")
 	assert_equal(_sites.virgin_sourced_milli(), 2000, "retry publishes one actual source event")
 	assert_false(_sites.settle_phase(_site).ok, "retired phase cannot commit twice")
 
@@ -799,7 +799,7 @@ func test_manual_job_counter_and_callback_cannot_impersonate_real_work_transacti
 	_sites.accept_work_tick(_jobs.ref_of(job))
 	assert_equal(_sites.state_bytes(), before, "direct callback grants no physical progress")
 	_construction.remaining_mwu_into(project, _math)
-	assert_equal(_math.value, 2000, "real paid work remains entirely outstanding")
+	assert_equal(_math.value, 940, "real paid work remains entirely outstanding")
 	assert_equal(_sites.work_tick_refusal(_jobs.ref_of(job)), Sites.REFUSE_JOB, "owner disagreement is diagnosed")
 	assert_false(_sites.settle_phase(_site).ok, "corrupted Job cannot commit installed support")
 
@@ -807,7 +807,7 @@ func test_manual_job_counter_and_callback_cannot_impersonate_real_work_transacti
 func test_work_ready_cancel_requires_full_refunding_but_no_additional_productive_tick() -> void:
 	"""Work done before output publication survives cancellation without enabling unfunded completion."""
 	var job: int = _start(Contract.OP_BRACE)
-	assert_equal(_finish_work(job), 25, "actual full 2000mWU earned")
+	assert_equal(_finish_work(job), 12, "actual full 940mWU earned")
 	assert_true(_sites.cancel_phase(_site, _store).ok, "unpublished support inputs refund once")
 	assert_equal(_sites.support_conservation_refusal(), &"", "refund/loss/remaining work accounts balance")
 	var resumed: int = _open(Contract.OP_BRACE)
@@ -818,7 +818,7 @@ func test_work_ready_cancel_requires_full_refunding_but_no_additional_productive
 	assert_true(_sites.begin_phase_work(_site, 1).ok, "full new inputs fund retained ready work")
 	assert_equal(_finish_work(resumed), 0, "retained work spends no second WU or wear tick")
 	assert_true(_sites.settle_phase(_site).ok, "paid supported phase commits once")
-	assert_equal(_work.wear_remainder_of(_resident).value, 2000, "contributor retains only actual earned work")
+	assert_equal(_work.wear_remainder_of(_resident).value, 940, "contributor retains only actual earned work")
 	assert_equal(_sites.support_conservation_refusal(), &"", "new support/refund/loss balance remains exact")
 
 
@@ -840,7 +840,7 @@ func test_real_inventory_lot_exhaustion_keeps_cut_ready_after_worker_release() -
 	assert_equal(_sites.virgin_sourced_milli(), 0, "blocked transaction creates no geological source")
 	assert_true(_inventory.sink_lot_quantity(removable, 1).ok, "other owner frees one real lot row")
 	assert_true(_sites.settle_phase(_site).ok, "worker-free ready phase retries publication")
-	assert_equal(_work.wear_remainder_of(_resident).value, 6000, "no retry WU/XP/wear")
+	assert_equal(_work.wear_remainder_of(_resident).value, 2820, "no retry WU/XP/wear")
 	assert_equal(_sites.virgin_sourced_milli(), 2000, "one source event finally commits")
 
 
@@ -869,7 +869,7 @@ func test_concrete_first_cut_uses_finite_staging_then_actual_ground_pile() -> vo
 	assert_true(_sites.begin_phase_work(_site, 0).ok, "cut reserves real pending capacity")
 	assert_equal(_inventory.container_reserved_mass_g(staging), 2000, "real mass reserved before first tick")
 	assert_equal(_inventory.ground_pile_at_tile(30), NULL_REF, "empty staging is not a forbidden lotless pile")
-	assert_equal(_finish_work(job), 50, "actual productive cut work")
+	assert_equal(_finish_work(job), 24, "actual productive cut work")
 	assert_true(_sites.settle_phase(_site).ok, "one physical transaction publishes output/pile/source")
 	assert_equal(_inventory.ground_pile_at_tile(30), staging, "same nonempty row becomes actual pile")
 	assert_equal(_inventory.container_reserved_mass_g(staging), 0, "owned reservation settled once")
@@ -949,7 +949,7 @@ func test_256_resident_work_and_full_job_table_transition_microbenchmark() -> vo
 	_report_work_profile()
 	_assert_measured_packed_storage()
 	for job: int in jobs:
-		assert_equal(_jobs.remaining_mwu_of(job).value, 1200, "exact 800mWU accepted per actual worker")
+		assert_equal(_jobs.remaining_mwu_of(job).value, 140, "exact 800mWU accepted per actual worker (of 940)")
 	assert_equal(_sites.support_conservation_refusal(), &"", "all 512 consumed input receipts remain conserved")
 	_benchmark_phase_gates()
 	_benchmark_full_job_table_cancel_refusal()
@@ -1388,7 +1388,7 @@ func test_spatial_adapter_reads_exact_current_site_room_project_operation_and_jo
 	assert_equal(_math.value, Contract.OP_BRACE, "reads the actual adopted operation")
 	assert_equal(_sites.room_of(Vector2i(_site.x, 2)), NULL_REF, "stale site generation has no room")
 	assert_equal(_sites.job_of(Vector2i(_site.x, 2)), NULL_REF, "stale site generation has no Job")
-	assert_equal(_finish_work(job), 25, "real work completes before phase retirement")
+	assert_equal(_finish_work(job), 12, "real work completes before phase retirement")
 	assert_true(_sites.settle_phase(_site).ok, "actual phase commits")
 	assert_equal(_sites.project_of(_site), NULL_REF, "retired Construction cannot be reused")
 	assert_equal(_sites.job_of(_site), NULL_REF, "retired Job cannot be reused")

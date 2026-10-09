@@ -159,6 +159,9 @@ var _dangerous_work: PackedByteArray = PackedByteArray()
 var _present: PackedByteArray = PackedByteArray()
 
 var _present_count: int = 0
+## The code of the most recent refused bulk column call, or REFUSE_NONE. Category 3: a
+## diagnostic channel separate from every mutator's OpResult, never saved or hashed.
+var _last_column_refusal: StringName = REFUSE_NONE
 
 
 func _init() -> void:
@@ -369,6 +372,113 @@ static func _is_priority_column(column: PackedByteArray) -> bool:
 	for offset: int in PRIORITY_MAX - PRIORITY_MIN + 1:
 		legal += column.count(PRIORITY_MIN + offset)
 	return legal == column.size()
+
+
+# --- ARCH-SAVE-002 section 4 bulk column API (ADR 1222 build step 2) ----------------------------
+#
+# Owner 11's capture and apply steps, mirroring `needs.gd`'s pair. `copy_columns_into()` is an
+# exact snapshot of the four category-1 columns over ALL 512 physical rows, free rows included;
+# `restore_columns()` judges a candidate with the SAME `columns_refusal()` the offline bridge
+# uses, writes nothing on refusal, then installs the four columns and REBUILDS `_present_count`
+# (category 2) from the installed presence bytes. No member belongs to another section: this
+# store holds no section 1 map, section 5 arena or section 6/7 state. `_last_column_refusal` is
+# category 3 and is the only other member either call writes.
+
+class Columns:
+	"""Caller-owned image of the four category-1 columns, in registry ordinal order.
+
+	One object per save or load, never per resident (ARCH-MEM-001). `copy_columns_into()` refills
+	the buffers in place and refuses a wrongly sized one rather than resizing it.
+	"""
+	var present: PackedByteArray = PackedByteArray()
+	var job_priority: PackedByteArray = PackedByteArray()
+	var auto_fallback: PackedByteArray = PackedByteArray()
+	var dangerous_work: PackedByteArray = PackedByteArray()
+
+	func _init() -> void:
+		"""Size all four columns to their declared extents, then fill the empty-store image."""
+		present.resize(PRIORITY_CAPACITY)
+		job_priority.resize(PRIORITY_CAPACITY * JOB_KIND_COUNT)
+		auto_fallback.resize(PRIORITY_CAPACITY)
+		dangerous_work.resize(PRIORITY_CAPACITY)
+		clear()
+
+	func clear() -> void:
+		"""Refill every column with what the store's own `clear()` leaves: all zero."""
+		present.fill(0)
+		job_priority.fill(PRIORITY_FORBIDDEN)
+		auto_fallback.fill(0)
+		dangerous_work.fill(0)
+
+	func equals(other: Columns) -> bool:
+		"""True when all four columns are byte-identical. Proves a refusal changed nothing."""
+		return other != null and present == other.present \
+			and job_priority == other.job_priority and auto_fallback == other.auto_fallback \
+			and dangerous_work == other.dangerous_work
+
+
+func last_column_refusal() -> StringName:
+	"""The code of the most recent refused bulk column call, or REFUSE_NONE after a success.
+
+	A SEPARATE channel from the OpResult every mutator returns, so a load can never overwrite the
+	reason a `set_priority()` was refused before its caller read it. Every code is `COLUMN_`.
+	"""
+	return _last_column_refusal
+
+
+func copy_columns_into(out: Columns) -> bool:
+	"""Copy the four category-1 columns into caller-owned buffers. False refuses; `out` unchanged.
+
+	The ONLY reader of a free row's bytes. The copies are snapshots: mutating `out` afterwards
+	cannot reach a column, and a later write here cannot reach `out`.
+	"""
+	if not _columns_are_capacity_sized(out):
+		_last_column_refusal = REFUSE_COLUMN_SHAPE
+		return false
+	_refill_bytes(out.present, _present)
+	_refill_bytes(out.job_priority, _job_priority)
+	_refill_bytes(out.auto_fallback, _auto_fallback)
+	_refill_bytes(out.dangerous_work, _dangerous_work)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func restore_columns(columns: Columns) -> bool:
+	"""Replace all four columns and recount `_present_count`. False refuses; nothing is written.
+
+	Allocate before consume (decision 0059): the null guard and the whole `columns_refusal()` run
+	before the first write, so a refusal leaves every column and the count byte-identical. The
+	recount is from the INSTALLED presence bytes, never a caller value. No cross-owner presence
+	agreement is checked here; the orchestrator's whole-world check owns that.
+	"""
+	var refusal: StringName = REFUSE_COLUMN_SHAPE
+	if _columns_are_capacity_sized(columns):
+		refusal = columns_refusal(columns.present, columns.job_priority, columns.auto_fallback,
+			columns.dangerous_work)
+	if refusal != REFUSE_NONE:
+		_last_column_refusal = refusal
+		return false
+	_present = columns.present.duplicate()
+	_job_priority = columns.job_priority.duplicate()
+	_auto_fallback = columns.auto_fallback.duplicate()
+	_dangerous_work = columns.dangerous_work.duplicate()
+	_present_count = _present.count(1)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+static func _columns_are_capacity_sized(columns: Columns) -> bool:
+	"""The shared null and extent guard of both bulk calls, before any indexed read."""
+	return columns != null and columns.present.size() == PRIORITY_CAPACITY \
+		and columns.job_priority.size() == PRIORITY_CAPACITY * JOB_KIND_COUNT \
+		and columns.auto_fallback.size() == PRIORITY_CAPACITY \
+		and columns.dangerous_work.size() == PRIORITY_CAPACITY
+
+
+static func _refill_bytes(out: PackedByteArray, source: PackedByteArray) -> void:
+	"""Refill a caller's byte buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
 
 
 func priority_of(slot: int, kind: int) -> IntMath.IntResult:

@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "updated": "2026-10-05",
-  "integration_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-integration",
-  "integration_branch": "codex/underground-modular-integration",
+  "updated": "2026-10-06",
+  "integration_worktree": "/Users/brendan/Developer/redwall-rts-claude-ug-paid-start",
+  "integration_branch": "claude/ug-paid-start",
   "base_commit": "82d60ba86dcecf6e7c6184eeaf77a389e8b2b5c2",
   "foundation_commit": "09beda25a93f29da15b3b761f3b41bdfc4ea9faa",
   "completion": "Every lane verified with integrated evidence; no player-facing requirement is complete from a standalone helper alone.",
@@ -346,7 +346,7 @@
     {
       "id": "UG07",
       "title": "Room and equipment atomic order coordination",
-      "status": "running",
+      "status": "queued",
       "depends_on": [
         "UG01",
         "UG03",
@@ -487,8 +487,8 @@
         "No unfinished furniture service grant; whole-room validity enforced",
         "Recipe/work values reuse catalog and adopted owners; Bedroom mapping explicit"
       ],
-      "agent": "/root/ug_construction",
-      "branch": "codex/underground-haul-handling",
+      "agent": null,
+      "branch": "claude/ug-paid-start",
       "evidence": {
         "in_progress": "Reviewed Funding/Reservations final boundary integrated e40a55a3/d4e7c9e4; real ConnectorWork waits for compile-ready actual Placement. Source-derived first-module work/contact assessment in progress; no playable entry claimed.",
         "identity_prerequisite": {
@@ -993,10 +993,11 @@
           "storage": "no retained fields/banks/capacity changes; logical root numeric frame upper bound 1582/2048 bytes",
           "metadata_checks": "225 memory tests, 190 capacity checks, zero failures; generated SHA/line provenance only",
           "commit": "9a8e353f"
-        }
+        },
+        "single_branch_progress": "Paid L0 handling/fastening real positive passes (a8060ef3); productive-work scenarios on the real fixture (b97e3899); retirement driver (3af08939). Room/equipment order coordination acceptance otherwise open."
       },
       "lease": {
-        "state": "held",
+        "state": "released",
         "temporary_scope": {
           "purpose": "Correct strict CI specification arithmetic for accepted1102 fourth Funding loss domain; no gate relaxation",
           "files": [
@@ -1171,13 +1172,14 @@
             ],
             "handoff": "Explicit1179reviewSTOP7e54c4a1; root stopped all listed runtime/test files. New own branch from freshly fetched origin/master82d60ba8 thenFF8f6bad86. Minimal original Routes phase/request-tick union and Workpieces presence byte versioned for pending/handled; existing30+30 handling ticks and original work/price conserved. Geometry owns source certificate/Profiles/WorldRoutes/Contacts; root owns publisher/Session/registry. Real paid first L0/T0 handling before fastening plus cancel/recovery, no synthetic permission or extra bank. Root additionally STOPPED Router/Contract/test for narrow connector-only pre-release pause guard: pause immediately; retain original worker/tool/material claim until physically READY, no work credit. All nonconnector release behavior unchanged; reentrant/final identity tests required. Root1191 explicitly grants new completed-contact retirement coordinator/test on2026-10-05 after paid12/parse6 finish: graph then endpoint publication with explicit retry semantics, original Sites/Jobs/actors/source guards and complete cold helper census. Root retains Locations/Placements shared leaves; Geometry retains WorldRoutes. Exact cross-owner APIs agreed before writing peers; no reserve increase or paid-history mutation."
           }
-        ]
+        ],
+        "stop_evidence": "2026-10-05: sibling codex worktree frozen when its agent hit its usage limit; uncommitted WIP imported by content into claude/ug-paid-start under ADR 1192 (see commit messages). No worker is running this lane."
       }
     },
     {
       "id": "UG08",
       "title": "Multilevel occupancy, support and fixed connector catalog",
-      "status": "running",
+      "status": "queued",
       "depends_on": [
         "UG01"
       ],
@@ -1327,8 +1329,8 @@
         "Real worker/load movement profile and occupied traversal safety; no stretching",
         "Publish actual immutable-datum 1m3 changed-solid quanta; no silent rounding of fine paint cells into unpriced void or duplicate yield"
       ],
-      "agent": "/root/ug_furnishing",
-      "branch": "codex/underground-stair-handoff",
+      "agent": null,
+      "branch": "claude/ug-paid-start",
       "evidence": {
         "in_progress": "Reviewed world-model envelope and held-pick travel packet a16b4621 integratedd10ecd61. Compact actual mole Actor content compiler/loader in progress; actual work contacts and moving tool grip acceptance remain open; zero production-qualified profiles.",
         "increments": [
@@ -1977,10 +1979,11 @@
           "native_poses": 5634,
           "scalar_comparisons": 1825416,
           "images": 108
-        }
+        },
+        "single_branch_progress": "Geometry endpoint certificate and qualified-assembly sources imported (0ea4b44a); L0 contact footing covers its travel profile (c7f63b49, ADR 1193). Multilevel/connector catalog acceptance otherwise open."
       },
       "lease": {
-        "state": "held",
+        "state": "released",
         "subleases": [
           {
             "agent": "/root/ug_construction",
@@ -2167,7 +2170,7 @@
               "godot/test/test_underground_connector_contacts.gd",
               "godot/data/underground/mole-worker/work-step-v1/source_program.gd"
             ],
-            "handoff": "Fresh ownbranch\u2192db03b1f7. Only additive real BUILD supported positioning source and binder. Full original actor/actual timber contacts; no paid credits, synthetic paid state, fake CONTACT_PATCH or implied new timing. Existing consumers frozen pending proposed exact seam. Shared1178 extension2026-10-05: root stops and grants exact Profiles/WorldRoutes/Contacts and their tests. Stationary exact paid prism, full immutable actual-triangle/source/identity certificate only; foreign solids/actors stay conservative and supported station remains original. No Locations schema, new quantity/work bank, tuning or reserve change. Root publisher/registry/Session remain separate; Construction receives Routes/Workpieces/ConnectorWork after1179 review stop. Root2026-10-05 grants narrow work-step-v1/source_program.gd parser compatibility: accept30 only with exact appended handling/source certificate and unchanged old0\u201328 descriptor contract; no >=29 relaxation. Publisher/current-consumer pins require renewed evidence before activation.",
+            "handoff": "Fresh ownbranch→db03b1f7. Only additive real BUILD supported positioning source and binder. Full original actor/actual timber contacts; no paid credits, synthetic paid state, fake CONTACT_PATCH or implied new timing. Existing consumers frozen pending proposed exact seam. Shared1178 extension2026-10-05: root stops and grants exact Profiles/WorldRoutes/Contacts and their tests. Stationary exact paid prism, full immutable actual-triangle/source/identity certificate only; foreign solids/actors stay conservative and supported station remains original. No Locations schema, new quantity/work bank, tuning or reserve change. Root publisher/registry/Session remain separate; Construction receives Routes/Workpieces/ConnectorWork after1179 review stop. Root2026-10-05 grants narrow work-step-v1/source_program.gd parser compatibility: accept30 only with exact appended handling/source certificate and unchanged old0–28 descriptor contract; no >=29 relaxation. Publisher/current-consumer pins require renewed evidence before activation.",
             "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-timber-program-binding"
           },
           {
@@ -2184,7 +2187,7 @@
               "godot/demo/cast/underground_actor_program_images_live.gd",
               "godot/demo/cast/underground_actor_program_images_live.gd.uid"
             ],
-            "handoff": "1175authorSTOP+1174reviewSTOP; freshlyfetchedorigin/master\u21929f9a8829. Root1174integration confirmed. One shared mesh basis and actual immutable palette images, no canonical Motion/Clock/profile grant, no reserve increase. Native source pose and complete presentation peak recount required.",
+            "handoff": "1175authorSTOP+1174reviewSTOP; freshlyfetchedorigin/master→9f9a8829. Root1174integration confirmed. One shared mesh basis and actual immutable palette images, no canonical Motion/Clock/profile grant, no reserve increase. Native source pose and complete presentation peak recount required.",
             "worker_stop_ack": "Author f14ba6b69d984338daefc091abd0a993f825d1c1 committed reviewed1181, clean and explicitly STOPPED all source/evidence/processes2026-10-05. Root integration waits for current-consumer publication renewal with1178/1183; original planning mount remains working."
           }
         ],
@@ -2192,13 +2195,14 @@
           "date": "2026-10-04",
           "released_path": "godot/data/underground/",
           "stop_evidence": "ug_furnishing explicitly acknowledged all writes stopped, tracked clean and no running native process after0cb7eecf88938fb5815c9974c16c5baf9a887124. Existing individually enumerated paths retained; new1143/1144 subtrees exclusively leased to their respective lanes. Previously granted root publisher sublease remains explicit."
-        }
+        },
+        "stop_evidence": "2026-10-05: sibling codex worktree frozen when its agent hit its usage limit; uncommitted WIP imported by content into claude/ug-paid-start under ADR 1192 (see commit messages). No worker is running this lane."
       }
     },
     {
       "id": "UG21",
       "title": "Actual sparse underground geometry and phase preflight",
-      "status": "running",
+      "status": "queued",
       "depends_on": [
         "UG01"
       ],
@@ -2375,8 +2379,8 @@
         "Real worker/material/output geometry authority composed with UG06, Buildings/Furniture and qualified UG08 profiles; cross-floor conflicts and last-exit protection",
         "Save/hash and production worker traversal requirements remain open until real composed tests; helper-only increments never verify the whole lane"
       ],
-      "agent": "/root/ug_geometry",
-      "branch": "codex/underground-room-publication",
+      "agent": null,
+      "branch": "claude/ug-paid-start",
       "evidence": {
         "prerequisite_increment": "UG08A helper source89aa974c and registry44e3717f reviewed/integrated; production profiles and fixed content remain separate concurrentUG08",
         "in_progress": "Actual natural support and concrete World structural dispatch are reviewed/integrated. Geometry prepares the first-entry bootstrap packet; root will own actual prospective contact composition. Body/contact/material/output/service/topology qualification remains open.",
@@ -3211,10 +3215,11 @@
           "permanent_pack_published": true,
           "publication_receipt": "docs/validation/evidence/underground-memory-ui-alias-review-2026-10-05/integration.json",
           "publication_scope": "Publish1174 current profile/owner counts plus1182 alias successor.45 existing numeric metadata differences from previous published pack belong to accepted1174 recount;1182-only has none. Global reservation remains99999806; native unqualified."
-        }
+        },
+        "single_branch_progress": "Locations pending-bearer proof and retirement bracket (673ad6f0); work-area layout (ADR 1191) runs the real L0. Phase preflight acceptance otherwise open."
       },
       "lease": {
-        "state": "held",
+        "state": "released",
         "subleases": [
           {
             "agent": "/root",
@@ -3550,10 +3555,11 @@
               "docs/decisions/1182-memory-ui-notice-alias-closure.md",
               "docs/validation/evidence/underground-memory-ui-alias-2026-10-05/"
             ],
-            "handoff": "1174STOP and review accepted. Fresh ownbranch\u219232c65ecd. Exact only drift is1177UiManager literal-to-UiNotices alias. Preserve predecessor manifest, successor current captured proof of identical literal and byteexact oldbody. Root alone publishes permanent pack. No other source/pin/arithmetic update.",
+            "handoff": "1174STOP and review accepted. Fresh ownbranch→32c65ecd. Exact only drift is1177UiManager literal-to-UiNotices alias. Preserve predecessor manifest, successor current captured proof of identical literal and byteexact oldbody. Root alone publishes permanent pack. No other source/pin/arithmetic update.",
             "worker_stop_ack": "Author f13b91b5cba79db22b11e66022eeef94b313b180 clean and explicit STOP2026-10-05; root5e55190b integrated independently accepted candidate2. Permanent pack regenerated and source/registry checks pass."
           }
-        ]
+        ],
+        "stop_evidence": "2026-10-05: sibling codex worktree frozen when its agent hit its usage limit; uncommitted WIP imported by content into claude/ug-paid-start under ADR 1192 (see commit messages). No worker is running this lane."
       }
     },
     {
@@ -3609,7 +3615,7 @@
     {
       "id": "UG24",
       "title": "Actual demo owner, confirmation and fixed-tick composition",
-      "status": "running",
+      "status": "queued",
       "depends_on": [
         "UG04",
         "UG05",
@@ -3739,8 +3745,8 @@
         "Committed shell view consumes actual Site/Space revisions and never depicts unpaid completion",
         "Independent source review, strict focused tests, zero-warning analyzer and exact unchanged memory census; whole playable UG09 remains gated separately"
       ],
-      "agent": "/root",
-      "branch": "codex/underground-modular-integration",
+      "agent": null,
+      "branch": "claude/ug-paid-start",
       "evidence": {
         "release_basis": "Independent read-only42bff090 audit; reviewed component APIs already integrated. Extracted composition only; UG09 retains whole UG07/UG08/UG21/source/playable dependencies.",
         "decision": "docs/decisions/1146-underground-demo-composition-slice.md",
@@ -4091,10 +4097,11 @@
           "analyzer": "0 GDScript warning(s) in 0 of 23 file(s)",
           "evidence": "docs/validation/evidence/underground-entry-work-area-2026-10-05/focus-4/",
           "limits": "No paid timber START, native handling route, constructor activation, demo dispatch or new lane acceptance. Unrelated geometry refresh during raised workpiece WIP is not yet concurrent-work qualified."
-        }
+        },
+        "single_branch_progress": "Fixed entry bundle (969f8e72, ADR 1190), content-4 runtime profiles (ed783c46, ADR 1194), entry owners composed in the real SettlementSystem (4b06f840, ADR 1195), fixed-tick entry foreman through paid L0 install (23bee15f + installer, ADR 1196). Demo wiring, surface arrival, hauling and row-29 presentation open."
       },
       "lease": {
-        "state": "held",
+        "state": "released",
         "subleases": [
           {
             "agent": "/root/ug_geometry",
@@ -4226,7 +4233,7 @@
               "docs/decisions/1167-session-route-owner-composition.md",
               "docs/validation/evidence/underground-route-owner-composition-2026-10-05/"
             ],
-            "handoff": "Explicit author1163STOP and root sourceSTOP. Fresh origin/master\u219231e834f0 acknowledgedclean; ownaccepted1166cherry-pickfa9bf173. Reuse original private tuple/state/prefix; compose genuine Movement/Catalog/WorldRoutes/Routes with reviewed groundcontent, no new endpoint/actor/promise of clearance. Partial configure/bindprefix retains exactowners stoppedforreset. Shared consumers, UI/demo/main/registry/memory remain other owners. Actual mount currently refuses expected1161consumerdrift; no bypass, rootrenewalnext.",
+            "handoff": "Explicit author1163STOP and root sourceSTOP. Fresh origin/master→31e834f0 acknowledgedclean; ownaccepted1166cherry-pickfa9bf173. Reuse original private tuple/state/prefix; compose genuine Movement/Catalog/WorldRoutes/Routes with reviewed groundcontent, no new endpoint/actor/promise of clearance. Partial configure/bindprefix retains exactowners stoppedforreset. Shared consumers, UI/demo/main/registry/memory remain other owners. Actual mount currently refuses expected1161consumerdrift; no bypass, rootrenewalnext.",
             "worker_stop_ack": "Author9a7b8789 committed accepted exact1167 and explicitly STOPPED all source writes; root integratede234bde0. Construction review7d8edbd4 integrated3c92d1cf. Source/test90/3115all0,analyzer0/8,17censuschecks and8161/8192 retained constructor maximum."
           },
           {
@@ -4393,7 +4400,8 @@
             ],
             "handoff": "Root1191 owns original L0 work area, exact prepared handling endpoint certificate caller and completed unused dig-contact retirement. Separate original graph/Frontier successor under existing first-entry data lease. Geometry retains WorldRoutes/Profiles/Contacts and qualified endpoint certificate; Construction retains Routes/Workpieces/ConnectorWork; Furnishing retains EntryComposition. Existing static final leaves and explicit two-publication retry semantics only after exact source/census review; no reserve growth or private mask clearing."
           }
-        ]
+        ],
+        "stop_evidence": "2026-10-05: sibling codex worktree frozen when its agent hit its usage limit; uncommitted WIP imported by content into claude/ug-paid-start under ADR 1192 (see commit messages). No worker is running this lane."
       }
     },
     {
@@ -4714,7 +4722,7 @@
     {
       "id": "UG20",
       "title": "Paid spoil-tip preparation, compaction and reclamation",
-      "status": "running",
+      "status": "queued",
       "depends_on": [
         "UG06"
       ],
@@ -4736,8 +4744,8 @@
         "Conserved earth/provenance/capacity and deterministic interruption; no designation reset or teleport",
         "Concrete Work/Jobs/Inventory integration and save-owner metadata; no claim that cut output alone implements these operations"
       ],
-      "agent": "/root",
-      "branch": "codex/underground-spoil",
+      "agent": null,
+      "branch": "claude/ug-paid-start",
       "evidence": {
         "in_progress": "Paid Tips coordinator implemented/reviewed; actual exterior siting, support and haul contact binding waits on UG21; demo controls/persistence still queued.",
         "candidate_preflight": {
@@ -4753,10 +4761,12 @@
           "tests": "97 tests,26210 assertions,0failures;strict/raw all0;analyzer0/4",
           "review": "ug_furnishing independent source accepted; real Router/Inventory/Work/Tips; actual Contacts remains required",
           "evidence_path": "docs/validation/evidence/underground-spoil-worker-composition-2026-10-03/"
-        }
+        },
+        "single_branch_progress": "No change since the handoff; spoil-tip siting still waits on UG21."
       },
       "lease": {
-        "state": "held"
+        "state": "released",
+        "stop_evidence": "2026-10-05: sibling codex worktree frozen when its agent hit its usage limit; uncommitted WIP imported by content into claude/ug-paid-start under ADR 1192 (see commit messages). No worker is running this lane."
       }
     },
     {
@@ -5034,7 +5044,7 @@
       "analyzer": "0 warnings in0 of1046files",
       "procedure": "assets aside;delete .godot;cleaneditorimport;fullnoargumentrunner;restoreassets",
       "seconds": 1183.9,
-      "fix": "ReservationPurpose explicitoldcount3\u21924 plus appendedID3 pinned in6dd9e529;focused33tests178assertallzero. Canonicalmembership CI gap fixed29f78a3c; exact11newfields, no gateweakening."
+      "fix": "ReservationPurpose explicitoldcount3→4 plus appendedID3 pinned in6dd9e529;focused33tests178assertallzero. Canonicalmembership CI gap fixed29f78a3c; exact11newfields, no gateweakening."
     },
     {
       "commit": "bb557d1b6bc3a97fe8bd566dbc114a8dbf0965fc",
@@ -5968,8 +5978,8 @@
       "review_integration": "22b5e49e",
       "old_measured_suites": 240,
       "new_measured_suites": 397,
-      "observed_old_assignment_suite_seconds": "259.609\u2013817.081",
-      "estimated_new_assignment_suite_seconds": "439.877\u2013439.879",
+      "observed_old_assignment_suite_seconds": "259.609–817.081",
+      "estimated_new_assignment_suite_seconds": "439.877–439.879",
       "tests": "13 Python guard tests pass;5 optional engine fixtures not rerun for data-only change",
       "limits": "Scheduling estimates only; all test/diagnostic/leak/analyzer/gate logic and local no-arg behavior unchanged."
     },
@@ -6012,5 +6022,6 @@
       "memory": "285tests+190capacitychecks;independent39tests5mutants;99999806Bunchanged",
       "limits": "Integration fixture, not demo dispatch, complete paid entry, Kitchen or runtime qualification."
     }
-  ]
+  ],
+  "process": "ADR 1192: one committed branch; lane leases are historical design ownership, not edit locks. Status changes only from named-commit results."
 }

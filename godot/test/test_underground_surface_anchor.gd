@@ -11,6 +11,7 @@ const Owner := preload("res://scripts/core/underground_space_owner.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
+const Journal := preload("res://scripts/core/underground_geometry_journal.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const X: int = Fixture.X
 const Z: int = Fixture.Z
@@ -532,16 +533,100 @@ func test_low_operation_budget_refuses_before_terrain_observer() -> void:
 	assert_true(_actual._budget.is_quiescent(), "cold lease returned")
 
 
-func test_repeated_scope_checks_share_one_budget_across_existing_endpoints() -> void:
-	"""Refreshing more existing endpoints cannot restart the same whole-operation comparison allowance."""
+func test_repeated_scope_checks_share_one_budget_across_touched_endpoints() -> void:
+	"""ADR1207: re-proving every endpoint a create touches cannot restart the whole-operation allowance."""
 	_setup(8, 520000)
 	assert_equal(_create().error, &"", "first complete anchor within budget")
-	assert_equal(_create(1024).error, &"", "second complete anchor within budget")
+	assert_equal(_create(256).error, &"", "second anchor's air overlaps the first, which is re-proved within budget")
+	assert_equal(_actual._locations._carried_locations, 0, "a touched endpoint is never carried")
+	assert_equal(_create(2048).error, &"", "a far third anchor carries both existing endpoints")
+	assert_equal(_actual._locations._carried_locations, 2, "nothing the far anchor adds meets either endpoint")
 	var before: PackedByteArray = _actual._owner.state_bytes()
-	assert_equal(_create(2048).error, Anchor.REFUSE_CHECKS, "cumulative scope work exhausted")
+	assert_equal(_create(128).error, Anchor.REFUSE_CHECKS, "re-proving the two endpoints it touches exhausts the budget")
 	assert_equal(_actual._owner.state_bytes(), before, "no partial geometry when repeated scopes exhaust")
-	assert_equal(_actual._locations._live.count, 2, "all existing endpoints remain")
+	assert_equal(_actual._locations._live.count, 3, "all existing endpoints remain")
 	assert_true(_actual._budget.is_quiescent(), "exhausted transaction cleaned up")
+
+
+func test_far_create_carries_existing_endpoints_without_checks() -> void:
+	"""ADR1207: a carried endpoint spends none of the World budget, so a create's cost stops growing with them."""
+	_setup()
+	assert_equal(_create().error, &"", "first anchor: no existing endpoint")
+	var alone: int = _anchor._last_checks
+	var first: Vector2i = Vector2i(0, _actual._locations._get32(_actual._locations._live, Locations.GENERATION, 0))
+	assert_equal(_create(1024).error, &"", "second anchor, far from the first")
+	assert_equal(_actual._locations._carried_locations, 1, "the first endpoint is carried")
+	assert_equal(_anchor._last_checks, alone, "one carried endpoint: no more checks than a create with none")
+	assert_equal(_create(2048).error, &"", "third anchor, far from both")
+	assert_equal(_actual._locations._carried_locations, 2, "both endpoints are carried")
+	assert_equal(_anchor._last_checks, alone, "two carried endpoints: still no more checks")
+	assert_equal(_actual._locations._get64(_actual._locations._live, Locations.GEOMETRY_REVISION, first.x),
+		_actual._owner.revision(), "a carried endpoint is current at the new revision")
+	_actual._owner._location_journal.reset(_actual._owner.revision() + 1)
+	assert_equal(_create(3072).error, &"", "fourth anchor after the history is forgotten")
+	assert_equal(_actual._locations._carried_locations, 0, "unknown history: every endpoint is re-proved")
+	assert_true(_anchor._last_checks > alone + 3 * 50000, "three full re-proofs, two World proofs each")
+
+
+func test_change_meeting_an_endpoint_air_forces_its_reproof_and_refuses() -> void:
+	"""ADR1207: a published blocker in the first endpoint's air is journaled; the next far create re-proves it."""
+	_setup()
+	assert_equal(_create().error, &"", "first anchor")
+	_actual._publish_owner_rows([PackedInt32Array([X + 1024 + 512, 512, Z + 512, X + 1024 + 600, 1024, Z + 600])],
+		Space.OBSTACLE)
+	assert_equal(_create(2048).error, &"", "a far blocker carries the first endpoint")
+	assert_equal(_actual._locations._carried_locations, 1, "far change carried")
+	_actual._publish_owner_rows([PackedInt32Array([X + 512, 1024, Z + 512, X + 600, 1280, Z + 600])], Space.OBSTACLE)
+	var before: PackedByteArray = _actual._owner.state_bytes()
+	assert_equal(_create(3072).error, &"LOCATION_ENVELOPE_BLOCKED", "the blocked endpoint's full re-proof refuses")
+	assert_equal(_actual._owner.state_bytes(), before, "no partial geometry")
+	assert_equal(_actual._locations._live.count, 2, "existing endpoints remain")
+
+
+func test_change_meeting_an_endpoint_footing_forces_its_reproof() -> void:
+	"""ADR1207: a removed footing row is journaled on its before side, so the endpoint is re-proved and refuses."""
+	_setup()
+	assert_equal(_create().error, &"", "first anchor")
+	var token: int = _actual._owner.begin_stage(_actual._owner.revision()).token
+	var footing: Vector2i = _footing_row(_foot())
+	assert_equal(_actual._owner.stage_remove(token, footing), &"", "the first endpoint's footing removed")
+	assert_equal(_actual._owner.seal(token), &"", "footing removal sealed")
+	_actual._owner.publish(token)
+	assert_equal(_create(2048).error, &"LOCATION_COVERAGE_MISSING", "the unsupported endpoint is re-proved and refused")
+	assert_equal(_actual._locations._carried_locations, 0, "nothing carried across the removed footing")
+
+
+func _footing_row(box: PackedInt32Array) -> Vector2i:
+	"""The live SUPPORT row with exactly this box."""
+	var owner: Owner = _actual._owner
+	for row: int in owner._region_capacity:
+		if owner._r_present[row] != 0 and owner._r_role[row] == Space.SUPPORT and owner._r_lo_x[row] == box[0] \
+				and owner._r_lo_y[row] == box[1] and owner._r_lo_z[row] == box[2] and owner._r_hi_x[row] == box[3] \
+				and owner._r_hi_y[row] == box[4] and owner._r_hi_z[row] == box[5]:
+			return Vector2i(row, owner._r_generation[row])
+	return NULL_REF
+
+
+func test_journal_overflow_and_content_revision_force_full_reproof() -> void:
+	"""ADR1207: evicted history or different bound content means no endpoint is carried."""
+	_setup()
+	assert_equal(_create().error, &"", "first anchor")
+	var rows: Array[PackedInt32Array] = []
+	for index: int in Journal.CAPACITY + 1:
+		var x: int = X + 4096 + (index % 16) * 96
+		@warning_ignore("integer_division")
+		var z: int = Z + 2048 + (index / 16) * 96
+		rows.append(PackedInt32Array([x, 512, z, x + 64, 768, z + 64]))
+	_actual._publish_owner_rows(rows, Space.OBSTACLE)
+	assert_true(_actual._owner._location_journal.floor_revision() > _actual._owner.revision() - 1,
+		"the ring overflowed past the endpoint's proof")
+	assert_equal(_create(1024).error, &"", "far create after overflow")
+	assert_equal(_actual._locations._carried_locations, 0, "overflow: the endpoint is re-proved in full")
+	assert_equal(_create(2048).error, &"", "next far create")
+	assert_equal(_actual._locations._carried_locations, 2, "history known again: both carried")
+	_actual._locations._carry_content += 1
+	assert_equal(_create(3072).error, &"", "far create under different content")
+	assert_equal(_actual._locations._carried_locations, 0, "content changed: every endpoint re-proved")
 
 
 func test_last_locations_observer_abort_refuses_before_space_publication() -> void:

@@ -136,6 +136,14 @@ rules; this card does not replace the binary schema.
   progression, not merely needs and XP. Chronicle streams retain all history.
 - [ ] 09.5 Integrate save/load UI, paused pending previews, errors, migration
   refusal, critical-pause restoration, collapse protection and startup recovery.
+  *Partly done 2026-10-08 (ADR 1222 step 11):* F5, the daily/prewinter autosaves,
+  the busy wait, the pre-demolition quicksave, error and development-only notices
+  and startup recovery are wired (`ui_save_session.gd`, UIManager). **Still open:**
+  the save browser, game menu and F9 confirmation wait on Brendan's layout choices
+  (ADR 1222 step 11 lists them); a save error does not raise the CRITICAL pause.
+  ARCH-SAVE-006's fork at 3000, compared every tick to 18000 with the midnight
+  and dying-resident cases, is `test_settlement_save_parity.gd` (ADR 1222 step 12);
+  its first divergence names the tick, not the fields.
 - [ ] 09.6 Preserve GDD §8's future-boundary contracts (REQ-SET-176–180): shared
   identity/item schemas, atomic transfer manifests, exactly-once cancellation
   and returning persistent identity into valid free slots with carried state.

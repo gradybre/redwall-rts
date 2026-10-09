@@ -1,0 +1,56 @@
+{
+  "basis_producer_sha256": "df6bb71866a5839815b112f544348b6ca436020bb56d9c46293455f817d5e018",
+  "basis_sha256": "bc8061e73781f2851c85d0c0e9868b24bc2c99e733ccfcfe8ab5717d5570bbf1",
+  "clip_frames": [
+    122,
+    45,
+    31,
+    33,
+    31,
+    31,
+    33,
+    31
+  ],
+  "clip_names": [
+    "stand",
+    "walk",
+    "dig_entry",
+    "dig_stroke",
+    "dig_recovery",
+    "tap_entry",
+    "tap_work",
+    "tap_recovery"
+  ],
+  "clips": 8,
+  "content_sha256": "2b58852e0e39d3ae1c697ed5487081cead7ce80efc8a30662e469fd33059af5b",
+  "frames": 357,
+  "parts": 1,
+  "presentation_only_reservation": {
+    "admitted_peak_bytes": 6906492,
+    "borrowed_mesh_array_allowance_bytes": 4396032,
+    "decode_staging_bytes": 412692,
+    "excluded_borrowed_resources": "original meshes/textures and per-Actor RIDs; separate actual presentation-owner admission",
+    "native_peak_measured": false,
+    "packed_tables_bytes": 616,
+    "reader_native_control_reserve_bytes": 2097152,
+    "retained_palette_bytes": 412692,
+    "world_basis_separately_shared_bytes": 544768
+  },
+  "production_qualified": false,
+  "runtime_admitted": false,
+  "schema": 1,
+  "source_sha256": {
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/paw-seat-v1/candidate-a/tap_entry.npz": "8f454d01c2fd4a3cf1071e074d89a257b507e4c0d1cbbb20a144918035c44340",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/paw-seat-v1/candidate-a/tap_recovery.npz": "ccdbf97db54df600c0ffbcbee9cd276423a4aebbc29dd8eb100718bcf2dff61e",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/paw-seat-v1/candidate-a/tap_work.npz": "cf711f65415f7f098158d3041c7a1c8ddd8bba28dc6d81b8483fc0c99a8b0b92",
+    "godot/data/underground/mole-worker/claw-work-v1/native_claw.py": "f1b664c6431b1c037b635fbe262399c6248e1bc783d4efc3e4125abf003ba8a3",
+    "godot/data/underground/mole-worker/claw-work-v1/native_claw_split.py": "88993670cedf151b0ee0ef4bde006dd25dd3adc27db4d200a2799508f78e0be0",
+    "godot/data/underground/mole-worker/stand-walk-v2/evidence/stand-walk-v2/dig-pa/entry.npz": "98417bce65211104e41dcbe9d162d02cc5086377acf32f6e4d5461025e6e6925",
+    "godot/data/underground/mole-worker/stand-walk-v2/evidence/stand-walk-v2/dig-pa/recovery.npz": "618d8b486512ab37038ab91efaa908c1410ea594c40ffce047b92ff03118944b",
+    "godot/data/underground/mole-worker/stand-walk-v2/evidence/stand-walk-v2/dig-pa/stroke.npz": "5debac257e5dc9e838b80c26cfe7611b1c0438fdd108e77a09830265db73d42a",
+    "godot/data/underground/mole-worker/stand-walk-v2/evidence/stand-walk-v2/stand.npz": "05564adf19b2b29142d99c469839b3aa18c20cdce995d055669528ce88e51b89",
+    "godot/data/underground/mole-worker/stand-walk-v2/evidence/stand-walk-v2/walk.npz": "1f8fcfb51ae4f76fb0918c4552a9cd28d4781fbdae5274668c391a200b4cf179"
+  },
+  "source_unchanged": true,
+  "wire_bytes": 413340
+}

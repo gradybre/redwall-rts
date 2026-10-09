@@ -131,3 +131,17 @@ pace and all six empty variant/table counts may use the existing full owner,
 digest and source checks without fabricating variant zero. Malformed mixed
 tables, zero pace and stale source still refuse. This makes the actual finite
 ground source usable by the component; it does not qualify terrain or routes.
+
+## Amendment (ADR 1210, 2026-10-07)
+
+Brendan allowed a **switch at rest** between the source-clocked and the automatic profile families, in either
+direction. An actor stationary on its endpoint, with no edge, route or dispatch tail, may switch: from the exact
+canonical idle READY word, or from a plain idle automatic phase. It must pass the complete fresh-admission proof
+first. Unregister and readmit remain refused. See ADR 1210 for the gate and its tests.
+
+## Amendment (ADR 1225, 2026-10-07; DEC-055)
+
+Brendan chose to replace a lost entry crew. So **`Routes.unregister_lost_actor` removes the registered actor of a
+resident that is dead or has left**. Its queued links return, any span it held is released with its row, and the row
+becomes the allocator's blank row. A living resident is refused (`ROUTE_UNREGISTER_LIVING`). For anyone who can still
+move, unregister-and-readmit remains forbidden.

@@ -1,0 +1,101 @@
+{
+  "active_tool": null,
+  "body_sha256": "29f8d3218fddfaa6f2369c1c1c7dfd9b0a429b3df5cbefa38c6bf6ab9364fe14",
+  "clips": [
+    {
+      "duration_q16": 3932160,
+      "frames": 61,
+      "id": "haul_handling_v1.stone.approach",
+      "loop": 0,
+      "part_visibility_mask": 3,
+      "source_sha256": "ad51f1e34ef77b0807966a160fc271cdd735ef1653f94bfb1c2ab49d412fe2d7"
+    },
+    {
+      "duration_q16": 3932160,
+      "frames": 61,
+      "id": "haul_handling_v1.stone.lift",
+      "loop": 0,
+      "part_visibility_mask": 3,
+      "source_sha256": "3b72ccd095f6ca3e045d97fb8a29964d5dd5782f7886f694c9708429e1d680d5"
+    },
+    {
+      "duration_q16": 3932160,
+      "frames": 61,
+      "id": "haul_handling_v1.stone.place",
+      "loop": 0,
+      "part_visibility_mask": 3,
+      "source_sha256": "cbc71f452d581dfce08a4972242772d10ce429dedaa61f1ee651a9088afc748f"
+    },
+    {
+      "duration_q16": 3932160,
+      "frames": 61,
+      "id": "haul_handling_v1.stone.recovery",
+      "loop": 0,
+      "part_visibility_mask": 3,
+      "source_sha256": "beefcf8f6d8c95751ae049812bbc5492f613f0607354fee1b477eaf1be7323b7"
+    },
+    {
+      "duration_q16": 65536,
+      "frames": 2,
+      "id": "haul_handling_v1.stone.hold",
+      "loop": 0,
+      "part_visibility_mask": 3,
+      "source_sha256": "a28934d9e7a1da9f7a9019360cc4fe92a9c88af2247fa159d70b527b7f848f77"
+    },
+    {
+      "duration_q16": 4194304,
+      "frames": 65,
+      "id": "haul_handling_v1.stone.enter",
+      "loop": 0,
+      "part_visibility_mask": 3,
+      "source_sha256": "50cf7505ddcf2a98808890063046802b7a441e828253b82adc3998a436e301a7"
+    },
+    {
+      "duration_q16": 14286848,
+      "frames": 219,
+      "id": "haul_handling_v1.stone.carry",
+      "loop": 1,
+      "part_visibility_mask": 3,
+      "source_sha256": "eddedb753d107ec625cf279e78fba809e215635a497d93e242fcfb6f496eee59"
+    },
+    {
+      "duration_q16": 4194304,
+      "frames": 65,
+      "id": "haul_handling_v1.stone.exit",
+      "loop": 0,
+      "part_visibility_mask": 3,
+      "source_sha256": "5f87ba70f1d3a873331cc02595c4c89cff931c48eb4846555ed5136278ecfe63"
+    },
+    {
+      "duration_q16": 1966080,
+      "frames": 31,
+      "id": "haul_handling_v1.stone.enter_haul_stone",
+      "loop": 0,
+      "part_visibility_mask": 3,
+      "source_sha256": "28d92c243aaeb381afc62a4bbf185ac10fc0b211d9b03ec0416f7ffc153737db"
+    },
+    {
+      "duration_q16": 1966080,
+      "frames": 31,
+      "id": "haul_handling_v1.stone.leave_haul_stone",
+      "loop": 0,
+      "part_visibility_mask": 3,
+      "source_sha256": "8f4d01fb762f00b151592f4c44baff5f06e126f012250cab746196d59bafb3fb"
+    }
+  ],
+  "empty_stock": "approach/recovery/join stone is a World fixture, never carried cargo permission",
+  "item": "stone",
+  "mass_g": 5000,
+  "parts": [
+    "body",
+    "stone"
+  ],
+  "production_qualified": false,
+  "quantity_milli": 1000,
+  "schema": 1,
+  "source_clock": "presentation sampling only; no hauling speed or work rate",
+  "stone_array_mesh_sha256": "e9c10ccc9c359dfeda45d8575e9aa60010bfbbacb821f9ef136018e74e013d7e",
+  "stone_bits_sha256": "991948c275ff3e87965229725ef3f77b6997d3fdc87294694fb46d16e5e0c119",
+  "stone_capture_sha256": "ddcb70bf666021ded1b12741f3a741e25ffb9d37b79ed9c95f71f74dcb091a6e",
+  "stone_factory": "bore_dressing.gd::stone_mesh (unit lump), scaled (0.150, 0.120, 0.150) by the clip's stock matrix; ADR 1206"
+}

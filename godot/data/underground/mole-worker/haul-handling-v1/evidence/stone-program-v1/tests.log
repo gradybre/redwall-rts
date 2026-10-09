@@ -1,0 +1,12 @@
+test_every_stored_proof_passes (__main__.StoneProgramTests.test_every_stored_proof_passes) ... ok
+test_phases_are_exact_reversals_and_the_floor_stone_stays_put (__main__.StoneProgramTests.test_phases_are_exact_reversals_and_the_floor_stone_stays_put) ... ok
+test_pickup_key_is_the_approved_grip_byte_for_byte (__main__.StoneProgramTests.test_pickup_key_is_the_approved_grip_byte_for_byte) ... ok
+test_rebuild_is_byte_identical (__main__.StoneProgramTests.test_rebuild_is_byte_identical) ... ok
+test_staging_bounds_are_refused (__main__.StoneProgramTests.test_staging_bounds_are_refused) ... ok
+test_wood_unstaged_path_buries_the_snout (__main__.StoneProgramTests.test_wood_unstaged_path_buries_the_snout) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 5.284s
+
+OK
+[test_stone_program.py exit 0 in 5.4s]

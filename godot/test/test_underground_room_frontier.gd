@@ -253,5 +253,5 @@ func test_scan_end_means_only_the_callers_search_position_not_finished_room_perm
 	var last_key: int = _h.sites._ordered_key[_h.sites._count - 1]
 	assert_equal(_next(last_key), Frontier.REFUSE_END, "end of only this bounded canonical scan")
 	assert_equal(_candidate_image(), original, "scan end preserves original identity output")
-	assert_equal(_h.sites._room_slot.count(_room.x), 16, "all actual2×2×4 Kitchen claims exist")
+	assert_equal(_h.sites._room_slot.count(_room.x), 8, "all actual 2×2×2 Kitchen claims exist (DEC-054 height)")
 	assert_equal(_h.sites._ever_cut.count(1), 0, "none gained free completion from scan exhaustion")

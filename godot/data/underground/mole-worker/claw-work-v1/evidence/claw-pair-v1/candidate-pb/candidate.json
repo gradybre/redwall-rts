@@ -1,0 +1,617 @@
+{
+  "schema": 1,
+  "decision": "1217",
+  "motion": "M1 two-paw alternating claw stroke (BRACE, CUT, FINISH)",
+  "recipe": {
+    "right_x_u": 192,
+    "left_x_u": -192,
+    "anchor_z_u": -544,
+    "rake_u": 32,
+    "lean_degrees": 70,
+    "drop_u": 96,
+    "tilt_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90,
+    "head_lift_degrees": 60
+  },
+  "loop": {
+    "top_u": 80,
+    "depth_u": 60,
+    "keys": 33
+  },
+  "entry_keys": 31,
+  "target": {
+    "station_root_u": [
+      -1536,
+      0,
+      -512
+    ],
+    "station_yaw": 49152,
+    "replaced_profile": 25,
+    "cube_world_u": [
+      -1024,
+      -1024,
+      -1024,
+      0,
+      0,
+      0
+    ],
+    "cube_local_u": [
+      -512,
+      -1024,
+      -1536,
+      512,
+      0,
+      -512
+    ],
+    "accepted_pick_anchor_local_u": [
+      42,
+      0,
+      -673
+    ],
+    "moved_cube_local_u": [
+      -512,
+      -1024,
+      -1430,
+      512,
+      0,
+      -406
+    ]
+  },
+  "source_pins": {
+    "palette": "5b368eb3ad594b4a6f82b5981a891150e6f7053944daf888d4ab5aa293c822fe",
+    "open_body": "a938d479014ebd3a431a118a7b1c9f7aa0b522d0a33a5c5d281e58e1e2f497c1",
+    "topology": "da623e5c7c3c5a6aff5c466b143425422f3aa2253497527c84f713738f997b42",
+    "stand": "7086ef2a3aab64537d7822393c04ece86d67879e59e1c7e54d333a5c7f974c7d",
+    "profiles": "30c3dc1f5e9162f5530f410c437ed6f85d28dc6879f88dec81cb193ea87b0df5"
+  },
+  "ready_frame": 8,
+  "claw_vertices": {
+    "right": 2,
+    "left": 14014
+  },
+  "work_keys": [
+    {
+      "key": 0,
+      "maximum_link_length_error_m": 5.551115123125783e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          10.0,
+          -544.1658
+        ],
+        "left": [
+          -192.0,
+          10.0,
+          -511.8342
+        ]
+      }
+    },
+    {
+      "key": 1,
+      "maximum_link_length_error_m": 6.938893903907228e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          -3.6563,
+          -543.8552
+        ],
+        "left": [
+          -192.0,
+          23.6563,
+          -512.1448
+        ]
+      }
+    },
+    {
+      "key": 2,
+      "maximum_link_length_error_m": 6.938893903907228e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          -16.7878,
+          -542.9353
+        ],
+        "left": [
+          -192.0,
+          36.7878,
+          -513.0647
+        ]
+      }
+    },
+    {
+      "key": 3,
+      "maximum_link_length_error_m": 5.551115123125783e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          -28.8899,
+          -541.4414
+        ],
+        "left": [
+          -192.0,
+          48.8899,
+          -514.5586
+        ]
+      }
+    },
+    {
+      "key": 4,
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          -39.4975,
+          -539.431
+        ],
+        "left": [
+          -192.0,
+          59.4975,
+          -516.569
+        ]
+      }
+    },
+    {
+      "key": 5,
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          -48.2029,
+          -536.9812
+        ],
+        "left": [
+          -192.0,
+          68.2029,
+          -519.0188
+        ]
+      }
+    },
+    {
+      "key": 6,
+      "maximum_link_length_error_m": 8.326672684688674e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          -54.6716,
+          -534.1864
+        ],
+        "left": [
+          -192.0,
+          74.6716,
+          -521.8136
+        ]
+      }
+    },
+    {
+      "key": 7,
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          -58.655,
+          -531.1538
+        ],
+        "left": [
+          -192.0,
+          78.655,
+          -524.8462
+        ]
+      }
+    },
+    {
+      "key": 8,
+      "maximum_link_length_error_m": 5.551115123125783e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          -60.0,
+          -528.0
+        ],
+        "left": [
+          -192.0,
+          80.0,
+          -528.0
+        ]
+      }
+    },
+    {
+      "key": 9,
+      "maximum_link_length_error_m": 6.938893903907228e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          -58.655,
+          -524.8462
+        ],
+        "left": [
+          -192.0,
+          78.655,
+          -531.1538
+        ]
+      }
+    },
+    {
+      "key": 10,
+      "maximum_link_length_error_m": 8.326672684688674e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          -54.6716,
+          -521.8136
+        ],
+        "left": [
+          -192.0,
+          74.6716,
+          -534.1864
+        ]
+      }
+    },
+    {
+      "key": 11,
+      "maximum_link_length_error_m": 5.551115123125783e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          -48.2029,
+          -519.0188
+        ],
+        "left": [
+          -192.0,
+          68.2029,
+          -536.9812
+        ]
+      }
+    },
+    {
+      "key": 12,
+      "maximum_link_length_error_m": 1.1102230246251565e-16,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          -39.4975,
+          -516.569
+        ],
+        "left": [
+          -192.0,
+          59.4975,
+          -539.431
+        ]
+      }
+    },
+    {
+      "key": 13,
+      "maximum_link_length_error_m": 8.326672684688674e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          -28.8899,
+          -514.5586
+        ],
+        "left": [
+          -192.0,
+          48.8899,
+          -541.4414
+        ]
+      }
+    },
+    {
+      "key": 14,
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          -16.7878,
+          -513.0647
+        ],
+        "left": [
+          -192.0,
+          36.7878,
+          -542.9353
+        ]
+      }
+    },
+    {
+      "key": 15,
+      "maximum_link_length_error_m": 5.551115123125783e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          -3.6563,
+          -512.1448
+        ],
+        "left": [
+          -192.0,
+          23.6563,
+          -543.8552
+        ]
+      }
+    },
+    {
+      "key": 16,
+      "maximum_link_length_error_m": 1.1102230246251565e-16,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          10.0,
+          -511.8342
+        ],
+        "left": [
+          -192.0,
+          10.0,
+          -544.1658
+        ]
+      }
+    },
+    {
+      "key": 17,
+      "maximum_link_length_error_m": 4.163336342344337e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          23.6563,
+          -512.1448
+        ],
+        "left": [
+          -192.0,
+          -3.6563,
+          -543.8552
+        ]
+      }
+    },
+    {
+      "key": 18,
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          36.7878,
+          -513.0647
+        ],
+        "left": [
+          -192.0,
+          -16.7878,
+          -542.9353
+        ]
+      }
+    },
+    {
+      "key": 19,
+      "maximum_link_length_error_m": 5.551115123125783e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          48.8899,
+          -514.5586
+        ],
+        "left": [
+          -192.0,
+          -28.8899,
+          -541.4414
+        ]
+      }
+    },
+    {
+      "key": 20,
+      "maximum_link_length_error_m": 5.551115123125783e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          59.4975,
+          -516.569
+        ],
+        "left": [
+          -192.0,
+          -39.4975,
+          -539.431
+        ]
+      }
+    },
+    {
+      "key": 21,
+      "maximum_link_length_error_m": 5.551115123125783e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          68.2029,
+          -519.0188
+        ],
+        "left": [
+          -192.0,
+          -48.2029,
+          -536.9812
+        ]
+      }
+    },
+    {
+      "key": 22,
+      "maximum_link_length_error_m": 8.326672684688674e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          74.6716,
+          -521.8136
+        ],
+        "left": [
+          -192.0,
+          -54.6716,
+          -534.1864
+        ]
+      }
+    },
+    {
+      "key": 23,
+      "maximum_link_length_error_m": 4.163336342344337e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          78.655,
+          -524.8462
+        ],
+        "left": [
+          -192.0,
+          -58.655,
+          -531.1538
+        ]
+      }
+    },
+    {
+      "key": 24,
+      "maximum_link_length_error_m": 6.938893903907228e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          80.0,
+          -528.0
+        ],
+        "left": [
+          -192.0,
+          -60.0,
+          -528.0
+        ]
+      }
+    },
+    {
+      "key": 25,
+      "maximum_link_length_error_m": 5.551115123125783e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          78.655,
+          -531.1538
+        ],
+        "left": [
+          -192.0,
+          -58.655,
+          -524.8462
+        ]
+      }
+    },
+    {
+      "key": 26,
+      "maximum_link_length_error_m": 5.551115123125783e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          74.6716,
+          -534.1864
+        ],
+        "left": [
+          -192.0,
+          -54.6716,
+          -521.8136
+        ]
+      }
+    },
+    {
+      "key": 27,
+      "maximum_link_length_error_m": 9.71445146547012e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          68.2029,
+          -536.9812
+        ],
+        "left": [
+          -192.0,
+          -48.2029,
+          -519.0188
+        ]
+      }
+    },
+    {
+      "key": 28,
+      "maximum_link_length_error_m": 1.1102230246251565e-16,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          59.4975,
+          -539.431
+        ],
+        "left": [
+          -192.0,
+          -39.4975,
+          -516.569
+        ]
+      }
+    },
+    {
+      "key": 29,
+      "maximum_link_length_error_m": 8.326672684688674e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          48.8899,
+          -541.4414
+        ],
+        "left": [
+          -192.0,
+          -28.8899,
+          -514.5586
+        ]
+      }
+    },
+    {
+      "key": 30,
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          36.7878,
+          -542.9353
+        ],
+        "left": [
+          -192.0,
+          -16.7878,
+          -513.0647
+        ]
+      }
+    },
+    {
+      "key": 31,
+      "maximum_link_length_error_m": 4.163336342344337e-17,
+      "claw_targets_u": {
+        "right": [
+          192.0,
+          23.6563,
+          -543.8552
+        ],
+        "left": [
+          -192.0,
+          -3.6563,
+          -512.1448
+        ]
+      }
+    }
+  ],
+  "station_inset_u": 106,
+  "start_loop_key": 8,
+  "left_phase_keys": 16,
+  "clips": {
+    "stroke": {
+      "id": "mole_worker.claw_dig.pair_stroke_v1",
+      "frames": 33,
+      "sha256": "b4dde585b73e3dbe86c37cd518e21f3f4a5493aa1690b927c7664686c4a824c1"
+    },
+    "entry": {
+      "id": "mole_worker.claw_dig.pair_entry_v1",
+      "frames": 31,
+      "sha256": "8fefbf92a05d7d4032ac9b3fddecdb10c8593ce507e791c06c74ea6e7d7dc0eb"
+    },
+    "recovery": {
+      "id": "mole_worker.claw_dig.pair_recovery_v1",
+      "frames": 31,
+      "sha256": "2768baf34f6d13b3b201074a7aa66559acd4423ea0c59873c202f48f95a8f6c4"
+    }
+  },
+  "producer_sources": {
+    "godot/data/underground/mole-worker/claw-work-v1/author_claw_pair.py": "6a1c3f508e89631dd990b603896c4546d0b0051a9e5f1a1ad40eb5508f34f075",
+    "godot/data/underground/mole-worker/claw-work-v1/author_claw_stroke.py": "3edc742c993acd7a1731160633396b62a4fdf5e0014453432decab5e5974dda6",
+    "godot/data/underground/mole-worker/claw-work-v1/claw_source.py": "e0311359eaa5d485b34c1e14f41a1cf982fabd48b9d0fe396e2f57d119a22718",
+    "godot/data/underground/mole-worker/haul-handling-v1/author_handling.py": "bf96731c5cba21f300f46b7db307c78e465f1c9f2dbfc8c7e41c97a2786eca26",
+    "godot/data/underground/mole-worker/haul-handling-v1/author_program.py": "7dbcb921cba0ce0c2707a72b246b28509aa9f37b97a30f9ac4177f2ccdec7b0b"
+  },
+  "tool": null,
+  "paw": "open (original cast mesh)",
+  "production_qualified": false
+}

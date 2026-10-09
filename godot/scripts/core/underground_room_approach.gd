@@ -15,6 +15,7 @@ const Terrain := preload("res://scripts/core/underground_terrain.gd")
 const Space := preload("res://scripts/core/room_space.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const Footprint := preload("res://scripts/core/room_footprint.gd")
+const Jobs := preload("res://scripts/core/jobs.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const REFUSE_INPUT: StringName = &"ROOM_APPROACH_INPUT"
 const REFUSE_BINDING: StringName = &"ROOM_APPROACH_BINDING"
@@ -23,6 +24,11 @@ const REFUSE_PROFILE: StringName = &"ROOM_APPROACH_PROFILE"
 const REFUSE_TARGET: StringName = &"ROOM_APPROACH_PAID_TARGET"
 const REFUSE_GEOMETRY: StringName = &"ROOM_APPROACH_PHYSICAL_EDIT"
 const REFUSE_BUSY: StringName = &"ROOM_APPROACH_REENTRY"
+## DEC-054/ADR1220: the painted height exceeds the highest cube band a floor station's published WORK rows reach.
+const REFUSE_HEIGHT: StringName = &"ROOM_APPROACH_HEIGHT_UNREACHABLE"
+## Identity of the digging actor: a WORK row counts only when it shares every one of these with the request's row.
+const IDENTITY_FIELDS: Array[int] = [Profiles.F_SOURCE, Profiles.F_SPECIES, Profiles.F_STAGE, Profiles.F_RIG,
+	Profiles.F_POSTURE, Profiles.F_TOOL, Profiles.F_TOOL_VARIANT, Profiles.F_CARGO, Profiles.F_CARGO_VARIANT]
 const CONTROL_BYTES: int = 4096 # Cold numeric/helper allowance, inside the existing shared lease.
 const PATH_BYTES: int = Routes.MAX_EDGES * 8
 const COLD_BYTES: int = Face.COLD_BYTES + PATH_BYTES + CONTROL_BYTES
@@ -226,7 +232,7 @@ class Witness extends RefCounted:
 		for axis: int in 6:
 			if expected.envelope[axis] != bank.i32[(Locations.ENVELOPE + axis) * capacity + row] \
 					or expected.support[axis] != bank.i32[(Locations.SUPPORT + axis) * capacity + row]: return false
-		return _record_sources_match(actual, expected, owner)
+		return Locations.air_record_matches(actual, bank, row, expected) and _record_sources_match(actual, expected, owner)
 
 	static func _record_sources_match(actual: Locations, expected: Locations.Record, owner: Owner) -> bool:
 		"""Generation-checked section and actual Room mirrors remain live without a Building observation."""
@@ -652,6 +658,48 @@ static func input_refusal(provider: WorldRoutes, request: Request, plan: Orders.
 	if plan.cells.size() < 2 or plan.cells.size() % 2 != 0 or plan.cells.size() > 2 * Footprint.MAX_OPERATION_CELLS \
 			or plan.cell_size_u < 1 or plan.cell_size_u > Space.I32_MAX or plan.height_u < 1 \
 			or not Space.int32(int(plan.origin_u.y) + plan.height_u): return REFUSE_INPUT
+	if plan.height_u > reachable_height_u(provider._profiles, request.work_profile): return REFUSE_HEIGHT
 	if provider._locations()._domain == null or provider._locations()._domain._regions > Budget.PHASE_VOLUME_CAPACITY \
 			or COMPANION_BYTES + 12 * plan.cells.size() + 2048 > Budget.COLD_BYTES: return Budget.REFUSE_BYTES
 	return &""
+
+
+static func reachable_height_u(profiles: Profiles, identity_row: int) -> int:
+	"""DEC-054: the excavated height a floor station can dig, derived only from published boxes. It is the top of the
+	highest whole-cube band holding, strictly inside, the anchor of a certified BUILD anchor-and-patch WORK row with
+	identity_row's actor/tool/cargo identity (any identity when identity_row is -1, for a plan drawn before its worker
+	is chosen); 0 when none. It follows whatever dig rows are published (claw rows)."""
+	if profiles == null or identity_row < -1 or identity_row >= profiles._live.header[1]: return 0
+	var height: int = 0
+	for row: int in profiles._live.header[1]:
+		if not _dig_row(profiles, identity_row, row): continue
+		var anchor: int = _anchor_height(profiles, row)
+		if anchor > 0 and anchor % Space.QUANTUM_U != 0:
+			@warning_ignore("integer_division") var band: int = anchor / Space.QUANTUM_U
+			height = maxi(height, (band + 1) * Space.QUANTUM_U)
+	return height
+
+
+static func _dig_row(profiles: Profiles, identity_row: int, row: int) -> bool:
+	"""A certified BUILD anchor-and-patch WORK row with the identity row's actor/tool/cargo identity (any when -1)."""
+	var stride: int = profiles._profile_capacity
+	if profiles._live.flags[row] != Profiles.CERT_REQUIRED or profiles._live.fields[Profiles.F_MODE * stride + row] != Profiles.MODE_WORK \
+			or profiles._live.fields[Profiles.F_WORK_KIND * stride + row] != Jobs.JOB_KIND_BUILD \
+			or profiles._live.fields[Profiles.F_CONTACT_KIND * stride + row] != Profiles.CONTACT_ANCHOR_AND_PATCH: return false
+	if identity_row < 0: return true
+	for field: int in IDENTITY_FIELDS:
+		if profiles._live.fields[field * stride + row] != profiles._live.fields[field * stride + identity_row]: return false
+	return true
+
+
+static func _anchor_height(profiles: Profiles, row: int) -> int:
+	"""The single CONTACT_POINT's height above the stance, or 0 when the row publishes no single anchor."""
+	var stride: int = profiles._profile_capacity
+	var height: int = 0
+	var found: int = 0
+	for index: int in profiles._live.fields[Profiles.F_BOX_COUNT * stride + row]:
+		var box: int = profiles._live.fields[Profiles.F_FIRST_BOX * stride + row] + index
+		if profiles._live.boxes[6 * profiles._box_capacity + box] != Profiles.CONTACT_POINT: continue
+		found += 1
+		height = profiles._live.boxes[profiles._box_capacity + box]
+	return height if found == 1 else 0

@@ -523,7 +523,8 @@ func _entry_live_worker_stage(actual: PhaseContacts, origin: Vector3i, worker: V
 	var project: Vector2i = Vector2i(actual._sites._project_slot[site.x], actual._sites._project_generation[site.x])
 	var row: int = actual._placements._construction._row_of(project)
 	if row < 0: return -2
-	if _entry_unregistered_ready_worker(actual, row, worker): return PhaseContacts.PHASE_CONTACT_ONLY
+	if _entry_unregistered_ready_worker(actual, row, worker) or _entry_rebinding_worker(actual, site, row, worker):
+		return PhaseContacts.PHASE_CONTACT_ONLY
 	return Contract.STAGE_WORK if actual._placements._construction._work_begun[row] == 1 else Contract.STAGE_START
 
 
@@ -538,6 +539,19 @@ func _entry_unregistered_ready_worker(actual: PhaseContacts, row: int, worker: V
 		and construction._paused[row] == 0 and construction._work_begun[row] == 0 \
 		and (sites._funding._project_slot[row] != construction._ref_slot[row] \
 			or sites._funding._project_generation[row] != construction._ref_generation[row])
+
+
+func _entry_rebinding_worker(actual: PhaseContacts, site: Vector2i, row: int, worker: Vector2i) -> bool:
+	"""ADR1225: a replacement for a crew that died or left proves contact prospectively, as an unfunded READY
+	worker does, but only on an unpaused paid phase whose face has no registered worker at all; its productive
+	ticks still require Sites' registration and the full paid stage."""
+	var sites: Sites = actual._sites
+	var construction: Construction = actual._placements._construction
+	var resident: int = actual._placements._ids.get_typed_row(worker)
+	return resident >= 0 and resident < sites._worker_site.size() and sites._worker_site[resident] == -1 \
+		and sites._worker_generation[resident] == 0 and not sites._starting and sites._candidate_row == -1 \
+		and sites._permit_project == NULL_REF and construction._work_begun[row] == 1 and construction._paused[row] == 0 \
+		and sites._registered_worker_row(site.x) == Sites.NO_ROW
 
 
 func phase_final_observation_refusal(site: Vector2i, operation: int, stage: int,

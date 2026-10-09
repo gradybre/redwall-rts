@@ -285,9 +285,12 @@ func test_episode_masks_stations_and_ranges_do_not_invent_paid_phases() -> void:
 	for edit: Vector2i in [Vector2i(24, 0), Vector2i(24, 8), Vector2i(28, 3), Vector2i(72, 6)]:
 		var bytes: PackedByteArray = _wire(); bytes.encode_s32(_base(Frontier.EPISODE) + edit.x, edit.y)
 		assert_equal(_load(bytes), Frontier.REFUSE_FORMAT, "invalid operation domain")
-	for edit: Vector2i in [Vector2i(32, -1), Vector2i(44, 1), Vector2i(56, 0), Vector2i(60, 2)]:
+	for edit: Vector2i in [Vector2i(32, -1), Vector2i(44, 1), Vector2i(60, 2)]:
 		var bytes: PackedByteArray = _wire(); bytes.encode_s32(_base(Frontier.EPISODE) + edit.x, edit.y)
 		assert_equal(_load(bytes), Frontier.REFUSE_REFERENCE, "incomplete authored phase selectors")
+	# ADR1229 (ADR 1209 D2): a cube with no bearing under it, as the seventh row, names an empty bearing range.
+	var empty: PackedByteArray = _wire(); empty.encode_s32(_base(Frontier.EPISODE) + 56, 0)
+	assert_equal(_load(empty), &"", "an empty bearing range is a complete selector")
 
 
 func test_duplicate_cube_operation_refuses_even_when_ranges_are_grouped_differently() -> void:

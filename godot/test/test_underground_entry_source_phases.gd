@@ -8,6 +8,16 @@ const Structural := preload("res://test/test_underground_entry_structure_source.
 const FrontierSource := preload("res://test/test_underground_entry_frontier_source.gd")
 const PROFILE_PATH: String = "res://data/underground/mole-worker/qualified-step-v4/mole-worker.ugprof"
 const PROFILE_SHA: String = "830ee531a432f9cef8a24a85f1c017be21253301bc46bf55e0a6b97807a4ec4e"
+# This base fixture deliberately keeps the original content-3 publications (ADR1194 left their bytes in place);
+# the work-area and paid subclasses override every loader with the ADR1190 content-4 bundle.
+const V3_CATALOG_PATH: String = "res://data/underground/first-entry-prefix-v1/structural-v1/structure.ugconn"
+const V3_CATALOG_SHA: String = "d945e9dd965da956868284772dfeb6316d86d288ab9fb34a20a49925197c6578"
+const V3_GROUP_PATH: String = "res://data/underground/first-entry-prefix-v1/structural-v1/assemblies.ugasmb"
+const V3_GROUP_SHA: String = "abd1bb9330f874d26447395a9a9e49707a6de84cefddabf2c60cf932555cd8e7"
+const V3_RECIPE_PATH: String = "res://data/underground/first-entry-prefix-v1/structural-v1/recipes.ugrecp"
+const V3_RECIPE_SHA: String = "14a6a75d41f3072b55ee7db9878e8c975fa79338491fafa612a7b8c1410390e2"
+const V3_FRONTIER_PATH: String = "res://data/underground/first-entry-prefix-v1/frontier-v2/frontier.ugfront"
+const V3_FRONTIER_SHA: String = "1f7b6861cf30c55322e7adf1f4b4fc1d5e63b9fab68feaaea8c4b30d7ed898ca"
 
 class SourceWorld extends Prefix.ActualWorld:
 	var negative_case: int = 0
@@ -48,7 +58,7 @@ class SourceWorld extends Prefix.ActualWorld:
 
 	func _load_catalog(revision: int) -> StringName:
 		"""Choose real structural content before the first WorldRoutes binding."""
-		return _catalog.load_file(Structural.CATALOG_PATH, Structural.CATALOG_SHA, revision)
+		return _catalog.load_file(V3_CATALOG_PATH, V3_CATALOG_SHA, revision)
 
 	func _actual_binding() -> void:
 		"""Use the production root-cell query bound; the earlier tiny synthetic fixture bound cannot hold this full source."""
@@ -60,7 +70,7 @@ class SourceWorld extends Prefix.ActualWorld:
 		config.terrain = _terrain; config.budget = _budget
 		assert_equal(_binding.configure(config), &"", "actual complete route provider")
 		assert_equal(_routes.configure(_locations, _owner, _sources, _buildings, _budget, _binding,
-			1024, 32, 128, 128, Routes.ARENA_BYTES), &"", "existing production cell query bound")
+			1024, 64, 256, 128, Routes.ARENA_BYTES), &"", "existing production cell query bound; ADR1205 work area has 36 paths")
 		assert_equal(_routes.bind_profiles(_profiles, _inventory, _gear, _carry, _work, _pool, _piles), &"", "original worker owners")
 
 class Probe extends PhaseFixture:
@@ -102,11 +112,11 @@ class Probe extends PhaseFixture:
 		_groups._recipes = Recipes.new()
 		assert_equal(_groups._recipes.configure(Recipes.MAX_PARTS, Recipes.required_bytes(Recipes.MAX_PARTS)), &"", "recipe arena")
 		assert_equal(_groups._recipes.bind_actual(_world._catalog, _world._items, _world._inventory), &"", "recipe owners")
-		assert_equal(_groups._recipes.load_file(Structural.RECIPE_PATH, Structural.RECIPE_SHA, 1, Structural.GROUP_SHA, 1), &"", "real recipe")
+		assert_equal(_groups._recipes.load_file(V3_RECIPE_PATH, V3_RECIPE_SHA, 1, V3_GROUP_SHA, 1), &"", "real recipe")
 		_groups._reader = Assemblies.new()
 		assert_equal(_groups._reader.configure(Assemblies.MAX_GROUPS, Assemblies.required_bytes(Assemblies.MAX_GROUPS)), &"", "group arena")
 		assert_equal(_groups._reader.bind_actual(_world._catalog, _groups._recipes, _world._items, _world._inventory), &"", "group owners")
-		assert_equal(_groups._reader.load_file(Structural.GROUP_PATH, Structural.GROUP_SHA, 1, Structural.RECIPE_SHA, 1), &"", "real partition")
+		assert_equal(_groups._reader.load_file(V3_GROUP_PATH, V3_GROUP_SHA, 1, V3_RECIPE_SHA, 1), &"", "real partition")
 
 	func _bind_frontier() -> void:
 		"""Immutable source names actual downward programs and full all-yaw perimeter routes."""
@@ -114,7 +124,7 @@ class Probe extends PhaseFixture:
 		var capacities: PackedInt32Array = PackedInt32Array([2, 8, 2, 10, 10, 6])
 		assert_equal(_source.configure(capacities, 4032), &"", "source bank")
 		assert_equal(_source.bind_actual(_world._catalog, _groups._reader, _groups._recipes, _world._profiles), &"", "source chain")
-		assert_equal(_source.load_file(FrontierSource.FRONTIER_PATH, FrontierSource.FRONTIER_SHA, 1), &"", "actual Frontier")
+		assert_equal(_source.load_file(V3_FRONTIER_PATH, V3_FRONTIER_SHA, 1), &"", "actual Frontier")
 
 	func _entry_plan() -> EntryPlan.Request:
 		"""Keep exact original claims; bind only the new immutable revisions and actual original digests."""
@@ -191,7 +201,7 @@ class Probe extends PhaseFixture:
 
 	func _select_phase_actor(job: int, ordinal: int) -> void:
 		"""The first phase starts at an explicitly placed station; successors retain the same real actor and pose."""
-		var profile: int = 25 if ordinal % 2 == 0 else 17
+		var profile: int = _dig_profile(ordinal)
 		var worker: int = _world._residents.directory().get_typed_row(_world._worker)
 		if _world._routes._resident_ref(worker) != NULL_REF:
 			_move_to_source_station(job, ordinal)
@@ -202,11 +212,19 @@ class Probe extends PhaseFixture:
 		assert_true(_world._transforms.place(_world._worker, point.x, point.y, point.z, 49152 if ordinal % 2 == 0 else 16384), "explicit initial test arrival")
 		assert_equal(_world._routes.admit_work_actor(_world._worker, _world._jobs.ref_of(job), _endpoints[3 + ordinal], profile, 1, _content_revision(), 0, -1, _tool), &"", "actual source actor")
 
+	func _dig_profile(ordinal: int) -> int:
+		"""The pick downward stroke at the station's heading (25 at 49152, 17 at 16384); claw fixtures override."""
+		return 25 if ordinal % 2 == 0 else 17
+
+	func _ground_profile() -> int:
+		"""The pick canonical-ground travel row; claw fixtures override."""
+		return 12
+
 	func _move_to_source_station(job: int, ordinal: int) -> void:
 		"""Successor stations require actual perimeter travel, source recovery and a physically certified turn."""
 		var worker: int = _world._residents.directory().get_typed_row(_world._worker)
 		if _world._routes._resident_pair(Routes.R_LOCATION_SLOT, worker) == _endpoints[3 + ordinal]: return
-		assert_equal(_world._routes.refresh_travel_actor(_world._worker, _world._jobs.ref_of(job), 12, 1, _content_revision(), 0, -1, _tool), &"", "actual source WALK handoff")
+		assert_equal(_world._routes.refresh_travel_actor(_world._worker, _world._jobs.ref_of(job), _ground_profile(), 1, _content_revision(), 0, -1, _tool), &"", "actual source WALK handoff")
 		assert_equal(_world._routes.request_route(_world._worker, _endpoints[3 + ordinal], _tick), &"", "actual perimeter itinerary")
 		if not failures.is_empty(): return
 		var actor: Routes.Actor = Routes.Actor.new()
@@ -217,7 +235,7 @@ class Probe extends PhaseFixture:
 				assert_true(false, "actual perimeter route held")
 				return
 			if actor.location == _endpoints[3 + ordinal] and \
-				Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), 12, 1, _content_revision()) == &"": break
+				Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), _ground_profile(), 1, _content_revision()) == &"": break
 		assert_equal(actor.location, _endpoints[3 + ordinal], "actual endpoint reached")
 		assert_equal(WorldRoutes.turn_actor(_world._binding, _world._worker, _world._jobs.ref_of(job),
 			49152 if ordinal % 2 == 0 else 16384, Space.MAX_CHECKS), &"", "actual full-envelope work-facing turn")
@@ -226,7 +244,7 @@ class Probe extends PhaseFixture:
 		"""Canonical source entry must finish through actual Routes before any paid productive START."""
 		var job: int = _open_real_phase_job(site, operation, ordinal)
 		if job < 0 or not failures.is_empty(): return -1
-		var profile: int = 25 if ordinal % 2 == 0 else 17
+		var profile: int = _dig_profile(ordinal)
 		for step: int in 240:
 			if Routes.source_work_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), profile, 1, _content_revision()) == &"": break
 			_world._routes.advance_tick(_tick); _tick += 1
@@ -260,7 +278,7 @@ class Probe extends PhaseFixture:
 		_earn_actual_phase(job)
 		if not failures.is_empty(): return false
 		assert_equal(_world._routes.request_source_ready(_world._worker, _world._jobs.ref_of(job)), &"", "real source recovery")
-		var profile: int = 25 if ordinal % 2 == 0 else 17
+		var profile: int = _dig_profile(ordinal)
 		for step: int in 240:
 			if Routes.source_ready_leaf_refusal(_world._routes, _world._worker, _world._jobs.ref_of(job), profile, 1, _content_revision()) == &"": break
 			_world._routes.advance_tick(_tick); _tick += 1
@@ -338,7 +356,7 @@ func test_real_source_first_cube_earns_paid_brace_cut_and_finish() -> void:
 	_probe.execute_first_cube()
 	assert_true(_probe.failures.is_empty(), "real-source execution: %s" % _probe.failures)
 	assert_true(_probe.completed_cube, "all three actual source phases completed")
-	assert_equal(_probe._accepted_work_mwu, 9000, "exact adopted productive work; recovery earns none")
+	assert_equal(_probe._accepted_work_mwu, 4230, "exact adopted productive work; recovery earns none")
 	assert_true(_probe.assertions > 50, "actual nested owner checks executed; not added to the suite assertion counter")
 
 
@@ -358,7 +376,7 @@ func test_four_landing_cubes_require_real_source_travel_and_paid_phases() -> voi
 	_probe.execute_l0_cubes()
 	assert_true(_probe.failures.is_empty(), "four source cubes: %s" % _probe.failures)
 	assert_true(_probe.completed_l0, "all four whole cubes dug and finished")
-	assert_equal(_probe._accepted_work_mwu, 36000, "actual phase work only; travel and turns earn none")
+	assert_equal(_probe._accepted_work_mwu, 16920, "actual phase work only; travel and turns earn none")
 
 
 func test_mixed_body_residual_cannot_be_clipped_to_air() -> void:

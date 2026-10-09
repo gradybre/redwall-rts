@@ -278,6 +278,22 @@ class SyntheticOwner extends Contract.Owner:
 		"""Synthetic source fixture owns no earth; real Tips conservation has separate composed tests."""
 		return 0
 
+class PauseProbeOwner extends SyntheticOwner:
+	## Synthetic refusal only; it never supplies the real source recovery that production ConnectorWork owns.
+	var pause_calls: int = 0
+	var early_release: StringName = &""
+	var reenter_pause: bool = false
+	var reentry_result: StringName = &""
+	var lie_about_release: bool = false
+
+	func pause_release(candidate: Vector2i) -> StringName:
+		"""The real Router's preparation window cannot be used as an early static worker-release permission."""
+		pause_calls += 1
+		var router: Router = route.get_ref() as Router
+		early_release = Router.pause_release_preflighted(router, candidate, self)
+		if reenter_pause: reentry_result = router.set_paused(candidate, true).error
+		return &"" if lie_about_release else &"SYNTHETIC_SOURCE_RECOVERY_PENDING"
+
 var _residents: Residents = null
 var _priorities: Priorities = null
 var _schedule: Schedule = null
@@ -820,6 +836,68 @@ func test_pause_releases_actual_workers_and_rebind_resume_preserves_paid_materia
 	assert_equal(_owner.retained, retained, "resume creates no labor")
 	assert_true(_work.tick_solo(row).ok, "subsequent real tick")
 	assert_true(_owner.retained > retained, "real work continues")
+
+
+func _pause_connector() -> PauseProbeOwner:
+	"""Only the new connector's source refusal is synthetic; the Directory/payment/claim owners are unchanged."""
+	var owner: PauseProbeOwner = PauseProbeOwner.new()
+	owner.construction = _construction
+	owner.world = _world
+	owner.route = weakref(_router)
+	owner.funding = _funding
+	owner.purpose_tag = Construction.PURPOSE_CONNECTOR_INSTALL
+	assert_true(_router.bind_owner(owner).ok, "separate real connector binding")
+	return owner
+
+
+func test_connector_pause_default_refuses_release_but_holds_work_immediately() -> void:
+	"""A purpose8 owner without a source-recovery implementation cannot strand an entered worker by releasing it."""
+	var connector: SyntheticOwner = _new_connector()
+	var project: Vector2i = _open(connector)
+	var job: Vector2i = _job(project)
+	_start(project)
+	assert_equal(_router.set_paused(project, true).error, Contract.REFUSE_AUTHORITY, "base recovery is closed")
+	assert_true(_construction.is_paused(project), "pause is immediate despite pending release")
+	assert_equal(_jobs.job_of(_resident), job, "original Job retained")
+	assert_equal(_work.tool_lot_of(_resident), _tools[_resident], "original tool claim retained")
+	assert_true(_funding.is_funded(project), "paid WIP retained")
+	var before: PackedByteArray = _image()
+	assert_equal(_router.set_paused(project, true).error, Contract.REFUSE_AUTHORITY, "retry stays pending")
+	assert_true(_image() == before, "retry creates no work, claim or material change")
+
+
+func test_connector_pause_claim_release_precedes_recovery_but_worker_release_cannot_escape() -> void:
+	"""Ordinary unfunded claims release as before, while an early final-kernel call cannot release a nonready worker."""
+	var connector: PauseProbeOwner = _pause_connector()
+	var project: Vector2i = _open(connector)
+	var job: Vector2i = _job(project)
+	_deliver(project)
+	assert_true(_pool.job_claim_count(job) > 0, "actual unconsumed input claim")
+	assert_equal(_router.set_paused(project, true).error, &"SYNTHETIC_SOURCE_RECOVERY_PENDING", "real owner gate called")
+	assert_equal(connector.pause_calls, 1, "one ordinary recovery observation")
+	assert_equal(connector.early_release, Contract.REFUSE_AUTHORITY, "prepared window cannot publish")
+	assert_equal(_pool.job_claim_count(job), 0, "unfunded claims released without consuming loose goods")
+	assert_false(_funding.is_funded(project), "no start or handling credit")
+	assert_equal(_jobs.job_of(_resident), job, "worker remains through recovery")
+	assert_equal(_work.tool_lot_of(_resident), _tools[_resident], "tool remains through recovery")
+
+
+func test_connector_pause_reentry_or_success_boolean_cannot_publish_worker_release() -> void:
+	"""A late callback cannot create the private release/done window or convert an ignored refusal into success."""
+	var connector: PauseProbeOwner = _pause_connector()
+	var project: Vector2i = _open(connector)
+	var job: Vector2i = _job(project)
+	_start(project)
+	connector.reenter_pause = true
+	connector.lie_about_release = true
+	assert_equal(_router.set_paused(project, true).error, Contract.REFUSE_AUTHORITY, "no done window")
+	assert_equal(connector.reentry_result, Router.REFUSE_BUSY, "nested pause refused and poisons original window")
+	assert_equal(connector.early_release, Contract.REFUSE_AUTHORITY, "early static release refused")
+	assert_equal(_jobs.job_of(_resident), job, "original actual worker still assigned")
+	assert_equal(_work.tool_lot_of(_resident), _tools[_resident], "original exact tool still claimed")
+	assert_true(_funding.is_funded(project), "actual paid materials remain")
+	assert_false(_router._busy, "synchronous scope cleared on refusal")
+	assert_equal(_router._publishing_action, -1, "publication scope discarded")
 
 
 func test_cancel_unassigned_order_and_blocked_started_refund_leave_no_fake_completion() -> void:

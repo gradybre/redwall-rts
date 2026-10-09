@@ -11,6 +11,7 @@ const Reservations := preload("res://scripts/core/reservations.gd")
 const Items := preload("res://scripts/core/item_definitions.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const DirectoryScript := preload("res://scripts/core/entity_directory.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const NO_ROW: int = -1
 ## Explicit concurrent-receipt engineering envelope, not a per-room or historical-input limit.
@@ -852,3 +853,140 @@ func state_bytes() -> PackedByteArray:
 func _refuse(code: StringName) -> Inventory.OpResult:
 	"""Use the actual inventory transaction result shape throughout the composed boundary."""
 	return Inventory.OpResult.new(false, code, NULL_REF, 0)
+
+
+# --- ADR 1228: section 6 owner `excavation_inventory` ---------------------------------------------
+
+## Section 6 column count, in registry ordinal order.
+const SAVE_COLUMN_COUNT: int = 18
+
+
+func save_columns() -> Array:
+	"""Copies of the eighteen registry columns in ordinal order; the free stack only up to its count."""
+	return [PackedInt32Array([_capacity]), PackedInt32Array([_free_count]), _free.slice(0, _free_count),
+		_project_slot.duplicate(), _project_generation.duplicate(), _head.duplicate(),
+		_output_slot.duplicate(), _output_generation.duplicate(), _output_mass_g.duplicate(),
+		_r_next.duplicate(), _r_item.duplicate(), _r_quality.duplicate(), _r_provenance.duplicate(),
+		_r_recipe.duplicate(), _r_quantity.duplicate(), _r_age.duplicate(), _r_remainder.duplicate(),
+		_lost_milli.duplicate()]
+
+
+func restore_columns(columns: Array) -> bool:
+	"""Install the columns after `columns_valid()`; false writes nothing. Scratch stays untouched."""
+	if not columns_valid(columns):
+		return false
+	_free_count = (columns[1] as PackedInt32Array)[0]
+	_free.fill(-1)
+	for index: int in _free_count:
+		_free[index] = (columns[2] as PackedInt32Array)[index]
+	_install_project_columns(columns)
+	_install_receipt_columns(columns)
+	_lost_milli = (columns[17] as PackedInt64Array).duplicate()
+	return true
+
+
+func _install_project_columns(columns: Array) -> void:
+	"""Private copies of the six project-indexed columns."""
+	_project_slot = (columns[3] as PackedInt32Array).duplicate()
+	_project_generation = (columns[4] as PackedInt32Array).duplicate()
+	_head = (columns[5] as PackedInt32Array).duplicate()
+	_output_slot = (columns[6] as PackedInt32Array).duplicate()
+	_output_generation = (columns[7] as PackedInt32Array).duplicate()
+	_output_mass_g = (columns[8] as PackedInt64Array).duplicate()
+
+
+func _install_receipt_columns(columns: Array) -> void:
+	"""Private copies of the eight receipt columns."""
+	_r_next = (columns[9] as PackedInt32Array).duplicate()
+	_r_item = (columns[10] as PackedInt32Array).duplicate()
+	_r_quality = (columns[11] as PackedInt32Array).duplicate()
+	_r_provenance = (columns[12] as PackedInt32Array).duplicate()
+	_r_recipe = (columns[13] as PackedInt32Array).duplicate()
+	_r_quantity = (columns[14] as PackedInt64Array).duplicate()
+	_r_age = (columns[15] as PackedInt64Array).duplicate()
+	_r_remainder = (columns[16] as PackedInt64Array).duplicate()
+
+
+func columns_valid(columns: Array) -> bool:
+	"""Types and extents against this composed owner, then free rows, project rows and chains."""
+	if _ready_error != &"" or not _column_types_ok(columns):
+		return false
+	if (columns[0] as PackedInt32Array)[0] != _capacity:
+		return false
+	var free_count: int = (columns[1] as PackedInt32Array)[0]
+	if free_count < 0 or free_count > _capacity or (columns[2] as PackedInt32Array).size() != free_count:
+		return false
+	for ordinal: int in range(3, 9):
+		if columns[ordinal].size() != Construction.CONSTRUCTION_CAPACITY:
+			return false
+	for ordinal: int in range(9, 17):
+		if columns[ordinal].size() != _capacity:
+			return false
+	if (columns[17] as PackedInt64Array).size() != LOSS_CELL_CAPACITY or not _nonnegative(columns[17]):
+		return false
+	var seen: PackedByteArray = PackedByteArray()
+	seen.resize(_capacity)
+	return _free_rows_valid(columns, seen) and _project_rows_valid(columns, seen) and seen.count(0) == 0
+
+
+static func _nonnegative(column: PackedInt64Array) -> bool:
+	"""Every value is at least zero."""
+	for value: int in column:
+		if value < 0:
+			return false
+	return true
+
+
+static func _column_types_ok(columns: Array) -> bool:
+	"""Eighteen columns of the registry's packed types; both scalars one element."""
+	if columns.size() != SAVE_COLUMN_COUNT:
+		return false
+	for ordinal: int in SAVE_COLUMN_COUNT:
+		var wide: bool = ordinal == 8 or ordinal == 17 or (ordinal >= 14 and ordinal <= 16)
+		if typeof(columns[ordinal]) != (TYPE_PACKED_INT64_ARRAY if wide else TYPE_PACKED_INT32_ARRAY):
+			return false
+	return columns[0].size() == 1 and columns[1].size() == 1
+
+
+static func _free_rows_valid(columns: Array, seen: PackedByteArray) -> bool:
+	"""Each free receipt is distinct, in range and canonically cleared."""
+	for row: int in columns[2]:
+		if row < 0 or row >= seen.size() or seen[row] == 1 or not _receipt_clear(columns, row):
+			return false
+		seen[row] = 1
+	return true
+
+
+static func _receipt_clear(columns: Array, row: int) -> bool:
+	"""`_clear_receipt()`'s canon: no link, item metadata or quantity."""
+	return columns[9][row] == -1 and columns[10][row] == 0 and columns[11][row] == 0 \
+		and columns[12][row] == 0 and columns[13][row] == 0 and columns[14][row] == 0 \
+		and columns[15][row] == 0 and columns[16][row] == 0
+
+
+static func _project_rows_valid(columns: Array, seen: PackedByteArray) -> bool:
+	"""A free project row is the clear row; a funded one owns an acyclic receipt chain."""
+	for row: int in Construction.CONSTRUCTION_CAPACITY:
+		var slot: int = columns[3][row]
+		if slot == -1:
+			if columns[4][row] != 0 or columns[5][row] != -1 or columns[6][row] != -1 \
+					or columns[7][row] != 0 or columns[8][row] != 0:
+				return false
+			continue
+		if slot < 0 or slot >= DirectoryScript.DIRECTORY_CAPACITY or columns[4][row] < 1 \
+				or columns[8][row] < 0 or (columns[6][row] == -1) != (columns[7][row] == 0) \
+				or not _chain_valid(columns, columns[5][row], seen):
+			return false
+	return true
+
+
+static func _chain_valid(columns: Array, head: int, seen: PackedByteArray) -> bool:
+	"""Walk one receipt chain: every row in range, not free, visited once, with a nonnegative quantity."""
+	var receipt: int = head
+	while receipt != NO_ROW:
+		if receipt < 0 or receipt >= seen.size() or seen[receipt] == 1 or columns[14][receipt] < 0 \
+				or columns[15][receipt] < 0 or columns[16][receipt] < 0:
+			return false
+		seen[receipt] = 1
+		receipt = columns[9][receipt]
+	return true

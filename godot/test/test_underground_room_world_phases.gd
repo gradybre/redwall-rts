@@ -82,6 +82,8 @@ class Fixture extends WorldFixture:
 	var phase_terrain: Terrain = null
 	var corridor: Vector2i = NULL_REF
 	var defer_contacts: bool = false
+	var location_capacity: int = 16 # Fixed fixture arenas; a multi-cube loop raises them before _actual_fixture.
+	var edge_capacity: int = 32
 
 	func _actual_fixture(_obstruction: int = 0) -> void:
 		"""Create one real generated World and a Mole, with no phase permission or paid progress assigned privately."""
@@ -140,7 +142,8 @@ class Fixture extends WorldFixture:
 		_actual_catalog(domain); _bind_orders(); _bootstrap_corridor()
 		endpoints = Locations.new()
 		assert_equal(endpoints.configure(_residents.directory(), _buildings, _transforms, _inventory,
-			_owner, _sources, _budget, 16, 228 * 16 + 256), &"", "exact Locations")
+			_owner, _sources, _budget, location_capacity,
+			228 * location_capacity + 256 + Locations.AIR_ARENA_BYTES_PER_SLOT * location_capacity), &"", "exact Locations with an ADR1215 air pool")
 		assert_equal(endpoints.bind_sites(sites), &"", "actual Sites")
 		assert_equal(endpoints.bind_room_orders(orders), &"", "actual Room companion")
 
@@ -215,7 +218,7 @@ class Fixture extends WorldFixture:
 		"""The actual graph and Room approach share these same immutable source and physical stores."""
 		_binding = Binding.new(); assert_equal(_binding.configure(_configuration()), &"", "actual World routes")
 		assert_equal(_routes.configure(endpoints, _owner, _sources, _buildings, _budget, _binding,
-			Routes.MAX_LOCATIONS, 32, 128, 64, Routes.ARENA_BYTES), &"", "actual production node/hash ceiling")
+			Routes.MAX_LOCATIONS, edge_capacity, 4 * edge_capacity, 64, Routes.ARENA_BYTES), &"", "actual production node/hash ceiling")
 		assert_equal(_routes.bind_profiles(_profiles, _inventory, _gear, _carry, _work, _pool, _piles), &"", "actual actor readers")
 		assert_equal(rooms.configure_room_approach(_binding), &"", "actual approach")
 
@@ -383,11 +386,13 @@ class SourceFixture extends Fixture:
 		request.world = _world_ref; request.space_revision = _owner.revision()
 		request.room_type = Buildings.ROOM_TYPE_KITCHEN; request.level = 1
 		request.origin_u = Vector3i(X + 2048, FLOOR, Z)
-		request.height_u = 4096; request.cell_size_u = 1024
+		request.cell_size_u = 1024
 		request.cells = PackedInt32Array([0, 0, 1, 0, 0, 1, 1, 1])
 		request.access = _first; request.work_location = _last
 		request.travel_profile = 5; request.travel_revision = 1
 		request.work_profile = 24; request.work_revision = 1; request.content_revision = 2
+		# DEC-054: the painted 4 m is clamped to the band the published WORK rows dig from the floor (2 m today).
+		request.height_u = mini(4096, Approach.reachable_height_u(_profiles, request.work_profile))
 		request.target_origin = request.origin_u; request.face = 0; request.yaw = 49152
 		return request
 

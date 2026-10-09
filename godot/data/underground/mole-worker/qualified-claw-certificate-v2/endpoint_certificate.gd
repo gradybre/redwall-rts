@@ -1,0 +1,506 @@
+extends RefCounted
+## ADR 1229 increment 4: the claw endpoint certificate of content 10 (`qualified-claw-stairs-v11`), the successor of
+## `qualified-claw-certificate-v1` (content 9). Content 10 keeps the narrow approach/retreat rows 43/47 and moves the
+## yaw-0 seating tap to 57 and the paw handling row to 65 (the stair rows precede source 4's WORK rows), on the claw
+## and paw v2 images. Every root, prism, Room rule and runtime identity check is v1's, unchanged; only the content,
+## the row identities and their first boxes differ. It serves the L0 and T0 installations; the treads' stations hold no
+## pending prism in their stop air (ADR 1229 increment 4) and need no record exemption.
+## No reverse preload of Locations, Routes, Placements, Workpieces or Contacts is permitted here.
+
+const Owner := preload("res://scripts/core/underground_space_owner.gd")
+const Space := preload("res://scripts/core/room_space.gd")
+const Directory := preload("res://scripts/core/entity_directory.gd")
+const Source := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
+const Pins := preload("res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd")
+const REFUSE: StringName = &"CLAW_ENDPOINT_CERTIFICATE"
+const BUDGET: StringName = &"LOCATION_OPERATION_BUDGET"
+const CONTENT: int = 10
+const CLAW_SOURCE: int = 4
+const PAW_SOURCE: int = 5
+const TRAVEL_FIRST_BOX: int = 382
+const TRAVEL_BOXES: int = 5
+## Content 10's first boxes of the tap (57) and the handling row (65): 15 stair-row boxes precede them, and the
+## tread fitting row's 8 precede 65.
+const TAP_FIRST_BOX: int = 448
+const HANDLING_FIRST_BOX: int = 533
+
+
+static func prepared_record_refusal(actual_locations: RefCounted, original_context: RefCounted,
+		record: RefCounted, snapshot_volume_row: int) -> StringName:
+	"""Call after the actual installation scope leaf; only this one full pending prism receives its source proof."""
+	var code: StringName = _context_refusal(actual_locations, original_context, record)
+	if code != &"": return code
+	if not _spend(actual_locations, 4096 + 64 * actual_locations._capacity): return BUDGET
+	var issuer: RefCounted = original_context.issuer.get_ref()
+	code = _issuer_refusal(actual_locations, original_context, issuer)
+	if code == &"": code = _piece_refusal(actual_locations, original_context, issuer)
+	if code == &"": code = _profiles_refusal(issuer._profiles, original_context.profile_revision)
+	if code == &"": code = _record_refusal(actual_locations, original_context, issuer, record)
+	if code == &"": code = _snapshot_refusal(actual_locations, original_context, record, snapshot_volume_row)
+	return code
+
+
+static func prepared_span_refusal(actual: RefCounted, first: Vector3i, last: Vector3i, volume_row: int) -> StringName:
+	"""Caller precharges4096 original proof checks; only the full source2/6 interval may omit its exact bearer."""
+	if actual == null or actual._locations_ref == null or actual._installation == null: return REFUSE
+	var a: RefCounted = actual._locations_ref.get_ref()
+	var c: RefCounted = actual._installation
+	var code: StringName = _original_context_refusal(a, c)
+	if code == &"": code = _span_scope_refusal(actual, a, c)
+	if code != &"": return code
+	var p: RefCounted = c.issuer.get_ref()
+	code = _issuer_refusal(a, c, p)
+	if code == &"": code = _piece_refusal(a, c, p)
+	if code == &"": code = _profiles_refusal(p._profiles, c.profile_revision)
+	if code == &"": code = _span_source_refusal(actual, p, c, first, last)
+	if code != &"": return code
+	return _snapshot_point_refusal(a, c, _root(p, c), actual._proof.image, volume_row)
+
+
+static func _span_scope_refusal(b: RefCounted, a: RefCounted, c: RefCounted) -> StringName:
+	"""Only the original source-bound START graph callback can use this prepared continuous certificate."""
+	if b._routes_ref == null or b._routes_ref.get_ref() == null or b._owner_ref == null \
+			or b._owner_ref.get_ref() != a._owner or b._budget != a._cold or b._profiles == null \
+			or b._proof == null or b._proof.image == null or b._proof.error != &"" or b._proof.remaining < 0 \
+			or b._proof.image.world_ref != c.world or b._proof.image.revision != c.target_revision \
+			or not b._compiling or b._opening or b._publishing or b._reading or b._sealed \
+			or c.route_token <= 0 or b._route_token != c.route_token or b._cold_token != c.cold_token \
+			or b._space_token != c.space_token or b._location_token != c.location_token \
+			or b._base_revision != c.base_revision or b._target_revision != c.target_revision \
+			or b._content_revision != c.profile_revision or b._catalog_revision != c.catalog_revision \
+			or not a._sealed or a._snapshot != null or a._in_retention: return REFUSE
+	var g: RefCounted = b._routes_ref.get_ref()
+	if g._bindings != b or g._locations != a or g._owner != a._owner or g._sources != a._sources \
+			or g._profiles != b._profiles or g._cold != a._cold or g._world != c.world \
+			or not g._in_callback or g._callback_reentered or g._searching or g._sealed \
+			or g._operation_error != &"" or g._token != c.route_token or g._space_token != c.space_token \
+			or g._location_token != c.location_token or g._cold_token != c.cold_token \
+			or g._base_geometry_revision != c.base_revision or g._target_geometry_revision != c.target_revision:
+		return REFUSE
+	return &""
+
+
+static func _span_source_refusal(b: RefCounted, p: RefCounted, c: RefCounted,
+		first: Vector3i, last: Vector3i) -> StringName:
+	"""No other direction, heading, phase family or moved root can inherit the all-key convex source proof."""
+	if p._world_routes != b or p._routes != b._routes_ref.get_ref() or p._profiles != b._profiles \
+			or not _span_descriptor_matches(b._descriptor, c.profile_revision) \
+			or not _span_body_matches(b._body):
+		return REFUSE
+	return &"" if _span_points_match(b._descriptor.profile_id, _root(p, c), first, last) else REFUSE
+
+
+static func _span_descriptor_matches(d: Source.Profiles.Descriptor, revision: int) -> bool:
+	"""The complete narrow claw descriptor; a canonical-ground, pick or other-heading row cannot substitute."""
+	return d != null and (d.profile_id == Pins.CLAW_APPROACH_ROWS[0] or d.profile_id == Pins.CLAW_RETREAT_ROWS[0]) \
+		and d.profile_revision == 1 and d.content_revision == revision and revision == CONTENT \
+		and d.source_id == CLAW_SOURCE and d.species == 6 and d.life_stage == 0 \
+		and d.rig == 6 and d.mode == Source.Profiles.MODE_WALK and d.posture == 0 \
+		and d.tool_item == -1 and d.tool_variant == -1 and d.cargo_item == -1 and d.cargo_variant == -1 \
+		and d.quantity_min_milli == 0 and d.quantity_max_milli == 0 \
+		and d.yaw_kind == Source.Profiles.YAW_EXACT and d.yaw == 0 and d.family_mask == 0 \
+		and d.state_mask == 451 and d.work_kind == -1 and d.contact_kind == Source.Profiles.CONTACT_NONE \
+		and d.box_count == TRAVEL_BOXES and d.certificate_flags == Source.Profiles.CERT_REQUIRED
+
+
+static func _span_body_matches(body: Source.Profiles.Box) -> bool:
+	"""Only a complete actual narrow BODY or TURN primitive can consume the continuous triangle certificate."""
+	if body == null or (body.role != Source.Profiles.BODY_HELD_LOAD and body.role != Source.Profiles.TURN_RECOVERY):
+		return false
+	for ordinal: int in TRAVEL_BOXES:
+		if _travel_word(ordinal, 6) != body.role: continue
+		if body.low == Vector3i(_travel_word(ordinal, 0), _travel_word(ordinal, 1), _travel_word(ordinal, 2)) \
+				and body.high == Vector3i(_travel_word(ordinal, 3), _travel_word(ordinal, 4), _travel_word(ordinal, 5)):
+			return true
+	return false
+
+
+static func _span_points_match(profile: int, root: Vector3i, first: Vector3i, last: Vector3i) -> bool:
+	"""Every walk key and permitted READY fade is proved for the root offset interval 0..4096u (step 4d)."""
+	var forward: int = Pins.CLAW_APPROACH_ROWS[0]
+	if profile != forward and profile != Pins.CLAW_RETREAT_ROWS[0]: return false
+	if first.x != root.x or last.x != root.x or first.y != root.y or last.y != root.y \
+			or first.z < root.z or last.z < root.z or int(first.z) > int(root.z) + 4096 \
+			or int(last.z) > int(root.z) + 4096: return false
+	return first.z > last.z if profile == forward else first.z < last.z
+
+
+static func _root(p: RefCounted, c: RefCounted) -> Vector3i:
+	"""The original actual Placement translates the immutable station once; its quarter-turn is already checked0."""
+	return Vector3i(p._live.i32[p.X * p._capacity + c.placement.x] + (-832 if c.assembly == 0 else 0),
+		p._live.i32[(p.X + 1) * p._capacity + c.placement.x],
+		p._live.i32[(p.X + 2) * p._capacity + c.placement.x] + (512 if c.assembly == 0 else -1536))
+
+
+static func _context_refusal(a: RefCounted, c: RefCounted, record: RefCounted) -> StringName:
+	"""The Location owns its original live survey only during this prepared record proof."""
+	var code: StringName = _original_context_refusal(a, c)
+	if code != &"": return code
+	return &"" if record != null and a._snapshot != null \
+		and a._snapshot.world_ref == c.world and a._snapshot.revision == c.target_revision else REFUSE
+
+
+static func _original_context_refusal(a: RefCounted, c: RefCounted) -> StringName:
+	"""The existing original cold preparation, not a caller flag or a live refresh, selects this finite source."""
+	if a == null or c == null or not ("_installation" in a) \
+			or a._installation != c or c.issuer == null or c.issuer.get_ref() == null \
+			or c.space == null or c.space.get_ref() != a._owner or c.locations == null \
+			or c.locations.get_ref() != a or c.budget == null or c.budget != a._cold \
+			or c.world != a._world or c.action != Owner.ModularContract.START \
+			or c.assembly < 0 or c.assembly > 1 or a._owner == null \
+			or not a._sources is Owner.CoreSources or a._owner._sources != a._sources \
+			or a._sources._directory != a._ids or a._capacity <= 0 or a._capacity > a.MAX_LOCATIONS:
+		return REFUSE
+	if c.cold_token <= 0 or c.cold_token != a._cold_token or a._cold._token != c.cold_token \
+			or a._cold._used < Owner.Budget.COLD_BYTES or c.location_token <= 0 \
+			or c.location_token != a._token or c.space_token <= 0 or c.space_token != a._owner_token \
+			or c.space_token != a._owner._stage_token or not a._owner._sealed \
+			or a._retention_reentered or c.base_revision != a._owner._header[17] \
+			or c.base_revision != a._base_geometry_revision or c.target_revision != c.base_revision + 1 \
+			or c.target_revision != a._owner._s_header[17] or c.target_revision != a._target_geometry_revision:
+		return REFUSE
+	return &""
+
+
+static func _issuer_refusal(a: RefCounted, c: RefCounted, p: RefCounted) -> StringName:
+	"""Retain the actual original Placement, Router, paid owner, source and immutable companion tuple."""
+	if p == null or p._context != c or p._space != a._owner or p._locations != a \
+			or p._budget != a._cold or p._sources != a._sources or p._ids != a._ids \
+			or p._world != c.world or p._poisoned or p._admission_mode or p._phase_mode \
+			or p._prepared_action != c.action or p._prepared_placement != c.placement \
+			or p._prepared_project != c.project or p._prepared_assembly != c.assembly \
+			or p._prepared_obstacle != c.obstacle or p._cold_token != c.cold_token \
+			or p._space_token != c.space_token or p._location_token != c.location_token \
+			or p._route_token != c.route_token or p._base_geometry_revision != c.base_revision \
+			or p._target_geometry_revision != c.target_revision or p._payload_revision != c.payload_revision \
+			or p._live.header[p.H_REVISION] != c.placement_revision or p._profiles == null \
+			or p._profiles._live.header[0] != c.profile_revision or p._catalog == null \
+			or p._catalog._live.header[0] != c.catalog_revision or c.router == null or c.paid_owner == null \
+			or p._router == null or p._router.get_ref() != c.router.get_ref() \
+			or p._paid_owner == null or p._paid_owner.get_ref() != c.paid_owner.get_ref() \
+			or p._construction != c.construction or c.construction != a._sources._construction:
+		return REFUSE
+	return _placement_refusal(a, c, p)
+
+
+static func _placement_refusal(a: RefCounted, c: RefCounted, p: RefCounted) -> StringName:
+	"""Full original generations and a real current Project are mandatory before any prepared-region exception."""
+	if c.placement.x < 0 or c.placement.x >= p._capacity or c.placement.y <= 0 \
+			or p._live.present[c.placement.x] != 1 \
+			or p._live.i32[p.GENERATION * p._capacity + c.placement.x] != c.placement.y \
+			or p._live.i32[p.ROTATION * p._capacity + c.placement.x] != 0 \
+			or p._live.i32[p.INSTALLED * p._capacity + c.placement.x] != c.assembly \
+			or p._live.i64[p.PAYLOAD_REVISION * p._capacity + c.placement.x] != c.payload_revision \
+			or p._live.i32[p.PROJECT_SLOT * p._capacity + c.placement.x] != c.project.x \
+			or p._live.i32[(p.PROJECT_SLOT + 1) * p._capacity + c.placement.x] != c.project.y \
+			or Owner.CoreSources._final_row(a._ids, c.world, Directory.KIND_WORLD) < 0:
+		return REFUSE
+	var row: int = Owner.CoreSources._final_row(a._ids, c.project, Directory.KIND_CONSTRUCTION)
+	if row < 0 or c.construction._directory != a._ids or c.construction._present[row] != 1 \
+			or c.construction._ref_slot[row] != c.project.x or c.construction._ref_generation[row] != c.project.y \
+			or c.construction._subject_slot[row] != c.placement.x \
+			or c.construction._subject_generation[row] != c.placement.y \
+			or c.construction._purpose[row] != Owner.Construction.PURPOSE_CONNECTOR_INSTALL \
+			or c.construction._type_id[row] != c.assembly:
+		return REFUSE
+	return &""
+
+
+static func _piece_refusal(a: RefCounted, c: RefCounted, p: RefCounted) -> StringName:
+	"""Use the already-bound real pending request and exact part transform; the set-down program is paw handling."""
+	var piece: RefCounted = p._workpieces.get_ref() if p._workpieces != null else null
+	if piece == null or not piece._configured or not piece._loaded or piece._placements != p \
+			or piece._budget != a._cold or piece._profiles != p._profiles or piece._catalog != p._catalog \
+			or piece._router != c.router.get_ref() or piece._paid_owner == null \
+			or piece._paid_owner.get_ref() != c.paid_owner.get_ref() \
+			or c.paid_owner.get_ref() == null or c.paid_owner.get_ref()._workpieces != piece \
+			or piece._stage_placement != c.placement or piece._stage_project != c.project \
+			or piece._stage_action != c.action or piece._stage_assembly != c.assembly \
+			or piece._stage_payload != c.payload_revision or piece._cold_token != c.cold_token \
+			or piece._live.present[c.placement.x] != 0 or piece._assembly_capacity <= c.assembly \
+			or piece._header[piece.H_PROFILES] != c.profile_revision \
+			or piece._header[piece.H_PROGRAM] != PAW_SOURCE \
+			or piece._parts[piece.PROFILE * piece._assembly_capacity + c.assembly] != Pins.PAW_HANDLING_ROW \
+			or piece._profile_revisions[c.assembly] != 1:
+		return REFUSE
+	return Source.part_refusal(c.assembly, piece._parts[piece.PART * piece._assembly_capacity + c.assembly],
+		piece._parts[piece.ROTATION * piece._assembly_capacity + c.assembly],
+		Vector3i(piece._parts[piece.X * piece._assembly_capacity + c.assembly],
+		piece._parts[(piece.X + 1) * piece._assembly_capacity + c.assembly],
+		piece._parts[(piece.X + 2) * piece._assembly_capacity + c.assembly]))
+
+
+static func _profiles_refusal(profiles: Source.Profiles, revision: int) -> StringName:
+	"""Both split image digests and every complete descriptor/role word of the four claw rows stay current."""
+	var code: StringName = _digests_refusal(profiles, revision)
+	if code == &"": code = _source_row_refusal(profiles, Pins.CLAW_APPROACH_ROWS[0], revision)
+	if code == &"": code = _source_row_refusal(profiles, Pins.CLAW_RETREAT_ROWS[0], revision)
+	if code == &"": code = _source_row_refusal(profiles, Pins.CLAW_TAP_ROWS[0], revision)
+	if code == &"": code = _source_row_refusal(profiles, Pins.PAW_HANDLING_ROW, revision)
+	return code
+
+
+static func _source_row_refusal(p: Source.Profiles, profile: int, revision: int) -> StringName:
+	"""Compare the row's policy, certificate, every published numerical word and every box word."""
+	if profile < 0 or profile >= p._live.header[1] or p._live.flags[profile] != Source.Profiles.CERT_REQUIRED \
+			or Source.Profiles.selection_policy_leaf(p, profile, 1, revision) != _policy(profile): return REFUSE
+	for field: int in Source.Profiles.I32_FIELDS:
+		if p._live.fields[field * p._profile_capacity + profile] != _source_field(profile, field): return REFUSE
+	if p._live.quantities[Source.Profiles.L_QUANTITY_MIN * p._profile_capacity + profile] != 0 \
+			or p._live.quantities[Source.Profiles.L_QUANTITY_MAX * p._profile_capacity + profile] != 0: return REFUSE
+	var first: int = _source_field(profile, Source.Profiles.F_FIRST_BOX)
+	for ordinal: int in _source_field(profile, Source.Profiles.F_BOX_COUNT):
+		for field: int in 7:
+			if p._live.boxes[field * p._box_capacity + first + ordinal] != _row_word(profile, ordinal, field):
+				return REFUSE
+	return &""
+
+
+static func _source_field(profile: int, field: int) -> int:
+	"""The four exact rows keep their actor, absent tool and cargo, heading, contact and role census."""
+	var travel: bool = profile == Pins.CLAW_APPROACH_ROWS[0] or profile == Pins.CLAW_RETREAT_ROWS[0]
+	match field:
+		Source.Profiles.F_SOURCE: return PAW_SOURCE if profile == Pins.PAW_HANDLING_ROW else CLAW_SOURCE
+		Source.Profiles.F_SPECIES, Source.Profiles.F_RIG: return 6
+		Source.Profiles.F_MODE: return Source.Profiles.MODE_WALK if travel else Source.Profiles.MODE_WORK
+		Source.Profiles.F_TOOL, Source.Profiles.F_TOOL_VARIANT: return -1
+		Source.Profiles.F_CARGO, Source.Profiles.F_CARGO_VARIANT: return -1
+		Source.Profiles.F_STATES: return 451 if travel else (329 if profile == Pins.CLAW_TAP_ROWS[0] else 457)
+		Source.Profiles.F_FIRST_BOX: return _first_box(profile)
+		Source.Profiles.F_BOX_COUNT: return TRAVEL_BOXES if travel else (11 if profile == Pins.CLAW_TAP_ROWS[0] else 7)
+		Source.Profiles.F_WORK_KIND: return -1 if travel else 1
+		Source.Profiles.F_CONTACT_KIND: return _contact_kind(profile)
+	return 0
+
+
+static func _travel_word(ordinal: int, field: int) -> int:
+	"""Approach 43 and retreat 47 share every whole walk/READY box (claw-approach-v1)."""
+	match ordinal:
+		0: return _box_word(field, Vector3i(-485, 0, -521), Vector3i(479, 930, 412), 0)
+		1: return _box_word(field, Vector3i(-271, -1, -274), Vector3i(284, 0, 249), 0)
+		2: return _box_word(field, Vector3i(-274, -1, -274), Vector3i(299, 0, 249), 1)
+		3: return _box_word(field, Vector3i(-485, 0, -521), Vector3i(479, 930, 412), 2)
+		4: return _box_word(field, Vector3i(-271, -1, -274), Vector3i(284, 0, 249), 2)
+	return -2147483648
+
+
+static func _install_word(ordinal: int, field: int) -> int:
+	"""Keep the full claw seating tap (row 57) stroke/contact geometry; this proof itself grants no work."""
+	match ordinal:
+		0: return _box_word(field, Vector3i(-300, 0, -409), Vector3i(332, 666, 219), 0)
+		1: return _box_word(field, Vector3i(-197, -1, -80), Vector3i(171, 0, -1), 0)
+		2: return _box_word(field, Vector3i(-276, -1, -169), Vector3i(299, 0, 175), 1)
+		3: return _box_word(field, Vector3i(-274, 0, -169), Vector3i(299, 128, 190), 2)
+		4: return _box_word(field, Vector3i(-478, 0, -578), Vector3i(443, 840, 234), 2)
+		5: return _box_word(field, Vector3i(-274, 0, -169), Vector3i(299, 128, 189), 3)
+		6: return _box_word(field, Vector3i(-478, 128, -329), Vector3i(415, 840, 234), 3)
+		7: return _box_word(field, Vector3i(-261, 128, -524), Vector3i(321, 425, -213), 4)
+		8: return _box_word(field, Vector3i(-152, 112, -461), Vector3i(137, 128, -330), 4)
+		9: return _box_word(field, Vector3i(128, 128, -448), Vector3i(128, 128, -448), 5)
+		10: return _box_word(field, Vector3i(-129, 128, -449), Vector3i(129, 128, -447), 6)
+	return -2147483648
+
+
+static func _box_word(field: int, low: Vector3i, high: Vector3i, role: int) -> int:
+	"""Vector values are bounded stack scalars; no array, constant table or source image is allocated."""
+	return role if field == 6 else (low[field] if field < 3 else high[field - 3])
+
+
+static func _record_refusal(a: RefCounted, c: RefCounted, p: RefCounted, record: RefCounted) -> StringName:
+	"""Only the original narrow complete source endpoint qualifies; automatic ground12 cannot fit this envelope."""
+	if record.role != a.ROLE_WORK or not _record_room_matches(p, c, record) \
+			or record.envelope.size() != 6 or record.support.size() != 6 \
+			or record.point.x != int(p._live.i32[p.X * p._capacity + c.placement.x]) + (-832 if c.assembly == 0 else 0) \
+			or record.point.y != p._live.i32[(p.X + 1) * p._capacity + c.placement.x] \
+			or record.point.z != int(p._live.i32[(p.X + 2) * p._capacity + c.placement.x]) + (512 if c.assembly == 0 else -1536):
+		return REFUSE
+	for axis: int in 6:
+		if int(record.envelope[axis]) - record.point[axis % 3] != _envelope_word(axis) \
+				or int(record.support[axis]) - record.point[axis % 3] != _support_word(axis): return REFUSE
+	var found: int = -1
+	for row: int in a._capacity:
+		if a._live.present[row] != 1 or not _record_matches(a, row, record): continue
+		if found >= 0 or a._stage.present[row] != 1 \
+				or a._stage.i32[a.GENERATION * a._capacity + row] != a._live.i32[a.GENERATION * a._capacity + row] \
+				or a._stage.i64[a.PAYLOAD_REVISION * a._capacity + row] != a._live.i64[a.PAYLOAD_REVISION * a._capacity + row]:
+			return REFUSE
+		for field: int in a.I32_FIELDS:
+			if a._stage.i32[field * a._capacity + row] != a._live.i32[field * a._capacity + row]: return REFUSE
+		found = row
+	return &"" if found >= 0 else REFUSE
+
+
+static func _record_room_matches(p: RefCounted, c: RefCounted, record: RefCounted) -> bool:
+	"""H (assembly 0) is the room-free surface station. ADR1202 split landing: T0's station is the installed L0
+	contact, which belongs to the Placement's own permanent Room on the Placement's level; no other Room qualifies."""
+	if c.assembly == 0: return record.room == Vector2i(-1, 0) and record.level == 0
+	var room: Vector2i = Vector2i(p._live.i32[p.ROOM_SLOT * p._capacity + c.placement.x],
+		p._live.i32[(p.ROOM_SLOT + 1) * p._capacity + c.placement.x])
+	return room.x >= 0 and record.room == room \
+		and record.level == p._live.i32[p.LEVEL * p._capacity + c.placement.x]
+
+
+static func _record_matches(a: RefCounted, row: int, record: RefCounted) -> bool:
+	"""Do not create a new endpoint inside the exception: compare the complete original immutable live payload."""
+	if a._live.i32[a.GENERATION * a._capacity + row] <= 0 \
+			or a._live.i64[a.PAYLOAD_REVISION * a._capacity + row] <= 0 \
+			or a._live.i32[a.ROLE * a._capacity + row] != record.role \
+			or a._live.i32[a.LEVEL * a._capacity + row] != record.level \
+			or a._live.i32[a.ROOM_SLOT * a._capacity + row] != record.room.x \
+			or a._live.i32[a.ROOM_GENERATION * a._capacity + row] != record.room.y \
+			or a._live.i32[a.SECTION_SLOT * a._capacity + row] != record.section.x \
+			or a._live.i32[a.SECTION_GENERATION * a._capacity + row] != record.section.y:
+		return false
+	for axis: int in 3:
+		if a._live.i32[(a.X + axis) * a._capacity + row] != record.point[axis]: return false
+	for axis: int in 6:
+		if a._live.i32[(a.ENVELOPE + axis) * a._capacity + row] != record.envelope[axis] \
+				or a._live.i32[(a.SUPPORT + axis) * a._capacity + row] != record.support[axis]: return false
+	return true
+
+
+static func _snapshot_refusal(a: RefCounted, c: RefCounted, record: RefCounted, row: int) -> StringName:
+	"""The endpoint caller supplies only its already-owned exact survey and original copied root."""
+	return _snapshot_point_refusal(a, c, record.point, a._snapshot, row)
+
+
+static func _snapshot_point_refusal(a: RefCounted, c: RefCounted, point: Vector3i, image: Space.Snapshot, row: int) -> StringName:
+	"""The selected survey row must be the complete exact original candidate Region, never an equal foreign solid."""
+	var s: Owner = a._owner
+	var at: int = c.obstacle.x
+	var v: Space.Volumes = image.volumes
+	if at < 0 or at >= s._region_capacity or c.obstacle.y <= 0 or s._s_r_present[at] != 1 \
+			or s._s_r_generation[at] != c.obstacle.y or s._s_r_owner_slot[at] != c.project.x \
+			or s._s_r_owner_generation[at] != c.project.y or s._s_r_role[at] != Space.OBSTACLE \
+			or s._s_r_claim_kind[at] != Owner.CLAIM_NONE or s._s_r_claim_slot[at] != -1 \
+			or s._s_r_claim_generation[at] != 0 or row < 0 or row >= v.role.size() \
+			or v.role[row] != Space.OBSTACLE or v.owner_slot[row] != c.project.x \
+			or v.owner_generation[row] != c.project.y or v.owner_revision[row] != s._s_r_owner_revision[at] \
+			or v.level[row] != s._s_r_level[at] or v.owner_revision[row] <= 0: return REFUSE
+	var p: RefCounted = c.issuer.get_ref()
+	if s._s_r_section_slot[at] != p._live.i32[p.SECTION_SLOT * p._capacity + c.placement.x] \
+			or s._s_r_section_generation[at] != p._live.i32[(p.SECTION_SLOT + 1) * p._capacity + c.placement.x] \
+			or s._s_r_level[at] != p._live.i32[p.LEVEL * p._capacity + c.placement.x]: return REFUSE
+	for axis: int in 6:
+		if _region_axis(s, at, axis) != _snapshot_axis(v, row, axis) \
+				or _snapshot_axis(v, row, axis) - point[axis % 3] != _bearer_word(c.assembly, axis): return REFUSE
+	return &""
+
+
+static func _envelope_word(axis: int) -> int:
+	"""Union of every above-floor BODY/TURN word of rows 43/47/57/65; negative footing is retained separately."""
+	match axis:
+		0: return -485
+		1: return 0
+		2: return -578
+		3: return 479
+		4: return 930
+	return 412
+
+
+static func _support_word(axis: int) -> int:
+	"""Complete union of the four rows' authored stance extents."""
+	match axis:
+		0: return -276
+		1: return -1
+		2: return -274
+		3: return 299
+		4: return 0
+	return 249
+
+
+static func _bearer_word(assembly: int, axis: int) -> int:
+	"""These are the two full source-certified prisms relative to their unchanged canonical handling roots."""
+	match axis:
+		0: return -192 if assembly == 0 else -256
+		1: return 0
+		2: return -512
+		3: return 1856 if assembly == 0 else 256
+		4: return 128
+	return -384
+
+
+static func _region_axis(s: Owner, row: int, axis: int) -> int:
+	"""Read the exact staged Region columns without calling a virtual Region observation."""
+	match axis:
+		0: return s._s_r_lo_x[row]
+		1: return s._s_r_lo_y[row]
+		2: return s._s_r_lo_z[row]
+		3: return s._s_r_hi_x[row]
+		4: return s._s_r_hi_y[row]
+	return s._s_r_hi_z[row]
+
+
+static func _snapshot_axis(v: Space.Volumes, row: int, axis: int) -> int:
+	"""Read only the original already-owned survey row; no box copy or image is allocated."""
+	match axis:
+		0: return v.lo_x[row]
+		1: return v.lo_y[row]
+		2: return v.lo_z[row]
+		3: return v.hi_x[row]
+		4: return v.hi_y[row]
+	return v.hi_z[row]
+
+
+static func _spend(actual: RefCounted, amount: int) -> bool:
+	"""Use the original Locations operation budget; refusal cannot reset or replenish it."""
+	if amount < 0 or amount > actual._remaining:
+		actual._remaining = -1
+		return false
+	actual._remaining -= amount
+	return true
+
+
+static func _digests_refusal(p: Source.Profiles, revision: int) -> StringName:
+	"""Content 10 with the claw v2 image at source 4 and the paw v2 image at source 5."""
+	if p == null or p._loading or p._live == null or p._live.header.size() != 4 or revision != CONTENT \
+			or p._live.header[0] != CONTENT or p._live.header[3] <= PAW_SOURCE \
+			or p._live.sources.size() < 32 * (PAW_SOURCE + 1): return REFUSE
+	var claw: PackedByteArray = Pins.CLAW_SOURCE_SHA.hex_decode()
+	var paw: PackedByteArray = Pins.PAW_SOURCE_SHA.hex_decode()
+	for index: int in 32:
+		if p._live.sources[CLAW_SOURCE * 32 + index] != claw[index] \
+				or p._live.sources[PAW_SOURCE * 32 + index] != paw[index]: return REFUSE
+	return &""
+
+
+static func _policy(profile: int) -> int:
+	"""Approach READY_FORWARD, retreat READY_BACKWARD, tap SOURCE_WORK, handling ASSEMBLY_HANDLING."""
+	if profile == Pins.CLAW_APPROACH_ROWS[0]: return Source.Profiles.POLICY_READY_FORWARD
+	if profile == Pins.CLAW_RETREAT_ROWS[0]: return Source.Profiles.POLICY_READY_BACKWARD
+	if profile == Pins.CLAW_TAP_ROWS[0]: return Source.Profiles.POLICY_SOURCE_WORK
+	return Source.Profiles.POLICY_ASSEMBLY_HANDLING if profile == Pins.PAW_HANDLING_ROW else -1
+
+
+static func _row_word(profile: int, ordinal: int, field: int) -> int:
+	"""The complete published box words of one certified row."""
+	if profile == Pins.CLAW_TAP_ROWS[0]: return _install_word(ordinal, field)
+	if profile == Pins.PAW_HANDLING_ROW: return _handling_word(ordinal, field)
+	return _travel_word(ordinal, field)
+
+
+static func _first_box(profile: int) -> int:
+	"""Published first-box indices of content 10 (travel rows are 5 boxes each from 382)."""
+	if profile == Pins.CLAW_APPROACH_ROWS[0]: return TRAVEL_FIRST_BOX
+	if profile == Pins.CLAW_RETREAT_ROWS[0]: return TRAVEL_FIRST_BOX + 4 * TRAVEL_BOXES
+	return TAP_FIRST_BOX if profile == Pins.CLAW_TAP_ROWS[0] else HANDLING_FIRST_BOX
+
+
+static func _contact_kind(profile: int) -> int:
+	"""Travel has no contact; the tap is anchor-and-patch; handling is the assembly palm."""
+	if profile == Pins.CLAW_TAP_ROWS[0]: return Source.Profiles.CONTACT_ANCHOR_AND_PATCH
+	if profile == Pins.PAW_HANDLING_ROW: return Source.Profiles.CONTACT_ASSEMBLY_PALM
+	return Source.Profiles.CONTACT_NONE
+
+
+static func _handling_word(ordinal: int, field: int) -> int:
+	"""The paw handling row 65 (source 5), every role box."""
+	match ordinal:
+		0: return _box_word(field, Vector3i(-293, 0, -524), Vector3i(327, 666, 219), 0)
+		1: return _box_word(field, Vector3i(-197, -1, -80), Vector3i(171, 0, -1), 0)
+		2: return _box_word(field, Vector3i(-276, -1, -169), Vector3i(299, 0, 175), 1)
+		3: return _box_word(field, Vector3i(-478, 0, -578), Vector3i(443, 840, 234), 2)
+		4: return _box_word(field, Vector3i(-197, -1, -80), Vector3i(171, 0, 61), 2)
+		5: return _box_word(field, Vector3i(-478, 0, -329), Vector3i(415, 840, 234), 3)
+		6: return _box_word(field, Vector3i(-134, -1, 44), Vector3i(-126, 0, 60), 3)
+	return -2147483648

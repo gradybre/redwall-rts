@@ -5,7 +5,7 @@ extends "res://test/framework/test_case.gd"
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Published := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
 const Pins := preload("res://data/underground/mole-worker/profile-publication-v1/catalog_source.gd")
-const CurrentPins := preload("res://data/underground/mole-worker/qualified-step-v4/catalog_source.gd")
+const CurrentPins := preload("res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd")
 const Entry := preload("res://scripts/core/underground_entry_bindings.gd")
 const Placements := preload("res://scripts/core/underground_connector_placements.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
@@ -37,7 +37,7 @@ var _surface: SurfaceFixture = null
 func before_each() -> void:
 	"""Load the current publication's unchanged geometry, separately from current runtime closure."""
 	_profiles = Profiles.new()
-	assert_equal(_profiles.configure(Published.PROFILE_COUNT, Published.BOX_COUNT, 1,
+	assert_equal(_profiles.configure(Published.PROFILE_COUNT, Published.BOX_COUNT, Published.SOURCE_COUNT,
 		Published.PAIRED_BANK_BYTES + Published.CONTROL_RESERVE), &"", "exact finite source bank")
 	assert_equal(FileAccess.get_sha256(Published.WIRE_PATH), CurrentPins.WIRE_SHA, "exact current publication")
 	assert_equal(_profiles.load_file(Published.WIRE_PATH, CurrentPins.WIRE_SHA, Published.CONTENT_REVISION),

@@ -1,12 +1,26 @@
 extends RefCounted
-## Owner 2 (`farming`) column validation bridge (FARMING-S4-VALIDATE-R01 v1, ADR 0180).
+## Owner 2 (`farming`) column validation bridge (FARMING-S4-VALIDATE-R01 v1, ADR 0180, and
+## ADR 1222 build step 2).
 ##
-## ONE PUBLIC ENTRY POINT. `framed_refusal()` judges one already framed section 4 owner block
-## against the Farming store's own cold column predicate and returns a `SaveHeader.Refusal`.
-## It constructs no live Farming store, no EntityDirectory and no Catalog domain, captures
-## nothing, restores nothing, reads no clock and writes no diagnostic.
+## THREE PUBLIC ENTRY POINTS.
+##   * `framed_refusal()` judges one already framed section 4 owner block against the Farming
+##     store's own cold column predicate and returns a `SaveHeader.Refusal`. It constructs no
+##     live Farming store, no EntityDirectory and no Catalog domain, captures nothing and
+##     restores nothing.
+##   * `capture_into(store, record)` copies the live store's fifteen columns through
+##     `Farming.copy_columns_into()` and projects them into the record's typed buckets in
+##     ordinal order -- the exact inverse of `_project_columns()` -- then judges the written
+##     record with `framed_refusal()`, so a capture can never emit an image `apply()` would
+##     refuse. A refused capture leaves the record's contents unspecified; the caller discards it.
+##   * `apply(record, store)` runs `framed_refusal()` FIRST, then projects the record and calls
+##     `Farming.restore_columns()`, which re-runs the same predicate, writes nothing on refusal
+##     and rebuilds the live-row index. A false maps to a Refusal carrying the store's exact
+##     `last_column_refusal()` code.
+## None of the three reads no clock, writes no diagnostic, or touches a barrier, signal,
+## callback, filesystem, JSON text, reflection API or per-row object; the caller owns barrier
+## and restore-order discipline.
 ##
-## GATE ORDER:
+## GATE ORDER (`framed_refusal()`):
 ##   1. a null record                   -> SAVE_COMPONENT_SHAPE
 ##   2. an owner index that is not 2    -> SAVE_COMPONENT_OWNER
 ##   3. `Schema.schema_refusal()`       -> forwarded UNCHANGED, both code and detail
@@ -23,7 +37,8 @@ extends RefCounted
 ## column domains only. The saved section 1 TileHistory inverse, Directory kind/generation and
 ## typed-row joins, the fertility/family/streak mirrors, compost against the loaded season, the
 ## ripe tick and growth remainder bindings, and every gameplay lifecycle rule remain
-## FARMING-SAVED-BINDINGS obligations. Farming bulk capture and apply do not exist.
+## FARMING-SAVED-BINDINGS obligations. Bulk capture/apply and the live-row index rebuild are the
+## two entry points above; cross-owner occupancy agreement remains the orchestrator's.
 ##
 ## MEMORY, CONDITIONALLY. The projection SHARES the caller's packed buffers by assignment: no
 ## `duplicate()` runs here. The contract's conservative figure is 565248 logical packed bytes --
@@ -50,6 +65,8 @@ const OWNER_FIELD_COUNT: int = 15
 const METADATA_DETAIL_PREFIX: String = "Farming owner2 metadata:"
 ## Gate 7's detail prefix. It names the owner and the code, and never a row.
 const COLUMN_DETAIL_PREFIX: String = "Farming owner 2"
+## A capture or apply called without a live store. Bridge-local: no column code applies.
+const REFUSE_NULL_STORE: StringName = &"SAVE_COMPONENT_NULL_STORE"
 
 ## The canonical owner-local field declarations, in registry ordinal order.
 const FIELD_KEYS: Array[StringName] = [
@@ -142,6 +159,83 @@ static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
 		return _refuse(code, "%s refuses this image with column code %s"
 			% [COLUMN_DETAIL_PREFIX, String(code)])
 	return _accept()
+
+
+static func capture_into(store: Farming, record: Section.FramedOwner) -> SaveHeader.Refusal:
+	"""Capture the live store's fifteen columns into one owner 2 record, then judge the result.
+
+	Gates: a null record, a wrong owner, a null store, the schema and metadata guards, then the
+	store's own `copy_columns_into()` (its column code is forwarded), then a typed setter refusal
+	(SAVE_COMPONENT_SHAPE), and last `framed_refusal()` over what was written.
+	"""
+	var target: SaveHeader.Refusal = _target_refusal(record, store)
+	if not target.is_ok():
+		return target
+	var columns: Farming.Columns = Farming.Columns.new()
+	if not store.copy_columns_into(columns):
+		return _refuse(store.last_column_refusal(), "Farming owner %d capture refused with %s"
+			% [OWNER_INDEX, String(store.last_column_refusal())])
+	if not _write_columns(record, columns):
+		return _refuse(Section.REFUSE_SHAPE,
+			"Farming owner %d capture could not write a column" % OWNER_INDEX)
+	return framed_refusal(record)
+
+
+static func _write_columns(record: Section.FramedOwner, columns: Farming.Columns) -> bool:
+	"""Ordinals 0..14: write every canonical column into `record`, in declared ordinal order."""
+	return (record.set_u8(FIELD_PRESENT, columns.present)
+			and record.set_i32(FIELD_CROP_ID, columns.crop_id)
+			and record.set_i32(FIELD_STATE, columns.state)
+			and record.set_i32(FIELD_SOIL, columns.soil)
+			and record.set_i32(FIELD_FERTILITY, columns.fertility)
+			and record.set_i32(FIELD_MOISTURE, columns.moisture)
+			and record.set_i64(FIELD_GROWTH_MILLI_HOURS, columns.growth_milli_hours)
+			and record.set_i32(FIELD_HEALTH, columns.health)
+			and record.set_i32(FIELD_LAST_FAMILY, columns.last_family)
+			and record.set_i32(FIELD_FAMILY_STREAK, columns.family_streak)
+			and record.set_i64(FIELD_COMPOST_MILLI, columns.compost_milli)
+			and record.set_i32(FIELD_SOW_DAY, columns.sow_day)
+			and record.set_i32(FIELD_TILE, columns.tile)
+			and record.set_i32(FIELD_REF_SLOT, columns.ref_slot)
+			and record.set_i32(FIELD_REF_GENERATION, columns.ref_generation))
+
+
+static func apply(record: Section.FramedOwner, store: Farming) -> SaveHeader.Refusal:
+	"""Validate one owner 2 record, then install it into `store`. Refusal writes nothing.
+
+	`framed_refusal()` runs first and its refusal is returned unchanged. The projection shares the
+	record's buffers by assignment; `restore_columns()` takes its own private copies.
+	"""
+	var framed: SaveHeader.Refusal = framed_refusal(record)
+	if not framed.is_ok():
+		return framed
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no Farming store was supplied for owner %d"
+			% OWNER_INDEX)
+	var columns: Farming.Columns = Farming.Columns.new()
+	_project_columns(record, columns)
+	if not store.restore_columns(columns):
+		return _refuse(store.last_column_refusal(), "Farming owner %d restore refused with %s"
+			% [OWNER_INDEX, String(store.last_column_refusal())])
+	return _accept()
+
+
+static func _target_refusal(record: Section.FramedOwner, store: Farming) -> SaveHeader.Refusal:
+	"""Capture's preflight: record, owner index, store, then the schema and metadata guards."""
+	if record == null:
+		return _refuse(Section.REFUSE_SHAPE,
+			"no framed owner was supplied for owner %d ('%s')" % [OWNER_INDEX, OWNER_KEY])
+	if record.owner != OWNER_INDEX:
+		return _refuse(Section.REFUSE_OWNER,
+			"owner %d was supplied where owner %d ('%s') is required"
+				% [record.owner, OWNER_INDEX, OWNER_KEY])
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no Farming store was supplied for owner %d"
+			% OWNER_INDEX)
+	var schema: SaveHeader.Refusal = Schema.schema_refusal()
+	if not schema.is_ok():
+		return schema
+	return _metadata_refusal()
 
 
 static func _metadata_refusal() -> SaveHeader.Refusal:

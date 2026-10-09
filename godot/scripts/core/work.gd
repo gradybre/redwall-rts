@@ -294,6 +294,10 @@ const REFUSE_JOB_NOT_WORKING: StringName = &"JOB_NOT_IN_WORK_STATE"
 const REFUSE_JOB_HAS_NO_WORKER: StringName = &"JOB_HAS_NO_WORKER"
 const REFUSE_NO_WORK_REMAINING: StringName = &"NO_WORK_REMAINING"
 const REFUSE_NO_CONTRIBUTORS: StringName = &"NO_CONTRIBUTING_WORKER"
+## REQ-SET-034 (ADR1226): the worker's hour forbids work and its Job stands at a safe point; it rests there.
+const REFUSE_SCHEDULE_REST: StringName = &"WORK_SCHEDULE_REST"
+## REQ-SET-034's "current 30-WU safe work segment": safe points are where remaining work is a whole multiple.
+const SAFE_SEGMENT_MWU: int = 30000
 const REFUSE_PARTY_TOO_LARGE: StringName = &"PARTY_EXCEEDS_CAPACITY"
 const REFUSE_MEMBER_MISLINKED: StringName = &"MEMBER_LINKS_TO_ANOTHER_COORDINATOR"
 const REFUSE_NEEDS_UNAVAILABLE: StringName = &"NEEDS_ROW_UNAVAILABLE"
@@ -398,6 +402,164 @@ static func _handle_is_valid(slot: int, generation: int, capacity: int) -> bool:
 	if slot == NULL_SLOT and generation == EntityDirectory.NULL_GENERATION:
 		return true
 	return slot >= 0 and slot < capacity and generation > 0
+
+
+# --- ARCH-SAVE-002 section 4 bulk column API (ADR 1222 build step 2) ----------------------------
+#
+# Owner 16's capture and apply steps, mirroring `priorities.gd`'s pair. `copy_columns_into()` is
+# an exact snapshot of the nine section-4 columns over ALL 512 physical rows; `restore_columns()`
+# judges a candidate with the SAME `columns_refusal()` the offline bridge uses, writes nothing on
+# refusal, then installs the nine columns and REBUILDS `_bound_tool_count` (category 2) from the
+# installed `tool_lot_slot` column. The WeakRef authorities (`_excavation_authority`,
+# `_modular_authority`, `_spatial_delivery`) and every per-tick scratch column belong to other
+# sections and are untouched by either call; `_last_column_refusal` is the only other member
+# either writes.
+
+class Columns:
+	"""Caller-owned image of the nine section-4 columns, in `columns_refusal()`'s argument order.
+
+	One object per save or load, never per resident (ARCH-MEM-001). `copy_columns_into()` refills
+	the buffers in place and refuses a wrongly sized one rather than resizing it.
+	"""
+	var potential_remainder: PackedInt32Array = PackedInt32Array()
+	var xp_remainder: PackedInt32Array = PackedInt32Array()
+	var memory_total: PackedInt32Array = PackedInt32Array()
+	var wear_remainder: PackedInt32Array = PackedInt32Array()
+	var tool_lot_slot: PackedInt32Array = PackedInt32Array()
+	var tool_lot_generation: PackedInt32Array = PackedInt32Array()
+	var tool_job_slot: PackedInt32Array = PackedInt32Array()
+	var tool_job_generation: PackedInt32Array = PackedInt32Array()
+	var tool_broken: PackedByteArray = PackedByteArray()
+
+	func _init() -> void:
+		"""Size all nine columns to their declared extents, then fill the empty-store image."""
+		potential_remainder.resize(RESIDENT_CAPACITY)
+		xp_remainder.resize(RESIDENT_CAPACITY * SKILL_COUNT)
+		memory_total.resize(RESIDENT_CAPACITY)
+		wear_remainder.resize(RESIDENT_CAPACITY)
+		tool_lot_slot.resize(RESIDENT_CAPACITY)
+		tool_lot_generation.resize(RESIDENT_CAPACITY)
+		tool_job_slot.resize(RESIDENT_CAPACITY)
+		tool_job_generation.resize(RESIDENT_CAPACITY)
+		tool_broken.resize(RESIDENT_CAPACITY)
+		clear()
+
+	func clear() -> void:
+		"""Refill every column with what the store's own `clear()` leaves: unbound, all zero."""
+		potential_remainder.fill(0)
+		xp_remainder.fill(0)
+		memory_total.fill(0)
+		wear_remainder.fill(0)
+		tool_lot_slot.fill(NULL_SLOT)
+		tool_lot_generation.fill(EntityDirectory.NULL_GENERATION)
+		tool_job_slot.fill(NULL_SLOT)
+		tool_job_generation.fill(EntityDirectory.NULL_GENERATION)
+		tool_broken.fill(0)
+
+	func equals(other: Columns) -> bool:
+		"""True when all nine columns are byte-identical. Proves a refusal changed nothing."""
+		return other != null and potential_remainder == other.potential_remainder \
+			and xp_remainder == other.xp_remainder and memory_total == other.memory_total \
+			and wear_remainder == other.wear_remainder and tool_lot_slot == other.tool_lot_slot \
+			and tool_lot_generation == other.tool_lot_generation \
+			and tool_job_slot == other.tool_job_slot \
+			and tool_job_generation == other.tool_job_generation \
+			and tool_broken == other.tool_broken
+
+
+func last_column_refusal() -> StringName:
+	"""The code of the most recent refused bulk column call, or REFUSE_NONE after a success.
+
+	A SEPARATE channel from the TickResult/OpResult every mutator returns, so a load can never
+	overwrite the reason some earlier call was refused before its caller read it.
+	"""
+	return _last_column_refusal
+
+
+func copy_columns_into(out: Columns) -> bool:
+	"""Copy the nine section-4 columns into caller-owned buffers. False refuses; `out` unchanged.
+
+	Snapshots only: mutating `out` afterwards cannot reach a live column, and a later live write
+	cannot reach `out`. WeakRef authorities and the per-tick scratch columns are never read here.
+	"""
+	if not _columns_are_capacity_sized(out):
+		_last_column_refusal = REFUSE_COLUMN_SHAPE
+		return false
+	_refill_ints(out.potential_remainder, _potential_remainder)
+	_refill_ints(out.xp_remainder, _xp_remainder)
+	_refill_ints(out.memory_total, _memory_total)
+	_refill_ints(out.wear_remainder, _wear_remainder)
+	_refill_ints(out.tool_lot_slot, _tool_lot_slot)
+	_refill_ints(out.tool_lot_generation, _tool_lot_generation)
+	_refill_ints(out.tool_job_slot, _tool_job_slot)
+	_refill_ints(out.tool_job_generation, _tool_job_generation)
+	_refill_bytes(out.tool_broken, _tool_broken)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func restore_columns(columns: Columns) -> bool:
+	"""Replace all nine columns and rebuild `_bound_tool_count`. False refuses; nothing written.
+
+	Allocate before consume (decision 0059): the whole `columns_refusal()` predicate runs before
+	any write, so a refusal leaves every column and the derived count byte-identical. WeakRef
+	authorities and the per-tick scratch columns belong to other sections and stay untouched.
+	"""
+	var refusal: StringName = REFUSE_COLUMN_SHAPE
+	if _columns_are_capacity_sized(columns):
+		refusal = columns_refusal(columns.potential_remainder, columns.xp_remainder,
+			columns.memory_total, columns.wear_remainder, columns.tool_lot_slot,
+			columns.tool_lot_generation, columns.tool_job_slot, columns.tool_job_generation,
+			columns.tool_broken)
+	if refusal != REFUSE_NONE:
+		_last_column_refusal = refusal
+		return false
+	_potential_remainder = columns.potential_remainder.duplicate()
+	_xp_remainder = columns.xp_remainder.duplicate()
+	_memory_total = columns.memory_total.duplicate()
+	_wear_remainder = columns.wear_remainder.duplicate()
+	_tool_lot_slot = columns.tool_lot_slot.duplicate()
+	_tool_lot_generation = columns.tool_lot_generation.duplicate()
+	_tool_job_slot = columns.tool_job_slot.duplicate()
+	_tool_job_generation = columns.tool_job_generation.duplicate()
+	_tool_broken = columns.tool_broken.duplicate()
+	_bound_tool_count = _count_bound(_tool_lot_slot)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+static func _columns_are_capacity_sized(columns: Columns) -> bool:
+	"""The shared null and extent guard of both bulk calls, before any indexed read."""
+	return columns != null and columns.potential_remainder.size() == RESIDENT_CAPACITY \
+		and columns.xp_remainder.size() == RESIDENT_CAPACITY * SKILL_COUNT \
+		and columns.memory_total.size() == RESIDENT_CAPACITY \
+		and columns.wear_remainder.size() == RESIDENT_CAPACITY \
+		and columns.tool_lot_slot.size() == RESIDENT_CAPACITY \
+		and columns.tool_lot_generation.size() == RESIDENT_CAPACITY \
+		and columns.tool_job_slot.size() == RESIDENT_CAPACITY \
+		and columns.tool_job_generation.size() == RESIDENT_CAPACITY \
+		and columns.tool_broken.size() == RESIDENT_CAPACITY
+
+
+static func _count_bound(tool_lot_slot: PackedInt32Array) -> int:
+	"""How many rows hold a non-null tool-lot slot, recomputed rather than carried across a save."""
+	var count: int = 0
+	for row: int in tool_lot_slot.size():
+		if tool_lot_slot[row] != NULL_SLOT:
+			count += 1
+	return count
+
+
+static func _refill_ints(out: PackedInt32Array, source: PackedInt32Array) -> void:
+	"""Refill a caller's int32 buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
+
+
+static func _refill_bytes(out: PackedByteArray, source: PackedByteArray) -> void:
+	"""Refill a caller's byte buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
 
 
 class TickResult:
@@ -528,6 +690,9 @@ var _wear_outcome: GearScript.WearOutcome = GearScript.WearOutcome.new()
 ## Live tool bindings. Derived from `_tool_lot_slot`, kept as a counter so `bind_gear()` can refuse
 ## to swap the store out from under one.
 var _bound_tool_count: int = 0
+## The code of the most recent refused bulk column call, or REFUSE_NONE. A diagnostic channel
+## separate from every mutator's TickResult/OpResult, never saved or hashed (ADR 1222 step 2).
+var _last_column_refusal: StringName = REFUSE_NONE
 
 
 func _init(p_jobs: JobsScript = null) -> void:
@@ -1079,7 +1244,7 @@ func tick_solo_into(job_slot: int, out: TickResult) -> bool:
 	if code != REFUSE_NONE:
 		return _refuse_into(out, code)
 	_begin_contributors()
-	code = _offer_contributor(job_slot)
+	code = _offer_contributor(job_slot, job_slot)
 	if code != REFUSE_NONE:
 		return _refuse_into(out, code)
 	if _party_count == 0:
@@ -1159,7 +1324,7 @@ func _collect_contributors(coordinator_slot: int) -> StringName:
 	var member: int = _math.value
 	var walking: bool = true
 	while walking:
-		var code: StringName = _offer_contributor(member)
+		var code: StringName = _offer_contributor(member, coordinator_slot)
 		if code != REFUSE_NONE and not _member_may_be_skipped(code):
 			return code
 		walking = _jobs.next_member_into(member, _math)
@@ -1182,7 +1347,7 @@ func _member_may_be_skipped(code: StringName) -> bool:
 	"""
 	return code == REFUSE_JOB_NOT_WORKING or code == REFUSE_JOB_HAS_NO_WORKER \
 		or code == REFUSE_TOOL_BROKEN or code == REFUSE_TOOL_CLAIM_STALE \
-		or code == REFUSE_TOOL_NOT_CLAIMED or code == REFUSE_TOOL_GATE_BLOCKED
+		or code == REFUSE_TOOL_NOT_CLAIMED or code == REFUSE_TOOL_GATE_BLOCKED or code == REFUSE_SCHEDULE_REST
 
 
 func _begin_contributors() -> void:
@@ -1197,7 +1362,7 @@ func _begin_contributors() -> void:
 	_pending_leftover = 0
 
 
-func _offer_contributor(job_slot: int) -> StringName:
+func _offer_contributor(job_slot: int, progress_slot: int) -> StringName:
 	"""Compute one Job's potential for this tick and append it to the party scratch.
 
 	Refuses one of `_member_may_be_skipped()`'s codes for a row that simply is not producing;
@@ -1220,6 +1385,8 @@ func _offer_contributor(job_slot: int) -> StringName:
 		return REFUSE_JOB_HAS_NO_WORKER
 	if not _jobs.resident_may_work_into(resident_slot, _math):
 		return REFUSE_JOB_NOT_WORKING
+	if _jobs.schedule().rests_now(resident_slot) and _jobs._remaining_mwu[progress_slot] % SAFE_SEGMENT_MWU == 0:
+		return REFUSE_SCHEDULE_REST
 	var tool_code: StringName = _tool_gate(job_slot, resident_slot)
 	if tool_code != REFUSE_NONE:
 		return tool_code
@@ -1295,7 +1462,7 @@ func _commit_into(progress_slot: int, out: TickResult) -> bool:
 	var potential_total: int = 0
 	for index: int in _party_count:
 		potential_total += _party_potential[index]
-	var accepted: int = potential_total if potential_total < remaining else remaining
+	var accepted: int = _segment_capped(remaining, potential_total if potential_total < remaining else remaining)
 	var code: StringName = _allocate_shares(accepted, potential_total)
 	if code != REFUSE_NONE:
 		return _refuse_into(out, code)
@@ -1313,6 +1480,16 @@ func _commit_into(progress_slot: int, out: TickResult) -> bool:
 	if code != REFUSE_NONE:
 		return _refuse_into(out, code)
 	return _finish_into(progress_slot, accepted, left, out)
+
+
+func _segment_capped(remaining: int, accepted: int) -> int:
+	"""REQ-SET-034 (ADR1226): while any contributor's hour forbids work, the tick stops at the next safe point, so
+	at most the current 30-WU segment is finished before the worker rests."""
+	for index: int in _party_count:
+		if _jobs.schedule().rests_now(_party_resident[index]):
+			@warning_ignore("integer_division") var safe: int = ((remaining - 1) / SAFE_SEGMENT_MWU) * SAFE_SEGMENT_MWU
+			return mini(accepted, remaining - safe)
+	return accepted
 
 
 func _allocate_shares(accepted: int, potential_total: int) -> StringName:

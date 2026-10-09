@@ -2,10 +2,21 @@ extends RefCounted
 ## Owner 11 (`priorities`) framed-column validation bridge (PRIORITIES-S4-VALIDATE-R01 v1,
 ## decision 0171).
 ##
-## ONE PUBLIC ENTRY POINT. `framed_refusal()` judges one already framed section 4 owner block
-## against the Priorities store's own column rules and returns a `SaveHeader.Refusal`. It builds
-## no live Priorities owner, calls no store, captures nothing, applies nothing, and touches no
-## clock, barrier, signal, callback, filesystem, JSON text, reflection API or per-row object.
+## THREE PUBLIC ENTRY POINTS (ADR 1222 build step 2).
+##   * `framed_refusal()` judges one already framed section 4 owner block against the
+##     Priorities store's own column rules and returns a `SaveHeader.Refusal`. It builds no live
+##     Priorities owner, calls no store, captures nothing and applies nothing.
+##   * `capture_into(store, record)` copies the live store's four columns through
+##     `Priorities.copy_columns_into()` and projects them into the record's u8 bucket in ordinal
+##     order -- the exact inverse of the projection below -- then judges the written record with
+##     `framed_refusal()`, so a capture can never emit an image apply would refuse. A refused
+##     capture leaves the record's contents unspecified; the caller discards it.
+##   * `apply(record, store)` runs `framed_refusal()` FIRST, then projects the record and calls
+##     `Priorities.restore_columns()`, which re-runs the same predicate, writes nothing on
+##     refusal and rebuilds `present_count`. A false maps to a Refusal carrying the store's exact
+##     `last_column_refusal()` code.
+## None of the three touches a clock, barrier, signal, callback, filesystem, JSON text,
+## reflection API or per-row object; the caller owns barrier and restore-order discipline.
 ##
 ## GATE ORDER, and what each gate owns:
 ##   1. a null record                  -> SAVE_COMPONENT_SHAPE
@@ -30,8 +41,8 @@ extends RefCounted
 ## WHAT AN ACCEPTED RESULT DOES NOT CERTIFY. Cross-owner occupancy, resident identity,
 ## consent-dependent eligibility, REQ-SET-028's low-risk FORAGE half, lifecycle or barrier
 ## publication, full-file provenance, or permission to install anything into a live store. An
-## all-zero frame is a valid EMPTY Priorities image. Bulk capture/apply, rebuilding present_count
-## on restore and the other seventeen owners remain outstanding elsewhere.
+## all-zero frame is a valid EMPTY Priorities image. Bulk capture/apply and the present_count
+## rebuild are the two entry points above; the other seventeen owners remain elsewhere.
 ##
 ## THE METADATA GUARD COMPARES THE SCHEMA TO PINNED CONTRACT LITERALS and to the owner's own
 ## capacity and stride constants, because this owner publishes no column tables. That is not an
@@ -70,6 +81,8 @@ const FIELD_AUTO_FALLBACK_KEY: String = "_auto_fallback"
 const FIELD_DANGEROUS_WORK_KEY: String = "_dangerous_work"
 const FLAG_ELEMENT_COUNT: int = 512
 const JOB_PRIORITY_ELEMENT_COUNT: int = 6144
+## A capture or apply called without a live store. Bridge-local: no column code applies.
+const REFUSE_NULL_STORE: StringName = &"SAVE_COMPONENT_NULL_STORE"
 
 
 static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
@@ -102,6 +115,70 @@ static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
 			"Priorities owner %d refuses this image with column code %s"
 				% [OWNER_INDEX, String(code)])
 	return _accept()
+
+
+static func capture_into(store: Priorities, record: Section.FramedOwner) -> SaveHeader.Refusal:
+	"""Capture the live store's four columns into one owner 11 record, then judge the result.
+
+	Gates: a null record, a wrong owner, a null store, the schema and metadata guards, then the
+	store's own `copy_columns_into()` (its column code is forwarded), then a typed setter refusal
+	(SAVE_COMPONENT_SHAPE), and last `framed_refusal()` over what was written.
+	"""
+	var target: SaveHeader.Refusal = _target_refusal(record, store)
+	if not target.is_ok():
+		return target
+	var columns: Priorities.Columns = Priorities.Columns.new()
+	if not store.copy_columns_into(columns):
+		return _refuse(store.last_column_refusal(), "Priorities owner %d capture refused with %s"
+			% [OWNER_INDEX, String(store.last_column_refusal())])
+	if not (record.set_u8(FIELD_PRESENT, columns.present)
+			and record.set_u8(FIELD_JOB_PRIORITY, columns.job_priority)
+			and record.set_u8(FIELD_AUTO_FALLBACK, columns.auto_fallback)
+			and record.set_u8(FIELD_DANGEROUS_WORK, columns.dangerous_work)):
+		return _refuse(Section.REFUSE_SHAPE,
+			"Priorities owner %d capture could not write a column" % OWNER_INDEX)
+	return framed_refusal(record)
+
+
+static func apply(record: Section.FramedOwner, store: Priorities) -> SaveHeader.Refusal:
+	"""Validate one owner 11 record, then install it into `store`. Refusal writes nothing.
+
+	`framed_refusal()` runs first and its refusal is returned unchanged. The projection shares the
+	record's buffers by assignment; `restore_columns()` takes its own private copies.
+	"""
+	var framed: SaveHeader.Refusal = framed_refusal(record)
+	if not framed.is_ok():
+		return framed
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no Priorities store was supplied for owner %d"
+			% OWNER_INDEX)
+	var columns: Priorities.Columns = Priorities.Columns.new()
+	columns.present = record.u8_column(FIELD_PRESENT)
+	columns.job_priority = record.u8_column(FIELD_JOB_PRIORITY)
+	columns.auto_fallback = record.u8_column(FIELD_AUTO_FALLBACK)
+	columns.dangerous_work = record.u8_column(FIELD_DANGEROUS_WORK)
+	if not store.restore_columns(columns):
+		return _refuse(store.last_column_refusal(), "Priorities owner %d restore refused with %s"
+			% [OWNER_INDEX, String(store.last_column_refusal())])
+	return _accept()
+
+
+static func _target_refusal(record: Section.FramedOwner, store: Priorities) -> SaveHeader.Refusal:
+	"""Capture's preflight: record, owner index, store, then the schema and metadata guards."""
+	if record == null:
+		return _refuse(Section.REFUSE_SHAPE,
+			"no framed owner was supplied for owner %d ('%s')" % [OWNER_INDEX, OWNER_KEY])
+	if record.owner != OWNER_INDEX:
+		return _refuse(Section.REFUSE_OWNER,
+			"owner %d was supplied where owner %d ('%s') is required"
+				% [record.owner, OWNER_INDEX, OWNER_KEY])
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no Priorities store was supplied for owner %d"
+			% OWNER_INDEX)
+	var schema: SaveHeader.Refusal = Schema.schema_refusal()
+	if not schema.is_ok():
+		return schema
+	return _metadata_refusal()
 
 
 static func _metadata_refusal() -> SaveHeader.Refusal:

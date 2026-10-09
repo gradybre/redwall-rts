@@ -6,6 +6,10 @@ Those are economic phases, not animation names. The source's unaltered physical
 tip and patch reach the top of each selected cube from retained outside ground.
 Full current air, support, worker, tool, payment, spoil and retreat checks remain
 mandatory at runtime. No paid or traversable state is emitted here.
+
+frontier-v2 is a historical content-3 publication (superseded by content 5,
+ADR 1200). Producer and owner digests come from git at PUBLISHED_AT, like the
+structural-v1 manifest it extends; the wire is still rebuilt and compared.
 """
 from __future__ import annotations
 
@@ -24,6 +28,7 @@ ROOT = STRUCTURE.ROOT
 PRODUCER = "godot/data/underground/first-entry-prefix-v1/compile_entry_frontier.py"
 OUTPUT = "godot/data/underground/first-entry-prefix-v1/frontier-v2"
 OWNER = "godot/scripts/core/underground_entry_frontier.gd"
+PUBLISHED_AT = "b315b7c7deb32be41b006aaea3601faa486370c9"
 COUNTS = [2, 8, 2, 10, 10, 6]
 
 
@@ -172,7 +177,7 @@ def build(root=ROOT):
     inputs = json.loads(sources["manifest.json"])["inputs"]
     inputs.update({str(Path(STRUCTURE.OUTPUT) / n): sha(b) for n, b in sources.items()})
     for name in (PRODUCER, OWNER):
-        inputs[name] = sha((root / name).read_bytes())
+        inputs[name] = sha(STRUCTURE.published(root, name, PUBLISHED_AT))
     manifest = {"schema": 1, "scope": "Actual source-bound first-prefix work selectors and static reach",
                 "current_world_qualified": False, "entry_workflow_qualified": False,
                 "paid_handling_qualified": False, "traversal_qualified": False,

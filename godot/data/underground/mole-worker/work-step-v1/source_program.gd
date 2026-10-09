@@ -3,6 +3,7 @@ extends RefCounted
 
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Parent := preload("res://data/underground/mole-worker/work-approach-v1/source_program.gd")
+const Assembly := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
 const PROGRAM_SHA: String = "fff35c8c2ead2f43a68a242ca3ac156f9348af1880a00dd7ebbb16aaa1f476a0"
 const VERSION: int = 6
 const TAG: int = 0x11680000
@@ -19,7 +20,8 @@ const I32_MAX: int = 2147483647
 
 static func uses(actual: Profiles) -> bool:
 	"""Count selects only a protocol parser; complete source and descriptor leaves still confer no World permission."""
-	return actual != null and actual._live != null and actual._live.header[1] == PROFILE_COUNT
+	return actual != null and actual._live != null and (actual._live.header[1] == PROFILE_COUNT \
+		or Assembly.uses(actual))
 
 
 static func is_short(profile: int) -> bool:

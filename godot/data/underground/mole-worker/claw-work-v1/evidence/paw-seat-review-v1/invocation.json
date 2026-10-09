@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "adr": ["1217"],
+  "dec": "DEC-052",
+  "production_qualified": false,
+  "paths": ".../ = godot/data/underground/mole-worker/claw-work-v1/",
+  "python": "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+  "staged_inputs": "godot/demo/assets/underground-matrices/{all-cast-v9.ugpal 5b368eb3..., mole-grip-v3.ugpal 08de5453..., world-yaw-v1.ugyaw de8c3b04...} copied from /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/; hash-checked by the tools; removed afterwards",
+  "commands": [
+    "$PY -B .../probe_paw_seat.py .../evidence/paw-seat-probe-v1.json",
+    "$PY -B .../author_paw_seat.py .../evidence/paw-seat-v1/candidate-a --lean-degrees 40 --drop-u 64 --head-lift-degrees 60 --right-roll-degrees 90 --left-roll-degrees 90",
+    "$PY -B .../prove_paw_seat.py .../evidence/paw-seat-v1/candidate-a",
+    "$PY -B .../render_paw_seat.py .../evidence/paw-seat-v1/candidate-a .../evidence/paw-seat-review-v1/candidate-a",
+    "$PY -B .../test_paw_seat.py -v"
+  ],
+  "exact_trials": "lean/drop/head/rolls 40/96/60/90/90 (entry world refused), 40/96/30/90/90 and 40/64/30/90/90 (entry self refused), 50/96/60/90/90 (left entry), 40/64/60/90/90 = candidate a (clear)"
+}

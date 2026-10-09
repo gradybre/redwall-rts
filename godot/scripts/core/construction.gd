@@ -128,6 +128,7 @@ const Buildings := preload("res://scripts/core/buildings.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const ExcavationContract := preload("res://scripts/core/excavation_contract.gd")
 const ModularContract := preload("res://scripts/core/modular_project_contract.gd")
+const ColumnProofs := preload("res://scripts/core/column_proofs.gd")
 
 ## systems_architecture.md §2.2 and entity_directory.gd's KIND_CAPACITY, which must agree.
 const CONSTRUCTION_CAPACITY: int = 82944
@@ -887,11 +888,18 @@ func retire_modular_phase(project: Vector2i, authority: ModularContract) -> OpRe
 	if _phase[row] != PHASE_WORK_DONE and _phase[row] != PHASE_REFUNDING:
 		return _refuse(REFUSE_WRONG_PHASE)
 	_retire(row, project, Vector2i(_subject_slot[row], _subject_generation[row]))
+	_clear_retired_extension_row(row)
+	return OpResult.new(true, REFUSE_NONE, row, NULL_REF)
+
+
+func _clear_retired_extension_row(row: int) -> void:
+	"""A retired excavation or modular row returns to the exact never-used clear row (ADR 1228: the
+	worker capacity too, which the frozen section 4 predicate requires of a typeless row)."""
 	_purpose[row] = PURPOSE_BUILD
 	_type_id[row] = -1
 	_phase[row] = PHASE_AWAITING_MATERIALS
 	_refund_policy[row] = REFUND_FULL
-	return OpResult.new(true, REFUSE_NONE, row, NULL_REF)
+	_max_workers[row] = 0
 
 
 func project_of_modular_subject(purpose: int, subject: Vector2i) -> Vector2i:
@@ -1066,10 +1074,7 @@ func retire_excavation_phase(project: Vector2i, authority: ExcavationContract) -
 	if _phase[row] != PHASE_WORK_DONE and _phase[row] != PHASE_REFUNDING:
 		return _refuse(REFUSE_WRONG_PHASE)
 	_retire(row, project, Vector2i(_subject_slot[row], _subject_generation[row]))
-	_purpose[row] = PURPOSE_BUILD
-	_type_id[row] = -1
-	_phase[row] = PHASE_AWAITING_MATERIALS
-	_refund_policy[row] = REFUND_FULL
+	_clear_retired_extension_row(row)
 	return OpResult.new(true, REFUSE_NONE, row, NULL_REF)
 
 
@@ -1572,13 +1577,16 @@ static func _excavation_start_worker(sites: ExcavationContract, site: int, job_r
 			or residents._ref_generation[row] != worker.y or residents._life_stage[row] == residents.LIFE_STAGE_CHILD \
 			or jobs._agent_present[row] != 1 or jobs._agent_job_slot[row] != job.x \
 			or jobs._agent_job_generation[row] != job.y or sites._worker_site[row] != site \
-			or sites._worker_generation[row] != worker.y or jobs._tool_gate[job_row] != jobs.GATE_SATISFIED:
+			or sites._worker_generation[row] != worker.y \
+			or (jobs._tool_gate[job_row] != jobs.GATE_SATISFIED and jobs._tool_gate[job_row] != jobs.GATE_NOT_REQUIRED):
 		return sites.REFUSE_WORKER
 	var needs: RefCounted = jobs._needs
 	if needs == null or needs != residents._needs or needs._present[row] != 1 \
 			or needs._status[row] == needs.STATUS_DEAD or needs._status[row] == needs.STATUS_INCAPACITATED \
 			or needs._need_value[row * needs.NEED_COUNT + needs.NEED_REST] <= jobs.REST_COLLAPSE_THRESHOLD:
 		return sites.REFUSE_WORKER
+	if jobs._tool_gate[job_row] == jobs.GATE_NOT_REQUIRED: # DEC-052: claws need no tool, and none is claimed.
+		return REFUSE_NONE if sites._work._tool_lot_slot[row] == -1 else sites.REFUSE_WORKER
 	return _excavation_start_tool(sites, row, worker, job)
 
 
@@ -3480,6 +3488,8 @@ static func columns_refusal(image: Columns) -> StringName:
 	var source_code: StringName = column_source_metadata_refusal()
 	if source_code != REFUSE_NONE:
 		return source_code
+	if _columns_proven(image):
+		return REFUSE_NONE
 	var flag_code: StringName = _column_flag_scan_refusal(image)
 	if flag_code != REFUSE_NONE:
 		return flag_code
@@ -3488,6 +3498,22 @@ static func columns_refusal(image: Columns) -> StringName:
 		if row_code != REFUSE_NONE:
 			return row_code
 	return REFUSE_NONE
+
+
+static func _columns_proven(image: Columns) -> bool:
+	"""ADR 1235: the flag and row walks above provably accept. Every gate reads only its own row
+	of these sixteen columns, so `ColumnProofs.rows_proven()` may judge identical rows once; any
+	doubt returns false and the walks run, so each refusal is unchanged."""
+	for flags: PackedByteArray in [image.present, image.paused, image.work_begun]:
+		if not ColumnProofs.bytes_are_flags(flags):
+			return false
+	return ColumnProofs.rows_proven(_image_columns(image),
+		_image_row_ok.bind(image))
+
+
+static func _image_row_ok(row: int, image: Columns) -> bool:
+	"""One row passes gates 1-8 (bound, not a lambda: see `Buildings._building_row_ok()`)."""
+	return _row_refusal(image, row) == REFUSE_NONE
 
 
 # --- ADR1155: owner-owned release after the complete original World has been cleared. ---
@@ -3524,3 +3550,338 @@ static func world_retirement_release_preflighted_in(actual: RefCounted, ids: Ent
 	actual._excavation_authority = null
 	actual._modular_authority = null
 	return &""
+
+
+
+# --- ARCH-SAVE-002 sections 4 + 5 + the Q7 section 6 owners bulk API (ADR 1222 build step 3) -----
+#
+# Construction's saved rows travel in THREE images restored in one call:
+#   * `columns` -- the frozen section-4 owner (ADR 0186): every row whose purpose is BUILD,
+#     UPGRADE, FURNITURE or DEMOLISH, and the exact clear row everywhere else;
+#   * `extension` -- section 6 owner `construction_extension` (DEC-055 Q7(a)): the same sixteen
+#     columns for every row whose purpose is outside the frozen enum (REMOVE_FURNITURE, EXCAVATION,
+#     SPATIAL_FURNITURE, SPOIL_TIP, CONNECTOR_INSTALL), and the exact clear row everywhere else;
+#   * `ledger` -- section 5's `_delivered_milli` plus section 6 owner `construction_paid_ledger`.
+# A row is carried by exactly one of the first two images. `restore_columns()` judges `columns`
+# with the frozen `columns_refusal()`, `extension` with `extension_refusal()`, the split, the
+# ledger shape and the Directory resolution of every present row before its first write, then
+# installs the merged rows and recounts `_live_count`. Live semantics of an extended row (its
+# Site, Router or spatial owner) are re-proved by the underground restore, not here.
+
+const REFUSE_COLUMN_SPLIT: StringName = &"COLUMN_SPLIT"
+const REFUSE_COLUMN_LEDGER: StringName = &"COLUMN_LEDGER"
+const REFUSE_COLUMN_DIRECTORY: StringName = &"COLUMN_DIRECTORY"
+
+## The code of the most recent refused bulk column call, or REFUSE_NONE. Category 3.
+var _last_column_refusal: StringName = REFUSE_NONE
+
+
+class Ledger extends RefCounted:
+	"""Caller-owned image of the delivered ledger (section 5) and the paid ledger (section 6)."""
+	var delivered_milli: PackedInt64Array = PackedInt64Array()
+	var paid_base_type: PackedInt32Array = PackedInt32Array()
+	var paid_upgrade_mask: PackedInt32Array = PackedInt32Array()
+
+	func _init() -> void:
+		"""Size all three columns and fill the clear store's values."""
+		delivered_milli.resize(DELIVERED_CELLS)
+		paid_base_type.resize(CONSTRUCTION_CAPACITY)
+		paid_upgrade_mask.resize(CONSTRUCTION_CAPACITY)
+		delivered_milli.fill(0)
+		paid_base_type.fill(NO_PAID_PACKAGE)
+		paid_upgrade_mask.fill(0)
+
+	func is_sized() -> bool:
+		"""True only at the canonical extents."""
+		return delivered_milli.size() == DELIVERED_CELLS \
+			and paid_base_type.size() == CONSTRUCTION_CAPACITY \
+			and paid_upgrade_mask.size() == CONSTRUCTION_CAPACITY
+
+	func equals(other: Ledger) -> bool:
+		"""All three columns byte-identical."""
+		return other != null and delivered_milli == other.delivered_milli \
+			and paid_base_type == other.paid_base_type \
+			and paid_upgrade_mask == other.paid_upgrade_mask
+
+
+func last_column_refusal() -> StringName:
+	"""The code of the most recent refused bulk column call, or REFUSE_NONE after a success."""
+	return _last_column_refusal
+
+
+func copy_columns_into(columns: Columns, extension: Columns, ledger: Ledger) -> bool:
+	"""Snapshot every row into the frozen or extension image, and both ledgers. False = SHAPE."""
+	if columns == null or extension == null or ledger == null or not columns.is_sized() \
+			or not extension.is_sized() or not ledger.is_sized():
+		_last_column_refusal = REFUSE_COLUMN_SHAPE
+		return false
+	columns._fill_clear_values()
+	extension._fill_clear_values()
+	for row: int in CONSTRUCTION_CAPACITY:
+		_copy_row_into(extension if _purpose[row] >= PURPOSE_COUNT else columns, row)
+	ledger.delivered_milli.clear()
+	ledger.delivered_milli.append_array(_delivered_milli)
+	ledger.paid_base_type.clear()
+	ledger.paid_base_type.append_array(_paid_base_type)
+	ledger.paid_upgrade_mask.clear()
+	ledger.paid_upgrade_mask.append_array(_paid_upgrade_mask)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func _copy_row_into(out: Columns, row: int) -> void:
+	"""One live row's sixteen values into `out` at the same physical row."""
+	out.present[row] = _present[row]
+	out.material_container_slot[row] = _material_container_slot[row]
+	out.material_container_generation[row] = _material_container_generation[row]
+	out.assigned_count[row] = _assigned_count[row]
+	out.max_workers[row] = _max_workers[row]
+	out.refund_policy[row] = _refund_policy[row]
+	out.remaining_mwu[row] = _remaining_mwu[row]
+	out.paused[row] = _paused[row]
+	out.work_begun[row] = _work_begun[row]
+	out.ref_slot[row] = _ref_slot[row]
+	out.ref_generation[row] = _ref_generation[row]
+	out.subject_slot[row] = _subject_slot[row]
+	out.subject_generation[row] = _subject_generation[row]
+	out.purpose[row] = _purpose[row]
+	out.type_id[row] = _type_id[row]
+	out.phase[row] = _phase[row]
+
+
+func restore_columns(columns: Columns, extension: Columns, ledger: Ledger) -> bool:
+	"""Install the three images in one call, then recount. False writes nothing.
+
+	Allocate before consume (decision 0059): every predicate below and the Directory resolution
+	run before the first write. Authority WeakRefs are untouched; re-mounting re-binds them.
+	"""
+	var code: StringName = columns_refusal(columns)
+	if code == REFUSE_NONE and not _restore_proven(columns, extension, ledger):
+		code = extension_refusal(extension)
+		if code == REFUSE_NONE:
+			code = split_refusal(columns, extension)
+		if code == REFUSE_NONE:
+			code = _ledger_refusal(columns, extension, ledger)
+	if code == REFUSE_NONE:
+		code = _directory_refusal(columns, extension)
+	if code != REFUSE_NONE:
+		_last_column_refusal = code
+		return false
+	_install_merged(columns, extension)
+	_delivered_milli = ledger.delivered_milli.duplicate()
+	_paid_base_type = ledger.paid_base_type.duplicate()
+	_paid_upgrade_mask = ledger.paid_upgrade_mask.duplicate()
+	_live_count = _present.count(1)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func _install_merged(columns: Columns, extension: Columns) -> void:
+	"""Private copies of the frozen image, then every extension-owned row written over them."""
+	_present = columns.present.duplicate()
+	_material_container_slot = columns.material_container_slot.duplicate()
+	_material_container_generation = columns.material_container_generation.duplicate()
+	_assigned_count = columns.assigned_count.duplicate()
+	_max_workers = columns.max_workers.duplicate()
+	_refund_policy = columns.refund_policy.duplicate()
+	_remaining_mwu = columns.remaining_mwu.duplicate()
+	_paused = columns.paused.duplicate()
+	_work_begun = columns.work_begun.duplicate()
+	_ref_slot = columns.ref_slot.duplicate()
+	_ref_generation = columns.ref_generation.duplicate()
+	_subject_slot = columns.subject_slot.duplicate()
+	_subject_generation = columns.subject_generation.duplicate()
+	_purpose = columns.purpose.duplicate()
+	_type_id = columns.type_id.duplicate()
+	_phase = columns.phase.duplicate()
+	for row: int in CONSTRUCTION_CAPACITY:
+		if extension.purpose[row] >= PURPOSE_COUNT:
+			_install_extension_row(extension, row)
+
+
+func _install_extension_row(extension: Columns, row: int) -> void:
+	"""Overwrite one physical row with the extension image's values."""
+	_present[row] = extension.present[row]
+	_material_container_slot[row] = extension.material_container_slot[row]
+	_material_container_generation[row] = extension.material_container_generation[row]
+	_assigned_count[row] = extension.assigned_count[row]
+	_max_workers[row] = extension.max_workers[row]
+	_refund_policy[row] = extension.refund_policy[row]
+	_remaining_mwu[row] = extension.remaining_mwu[row]
+	_paused[row] = extension.paused[row]
+	_work_begun[row] = extension.work_begun[row]
+	_ref_slot[row] = extension.ref_slot[row]
+	_ref_generation[row] = extension.ref_generation[row]
+	_subject_slot[row] = extension.subject_slot[row]
+	_subject_generation[row] = extension.subject_generation[row]
+	_purpose[row] = extension.purpose[row]
+	_type_id[row] = extension.type_id[row]
+	_phase[row] = extension.phase[row]
+
+
+func _ledger_refusal(columns: Columns, extension: Columns, ledger: Ledger) -> StringName:
+	"""Shape, no delivery past a row's own bill (a modular quote may use every line), and clear
+	paid ledgers on every never-used row."""
+	if ledger == null or not ledger.is_sized():
+		return REFUSE_COLUMN_SHAPE
+	for row: int in CONSTRUCTION_CAPACITY:
+		if not _ledger_row_ok(columns, extension, ledger, row):
+			return REFUSE_COLUMN_LEDGER
+	for value: int in ledger.delivered_milli:
+		if value < 0:
+			return REFUSE_COLUMN_LEDGER
+	return REFUSE_NONE
+
+
+func _ledger_row_ok(columns: Columns, extension: Columns, ledger: Ledger,
+		row: int) -> bool:
+	"""One row of `_ledger_refusal()`: no delivery past the row's bill, paid ledgers in range and
+	clear on a never-used row. Reads only that row of both images and of the ledger."""
+	var image: Columns = extension if extension.purpose[row] >= PURPOSE_COUNT else columns
+	var bill: int = 0
+	if is_modular(image.purpose[row]):
+		bill = MATERIAL_SLOTS_PER_PROJECT
+	elif image.type_id[row] != -1:
+		bill = _bill_count_of(image.purpose[row], image.type_id[row])
+	for index: int in range(bill, MATERIAL_SLOTS_PER_PROJECT):
+		if ledger.delivered_milli[row * MATERIAL_SLOTS_PER_PROJECT + index] != 0:
+			return false
+	if ledger.paid_base_type[row] < NO_PAID_PACKAGE or ledger.paid_upgrade_mask[row] < 0:
+		return false
+	return image.type_id[row] != -1 or (ledger.paid_base_type[row] == NO_PAID_PACKAGE
+		and ledger.paid_upgrade_mask[row] == 0)
+
+
+func _restore_proven(columns: Columns, extension: Columns, ledger: Ledger) -> bool:
+	"""ADR 1235: `extension_refusal()`, `split_refusal()` and `_ledger_refusal()` provably accept.
+	Their row gates read only that row of both images and of the ledger, so `ColumnProofs`
+	judges identical rows once; any doubt returns false and the three walks run unchanged."""
+	if extension == null or not extension.is_sized() or not columns.is_sized() \
+			or ledger == null or not ledger.is_sized():
+		return false
+	for flags: PackedByteArray in [extension.present, extension.paused, extension.work_begun]:
+		if not ColumnProofs.bytes_are_flags(flags):
+			return false
+	var extra: PackedInt32Array = PackedInt32Array()
+	if ColumnProofs.i64_minimum(ledger.delivered_milli) < 0 or not ColumnProofs.strided_deviant_rows(
+			ledger.delivered_milli, MATERIAL_SLOTS_PER_PROJECT, CONSTRUCTION_CAPACITY, extra):
+		return false
+	var inputs: Array = _image_columns(columns) + _image_columns(extension)
+	inputs.append_array([ledger.paid_base_type, ledger.paid_upgrade_mask])
+	return ColumnProofs.rows_proven(inputs, _restore_row_ok.bind(columns, extension, ledger), extra)
+
+
+func _restore_row_ok(row: int, columns: Columns, extension: Columns, ledger: Ledger) -> bool:
+	"""One row of the extension, split and ledger walks."""
+	var purpose: int = extension.purpose[row]
+	if purpose < PURPOSE_COUNT:
+		if not _is_clear_row(extension, row):
+			return false
+	elif _extension_row_refusal(extension, row, purpose) != REFUSE_NONE \
+			or not _is_clear_row(columns, row):
+		return false
+	return _ledger_row_ok(columns, extension, ledger, row)
+
+
+static func _image_columns(image: Columns) -> Array:
+	"""The sixteen columns of one image, in ordinal order."""
+	return [image.present, image.material_container_slot, image.material_container_generation,
+		image.assigned_count, image.max_workers, image.refund_policy, image.remaining_mwu,
+		image.paused, image.work_begun, image.ref_slot, image.ref_generation, image.subject_slot,
+		image.subject_generation, image.purpose, image.type_id, image.phase]
+
+
+func _directory_refusal(columns: Columns, extension: Columns) -> StringName:
+	"""Every present row's own reference resolves to a live CONSTRUCTION entry at that row. Only
+	rows present in either image can be present in the one that carries them (ADR 1235)."""
+	var rows: PackedInt32Array = ColumnProofs.rows_holding(columns.present, 1)
+	rows.append_array(ColumnProofs.rows_holding(extension.present, 1))
+	rows.sort()
+	for row: int in rows:
+		var image: Columns = extension if extension.purpose[row] >= PURPOSE_COUNT else columns
+		if image.present[row] != 1:
+			continue
+		var ref: Vector2i = Vector2i(image.ref_slot[row], image.ref_generation[row])
+		if not _directory.is_valid_of_kind(ref, EntityDirectory.KIND_CONSTRUCTION) \
+				or _directory.get_typed_row(ref) != row:
+			return REFUSE_COLUMN_DIRECTORY
+	return REFUSE_NONE
+
+
+# --- the pure extension predicates ---------------------------------------------------------------
+
+static func split_refusal(columns: Columns, extension: Columns) -> StringName:
+	"""Each row is carried by exactly one image: an extension-owned row is clear in `columns`."""
+	if columns == null or extension == null or not columns.is_sized() or not extension.is_sized():
+		return REFUSE_COLUMN_SHAPE
+	for row: int in CONSTRUCTION_CAPACITY:
+		if extension.purpose[row] >= PURPOSE_COUNT and not _is_clear_row(columns, row):
+			return REFUSE_COLUMN_SPLIT
+	return REFUSE_NONE
+
+
+static func _is_clear_row(image: Columns, row: int) -> bool:
+	"""The exact never-used clear row of `Columns._fill_clear_values()`."""
+	return image.present[row] == 0 and image.material_container_slot[row] == NULL_REF.x \
+		and image.material_container_generation[row] == NULL_REF.y \
+		and image.assigned_count[row] == 0 and image.max_workers[row] == 0 \
+		and image.refund_policy[row] == REFUND_FULL and image.remaining_mwu[row] == 0 \
+		and image.paused[row] == 0 and image.work_begun[row] == 0 \
+		and image.ref_slot[row] == NULL_REF.x and image.ref_generation[row] == NULL_REF.y \
+		and image.subject_slot[row] == NULL_REF.x and image.subject_generation[row] == NULL_REF.y \
+		and image.purpose[row] == PURPOSE_BUILD and image.type_id[row] == -1 \
+		and image.phase[row] == PHASE_AWAITING_MATERIALS
+
+
+static func extension_refusal(image: Columns) -> StringName:
+	"""The structural predicate over the extension owner. Frozen-purpose rows must be clear.
+
+	An extended row: purpose REMOVE_FURNITURE..CONNECTOR_INSTALL, phase and refund policy in
+	domain, canonical flags, nonnegative counters with assigned <= max, well-shaped references,
+	and the free-row canon (null refs, no progress) when not present.
+	"""
+	if image == null or not image.is_sized():
+		return REFUSE_COLUMN_SHAPE
+	var flags: StringName = _column_flag_scan_refusal(image)
+	if flags != REFUSE_NONE:
+		return flags
+	for row: int in CONSTRUCTION_CAPACITY:
+		var purpose: int = image.purpose[row]
+		if purpose < PURPOSE_COUNT:
+			if not _is_clear_row(image, row):
+				return REFUSE_COLUMN_SPLIT
+			continue
+		var code: StringName = _extension_row_refusal(image, row, purpose)
+		if code != REFUSE_NONE:
+			return code
+	return REFUSE_NONE
+
+
+static func _extension_row_refusal(image: Columns, row: int, purpose: int) -> StringName:
+	"""One extended row: enums, values, reference shape, then the present/free canon."""
+	if purpose >= LIVE_PURPOSE_COUNT or image.phase[row] < 0 or image.phase[row] >= PHASE_COUNT \
+			or image.refund_policy[row] < 0 or image.refund_policy[row] >= REFUND_POLICY_COUNT:
+		return REFUSE_COLUMN_ENUM
+	if image.remaining_mwu[row] < 0 or image.assigned_count[row] < 0 \
+			or image.max_workers[row] < 0 or image.assigned_count[row] > image.max_workers[row]:
+		return REFUSE_COLUMN_VALUE
+	var ref_code: StringName = _ref_gate_refusal(image, row)
+	if ref_code != REFUSE_NONE:
+		return ref_code
+	if image.present[row] == 1:
+		return _free_gate_refusal(image, row)
+	return _extension_free_refusal(image, row)
+
+
+static func _extension_free_refusal(image: Columns, row: int) -> StringName:
+	"""A retained (not present) extended row keeps its purpose/type/phase history and no more."""
+	if image.ref_slot[row] != NULL_REF.x or image.ref_generation[row] != NULL_REF.y \
+			or image.subject_slot[row] != NULL_REF.x \
+			or image.subject_generation[row] != NULL_REF.y \
+			or image.material_container_slot[row] != NULL_REF.x \
+			or image.material_container_generation[row] != NULL_REF.y:
+		return REFUSE_COLUMN_FREE
+	if image.remaining_mwu[row] != 0 or image.assigned_count[row] != 0 \
+			or image.paused[row] != 0 or image.work_begun[row] != 0:
+		return REFUSE_COLUMN_FREE
+	return REFUSE_NONE

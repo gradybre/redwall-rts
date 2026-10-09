@@ -1,0 +1,155 @@
+{
+  "schema": 1,
+  "decision": [
+    "1217",
+    "1209"
+  ],
+  "motion": "M7 tool-free stair gaits",
+  "accepted_recipes": {
+    "descent": {
+      "status": "SOURCE_CANDIDATE_ONLY",
+      "rise_u": -128,
+      "run_u": 512,
+      "edge_z_u": -169,
+      "phase_frames": 30,
+      "root_contract": "separate_integer_ceil_v1",
+      "guide_magnitude": 0.0,
+      "root_advance_u": 256,
+      "root_drop_u": 128,
+      "leading_foot_advance_u": 360,
+      "max_link_length_error_m": 6.938893903907228e-17,
+      "source_method": "independent forward-facing descent; actual unchanged bone lengths, proper transport of the source knee plane with an explicit smooth side-dependent twist, full anatomical foot solve; no reversed anatomy, modified geometry, or gameplay movement",
+      "root_horizontal_lift_hold": "phase1 holds the first quarter while the trailing foot lifts, then smooth advance; explicit integer root rows own playback",
+      "toe_first_degrees": 20,
+      "foot_rotation_rule": "actual ankle/toe frames rotate together, with unchanged link length, before whole-foot minimum solve; every body primitive and whole-foot projection stays in the independent proof"
+    },
+    "ascent": {
+      "status": "SOURCE_CANDIDATE_ONLY",
+      "rise_u": 128,
+      "run_u": 512,
+      "edge_z_u": -169,
+      "phase_frames": 30,
+      "lead_root_advance_u": 68,
+      "lead_root_lift_u": 50,
+      "sole_solver_limit": 128,
+      "foot_label": "every complete triangle touched by a vertex whose largest positive actual skin influence is the corresponding foot/toe; retain all mixed boundary vertices and all tied labels; all original body triangles remain collision geometry",
+      "sole_rule": "direct floating source skin equation chooses the minimum of the complete anatomical foot for both swing and plant; no projected-vertex omission; every emitted F32 coefficient remains independently subject to Q24/native-error clearance proof",
+      "max_link_length_error_m": 6.938893903907228e-17,
+      "root_contract": "separate_integer_ceil_v1",
+      "root_equation": "root-local palettes; add root track once after skinning through actual Actor.set_world_root using exact integer ceil interpolation; no actual Transforms owner is moved",
+      "knee_rule": "proper rotations; original two segment lengths and original bend-side projection",
+      "all_other_source_joints": "compact idle frame8; original geometry, hand/tool fit and materials preserved"
+    }
+  },
+  "arm_swing_degrees": {
+    "right": 3,
+    "left": 0
+  },
+  "swing_search": [
+    {
+      "side": "right",
+      "degrees": 0,
+      "clear": false
+    },
+    {
+      "side": "right",
+      "degrees": 30,
+      "clear": true
+    },
+    {
+      "side": "right",
+      "degrees": 15,
+      "clear": true
+    },
+    {
+      "side": "right",
+      "degrees": 7,
+      "clear": true
+    },
+    {
+      "side": "right",
+      "degrees": 3,
+      "clear": true
+    },
+    {
+      "side": "right",
+      "degrees": 1,
+      "clear": false
+    },
+    {
+      "side": "right",
+      "degrees": 2,
+      "clear": false
+    },
+    {
+      "side": "left",
+      "degrees": 0,
+      "clear": true
+    }
+  ],
+  "swing_envelope_frames": 15,
+  "clips": {
+    "descent": {
+      "id": "mole_worker.descent_diagnostic.-128",
+      "frames": 91,
+      "sha256": "5ffa3714bc10f6002cdb8e9f898832a6964a8bddc1d813dc9ed5a7971543e2c6",
+      "recipe": {
+        "rise_u": -128,
+        "run_u": 512,
+        "edge_z_u": -169,
+        "phase_frames": 30,
+        "root_contract": "separate_integer_ceil_v1",
+        "guide_magnitude": 0.0,
+        "root_advance_u": 256,
+        "root_drop_u": 128,
+        "leading_foot_advance_u": 360,
+        "max_link_length_error_m": 5.551115123125783e-17,
+        "source_method": "independent forward-facing descent; actual unchanged bone lengths, proper transport of the source knee plane with an explicit smooth side-dependent twist, full anatomical foot solve; no reversed anatomy, modified geometry, or gameplay movement",
+        "root_horizontal_lift_hold": "phase1 holds the first quarter while the trailing foot lifts, then smooth advance; explicit integer root rows own playback",
+        "toe_first_degrees": 20,
+        "foot_rotation_rule": "actual ankle/toe frames rotate together, with unchanged link length, before whole-foot minimum solve; every body primitive and whole-foot projection stays in the independent proof"
+      }
+    },
+    "ascent": {
+      "id": "mole_worker.stair_diagnostic.128",
+      "frames": 91,
+      "sha256": "522ae319fb559ab8101d82c4a9d1de650cd0073ada9cd955c378b5ad0c9e16bf",
+      "recipe": {
+        "rise_u": 128,
+        "run_u": 512,
+        "edge_z_u": -169,
+        "phase_frames": 30,
+        "lead_root_advance_u": 68,
+        "lead_root_lift_u": 50,
+        "sole_solver_limit": 128,
+        "foot_label": "every complete triangle touched by a vertex whose largest positive actual skin influence is the corresponding foot/toe; retain all mixed boundary vertices and all tied labels; all original body triangles remain collision geometry",
+        "sole_rule": "direct floating source skin equation chooses the minimum of the complete anatomical foot for both swing and plant; no projected-vertex omission; every emitted F32 coefficient remains independently subject to Q24/native-error clearance proof",
+        "max_link_length_error_m": 8.326672684688674e-17,
+        "root_contract": "separate_integer_ceil_v1",
+        "root_equation": "root-local palettes; add root track once after skinning through actual Actor.set_world_root using exact integer ceil interpolation; no actual Transforms owner is moved",
+        "knee_rule": "proper rotations; original two segment lengths and original bend-side projection",
+        "all_other_source_joints": "compact idle frame8; original geometry, hand/tool fit and materials preserved"
+      }
+    }
+  },
+  "clear": true,
+  "stand_sha256": "05564adf19b2b29142d99c469839b3aa18c20cdce995d055669528ce88e51b89",
+  "source_pins": {
+    "palette": "5b368eb3ad594b4a6f82b5981a891150e6f7053944daf888d4ab5aa293c822fe",
+    "open_body": "a938d479014ebd3a431a118a7b1c9f7aa0b522d0a33a5c5d281e58e1e2f497c1",
+    "topology": "da623e5c7c3c5a6aff5c466b143425422f3aa2253497527c84f713738f997b42",
+    "stand": "7086ef2a3aab64537d7822393c04ece86d67879e59e1c7e54d333a5c7f974c7d",
+    "profiles": "30c3dc1f5e9162f5530f410c437ed6f85d28dc6879f88dec81cb193ea87b0df5"
+  },
+  "production_qualified": false,
+  "producer_sources": {
+    "godot/data/underground/mole-worker/claw-work-v1/author_claw_stairs.py": "8aeb75f3449cad8259dc1f5e9555d7b4777746f06806d30b4a2b38bf4e151351",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_descent.py": "6a1a5608c87261222c7eab4cb5568467c1770b669d7e825ce3918bd46d6e5bdc",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "e843ebc713118ef165cc3e114d84b860d8a2513a1144adff94ebdf0256f24c6e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_terrain.py": "a29f0e5a163307ec9ac9d0908e4da6c9a62f399885b198e8955f2fd5e7402390",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_sequence.py": "60f1867515e7e7576a1beb9cf607ab7d91c6866afd626f2f8495d1611d7da1ff",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_descent_flight.py": "14f938705dc38aacfcad1b0662212736451d5af988e4e1ca1f3f498fe0a53e2e",
+    "godot/data/underground/mole-worker/claw-work-v1/prove_claw_pair.py": "e3af3b7dc564d27ef09c95ac2f9ea313088b7b421940f8f2222ab9675a43bc02",
+    "godot/data/underground/mole-worker/stand-walk-v2/author_stand_walk_v2.py": "54ca3f9421f0a85696b7803386cb8e7f69dc56d622c31bc839b38f5de3333bfb"
+  }
+}

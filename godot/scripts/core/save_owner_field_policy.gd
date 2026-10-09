@@ -1,28 +1,40 @@
 extends RefCounted
 ## Owner 3 (`field_policy`) column validation bridge (FIELD-POLICY-S4-VALIDATE-R01 v1, ADR 0179).
 ##
-## ONE PUBLIC ENTRY POINT. `framed_refusal()` judges one already framed section 4 owner block
-## against the FieldPolicy store's own saved column predicate and returns a `SaveHeader.Refusal`.
-## It constructs no live FieldPolicy, Farming, Forage or Directory owner, captures nothing,
-## restores nothing, copies nothing and writes no diagnostic.
+## THREE PUBLIC ENTRY POINTS (ADR 1222 build step 2).
+##   * `framed_refusal()` judges one already framed section 4 owner block against the FieldPolicy
+##     store's own saved column predicate and returns a `SaveHeader.Refusal`. It constructs no
+##     live FieldPolicy, Farming, Forage or Directory owner, captures nothing and restores nothing.
+##   * `capture_into(store, record)` copies the live store's twenty columns through
+##     `FieldPolicy.copy_columns_into()` and projects them into the record's typed buckets in
+##     ordinal order -- the exact inverse of the projection below -- then judges the written
+##     record with `framed_refusal()`, so a capture can never emit an image `apply()` would
+##     refuse. A refused capture leaves the record's contents unspecified; the caller discards it.
+##   * `apply(record, store)` runs `framed_refusal()` FIRST, then projects the record and calls
+##     `FieldPolicy.restore_columns()`, which re-runs the same predicate and writes nothing on
+##     refusal. A false maps to a Refusal carrying the store's exact `last_column_refusal()` code.
+## None of the three touches a clock, barrier, signal, callback, filesystem, JSON text,
+## reflection API or per-row object; the caller owns barrier and restore-order discipline.
 ##
-## GATE ORDER:
+## GATE ORDER (`framed_refusal()`, and the preflight `capture_into()`/`apply()` share):
 ##   1. a null record                   -> SAVE_COMPONENT_SHAPE
 ##   2. an owner index that is not 3    -> SAVE_COMPONENT_OWNER
-##   3. `Schema.schema_refusal()`       -> forwarded UNCHANGED, both code and detail
-##   4. this owner's compiled metadata and the pinned FieldPolicy source constants ->
+##   3. a null store (capture/apply only) -> SAVE_COMPONENT_NULL_STORE
+##   4. `Schema.schema_refusal()`       -> forwarded UNCHANGED, both code and detail
+##   5. this owner's compiled metadata and the pinned FieldPolicy source constants ->
 ##      SAVE_COMPONENT_METADATA, with a detail beginning `FieldPolicy owner3 metadata:`
-##   5. `Section.owner_shape_refusal()` -> forwarded UNCHANGED
-##   6. one cold `FieldPolicy.Columns` whose TWENTY canonical typed accessors are all assigned
+##   6. `Section.owner_shape_refusal()` -> forwarded UNCHANGED
+##   7. one cold `FieldPolicy.Columns` whose TWENTY canonical typed accessors are all assigned
 ##      explicitly, in declared ordinal order
-##   7. `FieldPolicy.columns_refusal()` -> the EXACT unwrapped column code, for example
+##   8. `FieldPolicy.columns_refusal()` -> the EXACT unwrapped column code, for example
 ##      COLUMN_OPEN_COUNTS, in a detail naming owner 3 and carrying no row identity.
 ## Success carries an empty code and an empty detail.
 ##
 ## LOCAL ACCEPTANCE IS NOT PUBLICATION. An accepted result certifies owner-3 local column domains
 ## only. Same-file Directory and Forage zone identity, unique policy-zone ownership, FarmPlot row
 ## lifetime and enrolment joins, and loaded-world consistency remain saved-bindings obligations,
-## as does installing anything live. FieldPolicy bulk capture and apply do not exist.
+## as does a full save-file round trip: bulk capture/apply are the two entry points above, and the
+## other seventeen owners remain elsewhere.
 ##
 ## MEMORY, CONDITIONALLY. The projection SHARES the caller's packed buffers by assignment: no
 ## `duplicate()` runs here. The contract's conservative figure is 90112 logical packed bytes --
@@ -50,6 +62,8 @@ const OWNER_FIELD_COUNT: int = 20
 const METADATA_DETAIL_PREFIX: String = "FieldPolicy owner3 metadata:"
 ## Gate 7's detail prefix. It names the owner and the code, and never a row.
 const COLUMN_DETAIL_PREFIX: String = "FieldPolicy owner 3"
+## A capture or apply called without a live store. Bridge-local: no column code applies.
+const REFUSE_NULL_STORE: StringName = &"SAVE_COMPONENT_NULL_STORE"
 
 ## The canonical owner-local field declarations, in registry ordinal order.
 const FIELD_KEYS: Array[StringName] = [
@@ -156,6 +170,93 @@ static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
 		return _refuse(code, "%s refuses this image with column code %s"
 			% [COLUMN_DETAIL_PREFIX, String(code)])
 	return _accept()
+
+
+static func capture_into(store: FieldPolicy, record: Section.FramedOwner) -> SaveHeader.Refusal:
+	"""Capture the live store's twenty columns into one owner 3 record, then judge the result.
+
+	Gates: a null record, a wrong owner, a null store, the schema and metadata guards, then the
+	store's own `copy_columns_into()` (its column code is forwarded unchanged), then a typed
+	setter refusal (SAVE_COMPONENT_SHAPE), and last `framed_refusal()` over what was written.
+	"""
+	var target: SaveHeader.Refusal = _target_refusal(record, store)
+	if not target.is_ok():
+		return target
+	var columns: FieldPolicy.Columns = FieldPolicy.Columns.new()
+	if not store.copy_columns_into(columns):
+		return _refuse(store.last_column_refusal(), "%s capture refused with %s"
+			% [COLUMN_DETAIL_PREFIX, String(store.last_column_refusal())])
+	if not (_write_field_rows(record, columns) and _write_plot_ledger(record, columns)):
+		return _refuse(Section.REFUSE_SHAPE,
+			"FieldPolicy owner %d capture could not write a column" % OWNER_INDEX)
+	return framed_refusal(record)
+
+
+static func apply(record: Section.FramedOwner, store: FieldPolicy) -> SaveHeader.Refusal:
+	"""Validate one owner 3 record, then install it into `store`. Refusal writes nothing.
+
+	`framed_refusal()` runs first and its refusal is returned unchanged. The projection shares the
+	record's buffers by assignment; `restore_columns()` takes its own private copies.
+	"""
+	var framed: SaveHeader.Refusal = framed_refusal(record)
+	if not framed.is_ok():
+		return framed
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no FieldPolicy store was supplied for owner %d"
+			% OWNER_INDEX)
+	var columns: FieldPolicy.Columns = FieldPolicy.Columns.new()
+	_project_field_rows(record, columns)
+	_project_plot_ledger(record, columns)
+	if not store.restore_columns(columns):
+		return _refuse(store.last_column_refusal(), "FieldPolicy owner %d restore refused with %s"
+			% [OWNER_INDEX, String(store.last_column_refusal())])
+	return _accept()
+
+
+static func _target_refusal(record: Section.FramedOwner, store: FieldPolicy) -> SaveHeader.Refusal:
+	"""Capture's preflight: record, owner index, store, then the schema and metadata guards."""
+	if record == null:
+		return _refuse(Section.REFUSE_SHAPE,
+			"no framed owner was supplied for owner %d ('%s')" % [OWNER_INDEX, OWNER_KEY])
+	if record.owner != OWNER_INDEX:
+		return _refuse(Section.REFUSE_OWNER,
+			"owner %d was supplied where owner %d ('%s') is required"
+				% [record.owner, OWNER_INDEX, OWNER_KEY])
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no FieldPolicy store was supplied for owner %d"
+			% OWNER_INDEX)
+	var schema: SaveHeader.Refusal = Schema.schema_refusal()
+	if not schema.is_ok():
+		return schema
+	return _metadata_refusal()
+
+
+static func _write_field_rows(record: Section.FramedOwner, columns: FieldPolicy.Columns) -> bool:
+	"""Write ordinals 0..16 into the record. True only when all seventeen setters accept."""
+	return record.set_u8(FIELD_PRESENT, columns.field_present) \
+		and record.set_i32(FIELD_ZONE_SLOT, columns.zone_slot) \
+		and record.set_i32(FIELD_ZONE_GENERATION, columns.zone_generation) \
+		and record.set_i32(FIELD_ROTATION_IDS, columns.rotation_ids) \
+		and record.set_i32(FIELD_ROTATION_CURSOR, columns.rotation_cursor) \
+		and record.set_u8(FIELD_AUTO_ROTATION, columns.auto_rotation) \
+		and record.set_u8(FIELD_SEED_RESERVE, columns.seed_reserve) \
+		and record.set_i32(FIELD_CYCLE_ORDINAL, columns.cycle_ordinal) \
+		and record.set_i32(FIELD_PARTICIPANTS, columns.participants) \
+		and record.set_i32(FIELD_RESOLVED, columns.resolved) \
+		and record.set_i32(FIELD_WITHDRAWN, columns.withdrawn) \
+		and record.set_i32(FIELD_COMPLETED_CYCLES, columns.completed_cycles) \
+		and record.set_i32(FIELD_CANCELLED_CYCLES, columns.cancelled_cycles) \
+		and record.set_i32(FIELD_REQUESTED_CROP, columns.requested_crop) \
+		and record.set_u8(FIELD_CYCLE_STATE, columns.cycle_state) \
+		and record.set_u8(FIELD_CLOSE_REASON, columns.close_reason) \
+		and record.set_u8(FIELD_REQUEST_STATE, columns.request_state)
+
+
+static func _write_plot_ledger(record: Section.FramedOwner, columns: FieldPolicy.Columns) -> bool:
+	"""Write ordinals 17..19 into the record. True only when all three setters accept."""
+	return record.set_i32(FIELD_PLOT_FIELD_SLOT, columns.plot_field_slot) \
+		and record.set_i32(FIELD_PLOT_CYCLE, columns.plot_cycle) \
+		and record.set_u8(FIELD_PLOT_OUTCOME, columns.plot_outcome)
 
 
 static func _metadata_refusal() -> SaveHeader.Refusal:

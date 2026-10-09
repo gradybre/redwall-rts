@@ -9,6 +9,7 @@ const Placements := preload("res://scripts/core/underground_connector_placements
 const ConnectorCatalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
 const Routes := preload("res://scripts/core/underground_routes.gd")
+const Tread := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/tread_geometry.gd")
 const Connectors := preload("res://scripts/core/room_connectors.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const ENTRY_FIXED_BYTES: int = 4096
@@ -20,6 +21,7 @@ const REFUSE_ENTRY_CUTS: StringName = &"ENTRY_EXACT_CUT_SET_REQUIRED"
 const REFUSE_ENTRY_BEARING: StringName = &"ENTRY_NATURAL_BEARING_REMOVED"
 const REFUSE_ENTRY_ANCHOR: StringName = &"ENTRY_ACTUAL_SURFACE_ANCHOR"
 const REFUSE_ENTRY_CONTACT: StringName = &"ENTRY_EXISTING_SURFACE_CONTACT"
+const ROW_BUDGET: int = -3 # ADR1229: _entry_surface_contact_row ran out of the shared cold check budget.
 const REFUSE_ENTRY_COLD: StringName = &"ENTRY_ORIGINAL_COLD_SCOPE"
 const REFUSE_TIMBER: StringName = &"ENTRY_INSTALLED_PRISM_REQUIRED"
 const REFUSE_TIMBER_CUT: StringName = &"ENTRY_INSTALLED_PAID_VOID_REQUIRED"
@@ -113,6 +115,11 @@ class AdmissionAuthority extends Placements.Authority:
 		var actual: RefCounted = host.get_ref() if host != null else null
 		if actual != null: actual._discard_timber(placement, project, cold)
 
+	func restoration_refusal(cold: int) -> StringName:
+		"""ADR 1228: judge a load's staged Placement image against the restored Space."""
+		var actual: RefCounted = host.get_ref() if host != null else null
+		return actual._restoration_refusal(cold) if actual != null else REFUSE_ENTRY_COLD
+
 var _entry_frontier: Frontier = null
 var _entry_placements: Placements = null
 var _entry_authority: AdmissionAuthority = null
@@ -140,7 +147,7 @@ var _timber_token: int = 0
 
 func bind_entry(frontier: Frontier, placements: Placements) -> StringName:
 	"""Share exact source/owner objects once; all variable confirmation buffers use the existing World lease."""
-	if _entry_frontier != null or _entry_busy or _room_token != 0 or _actual_orders() == null \
+	if _entry_frontier != null or _entry_authority != null or _entry_checks < 0 or _entry_busy or _room_token != 0 or _actual_orders() == null \
 			or frontier == null or placements == null or _budget == null or not _budget.is_quiescent():
 		return REFUSE_ENTRY_SOURCE
 	if not frontier.binding_matches(placements._catalog, placements._assemblies, placements._recipes, placements._profiles) \
@@ -568,9 +575,9 @@ func _entry_surface_contacts_refusal(space_token: int) -> StringName:
 func _entry_surface_contact(point: Vector3i, role: int, space_token: int) -> StringName:
 	"""A current full endpoint and actual source section are mandatory; source coordinates grant no permission."""
 	var locations: Locations = _entry_placements._locations
-	if not _entry_spend(256 + 16 * locations._capacity + 4 * _entry_placements._space._source_capacity):
-		return REFUSE_MASK_BUDGET
+	if not _entry_spend(256 + 4 * _entry_placements._space._source_capacity): return REFUSE_MASK_BUDGET
 	var row: int = _entry_surface_contact_row(point, role)
+	if row == ROW_BUDGET: return REFUSE_MASK_BUDGET
 	if row < 0: return REFUSE_ENTRY_CONTACT
 	var ref: Vector2i = Vector2i(row, locations._get32(locations._live, Locations.GENERATION, row))
 	var code: StringName = locations.read_location_into(ref, _entry_contact)
@@ -586,11 +593,16 @@ func _entry_surface_contact(point: Vector3i, role: int, space_token: int) -> Str
 
 
 func _entry_surface_contact_row(point: Vector3i, role: int) -> int:
-	"""Scan the exact source anchor namespace; a different full surface section cannot supply the immutable selector."""
+	"""Scan the exact source anchor namespace; a different full surface section cannot supply the immutable selector.
+	ADR1229: one check per slot, and the row's sixteen field checks per present row (as ADR1227 charges Contacts'
+	Region scans), so the cost follows the live endpoints, not the namespace capacity; ROW_BUDGET when exhausted."""
 	var locations: Locations = _entry_placements._locations
+	if not _entry_spend(locations._capacity): return ROW_BUDGET
 	var found: int = -1
 	for row: int in locations._capacity:
-		if locations._live.present[row] != 1 or locations._ref_at(locations._live, Locations.ROOM_SLOT, row) != NULL_REF \
+		if locations._live.present[row] != 1: continue
+		if not _entry_spend(16): return ROW_BUDGET
+		if locations._ref_at(locations._live, Locations.ROOM_SLOT, row) != NULL_REF \
 				or locations._ref_at(locations._live, Locations.SECTION_SLOT, row) != _entry_anchor.section \
 				or locations._get32(locations._live, Locations.LEVEL, row) != 0 \
 				or locations._get32(locations._live, Locations.ROLE, row) != role \
@@ -607,8 +619,10 @@ func _entry_retained_box(bounds: PackedInt32Array, natural: bool) -> StringName:
 	"""Actual sparse rows protect furniture, claims and removed matter; metadata alone grants no clearance."""
 	var owner: Owner = _entry_placements._space
 	for row: int in owner._r_present.size():
+		if owner._r_present[row] == 0: continue
+		# The budget bounds live fragmentation; empty capacity slots cost nothing (scales with a real Session).
 		if not _entry_spend(): return REFUSE_MASK_BUDGET
-		if owner._r_present[row] == 0 or owner._r_role[row] == Space.FLOOR_DATUM: continue
+		if owner._r_role[row] == Space.FLOOR_DATUM: continue
 		if natural and (owner._r_role[row] == Space.DRY_SOLID or _entry_natural_support_row(owner, row)): continue
 		if not natural and (owner._r_role[row] == Space.SUPPORTED_VOID): continue
 		if bounds[0] < owner._r_hi_x[row] and owner._r_lo_x[row] < bounds[3] \
@@ -680,6 +694,27 @@ func _authority_admission(placement: Vector2i, request: Placements.Request, toke
 			or request.corridor != _entry_candidate.ref or request.section != _entry_section:
 		return REFUSE_ENTRY_COLD
 	return &""
+
+
+func _restoration_refusal(_cold_token: int) -> StringName:
+	"""ADR 1228: during a load, after Placements' own audit has proved every staged Room, section,
+	anchor and Project against the restored owners, prove the staged frontier pin: unpinned (no
+	admission yet) or exactly this composition's bound frontier source. The installed parts'
+	geometry is the restored Space's own image, read back by the next installation's proofs.
+	Only at quiescence, with no entry or timber scope open."""
+	if _entry_busy or _timber_token != 0 or _entry_placements == null or _entry_frontier == null:
+		return REFUSE_ENTRY_COLD
+	return &"" if _restored_frontier_pinned(_entry_placements._stage) else REFUSE_ENTRY_SOURCE
+
+
+func _restored_frontier_pinned(bank: Placements.Bank) -> bool:
+	"""The staged frontier tuple is unpinned (no admission yet) or exactly this bound frontier source's."""
+	var revision: int = bank.header[Placements.H_FRONTIER_REV]
+	for index: int in 32:
+		var digest: int = bank.digests[96 + index]
+		if (revision == 0 and digest != 0) or (revision != 0 and digest != _entry_frontier._digests[index]):
+			return false
+	return revision == 0 or revision == _entry_frontier._header[0]
 
 
 func _refresh_entry_locations(placement: Vector2i, token: int, cold_token: int) -> StringName:
@@ -1551,7 +1586,65 @@ func _timber_profile_envelope(endpoint: int) -> StringName:
 	if profile == -2: return REFUSE_MASK_BUDGET
 	if profile < 0 or profile >= profiles._live.header[1] \
 			or profiles._live.flags[profile] != Profiles.CERT_REQUIRED: return REFUSE_TIMBER_CONTACT
-	return _timber_profile_bounds(profiles, profile)
+	if _stair_stop(profiles, profile): return _stair_stop_bounds(profiles, profile)
+	var code: StringName = _timber_profile_bounds(profiles, profile)
+	if code != &"" or _entry_contact.role != Locations.ROLE_WORK: return code
+	# ADR1193: a WORK contact is also the arrival/departure point of its explicit travel profile, so its
+	# declared footing and air cover that stance and body too. Real deck support and free air still decide.
+	var travel: int = _entry_frontier._travel_profile[endpoint]
+	if travel == profile: return &""
+	if travel < 0 or travel >= profiles._live.header[1] \
+			or profiles._live.flags[travel] != Profiles.CERT_REQUIRED: return REFUSE_TIMBER_CONTACT
+	return _timber_union_profile(profiles, travel)
+
+
+static func _stair_stop(profiles: Profiles, profile: int) -> bool:
+	"""ADR1229: a stop of content 10's source-proved stair and tread rows (steps, descent, ascent, half-turn, the tread
+	fitting tap). Their bounding boxes enclose whole motions over two decks or reach among the tread fixture's timber,
+	so they size no stop; each motion is proved per edge and per station against its installed fixture."""
+	return Routes.Stair.owns(profiles, profile) \
+		or (profile == Routes.Stair.Pins.CLAW_TREAD_TAP_ROW and Routes.Claw2.owns(profiles, profile))
+
+
+func _stair_stop_bounds(profiles: Profiles, profile: int) -> StringName:
+	"""ADR1229: the stop's footing is the claw READY stance of the tread fitting row (row 64's STANCE box: the tread
+	station's footing, 169 u ahead and 175 u behind the root), turned to face up the stair for an ascent stop; its own
+	air is that footing's column one unit high. The motions leaving it carry their own proofs."""
+	var tap: int = Routes.Stair.Pins.CLAW_TREAD_TAP_ROW
+	var first: int = profiles._live.fields[Profiles.F_FIRST_BOX * profiles._profile_capacity + tap]
+	var count: int = profiles._live.fields[Profiles.F_BOX_COUNT * profiles._profile_capacity + tap]
+	var up: bool = profile == Routes.Stair.Pins.CLAW_ASCENT_ROW
+	var point: Vector3i = _entry_contact.point
+	for box: int in range(first, first + count):
+		if not _entry_spend(24): return REFUSE_MASK_BUDGET
+		if profiles._live.boxes[6 * profiles._box_capacity + box] != Profiles.STANCE_SUPPORT: continue
+		for axis: int in 3:
+			var low: int = profiles._live.boxes[axis * profiles._box_capacity + box]
+			var high: int = profiles._live.boxes[(axis + 3) * profiles._box_capacity + box]
+			var turned: bool = up and axis != 1
+			_entry_contact.support[axis] = int(point[axis]) + (-high if turned else low)
+			_entry_contact.support[axis + 3] = int(point[axis]) + (-low if turned else high)
+		for axis: int in 6: _entry_contact.envelope[axis] = _entry_contact.support[axis]
+		_entry_contact.envelope[1] = point.y
+		_entry_contact.envelope[4] = point.y + 1
+		return &"" if Locations.support_covers_root(point, _entry_contact.support) else REFUSE_TIMBER_CONTACT
+	return REFUSE_TIMBER_CONTACT
+
+
+func _timber_union_profile(profiles: Profiles, profile: int) -> StringName:
+	"""Enlarge, never replace, the already derived footing and air with one further authored profile."""
+	var first: int = profiles._live.fields[Profiles.F_FIRST_BOX * profiles._profile_capacity + profile]
+	var end: int = first + profiles._live.fields[Profiles.F_BOX_COUNT * profiles._profile_capacity + profile]
+	var point: Vector3i = _entry_contact.point
+	for box: int in range(first, end):
+		if not _entry_spend(24): return REFUSE_MASK_BUDGET
+		var role: int = profiles._live.boxes[6 * profiles._box_capacity + box]
+		var code: StringName = &""
+		if role == Profiles.STANCE_SUPPORT: code = _timber_extend_support(profiles, box, point, false)
+		elif role in [Profiles.BODY_HELD_LOAD, Profiles.TURN_RECOVERY, Profiles.WORK_APPROACH]:
+			code = _timber_extend_envelope(profiles, box, point)
+		if code != &"": return code
+	return &""
 
 
 func _timber_profile_bounds(profiles: Profiles, profile: int) -> StringName:
@@ -1685,12 +1778,20 @@ func _timber_refresh_locations(token: int) -> StringName:
 
 
 func _timber_new_locations(token: int) -> StringName:
-	"""Only immutable installed selectors for the just-paid group receive complete physically qualified records."""
+	"""Only immutable installed selectors for the just-paid group receive complete physically qualified records.
+	ADR1229: a tread's commit also re-creates the stops of the tread above that its pending bearer retracted."""
 	for endpoint: int in _entry_frontier._header[8 + Frontier.ENDPOINT]:
 		if not _entry_spend(32): return REFUSE_MASK_BUDGET
 		if _entry_frontier._field(Frontier.ENDPOINT, endpoint, 0) != Frontier.INSTALLED_CONTACT \
-				or _entry_frontier._field(Frontier.ENDPOINT, endpoint, 1) != _timber_assembly: continue
+				or not _timber_selector_due(_entry_frontier._field(Frontier.ENDPOINT, endpoint, 1)): continue
+		var prior: int = _timber_prior_contact(endpoint)
+		if prior < 0: return REFUSE_MASK_BUDGET
+		if prior > 0: continue
 		var code: StringName = _timber_landing_into(endpoint)
+		var live: int = _timber_live_contact() if code == &"" and \
+			_entry_frontier._field(Frontier.ENDPOINT, endpoint, 1) != _timber_assembly else 0
+		if live < 0: return REFUSE_MASK_BUDGET
+		if live > 0: continue
 		if code == &"": _entry_contact.section = _timber_datum_ref()
 		if code == &"" and _entry_contact.section == Vector2i(-3, 0): return REFUSE_MASK_BUDGET
 		if code != &"" or _entry_contact.section.x < 0: return REFUSE_TIMBER_CONTACT
@@ -1699,6 +1800,44 @@ func _timber_new_locations(token: int) -> StringName:
 		if code == &"": code = _timber_scope_leaf()
 		if code != &"": return code
 	return &""
+
+
+func _timber_selector_due(assembly: int) -> bool:
+	"""The committing group's own selectors, and (ADR1229) a tread's commit also the tread above's."""
+	return assembly == _timber_assembly or (assembly == _timber_assembly - 1 and Tread.is_tread(_timber_assembly))
+
+
+func _timber_live_contact() -> int:
+	"""ADR1229: 1 when a live Location already holds `_entry_contact`'s point and role in its Room, 0 when none does
+	(a retracted stop), -1 when the check budget is spent. One check per slot, sixteen per live row."""
+	var locations: Locations = _entry_placements._locations
+	if not _entry_spend(locations._capacity): return -1
+	for row: int in locations._capacity:
+		if locations._live.present[row] != 1: continue
+		if not _entry_spend(16): return -1
+		if locations._get32(locations._live, Locations.ROLE, row) == _entry_contact.role \
+				and locations._ref_at(locations._live, Locations.ROOM_SLOT, row) == _entry_contact.room \
+				and Vector3i(locations._get32(locations._live, Locations.X, row), locations._get32(locations._live,
+				Locations.Y, row), locations._get32(locations._live, Locations.Z, row)) == _entry_contact.point:
+			return 1
+	return 0
+
+
+func _timber_prior_contact(endpoint: int) -> int:
+	"""ADR1202 split landing: 1 when an earlier selector of this group names the same datum, role and point.
+	Such selectors are one physical Location on several travel profiles; the first one sizes and creates it.
+	-1 when the check budget is spent, else 0."""
+	var assembly: int = _entry_frontier._field(Frontier.ENDPOINT, endpoint, 1)
+	for prior: int in endpoint:
+		if not _entry_spend(8): return -1
+		if _entry_frontier._field(Frontier.ENDPOINT, prior, 0) != Frontier.INSTALLED_CONTACT \
+				or _entry_frontier._field(Frontier.ENDPOINT, prior, 1) != assembly: continue
+		var same: bool = true
+		for field: int in range(2, 7):
+			same = same and _entry_frontier._field(Frontier.ENDPOINT, prior, field) \
+				== _entry_frontier._field(Frontier.ENDPOINT, endpoint, field)
+		if same: return 1
+	return 0
 
 
 func _stage_timber_routes(placement: Vector2i, project: Vector2i, assembly: int, token: int, cold: int) -> StringName:
@@ -1729,6 +1868,7 @@ func _timber_profile_foot(proof: TimberClearance, endpoint: int) -> StringName:
 	if profile == -2: return REFUSE_MASK_BUDGET
 	if profile < 0: return REFUSE_TIMBER_CONTACT
 	var profiles: Profiles = _entry_placements._profiles
+	if _stair_stop(profiles, profile): return &"" # ADR1229: the stop's footing is the READY stance (above).
 	var first: int = profiles._live.fields[Profiles.F_FIRST_BOX * profiles._profile_capacity + profile]
 	var end: int = first + profiles._live.fields[Profiles.F_BOX_COUNT * profiles._profile_capacity + profile]
 	for box: int in range(first, end):
@@ -1746,3 +1886,78 @@ func _timber_profile_foot(proof: TimberClearance, endpoint: int) -> StringName:
 			if not proof.subtract_cover(): return REFUSE_MASK_BUDGET
 		if proof.count != 0: return REFUSE_TIMBER_CONTACT
 	return &""
+
+
+static func retirement_refusal_in(actual: RefCounted, original: RefCounted,
+		stopped_constructor: bool = false) -> StringName:
+	"""Inspect original owned references only; the kernel proves private stopped-prefix authority separately."""
+	if actual == null or original == null or original.room_bindings != actual or actual._budget == null \
+			or actual._budget != original.budget or actual._entry_checks < 0:
+		return REFUSE_ENTRY_SOURCE
+	if actual._reading or actual._room_token != 0 or actual._room_request != null or actual._room_pin != null \
+			or actual._room_approach != null or actual._entry_busy or actual._entry_token != 0 \
+			or actual._entry_space_token != 0 or actual._entry_request != null or actual._entry_pin != null \
+			or actual._placement_request != null or actual._entry_candidate != null or actual._timber_token != 0:
+		return REFUSE_ENTRY_COLD
+	if not _retirement_weak_in(actual._provider, original.world_bindings) \
+			or not _retirement_weak_in(actual._sites, original.sites) \
+			or not _retirement_weak_in(actual._orders, original.rooms) \
+			or not _retirement_weak_in(actual._levels, original.levels) \
+			or not _retirement_weak_in(actual._room_routes, original.world_routes):
+		return REFUSE_ENTRY_SOURCE
+	return _retirement_entry_pins_in(actual, original, stopped_constructor)
+
+
+static func _retirement_entry_pins_in(actual: RefCounted, original: RefCounted,
+		stopped_constructor: bool) -> StringName:
+	"""An unbound initial subtype or exact pre-authority prefix never becomes arbitrary incomplete permission."""
+	if actual._entry_frontier == null:
+		if actual._entry_placements != null or actual._entry_authority != null:
+			return REFUSE_ENTRY_SOURCE
+		return &"" if original.placements == null or (stopped_constructor and original.placements._authority == null) \
+			else REFUSE_ENTRY_SOURCE
+	if original.placements == null or actual._entry_placements != original.placements \
+			or actual._entry_authority == null or not _retirement_weak_in(actual._entry_authority.host, actual) \
+			or not _retirement_weak_in(original.placements._authority, actual._entry_authority):
+		return REFUSE_ENTRY_SOURCE
+	if actual._entry_frontier._catalog != original.placements._catalog \
+			or actual._entry_frontier._assemblies != original.placements._assemblies \
+			or actual._entry_frontier._recipes != original.placements._recipes \
+			or actual._entry_frontier._profiles != original.profiles or actual._entry_frontier._busy:
+		return REFUSE_ENTRY_SOURCE
+	return &""
+
+
+static func _retirement_weak_in(binding: WeakRef, expected: RefCounted) -> bool:
+	"""An expired once-bound reference is never treated as an optional null original."""
+	return binding == null if expected == null else binding != null and binding.get_ref() == expected
+
+
+static func world_retirement_release_preflighted_in(actual: RefCounted, original: RefCounted,
+		persistent_id: int, stopped_constructor: bool = false) -> StringName:
+	"""After all kernel preflights, release this binding's own borrows and buffers without a World callback."""
+	var code: StringName = retirement_refusal_in(actual, original, stopped_constructor)
+	if code != &"": return code
+	code = Buildings.whole_world_retirement_refusal_in(original.directory, original.world_ref, persistent_id, true)
+	if code != &"": return code
+	if original.world == null or original.world._published: return REFUSE_ENTRY_SOURCE
+	actual._entry_checks = -1
+	actual._entry_frontier = null
+	actual._entry_placements = null
+	actual._budget = null
+	# Keep the inert weak AdmissionAuthority identity until Placement releases its original weak link.
+	_release_retired_buffers_in(actual)
+	return &""
+
+
+static func _release_retired_buffers_in(actual: RefCounted) -> void:
+	"""The old handle retains no variable entry or inherited Room proof storage."""
+	actual._entry_anchor.envelope.clear()
+	actual._entry_anchor.support.clear()
+	actual._entry_contact.envelope.clear()
+	actual._entry_contact.support.clear()
+	actual._entry_row.clear()
+	actual._entry_bearing.clear()
+	actual._cube.clear()
+	actual._clip.clear()
+	actual._region.box.clear()

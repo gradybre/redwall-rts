@@ -2,7 +2,7 @@ extends "res://test/framework/test_case.gd"
 ## Actual source artifact + real Resident/Job/Work/Gear identity. No World, paid target, support or WIP is fabricated.
 
 const Catalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
-const Pins := preload("res://data/underground/mole-worker/qualified-step-v4/catalog_source.gd")
+const Pins := preload("res://data/underground/mole-worker/qualified-stone-v7/catalog_source.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Fixture := preload("res://test/test_underground_profiles.gd")
 const Content := preload("res://demo/cast/underground_actor_content.gd")
@@ -57,8 +57,8 @@ func after_each() -> void:
 func _empty_catalog() -> Profiles:
 	"""Exactly two minimal banks; the stated native/control reservation is not a measured allocation result."""
 	var profiles: Profiles = Profiles.new()
-	assert_equal(profiles.configure(29, 271, 1, Catalog.PAIRED_BANK_BYTES + Catalog.CONTROL_RESERVE), &"", "complete peak admission")
-	assert_equal(profiles.packed_memory_bytes(), 20988, "paired source-derived payload")
+	assert_equal(profiles.configure(Catalog.PROFILE_COUNT, Catalog.BOX_COUNT, Catalog.SOURCE_COUNT, Catalog.PAIRED_BANK_BYTES + Catalog.CONTROL_RESERVE), &"", "complete peak admission")
+	assert_equal(profiles.packed_memory_bytes(), Catalog.PAIRED_BANK_BYTES, "paired source-derived payload")
 	return profiles
 
 
@@ -78,7 +78,7 @@ func test_actual_source_rows_and_headings_keep_every_contact_distinct() -> void:
 		assert_true(_fixture._transforms.place(_fixture._worker, 4096, 512, 4096, yaw), "actual heading")
 		for role: int in range(2, 6):
 			var profile: int = Catalog.profile_id(role, yaw)
-			assert_equal(_fixture._profiles.query_work_profile_into(_fixture._worker, _job, profile, 1, 3,
+			assert_equal(_fixture._profiles.query_work_profile_into(_fixture._worker, _job, profile, 1, Catalog.CONTENT_REVISION,
 				0, -1, _tool, out), &"", "exact qualified source contact")
 			assert_equal(out.profile_id, profile, "no first-match contact substitution")
 			assert_equal(out.yaw, yaw, "no cardinal rounding")
@@ -96,12 +96,12 @@ func test_all_yaw_ground_profile_preserves_full_tool_and_ground_stance() -> void
 	assert_equal(out.profile_id, 1, "unique exact ground source")
 	assert_equal(out.yaw, 12345, "actual yaw retained")
 	var support: Profiles.Box = Profiles.Box.new()
-	assert_equal(_fixture._profiles.box_into(1, 1, 3, 3, support), &"", "full stance row")
+	assert_equal(_fixture._profiles.box_into(1, 1, Catalog.CONTENT_REVISION, 3, support), &"", "full stance row")
 	assert_equal(support.role, Profiles.STANCE_SUPPORT, "source support role")
 	assert_equal(support.high.x - support.low.x, 812, "wider than a512u tread")
 	assert_equal(support.high.z - support.low.z, 812, "no implicit varying-height foot proof")
 	assert_equal(Catalog.profile_id(2, 12345), -1, "intermediate productive yaw unauthored")
-	assert_equal(_fixture._profiles.query_work_profile_into(_fixture._worker, _job, 13, 1, 3, 0, -1, _tool, out),
+	assert_equal(_fixture._profiles.query_work_profile_into(_fixture._worker, _job, 13, 1, Catalog.CONTENT_REVISION, 0, -1, _tool, out),
 		&"PROFILE_VARIANT_UNAUTHORED", "real pose cannot borrow cardinal contact")
 
 
@@ -115,9 +115,9 @@ func test_directed_approach_mapping_preserves_body_heading_and_explicit_policy()
 			var profile: int = Catalog.approach_profile_id(yaw, backward)
 			assert_equal(profile, (6 if backward else 2) + heading, "explicit direction has its own row")
 			assert_equal(_fixture._profiles.query_travel_profile_into(_fixture._worker, _job,
-				profile, 1, 3, 0, -1, _tool, selected), &"", "actual actor/tool/Job selection")
+				profile, 1, Catalog.CONTENT_REVISION, 0, -1, _tool, selected), &"", "actual actor/tool/Job selection")
 			assert_equal(selected.yaw, yaw, "backward path does not reverse body heading")
-			assert_equal(_fixture._profiles.selection_policy_of(profile, 1, 3), 2 if backward else 1, "versioned policy")
+			assert_equal(_fixture._profiles.selection_policy_of(profile, 1, Catalog.CONTENT_REVISION), 2 if backward else 1, "versioned policy")
 	for yaw: int in [-1, 1, 12345, 65536]:
 		assert_equal(Catalog.approach_profile_id(yaw), -1, "no implicit heading rounding")
 		assert_equal(Catalog.approach_profile_id(yaw, true), -1, "invalid backward heading refuses")
@@ -131,8 +131,8 @@ func test_canonical_ground_and_finite_step_are_explicit_current_source_selection
 	for profile: int in [Catalog.short_step_profile_id(49152), Catalog.short_step_profile_id(49152, true),
 			Catalog.canonical_ground_profile_id()]:
 		assert_equal(_fixture._profiles.query_travel_profile_into(_fixture._worker, _job,
-			profile, 1, 3, 0, -1, _tool, selected), &"", "real current tool/cargo/Job selection")
-		assert_equal(Step.profile_refusal(_fixture._profiles, profile, 1, 3), &"", "actual immutable protocol-six descriptor")
+			profile, 1, Catalog.CONTENT_REVISION, 0, -1, _tool, selected), &"", "real current tool/cargo/Job selection")
+		assert_equal(Step.profile_refusal(_fixture._profiles, profile, 1, Catalog.CONTENT_REVISION), &"", "actual immutable protocol-six descriptor")
 		assert_equal(selected.yaw, 49152, "backward path leaves body orientation unchanged")
 	assert_equal(_fixture._profiles.query_into(_fixture._worker, NULL_REF, Profiles.MODE_WALK, 0, -1, _tool, selected),
 		&"", "ordinary policy remains available explicitly")
@@ -165,14 +165,14 @@ func test_tenth_cached_source_and_old_publication_remain_distinct() -> void:
 func test_stale_claim_or_job_preserves_previous_selected_source() -> void:
 	"""Source geometry does not restore a released economic claim or an old assignment."""
 	var out: Profiles.Selection = Profiles.Selection.new()
-	assert_equal(_fixture._profiles.query_work_profile_into(_fixture._worker, _job, 13, 1, 3, 0, -1, _tool, out), &"", "real source selected")
+	assert_equal(_fixture._profiles.query_work_profile_into(_fixture._worker, _job, 13, 1, Catalog.CONTENT_REVISION, 0, -1, _tool, out), &"", "real source selected")
 	assert_true(_fixture._work.release_tool_claim(_fixture._slot).ok, "actual claim release")
-	assert_equal(_fixture._profiles.query_work_profile_into(_fixture._worker, _job, 16, 1, 3, 0, -1, _tool, out),
+	assert_equal(_fixture._profiles.query_work_profile_into(_fixture._worker, _job, 16, 1, Catalog.CONTENT_REVISION, 0, -1, _tool, out),
 		&"PROFILE_TOOL_CLAIM", "no source flag recreates ownership")
 	assert_equal(out.profile_id, 13, "refused source output unchanged")
 	assert_true(_fixture._work.claim_tool_for_work(_fixture._slot, _tool).ok, "actual claim reacquired")
 	assert_true(_fixture._jobs.release_worker(_fixture._slot).ok, "actual assignment removed")
-	assert_equal(_fixture._profiles.query_work_profile_into(_fixture._worker, _job, 16, 1, 3, 0, -1, _tool, out),
+	assert_equal(_fixture._profiles.query_work_profile_into(_fixture._worker, _job, 16, 1, Catalog.CONTENT_REVISION, 0, -1, _tool, out),
 		&"PROFILE_JOB_STALE", "source is not labor permission")
 	assert_equal(out.profile_id, 13, "prior exact source remains intact")
 
@@ -193,17 +193,17 @@ func test_cold_descriptor_does_not_create_actual_worker_permission() -> void:
 	var cold: Profiles = _empty_catalog()
 	assert_equal(Catalog.load_into(cold, _content, _domain), &"", "unbound immutable source")
 	var descriptor: Profiles.Descriptor = Profiles.Descriptor.new()
-	assert_equal(cold.descriptor_into(16, 3, descriptor), &"", "authored INSTALL source")
+	assert_equal(cold.descriptor_into(16, Catalog.CONTENT_REVISION, descriptor), &"", "authored INSTALL source")
 	assert_equal(descriptor.contact_kind, Profiles.CONTACT_ANCHOR_AND_PATCH, "actual source patch")
 	assert_equal(descriptor.certificate_flags, 15, "four reviewed source gates")
-	assert_equal(cold.query_work_profile_into(_fixture._worker, _job, 16, 1, 3, 0, -1, _tool, Profiles.Selection.new()),
+	assert_equal(cold.query_work_profile_into(_fixture._worker, _job, 16, 1, Catalog.CONTENT_REVISION, 0, -1, _tool, Profiles.Selection.new()),
 		&"PROFILE_OWNER_UNBOUND", "no allocated World support or worker binding")
 
 
 func test_exact_wire_identity_cannot_be_replaced_by_same_actor_revision_with_larger_box() -> void:
 	"""A structurally valid synthetic alteration is refused by the source catalog's complete live wire hash."""
 	var pins: PackedInt64Array = PackedInt64Array()
-	pins.resize(87)
+	pins.resize(Catalog.PROFILE_COUNT * 3)
 	assert_equal(Catalog.pins_into(_fixture._profiles, pins), &"", "all exact authored tuples")
 	var before: PackedInt64Array = pins.duplicate()
 	var changed: Profiles = _changed_geometry()
@@ -215,14 +215,14 @@ func test_exact_wire_identity_cannot_be_replaced_by_same_actor_revision_with_lar
 func _changed_geometry() -> Profiles:
 	"""Only this negative fixture mutates source bytes; the real artifact and its digest remain untouched."""
 	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(Catalog.WIRE_PATH)
-	var first_box: int = 32 + 32 + 29 * 98
+	var first_box: int = 32 + 32 * Catalog.SOURCE_COUNT + Catalog.PROFILE_COUNT * 98
 	bytes.encode_s32(first_box + 12, bytes.decode_s32(first_box + 12) + 1)
 	var path: String = "user://mole-qualified-mutant-%d.bin" % get_instance_id()
 	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
 	file.store_buffer(bytes)
 	file.close()
 	var changed: Profiles = _empty_catalog()
-	assert_equal(changed.load_file(path, FileAccess.get_sha256(path), 3), &"", "explicit negative-fixture certificate")
+	assert_equal(changed.load_file(path, FileAccess.get_sha256(path), Catalog.CONTENT_REVISION), &"", "explicit negative-fixture certificate")
 	assert_equal(DirAccess.remove_absolute(ProjectSettings.globalize_path(path)), OK, "owned fixture deleted")
 	return changed
 
@@ -261,7 +261,7 @@ func test_driver_subset_pins_preserve_output_on_geometry_or_shape_refusal() -> v
 	for index: int in 18:
 		assert_equal(pins[index * 3], index if index < 2 else index + 11, "only exact legacy geometry roles")
 		assert_equal(pins[index * 3 + 1], 1, "unchanged source row revision")
-		assert_equal(pins[index * 3 + 2], 3, "current complete content image")
+		assert_equal(pins[index * 3 + 2], Catalog.CONTENT_REVISION, "current complete content image")
 	var before: PackedInt64Array = pins.duplicate()
 	assert_equal(Catalog.driver_pins_into(_changed_geometry(), pins), &"MOLE_CATALOG_GEOMETRY_DRIFT", "whole source still checked")
 	assert_equal(pins, before, "failed geometry emits no partial pin tuple")

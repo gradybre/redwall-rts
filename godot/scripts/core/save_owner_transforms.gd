@@ -2,11 +2,23 @@ extends RefCounted
 ## Owner 15 (`transforms`) framed-column validation bridge (TRANSFORMS-S4-VALIDATE-R01 v1,
 ## ADR 0173).
 ##
-## ONE PUBLIC ENTRY POINT. `framed_refusal()` judges one already framed section 4 owner block
-## against the Transform store's own column rules and returns a `SaveHeader.Refusal`. It never
-## constructs a Transforms -- that constructor binds a live EntityDirectory -- or any other
-## live owner, consults no Directory, captures nothing, applies nothing, and touches no clock,
-## barrier, signal, callback, filesystem, projection, reflection API or per-row object.
+## THREE PUBLIC ENTRY POINTS (ADR 1222 build step 2).
+##   * `framed_refusal()` judges one already framed section 4 owner block against the Transform
+##     store's own column rules and returns a `SaveHeader.Refusal`. It never constructs a
+##     Transforms -- that constructor binds a live EntityDirectory -- consults no Directory,
+##     captures nothing and applies nothing.
+##   * `capture_into(store, record)` copies the live store's nine columns through
+##     `Transforms.copy_columns_into()` and projects them into the record's i32 bucket in
+##     canonical stamp-first order -- the exact inverse of the projection below -- then judges the
+##     written record with `framed_refusal()`, so a capture can never emit an image apply would
+##     refuse. A refused capture leaves the record's contents unspecified; the caller discards it.
+##   * `apply(record, store)` runs `framed_refusal()` FIRST, then projects the record and calls
+##     `Transforms.restore_columns()`, which re-runs the same predicate, writes nothing on
+##     refusal and rebuilds `bound_count`. A false maps to a Refusal carrying the store's exact
+##     `last_column_refusal()` code. Saved binding IDs are carried exactly: their cross-owner
+##     identity agreement with the saved Directory is a later whole-world step, not this call's.
+## None of the three touches a clock, barrier, signal, callback, filesystem, JSON text,
+## reflection API or per-row object; the caller owns barrier and restore-order discipline.
 ##
 ## GATE ORDER, and what each gate owns:
 ##   1. a null record                   -> SAVE_COMPONENT_SHAPE
@@ -37,9 +49,10 @@ extends RefCounted
 ## WHAT AN ACCEPTED RESULT DOES NOT CERTIFY. TRANSFORMS-SAVED-IDENTITY separately owns the
 ## saved section 1 Directory cursor upper bound on positive stamps and same-file saved Directory
 ## identity; neither is checked here, and legitimate stale stamps must stay acceptable. Local
-## uniqueness is not a cross-world contamination detector. Full-file provenance, coordinator
-## invocation, bulk capture/apply and the `bound_count` rebuild remain incomplete. AN ALL-ZERO
-## FRAME IS A VALID EMPTY TRANSFORM IMAGE.
+## uniqueness is not a cross-world contamination detector. Full-file provenance and coordinator
+## invocation remain incomplete. Bulk capture/apply and the `bound_count` rebuild are the two
+## entry points above; the other owners remain elsewhere. AN ALL-ZERO FRAME IS A VALID EMPTY
+## TRANSFORM IMAGE.
 ##
 ## THE METADATA GUARD compares the compiled schema to pinned contract literals and to the owner's
 ## own capacity constant. That is not an owner-publication-table parity claim; the independent
@@ -84,6 +97,8 @@ const FIELD_PREV_Y_KEY: String = "_prev_y"
 const FIELD_PREV_Z_KEY: String = "_prev_z"
 const FIELD_PREV_YAW_KEY: String = "_prev_yaw"
 const ROW_ELEMENT_COUNT: int = 87552
+## A capture or apply called without a live store. Bridge-local: no column code applies.
+const REFUSE_NULL_STORE: StringName = &"SAVE_COMPONENT_NULL_STORE"
 
 
 static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
@@ -118,6 +133,78 @@ static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
 		return _refuse(code, "Transforms owner %d refuses this image with column code %s"
 			% [OWNER_INDEX, String(code)])
 	return _accept()
+
+
+static func capture_into(store: Transforms, record: Section.FramedOwner) -> SaveHeader.Refusal:
+	"""Capture the live store's nine columns into one owner 15 record, then judge the result.
+
+	Gates: a null record, a wrong owner, a null store, the schema and metadata guards, then the
+	store's own `copy_columns_into()` (its column code is forwarded), then a typed setter refusal
+	(SAVE_COMPONENT_SHAPE), and last `framed_refusal()` over what was written.
+	"""
+	var target: SaveHeader.Refusal = _target_refusal(record, store)
+	if not target.is_ok():
+		return target
+	var columns: Transforms.Columns = Transforms.Columns.new()
+	if not store.copy_columns_into(columns):
+		return _refuse(store.last_column_refusal(), "Transforms owner %d capture refused with %s"
+			% [OWNER_INDEX, String(store.last_column_refusal())])
+	if not (record.set_i32(FIELD_BOUND_PERSISTENT_ID, columns.bound_persistent_id)
+			and record.set_i32(FIELD_X, columns.x) and record.set_i32(FIELD_Y, columns.y)
+			and record.set_i32(FIELD_Z, columns.z) and record.set_i32(FIELD_YAW, columns.yaw)
+			and record.set_i32(FIELD_PREV_X, columns.prev_x)
+			and record.set_i32(FIELD_PREV_Y, columns.prev_y)
+			and record.set_i32(FIELD_PREV_Z, columns.prev_z)
+			and record.set_i32(FIELD_PREV_YAW, columns.prev_yaw)):
+		return _refuse(Section.REFUSE_SHAPE,
+			"Transforms owner %d capture could not write a column" % OWNER_INDEX)
+	return framed_refusal(record)
+
+
+static func apply(record: Section.FramedOwner, store: Transforms) -> SaveHeader.Refusal:
+	"""Validate one owner 15 record, then install it into `store`. Refusal writes nothing.
+
+	`framed_refusal()` runs first and its refusal is returned unchanged. The projection shares the
+	record's buffers by assignment; `restore_columns()` takes its own private copies.
+	"""
+	var framed: SaveHeader.Refusal = framed_refusal(record)
+	if not framed.is_ok():
+		return framed
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no Transforms store was supplied for owner %d"
+			% OWNER_INDEX)
+	var columns: Transforms.Columns = Transforms.Columns.new()
+	columns.bound_persistent_id = record.i32_column(FIELD_BOUND_PERSISTENT_ID)
+	columns.x = record.i32_column(FIELD_X)
+	columns.y = record.i32_column(FIELD_Y)
+	columns.z = record.i32_column(FIELD_Z)
+	columns.yaw = record.i32_column(FIELD_YAW)
+	columns.prev_x = record.i32_column(FIELD_PREV_X)
+	columns.prev_y = record.i32_column(FIELD_PREV_Y)
+	columns.prev_z = record.i32_column(FIELD_PREV_Z)
+	columns.prev_yaw = record.i32_column(FIELD_PREV_YAW)
+	if not store.restore_columns(columns):
+		return _refuse(store.last_column_refusal(), "Transforms owner %d restore refused with %s"
+			% [OWNER_INDEX, String(store.last_column_refusal())])
+	return _accept()
+
+
+static func _target_refusal(record: Section.FramedOwner, store: Transforms) -> SaveHeader.Refusal:
+	"""Capture's preflight: record, owner index, store, then the schema and metadata guards."""
+	if record == null:
+		return _refuse(Section.REFUSE_SHAPE,
+			"no framed owner was supplied for owner %d ('%s')" % [OWNER_INDEX, OWNER_KEY])
+	if record.owner != OWNER_INDEX:
+		return _refuse(Section.REFUSE_OWNER,
+			"owner %d was supplied where owner %d ('%s') is required"
+				% [record.owner, OWNER_INDEX, OWNER_KEY])
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no Transforms store was supplied for owner %d"
+			% OWNER_INDEX)
+	var schema: SaveHeader.Refusal = Schema.schema_refusal()
+	if not schema.is_ok():
+		return schema
+	return _metadata_refusal()
 
 
 static func _metadata_refusal() -> SaveHeader.Refusal:

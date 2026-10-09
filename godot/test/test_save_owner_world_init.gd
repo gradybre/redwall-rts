@@ -167,3 +167,74 @@ func test_actual_owner_readers_and_section1_diagnostics_are_preserved() -> void:
 	assert_equal(owner.section_1_detail(),detail,"no section1 detail write")
 	assert_equal(owner.section_1_is_published(),published,"no publication")
 	assert_equal(owner.section_1_published_seed(),seed_value,"no seed mutation")
+
+
+# --- ADR 1222 step 2: bulk capture and apply ------------------------------------------------------
+
+func _live_owner() -> WorldInit:
+	"""A freshly allocated store: REQ-SET-059 has no mutator, so this is its only reachable image."""
+	return WorldInit.new(null,null,null,null,null)
+
+
+func _image(owner: WorldInit) -> WorldInit.FaunaColumns:
+	"""The owner's nine reserved fauna columns through the bulk reader."""
+	var columns: WorldInit.FaunaColumns = WorldInit.FaunaColumns.new()
+	assert_true(owner.copy_fauna_columns_into(columns),"bulk copy succeeds")
+	return columns
+
+
+func test_capture_then_apply_into_a_fresh_store_is_exact_and_continues_identically() -> void:
+	"""The restored store holds the same nine columns, and answers the next reads the same way."""
+	var source: WorldInit = _live_owner()
+	var frame: Section.FramedOwner = Section.FramedOwner.new(17)
+	assert_true(Bridge.capture_into(source,frame).is_ok(),"capture succeeds")
+	var target: WorldInit = WorldInit.new(null,null,null,null,null)
+	assert_true(Bridge.apply(frame,target).is_ok(),"apply succeeds")
+	assert_true(_image(target).equals(_image(source)),"columns are byte-identical")
+	for store: WorldInit in [source,target]:
+		assert_true(store.fauna_is_canonically_empty(),"still canonically empty")
+		assert_equal(store.fauna_zone_ref_of(0),Vector2i(-1,0),"a later read agrees")
+	assert_true(_image(target).equals(_image(source)),"both stores stayed identical")
+
+
+func test_capture_matches_the_public_reader_projection() -> void:
+	"""The captured record equals the projection built only from the public per-row reader."""
+	var source: WorldInit = _live_owner()
+	var frame: Section.FramedOwner = Section.FramedOwner.new(17)
+	assert_true(Bridge.capture_into(source,frame).is_ok(),"capture succeeds")
+	var witness: Array = _empty()
+	for field: int in 9:
+		var held: Variant = (frame.i64_column(field) as Variant) if field == 8 \
+			else (frame.i32_column(field) as Variant)
+		assert_true(held == witness[field],"field %d matches the canonical empty image" % field)
+
+
+func test_every_column_refusal_leaves_the_target_byte_identical() -> void:
+	"""Each column code refuses through apply with the exact code and writes nothing."""
+	var target: WorldInit = _live_owner()
+	var before: WorldInit.FaunaColumns = _image(target)
+	for field: int in 9:
+		var image: Array = _empty()
+		_put(image,field,0,0 if field == 0 else 1)
+		assert_equal(Bridge.apply(_frame(image),target).code,&"COLUMN_FAUNA_RESERVED",
+			"exact code for field %d" % field)
+	assert_true(_image(target).equals(before),"no refusal wrote a column")
+
+
+func test_null_and_misshaped_inputs_refuse_without_writing() -> void:
+	"""Null stores, null records, a wrong owner and a short bulk buffer all refuse."""
+	var target: WorldInit = _live_owner()
+	var before: WorldInit.FaunaColumns = _image(target)
+	assert_equal(Bridge.apply(_frame(_empty()),null).code,Bridge.REFUSE_NULL_STORE,"null store")
+	assert_equal(Bridge.capture_into(null,Section.FramedOwner.new(17)).code,
+		Bridge.REFUSE_NULL_STORE,"capture from no store")
+	assert_equal(Bridge.capture_into(target,null).code,&"SAVE_COMPONENT_SHAPE","null record")
+	assert_equal(Bridge.capture_into(target,Section.FramedOwner.new(16)).code,
+		&"SAVE_COMPONENT_OWNER","wrong owner")
+	var short: WorldInit.FaunaColumns = WorldInit.FaunaColumns.new()
+	short.zone_slot.resize(3)
+	assert_false(target.restore_fauna_columns(short),"a short column refuses")
+	assert_equal(target.last_fauna_column_refusal(),WorldInit.REFUSE_COLUMN_FAUNA_SHAPE,"shape code")
+	assert_false(target.copy_fauna_columns_into(short),"a short output buffer refuses")
+	assert_false(target.restore_fauna_columns(null),"null columns refuse")
+	assert_true(_image(target).equals(before),"nothing was written")

@@ -1,0 +1,7 @@
+{
+  "godot/scripts/core/underground_room_composition.gd": "66b73295a0e9133d52d5641dbe9ae8da63bc60fb6fee52b352f9c7bbb4cb27bf",
+  "godot/scripts/core/underground_world_retirement.gd": "5d24035162ef0851a4034e2c1204eb24da7be33ef10bae2d2114e2720a9ba1f3",
+  "godot/scripts/systems/settlement_system.gd": "10ffeede717caa71864c2db0f64f874050528620956458b3fc5c5d197d826ebf",
+  "godot/test/test_underground_room_composition.gd": "a585eb767526a5ece79285c3881b8824fe5cae552b743df547b3d03067aca4c1",
+  "godot/test/test_underground_host.gd": "a113553da4ebc80c639a2cd5526ddb81126d46c1d9181827f4f731b40dba77ba"
+}

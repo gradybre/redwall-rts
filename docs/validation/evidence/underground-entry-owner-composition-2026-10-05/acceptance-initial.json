@@ -1,0 +1,19 @@
+{
+  "reviewer": "/root",
+  "scope": "1184 initial original Host planning/EntryBindings lifecycle only",
+  "verdict": "accepted",
+  "source_manifest_sha256": "e316ad073264584acf5c4daa177eda5c6a7a9388739e87f054254b42d61aea2d",
+  "verified_rows": {
+    "source": 9,
+    "input": 161,
+    "output": 50,
+    "history": 54
+  },
+  "independent_python_tests": 22,
+  "independent_census_byte_identical": true,
+  "high_medium_findings": [],
+  "root_evidence": "docs/validation/evidence/underground-entry-owner-1184-review-2026-10-05",
+  "runtime_qualified": false,
+  "native_measured": false,
+  "full_entry_composed": false
+}

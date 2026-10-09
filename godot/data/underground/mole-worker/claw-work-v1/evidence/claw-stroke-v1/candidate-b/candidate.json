@@ -1,0 +1,406 @@
+{
+  "schema": 1,
+  "decision": "1217",
+  "motion": "M1 claw downward stroke (BRACE, CUT, FINISH)",
+  "recipe": {
+    "x_u": 128,
+    "anchor_z_u": -576,
+    "rake_u": 64,
+    "lean_degrees": 60,
+    "drop_u": 64,
+    "tilt_degrees": 60,
+    "roll_degrees": 90,
+    "station_inset_u": 106
+  },
+  "loop": {
+    "top_u": 80,
+    "depth_u": 60,
+    "keys": 33
+  },
+  "entry_keys": 31,
+  "target": {
+    "station_root_u": [
+      -1536,
+      0,
+      -512
+    ],
+    "station_yaw": 49152,
+    "replaced_profile": 25,
+    "cube_world_u": [
+      -1024,
+      -1024,
+      -1024,
+      0,
+      0,
+      0
+    ],
+    "cube_local_u": [
+      -512,
+      -1024,
+      -1536,
+      512,
+      0,
+      -512
+    ],
+    "accepted_pick_anchor_local_u": [
+      42,
+      0,
+      -673
+    ]
+  },
+  "source_pins": {
+    "palette": "5b368eb3ad594b4a6f82b5981a891150e6f7053944daf888d4ab5aa293c822fe",
+    "open_body": "a938d479014ebd3a431a118a7b1c9f7aa0b522d0a33a5c5d281e58e1e2f497c1",
+    "topology": "da623e5c7c3c5a6aff5c466b143425422f3aa2253497527c84f713738f997b42",
+    "stand": "7086ef2a3aab64537d7822393c04ece86d67879e59e1c7e54d333a5c7f974c7d",
+    "profiles": "30c3dc1f5e9162f5530f410c437ed6f85d28dc6879f88dec81cb193ea87b0df5"
+  },
+  "ready_frame": 8,
+  "claw_vertex": 2,
+  "work_keys": [
+    {
+      "key": 0,
+      "claw_target_u": [
+        128.0,
+        80.0,
+        -544.0
+      ],
+      "maximum_link_length_error_m": 2.7755575615628914e-17
+    },
+    {
+      "key": 1,
+      "claw_target_u": [
+        128.0,
+        78.655,
+        -550.3076
+      ],
+      "maximum_link_length_error_m": 1.3877787807814457e-17
+    },
+    {
+      "key": 2,
+      "claw_target_u": [
+        128.0,
+        74.6716,
+        -556.3728
+      ],
+      "maximum_link_length_error_m": 1.3877787807814457e-17
+    },
+    {
+      "key": 3,
+      "claw_target_u": [
+        128.0,
+        68.2029,
+        -561.9625
+      ],
+      "maximum_link_length_error_m": 4.163336342344337e-17
+    },
+    {
+      "key": 4,
+      "claw_target_u": [
+        128.0,
+        59.4975,
+        -566.8619
+      ],
+      "maximum_link_length_error_m": 2.7755575615628914e-17
+    },
+    {
+      "key": 5,
+      "claw_target_u": [
+        128.0,
+        48.8899,
+        -570.8828
+      ],
+      "maximum_link_length_error_m": 0.0
+    },
+    {
+      "key": 6,
+      "claw_target_u": [
+        128.0,
+        36.7878,
+        -573.8705
+      ],
+      "maximum_link_length_error_m": 8.326672684688674e-17
+    },
+    {
+      "key": 7,
+      "claw_target_u": [
+        128.0,
+        23.6563,
+        -575.7104
+      ],
+      "maximum_link_length_error_m": 0.0
+    },
+    {
+      "key": 8,
+      "claw_target_u": [
+        128.0,
+        10.0,
+        -576.3316
+      ],
+      "maximum_link_length_error_m": 2.7755575615628914e-17
+    },
+    {
+      "key": 9,
+      "claw_target_u": [
+        128.0,
+        -3.6563,
+        -575.7104
+      ],
+      "maximum_link_length_error_m": 2.7755575615628914e-17
+    },
+    {
+      "key": 10,
+      "claw_target_u": [
+        128.0,
+        -16.7878,
+        -573.8705
+      ],
+      "maximum_link_length_error_m": 6.938893903907228e-17
+    },
+    {
+      "key": 11,
+      "claw_target_u": [
+        128.0,
+        -28.8899,
+        -570.8828
+      ],
+      "maximum_link_length_error_m": 8.326672684688674e-17
+    },
+    {
+      "key": 12,
+      "claw_target_u": [
+        128.0,
+        -39.4975,
+        -566.8619
+      ],
+      "maximum_link_length_error_m": 2.7755575615628914e-17
+    },
+    {
+      "key": 13,
+      "claw_target_u": [
+        128.0,
+        -48.2029,
+        -561.9625
+      ],
+      "maximum_link_length_error_m": 8.326672684688674e-17
+    },
+    {
+      "key": 14,
+      "claw_target_u": [
+        128.0,
+        -54.6716,
+        -556.3728
+      ],
+      "maximum_link_length_error_m": 5.551115123125783e-17
+    },
+    {
+      "key": 15,
+      "claw_target_u": [
+        128.0,
+        -58.655,
+        -550.3076
+      ],
+      "maximum_link_length_error_m": 2.7755575615628914e-17
+    },
+    {
+      "key": 16,
+      "claw_target_u": [
+        128.0,
+        -60.0,
+        -544.0
+      ],
+      "maximum_link_length_error_m": 5.551115123125783e-17
+    },
+    {
+      "key": 17,
+      "claw_target_u": [
+        128.0,
+        -58.655,
+        -537.6924
+      ],
+      "maximum_link_length_error_m": 2.7755575615628914e-17
+    },
+    {
+      "key": 18,
+      "claw_target_u": [
+        128.0,
+        -54.6716,
+        -531.6272
+      ],
+      "maximum_link_length_error_m": 2.7755575615628914e-17
+    },
+    {
+      "key": 19,
+      "claw_target_u": [
+        128.0,
+        -48.2029,
+        -526.0375
+      ],
+      "maximum_link_length_error_m": 4.163336342344337e-17
+    },
+    {
+      "key": 20,
+      "claw_target_u": [
+        128.0,
+        -39.4975,
+        -521.1381
+      ],
+      "maximum_link_length_error_m": 4.163336342344337e-17
+    },
+    {
+      "key": 21,
+      "claw_target_u": [
+        128.0,
+        -28.8899,
+        -517.1172
+      ],
+      "maximum_link_length_error_m": 4.163336342344337e-17
+    },
+    {
+      "key": 22,
+      "claw_target_u": [
+        128.0,
+        -16.7878,
+        -514.1295
+      ],
+      "maximum_link_length_error_m": 4.163336342344337e-17
+    },
+    {
+      "key": 23,
+      "claw_target_u": [
+        128.0,
+        -3.6563,
+        -512.2896
+      ],
+      "maximum_link_length_error_m": 4.163336342344337e-17
+    },
+    {
+      "key": 24,
+      "claw_target_u": [
+        128.0,
+        10.0,
+        -511.6684
+      ],
+      "maximum_link_length_error_m": 1.3877787807814457e-17
+    },
+    {
+      "key": 25,
+      "claw_target_u": [
+        128.0,
+        23.6563,
+        -512.2896
+      ],
+      "maximum_link_length_error_m": 0.0
+    },
+    {
+      "key": 26,
+      "claw_target_u": [
+        128.0,
+        36.7878,
+        -514.1295
+      ],
+      "maximum_link_length_error_m": 2.7755575615628914e-17
+    },
+    {
+      "key": 27,
+      "claw_target_u": [
+        128.0,
+        48.8899,
+        -517.1172
+      ],
+      "maximum_link_length_error_m": 9.71445146547012e-17
+    },
+    {
+      "key": 28,
+      "claw_target_u": [
+        128.0,
+        59.4975,
+        -521.1381
+      ],
+      "maximum_link_length_error_m": 2.7755575615628914e-17
+    },
+    {
+      "key": 29,
+      "claw_target_u": [
+        128.0,
+        68.2029,
+        -526.0375
+      ],
+      "maximum_link_length_error_m": 0.0
+    },
+    {
+      "key": 30,
+      "claw_target_u": [
+        128.0,
+        74.6716,
+        -531.6272
+      ],
+      "maximum_link_length_error_m": 1.3877787807814457e-17
+    },
+    {
+      "key": 31,
+      "claw_target_u": [
+        128.0,
+        78.655,
+        -537.6924
+      ],
+      "maximum_link_length_error_m": 9.71445146547012e-17
+    }
+  ],
+  "sampled": {
+    "clips": [
+      {
+        "id": "mole_worker.claw_dig.stroke_v1",
+        "lowest_non_paw_vertex_u": 0.002,
+        "claw_y_range_u": [
+          -60.0,
+          80.0
+        ]
+      },
+      {
+        "id": "mole_worker.claw_dig.entry_v1",
+        "lowest_non_paw_vertex_u": 0.0014,
+        "claw_y_range_u": [
+          80.0,
+          96.73
+        ]
+      },
+      {
+        "id": "mole_worker.claw_dig.recovery_v1",
+        "lowest_non_paw_vertex_u": 0.0014,
+        "claw_y_range_u": [
+          80.0,
+          96.73
+        ]
+      }
+    ],
+    "scope": "sampled float vertices only; prove_claw_stroke.py holds the exact proofs"
+  },
+  "clips": {
+    "stroke": {
+      "id": "mole_worker.claw_dig.stroke_v1",
+      "frames": 33,
+      "sha256": "16e205e3524f52bed15daa21e5dd92d2d1742881df8420c9869cf0caab387838"
+    },
+    "entry": {
+      "id": "mole_worker.claw_dig.entry_v1",
+      "frames": 31,
+      "sha256": "aab5942d51702907457105f4e0f509866a5bc409cfaab391c187abdc1c0e9a07"
+    },
+    "recovery": {
+      "id": "mole_worker.claw_dig.recovery_v1",
+      "frames": 31,
+      "sha256": "27898a532020cfc59c28dd46e17da1fcb5c2d4785171908d4650d9e716eace25"
+    }
+  },
+  "producer_sources": {
+    "godot/data/underground/mole-worker/claw-work-v1/author_claw_stroke.py": "3edc742c993acd7a1731160633396b62a4fdf5e0014453432decab5e5974dda6",
+    "godot/data/underground/mole-worker/claw-work-v1/claw_source.py": "e0311359eaa5d485b34c1e14f41a1cf982fabd48b9d0fe396e2f57d119a22718",
+    "godot/data/underground/mole-worker/haul-handling-v1/author_handling.py": "bf96731c5cba21f300f46b7db307c78e465f1c9f2dbfc8c7e41c97a2786eca26",
+    "godot/data/underground/mole-worker/haul-handling-v1/author_program.py": "7dbcb921cba0ce0c2707a72b246b28509aa9f37b97a30f9ac4177f2ccdec7b0b",
+    "godot/data/underground/mole-worker/haul-handling-v1/inspect_source.py": "cde1ca83928aa18ddc22d5f6555a83c6e92634aaf7b836a5b0f4bb0966d519b4"
+  },
+  "tool": null,
+  "paw": "open (original cast mesh)",
+  "production_qualified": false
+}

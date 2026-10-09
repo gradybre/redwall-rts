@@ -870,21 +870,22 @@ func test_an_owned_block_with_the_wrong_wrapper_is_refused() -> void:
 func test_the_development_composition_still_reports_the_seven_owners_it_omits() -> void:
 	"""The two-block composition remains a DEVELOPMENT one and still names what it leaves out.
 
-	R-WORLD-S1-001 closed BLOCKER W2 in `save_section_01.gd`, which encodes all nine. This
-	fixture's `store_count` is still 2, so `missing_owner_keys()` must still report the seven --
-	a reporter that went quiet once another module grew an encoder would be reporting nothing.
+	R-WORLD-S1-001 closed BLOCKER W2 in `save_section_01.gd`, which encodes all of them. This
+	fixture's `store_count` is still 2, so `missing_owner_keys()` must still report the eight it
+	omits (ADR 1222 step 0 added `underground_space_owner`) -- a reporter that went quiet once
+	another module grew an encoder would be reporting nothing.
 	"""
 	var back: WorldRuntime.SectionRecord = _decoded(_section_bytes(_section()))
 	assert_equal(back.missing_owner_keys(), PackedStringArray(["buildings", "farming", "forage",
-		"resource_nodes", "spatial_world", "weather", "world_init"]),
-		"the seven §1 owners this development composition omits")
-	assert_equal(WorldRuntime.OWNED_OWNER_KEYS.size(), 2, "this module encodes two of the nine")
+		"resource_nodes", "spatial_world", "underground_space_owner", "weather", "world_init"]),
+		"the eight §1 owners this development composition omits")
+	assert_equal(WorldRuntime.OWNED_OWNER_KEYS.size(), 2, "this module encodes two of the ten")
 
 
-func test_section_one_takes_schema_three_and_the_old_producer_refuses() -> void:
-	"""R-WORLD-S1-001: §1 moves 2 -> 3, and `encode_section()` refuses rather than emitting two."""
-	assert_equal(WorldRuntime.SECTION_SCHEMA_VERSION, 3,
-		"R-WORLD-S1-001 takes section 1 to schema version 3 with the scratch correction")
+func test_section_one_takes_schema_four_and_the_old_producer_refuses() -> void:
+	"""§1 is at the registry's schema 4 (ADR 1072, ADR 1222 step 0); the two-block producer refuses."""
+	assert_equal(WorldRuntime.SECTION_SCHEMA_VERSION, 4,
+		"ADR 1222 step 0 brings section 1 to the registry's schema 4")
 	var out: WorldRuntime.EncodeResult = WorldRuntime.EncodeResult.new()
 	assert_false(WorldRuntime.encode_section(_section(), out),
 		"the retired two-block producer refuses")

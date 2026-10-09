@@ -445,17 +445,29 @@ func _ordinary_path(destination: Vector2i) -> StringName:
 	"""A current certified directed graph path is required; neither contact nor a retained phase creates an edge."""
 	var actual: RoomWorldRoutes = _ordinary_routes.get_ref() as RoomWorldRoutes
 	var code: StringName
-	if EntryProfiles.selection_policy_leaf(_ordinary_config.profiles, _ordinary_travel,
-			_ordinary_travel_revision, _ordinary_query.content_revision) == EntryProfiles.POLICY_AUTOMATIC:
+	var row: int = _ordinary_retreat_row()
+	var revision: int = _ordinary_travel_revision if row == _ordinary_travel \
+		else (_ordinary_config.profiles._live.quantities[row] if row >= 0 else 0)
+	if EntryProfiles.selection_policy_leaf(_ordinary_config.profiles, row,
+			revision, _ordinary_query.content_revision) == EntryProfiles.POLICY_AUTOMATIC:
 		code = RoomWorldRoutes.profile_reachability_refusal(actual, _ordinary_query.location,
-			destination, _ordinary_travel, _ordinary_travel_revision, _ordinary_query.content_revision,
+			destination, row, revision, _ordinary_query.content_revision,
 			_entry_remaining, _ordinary_checks)
 	else:
 		code = RoomItinerary.reachability_refusal(actual, _ordinary_query.location,
-			destination, _ordinary_travel, _ordinary_travel_revision, _ordinary_query.content_revision,
+			destination, row, revision, _ordinary_query.content_revision,
 			_entry_remaining, _ordinary_checks)
 	if code == &"": _entry_remaining = _ordinary_checks[0]
 	return code
+
+
+func _ordinary_retreat_row() -> int:
+	"""ADR1213: retreat from a contact of another heading on the bound row's backward sibling at the contact's yaw."""
+	var profiles: EntryProfiles = _ordinary_config.profiles
+	if _ordinary_travel < 0 or _ordinary_travel >= profiles._live.header[1] \
+			or _ordinary_field(_ordinary_travel, EntryProfiles.F_YAW_KIND) != EntryProfiles.YAW_EXACT \
+			or _ordinary_field(_ordinary_travel, EntryProfiles.F_YAW) == _ordinary_query.yaw: return _ordinary_travel
+	return RoomItinerary.family_row(profiles, _ordinary_travel, _ordinary_query.yaw, EntryProfiles.POLICY_READY_BACKWARD)
 
 
 func _ordinary_observe_face() -> StringName:
@@ -581,9 +593,10 @@ func _ordinary_plan_row(plan: Space.Plan, write: bool, row: int, contact: int, r
 	if write: _entry_append_row(plan.volumes, _entry_box, volume_role, level, _entry_room, revision)
 	elif not _entry_row_matches(plan.volumes, row, _entry_box, volume_role, level, _entry_room, revision): return ENTRY_REFUSE_PLAN
 	if not _ordinary_has_air_contact(role): return &""
-	for axis: int in 3:
-		_entry_air[axis] = maxi(_entry_box[axis], _ordinary_location(_ordinary_query.location, RoomLocations.ENVELOPE + axis))
-		_entry_air[axis + 3] = mini(_entry_box[axis + 3], _ordinary_location(_ordinary_query.location, RoomLocations.ENVELOPE + axis + 3))
+	var whole: bool = RoomLocations.live_air_contains(_ordinary_config.locations, _ordinary_query.location, _entry_box)
+	for axis: int in 3: # ADR1215: a box inside one air box is its own approach; otherwise clip to the envelope.
+		_entry_air[axis] = _entry_box[axis] if whole else maxi(_entry_box[axis], _ordinary_location(_ordinary_query.location, RoomLocations.ENVELOPE + axis))
+		_entry_air[axis + 3] = _entry_box[axis + 3] if whole else mini(_entry_box[axis + 3], _ordinary_location(_ordinary_query.location, RoomLocations.ENVELOPE + axis + 3))
 		if _entry_air[axis] >= _entry_air[axis + 3]: return ENTRY_REFUSE_PLAN
 		_entry_reach[axis] = mini(_entry_air[axis], _entry_point[axis])
 		_entry_reach[axis + 3] = maxi(_entry_air[axis + 3], int(_entry_point[axis]) + 1)

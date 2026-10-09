@@ -180,6 +180,7 @@ const ForageScript := preload("res://scripts/core/forage.gd")
 const FishingScript := preload("res://scripts/core/fishing.gd")
 const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
 const CatalogScript := preload("res://scripts/core/catalog.gd")
+const SaveInventoriesProof := preload("res://scripts/core/save_inventories_proof.gd")
 
 # --- ARCH-SAVE-002 identity ------------------------------------------------------------------
 
@@ -1470,7 +1471,13 @@ static func record_refusal(record: Record) -> SaveHeader.Refusal:
 
 
 static func owner_refusal(block: OwnerRecord) -> SaveHeader.Refusal:
-	"""Dispatch one owner block to its validator. Public so a lane can check one store alone."""
+	"""Dispatch one owner block to its validator. Public so a lane can check one store alone.
+
+	ADR 1235: a block the whole-column proof accepts is accepted at once; any other block is
+	walked row by row, so every refusal is the row walk's own.
+	"""
+	if SaveInventoriesProof.owner_proven(block):
+		return _accepted()
 	if block.owner == OWNER_FISHING:
 		return _fishing_refusal(block)
 	if block.owner == OWNER_FORAGE:
@@ -1947,43 +1954,55 @@ static func _inventory_containers_refusal(block: OwnerRecord) -> SaveHeader.Refu
 	var live: PackedByteArray = block.u8_column(2)
 	var lot_capacity: int = int(block.child_extents[0])
 	for slot: int in block.primary_count:
-		var is_live: bool = live[slot] == 1
-		var generation: SaveHeader.Refusal = _row_generation_refusal(block.i32_column(4)[slot],
-			4, slot)
-		if not generation.is_ok():
-			return generation
-		if not is_live:
-			var unused: SaveHeader.Refusal = _inventory_unused_refusal(block, slot,
-				INVENTORY_UNUSED_CONTAINER_ORDINALS, INVENTORY_UNUSED_CONTAINER_VALUES)
-			if not unused.is_ok():
-				return unused
-		var owner_slot: int = block.i32_column(6)[slot]
-		var owner_link: SaveHeader.Refusal = _slot_refusal(owner_slot, false, DIRECTORY_CAPACITY,
-			block.owner, 6, slot)
-		if not owner_link.is_ok():
-			return owner_link
-		var owner_generation: SaveHeader.Refusal = _generation_refusal(block.i32_column(7)[slot],
-			owner_slot != NULL_SLOT, block.owner, 7, slot)
-		if not owner_generation.is_ok():
-			return owner_generation
-		var chain: SaveHeader.Refusal = _container_chain_refusal(block, slot, is_live, lot_capacity)
-		if not chain.is_ok():
-			return chain
-		var anchor: SaveHeader.Refusal = _container_anchor_refusal(block, slot)
-		if not anchor.is_ok():
-			return anchor
+		var row: SaveHeader.Refusal = _container_row_refusal(block, slot, live[slot] == 1,
+			lot_capacity)
+		if not row.is_ok():
+			return row
 	return _accepted()
 
 
+static func _container_row_refusal(block: OwnerRecord, slot: int, is_live: bool,
+		lot_capacity: int) -> SaveHeader.Refusal:
+	"""One container row: generation, unused payload, owner ref, chain and anchor.
+
+	It reads only ordinals 4, 6-15 and 30, so an inactive row is fully decided by its generation
+	and the INV-CANON-R01 unused values (which `_inventory_proven()` relies on).
+	"""
+	var generation: SaveHeader.Refusal = _row_generation_refusal(block.i32_column(4)[slot], 4, slot)
+	if not generation.is_ok():
+		return generation
+	if not is_live:
+		var unused: SaveHeader.Refusal = _inventory_unused_refusal(block, slot,
+			INVENTORY_UNUSED_CONTAINER_ORDINALS, INVENTORY_UNUSED_CONTAINER_VALUES)
+		if not unused.is_ok():
+			return unused
+	var owner_slot: int = block.i32_column(6)[slot]
+	var owner_link: SaveHeader.Refusal = _slot_refusal(owner_slot, false, DIRECTORY_CAPACITY,
+		block.owner, 6, slot)
+	if not owner_link.is_ok():
+		return owner_link
+	var owner_generation: SaveHeader.Refusal = _generation_refusal(block.i32_column(7)[slot],
+		owner_slot != NULL_SLOT, block.owner, 7, slot)
+	if not owner_generation.is_ok():
+		return owner_generation
+	var chain: SaveHeader.Refusal = _container_chain_refusal(block, slot, is_live, lot_capacity)
+	if not chain.is_ok():
+		return chain
+	return _container_anchor_refusal(block, slot)
+
+
 static func _container_anchor_refusal(block: OwnerRecord, slot: int) -> SaveHeader.Refusal:
-	"""DEMO-CONTAIN-R01: an anchor is -1 (unplaced) or a cell in `0..ANCHOR_TILE_COUNT-1`.
+	"""DEMO-CONTAIN-R01: an anchor is -1 (unplaced) or a cell in `0..ANCHOR_TILE_COUNT-1`, or
+	(ADR 1228) `-2 - row` for a row of the spatial endpoint arena, which section 6's `inventory`
+	owner carries and proves against its endpoint.
 
 	Checked on every row. An inactive row's -1 is ALSO pinned by the unused table above, so a
 	live row is where this gate does its own work: a forged 16384 would otherwise index past the
 	caller's tile mask in `containers_anchored_in_into()` the moment the store was published.
 	"""
 	var anchor: int = block.i32_column(30)[slot]
-	if InventoryScript.is_anchor_tile_in_domain(anchor):
+	if InventoryScript.is_anchor_tile_in_domain(anchor) \
+			or (anchor <= -2 and anchor >= -1 - InventoryScript.SPATIAL_ENDPOINT_CAPACITY):
 		return _accepted()
 	return _refuse(REFUSE_SLOT_RANGE,
 		"owner 'inventory' field '_c_anchor_tile' row %d holds anchor %d, outside %d and 0..%d"
@@ -2038,26 +2057,34 @@ static func _inventory_lots_refusal(block: OwnerRecord) -> SaveHeader.Refusal:
 	var live: PackedByteArray = block.u8_column(3)
 	var lot_capacity: int = int(block.child_extents[0])
 	for slot: int in lot_capacity:
-		var is_live: bool = live[slot] == 1
-		var generation: SaveHeader.Refusal = _row_generation_refusal(block.i32_column(5)[slot],
-			5, slot)
-		if not generation.is_ok():
-			return generation
-		if not is_live:
-			var unused: SaveHeader.Refusal = _inventory_unused_refusal(block, slot,
-				INVENTORY_UNUSED_LOT_ORDINALS, INVENTORY_UNUSED_LOT_VALUES)
-			if not unused.is_ok():
-				return unused
-		var provenance: SaveHeader.Refusal = _provenance_refusal(block.i32_column(18)[slot], slot)
-		if not provenance.is_ok():
-			return provenance
-		var identity: SaveHeader.Refusal = _lot_identity_refusal(block, slot, is_live, lot_capacity)
-		if not identity.is_ok():
-			return identity
-		var quantities: SaveHeader.Refusal = _lot_quantity_refusal(block, slot)
-		if not quantities.is_ok():
-			return quantities
+		var row: SaveHeader.Refusal = _lot_row_refusal(block, slot, live[slot] == 1, lot_capacity)
+		if not row.is_ok():
+			return row
 	return _accepted()
+
+
+static func _lot_row_refusal(block: OwnerRecord, slot: int, is_live: bool,
+		lot_capacity: int) -> SaveHeader.Refusal:
+	"""One lot row: generation, unused payload, provenance, identity and quantities.
+
+	It reads only ordinals 5 and 16-27, so an inactive row is fully decided by its generation and
+	the INV-CANON-R01 unused values (which `_inventory_proven()` relies on).
+	"""
+	var generation: SaveHeader.Refusal = _row_generation_refusal(block.i32_column(5)[slot], 5, slot)
+	if not generation.is_ok():
+		return generation
+	if not is_live:
+		var unused: SaveHeader.Refusal = _inventory_unused_refusal(block, slot,
+			INVENTORY_UNUSED_LOT_ORDINALS, INVENTORY_UNUSED_LOT_VALUES)
+		if not unused.is_ok():
+			return unused
+	var provenance: SaveHeader.Refusal = _provenance_refusal(block.i32_column(18)[slot], slot)
+	if not provenance.is_ok():
+		return provenance
+	var identity: SaveHeader.Refusal = _lot_identity_refusal(block, slot, is_live, lot_capacity)
+	if not identity.is_ok():
+		return identity
+	return _lot_quantity_refusal(block, slot)
 
 
 static func _provenance_refusal(value: int, slot: int) -> SaveHeader.Refusal:

@@ -1,0 +1,167 @@
+{
+  "schema": 1,
+  "adr": "1206",
+  "production_qualified": false,
+  "static_source": {
+    "non_grip_separation": true,
+    "completed": true,
+    "unresolved": [],
+    "pairs": 406,
+    "checks": 406,
+    "non_grip_vertices_inside_stock": [],
+    "floor": {
+      "source_not_below_floor": true,
+      "penetrations": [],
+      "contacts": [
+        {
+          "role": "left_foot",
+          "vertex": 16125,
+          "source_gap_u": [
+            9326038954101767387,
+            4722366482869645213696
+          ]
+        },
+        {
+          "role": "right_foot",
+          "vertex": 3622,
+          "source_gap_u": [
+            18935763031193550707,
+            9444732965739290427392
+          ]
+        },
+        {
+          "role": "stock",
+          "vertex": 51,
+          "source_gap_u": [
+            1072287235,
+            549755813888
+          ]
+        }
+      ],
+      "three_contacts_present": true,
+      "scope": "Exact rational source at this pose, within the one-unit source contact cell; native residual remains separate."
+    },
+    "body_triangles": 10209,
+    "solid_triangles": 9283,
+    "hand_triangles": [
+      478,
+      448
+    ],
+    "wood_triangles": 108,
+    "body_source_bounds_u": [
+      -342,
+      0,
+      -589,
+      345,
+      459,
+      207
+    ],
+    "wood_source_bounds_u": [
+      -173,
+      0,
+      -730,
+      153,
+      256,
+      -422
+    ],
+    "hand_contact_witnesses": [
+      {
+        "edge": [
+          0,
+          1
+        ],
+        "share": [
+          1982400804635139226017977190581995656644002075049944154112,
+          12174904917706553453675073481867979356240730525802453619055
+        ],
+        "point_u": [
+          [
+            -107612438587831422396876992626101747525697024985689232059050213985910664693,
+            856732769541475834403394217820484736199181453090331401427321936695787520
+          ],
+          [
+            149700147364199550823085662600429590948116712991817271722020089898156201651,
+            856732769541475834403394217820484736199181453090331401427321936695787520
+          ],
+          [
+            -476496186659564118717458714940233018806723519946052182732746471803984562831,
+            856732769541475834403394217820484736199181453090331401427321936695787520
+          ]
+        ],
+        "hand": 15,
+        "body_triangle": 9734,
+        "wood_triangle": 49,
+        "body_vertices": [
+          13375,
+          13373,
+          17041
+        ],
+        "wood_vertices": [
+          27,
+          37,
+          36
+        ]
+      },
+      {
+        "edge": [
+          0,
+          1
+        ],
+        "share": [
+          301499253903696308261183356238997450211044031043054,
+          587918156332660523157490324183418218526953231582441
+        ],
+        "point_u": [
+          [
+            39827358770569212147689189005295423485245287508598674147821032745,
+            323211424534194207184853964774940051720172214293516598124740608
+          ],
+          [
+            100806631412370202117423990436091793454093346861504374338839551033,
+            646422849068388414369707929549880103440344428587033196249481216
+          ],
+          [
+            -2740522300169046440505019535451951146303814228707763668242910055,
+            5050178508346784487263343199608438308127690848336196845699072
+          ]
+        ],
+        "hand": 19,
+        "body_triangle": 542,
+        "wood_triangle": 39,
+        "body_vertices": [
+          648,
+          14280,
+          650
+        ],
+        "wood_vertices": [
+          22,
+          32,
+          31
+        ]
+      }
+    ],
+    "self_grip_rule": "Each complete triangle has positive exact hand influence and hand-local Y > 0.025m at all three vertices; all mixed boundary triangles remain solid and all original triangles remain world geometry.",
+    "partition_sha256": "bafe5ff5d21c4e7191ac322c81d93195eca0e990077363e6da276f58f82ee93a",
+    "source_contact_exists": true,
+    "wood_triangles_meaning": "stone triangles (field name kept from the shared wood prover)"
+  },
+  "passes_static_rules": true,
+  "scope": "Exact F32 input coefficients evaluated as source rational skin geometry; no native error or temporal qualification.",
+  "source_sha256": {
+    "godot/data/underground/mole-worker/haul-handling-v1/prove_stone_contact.py": "11395975a39dbf334393def735691a02ca5a9187ec928142289b44407e312341",
+    "godot/data/underground/mole-worker/haul-handling-v1/prove_static_contact.py": "76b0fa90d3488155ef5297f72430eea929cb2b7bf45089c4021970ffddc7a929",
+    "godot/data/underground/mole-worker/haul-handling-v1/author_stone_grip.py": "a2ba6bd458b19e4440576d4d17f059892fd56756db3b30bba431054307e3e0d8",
+    "godot/data/underground/mole-worker/haul-handling-v1/author_handling.py": "bf96731c5cba21f300f46b7db307c78e465f1c9f2dbfc8c7e41c97a2786eca26",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/stone-source-v1/native-stone.json": "ddcb70bf666021ded1b12741f3a741e25ffb9d37b79ed9c95f71f74dcb091a6e",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/stone-contact-v2/poses.npz": "20fb414e7cd38e3e21ee1d346da6d23cdbcb314afe67b32ad9e3676e8b2ef862",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/stone-contact-v2/candidate.json": "1be75c0e8e6da525ed466a5dcc1d8596d570c7f663547bfa8ccab1671230a146"
+  },
+  "pending": [
+    "human grip review",
+    "lift/place program",
+    "loaded gait",
+    "joins",
+    "native error enclosure",
+    "runtime source/quantity/role admission"
+  ]
+}

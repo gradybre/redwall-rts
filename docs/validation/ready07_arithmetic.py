@@ -137,11 +137,18 @@ registry_key_bytes=sum(len(owner['owner_key'].encode('utf-8')) for owner in regi
 # Decision 0531 appended `_c_anchor_tile`: 52 owners, 612 fields and 9065 key bytes.
 # Decisions 1053/1060 add one RoomProjects owner and eleven fields: +16 owner bytes,
 # +165 field bytes and +171 UTF-8 key bytes. Decision 1062 reconciles the actual buffers.
-assert (len(registry_owners),len(registry_fields),registry_key_bytes)==(61,764,11137)
-assert (registry['record_count'],registry['packed_source_field_count'])==(756,671)
-assert sum(bool(field['hash']) for field in registry_fields)==756
+# Decision1221 adds the haul admission owner: one owner, five fields, 74 key bytes.
+# ADR 1222 Q7(a) adds five section6 owners: 32 fields and 555 key bytes.
+# ADR 1228 adds seven section6 owners (underground mount + six wires): 15 fields and 305 key bytes.
+assert (len(registry_owners),len(registry_fields),registry_key_bytes)==(75,820,12145)
+assert (registry['record_count'],registry['packed_source_field_count'])==(810,694)  # ADR 1222 step 5 C197; Q7 +32/+16; ADR 1228 +15/+0
+assert sum(bool(field['hash']) for field in registry_fields)==810
 DECISION_0127_ADDED=len(registry_owners)*16+len(registry_fields)*15+registry_key_bytes
-assert DECISION_0127_ADDED==23573 and DECISION_0127_ADDED-21185==2388
+# Decision1218 adds the entry progress owner: +150 (one owner, four fields, 74 key bytes).
+# Decision1221 adds the haul admission owner: +165 (16 + 5*15 + 74).
+# ADR 1222 Q7(a) adds +1115 (5*16 + 32*15 + 555).
+# ADR 1228 adds +642 (7*16 + 15*15 + 305).
+assert DECISION_0127_ADDED==25645 and DECISION_0127_ADDED-21185==4460
 # RoomProjects is additional mutable state, not a replacement for Construction's paid ledger.
 # Read all eleven source declarations and allocation expressions, then require exact agreement
 # with both the canonical owner's widths/capacities and the three printed auxiliary rows.
@@ -310,7 +317,41 @@ underground_pack=underground_memory_budget.build()
 CURRENT_UNDERGROUND_MUTABLE=underground_pack['new_mutable_and_reserved_bytes']
 # Preserve1072's trail;1102 adds256 I64 cells in both live and conservative cold state.
 DECISION_1102_MUTABLE=2*(fund_shapes['_lost_milli'][0]*fund_shapes['_lost_milli'][1]-3*256*8)
-assert DECISION_1102_MUTABLE==4096 and CURRENT_UNDERGROUND_MUTABLE==5007041
+# Decision1212: the current-source census adds retained stores no reserve carries (geometry journals at
+# capacity 64, Locations carry/air controls, the first-entry runtime chain) plus 256 B of binding reserve.
+# Decision1218: the census also charges two entry progress record images; that is its own row.
+# Decision1229 (increments 6a and 6b): the T1-T6 plan grows the first-entry chain and its record (5128 -> 9024 at
+# MAX_WIRE_BYTES 4507), and the census adds the claw stair tables (9580) and the Locations witness-pass cache
+# (6201). All of it is one row; the earlier rows keep their historical figures.
+DECISION_1229_ADDED=underground_pack['contributions']['current_census_new_retained']-209524
+assert DECISION_1229_ADDED==22565
+assert '| Stair runtime: T1-T6 entry plan and record, claw stair tables, witness-pass cache | 1 | 22565 | 22565 |' in s
+ENTRY_CHAIN_BEFORE_1229=underground_pack['current_source_census']['first_entry_runtime']['bytes']-(15131-5128-3219)
+DECISION_1218_RECORD=5128
+assert underground_pack['current_source_census']['first_entry_runtime']['rows']['progress_record']-4064==DECISION_1218_RECORD
+assert '| First-entry progress record images | 1 | 5128 | 5128 |' in s
+# Decision1223: the entry runtime's one IntResult of dispatch read scratch grows the chain from 3210 to 3219 (+9).
+DECISION_1223_ADDED=ENTRY_CHAIN_BEFORE_1229-DECISION_1218_RECORD-3210
+assert DECISION_1223_ADDED==9
+assert '| Entry dispatch read scratch | 1 | 9 | 9 |' in s
+# Decision1219: the crew arrival walk state grows the first-entry chain from 3086 to 3210 (+124).
+DECISION_1219_ADDED=ENTRY_CHAIN_BEFORE_1229-DECISION_1218_RECORD-DECISION_1223_ADDED-3086
+assert DECISION_1219_ADDED==124
+assert '| Crew arrival walk and registration state | 1 | 124 | 124 |' in s
+# Decision1221: the census charges the cold-load images outside the cold lease (Contacts scope 74, Planner
+# admission record 196620); that is its own row.
+DECISION_1221_IMAGES=underground_pack['current_source_census']['cold_load_images']['bytes']
+assert DECISION_1221_IMAGES==196694
+assert '| Underground cold-load images | 1 | 196694 | 196694 |' in s
+# Decision1217 (step 5): content 9's paired profile bank overflowed the shared PROFILE_BYTES reserve;
+# the reserve grows 262144 -> 278528. That +16384 is its own allocation row.
+DECISION_1217_PROFILE=underground_pack['contributions']['PROFILE_BYTES']-262144
+assert DECISION_1217_PROFILE==16384
+assert '| Shared profile reserve for content 9 (claw rows) | 1 | 16384 | 16384 |' in s
+DECISION_1212_MUTABLE=underground_pack['contributions']['current_census_new_retained']-DECISION_1229_ADDED-DECISION_1218_RECORD-DECISION_1219_ADDED-DECISION_1223_ADDED-DECISION_1221_IMAGES+256
+assert DECISION_1212_MUTABLE==7825 and underground_pack['contributions']['BINDINGS_AND_GROWTH_BYTES']==524544
+assert DECISION_1102_MUTABLE==4096 and CURRENT_UNDERGROUND_MUTABLE-DECISION_1229_ADDED-DECISION_1212_MUTABLE-DECISION_1218_RECORD-DECISION_1219_ADDED-DECISION_1223_ADDED-DECISION_1221_IMAGES-DECISION_1217_PROFILE==5007041
+assert '| Underground current-source census increments | 1 | 7825 | 7825 |' in s
 # Decisions1117/1120 add two synchronous guard bytes each. Decision1122's
 # full fixed/helper reservation is additional to the already assigned binding
 # reserve. Decision1131 adds the distinct2048-byte Entry World composer allowance.
@@ -341,7 +382,7 @@ assert '| Paid connector workpiece banks, source and fixed allowances | 1 | 2992
 assert '| Guarded hauling controls and fixed allowances | 1 | 3072 | 3072 |' in s
 assert '| Connector delivery controls and fixed allowances | 1 | 4096 | 4096 |' in s
 LATER_UNDERGROUND_MUTABLE=DECISION_1117_MUTABLE+DECISION_1120_MUTABLE+DECISION_1122_MUTABLE+DECISION_1131_MUTABLE+DECISION_1134_MUTABLE+DECISION_1141_MUTABLE+DECISION_1140_MUTABLE+DECISION_1152_MUTABLE
-DECISION_1072_MUTABLE=CURRENT_UNDERGROUND_MUTABLE-DECISION_1102_MUTABLE-LATER_UNDERGROUND_MUTABLE
+DECISION_1072_MUTABLE=CURRENT_UNDERGROUND_MUTABLE-DECISION_1229_ADDED-DECISION_1102_MUTABLE-LATER_UNDERGROUND_MUTABLE-DECISION_1212_MUTABLE-DECISION_1218_RECORD-DECISION_1219_ADDED-DECISION_1223_ADDED-DECISION_1221_IMAGES-DECISION_1217_PROFILE
 assert DECISION_1072_MUTABLE==4962389
 assert underground_pack['declaration_bytes']==DECISION_0127_ADDED
 assert not underground_pack['runtime_qualified']
@@ -458,10 +499,12 @@ DECISION_1023_ADDED=DECISION_1023_RECORD+DECISION_1023_SCRATCH
 # Decision 0532 adds four allocation rows (34 -> 38); decision 0521 folds into the existing
 # Auxiliary payload row and adds none; decision 0534 adds one (38 -> 39); decisions 0536, 0537, 1031 and 0996 add none;
 # decision 1023 adds one (39 -> 40); decision 1053 folds into Auxiliary payload and adds none.
-assert len(allocations)==53 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED+DECISION_1023_ADDED+DECISION_1053_ADDED+DECISION_1066_ADDED+DECISION_1068_ADDED+DECISION_1071_MUTABLE+DECISION_1072_MUTABLE+DECISION_1102_MUTABLE+LATER_UNDERGROUND_MUTABLE
+assert len(allocations)==60 and sum(allocations)==DECISION_1229_ADDED+DECISION_1217_PROFILE+DECISION_1221_IMAGES+DECISION_1223_ADDED+DECISION_1219_ADDED+DECISION_1218_RECORD+DECISION_1212_MUTABLE+DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED+DECISION_1023_ADDED+DECISION_1053_ADDED+DECISION_1066_ADDED+DECISION_1068_ADDED+DECISION_1071_MUTABLE+DECISION_1072_MUTABLE+DECISION_1102_MUTABLE+LATER_UNDERGROUND_MUTABLE
 payload=sum(allocations);reserve=8388608;candidate=payload-(3670016+2097152+262144+131072+55200+DECISION_0127_ADDED+DECISION_0169_ADDED);live=payload+reserve
-assert payload==91611198
-assert live==99999806 and candidate==85361505 and live+candidate==185361311
+assert payload==91861999
+assert live==100250607 and candidate==85610234 and live+candidate==185860841
+GATE=underground_pack['gate_bytes'] # REQ-SET-163 as amended by DEC-053 (supersedes DEC-051): 150 MB.
+assert GATE==150000000
 assert live==underground_pack['live_with_reserve_bytes']
 assert f'Auxiliary payload sum = **{auxiliary} bytes**' in s
 # A valid internal trail can still omit its final step. Require its endpoint to reach the
@@ -472,7 +515,7 @@ assert tuple(int(cell.strip()) for cell in trail_rows[-1][-3:-1])==(payload,live
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s
-for label,value in [('Planned allocated payload',payload),('One live world plus reserve',live),('Headroom below decimal 100 MB',100000000-live),('Additional candidate mutable state',candidate),('Transactional peak plus same reserve',live+candidate),('Transactional headroom',100000000-live-candidate)]:
+for label,value in [('Planned allocated payload',payload),('One live world plus reserve',live),('Headroom below the 150 MB gate (DEC-053)',GATE-live),('Additional candidate mutable state',candidate),('Transactional peak plus same reserve',live+candidate),('Transactional headroom',GATE-live-candidate)]:
  assert f'| {label} | {value} |' in s,label
 catalog=json.loads((r/'godot/data/catalog_ids.json').read_text())['domains']['ItemDefinition']
 bindings={'resource': ['wood','stone','iron'],'forage':['berries','nuts','mushrooms','herb','roots'],'fish':['trout','dace','salmon','perch','carp','whitefish','herring','mackerel','mussel']}

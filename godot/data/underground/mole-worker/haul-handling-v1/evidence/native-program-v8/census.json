@@ -1,0 +1,50 @@
+{
+  "borrowed_mesh_array_allowance_bytes": 4396032,
+  "capture_bytes": 12596656,
+  "capture_rows": 9780,
+  "clip_frames": {
+    "approach": 61,
+    "carry": 219,
+    "enter": 65,
+    "enter_haul": 31,
+    "exit": 65,
+    "hold": 2,
+    "leave_haul": 31,
+    "lift": 61,
+    "place": 61,
+    "recovery": 61,
+    "stand": 122,
+    "walk": 45
+  },
+  "clips": 12,
+  "complete_vertices": [
+    17172,
+    522
+  ],
+  "declared_offline_content_peak_bytes": 7486168,
+  "decode_staging_bytes": 992096,
+  "exclusions": [
+    "Original/derived mesh resources and textures",
+    "Renderer RIDs and framebuffers",
+    "Python objects, verifier geometry scratch and native allocator overhead"
+  ],
+  "global_simulation_state_delta_bytes": 0,
+  "max_clips": 16,
+  "native_peak_measured": false,
+  "packed_tables_bytes": 888,
+  "reader_native_control_reserve_bytes": 2097152,
+  "rendered_intervals": 812,
+  "retained_palette_bytes": 992096,
+  "runtime_admitted": false,
+  "runtime_source_bytes": 4861048,
+  "runtime_source_files": 86,
+  "scope": "Source-derived existing loader declaration for one isolated native replay. This is not additional capacity inside the 100 MB gameplay gate or a whole-process peak.",
+  "source_keys": 824,
+  "v7_comparison": {
+    "declared_offline_content_peak_bytes": 7210260,
+    "retained_palette_bytes": 716380,
+    "wire_bytes": 717100
+  },
+  "wire_bytes": 993008,
+  "world_basis_separate_bytes": 544768
+}

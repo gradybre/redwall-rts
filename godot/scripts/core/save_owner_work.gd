@@ -1,11 +1,20 @@
 extends RefCounted
 ## Owner 16 (`work`) framed-column validation bridge (WORK-S4-VALIDATE-R01 v1, ADR 0175).
 ##
-## ONE PUBLIC ENTRY POINT. `framed_refusal()` judges one already framed section 4 owner block
-## against the Work store's own column rules and returns a `SaveHeader.Refusal`. It constructs
-## no Work, Jobs, Inventory, Gear, Residents, Needs or Directory store, consults no live owner,
-## captures nothing, applies nothing, and touches no clock, callback, filesystem, projection or
-## per-row object.
+## THREE PUBLIC ENTRY POINTS (ADR 1222 build step 2).
+##   * `framed_refusal()` judges one already framed section 4 owner block against the Work
+##     store's own column rules and returns a `SaveHeader.Refusal`. It builds no live Work owner,
+##     calls no store, captures nothing and applies nothing.
+##   * `capture_into(store, record)` copies the live store's nine columns through
+##     `Work.copy_columns_into()` and projects them into the record's typed buckets in ordinal
+##     order, then judges the written record with `framed_refusal()`, so a capture can never emit
+##     an image apply would refuse. A refused capture leaves the record's contents unspecified.
+##   * `apply(record, store)` runs `framed_refusal()` FIRST, then projects the record and calls
+##     `Work.restore_columns()`, which re-runs the same predicate, writes nothing on refusal and
+##     rebuilds `_bound_tool_count`. A false maps to a Refusal carrying the store's exact
+##     `last_column_refusal()` code.
+## None of the three touches a clock, callback, filesystem, projection or per-row object, nor the
+## store's WeakRef authorities; the caller owns barrier and restore-order discipline.
 ##
 ## GATE ORDER:
 ##   1. a null record                   -> SAVE_COMPONENT_SHAPE
@@ -24,10 +33,10 @@ extends RefCounted
 ## changed. A fixture built from it must be remapped explicitly.
 ##
 ## WHAT AN ACCEPTED RESULT DOES NOT CERTIFY. This is owner-16 local-domain validation only.
-## Saved Work/Gear/Jobs/Inventory/resident identity, claim coherence, duplicate lot or Job
-## handles, bulk capture and restore, and the derived bound-tool count remain downstream
-## obligations. Unbound retained carries, stale saved job history and broken bound tools are
-## legal images here.
+## Saved Work/Gear/Jobs/Inventory/resident identity, claim coherence and duplicate lot or Job
+## handles remain downstream obligations. Unbound retained carries, stale saved job history and
+## broken bound tools are legal images here. Bulk capture/apply and the `_bound_tool_count`
+## rebuild are the two entry points above.
 ##
 ## THE METADATA GUARD compares the compiled schema to pinned contract literals and the Work
 ## source constants to their pinned values. That is not an owner-publication-table parity
@@ -74,6 +83,8 @@ const FIELD_TOOL_JOB_GENERATION_KEY: String = "_tool_job_generation"
 const FIELD_TOOL_BROKEN_KEY: String = "_tool_broken"
 const RESIDENT_ELEMENT_COUNT: int = 512
 const XP_ELEMENT_COUNT: int = 6144
+## A capture or apply called without a live store. Bridge-local: no column code applies.
+const REFUSE_NULL_STORE: StringName = &"SAVE_COMPONENT_NULL_STORE"
 
 ## The Work source constants this bridge pins as contract before it reads a typed column.
 const SOURCE_RESIDENT_CAPACITY: int = 512
@@ -120,6 +131,78 @@ static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
 		return _refuse(code, "Work owner %d refuses this image with column code %s"
 			% [OWNER_INDEX, String(code)])
 	return _accept()
+
+
+static func capture_into(store: Work, record: Section.FramedOwner) -> SaveHeader.Refusal:
+	"""Capture the live store's nine columns into one owner 16 record, then judge the result.
+
+	Gates: a null record, a wrong owner, a null store, the schema and metadata guards, then the
+	store's own `copy_columns_into()` (its column code is forwarded), then a typed setter refusal
+	(SAVE_COMPONENT_SHAPE), and last `framed_refusal()` over what was written.
+	"""
+	var target: SaveHeader.Refusal = _target_refusal(record, store)
+	if not target.is_ok():
+		return target
+	var columns: Work.Columns = Work.Columns.new()
+	if not store.copy_columns_into(columns):
+		return _refuse(store.last_column_refusal(), "Work owner %d capture refused with %s"
+			% [OWNER_INDEX, String(store.last_column_refusal())])
+	if not (record.set_i32(FIELD_POTENTIAL_REMAINDER, columns.potential_remainder)
+			and record.set_i32(FIELD_XP_REMAINDER, columns.xp_remainder)
+			and record.set_i32(FIELD_MEMORY_TOTAL, columns.memory_total)
+			and record.set_i32(FIELD_WEAR_REMAINDER, columns.wear_remainder)
+			and record.set_i32(FIELD_TOOL_LOT_SLOT, columns.tool_lot_slot)
+			and record.set_i32(FIELD_TOOL_LOT_GENERATION, columns.tool_lot_generation)
+			and record.set_i32(FIELD_TOOL_JOB_SLOT, columns.tool_job_slot)
+			and record.set_i32(FIELD_TOOL_JOB_GENERATION, columns.tool_job_generation)
+			and record.set_u8(FIELD_TOOL_BROKEN, columns.tool_broken)):
+		return _refuse(Section.REFUSE_SHAPE,
+			"Work owner %d capture could not write a column" % OWNER_INDEX)
+	return framed_refusal(record)
+
+
+static func apply(record: Section.FramedOwner, store: Work) -> SaveHeader.Refusal:
+	"""Validate one owner 16 record, then install it into `store`. Refusal writes nothing.
+
+	`framed_refusal()` runs first and its refusal is returned unchanged. The projection shares the
+	record's buffers by assignment; `restore_columns()` takes its own private copies.
+	"""
+	var framed: SaveHeader.Refusal = framed_refusal(record)
+	if not framed.is_ok():
+		return framed
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no Work store was supplied for owner %d" % OWNER_INDEX)
+	var columns: Work.Columns = Work.Columns.new()
+	columns.potential_remainder = record.i32_column(FIELD_POTENTIAL_REMAINDER)
+	columns.xp_remainder = record.i32_column(FIELD_XP_REMAINDER)
+	columns.memory_total = record.i32_column(FIELD_MEMORY_TOTAL)
+	columns.wear_remainder = record.i32_column(FIELD_WEAR_REMAINDER)
+	columns.tool_lot_slot = record.i32_column(FIELD_TOOL_LOT_SLOT)
+	columns.tool_lot_generation = record.i32_column(FIELD_TOOL_LOT_GENERATION)
+	columns.tool_job_slot = record.i32_column(FIELD_TOOL_JOB_SLOT)
+	columns.tool_job_generation = record.i32_column(FIELD_TOOL_JOB_GENERATION)
+	columns.tool_broken = record.u8_column(FIELD_TOOL_BROKEN)
+	if not store.restore_columns(columns):
+		return _refuse(store.last_column_refusal(), "Work owner %d restore refused with %s"
+			% [OWNER_INDEX, String(store.last_column_refusal())])
+	return _accept()
+
+
+static func _target_refusal(record: Section.FramedOwner, store: Work) -> SaveHeader.Refusal:
+	"""Capture's preflight: record, owner index, store, then the schema and metadata guards."""
+	if record == null:
+		return _refuse(Section.REFUSE_SHAPE,
+			"no framed owner was supplied for owner %d ('%s')" % [OWNER_INDEX, OWNER_KEY])
+	if record.owner != OWNER_INDEX:
+		return _refuse(Section.REFUSE_OWNER,
+			"owner %d was supplied where owner %d ('%s') is required"
+				% [record.owner, OWNER_INDEX, OWNER_KEY])
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no Work store was supplied for owner %d" % OWNER_INDEX)
+	var schema: SaveHeader.Refusal = Schema.schema_refusal()
+	if not schema.is_ok():
+		return schema
+	return _metadata_refusal()
 
 
 static func _metadata_refusal() -> SaveHeader.Refusal:

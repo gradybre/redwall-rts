@@ -20,8 +20,12 @@ const RoomOrders := preload("res://scripts/core/underground_room_orders.gd")
 const EntryPlan := preload("res://scripts/core/underground_entry_plan.gd")
 const ConnectorCatalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const ConnectorFacts := preload("res://scripts/core/underground_connector_source_facts.gd")
+const ContactRetirementScope := preload("res://scripts/core/underground_entry_contact_retirement_scope.gd")
+## ADR1217 step 5: the endpoint certificate bound to the installation's content (claw for content 9, pick before).
+const AssemblyEndpoint := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/endpoint_certificates.gd")
+const Journal := preload("res://scripts/core/underground_geometry_journal.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
-const SCHEMA: int = 1
+const SCHEMA: int = 2 # ADR1215: schema 2 appends the optional per-motion air pool to the wire.
 const HEADER_FIELDS: int = 16
 const I32_FIELDS: int = 22
 const I64_FIELDS: int = 2
@@ -32,6 +36,13 @@ const WORLD_COPY_CONTROL_BYTES: int = 256 # Private116B record plus guards coexi
 const RESOLVE_CONTROL_BYTES: int = 512 # Caller frame36B/ref8B plus bounded scalar lookup frames; no image or array allocation.
 const PREPARED_OBSERVATION_CHECKS: int = 256 # Fixed context/row reads; Routes charges each observation before copying.
 const FRONTIER_HEAP_WORDS: int = 168 # Six removals times14 bounded index/value writes; one caller-owned cold patch.
+## ADR1215 per-motion air: a Location's air is its envelope plus up to MAX_AIR_EXTRA further half-open boxes,
+## held in a fixed pool sized only by arena surplus beyond 228N+256 (zero slots: the schema-1 single-box model).
+const MAX_AIR_EXTRA: int = 3
+const AIR_FIELDS: int = 7 # Owner row, then the half-open box.
+const AIR_SLOT_BYTES: int = 4 * AIR_FIELDS
+const AIR_ARENA_BYTES_PER_SLOT: int = 2 * AIR_SLOT_BYTES
+const MAX_AIR_SLOTS: int = 256
 const ROLE_TRANSIT: int = 0
 const ROLE_STORAGE: int = 1
 const ROLE_WORK: int = 2
@@ -49,6 +60,9 @@ const ENVELOPE: int = 10
 const SUPPORT: int = 16
 const PAYLOAD_REVISION: int = 0
 const GEOMETRY_REVISION: int = 1
+## Every role whose volume an endpoint's air may not meet (the envelope obstacle predicate).
+const BLOCKING_ROLES: Array[int] = [Space.DRY_SOLID, Space.OBSTACLE, Space.PROTECTED_ACCESS, Space.SUPPORT,
+	Space.OPENABLE_SHELL, Space.WATER, Space.RESOURCE, Space.OCCUPANT, Space.UNFINISHED]
 
 
 class Record extends RefCounted:
@@ -64,6 +78,12 @@ class Record extends RefCounted:
 	var world: Vector2i = NULL_REF
 	var payload_revision: int = 0
 	var geometry_revision: int = 0
+	var air_count: int = 0 # ADR1215: further air boxes beyond the envelope; zero for a single-box Location.
+	var air: PackedInt32Array = PackedInt32Array()
+
+	func _init() -> void:
+		"""Every packet carries the fixed extra-air shape, so readers never resize caller output."""
+		air.resize(6 * MAX_AIR_EXTRA)
 
 
 class Result extends RefCounted:
@@ -87,11 +107,15 @@ class Bank extends RefCounted:
 	var retired: PackedByteArray = PackedByteArray()
 	var free_rows: PackedInt32Array = PackedInt32Array()
 	var ordered: PackedInt32Array = PackedInt32Array()
+	var air: PackedInt32Array = PackedInt32Array() # ADR1215 pool: owner row (-1 free) then box, slot-major.
 	var free_count: int = 0
 	var count: int = 0
 
-	func allocate(capacity: int) -> void:
+	func allocate(capacity: int, air_slots: int = 0) -> void:
 		"""Allocate exactly the admitted packed schema; all unused bytes start canonical."""
+		air.resize(AIR_FIELDS * air_slots)
+		for slot: int in air_slots:
+			air[slot * AIR_FIELDS] = -1
 		header.resize(HEADER_FIELDS)
 		i32.resize(I32_FIELDS * capacity)
 		i64.resize(I64_FIELDS * capacity)
@@ -119,6 +143,8 @@ class Bank extends RefCounted:
 			retired[index] = other.retired[index]
 			free_rows[index] = other.free_rows[index]
 			ordered[index] = other.ordered[index]
+		for index: int in air.size():
+			air[index] = other.air[index]
 		free_count = other.free_count
 		count = other.count
 
@@ -247,6 +273,37 @@ class FrontierContext extends RefCounted:
 	var edges: PackedInt32Array = PackedInt32Array()
 
 
+class ContactRetirementContext extends RefCounted:
+	## One112B cold-only packet; its exact issuer privately pins all original controls and banks.
+	var issuer: RefCounted = null
+	var issuer_script: Script = null
+	var locations: RefCounted = null
+	var graph: RefCounted = null
+	var routes: RefCounted = null
+	var owner: RefCounted = null
+	var budget: Budget = null
+	var live: Bank = null
+	var candidate: Bank = null
+	var graph_live: RefCounted = null
+	var graph_candidate: RefCounted = null
+	var masks_live: RefCounted = null
+	var masks_candidate: RefCounted = null
+	var world: Vector2i = NULL_REF
+	var placement: Vector2i = NULL_REF
+	var first: Vector2i = NULL_REF
+	var second: Vector2i = NULL_REF
+	var cold: int = 0
+	var revision: int = 0
+	var profiles: int = 0
+	var catalog: int = 0
+	var graph_revision: int = 0
+	var location_revision: int = 0
+	var route_token: int = 0
+	var location_token: int = 0
+	var route_receipt: int = 0
+	var phase: int = 0
+
+
 class InventoryLocations extends InventoryContract:
 	## Borrow the actual namespace weakly so Inventory cannot form an owner cycle.
 	var _locations: WeakRef = null
@@ -291,7 +348,10 @@ var _sites: WeakRef = null
 var _domain: Space.Domain = null
 var _cold: Budget = null
 var _frontier: FrontierContext = null # Borrowed only for one admitted synchronous cold transaction.
+var _contact_retirement: ContactRetirementContext = null # Borrowed original two-publication bracket, never a bank.
 var _capacity: int = 0
+var _air_slots: int = 0 # ADR1215: fixed per-motion air pool slots admitted from arena surplus; zero by default.
+var _air_box: PackedInt32Array = PackedInt32Array() # One reused extra-air box scratch, sized at configure.
 var _live: Bank = Bank.new()
 var _stage: Bank = Bank.new()
 var _world: Vector2i = NULL_REF
@@ -306,6 +366,14 @@ var _phase_stage: int = -1
 var _base_geometry_revision: int = 0
 var _target_geometry_revision: int = 0
 var _sealed: bool = false
+## ADR1229 increment 6b: inside one installed-witness pass (no observer runs in it), the installed prisms of one
+## Placement row's paid prefix are derived once and shared by every record of that pass. Key [pass, row,
+## generation, prefix, part count]; the pass number changes at every pass, so nothing survives one.
+var _prism_boxes: PackedInt32Array = PackedInt32Array() # Sized at configure.
+var _prism_key: PackedInt64Array = PackedInt64Array() # Sized at configure.
+var _witness_pass: int = 0
+var _in_witness_pass: bool = false
+var _sources_pass: int = 0 # ADR1229 increment 6b: the witness pass whose installed sources were proved current.
 var _remaining: int = 0
 var _snapshot: Space.Snapshot = null
 var _region: Owner.Region = Owner.Region.new()
@@ -323,6 +391,15 @@ var _world_preparation: bool = false
 var _installation: InstallationContext = null
 var _phase_context: PhaseContext = null
 var _resolve_source_ref: Vector2i = NULL_REF
+## ADR1207: connector content revision under which the last World publication (or load) proved every live
+## row; -1 until one has. A World refresh may carry a row only while the bound content is still this one.
+var _carry_content: int = -1
+## ADR1207: true only while a carried row's identity facts are re-checked without its volume proof.
+var _carry_geometry: bool = false
+## ADR 1228: true only while a cold load re-proves its rows; a set-down paid workpiece is not a blocker.
+var _loading_rows: bool = false
+## ADR1207 measurement: rows the current (or last) World preparation carried instead of re-proving.
+var _carried_locations: int = 0
 var _resolve_source_hint: int = -1
 
 
@@ -353,10 +430,20 @@ func configure(ids: Directory, buildings: Buildings, transforms: Transforms,
 	_cold = cold
 	_capacity = capacity
 	_world = domain._world
-	_live.allocate(capacity)
-	_stage.allocate(capacity)
+	_allocate_banks(capacity, arena_bytes)
 	_write_header()
 	return &""
+
+
+func _allocate_banks(capacity: int, arena_bytes: int) -> void:
+	"""ADR1215: arena surplus beyond the schema-1 banks admits the per-motion air pool, then both banks allocate."""
+	@warning_ignore("integer_division") var surplus: int = (arena_bytes - 228 * capacity - 256) / AIR_ARENA_BYTES_PER_SLOT
+	_air_slots = mini(MAX_AIR_SLOTS, surplus)
+	_air_box.resize(6)
+	_prism_boxes.resize(6 * ConnectorCatalog.MAX_PARTS)
+	_prism_key.resize(5)
+	_live.allocate(capacity, _air_slots)
+	_stage.allocate(capacity, _air_slots)
 
 
 func bind_sites(sites: Sites) -> StringName:
@@ -453,7 +540,7 @@ func live_location_at_into(slot: int, expected_geometry_revision: int,
 		out_ref: PackedInt32Array, out: Record) -> StringName:
 	"""Read one current full row without observers; all refused calls preserve both caller outputs."""
 	if slot < 0 or slot >= _capacity: return &"LOCATION_FORMAT"
-	if out_ref.size() != 2 or out == null or out.envelope.size() != 6 or out.support.size() != 6:
+	if out_ref.size() != 2 or out == null or out.envelope.size() != 6 or out.support.size() != 6 or out.air.size() != 6 * MAX_AIR_EXTRA:
 		return &"LOCATION_OUTPUT_SHAPE"
 	var code: StringName = _iteration_scope_refusal(self, expected_geometry_revision)
 	if code != &"": return code
@@ -483,7 +570,7 @@ static func _iteration_scope_refusal(actual: RefCounted, revision: int) -> Strin
 		return &"LOCATION_OWNER_MISMATCH"
 	if 256 + 4 * actual._owner._source_capacity > actual._domain._checks:
 		return &"LOCATION_OPERATION_BUDGET"
-	if actual._token != 0 or actual._in_retention or actual._owner._stage_token != 0 or actual._owner._room_callback \
+	if actual._contact_retirement != null or actual._token != 0 or actual._in_retention or actual._owner._stage_token != 0 or actual._owner._room_callback \
 			or actual._owner._validation_sources >= 0 or actual._owner._validation_regions >= 0:
 		return &"LOCATION_SELECTOR_BUSY"
 	var bank: Bank = actual._live
@@ -562,9 +649,12 @@ func bind_retention(retention: Retention) -> StringName:
 
 
 func _reject_retention_callback() -> bool:
-	"""Trusted retention callbacks inspect state; attempted reentrant mutations invalidate their answer."""
+	"""Observers and the exact retirement bracket cannot reopen ordinary mutation or publication doors."""
 	if _in_retention:
 		_retention_reentered = true
+		return true
+	if _contact_retirement != null:
+		_remaining = -1
 		return true
 	return false
 
@@ -588,7 +678,7 @@ func _route_retention_refusal(location: Vector2i) -> StringName:
 
 func packed_memory_bytes() -> int:
 	"""Both banks and their own heap/index arrays; caller cold outputs are separate."""
-	return 228 * _capacity + 256 if _capacity > 0 else 0
+	return 228 * _capacity + 256 + AIR_ARENA_BYTES_PER_SLOT * _air_slots if _capacity > 0 else 0
 
 
 func last_published_token() -> int:
@@ -598,7 +688,7 @@ func last_published_token() -> int:
 
 func wire_bytes() -> int:
 	"""One explicit capture image, which must retain its cold lease until consumed."""
-	return ROW_BYTES * _capacity + HEADER_FIELDS * 8 if _capacity > 0 else 0
+	return ROW_BYTES * _capacity + HEADER_FIELDS * 8 + AIR_SLOT_BYTES * _air_slots if _capacity > 0 else 0
 
 
 func cold_peak_bytes() -> int:
@@ -618,7 +708,7 @@ func location_revision(location: Vector2i) -> int:
 
 func read_location_into(location: Vector2i, out: Record) -> StringName:
 	"""Copy scalar fields into caller-owned fixed-size arrays; never allocate on a contact read."""
-	if out == null or out.envelope.size() != 6 or out.support.size() != 6:
+	if out == null or out.envelope.size() != 6 or out.support.size() != 6 or out.air.size() != 6 * MAX_AIR_EXTRA:
 		return &"LOCATION_OUTPUT_SHAPE"
 	if not is_live_location(location):
 		return &"LOCATION_STALE"
@@ -682,7 +772,7 @@ func _resolve_live_scope_refusal(revision: int, max_checks: int) -> StringName:
 	if max_checks < 256 + 16 * _capacity + 4 * _owner._source_capacity \
 			or max_checks > Space.MAX_CHECKS or max_checks > _domain._checks:
 		return &"LOCATION_OPERATION_BUDGET"
-	if _token != 0 or _in_retention or _owner._stage_token != 0 or _owner._room_callback \
+	if _contact_retirement != null or _token != 0 or _in_retention or _owner._stage_token != 0 or _owner._room_callback \
 			or _owner._validation_sources >= 0 or _owner._validation_regions >= 0:
 		return &"LOCATION_SELECTOR_BUSY"
 	if _ids == null or _buildings == null or _transforms == null or _inventory == null \
@@ -784,7 +874,7 @@ func prepared_location_into(token: int, location: Vector2i, out: Record) -> Stri
 	var code: StringName = prepared_refusal(token)
 	if code != &"":
 		return code
-	if out == null or out.envelope.size() != 6 or out.support.size() != 6:
+	if out == null or out.envelope.size() != 6 or out.support.size() != 6 or out.air.size() != 6 * MAX_AIR_EXTRA:
 		return &"LOCATION_OUTPUT_SHAPE"
 	if not _live_ref(_stage, location):
 		return &"LOCATION_STALE"
@@ -795,7 +885,7 @@ func prepared_location_into(token: int, location: Vector2i, out: Record) -> Stri
 static func prepared_route_location_into(actual: RefCounted, graph: RefCounted,
 		location: Vector2i, out: Record) -> StringName:
 	"""Observe one sealed row between the graph's full pre/post proofs; this is never physical permission."""
-	if out == null or out.envelope.size() != 6 or out.support.size() != 6:
+	if out == null or out.envelope.size() != 6 or out.support.size() != 6 or out.air.size() != 6 * MAX_AIR_EXTRA:
 		return &"LOCATION_OUTPUT_SHAPE"
 	var code: StringName = _route_observation_binding_refusal(actual, graph)
 	if code == &"":
@@ -908,6 +998,7 @@ static func _copy_route_observation(actual: RefCounted, bank: Bank, row: int, ou
 	for axis: int in 6:
 		out.envelope[axis] = bank.i32[(ENVELOPE + axis) * capacity + row]
 		out.support[axis] = bank.i32[(SUPPORT + axis) * capacity + row]
+	_air_copy(actual, bank, row, out)
 
 
 func storage_endpoint_refusal(location: Vector2i) -> StringName:
@@ -1009,6 +1100,7 @@ func begin_world_prepare(cold_token: int, owner_token: int) -> Result:
 	if result.error == &"":
 		_world_preparation = true
 		_target_geometry_revision = _owner.revision() + 1
+		_carried_locations = 0
 	return result
 
 
@@ -1020,6 +1112,7 @@ func installation_binding_refusal(context: InstallationContext) -> StringName:
 static func installation_binding_leaf_refusal(actual: RefCounted, context: InstallationContext) -> StringName:
 	"""The final reciprocal link proof cannot dispatch an overridden observation method."""
 	if actual == null or actual._capacity == 0 or actual._token != 0 or actual._in_retention or context == null \
+			or actual._contact_retirement != null \
 			or (actual._installation != null and actual._installation != context) or context.issuer == null \
 			or context.issuer.get_ref() == null or context.locations == null or context.locations.get_ref() != actual \
 			or context.space == null or context.space.get_ref() != actual._owner or context.budget != actual._cold \
@@ -1039,7 +1132,7 @@ func bind_installation_context(context: InstallationContext) -> StringName:
 static func installation_scope_refusal(actual: RefCounted, context: InstallationContext,
 		publishing: bool = false) -> StringName:
 	"""Exact actual Construction/Router leaves replace any virtual publication-success predicate."""
-	if context == null or context != actual._installation or context.locations == null \
+	if context == null or actual._contact_retirement != null or context != actual._installation or context.locations == null \
 			or context.locations.get_ref() != actual or context.space == null or context.space.get_ref() != actual._owner \
 			or context.budget != actual._cold or context.world != actual._world or context.issuer == null \
 			or context.issuer.get_ref() == null or context.construction == null \
@@ -1156,7 +1249,7 @@ func _phase_active() -> bool:
 
 static func phase_scope_leaf_refusal(actual: RefCounted, context: PhaseContext, publishing: bool = false) -> StringName:
 	"""Full actual owner, original arena and retained Authority tuple; no virtual scope permission is queried."""
-	if actual == null or context == null or actual._phase_context != context or context.issuer == null \
+	if actual == null or context == null or actual._contact_retirement != null or actual._phase_context != context or context.issuer == null \
 			or context.authority == null or context.sites == null or context.space == null or context.locations == null \
 			or context.locations.get_ref() != actual or context.space.get_ref() != actual._owner \
 			or context.budget != actual._cold or context.world != actual._world \
@@ -1355,7 +1448,7 @@ static func _clear_installation_preparation(actual: RefCounted) -> void:
 
 static func room_scope_leaf_refusal(actual: RefCounted, context: RoomContext, publishing: bool = false) -> StringName:
 	"""Read the actual once-bound RoomOrders' original Room scope and arena without an authority callback."""
-	if actual == null or context == null or context.orders == null or context.locations == null \
+	if actual == null or context == null or actual._contact_retirement != null or context.orders == null or context.locations == null \
 			or context.locations.get_ref() != actual or context.space == null or context.space.get_ref() != actual._owner \
 			or context.budget != actual._cold or context.world != actual._world or actual._room_orders == null \
 			or not actual._cold.covers(context.cold_token, Budget.COLD_BYTES):
@@ -1522,6 +1615,8 @@ func stage_add(token: int, record: Record) -> Result:
 		return Result.new(code)
 	if _stage.free_count == 0:
 		return Result.new(&"LOCATION_ARENA_FULL")
+	if record.air_count > _air_free_count(_stage):
+		return Result.new(&"LOCATION_AIR_CAPACITY")
 	var row: int = _pop_free(_stage)
 	var generation: int = _get32(_stage, GENERATION, row) + 1
 	_set32(_stage, GENERATION, row, generation)
@@ -1532,7 +1627,10 @@ func stage_add(token: int, record: Record) -> Result:
 
 
 func stage_refresh(token: int, location: Vector2i) -> StringName:
-	"""Revalidate an existing immutable endpoint without changing Inventory's payload revision."""
+	"""Revalidate an existing immutable endpoint without changing Inventory's payload revision.
+	ADR1207: in a World preparation, an endpoint that no change since its own proof touches is carried."""
+	if _world_preparation and _carry_eligible(token, location):
+		return _stage_carry(location)
 	var code: StringName = _editable(token)
 	if code != &"" or not _live_ref(_stage, location):
 		return code if code != &"" else &"LOCATION_STALE"
@@ -1542,6 +1640,81 @@ func stage_refresh(token: int, location: Vector2i) -> StringName:
 	if code == &"":
 		_set64(_stage, GEOMETRY_REVISION, location.x, _snapshot.revision)
 	return code
+
+
+func _carry_eligible(token: int, location: Vector2i) -> bool:
+	"""ADR1207: cheap candidate identity, then the journal and the blocker scan; anything unproved is re-proved."""
+	if _in_retention or _contact_retirement != null or token <= 0 or token != _token or _sealed \
+			or _carry_content < 0 or not _content_current() \
+			or not _cold.covers(_cold_token, cold_peak_bytes()) or not _live_ref(_live, location) \
+			or not _live_ref(_stage, location) or not _row_payload_unchanged(location.x):
+		return false
+	if not _world_scope_current(_actual_world_scope(), _cold_token, _owner_token) \
+			or _owner._stage_token != _owner_token or not _owner._sealed or _owner._validation_sources >= 0 \
+			or _owner.prepared_identity_refusal(_owner_token) != &"" or _owner.revision() + 1 != _target_geometry_revision:
+		return false
+	var since: int = _get64(_live, GEOMETRY_REVISION, location.x)
+	_prepare_record_scratch()
+	_read_row(_live, location.x, _record)
+	var cost: int = (4 * Journal.CAPACITY + 2 * _owner._changed_count + _owner._region_capacity + 64) * (1 + _record.air_count)
+	if since > _owner.revision() or cost > _remaining:
+		return false
+	_remaining -= cost
+	if not _untouched(_record, since) or not _envelope_unblocked(_record.envelope):
+		return false
+	for index: int in _record.air_count:
+		var box: PackedInt32Array = _air_box_at(_record, index)
+		if not _owner._location_journal.clean(box, since, Space.FLOOR_DATUM) \
+				or not Journal.staged_clean(_owner, box, Space.FLOOR_DATUM) or not _envelope_unblocked(box):
+			return false
+	return true
+
+
+func _untouched(record: Record, since: int) -> bool:
+	"""No full-view change after `since`, journaled or staged, meets the air or the footing (FLOOR_DATUM is inert)."""
+	var journal: Journal = _owner._location_journal
+	return journal.clean(record.envelope, since, Space.FLOOR_DATUM) \
+		and journal.clean(record.support, since, Space.FLOOR_DATUM) \
+		and Journal.staged_clean(_owner, record.envelope, Space.FLOOR_DATUM) \
+		and Journal.staged_clean(_owner, record.support, Space.FLOOR_DATUM)
+
+
+func _envelope_unblocked(envelope: PackedInt32Array) -> bool:
+	"""No blocking volume of the sealed full image meets the air, whatever image or exemption the older proof used."""
+	for row: int in _owner._region_capacity:
+		if _owner._s_r_present[row] == 0 or not Journal.side_overlaps(_owner, row, true, envelope):
+			continue
+		var role: int = Space.OBSTACLE if _owner._s_r_claim_kind[row] != Owner.CLAIM_NONE else _owner._s_r_role[row]
+		if role in BLOCKING_ROLES:
+			return false
+	return true
+
+
+func _stage_carry(location: Vector2i) -> StringName:
+	"""ADR1207: re-check identity, section and Room/Site facts only; the journal vouches for the unchanged volumes."""
+	_prepare_record_scratch()
+	_read_row(_stage, location.x, _record)
+	_carry_geometry = true
+	var code: StringName = _validate_record(_record)
+	_carry_geometry = false
+	if code == &"":
+		_set64(_stage, GEOMETRY_REVISION, location.x, _target_geometry_revision)
+		_carried_locations += 1
+	return code
+
+
+func _content_current() -> bool:
+	"""ADR1207: unchanged bound content. A first binding is no revision: no earlier proof read any content, and a
+	carried row still re-derives its installed witness from the content now bound."""
+	return _carry_content == 0 or _carry_content == _content_stamp()
+
+
+func _content_stamp() -> int:
+	"""ADR1207: the bound connector Catalog's content revision, which installed-endpoint witnesses read; else 0."""
+	if _installation == null or _installation.issuer == null:
+		return 0
+	var issuer: RefCounted = _installation.issuer.get_ref()
+	return issuer._catalog.content_revision() if issuer != null and issuer._catalog != null else 0
 
 
 func stage_remove(token: int, location: Vector2i) -> StringName:
@@ -1669,12 +1842,20 @@ func publish(token: int) -> bool:
 		return false
 	if _final_inventory_refusal(_cold_token, cold_peak_bytes()) != &"":
 		return false
+	_swap_published(token)
+	return true
+
+
+func _swap_published(token: int) -> void:
+	"""Swap the banks; a World publication also stamps the content every live row was just proved under."""
+	var world: bool = _world_preparation
 	var previous: Bank = _live
 	_live = _stage
 	_stage = previous
 	_last_published_token = token
 	_reset_preparation()
-	return true
+	if world:
+		_carry_content = _content_stamp()
 
 
 func _world_publication_refusal() -> StringName:
@@ -1823,6 +2004,8 @@ func _copy_world_record(record: Record) -> Record:
 	pinned.role = record.role
 	pinned.envelope = record.envelope.duplicate()
 	pinned.support = record.support.duplicate()
+	pinned.air_count = record.air_count
+	pinned.air = record.air.duplicate()
 	return pinned
 
 
@@ -1830,7 +2013,8 @@ func _world_record_matches(record: Record, pinned: Record) -> bool:
 	"""Compare every caller input used by validation or row publication after the last source observer."""
 	return record.point == pinned.point and record.room == pinned.room and record.section == pinned.section \
 		and record.level == pinned.level and record.role == pinned.role \
-		and record.envelope == pinned.envelope and record.support == pinned.support
+		and record.envelope == pinned.envelope and record.support == pinned.support \
+		and record.air_count == pinned.air_count and record.air == pinned.air
 
 
 func _record_geometry_refusal(record: Record) -> StringName:
@@ -1838,7 +2022,7 @@ func _record_geometry_refusal(record: Record) -> StringName:
 	if record == null or not Space.valid_box(record.envelope) or not Space.valid_box(record.support) \
 			or record.level < 0 or record.role < ROLE_TRANSIT or record.role > ROLE_WORK \
 			or not Space.contains_box(_domain._bounds, record.envelope) \
-			or not Space.contains_box(_domain._bounds, record.support):
+			or not Space.contains_box(_domain._bounds, record.support) or not _air_format_valid(record):
 		return &"LOCATION_GEOMETRY_FORMAT"
 	for axis: int in 3:
 		if record.point[axis] < record.envelope[axis] or record.point[axis] >= record.envelope[axis + 3]:
@@ -1848,18 +2032,76 @@ func _record_geometry_refusal(record: Record) -> StringName:
 	var code: StringName = _section_refusal(record)
 	if code == &"":
 		code = _survey_for(record)
-	if code != &"":
+	if code != &"" or _carry_geometry:
 		return code
+	code = _record_obstacles_refusal(record)
+	if code == &"": code = _air_obstacles_refusal(record)
+	if code != &"": return code
+	if not _covered(record.envelope, Space.SUPPORTED_VOID) or not _covered(record.support, Space.SUPPORT):
+		return &"LOCATION_COVERAGE_MISSING" if _remaining >= 0 else &"LOCATION_OPERATION_BUDGET"
+	for index: int in record.air_count:
+		if not _covered(_air_box_at(record, index), Space.SUPPORTED_VOID):
+			return &"LOCATION_COVERAGE_MISSING" if _remaining >= 0 else &"LOCATION_OPERATION_BUDGET"
+	return &""
+
+
+func _air_format_valid(record: Record) -> bool:
+	"""ADR1215: bounded count, fixed shape, and each extra box valid, in the domain and wholly above the root plane."""
+	if record.air.size() != 6 * MAX_AIR_EXTRA or record.air_count < 0 or record.air_count > MAX_AIR_EXTRA \
+			or (record.air_count > 0 and record.air_count > _air_slots): return false
+	for index: int in record.air_count:
+		var box: PackedInt32Array = _air_box_at(record, index)
+		if not Space.valid_box(box) or not Space.contains_box(_domain._bounds, box) or box[1] < record.point.y: return false
+	return true
+
+
+func _air_obstacles_refusal(record: Record) -> StringName:
+	"""ADR1215: extra air has no pending-bearer exemption; any blocking row meeting it refuses."""
+	var rows: Space.Volumes = _snapshot.volumes
+	for index: int in record.air_count:
+		var box: PackedInt32Array = _air_box_at(record, index)
+		for row: int in rows.role.size():
+			if not _spend():
+				return &"LOCATION_OPERATION_BUDGET"
+			if rows.role[row] in BLOCKING_ROLES and Space.overlaps(box, rows.box_at(row)) \
+					and not _loaded_workpiece_volume(rows, row):
+				return &"LOCATION_ENVELOPE_BLOCKED"
+	return &""
+
+
+func _record_obstacles_refusal(record: Record) -> StringName:
+	"""All blockers remain authoritative; only the exact original pending prism can receive its physical proof."""
 	var rows: Space.Volumes = _snapshot.volumes
 	for row: int in rows.role.size():
 		if not _spend():
 			return &"LOCATION_OPERATION_BUDGET"
-		if rows.role[row] in [Space.DRY_SOLID, Space.OBSTACLE, Space.PROTECTED_ACCESS, Space.SUPPORT, Space.OPENABLE_SHELL,
-				Space.WATER, Space.RESOURCE, Space.OCCUPANT, Space.UNFINISHED] and Space.overlaps(record.envelope, rows.box_at(row)):
-			return &"LOCATION_ENVELOPE_BLOCKED"
-	if not _covered(record.envelope, Space.SUPPORTED_VOID) or not _covered(record.support, Space.SUPPORT):
-		return &"LOCATION_COVERAGE_MISSING" if _remaining >= 0 else &"LOCATION_OPERATION_BUDGET"
+		if rows.role[row] in BLOCKING_ROLES and Space.overlaps(record.envelope, rows.box_at(row)) \
+				and not _loaded_workpiece_volume(rows, row):
+			var code: StringName = _pending_entry_record_refusal(record, row)
+			if code != &"": return code
 	return &""
+
+
+func _loaded_workpiece_volume(rows: Space.Volumes, row: int) -> bool:
+	"""ADR 1228: during a cold load only, a static paid workpiece -- an unclaimed obstacle owned by a
+	live connector-installation Project -- set down after an endpoint was proved does not block it;
+	WorldRoutes keeps every body out of that piece (`workpiece_occupancy_refusal`)."""
+	if not _loading_rows or rows.role[row] != Space.OBSTACLE:
+		return false
+	var owner: Vector2i = Vector2i(rows.owner_slot[row], rows.owner_generation[row])
+	return _sources._construction.purpose_into(owner, _math) \
+		and _math.value == Construction.PURPOSE_CONNECTOR_INSTALL
+
+
+func _pending_entry_record_refusal(record: Record, row: int) -> StringName:
+	"""Original owner proof precedes the cycle-free source leaf; foreign volumes and live refreshes still refuse."""
+	if not _installation_active() or _snapshot.volumes.role[row] != Space.OBSTACLE:
+		return &"LOCATION_ENVELOPE_BLOCKED"
+	var code: StringName = installation_scope_refusal(self, _installation)
+	if code != &"": return code
+	code = AssemblyEndpoint.prepared_record_refusal(self, _installation, record, row)
+	if code == &"LOCATION_OPERATION_BUDGET": return code
+	return &"" if code == &"" else &"LOCATION_ENVELOPE_BLOCKED"
 
 
 static func support_covers_root(point: Vector3i, support: PackedInt32Array) -> bool:
@@ -1912,6 +2154,8 @@ func _survey_for(record: Record) -> StringName:
 			return scope
 	if _world_preparation and not _world_scope_current(_actual_world_scope(), _cold_token, _owner_token):
 		return &"LOCATION_WORLD_SCOPE"
+	if _carry_geometry:
+		return &"" # ADR1207: a carried row copies no image; its volumes are vouched for by the journal.
 	var image: Space.Snapshot = Space.Snapshot.new()
 	var code: StringName = _snapshot_for_into(record, physical, site, image)
 	if code == &"":
@@ -1934,7 +2178,7 @@ func _snapshot_for_into(record: Record, physical: Sites, site: Vector2i, image: 
 		return _owner.prepared_snapshot_leased_into(_owner_token, image, _cold, _cold_token)
 	if _installation_active() or _phase_active():
 		return _installation_snapshot_into(record, physical, site, image)
-	if record.role == ROLE_TRANSIT:
+	if record.role == ROLE_TRANSIT or record.air_count > 0: # ADR1215: per-motion air is proved like route sweeps.
 		return _owner.prepared_snapshot_for_traversal_into(_owner_token, image) \
 			if _owner_token != 0 else _owner.snapshot_for_traversal_into(image)
 	if record.room == NULL_REF:
@@ -1949,7 +2193,7 @@ func _installation_snapshot_into(record: Record, physical: Sites, site: Vector2i
 	if (_phase_active() and phase_scope_leaf_refusal(self, _phase_context) != &"") \
 			or (not _phase_active() and installation_scope_refusal(self, _installation) != &""):
 		return &"LOCATION_INSTALLATION_CONTEXT"
-	if record.role == ROLE_TRANSIT:
+	if record.role == ROLE_TRANSIT or record.air_count > 0:
 		return _owner.prepared_snapshot_for_traversal_leased_into(_owner_token, image, _cold, _cold_token)
 	if record.room != NULL_REF:
 		return _owner.prepared_snapshot_for_site_leased_into(_owner_token, image, physical, site, _cold, _cold_token)
@@ -2057,9 +2301,10 @@ static func installed_prism_into(issuer: RefCounted, row: int, ordinal: int, out
 
 func _installed_surface_site(record: Record, physical: Sites) -> Vector2i:
 	"""A real installed prism and exact Catalog datum may locate its paid lower cube; arbitrary y-minus-one cannot."""
-	if physical == null or _installation == null or _installation.issuer == null or not _spend(1024): return NULL_REF
+	if physical == null or _installation == null or _installation.issuer == null or not _spend(_sources_charge()):
+		return NULL_REF
 	var issuer: RefCounted = _installation.issuer.get_ref()
-	if not _installed_sources_current(issuer): return NULL_REF
+	if not _pass_sources_current(issuer): return NULL_REF
 	if _installation_active() and installation_scope_refusal(self, _installation) != &"": return NULL_REF
 	var found: Vector2i = NULL_REF
 	var matches: int = 0
@@ -2079,7 +2324,21 @@ func _installed_surface_site(record: Record, physical: Sites) -> Vector2i:
 		if site != NULL_REF:
 			found = site
 			matches += 1
-	return found if matches == 1 and _installed_sources_current(issuer) else NULL_REF
+	return found if matches == 1 and _pass_sources_current(issuer) else NULL_REF
+
+
+func _sources_charge() -> int:
+	"""The source proof's charge: 1024, or 16 once this witness pass has proved the sources current (ADR1229)."""
+	return 16 if _in_witness_pass and _sources_pass == _witness_pass else 1024
+
+
+func _pass_sources_current(issuer: RefCounted) -> bool:
+	"""`_installed_sources_current`, proved once per witness pass: no observer runs inside a pass, so its verdict
+	holds for the rest of that pass (ADR1229 increment 6b). Outside a pass, and in each new pass, it is re-derived."""
+	if _in_witness_pass and _sources_pass == _witness_pass: return true
+	var current: bool = _installed_sources_current(issuer)
+	if current and _in_witness_pass: _sources_pass = _witness_pass
+	return current
 
 
 func _record_paid_site(record: Record, physical: Sites) -> Vector2i:
@@ -2096,7 +2355,7 @@ func _installed_record_kind(record: Record) -> int:
 	"""Derive the witness from current immutable LANDING geometry; no saved flag or cube-height inference applies."""
 	if _installation == null: return 0
 	var issuer: RefCounted = _installation.issuer.get_ref() if _installation.issuer != null else null
-	if issuer == null or not _spend(1024): return -1
+	if issuer == null or not _spend(_sources_charge()): return -1
 	var matches: int = 0
 	var current: bool = false
 	for row: int in issuer._capacity:
@@ -2106,7 +2365,7 @@ func _installed_record_kind(record: Record) -> int:
 		if issuer._live.i32[issuer.ROOM_SLOT * issuer._capacity + row] != record.room.x \
 				or issuer._live.i32[(issuer.ROOM_SLOT + 1) * issuer._capacity + row] != record.room.y: continue
 		if not current:
-			if not _installed_sources_current(issuer): return -1
+			if not _pass_sources_current(issuer): return -1
 			current = true
 		if not _installed_row_source(issuer, row, record.room): return -1
 		var count: int = _installed_landing_count(issuer, row, record)
@@ -2189,18 +2448,43 @@ func _installed_row_source(p: RefCounted, row: int, room: Vector2i) -> bool:
 func _installed_row_site(issuer: RefCounted, row: int, prefix: int, record: Record, physical: Sites) -> Vector2i:
 	"""The exact stored FLOOR_DATUM must equal one authored landing of this full live Placement."""
 	if not _installed_row_source(issuer, row, record.room) or _installed_landing_count(issuer, row, record) != 1: return NULL_REF
+	var parts: int = _installed_prefix_prisms(issuer, row, prefix)
+	if parts < 0: return NULL_REF
 	var found: Vector2i = NULL_REF
+	for index: int in parts:
+		if not _spend(4): return NULL_REF
+		for axis: int in 6: _region.box[axis] = _prism_boxes[index * 6 + axis]
+		if _region.box[4] != record.point.y or record.point.x < _region.box[0] or record.point.x >= _region.box[3] \
+				or record.point.z < _region.box[2] or record.point.z >= _region.box[5]: continue
+		var site: Vector2i = _installed_part_site(record, physical)
+		if site == NULL_REF or (found != NULL_REF and found != site): return NULL_REF
+		found = site
+	return found
+
+
+func _installed_prefix_prisms(issuer: RefCounted, row: int, prefix: int) -> int:
+	"""The installed prisms of the row's paid prefix in `_prism_boxes`, in part order; their count, or -1 when one
+	is not a complete prism or the budget is spent. ADR1229: shared by every record of one witness pass."""
+	var generation: int = issuer._live.i32[row]
+	if _in_witness_pass and _prism_key[0] == _witness_pass and _prism_key[1] == row and _prism_key[2] == generation \
+			and _prism_key[3] == prefix:
+		return int(_prism_key[4])
+	_prism_key[0] = 0
+	var at: int = 0
 	for group: int in prefix:
 		var part_first: int = issuer._assemblies._first_part[group]
 		for part: int in range(part_first, part_first + issuer._assemblies._part_count[group]):
-			if not _spend(96): return NULL_REF
-			if installed_prism_into(issuer, row, part, _region.box) != &"": return NULL_REF
-			if _region.box[4] != record.point.y or record.point.x < _region.box[0] or record.point.x >= _region.box[3] \
-					or record.point.z < _region.box[2] or record.point.z >= _region.box[5]: continue
-			var site: Vector2i = _installed_part_site(record, physical)
-			if site == NULL_REF or (found != NULL_REF and found != site): return NULL_REF
-			found = site
-	return found
+			if not _spend(96) or at >= ConnectorCatalog.MAX_PARTS: return -1
+			if installed_prism_into(issuer, row, part, _region.box) != &"": return -1
+			for axis: int in 6: _prism_boxes[at * 6 + axis] = _region.box[axis]
+			at += 1
+	if _in_witness_pass:
+		_prism_key[0] = _witness_pass
+		_prism_key[1] = row
+		_prism_key[2] = generation
+		_prism_key[3] = prefix
+		_prism_key[4] = at
+	return at
 
 
 func _installed_landing_count(issuer: RefCounted, row: int, record: Record) -> int:
@@ -2256,20 +2540,34 @@ func _installed_part_site(record: Record, physical: Sites) -> Vector2i:
 
 
 func _installed_witnesses_refusal() -> StringName:
-	"""After all observers, rederive every candidate installed witness from current source and paid columns only."""
+	"""After all observers, rederive every candidate installed witness from current source and paid columns only.
+	ADR1229: a pass resolves each Room's source once (a Room's Locations follow one another's resolution within
+	the same synchronous pass), so the descent's many stops on one Room do not each re-scan the sources."""
 	if _installation == null: return &""
+	_witness_pass += 1
+	_in_witness_pass = true
+	var code: StringName = _derive_witnesses()
+	_in_witness_pass = false
+	return code
+
+
+func _derive_witnesses() -> StringName:
+	"""One complete witness pass over every staged installed record."""
 	if not _spend(64): return &"LOCATION_OPERATION_BUDGET"
 	var physical: Sites = _physical()
+	var resolved: Vector2i = NULL_REF
 	for row: int in _capacity:
 		if not _spend(): return &"LOCATION_OPERATION_BUDGET"
 		if _stage.present[row] != 1 or _ref_at(_stage, ROOM_SLOT, row) == NULL_REF: continue
-		if not _spend(_owner._source_capacity + 104): return &"LOCATION_OPERATION_BUDGET"
 		_record.point = Vector3i(_get32(_stage, X, row), _get32(_stage, Y, row), _get32(_stage, Z, row))
 		_record.room = _ref_at(_stage, ROOM_SLOT, row)
 		_record.section = _ref_at(_stage, SECTION_SLOT, row)
 		_record.level = _get32(_stage, LEVEL, row)
-		var source: int = _resolve_source_row(_record.room)
-		if source < 0 or _resolve_room_source_refusal(_record.room, source) != &"": return &"LOCATION_SOURCE_STALE"
+		if _record.room != resolved:
+			if not _spend(_owner._source_capacity + 104): return &"LOCATION_OPERATION_BUDGET"
+			var source: int = _resolve_source_row(_record.room)
+			if source < 0 or _resolve_room_source_refusal(_record.room, source) != &"": return &"LOCATION_SOURCE_STALE"
+			resolved = _record.room
 		if _record_paid_site(_record, physical) == NULL_REF:
 			return &"LOCATION_OPERATION_BUDGET" if _remaining < 0 else &"LOCATION_PAID_SITE_MISSING"
 	return &""
@@ -2388,6 +2686,135 @@ func _ref_at(bank: Bank, field: int, row: int) -> Vector2i:
 	return Vector2i(bank.i32[field * _capacity + row], bank.i32[(field + 1) * _capacity + row])
 
 
+static func _air_owned(bank: Bank, slots: int, row: int) -> int:
+	"""ADR1215: every pool slot this row owns, uncapped, so a malformed surplus is never hidden."""
+	var count: int = 0
+	for slot: int in slots:
+		if bank.air[slot * AIR_FIELDS] == row: count += 1
+	return count
+
+
+static func _air_copy(actual: RefCounted, bank: Bank, row: int, out: Record) -> void:
+	"""ADR1215: the row's extra air in pool order into the fixed caller shape; unused words are zero."""
+	var count: int = 0
+	out.air.fill(0)
+	for slot: int in actual._air_slots:
+		var at: int = slot * AIR_FIELDS
+		if bank.air[at] != row or count >= MAX_AIR_EXTRA: continue
+		for axis: int in 6: out.air[count * 6 + axis] = bank.air[at + 1 + axis]
+		count += 1
+	out.air_count = count
+
+
+func _air_write(row: int, record: Record) -> void:
+	"""ADR1215: each extra box takes the lowest free pool slot of the inactive bank, in record order."""
+	for index: int in record.air_count:
+		var slot: int = _air_free_slot(_stage)
+		var at: int = slot * AIR_FIELDS
+		_stage.air[at] = row
+		for axis: int in 6: _stage.air[at + 1 + axis] = record.air[index * 6 + axis]
+
+
+static func _air_free_slot(bank: Bank) -> int:
+	"""Lowest free pool slot, or -1."""
+	@warning_ignore("integer_division") var slots: int = bank.air.size() / AIR_FIELDS
+	for slot: int in slots:
+		if bank.air[slot * AIR_FIELDS] == -1: return slot
+	return -1
+
+
+static func _air_free_count(bank: Bank) -> int:
+	"""Free pool slots in one bank."""
+	@warning_ignore("integer_division") var slots: int = bank.air.size() / AIR_FIELDS
+	return _air_owned(bank, slots, -1)
+
+
+static func _air_release(bank: Bank, row: int) -> void:
+	"""Return every slot the row owns to the canonical free form (owner -1, zero box)."""
+	@warning_ignore("integer_division") var slots: int = bank.air.size() / AIR_FIELDS
+	for slot: int in slots:
+		if bank.air[slot * AIR_FIELDS] != row: continue
+		bank.air[slot * AIR_FIELDS] = -1
+		for axis: int in 6: bank.air[slot * AIR_FIELDS + 1 + axis] = 0
+
+
+static func _air_rows_equal(actual: RefCounted, row: int) -> bool:
+	"""The row's extra-air sequence is identical in both banks (slot positions may differ)."""
+	var live: Bank = actual._live
+	var stage: Bank = actual._stage
+	var j: int = 0
+	for i: int in actual._air_slots:
+		if live.air[i * AIR_FIELDS] != row: continue
+		while j < actual._air_slots and stage.air[j * AIR_FIELDS] != row: j += 1
+		if j >= actual._air_slots: return false
+		for axis: int in 6:
+			if live.air[i * AIR_FIELDS + 1 + axis] != stage.air[j * AIR_FIELDS + 1 + axis]: return false
+		j += 1
+	while j < actual._air_slots:
+		if stage.air[j * AIR_FIELDS] == row: return false
+		j += 1
+	return true
+
+
+static func _air_pool_canonical(actual: RefCounted, bank: Bank) -> bool:
+	"""Free slots are zero; owned slots name present rows, each with at most MAX_AIR_EXTRA boxes."""
+	if bank.air.size() != AIR_FIELDS * actual._air_slots: return false
+	for slot: int in actual._air_slots:
+		var owner: int = bank.air[slot * AIR_FIELDS]
+		if owner == -1:
+			for axis: int in 6:
+				if bank.air[slot * AIR_FIELDS + 1 + axis] != 0: return false
+		elif owner < 0 or owner >= actual._capacity or bank.present[owner] != 1 \
+				or _air_owned(bank, actual._air_slots, owner) > MAX_AIR_EXTRA: return false
+	return true
+
+
+static func air_record_matches(actual: RefCounted, bank: Bank, row: int, record: Record) -> bool:
+	"""ADR1215: the record's extra air equals the row's stored sequence exactly."""
+	if record.air.size() != 6 * MAX_AIR_EXTRA or record.air_count != _air_owned(bank, actual._air_slots, row): return false
+	var index: int = 0
+	for slot: int in actual._air_slots:
+		if bank.air[slot * AIR_FIELDS] != row: continue
+		for axis: int in 6:
+			if bank.air[slot * AIR_FIELDS + 1 + axis] != record.air[index * 6 + axis]: return false
+		index += 1
+	return true
+
+
+static func air_contains(record: Record, box: PackedInt32Array) -> bool:
+	"""ADR1215: the box lies wholly inside the envelope or inside one extra air box of the record."""
+	if Space.contains_box(record.envelope, box): return true
+	for index: int in record.air_count:
+		var inside: bool = true
+		for axis: int in 3:
+			inside = inside and box[axis] >= record.air[index * 6 + axis] and box[axis + 3] <= record.air[index * 6 + axis + 3]
+		if inside: return true
+	return false
+
+
+static func live_air_contains(actual: RefCounted, location: Vector2i, box: PackedInt32Array) -> bool:
+	"""ADR1215: the same test against a live full-generation row, without a Record copy."""
+	if not actual._live_ref(actual._live, location): return false
+	var inside: bool = true
+	for axis: int in 3:
+		inside = inside and box[axis] >= actual._get32(actual._live, ENVELOPE + axis, location.x) \
+			and box[axis + 3] <= actual._get32(actual._live, ENVELOPE + axis + 3, location.x)
+	for slot: int in actual._air_slots:
+		if inside: return true
+		if actual._live.air[slot * AIR_FIELDS] != location.x: continue
+		inside = true
+		for axis: int in 3:
+			inside = inside and box[axis] >= actual._live.air[slot * AIR_FIELDS + 1 + axis] \
+				and box[axis + 3] <= actual._live.air[slot * AIR_FIELDS + 4 + axis]
+	return inside
+
+
+func _air_box_at(record: Record, index: int) -> PackedInt32Array:
+	"""Extra box `index` of a record in the reused scratch (valid until the next call)."""
+	for axis: int in 6: _air_box[axis] = record.air[index * 6 + axis]
+	return _air_box
+
+
 func _prepare_record_scratch() -> void:
 	"""Cold setup alone sizes one reusable packet; hot endpoint reads require caller sizing."""
 	_record.envelope.resize(6)
@@ -2407,6 +2834,7 @@ func _read_row(bank: Bank, row: int, out: Record) -> void:
 	for axis: int in 6:
 		out.envelope[axis] = _get32(bank, ENVELOPE + axis, row)
 		out.support[axis] = _get32(bank, SUPPORT + axis, row)
+	_air_copy(self, bank, row, out)
 
 
 func _write_row(row: int, record: Record) -> void:
@@ -2424,11 +2852,13 @@ func _write_row(row: int, record: Record) -> void:
 		_set32(_stage, SUPPORT + axis, row, record.support[axis])
 	_set64(_stage, PAYLOAD_REVISION, row, _get32(_stage, GENERATION, row))
 	_set64(_stage, GEOMETRY_REVISION, row, _snapshot.revision)
+	_air_write(row, record)
 
 
 func _clear_row(bank: Bank, row: int) -> void:
 	"""Canonical absent rows retain only their generation and exhaustion marker."""
 	bank.present[row] = 0
+	_air_release(bank, row)
 	for field: int in range(1, I32_FIELDS):
 		_set32(bank, field, row, -1 if field in [ROOM_SLOT, SECTION_SLOT] else 0)
 	for field: int in I64_FIELDS:
@@ -2479,7 +2909,7 @@ func _push_free(bank: Bank, row: int) -> void:
 
 func capture_state_into(cold_token: int, out: PackedByteArray) -> StringName:
 	"""The caller retains this exact lease while consuming its one empty-to-filled wire image."""
-	if _capacity == 0 or _token != 0 or _owner.has_prepared() or not out.is_empty():
+	if _contact_retirement != null or _capacity == 0 or _token != 0 or _owner.has_prepared() or not out.is_empty():
 		return &"LOCATION_CAPTURE_BUSY"
 	if not _cold.covers(cold_token, wire_bytes()):
 		return &"LOCATION_COLD_CAPACITY"
@@ -2502,6 +2932,9 @@ func capture_state_into(cold_token: int, out: PackedByteArray) -> StringName:
 	for value: int in _live.retired:
 		out[offset] = value
 		offset += 1
+	for value: int in _live.air:
+		out.encode_s32(offset, value)
+		offset += 4
 	return &""
 
 
@@ -2532,6 +2965,7 @@ func restore_state_bytes(cold_token: int, bytes: PackedByteArray) -> StringName:
 	_live = _stage
 	_stage = previous
 	_last_published_token = 0
+	_carry_content = _content_stamp() # ADR1207: the load just re-proved every live row against this image.
 	return &""
 
 
@@ -2559,11 +2993,24 @@ func _decode_columns(bytes: PackedByteArray) -> void:
 	for index: int in _capacity:
 		_stage.retired[index] = bytes[offset]
 		offset += 1
+	for index: int in _stage.air.size():
+		_stage.air[index] = bytes.decode_s32(offset)
+		offset += 4
 
 
 func _loaded_rows_refusal() -> StringName:
 	"""Every live record rechecks complete geometry; unused payload and exhausted generations are canonical."""
 	_prepare_record_scratch()
+	if not _air_pool_canonical(self, _stage):
+		return &"LOCATION_IMAGE_AIR"
+	_loading_rows = true
+	var code: StringName = _loaded_rows_loop_refusal()
+	_loading_rows = false
+	return code
+
+
+func _loaded_rows_loop_refusal() -> StringName:
+	"""Each row's lifecycle, retention and complete geometry, in row order."""
 	for row: int in _capacity:
 		if not _spend():
 			return &"LOCATION_OPERATION_BUDGET"
@@ -2600,7 +3047,7 @@ func _row_payload_unchanged(row: int) -> bool:
 	for field: int in I32_FIELDS:
 		if _get32(_live, field, row) != _get32(_stage, field, row):
 			return false
-	return true
+	return _air_rows_equal(self, row)
 
 
 func _loaded_retention_refusal(row: int) -> StringName:
@@ -2640,7 +3087,8 @@ func _unused_row_canonical(row: int) -> bool:
 	for field: int in range(1, I32_FIELDS):
 		if _get32(_stage, field, row) != (-1 if field in [ROOM_SLOT, SECTION_SLOT] else 0):
 			return false
-	return _get64(_stage, PAYLOAD_REVISION, row) == 0 and _get64(_stage, GEOMETRY_REVISION, row) == 0
+	return _get64(_stage, PAYLOAD_REVISION, row) == 0 and _get64(_stage, GEOMETRY_REVISION, row) == 0 \
+		and _air_owned(_stage, _air_slots, row) == 0
 
 
 func _rebuild_allocation(bank: Bank) -> void:
@@ -2659,7 +3107,7 @@ func _rebuild_allocation(bank: Bank) -> void:
 
 func hold_frontier(context: FrontierContext) -> StringName:
 	"""Guard the whole synchronous observation window before any callback can prepare or publish a half transaction."""
-	if context == null or context.get_script() != FrontierContext or _frontier != null or _token != 0 \
+	if context == null or _contact_retirement != null or context.get_script() != FrontierContext or _frontier != null or _token != 0 \
 			or context.count < 1 or context.count > 3 or context.refs.size() != 6 or context.edges.size() != 12 \
 			or context.locations != self or context.owner != _owner or context.budget != _cold \
 			or context.live != _live or context.candidate != _stage or context.world != _world \
@@ -2672,7 +3120,7 @@ func hold_frontier(context: FrontierContext) -> StringName:
 
 func begin_frontier_prepare(context: FrontierContext) -> Result:
 	"""Use the held original scope to copy exactly one inactive bank without reopening the generic mutation door."""
-	if context == null or context.get_script() != FrontierContext or _frontier != context or _token != 0 \
+	if context == null or _contact_retirement != null or context.get_script() != FrontierContext or _frontier != context or _token != 0 \
 			or context.count < 1 or context.count > 3 or context.refs.size() != 6 or context.edges.size() != 12 \
 			or context.locations != self or context.owner != _owner or context.budget != _cold \
 			or context.live != _live or context.candidate != _stage or context.world != _world \
@@ -2686,7 +3134,7 @@ func begin_frontier_prepare(context: FrontierContext) -> Result:
 
 static func frontier_scope_refusal(actual: RefCounted, context: FrontierContext, sealed: bool = true) -> StringName:
 	"""Only this exact original receiver, banks, token and still-live Space can expose a prospective row."""
-	if actual == null or context == null or context.get_script() != FrontierContext or actual._frontier != context \
+	if actual == null or context == null or actual._contact_retirement != null or context.get_script() != FrontierContext or actual._frontier != context \
 			or context.count < 1 or context.count > 3 or context.refs.size() != 6 or context.edges.size() != 12 \
 			or context.locations != actual or context.owner != actual._owner or context.budget != actual._cold \
 			or context.live != actual._live or context.candidate != actual._stage or context.world != actual._world \
@@ -2708,7 +3156,7 @@ static func frontier_scope_refusal(actual: RefCounted, context: FrontierContext,
 
 static func frontier_location_into(actual: RefCounted, context: FrontierContext, ref: Vector2i, out: Record) -> StringName:
 	"""This bounded observation grants neither live identity nor work permission; refused output is unchanged."""
-	if out == null or out.envelope.size() != 6 or out.support.size() != 6: return &"LOCATION_OUTPUT_SHAPE"
+	if out == null or out.envelope.size() != 6 or out.support.size() != 6 or out.air.size() != 6 * MAX_AIR_EXTRA: return &"LOCATION_OUTPUT_SHAPE"
 	var code: StringName = frontier_scope_refusal(actual, context)
 	if code != &"": return code
 	if _frontier_ordinal(context, ref) < 0: return &"LOCATION_FRONTIER_CONTEXT"
@@ -2731,7 +3179,7 @@ static func frontier_record_matches(actual: RefCounted, context: FrontierContext
 	for axis: int in 6:
 		if record.envelope[axis] != actual._get32(actual._stage, ENVELOPE + axis, row) \
 				or record.support[axis] != actual._get32(actual._stage, SUPPORT + axis, row): return false
-	return true
+	return air_record_matches(actual, actual._stage, row, record)
 
 
 static func _frontier_ordinal(context: FrontierContext, ref: Vector2i) -> int:
@@ -2847,8 +3295,9 @@ static func _frontier_unchanged_rows(actual: RefCounted, context: FrontierContex
 				if actual._get32(actual._live, field, row) != actual._get32(actual._stage, field, row): return &"LOCATION_FRONTIER_ROWS"
 			for field: int in I64_FIELDS:
 				if actual._get64(actual._live, field, row) != actual._get64(actual._stage, field, row): return &"LOCATION_FRONTIER_ROWS"
+			if not _air_rows_equal(actual, row): return &"LOCATION_FRONTIER_ROWS"
 		if actual._live.retired[row] != actual._stage.retired[row]: return &"LOCATION_FRONTIER_ROWS"
-	return &""
+	return &"" if _air_pool_canonical(actual, actual._stage) else &"LOCATION_FRONTIER_ROWS"
 
 
 static func commit_frontier_preflighted(actual: RefCounted, context: FrontierContext) -> void:
@@ -2865,3 +3314,231 @@ static func commit_frontier_preflighted(actual: RefCounted, context: FrontierCon
 	actual._base_geometry_revision = 0
 	actual._target_geometry_revision = 0
 	actual._frontier = null
+
+
+func begin_contact_retirement(context: ContactRetirementContext) -> StringName:
+	"""Hold the original pair before graph observers; only the exact closed coordinator can enter."""
+	if _in_retention:
+		_retention_reentered = true
+		return &"LOCATION_RETENTION_REENTRY"
+	if _contact_retirement != null or context == null or context.phase != 0 or context.location_token != 0:
+		return &"LOCATION_CONTACT_RETIREMENT_CONTEXT"
+	var code: StringName = _contact_retirement_context_refusal(self, context, false)
+	if code != &"": return code
+	_contact_retirement = context
+	_remaining = _domain._checks
+	_retention_reentered = false
+	return &""
+
+
+static func _contact_retirement_context_refusal(actual: RefCounted, context: ContactRetirementContext,
+		held: bool = true) -> StringName:
+	"""Mutable public fields grant nothing without the exact Script's private original mirrors."""
+	if actual == null or context == null or context.get_script() != ContactRetirementContext \
+			or context.issuer == null or context.issuer.get_script() != ContactRetirementScope \
+			or context.issuer_script != ContactRetirementScope or context.locations != actual \
+			or context.owner != actual._owner or context.budget != actual._cold or context.world != actual._world \
+			or context.live != actual._live or context.candidate != actual._stage \
+			or (held and (actual._contact_retirement != context or actual._remaining < 0 or actual._retention_reentered)) \
+			or (not held and actual._contact_retirement != null) or actual._in_retention or actual._frontier != null:
+		return &"LOCATION_CONTACT_RETIREMENT_CONTEXT"
+	if actual._capacity <= 0 or actual._capacity > MAX_LOCATIONS or actual._owner == null or actual._cold == null \
+			or actual._domain == null or actual._ids == null or actual._sources == null \
+			or actual._owner._header.size() != Owner.HEADER_FIELDS or actual._owner._s_header.size() != Owner.HEADER_FIELDS \
+			or actual._owner._ready_error != &"" or actual._owner._stage_token != 0 \
+			or actual._owner._header[17] != context.revision or context.revision <= 0 \
+			or context.cold <= 0 or actual._cold._token != context.cold or actual._cold._used < Budget.COLD_BYTES \
+			or actual._room_admission or actual._world_preparation or actual._owner_token != 0 \
+			or context.phase < 0 or context.phase > 3 or not _route_observation_shape_matches(actual):
+		return &"LOCATION_CONTACT_RETIREMENT_CONTEXT"
+	var code: StringName = _contact_retirement_banks_refusal(actual, context)
+	if code == &"": code = _route_observation_world_refusal(actual)
+	return context.issuer.contact_retirement_scope_refusal(context) if code == &"" else code
+
+
+static func _contact_retirement_banks_refusal(actual: RefCounted, context: ContactRetirementContext) -> StringName:
+	"""Both existing banks keep their exact bounded shape and original live payload revision."""
+	var bank: Bank = actual._live
+	if bank == null or bank.get_script() != Bank or actual._stage.get_script() != Bank \
+			or bank.header.size() != HEADER_FIELDS or bank.i32.size() != I32_FIELDS * actual._capacity \
+			or bank.i64.size() != I64_FIELDS * actual._capacity or bank.present.size() != actual._capacity \
+			or bank.retired.size() != actual._capacity or bank.free_rows.size() != actual._capacity \
+			or bank.ordered.size() != actual._capacity or bank.header[13] != context.location_revision \
+			or context.location_revision <= 0 or context.location_revision == 9223372036854775807 \
+			or actual._stage.retired.size() != actual._capacity or actual._stage.free_rows.size() != actual._capacity \
+			or actual._stage.ordered.size() != actual._capacity or context.first == context.second:
+		return &"LOCATION_CONTACT_RETIREMENT_CONTEXT"
+	if not _contact_retirement_ref_matches(actual, context.first) or not _contact_retirement_ref_matches(actual, context.second) \
+			or bank.i32[ROLE * actual._capacity + context.first.x] != ROLE_WORK \
+			or bank.i32[ROLE * actual._capacity + context.second.x] != ROLE_WORK:
+		return &"LOCATION_CONTACT_RETIREMENT_CONTEXT"
+	if context.phase < 3:
+		return &"" if actual._token == 0 and context.location_token == 0 and not actual._sealed else &"LOCATION_TOKEN_STALE"
+	return &"" if context.location_token > 0 and actual._token == context.location_token \
+		and actual._cold_token == context.cold and actual._base_geometry_revision == context.revision \
+		and actual._target_geometry_revision == context.revision else &"LOCATION_TOKEN_STALE"
+
+
+static func _contact_retirement_ref_matches(actual: RefCounted, ref: Vector2i) -> bool:
+	"""Final full-ref checks do not dispatch an overridden Location method."""
+	return ref.x >= 0 and ref.x < actual._capacity and ref.y > 0 \
+		and actual._live.present[ref.x] == 1 and actual._live.i32[GENERATION * actual._capacity + ref.x] == ref.y
+
+
+func prepare_contact_retirement(context: ContactRetirementContext) -> StringName:
+	"""After the exact graph receipt, remove only the original unused pair in the existing inactive bank."""
+	var code: StringName = _contact_retirement_context_refusal(self, context)
+	if code != &"": return code
+	if context.phase != 2 or context.route_receipt <= 0 or _next_token == 9223372036854775807:
+		return &"LOCATION_CONTACT_RETIREMENT_CONTEXT"
+	if not _spend(256 + 96 * _capacity): return &"LOCATION_OPERATION_BUDGET"
+	code = _observe_contact_retirement_pair(context)
+	if code != &"": return code
+	_start_contact_retirement(context)
+	_clear_row(_stage, context.first.x)
+	_clear_row(_stage, context.second.x)
+	if _get32(_stage, GENERATION, context.first.x) == Space.I32_MAX: _stage.retired[context.first.x] = 1
+	if _get32(_stage, GENERATION, context.second.x) == Space.I32_MAX: _stage.retired[context.second.x] = 1
+	_rebuild_allocation(_stage)
+	_sealed = true
+	_snapshot = null
+	return observe_contact_retirement(context)
+
+
+func _start_contact_retirement(context: ContactRetirementContext) -> void:
+	"""Reuse admitted arrays after observers; the original operation counter is never replenished."""
+	_stage.copy_from(_live)
+	_stage.header[13] += 1
+	_token = _next_token
+	_next_token += 1
+	_cold_token = context.cold
+	_base_geometry_revision = context.revision
+	_target_geometry_revision = context.revision
+	context.location_token = _token
+	context.phase = 3
+
+
+func _observe_contact_retirement_pair(context: ContactRetirementContext) -> StringName:
+	"""Each real retention observation is followed immediately by the full original closed scope."""
+	var code: StringName = _route_retention_refusal(context.first)
+	if code == &"": code = _contact_retirement_context_refusal(self, context)
+	if code == &"": code = _route_retention_refusal(context.second)
+	if code == &"": code = _contact_retirement_context_refusal(self, context)
+	return _contact_retirement_inventory_refusal(self, context) if code == &"" else code
+
+
+func observe_contact_retirement(context: ContactRetirementContext) -> StringName:
+	"""Recheck original semantics after observers; a refused second publication retains disconnected endpoints."""
+	var code: StringName = _contact_retirement_context_refusal(self, context)
+	if code != &"": return code
+	if context.phase != 3 or not _sealed: return &"LOCATION_TOKEN_STALE"
+	if not _spend(256 + 96 * _capacity): return &"LOCATION_OPERATION_BUDGET"
+	code = _observe_contact_retirement_pair(context)
+	if code == &"": code = _installed_witnesses_refusal()
+	if code == &"": code = _contact_retirement_context_refusal(self, context)
+	return _contact_retirement_rows_refusal(self, context) if code == &"" else code
+
+
+static func _contact_retirement_inventory_refusal(actual: RefCounted, context: ContactRetirementContext) -> StringName:
+	"""Direct retained-container columns close the final boundary without an overridable Inventory observer."""
+	var inventory: Inventory = actual._inventory
+	if inventory == null or inventory._tx_open or inventory._spatial_world != context.world \
+			or inventory._spatial_authority == null: return &"LOCATION_INVENTORY_RETAINED"
+	var authority: RefCounted = inventory._spatial_authority.get_ref()
+	if authority == null or authority.get_script() != InventoryLocations or authority._locations == null \
+			or authority._locations.get_ref() != actual: return &"LOCATION_OWNER_MISMATCH"
+	var count: int = inventory._spatial_container_slot.size()
+	if inventory._spatial_container_generation.size() != count or inventory._spatial_location_slot.size() != count \
+			or inventory._spatial_location_generation.size() != count or inventory._spatial_location_revision.size() != count:
+		return &"LOCATION_INVENTORY_RETAINED"
+	for row: int in count:
+		if inventory._spatial_container_slot[row] < 0: continue
+		var ref: Vector2i = Vector2i(inventory._spatial_location_slot[row], inventory._spatial_location_generation[row])
+		if ref == context.first or ref == context.second: return &"LOCATION_INVENTORY_RETAINED"
+	return &""
+
+
+static func _contact_retirement_rows_refusal(actual: RefCounted, context: ContactRetirementContext) -> StringName:
+	"""A removal candidate preserves all unrelated payload, generations, header fields and exhaustion marks."""
+	if actual._stage.count != actual._live.count - 2: return &"LOCATION_CONTACT_RETIREMENT_ROWS"
+	for field: int in HEADER_FIELDS:
+		if actual._stage.header[field] != actual._live.header[field] + (1 if field == 13 else 0):
+			return &"LOCATION_CONTACT_RETIREMENT_ROWS"
+	for row: int in actual._capacity:
+		var removed: bool = row == context.first.x or row == context.second.x
+		var code: StringName = _contact_retirement_row_refusal(actual, row, removed)
+		if code != &"": return code
+	return _contact_retirement_indexes_refusal(actual)
+
+
+static func _contact_retirement_row_refusal(actual: RefCounted, row: int, removed: bool) -> StringName:
+	"""Only the two source-derived completed contacts lose payload; their full generations never change."""
+	var before: Bank = actual._live
+	var after: Bank = actual._stage
+	if after.present[row] != (0 if removed else before.present[row]): return &"LOCATION_CONTACT_RETIREMENT_ROWS"
+	if after.retired[row] != (1 if removed and before.i32[row] == Space.I32_MAX else before.retired[row]):
+		return &"LOCATION_CONTACT_RETIREMENT_ROWS"
+	for field: int in I32_FIELDS:
+		var expected: int = before.i32[field * actual._capacity + row]
+		if removed and field != GENERATION: expected = -1 if field == ROOM_SLOT or field == SECTION_SLOT else 0
+		if after.i32[field * actual._capacity + row] != expected: return &"LOCATION_CONTACT_RETIREMENT_ROWS"
+	for field: int in I64_FIELDS:
+		if after.i64[field * actual._capacity + row] != (0 if removed else before.i64[field * actual._capacity + row]):
+			return &"LOCATION_CONTACT_RETIREMENT_ROWS"
+	return &""
+
+
+static func _contact_retirement_indexes_refusal(actual: RefCounted) -> StringName:
+	"""Rebuilt derivative indexes have one exact entry per retained or reusable row and canonical tails."""
+	var bank: Bank = actual._stage
+	var occupied: int = 0
+	var free: int = 0
+	for row: int in actual._capacity:
+		if bank.present[row] == 1:
+			if bank.ordered[occupied] != row: return &"LOCATION_CONTACT_RETIREMENT_ROWS"
+			occupied += 1
+		elif bank.retired[row] == 0 and bank.i32[row] < Space.I32_MAX:
+			if bank.free_rows[free] != row: return &"LOCATION_CONTACT_RETIREMENT_ROWS"
+			free += 1
+	if bank.count != occupied or bank.free_count != free: return &"LOCATION_CONTACT_RETIREMENT_ROWS"
+	for index: int in range(occupied, actual._capacity):
+		if bank.ordered[index] != -1: return &"LOCATION_CONTACT_RETIREMENT_ROWS"
+	for index: int in range(free, actual._capacity):
+		if bank.free_rows[index] != -1: return &"LOCATION_CONTACT_RETIREMENT_ROWS"
+	return &""
+
+
+static func contact_retirement_leaf_refusal(actual: RefCounted, context: ContactRetirementContext) -> StringName:
+	"""Every observer has finished; the exact original Scope alone owns this publication window."""
+	var code: StringName = _contact_retirement_context_refusal(actual, context)
+	if code != &"": return code
+	if context.phase != 3 or not actual._sealed: return &"LOCATION_TOKEN_STALE"
+	code = context.issuer.contact_retirement_publish_refusal(context)
+	if code == &"": code = _contact_retirement_inventory_refusal(actual, context)
+	return _contact_retirement_rows_refusal(actual, context) if code == &"" else code
+
+
+static func commit_contact_retirement_preflighted(actual: RefCounted, context: ContactRetirementContext) -> bool:
+	"""Swap only the validated pair-removal bank; physical cuts, funding and the graph receipt remain untouched."""
+	if contact_retirement_leaf_refusal(actual, context) != &"": return false
+	var previous: Bank = actual._live
+	actual._live = actual._stage
+	actual._stage = previous
+	actual._last_published_token = context.location_token
+	_clear_installation_preparation(actual)
+	actual._contact_retirement = null
+	context.phase = 4
+	return true
+
+
+func discard_contact_retirement(context: ContactRetirementContext, original_issuer: RefCounted = null) -> void:
+	"""Release only this original bracket even after lease expiry; a foreign replacement is never aborted."""
+	if _in_retention:
+		_retention_reentered = true
+		return
+	if context == null or _contact_retirement != context: return
+	var issuer: RefCounted = original_issuer if original_issuer != null else context.issuer
+	if issuer != null and issuer.get_script() == ContactRetirementScope \
+			and issuer.owns_location_preparation(context, _token, _cold_token):
+		_clear_installation_preparation(self)
+	_contact_retirement = null

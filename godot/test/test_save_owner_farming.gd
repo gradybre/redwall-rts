@@ -424,3 +424,85 @@ func test_present_history_and_compost_endpoints_are_accepted() -> void:
 		c.moisture[4095] = 10000
 		c.sow_day[4095] = 2147483647
 		_expect(c,&"","present history and commodity endpoints")
+
+
+# --- ADR 1222 step 2: bulk capture and apply ------------------------------------------------------
+
+func _live_owner() -> Owner:
+	"""A store with live, freed and reused rows, built through the public lifecycle only."""
+	var owner: Owner = Owner.new()
+	var a: Owner.OpResult = owner.create_plot_at_tile(10, 0, 1)
+	assert_true(a.ok, "create tile 10")
+	var b: Owner.OpResult = owner.create_plot_at_tile(11, 1, 1)
+	assert_true(b.ok, "create tile 11")
+	var c: Owner.OpResult = owner.create_plot_at_tile(12, 2, 1)
+	assert_true(c.ok, "create tile 12")
+	assert_true(owner.destroy(owner.ref_of(c.value)).ok, "free a row")
+	assert_true(owner.create_plot_at_tile(13, 0, 1).ok, "reuse the freed row")
+	var e: Owner.OpResult = owner.create_plot_at_tile(14, 1, 1)
+	assert_true(e.ok, "create tile 14")
+	assert_true(owner.destroy(owner.ref_of(e.value)).ok, "leave a freed row behind")
+	return owner
+
+
+func _owner_image(owner: Owner) -> Owner.Columns:
+	"""The owner's fifteen columns through the bulk reader."""
+	var columns: Owner.Columns = Owner.Columns.new()
+	assert_true(owner.copy_columns_into(columns), "bulk copy succeeds")
+	return columns
+
+
+func _owner_images_equal(a: Owner.Columns, b: Owner.Columns) -> bool:
+	"""True when every one of the fifteen columns is byte-identical between two images."""
+	for key: String in FIELDS:
+		if a.get(key) != b.get(key): return false
+	return true
+
+
+func test_capture_then_apply_into_a_fresh_store_is_exact_and_continues_identically() -> void:
+	"""The restored store holds the same columns and count, and answers the next edits the same way."""
+	var source: Owner = _live_owner()
+	var frame: Section.FramedOwner = Section.FramedOwner.new(2)
+	assert_true(Bridge.capture_into(source,frame).is_ok(),"capture succeeds")
+	var target: Owner = Owner.new()
+	assert_true(Bridge.apply(frame,target).is_ok(),"apply succeeds")
+	assert_true(_owner_images_equal(_owner_image(target),_owner_image(source)),"columns identical")
+	assert_equal(target.count(),source.count(),"live count is rebuilt")
+	for index: int in source.count():
+		assert_equal(target.live_slot_at(index).value,source.live_slot_at(index).value,
+			"the rebuilt live-row index agrees slot by slot")
+		var slot: int = source.live_slot_at(index).value
+		assert_equal(target.is_present(slot),source.is_present(slot),"presence agrees")
+		assert_equal(target.ref_of(slot),source.ref_of(slot),"the owning reference column agrees")
+
+
+func test_every_column_refusal_leaves_the_target_byte_identical() -> void:
+	"""Each column code refuses through apply with the exact code and writes nothing."""
+	var target: Owner = _live_owner()
+	var before: Owner.Columns = _owner_image(target)
+	var count: int = target.count()
+	var bad: Owner.Columns = _owner_image(target)
+	bad.present[0] = 2
+	var refusal: Variant = Bridge.apply(_frame(bad),target)
+	assert_equal(refusal.code,&"COLUMN_PRESENT","exact column code")
+	assert_true(_owner_images_equal(_owner_image(target),before),"no refusal wrote a column")
+	assert_equal(target.count(),count,"no refusal moved the live count")
+
+
+func test_null_and_misshaped_inputs_refuse_without_writing() -> void:
+	"""Null stores, null records, a wrong owner and a short bulk buffer all refuse."""
+	var target: Owner = _live_owner()
+	var before: Owner.Columns = _owner_image(target)
+	assert_equal(Bridge.apply(_frame(Owner.Columns.new()),null).code,Bridge.REFUSE_NULL_STORE,"null store")
+	assert_equal(Bridge.capture_into(null,Section.FramedOwner.new(2)).code,
+		Bridge.REFUSE_NULL_STORE,"capture from no store")
+	assert_equal(Bridge.capture_into(target,null).code,&"SAVE_COMPONENT_SHAPE","null record")
+	assert_equal(Bridge.capture_into(target,Section.FramedOwner.new(3)).code,
+		&"SAVE_COMPONENT_OWNER","wrong owner")
+	var short: Owner.Columns = Owner.Columns.new()
+	short.present.resize(3)
+	assert_false(target.restore_columns(short),"a short column refuses")
+	assert_equal(target.last_column_refusal(),Owner.REFUSE_COLUMN_SHAPE,"shape code")
+	assert_false(target.copy_columns_into(short),"a short output buffer refuses")
+	assert_false(target.restore_columns(null),"null columns refuse")
+	assert_true(_owner_images_equal(_owner_image(target),before),"nothing was written")

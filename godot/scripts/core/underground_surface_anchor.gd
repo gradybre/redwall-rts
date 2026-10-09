@@ -54,6 +54,8 @@ var _carry: Routes.Carry = null
 var _reservations: Routes.Reservations = null
 var _piles: Routes.Piles = null
 var _remaining: int = 0
+## ADR1207 measurement: checks the last create spent of its World budget (all of it on a refusal for checks).
+var _last_checks: int = 0
 var _world_ref: Vector2i = NULL_REF
 var _seed: int = 0
 var _ready: bool = false
@@ -349,6 +351,7 @@ func _create(point: Vector3i, envelope: PackedInt32Array, support: PackedInt32Ar
 	if code == &"":
 		code = _commit()
 	var result: Result = Result.new(code, _section if code == &"" else NULL_REF, _endpoint if code == &"" else NULL_REF)
+	_last_checks = _space._domain._checks - _remaining
 	_cleanup()
 	return result
 

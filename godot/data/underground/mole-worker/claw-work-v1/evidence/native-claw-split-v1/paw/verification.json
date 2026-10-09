@@ -1,0 +1,27 @@
+{
+  "adr": "1217",
+  "claw_capture_sha256": "19b93668dab19e17a9b46ca16631e6c8143dd7f6dbe1352e5aceca2dea0f1abc",
+  "clip_frames": [
+    31,
+    2,
+    31
+  ],
+  "clips": [
+    "seat_entry",
+    "seat_work",
+    "seat_recovery"
+  ],
+  "coefficient_mismatches": 0,
+  "exact_joins": 12,
+  "floor_rule": "every body vertex, except paw vertices in the dig clips",
+  "image": "paw",
+  "join_hub": "claw capture stand key 8 (cross-image)",
+  "max_source_to_native_input_vertex_error_u": 0.0001622982299522846,
+  "minimum_floor_gap_u": 0.0013546068610139628,
+  "native_capture_sha256": "65564db16dcc8a2c2d43d50feafd19e419301ee3577d27ae3b346b28b6164519",
+  "production_qualified": false,
+  "rows": 741,
+  "runtime_admitted": false,
+  "schema": 1,
+  "scope": "Actual native registered matrix inputs at all keys and quarter intervals in three views; binary64 vertex reconstruction. GPU shader roundoff and unsampled Q16 times are not certified."
+}

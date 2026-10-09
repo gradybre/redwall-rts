@@ -1,0 +1,10 @@
+test_a_stone_pushed_into_the_chest_refuses (__main__.StoneGaitTests.test_a_stone_pushed_into_the_chest_refuses) ... ok
+test_every_stored_proof_passes (__main__.StoneGaitTests.test_every_stored_proof_passes) ... ok
+test_joins_are_exact (__main__.StoneGaitTests.test_joins_are_exact) ... ok
+test_rebuild_is_byte_identical (__main__.StoneGaitTests.test_rebuild_is_byte_identical) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 7.398s
+
+OK
+[test_stone_gait.py exit 0 in 7.5s]

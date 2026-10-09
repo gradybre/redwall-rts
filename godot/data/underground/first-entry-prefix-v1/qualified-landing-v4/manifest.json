@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "decision": "1202",
+  "predecessor": "qualified-install-v3 (ADR 1202)",
+  "content_revision": 5,
+  "frontier_revision": 4,
+  "census": {
+    "INSTALL": 2,
+    "STATION": 8,
+    "CUT": 2,
+    "BEARING": 10,
+    "ENDPOINT": 14,
+    "EPISODE": 6
+  },
+  "arrival_point_source_local": [
+    0,
+    0,
+    -664
+  ],
+  "files": {
+    "structure.ugconn": {
+      "role": "CATALOG",
+      "sha256": "82dff49dc3da23383b9e22b05ee82b267378dcc801ca42931806946db8392aa3",
+      "predecessor_sha256": "82dff49dc3da23383b9e22b05ee82b267378dcc801ca42931806946db8392aa3",
+      "change": "copied unchanged"
+    },
+    "assemblies.ugasmb": {
+      "role": "GROUPING",
+      "sha256": "9cf6d8bbd7748f3756f766592215eb2ac836afd3fbf4b68e5bb3c1677306b7de",
+      "predecessor_sha256": "9cf6d8bbd7748f3756f766592215eb2ac836afd3fbf4b68e5bb3c1677306b7de",
+      "change": "copied unchanged"
+    },
+    "recipes.ugrecp": {
+      "role": "RECIPE",
+      "sha256": "d18ac338c76a9b3d03d5aa864d1cb36ffbef815fa98b47d44f8e6219eeac27fc",
+      "predecessor_sha256": "d18ac338c76a9b3d03d5aa864d1cb36ffbef815fa98b47d44f8e6219eeac27fc",
+      "change": "copied unchanged"
+    },
+    "frontier.ugfront": {
+      "role": "FRONTIER",
+      "sha256": "eda902ec90f2b8cede3badb7a96a91f224fccb4d42af78a2342498dda4e3e019",
+      "predecessor_sha256": "609605ea40d14529cbc8eed4f61bf4ed3dd569c2184e35481c22517de67b9382",
+      "change": "self revision 4; contact travel -> install row 0 approach; arrival selectors 12 (travel 12) and 13 (travel 6); T0 retreat 3 -> 13"
+    },
+    "workpieces.ugwipc": {
+      "role": "WORKPIECES",
+      "sha256": "3999e4c0064c8336a5268171c6f74ed14abd257a04c54f910c7ffdcab2f43421",
+      "predecessor_sha256": "3999e4c0064c8336a5268171c6f74ed14abd257a04c54f910c7ffdcab2f43421",
+      "change": "copied unchanged"
+    },
+    "ground-pace.ugconn": {
+      "role": "GROUND",
+      "sha256": "1ae7ffc421f2a93deac4ccde12a843652da1fd46c91f58c28c559979015422f0",
+      "predecessor_sha256": "1ae7ffc421f2a93deac4ccde12a843652da1fd46c91f58c28c559979015422f0",
+      "change": "copied unchanged"
+    },
+    "mole-worker.ugprof": {
+      "role": "PROFILE",
+      "sha256": "dc4969e4dc562e39b941a7fefa4be4b72851490f59492f0b04b3f26954bc5d8e",
+      "predecessor_sha256": "dc4969e4dc562e39b941a7fefa4be4b72851490f59492f0b04b3f26954bc5d8e",
+      "change": "copied unchanged"
+    }
+  }
+}

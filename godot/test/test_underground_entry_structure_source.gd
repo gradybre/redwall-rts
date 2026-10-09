@@ -1,5 +1,7 @@
 extends "res://test/framework/test_case.gd"
 ## Real published profile/level sources and real generated Host. No synthetic motion or permission.
+## ADR1229: the mounted Session runs content 10 and the T1-T6 bundle; this historical claw bundle (content 9) is read
+## against its own published content-9 wire in a fixture Profiles store, with the mounted World's other owners.
 
 const Host := preload("res://scripts/systems/settlement_system.gd")
 const Session := preload("res://scripts/core/underground_session.gd")
@@ -8,12 +10,15 @@ const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Assemblies := preload("res://scripts/core/underground_connector_assemblies.gd")
 const Recipes := preload("res://scripts/core/underground_connector_recipes.gd")
 const Contract := preload("res://scripts/core/modular_project_contract.gd")
-const CATALOG_PATH: String = "res://data/underground/first-entry-prefix-v1/structural-v1/structure.ugconn"
-const CATALOG_SHA: String = "d945e9dd965da956868284772dfeb6316d86d288ab9fb34a20a49925197c6578"
-const GROUP_PATH: String = "res://data/underground/first-entry-prefix-v1/structural-v1/assemblies.ugasmb"
-const GROUP_SHA: String = "abd1bb9330f874d26447395a9a9e49707a6de84cefddabf2c60cf932555cd8e7"
-const RECIPE_PATH: String = "res://data/underground/first-entry-prefix-v1/structural-v1/recipes.ugrecp"
-const RECIPE_SHA: String = "14a6a75d41f3072b55ee7db9878e8c975fa79338491fafa612a7b8c1410390e2"
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-claw-v6/catalog_source.gd")
+const Profiles := preload("res://scripts/core/underground_profiles.gd")
+# ADR1194: the content-3 structural-v1 bytes are superseded by the same structure rebound to content 4.
+const CATALOG_PATH: String = Bundle.CATALOG_PATH
+const CATALOG_SHA: String = Bundle.CATALOG_SHA
+const GROUP_PATH: String = Bundle.GROUPING_PATH
+const GROUP_SHA: String = Bundle.GROUPING_SHA
+const RECIPE_PATH: String = Bundle.RECIPE_PATH
+const RECIPE_SHA: String = Bundle.RECIPE_SHA
 
 var _host: Host = null
 var _content: Content = null
@@ -21,6 +26,7 @@ var _session: Session = null
 var _catalog: Catalog = null
 var _assemblies: Assemblies = null
 var _recipes: Recipes = null
+var _profiles: Profiles = null
 
 
 func before_each() -> void:
@@ -36,9 +42,10 @@ func before_each() -> void:
 	assert_true(_host.compose_underground_room_owners(), "actual Room owners")
 	assert_true(_host.compose_underground_route_owners(), "actual ground owners")
 	var o: Session.Retirement.Owners = _session._retirement_owners
+	_profiles = _content_nine()
 	_catalog = Catalog.new()
 	assert_equal(_catalog.configure(Catalog.RESERVED_BYTES), &"", "full catalog reservation")
-	assert_equal(_catalog.bind_actual(o.profiles, o.world_routes._levels, o.world_routes._movement,
+	assert_equal(_catalog.bind_actual(_profiles, o.world_routes._levels, o.world_routes._movement,
 		o.residents, o.transforms, o.space._domain), &"", "original complete owner tuple")
 
 
@@ -47,10 +54,20 @@ func after_each() -> void:
 	_assemblies = null
 	_recipes = null
 	_catalog = null
+	_profiles = null
 	_session = null
 	_content = null
 	if _host != null: _host.free()
 	_host = null
+
+
+func _content_nine() -> Profiles:
+	"""The claw bundle's own content-9 wire (60 rows, 517 boxes, 6 sources) through the actual loader."""
+	var store: Profiles = Profiles.new()
+	var packed: int = 2 * (60 * Profiles.PROFILE_WIRE_BYTES + 517 * 28 + 6 * 32 + 32)
+	assert_equal(store.configure(60, 517, 6, packed + Profiles.CONTROL_RESERVE), &"", "content-9 capacity")
+	assert_equal(store.load_file(Bundle.PROFILE_PATH, Bundle.PROFILE_SHA, Bundle.CONTENT_REVISION), &"", "content 9")
+	return store
 
 
 func test_real_catalog_and_bills_load_without_creating_paid_or_traversable_state() -> void:
@@ -76,7 +93,7 @@ func test_real_catalog_and_bills_load_without_creating_paid_or_traversable_state
 	assert_equal(o.sites._count, 0, "no excavated cube")
 	assert_equal(o.routes._live.edge_count, 0, "no route")
 	assert_equal(o.locations._live.count, 0, "no endpoint")
-	assert_equal(o.world_routes._catalog._live.header[1], 0, "original mounted ground source untouched")
+	assert_equal(o.world_routes._catalog._live.header[1], 1, "mounted entry structure untouched (ADR1195: one variant)")
 
 
 func _bind_bills() -> void:

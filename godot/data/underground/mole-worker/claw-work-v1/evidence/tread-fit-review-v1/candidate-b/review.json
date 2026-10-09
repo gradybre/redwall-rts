@@ -1,0 +1,14 @@
+{
+  "renderer_sha256": "7ab2dadb28eed180968948ddb7c6bcca99de76ad50cba5e7a23a4284b6eef9b3",
+  "summary_sha256": "5c96243c8c0134208c2f21bf32b276a542b9f8adb4983a49fd7b7d9eb681d5d0",
+  "images_sha256": {
+    "tread": {
+      "overview.png": "eeb12c4dd66ee3cb304d6f4f8e831b7727d8269a006857e5b628f988e60c9744",
+      "motion.png": "a7ae1b71e77f240a5b489062cadec4d85094ac5926bf1fdbc764d4bde193de78"
+    },
+    "sill": {
+      "overview.png": "78a9bc8e84e8339a2f13835fdf120ed79a18d3ba883d2486db318271f8585935",
+      "motion.png": "45a6372d6a032327f337004106ebf0843baf07c5f77b9932ed929001cc0b760d"
+    }
+  }
+}

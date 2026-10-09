@@ -783,7 +783,7 @@ func test_material_free_cut_cancellation_preserves_geometry_and_rebinds_progress
 	assert_equal(_authority.refresh_static_proof(_site), &"SPACE_PHASE_STALE", "retired phase cannot reuse evidence")
 	assert_equal(_sites.virgin_sourced_milli(), 0, "no early earth")
 	job = _start(Contract.OP_CUT)
-	assert_equal(_jobs.remaining_mwu_of(job).value, 3200, "actual retained labor continues")
+	assert_equal(_jobs.remaining_mwu_of(job).value, 1080, "actual retained labor continues")
 	_finish_work(job)
 	assert_true(_sites.settle_phase(_site).ok, "resumed cut commits once")
 	assert_equal(_target_role(), Space.UNFINISHED, "space and output publish together")

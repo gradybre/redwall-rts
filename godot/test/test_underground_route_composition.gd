@@ -147,8 +147,8 @@ func test_actual_graph_uses_one_original_owner_tuple_and_real_pace_without_permi
 	assert_equal(o.sites._count, 0, "no phase or paid claim")
 	assert_equal(o.world_routes._catalog.content_revision(), 1, "actual immutable ground catalog")
 	assert_equal(o.world_routes._catalog._movement, o.world_routes._movement, "sole actual Movement")
-	assert_equal(o.profiles.content_revision(), 3, "current complete source program")
-	assert_equal(o.world_routes._catalog._live.header[7], 12, "all twelve exact WALK pace rows")
+	assert_equal(o.profiles.content_revision(), Composition.PROFILE_CONTENT_REVISION, "current complete source program")
+	assert_equal(o.world_routes._catalog._live.header[7], Composition.GROUND_PACE_COUNT, "twelve exact WALK plus tool-free WALK/CARRY pace rows")
 	var original: WorldRoutes = o.world_routes
 	assert_true(_host.compose_underground_route_owners(), "idempotent exact observation")
 	assert_equal(_session._retirement_owners, o, "same permanent packet")
@@ -165,7 +165,7 @@ func test_current_ground_and_finite_step_paces_do_not_admit_an_actor_or_edge() -
 	var o: Retirement.Owners = _session._retirement_owners
 	var pace: Composition.Catalog.IntMath.IntResult = Composition.Catalog.IntMath.IntResult.new()
 	for profile: int in range(1, 13):
-		assert_equal(o.world_routes._catalog.pace_into(profile, 1, 3, -1, 0, 1, pace), &"", "actual current ground cap")
+		assert_equal(o.world_routes._catalog.pace_into(profile, 1, Composition.PROFILE_CONTENT_REVISION, -1, 0, 1, pace), &"", "actual current ground cap")
 		assert_equal(pace.value, 3277, "existing adult mole ground cap, unchanged")
 	assert_equal(o.world_routes._catalog.pace_into(12, 1, 2, -1, 0, 1, pace),
 		&"CONNECTOR_PACE_UNAUTHORED", "old content cannot borrow canonical ground")

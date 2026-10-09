@@ -1,0 +1,542 @@
+{
+ "schema": 1,
+ "decision": [
+  "1229",
+  "1217",
+  "1209"
+ ],
+ "rows": [
+  {
+   "name": "step_back",
+   "yaw": 0,
+   "family_mask": 0,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -478,
+      -1,
+      -340,
+      465,
+      926,
+      375
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -274,
+      -1,
+      -169,
+      299,
+      248,
+      315
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -478,
+      -1,
+      -340,
+      465,
+      926,
+      375
+     ]
+    ]
+   }
+  },
+  {
+   "name": "step_forward",
+   "yaw": 0,
+   "family_mask": 0,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -478,
+      -1,
+      -481,
+      465,
+      926,
+      234
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -274,
+      -1,
+      -310,
+      299,
+      227,
+      174
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -478,
+      -1,
+      -481,
+      465,
+      926,
+      234
+     ]
+    ]
+   }
+  },
+  {
+   "name": "descent",
+   "yaw": 0,
+   "family_mask": 1,
+   "root_end_u": [
+    0,
+    -128,
+    -512
+   ],
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -479,
+      -130,
+      -842,
+      430,
+      841,
+      235
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -275,
+      -130,
+      -682,
+      300,
+      243,
+      175
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -479,
+      -130,
+      -842,
+      430,
+      841,
+      235
+     ]
+    ]
+   }
+  },
+  {
+   "name": "ascent",
+   "yaw": 32768,
+   "family_mask": 1,
+   "root_end_u": [
+    0,
+    128,
+    -512
+   ],
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -430,
+      -2,
+      -235,
+      479,
+      969,
+      842
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -300,
+      -2,
+      -175,
+      275,
+      335,
+      682
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -430,
+      -2,
+      -235,
+      479,
+      969,
+      842
+     ]
+    ]
+   }
+  },
+  {
+   "name": "turn",
+   "yaw": 0,
+   "yaw_end": 32768,
+   "family_mask": 1,
+   "root_end_u": [
+    0,
+    0,
+    174
+   ],
+   "checks": 3048,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -478,
+      -1,
+      -367,
+      479,
+      840,
+      565
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -478,
+      -1,
+      -367,
+      479,
+      127,
+      565
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -478,
+      -1,
+      -367,
+      479,
+      840,
+      565
+     ]
+    ]
+   }
+  },
+  {
+   "name": "tread_tap",
+   "yaw": 0,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -365,
+      0,
+      -239,
+      389,
+      738,
+      223
+     ],
+     [
+      -197,
+      -1,
+      -80,
+      171,
+      0,
+      -2
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -276,
+      -1,
+      -169,
+      299,
+      0,
+      175
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -274,
+      0,
+      -169,
+      299,
+      128,
+      190
+     ],
+     [
+      -478,
+      68,
+      -410,
+      445,
+      840,
+      234
+     ]
+    ],
+    "WORK_APPROACH": [
+     [
+      -274,
+      0,
+      -169,
+      299,
+      128,
+      189
+     ],
+     [
+      -478,
+      128,
+      -329,
+      415,
+      840,
+      234
+     ]
+    ],
+    "WORK_STROKE": [
+     [
+      -343,
+      128,
+      -376,
+      389,
+      435,
+      -54
+     ]
+    ]
+   }
+  },
+  {
+   "name": "tread_seat",
+   "yaw": 0,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -359,
+      0,
+      -376,
+      376,
+      738,
+      223
+     ],
+     [
+      -197,
+      -1,
+      -80,
+      171,
+      0,
+      -2
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -478,
+      0,
+      -410,
+      445,
+      840,
+      234
+     ],
+     [
+      -197,
+      -1,
+      -80,
+      171,
+      0,
+      61
+     ]
+    ],
+    "WORK_APPROACH": [
+     [
+      -478,
+      0,
+      -329,
+      415,
+      840,
+      234
+     ],
+     [
+      -134,
+      -1,
+      44,
+      -126,
+      0,
+      60
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -276,
+      -1,
+      -169,
+      299,
+      0,
+      175
+     ]
+    ]
+   }
+  }
+ ],
+ "basis": {
+  "sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+  "producer_sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f",
+  "heading_count": 65536,
+  "exact_norm_squared": {
+   "numerator": 281475000105385,
+   "denominator": 281474976710656
+  },
+  "max_norm_yaw": 40791,
+  "max_component": {
+   "numerator": 1,
+   "denominator": 1
+  },
+  "metadata": {
+   "api_version": "4.1 Metal - 90.5",
+   "coefficient_order": [
+    "basis.x.x",
+    "basis.z.x"
+   ],
+   "display_server": "macOS",
+   "engine": {
+    "build": "official",
+    "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+    "hex": 263938,
+    "major": 4,
+    "minor": 7,
+    "patch": 2,
+    "status": "stable",
+    "string": "4.7.2-stable (official)",
+    "timestamp": 0
+   },
+   "heading_count": 65536,
+   "meaning": "every finite native Y basis, immutable presentation source; not a contact or clearance certificate",
+   "orientation": "0=-Z,+quarter=-X; +Y remains up",
+   "rendering_driver": "opengl3",
+   "rendering_method": "gl_compatibility",
+   "schema": 1,
+   "source": {
+    "path": "res://../tools/bake_underground_world_basis.gd",
+    "sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f"
+   }
+  },
+  "backend_certificate": {
+   "engine": {
+    "build": "official",
+    "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+    "hex": 263938,
+    "major": 4,
+    "minor": 7,
+    "patch": 2,
+    "status": "stable",
+    "string": "4.7.2-stable (official)",
+    "timestamp": 0
+   },
+   "driver": "opengl3",
+   "api_version": "4.1 Metal - 90.5",
+   "specification": "https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.10.pdf",
+   "attribute_specification": "https://registry.khronos.org/OpenGL/specs/gl/glspec41.core.pdf#page=28",
+   "sections": [
+    "4.5",
+    "4.5.1"
+   ],
+   "single_precision_rounding": "directed or nearest; unit bound 2^-23",
+   "shader_contract": "Godot4.7.2 original no-displacement desktop OpenGL skin and scene shaders"
+  },
+  "inverse_norm": {
+   "numerator": 398065705943040,
+   "denominator": 281474953696313
+  },
+  "cardinals": [
+   {
+    "yaw": 0,
+    "native_c_s": [
+     {
+      "numerator": 1,
+      "denominator": 1
+     },
+     {
+      "numerator": 0,
+      "denominator": 1
+     }
+    ],
+    "canonical_c_s": [
+     {
+      "numerator": 1,
+      "denominator": 1
+     },
+     {
+      "numerator": 0,
+      "denominator": 1
+     }
+    ]
+   },
+   {
+    "yaw": 16384,
+    "native_c_s": [
+     {
+      "numerator": -6151831,
+      "denominator": 140737488355328
+     },
+     {
+      "numerator": 1,
+      "denominator": 1
+     }
+    ],
+    "canonical_c_s": [
+     {
+      "numerator": 1,
+      "denominator": 1
+     },
+     {
+      "numerator": 6151831,
+      "denominator": 140737488355328
+     }
+    ]
+   },
+   {
+    "yaw": 32768,
+    "native_c_s": [
+     {
+      "numerator": -1,
+      "denominator": 1
+     },
+     {
+      "numerator": -6151831,
+      "denominator": 70368744177664
+     }
+    ],
+    "canonical_c_s": [
+     {
+      "numerator": 1,
+      "denominator": 1
+     },
+     {
+      "numerator": 6151831,
+      "denominator": 70368744177664
+     }
+    ]
+   },
+   {
+    "yaw": 49152,
+    "native_c_s": [
+     {
+      "numerator": 6713111,
+      "denominator": 562949953421312
+     },
+     {
+      "numerator": -1,
+      "denominator": 1
+     }
+    ],
+    "canonical_c_s": [
+     {
+      "numerator": 1,
+      "denominator": 1
+     },
+     {
+      "numerator": 6713111,
+      "denominator": 562949953421312
+     }
+    ]
+   }
+  ]
+ },
+ "world_root_bounds_u": [
+  0,
+  -32256,
+  0,
+  262144,
+  16896,
+  262144
+ ],
+ "plane_u": 128,
+ "span_u": 141,
+ "production_qualified": false,
+ "producer_sources": {
+  "godot/data/underground/mole-worker/claw-work-v1/derive_stair_rows.py": "4e4a6067db277e14fb19d9775c4d7309f9c68ba8fb9f33547162103303100c1d",
+  "godot/data/underground/mole-worker/claw-work-v1/derive_claw_rows.py": "716ff1466e4f538ed4c14e0e9b59ee26bfdd91258171e831fbac6c3f85de5ccc",
+  "godot/data/underground/mole-worker/claw-work-v1/native_claw_stairs.py": "ba07363ce258860b3a259eef2203a7bcbfd14ef9ebe4da2d9696c1167242d290"
+ }
+}

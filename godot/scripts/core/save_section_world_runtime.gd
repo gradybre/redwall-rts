@@ -623,13 +623,16 @@ const STORE_COUNT_BYTES: int = 4
 ## in the same activation that reclassifies `resource_nodes`' three deposit arrays as scratch and
 ## takes that owner to schema 2; the registry's vector now reads `[3,2,1,2,1,1,2,1,2,1,1,2,1,2,1]`.
 ## The OWNER schemas inside the section are a different namespace: eight of the nine are still 1.
-const SECTION_SCHEMA_VERSION: int = 3
+## ADR 1072 then declared a tenth owner, `underground_space_owner`, and took §1 to **4**; ADR 1222
+## step 0 brings the code to that declaration.
+const SECTION_SCHEMA_VERSION: int = 4
 
 ## Every owner REG-R01 registers in §1, in the ASCII order blocks must appear in. `store_count`
 ## is bounded by this list's length, which is what "the registry bounds store_count" means here.
 const SECTION_OWNER_KEYS: Array[String] = ["buildings", "entity_directory", "farming", "forage",
-	"resource_nodes", "spatial_world", "weather", "world_init", "world_runtime"]
-const SECTION_OWNER_COUNT: int = 9
+	"resource_nodes", "spatial_world", "underground_space_owner", "weather", "world_init",
+	"world_runtime"]
+const SECTION_OWNER_COUNT: int = 10
 
 ## The owner keys this module encodes, in the order it emits them. `encode_section()` REFUSES if
 ## this list is not strictly ASCII-ascending, so the ordering rule is enforced rather than assumed.

@@ -475,7 +475,8 @@ func test_short_step_requires_three_root_ticks_and_complete_fades_in_both_direct
 	assert_equal(_routes.request_route(_worker, first, 20), &"", "same complete reverse programme")
 	_short_replay(b, a, 11, 20)
 	assert_equal(_routes.refresh_travel_actor(_worker, NULL_REF, 12, 1, 3, 0, -1), &"", "complete recovery returns to canonical ground")
-	assert_equal(_routes.refresh_actor(_worker, NULL_REF, Profiles.MODE_WALK, 0, -1), &"ROUTE_SOURCE_HANDOFF_REQUIRED", "no silent loss of canonical source into legacy policy0")
+	assert_equal(_routes.refresh_actor(_worker, NULL_REF, Profiles.MODE_WALK, 0, -1), &"", "ADR1210: at rest on READY, canonical ground may switch to automatic with a full re-proof")
+	assert_equal(_routes.actor_phase(_worker), Routes.PHASE_IDLE, "the automatic actor carries no source word")
 
 
 func _short_replay(first: Vector3i, last: Vector3i, profile: int, first_tick: int) -> void:
@@ -591,15 +592,15 @@ func test_short_saved_progress_rejects_fraction_and_source_clock_disagreement() 
 	assert_equal(Routes.ShortStep.progress_refusal(word, 0, 0, 0, true), &"ROUTE_SOURCE_STEP_PROGRESS", "zero prefix has not entered an edge")
 
 
-func test_legacy_actor_cannot_claim_canonical_ground_or_ready_from_an_unknown_visual_phase() -> void:
-	"""Policy0 request ticks remain ordinary; identical all-yaw geometry cannot supply missing source history."""
+func test_legacy_actor_reaches_canonical_ground_only_through_a_ready_switch_at_rest() -> void:
+	"""ADR1210 amends ADR1168: never unadmit/readmit; an automatic actor at rest switches with the full admission
+	re-proof and starts canonical ground at READY, never at a renderer-derived phase."""
 	_clock_profiles(NULL_REF, false, 6)
 	var first: Vector2i = _location(Vector3i(-512, 0, 512))
 	assert_equal(_routes.admit_actor(_worker, NULL_REF, first, Profiles.MODE_WALK, 0, -1), &"", "legacy admission remains policy0")
-	var original: PackedByteArray = _short_route_image()
-	assert_equal(_routes.refresh_travel_actor(_worker, NULL_REF, 12, 1, 3, 0, -1), &"ROUTE_SOURCE_HANDOFF_REQUIRED", "no renderer-derived takeover")
 	assert_equal(_routes.admit_travel_actor(_worker, NULL_REF, first, 12, 1, 3, 0, -1), &"ROUTE_ACTOR_ALREADY_REGISTERED", "no unadmit/readmit shortcut")
-	assert_equal(_short_route_image(), original, "unknown phase refusal preserves all legacy state")
+	assert_equal(_routes.refresh_travel_actor(_worker, NULL_REF, 12, 1, 3, 0, -1), &"", "switch at rest")
+	assert_equal(Routes.source_ready_leaf_refusal(_routes, _worker, NULL_REF, 12, 1, 3), &"", "canonical ground starts exactly at READY")
 
 
 func test_headless_source_approach_work_recovery_and_backward_retreat() -> void:
@@ -1170,7 +1171,11 @@ func test_foreign_transform_writes_refuse_cached_occupancy_until_exact_refresh()
 	assert_true(_transforms.place(outsider, 6000, 0, 6000, 0), "foreign surface pose write")
 	assert_equal(_routes.occupancy_refusal(query), &"ROUTE_OCCUPANCY_STALE", "cached empty answer refuses")
 	assert_equal(_routes.refresh_occupancy(), &"", "once-only actual registered-root audit")
-	assert_equal(_routes.occupancy_refusal(query), &"", "unregistered surface actor remains other provider responsibility")
+	assert_equal(_routes.occupancy_refusal(query), &"ROUTE_UNREGISTERED_RESIDENT_NEAR",
+		"ADR1219: an unregistered resident within its reach cube of the query is never empty air")
+	assert_true(_transforms.place(outsider, 2304 + Routes.UNREGISTERED_REACH_U, 0, 6000, 0), "exactly one reach away")
+	assert_equal(_routes.refresh_occupancy(), &"", "registered roots unchanged")
+	assert_equal(_routes.occupancy_refusal(query), &"", "half-open reach cube touching the query is clear")
 	assert_true(_transforms.place(_worker, 2176, 0, 2176, 0), "adversarial registered actor teleport")
 	assert_equal(_routes.occupancy_refusal(query), &"ROUTE_OCCUPANCY_STALE", "moved actor cannot hide in old bucket")
 	assert_equal(_routes.refresh_occupancy(), &"ROUTE_ACTOR_POSITION_DRIFT", "handoff/location truth must be repaired explicitly")
@@ -2553,3 +2558,129 @@ func test_live_route_witness_measures_256_distinct_pairs_through_actual_ring() -
 	_measure_distinct_witness_queries(fixture)
 	assert_true(fixture._budget.is_quiescent(), "all setup leases released before the diagnostic")
 	_finish_profile_fixture(fixture)
+
+
+func _route_image() -> PackedByteArray:
+	"""One whole Routes wire image, captured under its own released lease."""
+	var image: PackedByteArray = PackedByteArray()
+	var cold: int = _budget.acquire(_routes.wire_bytes())
+	assert_equal(_routes.capture_state_into(cold, image), &"", "quiescent capture")
+	_budget.release(cold)
+	return image
+
+
+func _restore_route_image(image: PackedByteArray) -> StringName:
+	"""Restore one image under its own released lease."""
+	var cold: int = _budget.acquire(_routes.wire_bytes())
+	var code: StringName = _routes.restore_state_bytes(cold, image)
+	_budget.release(cold)
+	return code
+
+
+func test_route_wire_restores_a_moving_actor_into_blank_banks_and_arrives_exactly() -> void:
+	"""ADR1221: mid-span (with a carried 2/3 fraction) the graph and actor are saved, the banks blanked as a fresh
+	Session's are, and the restored actor finishes the same thirty-tick walk to the exact unit."""
+	var refs: Array[Vector2i] = _moving_actor()
+	for tick: int in range(1, 6):
+		assert_equal(_routes.advance_tick(tick), 1, "uninterrupted stride before the save")
+	var image: PackedByteArray = _route_image()
+	assert_equal(image.size(), _routes.wire_bytes(), "fixed schema-1 size")
+	assert_equal(image.size(), 96 + 82 * EDGES + 12 * VERTICES + 156 * 512 + 16 * LINKS, "declared layout")
+	WorldRouteTests.wipe_routes(_routes)
+	assert_false(_routes.retains_location(refs[0]), "blank banks retain nothing")
+	assert_equal(_restore_route_image(image), &"", "validated restore")
+	assert_equal(_route_image(), image, "a restored owner writes back its image")
+	assert_equal(_routes.advance_tick(5), 0, "the saved last tick still refuses a repeat")
+	var actor: Routes.Actor = Routes.Actor.new()
+	for tick: int in range(6, 31):
+		assert_equal(_routes.advance_tick(tick), 1, "restored actor advances")
+		assert_equal(_routes.read_actor_into(_worker, actor), &"", "readable")
+		@warning_ignore("integer_division") var distance: int = 1024 * tick / 30
+		assert_equal(actor.point, Vector3i(-512 + distance, 0, 512), "same exact rate and fraction")
+	assert_equal(actor.location, refs[1], "arrived at the far endpoint")
+	assert_true(_routes.retains_location(refs[0]) and _routes.retains_location(refs[1]), "edge retention restored")
+
+
+func _wire_offsets() -> Dictionary:
+	"""Byte offsets of each column in this fixture's image."""
+	var fields: int = 96
+	var longs: int = fields + 4 * Routes.EDGE_FIELDS * EDGES
+	var present: int = longs + 8 * Routes.EDGE_LONGS * EDGES
+	var vertices: int = present + 2 * EDGES
+	var resident: int = vertices + 12 * VERTICES
+	var resident_long: int = resident + 4 * Routes.RESIDENT_FIELDS * 512
+	var links: int = resident_long + 8 * Routes.RESIDENT_LONGS * 512
+	return {"fields": fields, "longs": longs, "present": present, "retired": present + EDGES, "vertices": vertices,
+		"resident": resident, "resident_long": resident_long, "links": links}
+
+
+func _route_corruptions(edge: Vector2i) -> Array:
+	"""[label, offset, width, value, expected refusal] for one damaged field each."""
+	var o: Dictionary = _wire_offsets()
+	var row: int = _residents.directory().get_typed_row(_worker)
+	var fraction: int = (2 << 32) | 4
+	return [["magic", 0, 8, 7, Routes.REFUSE_LOAD_HEADER], ["edge capacity", 16, 8, EDGES + 1, Routes.REFUSE_LOAD_HEADER],
+		["edge count", 72, 8, 2, Routes.REFUSE_LOAD_EDGE], ["last tick", 88, 8, -2, Routes.REFUSE_LOAD_HEADER],
+		["present flag", o.present + edge.x, 1, 2, Routes.REFUSE_LOAD_EDGE],
+		["retired live edge", o.retired + edge.x, 1, 1, Routes.REFUSE_LOAD_EDGE],
+		["absent payload", o.fields + 4 * (Routes.E_FAMILY * EDGES + 5), 4, 1, Routes.REFUSE_LOAD_EDGE],
+		["path start", o.fields + 4 * (Routes.E_PATH_START * EDGES + edge.x), 4, 1, Routes.REFUSE_LOAD_PATH],
+		["vertex tail", o.vertices + 4 * 6, 4, 7, Routes.REFUSE_LOAD_PATH],
+		["moved endpoint vertex", o.vertices, 4, -511, Routes.REFUSE_LOAD_EDGE],
+		["edge length", o.longs + 8 * (Routes.E_LENGTH * EDGES + edge.x), 8, 1025, Routes.REFUSE_LOAD_EDGE],
+		["actor generation", o.resident + 4 * (Routes.R_GENERATION * 512 + row), 4, 99, Routes.REFUSE_LOAD_ACTOR],
+		["span progress", o.resident_long + 8 * (Routes.R_PROGRESS * 512 + row), 8, 3, Routes.REFUSE_LOAD_ACTOR],
+		["unreduced fraction", o.resident_long + 8 * (Routes.R_REMAINDER * 512 + row), 8, fraction, Routes.REFUSE_LOAD_ACTOR],
+		["idle on a span", o.resident + 4 * (Routes.R_PHASE * 512 + row), 4, Routes.PHASE_IDLE, Routes.REFUSE_LOAD_ACTOR],
+		["blank row mode", o.resident + 4 * (Routes.R_MODE * 512 + 7), 4, 0, Routes.REFUSE_LOAD_ACTOR],
+		["orphan link", o.links + 4 * (Routes.L_OWNER * LINKS + 3), 4, row, Routes.REFUSE_LOAD_LINK]]
+
+
+func test_route_wire_refuses_every_corrupt_image_and_keeps_the_live_banks() -> void:
+	"""ADR1221: each damaged field is refused with its exact code and the live image is unchanged, including a
+	busy owner, a foreign lease and a truncated image; the undamaged image still restores afterwards."""
+	var edge: Vector2i = _moving_actor()[2]
+	for tick: int in range(1, 6):
+		_routes.advance_tick(tick)
+	var image: PackedByteArray = _route_image()
+	for damage: Array in _route_corruptions(edge):
+		var bad: PackedByteArray = image.duplicate()
+		if damage[2] == 1: bad[damage[1]] = damage[3]
+		elif damage[2] == 4: bad.encode_s32(damage[1], damage[3])
+		else: bad.encode_s64(damage[1], damage[3])
+		assert_equal(_restore_route_image(bad), damage[4], "refused: %s" % damage[0])
+		assert_equal(_route_image(), image, "live banks unchanged after: %s" % damage[0])
+	assert_equal(_restore_route_image(image.slice(0, image.size() - 1)), Routes.REFUSE_LOAD_SHAPE, "truncated")
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var token: int = _routes.begin_prepare(cold).token
+	assert_equal(_routes.restore_state_bytes(cold, image), Routes.REFUSE_LOAD_BUSY, "open graph candidate")
+	var out: PackedByteArray = PackedByteArray()
+	assert_equal(_routes.capture_state_into(cold, out), Routes.REFUSE_LOAD_BUSY, "no capture mid-candidate")
+	_routes.abort(token)
+	assert_equal(_routes.restore_state_bytes(cold + 1, image), &"ROUTE_COLD_LEASE", "foreign lease")
+	_budget.release(cold)
+	assert_equal(_restore_route_image(image), &"", "the intact image restores")
+	assert_equal(_routes.advance_tick(6), 1, "and the actor walks on")
+
+
+func test_a_lost_actor_is_unregistered_and_its_row_reads_blank_on_the_wire() -> void:
+	"""ADR1225 (amends ADR1168 for lost residents only): a living actor is never unregistered. Once its resident is
+	dead, the actor -- here mid-span with a queued route -- is removed: its links return, it holds no span, its row is
+	the allocator's blank row, and the ADR1221 image round-trips with it so."""
+	_moving_actor()
+	for tick: int in range(1, 6):
+		assert_equal(_routes.advance_tick(tick), 1, "moving before the loss")
+	var row: int = _residents.directory().get_typed_row(_worker)
+	var edge: Vector2i = _routes._resident_pair(Routes.R_EDGE_SLOT, row)
+	assert_true(edge != Routes.NULL_REF, "the actor holds a span")
+	assert_equal(_routes.unregister_lost_actor(_worker), &"ROUTE_UNREGISTER_LIVING", "a living actor stays registered")
+	assert_true(_residents.needs().apply_health_event(row, -100).ok, "the resident dies")
+	assert_equal(_routes.unregister_lost_actor(_worker), &"", "the lost actor is unregistered")
+	assert_equal(_routes._resident_ref(row), Routes.NULL_REF, "no registration left")
+	assert_equal(_routes._unregistered_row_refusal(row), &"", "exactly the allocator's blank row")
+	assert_false(_routes._held_edge(edge), "its span is no longer held")
+	assert_equal(_routes.unregister_lost_actor(_worker), &"ROUTE_ACTOR_NOT_REGISTERED", "only once")
+	var image: PackedByteArray = _route_image()
+	WorldRouteTests.wipe_routes(_routes)
+	assert_equal(_restore_route_image(image), &"", "the blank row restores")
+	assert_equal(_route_image(), image, "and writes back exactly")

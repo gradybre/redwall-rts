@@ -300,7 +300,10 @@ const DayNightScript := preload("res://demo/world/day_night.gd")
 const NightLightsScript := preload("res://demo/world/night_lights.gd")
 const WorldLayout := preload("res://demo/world/world_layout.gd")
 const ModularSession := preload("res://scripts/core/underground_session.gd")
-const ModularContent := preload("res://demo/cast/underground_actor_content.gd")
+const ModularSources := preload("res://demo/cast/underground_content_set.gd")
+const MolePresentation := preload("res://data/underground/mole-worker/mole_presentation.gd")
+const EntryWorkerView := preload("res://demo/cast/entry_worker_view.gd")
+const EntryWorkerMeshes := preload("res://demo/cast/entry_worker_meshes.gd")
 const ModularDemoMode := preload("res://demo/burrow/modular_demo_mode.gd")
 const DaylightCurves := preload("res://demo/world/daylight_curves.gd")
 const HearthFuelScript := preload("res://demo/winter/hearth_fuel.gd")
@@ -422,6 +425,10 @@ var _forage: ForageNodeScript = null
 ## THE ORCHARD (decisions 0671-0677; demo/orchard/): built after the spoil heaps, before the woods (its clicks first).
 var _orchard: OrchardScript = null
 var _modular_mode: ModularDemoMode = null
+## ADR1201/1211: one pinned presentation image per mole profile source (actor, assembly handling, wood haul, stone).
+var _modular_sources: ModularSources = null
+## ADR1211: the entry crew's worker Actors and the G5 surface walk to the stair-top anchor.
+var _entry_worker: EntryWorkerView = null
 
 
 func _ready() -> void:
@@ -438,6 +445,7 @@ func _ready() -> void:
 	_build_world(manifest)
 	_mount_modular_foundation()
 	_build_cast(manifest)
+	_build_entry_worker(manifest)
 	_command = DemoCommandScript.new()
 	add_child(_command)
 	_command.configure(_cast, _camera.camera(), _game.get_node_or_null(GAME_HUD_ROOT) as Control, _services)
@@ -516,10 +524,13 @@ func prewarm() -> PrewarmScript:
 
 func _mount_modular_foundation() -> void:
 	"""Give the actual settlement its single source-qualified underground foundation, without free construction."""
-	var content: ModularContent = ModularContent.new()
-	var code: StringName = content.load_file(ModularSession.ACTOR_PATH,
-		ModularSession.Catalog.Pins.ACTOR_SHA, ModularSession.PRESENTATION_BYTES)
-	if code == &"" and not SettlementSystem.mount_underground(content):
+	var sources: ModularSources = ModularSources.new()
+	# Content 9 publishes the wood and stone haul rows (ADR1200/1206) and the claw and paw rows (ADR1217 step 5), so
+	# every image loads (ADR1211).
+	var code: StringName = MolePresentation.load_sources(sources, true, true, true)
+	if code == &"":
+		_modular_sources = sources
+	if code == &"" and not SettlementSystem.mount_underground(sources.content(MolePresentation.SOURCE_ACTOR)):
 		code = SettlementSystem.last_refusal()
 	if code == &"" and not SettlementSystem.compose_underground_room_owners():
 		code = SettlementSystem.last_refusal()
@@ -528,6 +539,22 @@ func _mount_modular_foundation() -> void:
 	if code != &"":
 		UIManager.push_refusal(code)
 		push_warning("Underground foundation unavailable: %s" % code)
+
+
+func _build_entry_worker(manifest: Dictionary) -> void:
+	"""ADR1211: one hidden worker Actor per loaded source for the entry crew, driven from its actual selected row.
+	A composition refusal (assets not staged, a fingerprint mismatch) is retained and alerted only when the crew's
+	resident is underground and would need drawing; the renderer's absence in a headless run is not a game gap."""
+	if _modular_sources == null:
+		return
+	_entry_worker = EntryWorkerView.new()
+	_entry_worker.name = "EntryWorker"
+	add_child(_entry_worker)
+	var code: StringName = _entry_worker.configure(SettlementSystem, _cast, _modular_sources, UIManager.push_refusal)
+	if code != &"":
+		UIManager.push_refusal(code)
+		return
+	_entry_worker.compose_actors(EntryWorkerMeshes.build(manifest, _services.props))
 
 
 func _build_modular_room_mode() -> void:

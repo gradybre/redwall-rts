@@ -1,0 +1,384 @@
+{
+ "clear": true,
+ "seat": {
+  "work": {
+   "self": {
+    "right_arm_vs_rest": {
+     "clear": true,
+     "unresolved": [],
+     "pairs": 0,
+     "checks": 0,
+     "released_stand_contact": {
+      "pairs": 0,
+      "intervals": [],
+      "is_prefix_from_ready": true,
+      "paw_triangles": 0,
+      "thigh_triangles": 0
+     },
+     "first_triangles": 1000,
+     "second_triangles": 7776
+    },
+    "left_arm_vs_rest": {
+     "clear": true,
+     "unresolved": [],
+     "pairs": 0,
+     "checks": 0,
+     "released_stand_contact": {
+      "pairs": 0,
+      "intervals": [],
+      "is_prefix_from_ready": true,
+      "paw_triangles": 0,
+      "thigh_triangles": 0
+     },
+     "first_triangles": 1056,
+     "second_triangles": 6901
+    },
+    "right_arm_vs_left_arm": {
+     "clear": true,
+     "unresolved": [],
+     "pairs": 0,
+     "checks": 0,
+     "released_stand_contact": {
+      "pairs": 0,
+      "intervals": [],
+      "is_prefix_from_ready": true,
+      "paw_triangles": 0,
+      "thigh_triangles": 0
+     },
+     "first_triangles": 1000,
+     "second_triangles": 1056
+    },
+    "excluded_shoulder_seam_triangles": {
+     "right": 1433,
+     "left": 2252
+    },
+    "clear": true
+   },
+   "world": {
+    "assembly_0": {
+     "clear": true,
+     "unresolved": [],
+     "pairs": 22,
+     "numerical_sole_pairs": 12,
+     "paw_resting_on_bearer_pairs": 10,
+     "checks": 120,
+     "skin_top_u": 125
+    },
+    "assembly_1": {
+     "clear": true,
+     "unresolved": [],
+     "pairs": 22,
+     "numerical_sole_pairs": 12,
+     "paw_resting_on_bearer_pairs": 10,
+     "checks": 120,
+     "skin_top_u": 125
+    }
+   }
+  },
+  "entry": {
+   "self": {
+    "right_arm_vs_rest": {
+     "clear": true,
+     "unresolved": [],
+     "pairs": 6,
+     "checks": 6,
+     "released_stand_contact": {
+      "pairs": 0,
+      "intervals": [],
+      "is_prefix_from_ready": true,
+      "paw_triangles": 0,
+      "thigh_triangles": 0
+     },
+     "first_triangles": 1000,
+     "second_triangles": 7776
+    },
+    "left_arm_vs_rest": {
+     "clear": true,
+     "unresolved": [],
+     "pairs": 392,
+     "checks": 392,
+     "released_stand_contact": {
+      "pairs": 0,
+      "intervals": [],
+      "is_prefix_from_ready": true,
+      "paw_triangles": 0,
+      "thigh_triangles": 0
+     },
+     "first_triangles": 1056,
+     "second_triangles": 6901
+    },
+    "right_arm_vs_left_arm": {
+     "clear": true,
+     "unresolved": [],
+     "pairs": 0,
+     "checks": 0,
+     "released_stand_contact": {
+      "pairs": 0,
+      "intervals": [],
+      "is_prefix_from_ready": true,
+      "paw_triangles": 0,
+      "thigh_triangles": 0
+     },
+     "first_triangles": 1000,
+     "second_triangles": 1056
+    },
+    "excluded_shoulder_seam_triangles": {
+     "right": 1433,
+     "left": 2252
+    },
+    "clear": true
+   },
+   "world": {
+    "assembly_0": {
+     "clear": true,
+     "unresolved": [],
+     "pairs": 471,
+     "numerical_sole_pairs": 453,
+     "paw_resting_on_bearer_pairs": 10,
+     "checks": 206,
+     "skin_top_u": 125
+    },
+    "assembly_1": {
+     "clear": true,
+     "unresolved": [],
+     "pairs": 479,
+     "numerical_sole_pairs": 453,
+     "paw_resting_on_bearer_pairs": 10,
+     "checks": 222,
+     "skin_top_u": 125
+    }
+   }
+  },
+  "recovery": {
+   "reused_exact_reverse_of": "entry"
+  }
+ },
+ "tap": {
+  "work": {
+   "self": {
+    "right_arm_vs_rest": {
+     "clear": true,
+     "unresolved": [],
+     "pairs": 0,
+     "checks": 0,
+     "released_stand_contact": {
+      "pairs": 0,
+      "intervals": [],
+      "is_prefix_from_ready": true,
+      "paw_triangles": 0,
+      "thigh_triangles": 0
+     },
+     "first_triangles": 1000,
+     "second_triangles": 7776
+    },
+    "left_arm_vs_rest": {
+     "clear": true,
+     "unresolved": [],
+     "pairs": 0,
+     "checks": 0,
+     "released_stand_contact": {
+      "pairs": 0,
+      "intervals": [],
+      "is_prefix_from_ready": true,
+      "paw_triangles": 0,
+      "thigh_triangles": 0
+     },
+     "first_triangles": 1056,
+     "second_triangles": 6901
+    },
+    "right_arm_vs_left_arm": {
+     "clear": true,
+     "unresolved": [],
+     "pairs": 0,
+     "checks": 0,
+     "released_stand_contact": {
+      "pairs": 0,
+      "intervals": [],
+      "is_prefix_from_ready": true,
+      "paw_triangles": 0,
+      "thigh_triangles": 0
+     },
+     "first_triangles": 1000,
+     "second_triangles": 1056
+    },
+    "excluded_shoulder_seam_triangles": {
+     "right": 1433,
+     "left": 2252
+    },
+    "clear": true
+   },
+   "world": {
+    "assembly_0": {
+     "clear": true,
+     "unresolved": [],
+     "pairs": 442,
+     "numerical_sole_pairs": 384,
+     "paw_resting_on_bearer_pairs": 58,
+     "checks": 757,
+     "skin_top_u": 125
+    },
+    "assembly_1": {
+     "clear": true,
+     "unresolved": [],
+     "pairs": 442,
+     "numerical_sole_pairs": 384,
+     "paw_resting_on_bearer_pairs": 58,
+     "checks": 757,
+     "skin_top_u": 125
+    }
+   }
+  },
+  "entry": {
+   "self": {
+    "right_arm_vs_rest": {
+     "clear": true,
+     "unresolved": [],
+     "pairs": 6,
+     "checks": 6,
+     "released_stand_contact": {
+      "pairs": 0,
+      "intervals": [],
+      "is_prefix_from_ready": true,
+      "paw_triangles": 0,
+      "thigh_triangles": 0
+     },
+     "first_triangles": 1000,
+     "second_triangles": 7776
+    },
+    "left_arm_vs_rest": {
+     "clear": true,
+     "unresolved": [],
+     "pairs": 464,
+     "checks": 464,
+     "released_stand_contact": {
+      "pairs": 0,
+      "intervals": [],
+      "is_prefix_from_ready": true,
+      "paw_triangles": 0,
+      "thigh_triangles": 0
+     },
+     "first_triangles": 1056,
+     "second_triangles": 6901
+    },
+    "right_arm_vs_left_arm": {
+     "clear": true,
+     "unresolved": [],
+     "pairs": 0,
+     "checks": 0,
+     "released_stand_contact": {
+      "pairs": 0,
+      "intervals": [],
+      "is_prefix_from_ready": true,
+      "paw_triangles": 0,
+      "thigh_triangles": 0
+     },
+     "first_triangles": 1000,
+     "second_triangles": 1056
+    },
+    "excluded_shoulder_seam_triangles": {
+     "right": 1433,
+     "left": 2252
+    },
+    "clear": true
+   },
+   "world": {
+    "assembly_0": {
+     "clear": true,
+     "unresolved": [],
+     "pairs": 461,
+     "numerical_sole_pairs": 453,
+     "paw_resting_on_bearer_pairs": 0,
+     "checks": 16,
+     "skin_top_u": 125
+    },
+    "assembly_1": {
+     "clear": true,
+     "unresolved": [],
+     "pairs": 469,
+     "numerical_sole_pairs": 453,
+     "paw_resting_on_bearer_pairs": 0,
+     "checks": 32,
+     "skin_top_u": 125
+    }
+   }
+  },
+  "recovery": {
+   "reused_exact_reverse_of": "entry"
+  },
+  "contact": {
+   "right": {
+    "vertex": 4,
+    "rendered_edge": [
+     14,
+     15
+    ],
+    "anchor_u": [
+     128,
+     128,
+     -448
+    ],
+    "patch_u": [
+     127,
+     128,
+     -449,
+     129,
+     128,
+     -447
+    ],
+    "share_range": [
+     {
+      "numerator": 2459664139547,
+      "denominator": 4466765987840
+     },
+     {
+      "numerator": 113834210824531,
+      "denominator": 183137405501440
+     }
+    ]
+   },
+   "left": {
+    "vertex": 13886,
+    "rendered_edge": [
+     14,
+     15
+    ],
+    "anchor_u": [
+     -128,
+     128,
+     -448
+    ],
+    "patch_u": [
+     -129,
+     128,
+     -449,
+     -127,
+     128,
+     -447
+    ],
+    "share_range": [
+     {
+      "numerator": 393928662723,
+      "denominator": 715380490240
+     },
+     {
+      "numerator": 444662963907,
+      "denominator": 715380490240
+     }
+    ]
+   }
+  },
+  "patches_on_both_bearers": true
+ },
+ "schema": 1,
+ "decision": "1217",
+ "exact_yaw": 0,
+ "production_qualified": false,
+ "producer_sources": {
+  "godot/data/underground/mole-worker/claw-work-v1/prove_paw_seat.py": "3e21e19f428f76b99a1221e58b75eadf541607f8b7643401e10d9e24bf3a8727",
+  "godot/data/underground/mole-worker/claw-work-v1/author_paw_seat.py": "d1ccef99689627c5b7f8a19ab2308123c0aafc0190bb83768db294b65ff2a87a",
+  "godot/data/underground/mole-worker/claw-work-v1/prove_claw_pair.py": "e3af3b7dc564d27ef09c95ac2f9ea313088b7b421940f8f2222ab9675a43bc02",
+  "godot/data/underground/mole-worker/claw-work-v1/prove_claw_stroke.py": "e74d660078198b552c5854c07a1f1f59c71fdf0822183b963f761eaae7fa9af2",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-proof-v4/prove_candidate.py": "3d05189072337c7dfe2309a791d5b4f3d2bdb990cdbcb41d43c27de8420b96bc",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_terrain.py": "a29f0e5a163307ec9ac9d0908e4da6c9a62f399885b198e8955f2fd5e7402390"
+ }
+}

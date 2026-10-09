@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "adr": ["1209", "1216"],
+  "production_qualified": false,
+  "paths": ".../ = godot/data/underground/mole-worker/evidence/contact-qualification/",
+  "python": "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+  "staged_inputs": "godot/demo/assets cloned from /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets and imported; every pinned input hash-checked by its tool; removed afterwards",
+  "commands": [
+    "godot --headless --path godot --script res://data/underground/mole-worker/evidence/contact-qualification/capture_curled_paw.gd -- <out.json>",
+    "$PY .../rebake_curled_grip.py .../grip-source-v4 --raw-name mole-grip-v4.ugpal",
+    "$PY tools/export_underground_envelopes.py godot/demo/assets/underground-matrices/mole-grip-v4.ugpal --sha256 d72d3fd6... --out .../grip-proof-v3/envelopes.json --palette --import-archive godot/demo/assets/underground-matrices/mole-grip-v4.inputs --world-basis godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw --world-basis-sha256 de8c3b04... --world-basis-producer-sha256 e68ec74b... --world-root-bounds 0 -32256 0 262144 16896 262144",
+    "$PY tools/compile_underground_actor_content.py --source .../mole-grip-v4.ugpal --source-sha256 d72d3fd6... --proof .../grip-proof-v3/envelopes.json --proof-sha256 8f5e4d2c... --plan .../grip-source-v4/source-plan.json --plan-sha256 432f669d... --import-archive .../mole-grip-v4.inputs --out godot/data/underground/mole-worker/curl-v1",
+    "$PY .../run_curl_topology.py .../topology-curl-v1",
+    "$PY .../run_native_curl_grip.py .../curl-native-v1",
+    "$PY .../prove_curl_grip.py .../curl-grip-proof-v1/proof.json",
+    "$PY .../author_tread_install_v4.py .../tread-install-v4/candidate-s --x-u 160 --z-u -270 --lean-degrees 35 --azimuth-degrees 60 --torso-degrees 0",
+    "$PY .../author_tread_install_v4.py .../tread-install-v4/candidate-t --x-u 64 --z-u -294 --lean-degrees 35 --azimuth-degrees 60 --torso-degrees 0",
+    "$PY .../author_tread_install_v4.py .../tread-install-v4/candidate-u --x-u 64 --z-u -294 --lean-degrees 30 --azimuth-degrees 60 --torso-degrees 0",
+    "$PY .../render_tread_install_v4.py .../tread-install-v4/candidate-X .../tread-install-review-v4/candidate-X",
+    "$PY .../test_curl_grip_chain.py -v",
+    "./tools/run_tests.sh --suite test_mole_grip_curl_source.gd --suite test_mole_grip_source.gd --suite test_entry_worker_presentation.gd --suite test_underground_paid_assembly_handling.gd --suite test_underground_entry_world_bindings.gd --suite test_underground_host.gd"
+  ],
+  "search": "two-key search on the curled closure, upright, strike x -160/-64/64/160, z -294/-270/-246/-214, lean 25-50, azimuth -60..90 (65 of 576 clear); clear rows ranked by wrist deviation were run with the full work and entry self-clearance; s, t and u then passed every proof"
+}

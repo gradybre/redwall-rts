@@ -1,0 +1,452 @@
+{
+  "schema": 1,
+  "decision": "1209",
+  "revision": 2,
+  "station": {
+    "front_z_below_plane_u": -168.3016950881437,
+    "back_z_in_riser_band_u": 188.42886427595374,
+    "d_range_u": [
+      297,
+      323
+    ],
+    "chosen_d_u": 310
+  },
+  "station_root_local_u": [
+    0,
+    0,
+    0
+  ],
+  "station_from_far_edge_u": 310,
+  "fixture": {
+    "assembly": 1,
+    "solids_u": [
+      [
+        -1024,
+        -64,
+        -310,
+        1024,
+        0,
+        202
+      ],
+      [
+        -896,
+        -896,
+        -310,
+        -768,
+        -64,
+        202
+      ],
+      [
+        768,
+        -896,
+        -310,
+        896,
+        -64,
+        202
+      ],
+      [
+        -1024,
+        64,
+        202,
+        1024,
+        128,
+        2250
+      ],
+      [
+        -896,
+        -896,
+        202,
+        -768,
+        64,
+        2250
+      ],
+      [
+        768,
+        -896,
+        202,
+        896,
+        64,
+        2250
+      ],
+      [
+        -256,
+        0,
+        -310,
+        256,
+        128,
+        -182
+      ]
+    ],
+    "source_labels": [
+      "support deck T_{k-1}",
+      "T_{k-1} left bearer and posts (superset)",
+      "T_{k-1} right bearer and posts (superset)",
+      "deck behind (L0, or T_{k-2})",
+      "behind left bearer and posts (superset)",
+      "behind right bearer and posts (superset)",
+      "paid WIP candidate: T_k left bearer, quarter-turned"
+    ],
+    "support_solid": 0,
+    "workpiece_solid": 6,
+    "workpiece_support": false
+  },
+  "source_recipe": {
+    "x_u": 208,
+    "z_u": -300,
+    "lean_degrees": 40,
+    "azimuth_degrees": 15,
+    "torso_degrees": 0,
+    "elbow_rule": "wrist_preserving_swivel",
+    "contact_plane_y_u": 128,
+    "poll_y_u": [
+      208,
+      126,
+      208
+    ]
+  },
+  "poll_source_vertex": 478,
+  "pose_solver_diagnostics": [
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "wrist_deviation_degrees": 10.047450599201609,
+      "hand_origin_u": [
+        242.59087033596802,
+        632.4509290857993,
+        -73.95178464453494
+      ],
+      "poll_u": [
+        207.9999996465483,
+        207.9999997203696,
+        -300.0000127805936
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "wrist_deviation_degrees": 9.815308586408584,
+      "hand_origin_u": [
+        242.59087033596802,
+        631.5300306482993,
+        -73.95178464453494
+      ],
+      "poll_u": [
+        207.9999996465483,
+        207.0791012828696,
+        -300.0000127805936
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 5.551115123125783e-17,
+      "wrist_deviation_degrees": 9.163771027670652,
+      "hand_origin_u": [
+        242.59087033596802,
+        628.9274915857993,
+        -73.95178464453494
+      ],
+      "poll_u": [
+        207.9999996465483,
+        204.4765622203696,
+        -300.0000127805936
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 1.3877787807814457e-17,
+      "wrist_deviation_degrees": 8.165664998959967,
+      "hand_origin_u": [
+        242.59087033596802,
+        624.8835462732993,
+        -73.95178464453494
+      ],
+      "poll_u": [
+        207.9999996465483,
+        200.4326169078696,
+        -300.0000127805936
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 0.0,
+      "wrist_deviation_degrees": 6.894830840314914,
+      "hand_origin_u": [
+        242.59087033596802,
+        619.6384290857993,
+        -73.95178464453494
+      ],
+      "poll_u": [
+        207.9999996465483,
+        195.1874997203696,
+        -300.0000127805936
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 5.551115123125783e-17,
+      "wrist_deviation_degrees": 5.436020931184998,
+      "hand_origin_u": [
+        242.59087033596802,
+        613.4323743982993,
+        -73.95178464453494
+      ],
+      "poll_u": [
+        207.9999996465483,
+        188.9814450328696,
+        -300.0000127805936
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "wrist_deviation_degrees": 3.878883276013267,
+      "hand_origin_u": [
+        242.59087033596802,
+        606.5056165857993,
+        -73.95178464453494
+      ],
+      "poll_u": [
+        207.9999996465483,
+        182.0546872203696,
+        -300.0000127805936
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 0.0,
+      "wrist_deviation_degrees": 2.317024766969221,
+      "hand_origin_u": [
+        242.59087033596802,
+        599.0983900232993,
+        -73.95178464453494
+      ],
+      "poll_u": [
+        207.9999996465483,
+        174.6474606578696,
+        -300.0000127805936
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 1.3877787807814457e-17,
+      "wrist_deviation_degrees": 0.8240668501801169,
+      "hand_origin_u": [
+        242.59087033596802,
+        591.4509290857993,
+        -73.95178464453494
+      ],
+      "poll_u": [
+        207.9999996465483,
+        166.9999997203696,
+        -300.0000127805936
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 0.0,
+      "wrist_deviation_degrees": 0.5455772580244058,
+      "hand_origin_u": [
+        242.59087033596802,
+        583.8034681482993,
+        -73.95178464453494
+      ],
+      "poll_u": [
+        207.9999996465483,
+        159.3525387828696,
+        -300.0000127805936
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "wrist_deviation_degrees": 1.6962791992075557,
+      "hand_origin_u": [
+        242.59087033596802,
+        576.3962415857993,
+        -73.95178464453494
+      ],
+      "poll_u": [
+        207.9999996465483,
+        151.9453122203696,
+        -300.0000127805936
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "wrist_deviation_degrees": 2.614999931449309,
+      "hand_origin_u": [
+        242.59087033596802,
+        569.4694837732993,
+        -73.95178464453494
+      ],
+      "poll_u": [
+        207.9999996465483,
+        145.0185544078696,
+        -300.0000127805936
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 1.3877787807814457e-17,
+      "wrist_deviation_degrees": 3.2941462184307375,
+      "hand_origin_u": [
+        242.59087033596802,
+        563.2634290857993,
+        -73.95178464453494
+      ],
+      "poll_u": [
+        207.9999996465483,
+        138.8124997203696,
+        -300.0000127805936
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 1.3877787807814457e-17,
+      "wrist_deviation_degrees": 3.750335014300873,
+      "hand_origin_u": [
+        242.59087033596802,
+        558.0183118982993,
+        -73.95178464453494
+      ],
+      "poll_u": [
+        207.9999996465483,
+        133.5673825328696,
+        -300.0000127805936
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "wrist_deviation_degrees": 4.028174549985792,
+      "hand_origin_u": [
+        242.59087033596802,
+        553.9743665857993,
+        -73.95178464453494
+      ],
+      "poll_u": [
+        207.9999996465483,
+        129.5234372203696,
+        -300.0000127805936
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 1.3877787807814457e-17,
+      "wrist_deviation_degrees": 4.172769586630192,
+      "hand_origin_u": [
+        242.59087033596802,
+        551.3718275232993,
+        -73.95178464453494
+      ],
+      "poll_u": [
+        207.9999996465483,
+        126.9208981578696,
+        -300.0000127805936
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "wrist_deviation_degrees": 4.217428101161065,
+      "hand_origin_u": [
+        242.59087033596802,
+        550.4509290857993,
+        -73.95178464453494
+      ],
+      "poll_u": [
+        207.9999996465483,
+        125.9999997203696,
+        -300.0000127805936
+      ]
+    }
+  ],
+  "wall_margin": {
+    "sampled_max_abs_x_u": 614.4909456908754,
+    "trench_wall_abs_x_u": 1024
+  },
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_tread_install_v2.py": "1b4b9669372d00f0313a15e3dd677aad94d5125d9e80c33ab9145e554a86d0e8",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_tread_install.py": "5b00fcc8b0af1c3e369dc7778ba4b6b8fa89285f3d4700dcb25c570d8adb971f",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-proof-v4/prove_candidate.py": "3d05189072337c7dfe2309a791d5b4f3d2bdb990cdbcb41d43c27de8420b96bc",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_source.py": "633beb0647e612b159f0257912e3321b126dbde5e49678e0c725c90bc4a7793a",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_descent_flight.py": "14f938705dc38aacfcad1b0662212736451d5af988e4e1ca1f3f498fe0a53e2e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-prefix-v1/first-entry-prefix-v1.source.json": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81"
+  },
+  "verified_source_files": 537,
+  "historical_source_snapshot": {
+    "res://demo/cast/underground_actor.gd": {
+      "commit": "eddf9027811a25749da0b632e813ae38e078ad6d",
+      "sha256": "64ce149244114c7404e6e7374b6c268fa2ebbe2e70dfa940d3d3e791c763c4b6"
+    },
+    "res://demo/tunnel/tunnel_panel.gd": {
+      "commit": "ca8506677eba7d5f6dd41dfa89f989666f7f6d31",
+      "sha256": "83edb7c2eeb6d2878f25c9b3a19ea4a1f5ccd35d8e4f7ee4f802d3f7f9a11d7c"
+    },
+    "res://scripts/core/buildings.gd": {
+      "commit": "e3027d5fa467622494620eb123ba0e6d7a618af4",
+      "sha256": "ee2049178e1abee2d38fd26933f6620d445ec2ef48ca52ad8e0badde29452977"
+    },
+    "res://scripts/core/construction.gd": {
+      "commit": "9e590f0beff258339dae33e764decdaeb7726e6d",
+      "sha256": "1ce4a49cebff074ac673d574af2b0e4d9b674ff7056d2524b63eabb5138f73c1"
+    },
+    "res://scripts/core/entity_directory.gd": {
+      "commit": "8d6176042d25b6d4f9395b6c67fa0dface604d29",
+      "sha256": "0a143ce501ee8d634536d45f1e105f19ff0de16ddba9c614b864fe0e9d3468a2"
+    },
+    "res://scripts/core/excavation_contract.gd": {
+      "commit": "0172e80800a52d5da2f912e88a2e90d37f26417d",
+      "sha256": "fc97c2bc63099e5fdd3f5ccf081b94544f92ce38d85f1e2297766b7bb8471e4f"
+    },
+    "res://scripts/core/inventory.gd": {
+      "commit": "88c5fbac8143e128c5c63e91d20cc4318312ef15",
+      "sha256": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf"
+    },
+    "res://scripts/core/modular_project_contract.gd": {
+      "commit": "8e8e2bac1e038165330fcb7ccacd08793ce63d50",
+      "sha256": "3dbdac6d134bba1d22bb907382544b16b2d6666acabc7df62e6937b22b0dcb58"
+    },
+    "res://scripts/core/reservations.gd": {
+      "commit": "848218558ebda685a6d12ebf2d9b883e202cbc18",
+      "sha256": "0b29425425c07743cebc343a56958e8f2db054c255f44a25a9cc2813d693a2d2"
+    },
+    "res://scripts/core/resource_nodes.gd": {
+      "commit": "787bca73fe17ac453af7d0354aa657753c6e5241",
+      "sha256": "064779f8a601f36e1909f5a00052dae3d6ca0d8f367b594807c000ac16b54465"
+    },
+    "res://scripts/core/transforms.gd": {
+      "commit": "2d36d76a01a128335e6071c28cdb6270610bd850",
+      "sha256": "e0ddf877bcfee5f7372b88bf4c98fdbb2210f8c3397dae5d046fd8eed58c45c7"
+    },
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "a65b4b1879f3de2eec72772b8b615ab635bf2fc7",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    },
+    "res://scripts/core/work.gd": {
+      "commit": "8e8e2bac1e038165330fcb7ccacd08793ce63d50",
+      "sha256": "381837821f30bac26b498e44903ad5c9bdd12728d53b1555cfc6219703ddf73d"
+    },
+    "res://scripts/core/world_init.gd": {
+      "commit": "787bca73fe17ac453af7d0354aa657753c6e5241",
+      "sha256": "ce9545914469352b139786afef71def170cc94e61f5e7a0fe7aaa351106335c4"
+    },
+    "res://scripts/systems/settlement_system.gd": {
+      "commit": "1443127111f9e3eac452a2f4ba3d8d96bde1398c",
+      "sha256": "8d0a07bffad85090d3d505e052b780636fefc106fc52a6f722f492a17bcdbb3a"
+    },
+    "res://scripts/systems/ui_manager.gd": {
+      "commit": "8d6176042d25b6d4f9395b6c67fa0dface604d29",
+      "sha256": "661d4978f352382fea9593525f8eb1cf5e969e1c7255a9875dedbb4dc3863c5d"
+    },
+    "res://scripts/ui/ui_notices.gd": {
+      "commit": "5467083b6570ed4e845edf9c9426e280e407f347",
+      "sha256": "cc315ea1e8dee188cc4a17a9dc5c1b52e967f6768f171f780e2edeb5cec2f055"
+    },
+    "res://scripts/ui/ui_resident_card.gd": {
+      "commit": "787bca73fe17ac453af7d0354aa657753c6e5241",
+      "sha256": "96d07f75a9db6459162a8c8e2b59ba6965fe182cbd6d86a981a010d4650c8cc6"
+    },
+    "res://scripts/ui/ui_resident_snapshot.gd": {
+      "commit": "f6f5fe2bcc0597ecd36866137ea03c661648b103",
+      "sha256": "7c43dcd07c0183b45d480aec9a817a3a83f5d4db51c14468befb81d80eb56023"
+    },
+    "res://scripts/ui/ui_world_session.gd": {
+      "commit": "74d0f66b7c9e40df11bb403b32e79fb32279bb95",
+      "sha256": "5fecba431926ac68fef7d076183f1c3cd1298934c940c1f103f00d223b3947b5"
+    }
+  },
+  "remaining": [
+    "BRENDAN_REVIEW",
+    "ARRIVAL_REPOSITION_FROM_DESCENT_END",
+    "T6_SILL_WORKPIECE_PLANE_64",
+    "HANDLING_PROGRAM",
+    "NATIVE_CAPTURE",
+    "INTEGER_ROWS_AND_CONTENT_7"
+  ],
+  "production_qualified": false
+}

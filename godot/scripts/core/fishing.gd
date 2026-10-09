@@ -3037,6 +3037,12 @@ const REFUSE_COLUMN_ZONE_DUPLICATE: StringName = &"COLUMN_ZONE_DUPLICATE"
 ## The blank a cleared stock row carries in its species column.
 const COLUMN_BLANK_SPECIES_ID: int = -1
 
+## The code of the most recent refused bulk column call (`copy_columns_into()` or
+## `restore_columns()`), or REFUSE_NONE. Category 3: a diagnostic channel separate from every
+## gameplay OpResult and from `_last_claim_column_refusal`, which belongs only to the section 7
+## claim boundary. Never saved or hashed.
+var _last_column_refusal: StringName = REFUSE_NONE
+
 
 class Columns:
 	"""The cold section 4 image: 22 typed packed columns, 32 habitat rows and 96 stock rows.
@@ -3109,6 +3115,31 @@ class Columns:
 	func is_sized() -> bool:
 		"""True when all 22 columns carry their exact compiled extent."""
 		return _habitat_columns_sized() and _stock_columns_sized()
+
+	func equals(other: Columns) -> bool:
+		"""True when all 22 columns are byte-identical. Proves a refusal changed nothing."""
+		if other == null:
+			return false
+		return habitat_present == other.habitat_present and stock_present == other.stock_present \
+			and habitat_type == other.habitat_type \
+			and habitat_zone_slot == other.habitat_zone_slot \
+			and habitat_zone_generation == other.habitat_zone_generation \
+			and habitat_effort_slots == other.habitat_effort_slots \
+			and habitat_pollution == other.habitat_pollution \
+			and habitat_danger == other.habitat_danger \
+			and habitat_protected_fraction == other.habitat_protected_fraction \
+			and habitat_capacity_milli == other.habitat_capacity_milli \
+			and habitat_ref_slot == other.habitat_ref_slot \
+			and habitat_ref_generation == other.habitat_ref_generation \
+			and habitat_effort_used == other.habitat_effort_used \
+			and habitat_intensive == other.habitat_intensive \
+			and stock_habitat_slot == other.stock_habitat_slot \
+			and stock_habitat_generation == other.stock_habitat_generation \
+			and stock_species_id == other.stock_species_id \
+			and stock_population_milli == other.stock_population_milli \
+			and stock_capacity_milli == other.stock_capacity_milli \
+			and stock_harvested_today_milli == other.stock_harvested_today_milli \
+			and stock_closed == other.stock_closed and stock_restocking == other.stock_restocking
 
 	func _habitat_columns_sized() -> bool:
 		"""True when all 13 habitat columns are 32 cells."""
@@ -3382,6 +3413,11 @@ static func _columns_duplicate_refusal(image: Columns) -> StringName:
 			if image.habitat_present[other] == 1 \
 					and image.habitat_ref_slot[other] == image.habitat_ref_slot[slot]:
 				return REFUSE_COLUMN_SELF_DUPLICATE
+	return _columns_zone_duplicate_refusal(image)
+
+
+static func _columns_zone_duplicate_refusal(image: Columns) -> StringName:
+	"""The nonnull zone SLOT+GENERATION pair scan over present habitat rows, fixed 32-row."""
 	for zone_row: int in FISH_HABITAT_CAPACITY:
 		if image.habitat_present[zone_row] != 1:
 			continue
@@ -3396,3 +3432,154 @@ static func _columns_duplicate_refusal(image: Columns) -> StringName:
 					== image.habitat_zone_generation[zone_row]:
 				return REFUSE_COLUMN_ZONE_DUPLICATE
 	return REFUSE_NONE
+
+
+# --- ARCH-SAVE-002 section 4 bulk column API (ADR 1222 build step 2) ----------------------------
+#
+# Owner 4's capture and apply steps, mirroring `priorities.gd`'s pair. `copy_columns_into()` is an
+# exact snapshot of the 22 category-1 columns over ALL physical rows, free rows included;
+# `restore_columns()` judges a candidate with the SAME `columns_refusal()` the offline bridge
+# uses, writes nothing on refusal, then installs the 22 columns and REBUILDS `_live_habitat_slots`
+# / `_live_habitat_count` (category 2) from the installed habitat presence bytes. No member
+# belongs to another section: this pair never reads or writes `_effort_claim_*`,
+# `_effort_total_scratch`, `_last_claim_column_refusal` or any other section 7 claim member --
+# that slice has its own separate capture/apply boundary. `_last_column_refusal` is category 3 and
+# is the only other member either call writes.
+
+
+func last_column_refusal() -> StringName:
+	"""The code of the most recent refused bulk column call, or REFUSE_NONE after a success.
+
+	A SEPARATE channel from every gameplay `OpResult` and from `_last_claim_column_refusal`, so a
+	load can never overwrite the reason an unrelated mutator was refused before its caller read
+	it. Every code here is a `COLUMN_` section 4 code.
+	"""
+	return _last_column_refusal
+
+
+func copy_columns_into(out: Columns) -> bool:
+	"""Copy the 22 category-1 columns into caller-owned buffers. False refuses; `out` unchanged.
+
+	The ONLY reader of a free row's bytes. The copies are snapshots: mutating `out` afterwards
+	cannot reach a column, and a later write here cannot reach `out`.
+	"""
+	if out == null or not out.is_sized():
+		_last_column_refusal = REFUSE_COLUMN_SHAPE
+		return false
+	_copy_habitat_columns_into(out)
+	_copy_stock_columns_into(out)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func _copy_habitat_columns_into(out: Columns) -> void:
+	"""Refill the 13 habitat columns of a pre-sized `out` from the live habitat columns."""
+	_refill_bytes(out.habitat_present, _habitat_present)
+	_refill_i32(out.habitat_type, _habitat_type)
+	_refill_i32(out.habitat_zone_slot, _habitat_zone_slot)
+	_refill_i32(out.habitat_zone_generation, _habitat_zone_generation)
+	_refill_i32(out.habitat_effort_slots, _habitat_effort_slots)
+	_refill_i32(out.habitat_pollution, _habitat_pollution)
+	_refill_i32(out.habitat_danger, _habitat_danger)
+	_refill_i32(out.habitat_protected_fraction, _habitat_protected_fraction)
+	_refill_i64(out.habitat_capacity_milli, _habitat_capacity_milli)
+	_refill_i32(out.habitat_ref_slot, _habitat_ref_slot)
+	_refill_i32(out.habitat_ref_generation, _habitat_ref_generation)
+	_refill_i32(out.habitat_effort_used, _habitat_effort_used)
+	_refill_bytes(out.habitat_intensive, _habitat_intensive)
+
+
+func _copy_stock_columns_into(out: Columns) -> void:
+	"""Refill the 9 stock columns of a pre-sized `out` from the live stock columns."""
+	_refill_bytes(out.stock_present, _stock_present)
+	_refill_i32(out.stock_habitat_slot, _stock_habitat_slot)
+	_refill_i32(out.stock_habitat_generation, _stock_habitat_generation)
+	_refill_i32(out.stock_species_id, _stock_species_id)
+	_refill_i64(out.stock_population_milli, _stock_population_milli)
+	_refill_i64(out.stock_capacity_milli, _stock_capacity_milli)
+	_refill_i64(out.stock_harvested_today_milli, _stock_harvested_today_milli)
+	_refill_bytes(out.stock_closed, _stock_closed)
+	_refill_bytes(out.stock_restocking, _stock_restocking)
+
+
+func restore_columns(columns: Columns) -> bool:
+	"""Replace all 22 columns and rebuild the habitat active list. False refuses; nothing written.
+
+	Allocate before consume (decision 0059): `columns_refusal()` -- the SAME predicate the offline
+	bridge judges a frame with -- runs before the first write, so a refusal leaves every column
+	and the active list byte-identical. The rebuild walks the INSTALLED presence bytes ascending,
+	never a caller-supplied list. No cross-owner relation (zone, Job, Expedition, catalog) is
+	checked here beyond what `columns_refusal()` already checks.
+	"""
+	var code: StringName = columns_refusal(columns)
+	if code != REFUSE_NONE:
+		_last_column_refusal = code
+		return false
+	_install_habitat_columns(columns)
+	_install_stock_columns(columns)
+	_rebuild_live_habitat_index()
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func _install_habitat_columns(columns: Columns) -> void:
+	"""Install private copies of the 13 habitat columns of an already accepted image."""
+	_habitat_present = columns.habitat_present.duplicate()
+	_habitat_type = columns.habitat_type.duplicate()
+	_habitat_zone_slot = columns.habitat_zone_slot.duplicate()
+	_habitat_zone_generation = columns.habitat_zone_generation.duplicate()
+	_habitat_effort_slots = columns.habitat_effort_slots.duplicate()
+	_habitat_pollution = columns.habitat_pollution.duplicate()
+	_habitat_danger = columns.habitat_danger.duplicate()
+	_habitat_protected_fraction = columns.habitat_protected_fraction.duplicate()
+	_habitat_capacity_milli = columns.habitat_capacity_milli.duplicate()
+	_habitat_ref_slot = columns.habitat_ref_slot.duplicate()
+	_habitat_ref_generation = columns.habitat_ref_generation.duplicate()
+	_habitat_effort_used = columns.habitat_effort_used.duplicate()
+	_habitat_intensive = columns.habitat_intensive.duplicate()
+
+
+func _install_stock_columns(columns: Columns) -> void:
+	"""Install private copies of the 9 stock columns of an already accepted image."""
+	_stock_present = columns.stock_present.duplicate()
+	_stock_habitat_slot = columns.stock_habitat_slot.duplicate()
+	_stock_habitat_generation = columns.stock_habitat_generation.duplicate()
+	_stock_species_id = columns.stock_species_id.duplicate()
+	_stock_population_milli = columns.stock_population_milli.duplicate()
+	_stock_capacity_milli = columns.stock_capacity_milli.duplicate()
+	_stock_harvested_today_milli = columns.stock_harvested_today_milli.duplicate()
+	_stock_closed = columns.stock_closed.duplicate()
+	_stock_restocking = columns.stock_restocking.duplicate()
+
+
+func _rebuild_live_habitat_index() -> void:
+	"""Rebuild `_live_habitat_slots`/`_live_habitat_count` ascending from `_habitat_present`.
+
+	The installed presence bytes are the only input: no caller-supplied list, free list or
+	section 7 claim column is read or written here.
+	"""
+	_live_habitat_slots.fill(EntityDirectory.NULL_SLOT)
+	var count: int = 0
+	for slot: int in FISH_HABITAT_CAPACITY:
+		if _habitat_present[slot] == 1:
+			_live_habitat_slots[count] = slot
+			count += 1
+	_live_habitat_count = count
+
+
+static func _refill_bytes(out: PackedByteArray, source: PackedByteArray) -> void:
+	"""Refill a caller's byte buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
+
+
+static func _refill_i32(out: PackedInt32Array, source: PackedInt32Array) -> void:
+	"""Refill a caller's int32 buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
+
+
+static func _refill_i64(out: PackedInt64Array, source: PackedInt64Array) -> void:
+	"""Refill a caller's int64 buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)

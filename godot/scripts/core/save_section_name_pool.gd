@@ -660,10 +660,7 @@ static func apply(record: Record, store: ResidentsScript) -> SaveHeader.Refusal:
 	var refused: SaveHeader.Refusal = apply_precondition_refusal(record, store)
 	if not refused.is_ok():
 		return refused
-	var prior: Record = Record.new()
-	var captured: SaveHeader.Refusal = capture_into(store, prior)
-	if not captured.is_ok():
-		return captured
+	var prior: Record = _snapshot_names(store)
 	var flags: PackedByteArray = _captured_flags(store)
 	for slot: int in ROW_COUNT:
 		if not store.is_present(slot):
@@ -713,6 +710,19 @@ static func occupancy_refusal(record: Record, store: ResidentsScript) -> SaveHea
 				% [slot, present, store.is_named(slot),
 					SaveCodec.utf8_byte_length(record.names[slot]), code])
 	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+
+
+static func _snapshot_names(store: ResidentsScript) -> Record:
+	"""The store's current names, read raw for the rollback (ADR 1222).
+
+	NOT `capture_into()`: during a load, section 4 has already installed the incoming `_named`
+	flags while the names are still the cleared ones, so the store is deliberately mid-restore
+	and a validating capture would refuse the very state this apply exists to complete.
+	"""
+	var prior: Record = Record.new()
+	for slot: int in ROW_COUNT:
+		prior.names[slot] = String(store.name_key_of(slot))
+	return prior
 
 
 static func _captured_flags(store: ResidentsScript) -> PackedByteArray:

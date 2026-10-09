@@ -1,0 +1,28 @@
+import sys, json, itertools
+sys.path.insert(0, '/Users/brendan/Developer/redwall-rts/.claude/worktrees/agent-a5f68ea3a8a3bdb98/godot/data/underground/mole-worker/claw-work-v1')
+import numpy as np
+import author_paw_seat as SEAT
+import prove_tread_seat as TS
+src = SEAT.corrected_source()
+g = src['body']['geometry'][0]
+w = g['weights'] > 0
+arm = ~np.any(~np.isin(g['ids'], [13, 14, 15, 17, 18, 19]) & w, axis=1)
+dom = g['ids'][np.arange(len(g['ids'])), np.argmax(g['weights'], axis=1)]
+leg = np.isin(dom, [1, 2, 5, 6]) & ~np.any(np.isin(g['ids'], [13, 14, 15, 17, 18, 19]) & w, axis=1)
+for plane in (128,):
+    base_site, fixture = TS.site(plane)
+    for lean, drop, x, (rr, lr) in itertools.product((0, 10, 20, 30, 40, 50), (0, 32, 64, 96), (128, 160, 192, 224), ((90, 90), (0, 0), (270, 270))):
+        site = dict(base_site, contact={'right': np.array([x, plane, base_site['contact']['right'][2]]),
+                                        'left': np.array([-x, plane, base_site['contact']['left'][2]])})
+        recipe = dict(lean_degrees=lean, drop_u=drop, head_lift_degrees=60, right_roll_degrees=rr, left_roll_degrees=lr)
+        try:
+            pal, _ = SEAT.program_keys(src, recipe, [float(plane)], site)
+        except ValueError:
+            continue
+        case = SEAT.W.case_of([pal[0], pal[0]], src['grounding'], 'x')
+        p = SEAT.SRC.I.points_at(case, src['body'], 0)
+        a, b = p[arm], p[leg]
+        gap = min(float(np.sqrt(((a[i:i + 512, None] - b[None]) ** 2).sum(-1)).min()) for i in range(0, len(a), 512))
+        paw = p[np.any(np.isin(g['ids'], [15, 19]) & w, axis=1)]
+        out = int(np.sum(np.abs(paw[paw[:, 1] < plane][:, 0]) > 256))
+        print(json.dumps({'lean': lean, 'drop': drop, 'x': x, 'rr': rr, 'lr': lr, 'arm_leg_gap': round(gap, 1), 'paw_out_x': out}), flush=True)

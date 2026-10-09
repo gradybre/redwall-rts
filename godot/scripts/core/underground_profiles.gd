@@ -34,6 +34,10 @@ const CONTACT_PATCH: int = 6
 const CONTACT_NONE: int = 0
 const CONTACT_ANCHOR_ONLY: int = 1
 const CONTACT_ANCHOR_AND_PATCH: int = 2
+const CONTACT_ASSEMBLY_PALM: int = 3
+const CONTACT_HAUL_GRIP: int = 4 # ADR1198: certified two-hand grip on the stock at S; no point/patch boxes.
+## ADR1229 / DEC-058: a tread is fitted by a general paw working motion; no certified point or patch is claimed.
+const CONTACT_TREAD_FIT: int = 5
 const MODE_STAND: int = 0
 const MODE_WALK: int = 1
 const MODE_CARRY: int = 2
@@ -64,6 +68,11 @@ const POLICY_SOURCE_WORK: int = 3
 const POLICY_SHORT_FORWARD: int = 4
 const POLICY_SHORT_BACKWARD: int = 5
 const POLICY_CANONICAL_GROUND: int = 6
+const POLICY_ASSEMBLY_HANDLING: int = 7
+## ADR1229: finite stair travel on a connector family (descent, ascent, half-turn); never automatic lookup.
+const POLICY_STAIR: int = 8
+## ADR1229: the stepped half-turn on a tread; a separate policy so it never shares a key with a stair gait.
+const POLICY_STAIR_TURN: int = 9
 # Field-major columns, not one record/object per profile.
 const F_SOURCE: int = 0
 const F_SPECIES: int = 1
@@ -359,17 +368,28 @@ func _long(bank: Bank, row: int, field: int) -> int:
 func _validate_stage() -> StringName:
 	"""Cold O(P²) admission keeps movement unique; WORK contacts require an explicit choice if ambiguous."""
 	var next_box: int = 0
-	var same_key_count: int = 0
+	# ADR1198: rows are key-sorted within each source; an appended source never renumbers earlier rows.
+	var last_of: PackedInt32Array = PackedInt32Array()
+	last_of.resize(_stage.header[3])
+	last_of.fill(-1)
+	var same_key: PackedInt32Array = PackedInt32Array()
+	same_key.resize(_stage.header[3])
 	for row: int in _stage.header[1]:
 		var code: StringName = _profile_refusal(row, next_box)
 		if code != &"":
 			return code
 		next_box += _field(_stage, row, F_BOX_COUNT)
-		var order: int = _compare_rows(row - 1, row) if row > 0 else -1
+		var source: int = _field(_stage, row, F_SOURCE)
+		var order: int = _compare_rows(last_of[source], row) if last_of[source] >= 0 else -1
 		if order > 0:
 			return &"PROFILE_KEY_ORDER"
-		same_key_count = same_key_count + 1 if order == 0 else 1
-		if same_key_count > MAX_KEY_VARIANTS:
+		same_key[source] = same_key[source] + 1 if order == 0 else 1
+		last_of[source] = row
+		var same_key_count: int = same_key[source]
+		# Automatic lookup still sees every eligible row in its original16-row
+		# window. Only one explicit nonproductive handling tail may follow it.
+		if same_key_count > MAX_KEY_VARIANTS and (same_key_count != MAX_KEY_VARIANTS + 1 \
+				or _stage.flags[_profile_capacity + row] != POLICY_ASSEMBLY_HANDLING):
 			return &"PROFILE_KEY_CAPACITY"
 		for previous: int in row:
 			if _field(_stage, row, F_MODE) != MODE_WORK and _overlap_keys(previous, row):
@@ -379,7 +399,7 @@ func _validate_stage() -> StringName:
 
 func _profile_refusal(row: int, next_box: int) -> StringName:
 	"""Qualification is an explicit source certificate requirement, not inferred from positive bounds."""
-	if _stage.flags[row] != CERT_REQUIRED or _stage.flags[_profile_capacity + row] > POLICY_CANONICAL_GROUND \
+	if _stage.flags[row] != CERT_REQUIRED or _stage.flags[_profile_capacity + row] > POLICY_STAIR_TURN \
 			or _long(_stage, row, L_REVISION) <= 0:
 		return &"PROFILE_CERTIFICATE_REQUIRED"
 	if _field(_stage, row, F_SOURCE) < 0 or _field(_stage, row, F_SOURCE) >= _stage.header[3] \
@@ -390,7 +410,10 @@ func _profile_refusal(row: int, next_box: int) -> StringName:
 	var policy: int = _stage.flags[_profile_capacity + row]
 	if policy != POLICY_AUTOMATIC and (_field(_stage, row, F_YAW_KIND) != (YAW_ALL if policy == POLICY_CANONICAL_GROUND else YAW_EXACT) \
 			or _field(_stage, row, F_YAW) % 16384 != 0 \
-			or mode != (MODE_WORK if policy == POLICY_SOURCE_WORK else MODE_WALK)):
+			or mode != (MODE_WORK if policy == POLICY_SOURCE_WORK or policy == POLICY_ASSEMBLY_HANDLING else MODE_WALK)):
+		return &"PROFILE_POLICY_FORMAT"
+	if (policy == POLICY_STAIR or policy == POLICY_STAIR_TURN) and (_field(_stage, row, F_FAMILIES) == 0 or _field(_stage, row, F_TOOL) != -1 \
+			or _field(_stage, row, F_CARGO) != -1):
 		return &"PROFILE_POLICY_FORMAT"
 	var states: int = _field(_stage, row, F_STATES)
 	if mode < MODE_STAND or mode > MODE_CLIMB or states < 1 or states > 511 \
@@ -435,7 +458,10 @@ func _key_refusal(row: int) -> StringName:
 		return &"PROFILE_QUANTITY"
 	if _field(_stage, row, F_WORK_KIND) < -1 or _field(_stage, row, F_WORK_KIND) >= 12 \
 			or _field(_stage, row, F_CONTACT_KIND) < CONTACT_NONE \
-			or _field(_stage, row, F_CONTACT_KIND) > CONTACT_ANCHOR_AND_PATCH:
+			or _field(_stage, row, F_CONTACT_KIND) > CONTACT_TREAD_FIT:
+		return &"PROFILE_WORK_IDENTITY"
+	if (_stage.flags[_profile_capacity + row] == POLICY_ASSEMBLY_HANDLING) \
+			!= (_field(_stage, row, F_CONTACT_KIND) == CONTACT_ASSEMBLY_PALM):
 		return &"PROFILE_WORK_IDENTITY"
 	return &""
 
@@ -460,12 +486,38 @@ func _roles_refusal(profile: int, first: int, count: int) -> StringName:
 		elif role == CONTACT_PATCH:
 			patch_row = row
 	var working: bool = _field(_stage, profile, F_MODE) == MODE_WORK
+	if _field(_stage, profile, F_CONTACT_KIND) == CONTACT_HAUL_GRIP:
+		return _haul_grip_roles_refusal(profile, working, mask, points + patches)
+	if _field(_stage, profile, F_CONTACT_KIND) == CONTACT_TREAD_FIT:
+		return _tread_fit_roles_refusal(profile, working, mask, points + patches)
+	if _stage.flags[_profile_capacity + profile] == POLICY_ASSEMBLY_HANDLING:
+		# Curved source contact is a separate certificate, never a made-up point,
+		# planar patch or productive stroke. Exact source matching remains required.
+		return &"" if working and mask == 15 and _field(_stage, profile, F_WORK_KIND) == Work.JobsScript.JOB_KIND_BUILD \
+			and (_field(_stage, profile, F_STATES) & STATE_REVERSAL) != 0 else &"PROFILE_ROLE_MISSING"
 	if (mask & 7) != 7 or (working and ((mask & 56) != 56 or points != 1 \
 			or _field(_stage, profile, F_WORK_KIND) < 0 or _field(_stage, profile, F_CONTACT_KIND) == CONTACT_NONE)):
 		return &"PROFILE_ROLE_MISSING"
 	if not working and (_field(_stage, profile, F_WORK_KIND) != -1 or _field(_stage, profile, F_CONTACT_KIND) != 0):
 		return &"PROFILE_WORK_IDENTITY"
 	return _contact_patch_refusal(profile, patches, point_row, patch_row)
+
+
+func _tread_fit_roles_refusal(profile: int, working: bool, mask: int, contact_boxes: int) -> StringName:
+	"""DEC-058: a source-work BUILD row with body, stance, recovery, approach and the paw stroke, and no planar
+	point or patch: the paws need not meet the bearer, so no contact is certified."""
+	return &"" if working and mask == 31 and contact_boxes == 0 \
+		and _stage.flags[_profile_capacity + profile] == POLICY_SOURCE_WORK \
+		and _field(_stage, profile, F_WORK_KIND) == Work.JobsScript.JOB_KIND_BUILD \
+		and _field(_stage, profile, F_TOOL) == -1 else &"PROFILE_ROLE_MISSING"
+
+
+func _haul_grip_roles_refusal(profile: int, working: bool, mask: int, contact_boxes: int) -> StringName:
+	"""ADR1198: the curved two-hand grip is a separate certificate, like row 29's palm; the row keeps body,
+	stance, recovery, approach and the carried-stock stroke, and authors no planar point or patch."""
+	return &"" if working and mask == 31 and contact_boxes == 0 \
+		and _field(_stage, profile, F_WORK_KIND) == Work.JobsScript.JOB_KIND_HAUL \
+		and _field(_stage, profile, F_TOOL) == -1 else &"PROFILE_ROLE_MISSING"
 
 
 func _box_shape_refusal(row: int, role: int) -> StringName:
@@ -519,16 +571,15 @@ func query_into(worker: Vector2i, job: Vector2i, mode: int, posture: int, connec
 	var code: StringName = _prepare_query(worker, job, mode, posture, connector_family, equipped_tool_hint, out)
 	if code != &"":
 		return code
-	var first: int = _lower_bound(mode, posture)
-	var row: int = first
-	var end: int = mini(first + MAX_KEY_VARIANTS, _live.header[1])
+	# ADR1198: per-source sorted blocks may interleave, so automatic lookup scans every row (<= MAX_PROFILES);
+	# any second automatic match anywhere is ambiguous rather than file-order selected.
 	var selected: int = -1
-	while row < end:
-		if _live.flags[_profile_capacity + row] == POLICY_AUTOMATIC and _matches(row, mode, posture, connector_family):
+	for row: int in _live.header[1]:
+		if _field(_live, row, F_MODE) != mode or _live.flags[_profile_capacity + row] != POLICY_AUTOMATIC: continue
+		if _matches(row, mode, posture, connector_family):
 			if selected >= 0:
 				return &"PROFILE_SELECTION_AMBIGUOUS"
 			selected = row
-		row += 1
 	if selected < 0:
 		return &"PROFILE_VARIANT_UNAUTHORED"
 	_write_selection(selected, worker, job, out)
@@ -547,14 +598,15 @@ static func selection_policy_leaf(actual: RefCounted, profile_id: int, profile_r
 			or profile_revision <= 0 or profile_revision != actual._live.quantities[L_REVISION * actual._profile_capacity + profile_id]:
 		return -1
 	var policy: int = actual._live.flags[actual._profile_capacity + profile_id]
-	return policy if policy <= POLICY_CANONICAL_GROUND else -1
+	return policy if policy <= POLICY_STAIR_TURN else -1
 
 
 func query_travel_profile_into(worker: Vector2i, job: Vector2i, profile_id: int, profile_revision: int,
 		revision: int, posture: int, connector_family: int, equipped_tool_hint: Vector2i, out: Selection) -> StringName:
 	"""Explicit source travel still proves the actual current actor, Job, tool, cargo and orientation."""
 	var policy: int = selection_policy_leaf(self, profile_id, profile_revision, revision)
-	if policy < POLICY_READY_FORWARD or policy > POLICY_CANONICAL_GROUND or policy == POLICY_SOURCE_WORK:
+	if (policy < POLICY_READY_FORWARD or policy > POLICY_CANONICAL_GROUND or policy == POLICY_SOURCE_WORK) \
+			and policy != POLICY_STAIR and policy != POLICY_STAIR_TURN:
 		return &"PROFILE_TRAVEL_SELECTION_REQUIRED"
 	var code: StringName = _prepare_query(worker, job, MODE_WALK, posture, connector_family, equipped_tool_hint, out)
 	if code != &"":
@@ -690,7 +742,10 @@ func _matches(row: int, mode: int, posture: int, family: int) -> bool:
 	var quantity: int = _candidate.cargo_quantity_milli
 	if quantity < _long(_live, row, L_QUANTITY_MIN) or quantity > _long(_live, row, L_QUANTITY_MAX):
 		return false
-	if _field(_live, row, F_YAW_KIND) == YAW_EXACT and _field(_live, row, F_YAW) != _pose.yaw:
+	# ADR1229: the half-turn's heading is its own table's (Routes checks the start heading); every other exact row
+	# matches the actor's current heading.
+	if _field(_live, row, F_YAW_KIND) == YAW_EXACT and _field(_live, row, F_YAW) != _pose.yaw \
+			and _live.flags[_profile_capacity + row] != POLICY_STAIR_TURN:
 		return false
 	return family == -1 or (_field(_live, row, F_FAMILIES) & (1 << family)) != 0
 
@@ -837,37 +892,6 @@ func _compare_rows(a: int, b: int) -> int:
 		if left != right:
 			return -1 if left < right else 1
 	return 0
-
-
-func _query_key(index: int, mode: int, posture: int) -> int:
-	"""Read scratch without constructing an Array for every worker lookup."""
-	if index < 3:
-		return _identity[index]
-	if index == 3:
-		return mode
-	if index == 4:
-		return posture
-	return _query_values[index - 5] if index < 9 else _query_values[4]
-
-
-func _lower_bound(mode: int, posture: int) -> int:
-	"""At most nine binary-search comparisons plus sixteen exact physical variants."""
-	var low: int = 0
-	var high: int = _live.header[1]
-	while low < high:
-		@warning_ignore("integer_division") var middle: int = (low + high) / 2
-		var comparison: int = 0
-		for index: int in 10:
-			var stored: int = _field(_live, middle, _key_field(index))
-			var requested: int = _query_key(index, mode, posture)
-			if stored != requested:
-				comparison = -1 if stored < requested else 1
-				break
-		if comparison < 0:
-			low = middle + 1
-		else:
-			high = middle
-	return low
 
 
 func _required_states(mode: int) -> int:

@@ -1,0 +1,304 @@
+{
+ "schema": 1,
+ "decision": [
+  "1209",
+  "1217"
+ ],
+ "motion": "tool-free 141 u step back on a tread (ADR 1209 step 5)",
+ "recipe": "ADR 1164 finite short step on the approved claw walk; no authored key",
+ "arrival_from_far_edge_u": 169,
+ "station_from_far_edge_u": 310,
+ "span_u": 141,
+ "moves": 2,
+ "walk_keys": [
+  0,
+  43,
+  42
+ ],
+ "pace_u_per_s": 3277,
+ "hz": 30,
+ "clip_sha256": "295f011e4ee27d27a9b0613cf87a66acf89c0e2cfe03100e209f8a17830253ed",
+ "walk_sha256": "1f8fcfb51ae4f76fb0918c4552a9cd28d4781fbdae5274668c391a200b4cf179",
+ "stand_sha256": "05564adf19b2b29142d99c469839b3aa18c20cdce995d055669528ce88e51b89",
+ "fixture": {
+  "solids_u": [
+   [
+    -1024,
+    -64,
+    -310,
+    1024,
+    0,
+    202
+   ],
+   [
+    -896,
+    -896,
+    -310,
+    -768,
+    -64,
+    202
+   ],
+   [
+    768,
+    -896,
+    -310,
+    896,
+    -64,
+    202
+   ],
+   [
+    -1024,
+    64,
+    202,
+    1024,
+    128,
+    2250
+   ],
+   [
+    -896,
+    -896,
+    202,
+    -768,
+    64,
+    2250
+   ],
+   [
+    768,
+    -896,
+    202,
+    896,
+    64,
+    2250
+   ],
+   [
+    -2048,
+    -896,
+    -822,
+    -1024,
+    768,
+    2250
+   ],
+   [
+    1024,
+    -896,
+    -822,
+    2048,
+    768,
+    2250
+   ]
+  ],
+  "labels": [
+   "support deck T_{k-1}",
+   "T_{k-1} left bearer and posts (superset)",
+   "T_{k-1} right bearer and posts (superset)",
+   "deck behind (L0, or T_{k-2})",
+   "behind left bearer and posts (superset)",
+   "behind right bearer and posts (superset)",
+   "trench side wall, -x",
+   "trench side wall, +x"
+  ],
+  "swept_u": [
+   [
+    -1024,
+    -64,
+    -310,
+    1024,
+    0,
+    343
+   ],
+   [
+    -896,
+    -896,
+    -310,
+    -768,
+    -64,
+    343
+   ],
+   [
+    768,
+    -896,
+    -310,
+    896,
+    -64,
+    343
+   ],
+   [
+    -1024,
+    64,
+    202,
+    1024,
+    128,
+    2391
+   ],
+   [
+    -896,
+    -896,
+    202,
+    -768,
+    64,
+    2391
+   ],
+   [
+    768,
+    -896,
+    202,
+    896,
+    64,
+    2391
+   ],
+   [
+    -2048,
+    -896,
+    -822,
+    -1024,
+    768,
+    2391
+   ],
+   [
+    1024,
+    -896,
+    -822,
+    2048,
+    768,
+    2391
+   ]
+  ],
+  "support_u": [
+   -1024,
+   -64,
+   -169,
+   1024,
+   0,
+   202
+  ]
+ },
+ "clear": true,
+ "world": {
+  "clear": true,
+  "unresolved": [],
+  "pairs": 42,
+  "numerical_sole_pairs": 42,
+  "checks": 0,
+  "ready_fade_without_contact_witness": [
+   {
+    "kind": "NO_SOURCE_STANCE_CONTACT",
+    "interval": 0
+   },
+   {
+    "kind": "NO_SOURCE_STANCE_CONTACT",
+    "interval": 3
+   }
+  ]
+ },
+ "ready_fade_hover_float": {
+  "best_shared_gap_u_by_walk_key": [
+   6.91,
+   6.91,
+   6.91,
+   6.38,
+   6.38,
+   4.717,
+   3.546,
+   1.532,
+   4.3,
+   4.3,
+   4.3,
+   4.3,
+   4.3,
+   8.435,
+   8.435,
+   11.315,
+   10.703,
+   12.085,
+   8.435,
+   8.435,
+   11.31,
+   12.085,
+   12.085,
+   12.085,
+   6.38,
+   6.38,
+   6.38,
+   6.38,
+   6.38,
+   6.38,
+   18.153,
+   14.541,
+   6.91,
+   6.91,
+   6.91,
+   6.91,
+   6.91,
+   6.91,
+   6.91,
+   6.91,
+   6.91,
+   6.91,
+   6.91,
+   6.91
+  ],
+  "smallest_u": 1.532
+ },
+ "self": {
+  "right_arm_vs_rest": {
+   "clear": true,
+   "unresolved": [],
+   "pairs": 359,
+   "checks": 359,
+   "released_stand_contact": {
+    "pairs": 0,
+    "intervals": [],
+    "is_prefix_from_ready": true,
+    "paw_triangles": 0,
+    "thigh_triangles": 0
+   },
+   "first_triangles": 1000,
+   "second_triangles": 7776
+  },
+  "left_arm_vs_rest": {
+   "clear": true,
+   "unresolved": [],
+   "pairs": 0,
+   "checks": 0,
+   "released_stand_contact": {
+    "pairs": 0,
+    "intervals": [],
+    "is_prefix_from_ready": true,
+    "paw_triangles": 0,
+    "thigh_triangles": 0
+   },
+   "first_triangles": 1056,
+   "second_triangles": 6901
+  },
+  "right_arm_vs_left_arm": {
+   "clear": true,
+   "unresolved": [],
+   "pairs": 0,
+   "checks": 0,
+   "released_stand_contact": {
+    "pairs": 0,
+    "intervals": [],
+    "is_prefix_from_ready": true,
+    "paw_triangles": 0,
+    "thigh_triangles": 0
+   },
+   "first_triangles": 1000,
+   "second_triangles": 1056
+  },
+  "excluded_shoulder_seam_triangles": {
+   "right": 1433,
+   "left": 2252
+  },
+  "clear": true
+ },
+ "bearer_present": false,
+ "production_qualified": false,
+ "producer_sources": {
+  "godot/data/underground/mole-worker/claw-work-v1/prove_tread_step_back.py": "1d7edad53eda882bf121f1a33a0138cfac19372a8f7525e1404138eb8be912dc",
+  "godot/data/underground/mole-worker/claw-work-v1/prove_tread_fit.py": "278bc4b00c826e4031648caf95287a16c455af37f0a1b0e75dc2877214c47681",
+  "godot/data/underground/mole-worker/claw-work-v1/derive_tread_side_station.py": "3a86cd75eb1cf3fa66e922e7b2fb9bf4efa8da8660c1596570a168eb5c24222e",
+  "godot/data/underground/mole-worker/claw-work-v1/prove_claw_stroke.py": "e74d660078198b552c5854c07a1f1f59c71fdf0822183b963f761eaae7fa9af2",
+  "godot/data/underground/mole-worker/claw-work-v1/prove_claw_pair.py": "e3af3b7dc564d27ef09c95ac2f9ea313088b7b421940f8f2222ab9675a43bc02",
+  "godot/data/underground/mole-worker/work-step-v1/reference_program.py": "5af82df1bb170a6affb38705c3d6edabbd67f714d083ea122c0c8b8bb7f06cd1"
+ }
+}

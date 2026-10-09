@@ -1437,6 +1437,7 @@ static func retirement_refusal_in(actual: RefCounted, original: RefCounted,
 		stopped_constructor: bool = false) -> StringName:
 	"""The original configured Placement is complete even when a later private constructor step stopped."""
 	var code: StringName = _retirement_owned_refusal_in(actual, original)
+	if code == &"": code = _retirement_readers_refusal_in(actual, original)
 	if code != &"": return code
 	if original.room_bindings == null: return REFUSE_BINDING
 	if not _retirement_weak_in(actual._authority, original.room_bindings._entry_authority):
@@ -1452,6 +1453,12 @@ static func retirement_refusal_in(actual: RefCounted, original: RefCounted,
 		return REFUSE_BINDING
 	if actual._workpieces == null and stopped_constructor: return &""
 	return &"" if _retirement_weak_in(actual._workpieces, original.workpieces) else REFUSE_BINDING
+
+
+static func _retirement_readers_refusal_in(actual: RefCounted, original: RefCounted) -> StringName:
+	"""ADR1184: the two exported source readers are part of this owner's complete pre-clear and final preflight."""
+	var code: StringName = Assemblies.retirement_refusal_in(actual._assemblies, original)
+	return Recipes.retirement_refusal_in(actual._recipes, original) if code == &"" else code
 
 
 static func _retirement_owned_refusal_in(actual: RefCounted, original: RefCounted) -> StringName:
@@ -1500,6 +1507,12 @@ static func world_retirement_release_preflighted_in(actual: RefCounted, original
 	code = Buildings.whole_world_retirement_refusal_in(original.directory, original.world_ref, persistent_id, true)
 	if code != &"": return code
 	if original.world == null or original.world._published: return REFUSE_BINDING
+	code = _retirement_readers_refusal_in(actual, original)
+	if code != &"": return code
+	# Release the partition reader before the bill it reads; both still see this ready Placement's pins.
+	code = Assemblies.world_retirement_release_preflighted_in(actual._assemblies, original, persistent_id)
+	if code == &"": code = Recipes.world_retirement_release_preflighted_in(actual._recipes, original, persistent_id)
+	if code != &"": return code
 	actual._ready = false # Keep configured and the original non-null World as irreversible tombstones.
 	_release_retired_links_in(actual)
 	_release_retired_sources_in(actual)
@@ -1646,9 +1659,16 @@ func _placement_leaf(bank: Bank, row: int) -> StringName:
 	if code != &"":
 		return code
 	if _space._r_owner_revision[section.x] != _get64(bank, ROOM_REVISION, row) \
-			or not _locations._live_ref(_locations._live, _pair(bank, ANCHOR_SLOT, row)):
+			or (not _loading_fresh() and not _locations._live_ref(_locations._live, _pair(bank, ANCHOR_SLOT, row))):
 		return REFUSE_STALE
 	return &""
+
+
+func _loading_fresh() -> bool:
+	"""ADR 1228: `restore_file()` reading into a never-admitted empty store -- a load into a re-mounted
+	Session. Locations' installed endpoints are proved from these rows, so Placements restores first
+	and the anchors are proved by the loader's `audit()` once Locations is restored."""
+	return _reading_state and _live.header[H_FRONTIER_REV] == 0 and _live.header[H_COUNT] == 0
 
 
 func _project_leaf(ref: Vector2i, project: Vector2i, assembly: int) -> StringName:
@@ -2238,8 +2258,9 @@ func workpiece_refusal(context: Locations.InstallationContext) -> StringName:
 	return code
 
 
-func prepared_workpiece_leaf_refusal(context: Locations.InstallationContext) -> StringName:
-	"""After all observations, only the original actual workpiece, candidate banks and exact lease may settle."""
+func prepared_workpiece_leaf_refusal(context: Locations.InstallationContext, witnesses: bool = true) -> StringName:
+	"""After all observations, only the original actual workpiece, candidate banks and exact lease may settle.
+	ADR1229: `witnesses` false is a per-observation closure (Contacts), followed by ConnectorWork's complete leaf."""
 	if context != _context or (_prepared_action != Contract.START and _prepared_action != Contract.CANCEL): return REFUSE_ORDER
 	var actual: Workpieces = _actual_workpieces()
 	var code: StringName = _workpiece_context_leaf(actual)
@@ -2248,7 +2269,7 @@ func prepared_workpiece_leaf_refusal(context: Locations.InstallationContext) -> 
 	if code == &"": code = _workpiece_obstacle_leaf(actual)
 	if code == &"": code = WorldRoutes.workpiece_occupancy_refusal(_world_routes, actual._bounds,
 		WorldRoutes.workpiece_occupancy_checks(_world_routes))
-	return _prepared_geometry_leaf() if code == &"" else code
+	return _prepared_geometry_leaf(witnesses) if code == &"" else code
 
 
 func _workpiece_obstacle_leaf(actual: Workpieces) -> StringName:
@@ -2601,8 +2622,10 @@ func completion_refusal(ref: Vector2i, project: Vector2i, assembly: int, origina
 
 
 func prepared_installation_leaf_refusal(ref: Vector2i, project: Vector2i, assembly: int,
-		original_token: int) -> StringName:
-	"""Close late recipe/contact observations with actual source and sealed companion state, never a callback."""
+		original_token: int, witnesses: bool = true) -> StringName:
+	"""Close late recipe/contact observations with actual source and sealed companion state, never a callback.
+	ADR1229: `witnesses` false skips only the installed-witness re-derivation, for a per-observation closure whose
+	caller's own final leaf is followed by a complete one (Contacts inside ConnectorWork's final funding leaf)."""
 	if original_token <= 0 or ref != _prepared_placement or project != _prepared_project \
 			or assembly != _prepared_assembly or original_token != _cold_token or not _done_project(project):
 		return REFUSE_ORDER
@@ -2612,17 +2635,17 @@ func prepared_installation_leaf_refusal(ref: Vector2i, project: Vector2i, assemb
 	if code == &"" and _prepared_action != Contract.COMMIT: code = REFUSE_ORDER
 	if code == &"" and _workpieces != null: code = _workpiece_context_leaf(_actual_workpieces())
 	if code == &"" and _workpieces != null: code = _workpiece_obstacle_leaf(_actual_workpieces())
-	return _prepared_geometry_leaf() if code == &"" else code
+	return _prepared_geometry_leaf(witnesses) if code == &"" else code
 
 
-func _prepared_geometry_leaf() -> StringName:
+func _prepared_geometry_leaf(witnesses: bool = true) -> StringName:
 	"""Common direct source/claim, endpoint and graph closure follows all actual physical observers."""
 	var code: StringName = Owner.generic_commit_refusal(_space, _space_token, _base_geometry_revision, _target_geometry_revision)
 	if code == &"":
 		code = _prepared_sources_leaf()
 	if code == &"":
 		code = Locations.installation_prepared_leaf_refusal(_locations, _context)
-	if code == &"":
+	if code == &"" and witnesses:
 		code = _locations._installed_witnesses_refusal()
 	return WorldRoutes.installation_prepared_leaf_refusal(_world_routes, _context) if code == &"" else code
 
@@ -2953,10 +2976,13 @@ func audit() -> StringName:
 
 func _audit_bank(bank: Bank) -> StringName:
 	"""Bounded row/opening scans reject mismatched source headers, linked cycles and noncanonical inactive fields."""
-	if bank.header[H_REVISION] < 1 or bank.digests != _live.digests:
+	if bank.header[H_REVISION] < 1 or not _frontier_pin_admissible(bank):
 		return &"PLACEMENT_STATE_SOURCE"
+	for index: int in 96:
+		if bank.digests[index] != _live.digests[index]:
+			return &"PLACEMENT_STATE_SOURCE"
 	for index: int in 16:
-		if index != H_REVISION and index != H_COUNT and index != H_OPEN_COUNT \
+		if index != H_REVISION and index != H_COUNT and index != H_OPEN_COUNT and index != H_FRONTIER_REV \
 				and index != H_ACTIVE_ORDERS and bank.header[index] != _live.header[index]:
 			return &"PLACEMENT_STATE_HEADER"
 	if _revision_refusal(bank, 0) != &"":
@@ -2978,6 +3004,24 @@ func _audit_bank(bank: Bank) -> StringName:
 			return &"PLACEMENT_OPENING_ORPHAN"
 	return &"" if count == bank.header[H_COUNT] and openings == bank.header[H_OPEN_COUNT] \
 		and active == bank.header[H_ACTIVE_ORDERS] else &"PLACEMENT_STATE_COUNT"
+
+
+func _frontier_pin_admissible(bank: Bank) -> bool:
+	"""The first admission's frontier tuple (header and digest bytes 96-127) is the live one; or, while
+	`restore_file()` reads into a never-admitted empty store (ADR 1228: a load into a re-mounted
+	Session), the image's own tuple, which the physical authority's `restoration_refusal()` proves
+	against its bound frontier source before anything is swapped in."""
+	var same: bool = bank.header[H_FRONTIER_REV] == _live.header[H_FRONTIER_REV]
+	for index: int in range(96, 128):
+		same = same and bank.digests[index] == _live.digests[index]
+	if same:
+		return true
+	if not _loading_fresh():
+		return false
+	for index: int in range(96, 128):
+		if _live.digests[index] != 0:
+			return false
+	return true
 
 
 func _audit_row(bank: Bank, row: int) -> StringName:

@@ -391,7 +391,7 @@ func _station_profile_refusal(row: int, rotation: int) -> StringName:
 			or _profile_field(profile, Profiles.F_YAW) != (_field(STATION, row, 4) + (4 - rotation) * 16384) % 65536 \
 			or _profile_field(profile, Profiles.F_POSTURE) != _field(STATION, row, 6) \
 			or _profile_field(profile, Profiles.F_WORK_KIND) != _field(STATION, row, 8) \
-			or _profile_field(profile, Profiles.F_CONTACT_KIND) != Profiles.CONTACT_ANCHOR_AND_PATCH \
+			or not _station_contact_kind(_profile_field(profile, Profiles.F_CONTACT_KIND)) \
 			or _profiles._live.flags[profile] != Profiles.CERT_REQUIRED \
 			or _profiles._live.quantities[profile] != revision:
 		return REFUSE_PROFILE
@@ -490,6 +490,12 @@ func _prior_bearing(target: int, prefix: int) -> StringName:
 		and _field(BEARING, target, 1) >= prefix else &""
 
 
+static func _station_contact_kind(kind: int) -> bool:
+	"""A station's WORK row makes the exact anchor-and-patch contact, or (DEC-058, ADR 1229) is the tread fitting
+	motion, whose paws need not make an exact certified contact."""
+	return kind == Profiles.CONTACT_ANCHOR_AND_PATCH or kind == Profiles.CONTACT_TREAD_FIT
+
+
 func _episode_refusal(row: int) -> StringName:
 	"""One exact cut union can share authored phase inputs; every physical cube still has its own actual Site."""
 	var code: StringName = _box_refusal(EPISODE, row, 0, true)
@@ -499,7 +505,7 @@ func _episode_refusal(row: int) -> StringName:
 			or _field(EPISODE, row, 18) < 0 or _field(EPISODE, row, 18) > 5:
 		return REFUSE_FORMAT
 	if not _range(CUT, _field(EPISODE, row, 11), _field(EPISODE, row, 12), true) \
-			or not _range(BEARING, _field(EPISODE, row, 13), _field(EPISODE, row, 14)):
+			or not _range(BEARING, _field(EPISODE, row, 13), _field(EPISODE, row, 14), true):
 		return REFUSE_REFERENCE
 	code = _episode_selectors_refusal(row, mask, prefix)
 	if code != &"": return code

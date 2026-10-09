@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
-"""Actual source reconstruction plus bounded admission/atomic-output adversaries; no engine replay."""
+"""Actual source reconstruction plus bounded admission/atomic-output adversaries; no engine replay.
+
+qualified-step-v4 is a historical content-3 publication (ADR 1200): tracked pins
+resolve at CONSUMER_COMMIT. Its reconstruction also reads inputs git never held
+(153 gitignored godot/demo/assets files), which ADR 1192 section 2 does not admit as
+evidence, so that replay runs only where those files exist and is skipped otherwise.
+"""
 from __future__ import annotations
 import importlib.util
 import json
 from pathlib import Path
 import struct
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -14,6 +21,18 @@ M = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(M)
 
 
+def untracked_inputs():
+    """Pinned inputs of the committed publication that no commit tracks and this checkout lacks."""
+    pins = json.loads((M.ROOT / (M.OUTPUT + 'manifest.json')).read_text())['prerequisite_pins']
+    listed = subprocess.run(['git', '-C', str(M.ROOT), 'ls-files', '-z'], capture_output=True, check=True)
+    tracked = set(listed.stdout.decode().split('\0'))
+    return sorted(name for name in pins if name not in tracked and not (M.ROOT / name).is_file())
+
+
+ABSENT = untracked_inputs()
+
+
+@unittest.skipIf(ABSENT, f'historical replay needs {len(ABSENT)} untracked godot/demo/assets inputs, first {ABSENT[:1]}')
 class PublicationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -99,6 +118,17 @@ class PublicationTests(unittest.TestCase):
                 with patch.object(M, 'read', changed), self.assertRaisesRegex(ValueError, 'MOTION_PROVENANCE'):
                     M.motion_rebind(self.files['manifest.json'], self.manifest['prerequisite_pins'].copy())
 
+    def test_successful_publication_is_create_only(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve(); (root/'source').write_bytes(b'original'); target = root/M.OUTPUT
+            with patch.object(M,'ROOT',root), patch.object(M,'inputs', return_value=(self.files,{'source':M.digest(b'original')})):
+                result = M.publish(target)
+                self.assertEqual(result,{name:M.digest(raw) for name,raw in self.files.items()})
+                with self.assertRaisesRegex(ValueError,'OUTPUT'): M.publish(target)
+                self.assertEqual({p.name:p.read_bytes() for p in target.iterdir()},self.files)
+
+
+class AdmissionTests(unittest.TestCase):
     def test_fixed_review_hash_rejects_relabelled_acceptance(self):
         with tempfile.TemporaryDirectory() as temporary, patch.object(M, 'ROOT', Path(temporary).resolve()):
             path = M.ROOT / M.REVIEW; path.parent.mkdir(parents=True)
@@ -115,15 +145,35 @@ class PublicationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'HASH:'):
                 M.current_consumers({})
 
-    def test_mutated_actual_current_script_cannot_borrow_historical_pin(self):
+    def test_consumer_pin_is_the_named_commit_never_the_live_script(self):
+        current = json.loads((M.ROOT / (M.E+'current-consumers.json')).read_bytes())
+        self.assertEqual(current['commit'], M.CONSUMER_COMMIT)
+        self.assertEqual(M.digest(M.historical(M.CONSUMERS[0])), current['consumers'][M.CONSUMERS[0]])
+        self.assertIsNone(M.historical(M.OUTPUT + 'manifest.json'))  # created after CONSUMER_COMMIT
+        original = M.historical
+        forged = lambda name, commit=M.CONSUMER_COMMIT: (b'extends RefCounted\n' if name == M.CONSUMERS[0]
+                                                        else original(name, commit))
+        with patch.object(M, 'historical', forged), self.assertRaisesRegex(ValueError, 'HASH:.*underground_profiles'):
+            M.current_consumers({})
+
+    def test_outside_a_checkout_a_mutated_script_cannot_borrow_the_pin(self):
         current_raw = (M.ROOT / (M.E+'current-consumers.json')).read_bytes()
-        current = json.loads(current_raw)
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary).resolve()
             metadata = root / (M.E+'current-consumers.json'); metadata.parent.mkdir(parents=True); metadata.write_bytes(current_raw)
             original = root / M.CONSUMERS[0]; original.parent.mkdir(parents=True); original.write_text('extends RefCounted\n')
             with patch.object(M, 'ROOT', root), self.assertRaisesRegex(ValueError, 'HASH:.*underground_profiles'):
                 M.current_consumers({})
+
+    def test_lfs_pointer_admits_only_the_bytes_it_names(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve(); (root/'shot.png').write_bytes(b'actual')
+            pointer = M.LFS + b'oid sha256:' + M.digest(b'other').encode() + b'\nsize 5\n'
+            with patch.object(M, 'ROOT', root), patch.object(M, 'historical', return_value=pointer):
+                with self.assertRaisesRegex(ValueError, 'HISTORICAL_LFS'): M.check('shot.png', M.digest(b'actual'), {})
+            pointer = M.LFS + b'oid sha256:' + M.digest(b'actual').encode() + b'\nsize 6\n'
+            with patch.object(M, 'ROOT', root), patch.object(M, 'historical', return_value=pointer):
+                self.assertEqual(M.read('shot.png', M.digest(b'actual'), {}), b'actual')
 
     def test_hash_paths_are_bounded_and_cannot_escape(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -153,15 +203,6 @@ class PublicationTests(unittest.TestCase):
             with patch.object(M,'ROOT',root), patch.object(M,'inputs', return_value=({'file':b'bytes'},{'source':M.digest(b'original')})):
                 with self.assertRaisesRegex(ValueError,'HASH:source'): M.publish(target)
             self.assertFalse(target.exists())
-
-    def test_successful_publication_is_create_only(self):
-        with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary).resolve(); (root/'source').write_bytes(b'original'); target = root/M.OUTPUT
-            with patch.object(M,'ROOT',root), patch.object(M,'inputs', return_value=(self.files,{'source':M.digest(b'original')})):
-                result = M.publish(target)
-                self.assertEqual(result,{name:M.digest(raw) for name,raw in self.files.items()})
-                with self.assertRaisesRegex(ValueError,'OUTPUT'): M.publish(target)
-                self.assertEqual({p.name:p.read_bytes() for p in target.iterdir()},self.files)
 
 
 if __name__ == '__main__': unittest.main()

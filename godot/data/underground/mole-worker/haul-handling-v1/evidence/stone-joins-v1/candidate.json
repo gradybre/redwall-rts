@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "adr": "1206",
+  "production_qualified": false,
+  "tool": null,
+  "stand_sha256": "7086ef2a3aab64537d7822393c04ece86d67879e59e1c7e54d333a5c7f974c7d",
+  "approach_sha256": "ad51f1e34ef77b0807966a160fc271cdd735ef1653f94bfb1c2ab49d412fe2d7",
+  "recovery_sha256": "beefcf8f6d8c95751ae049812bbc5492f613f0607354fee1b477eaf1be7323b7",
+  "authoring": {
+    "from": [
+      "stand",
+      8
+    ],
+    "to": [
+      "stone approach",
+      0
+    ],
+    "segments": 30,
+    "support_transfer_keys": [
+      {
+        "original_frame": 0
+      },
+      {
+        "original_frame": 1
+      },
+      {
+        "original_frame": 2
+      },
+      {
+        "original_frame": 3
+      },
+      {
+        "original_frame": 4
+      },
+      {
+        "original_frame": 5
+      },
+      {
+        "original_frame": 6
+      },
+      {
+        "original_frame": 7
+      },
+      {
+        "original_frame": 8
+      },
+      {
+        "original_frame": 9
+      },
+      {
+        "original_frame": 10
+      },
+      {
+        "original_frame": 11
+      },
+      {
+        "original_frame": 12
+      },
+      {
+        "original_frame": 13
+      },
+      {
+        "original_frame": 14
+      },
+      {
+        "original_frame": 15
+      },
+      {
+        "original_frame": 16
+      },
+      {
+        "original_frame": 17
+      },
+      {
+        "original_frame": 18
+      },
+      {
+        "original_frame": 19
+      },
+      {
+        "original_frame": 20
+      },
+      {
+        "original_frame": 21
+      },
+      {
+        "original_frame": 22
+      },
+      {
+        "original_frame": 23
+      },
+      {
+        "original_frame": 24
+      },
+      {
+        "original_frame": 25
+      },
+      {
+        "original_frame": 26
+      },
+      {
+        "original_frame": 27
+      },
+      {
+        "original_frame": 28
+      },
+      {
+        "original_frame": 29
+      },
+      {
+        "original_frame": 30
+      }
+    ]
+  },
+  "producer_sha256": {
+    "godot/data/underground/mole-worker/haul-handling-v1/author_stone_joins.py": "16b9be25a2c2c19fe68042a72099071c6209846aefaaeb3e79a1ce015f00ea6f",
+    "godot/data/underground/mole-worker/haul-handling-v1/author_empty_walk.py": "45e0d026be10eb51b9776f3892207ef040dbd26ce3d39e64bb869324467696ef"
+  },
+  "clips": {
+    "enter_haul_stone": {
+      "frames": 31,
+      "stock_role": "world_target",
+      "sha256": "f3682f8a29e8c81d78fcf9ff1784109bd6f77ae8ae3315e9e1fa499f7468e358"
+    },
+    "leave_haul_stone": {
+      "frames": 31,
+      "stock_role": "world_target",
+      "sha256": "3a3e71b314b309b66d53bbdd995590e93b2174a1554af410601db342a2c7bf1e"
+    }
+  }
+}

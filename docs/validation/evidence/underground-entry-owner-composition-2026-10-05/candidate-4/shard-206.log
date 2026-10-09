@@ -1,0 +1,42 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_route_composition.gd
+  PASS  test_actual_graph_uses_one_original_owner_tuple_and_real_pace_without_permissions
+  PASS  test_current_ground_and_finite_step_paces_do_not_admit_an_actor_or_edge
+  PASS  test_complete_reset_releases_original_bindings_and_remounts_current_source
+  PASS  test_reentry_before_graph_exposure_preserves_room_ready_and_can_retry
+  PASS  test_reentry_during_actual_graph_observation_retains_configured_prefix
+  PASS  test_actual_retention_refusal_keeps_partial_graph_aliases_until_reset
+  PASS  test_late_current_source_drift_retains_complete_failed_graph_until_restored
+  PASS  test_complete_foreign_or_null_backlinks_refuse_without_replacing_original_sources
+  PASS  test_wrong_immutable_catalog_revision_refuses_current_and_reset
+  PASS  test_composer_rejects_external_session_and_host_requires_original_room_group
+  PASS  test_actual_profile_extent_refusal_retains_post_write_profiles_and_resets
+  PASS  test_late_approach_original_owner_mismatch_stops_and_refuses_reset_until_restored
+  PASS  test_final_host_identity_refusal_stops_newly_completed_graph
+  PASS  test_late_profile_bracket_retains_prefix_seven_until_original_source_closes
+  PASS  test_failed_prefix_cannot_adopt_reloaded_catalog_before_retirement
+  PASS  test_private_candidate_failure_keeps_room_group_stopped_when_source_changed
+  PASS  test_host_checks_original_mount_even_when_private_constructor_already_refused
+  PASS  test_existing_operational_counts_refuse_before_graph_construction
+  PASS  test_pristine_room_group_rejects_hidden_graph_alias_or_extent
+  PASS  test_late_operational_count_cannot_replace_empty_constructor_scope
+CI_SUITE_TIME {"assertions":372,"failures":0,"suite":"test_underground_route_composition.gd","tests":20,"usec":10049081}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+20 test(s), 372 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 20 tests, 372 assertions, 0 failures.

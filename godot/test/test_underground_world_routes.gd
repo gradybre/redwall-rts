@@ -33,6 +33,7 @@ const Forage := preload("res://scripts/core/forage.gd")
 const Fishing := preload("res://scripts/core/fishing.gd")
 const Rng := preload("res://scripts/core/rng.gd")
 const Terrain := preload("res://scripts/core/underground_terrain.gd")
+const Journal := preload("res://scripts/core/underground_geometry_journal.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const X: int = 60 * 2048
 const Z: int = 50 * 2048
@@ -55,6 +56,26 @@ class RefusingLocations extends Locations:
 			var probe: Callable = turn_probe
 			turn_probe = Callable()
 			probe.call()
+		return code
+
+
+class PreparedEndpointBinding extends Binding:
+	## Mutate the real sealed companion after Routes read its endpoints, never supply synthetic geometry success.
+	var fault: int = 0
+
+	func edge_refusal(edge: Routes.Edge, route_token: int, space_token: int, location_token: int) -> StringName:
+		"""Exercise exact cold, full-generation and geometry pins inside the original real edge callback."""
+		if location_token == 0 or fault == 0: return super.edge_refusal(edge, route_token, space_token, location_token)
+		var locations: Locations = _locations_ref.get_ref() as Locations
+		var saved: int = locations._cold_token if fault == 1 else (locations._stage.i32[edge.from_location.x] \
+			if fault == 2 else locations._stage.i64[Locations.GEOMETRY_REVISION * locations._capacity + edge.from_location.x])
+		if fault == 1: locations._cold_token += 1
+		elif fault == 2: locations._stage.i32[edge.from_location.x] += 1
+		else: locations._stage.i64[Locations.GEOMETRY_REVISION * locations._capacity + edge.from_location.x] += 1
+		var code: StringName = super.edge_refusal(edge, route_token, space_token, location_token)
+		if fault == 1: locations._cold_token = saved
+		elif fault == 2: locations._stage.i32[edge.from_location.x] = saved
+		else: locations._stage.i64[Locations.GEOMETRY_REVISION * locations._capacity + edge.from_location.x] = saved
 		return code
 
 
@@ -154,6 +175,21 @@ func test_union_coverage_requires_every_interior_point_not_corners() -> void:
 	assert_equal(proof.error, &"", "missing coverage is distinct from exhausted work allowance")
 	assert_equal(proof.count, 1, "one exact uncovered slab remains")
 	assert_equal(proof.fragments.slice(0, 6), PackedInt32Array([5, 0, 0, 6, 10, 10]), "exact missing interior")
+
+
+func test_pending_bearer_overlap_has_no_unscoped_profile_or_air_exception() -> void:
+	"""A matching numeric profile cannot exempt a generic obstacle, unfinished volume or unsupported air."""
+	var binding: Binding = Binding.new()
+	binding._bounds = PackedInt32Array([0, 0, 0, 10, 10, 10])
+	binding._descriptor.profile_id = 2
+	for role: int in [Space.OBSTACLE, Space.UNFINISHED]:
+		binding._proof = _proof([PackedInt32Array([0, 0, 0, 10, 10, 10])], PackedInt32Array([role]))
+		assert_true(binding._body_blocked(Vector3i.ZERO, Vector3i(0, 0, -1)), "actual blocker remains without original START")
+		binding._proof.start(binding._bounds)
+		assert_true(binding._subtract_pending_bearer(Vector3i.ZERO, Vector3i(0, 0, -1)), "nonqualified proof simply retains air")
+		assert_equal(binding._proof.count, 1, "no generic subtraction")
+		assert_equal(binding._proof.fragments.slice(0, 6), binding._bounds, "full requested volume remains")
+		assert_equal(binding._proof.error, &"", "missing qualification is not fake budget exhaustion")
 
 
 func test_adjacent_half_open_volumes_cover_without_gaps_or_double_faces() -> void:
@@ -270,6 +306,12 @@ func test_unbound_adapter_cannot_admit_or_publish_actual_routes() -> void:
 	assert_equal(binding.static_profile_edge_refusal(Vector2i(0, 1), 0, 1, 1), Binding.REFUSE_BINDING, "no unbound static permission")
 	assert_equal(binding.publish(1), Binding.REFUSE_CONTEXT, "no unbound graph publication")
 	assert_false(binding.abort(1), "no foreign token cancellation")
+	assert_equal(Binding.assembly_release_leaf_refusal(binding, null, NULL_REF, NULL_REF, NULL_REF, NULL_REF),
+		Binding.REFUSE_BINDING, "an unbound pause release cannot stand in for physical proof")
+	assert_equal(binding.assembly_release_observation_refusal(null, NULL_REF, NULL_REF, NULL_REF, NULL_REF),
+		Binding.REFUSE_BINDING, "an observed pause has no default success")
+	assert_equal(Binding.Handling.PickPhysical.install_ready_selection_refusal(null, Profiles.Selection.new()),
+		Binding.Handling.PickPhysical.REFUSE, "a supplied ready-looking selection has no original canonical actor")
 
 
 func _actual_fixture(obstruction: int = 0) -> void:
@@ -397,7 +439,7 @@ func _actual_catalog(domain: Space.Domain) -> void:
 
 func _actual_binding() -> void:
 	"""Configure the concrete provider before the actual graph, without a synthetic permission callback."""
-	_binding = Binding.new()
+	_binding = PreparedEndpointBinding.new()
 	var config: Binding.Configuration = Binding.Configuration.new()
 	config.routes = _routes
 	config.owner = _owner
@@ -1000,6 +1042,127 @@ func test_actual_short_source_reload_holds_original_progress_and_pose() -> void:
 	assert_equal(state, PackedInt64Array([21, 22, 23, 24]), "refused caller output unchanged")
 
 
+func _narrow_source_location(point: Vector3i, height: int = 1036) -> Vector2i:
+	"""Publish the complete forward/back source envelope before any route mask, through the real Location owner."""
+	var row: Locations.Record = Locations.Record.new()
+	row.point = point; row.section = _floor; row.level = 0; row.role = Locations.ROLE_WORK
+	row.envelope = PackedInt32Array([point.x - 445, point.y, point.z - 732,
+		point.x + 910, point.y + height, point.z + 346])
+	row.support = PackedInt32Array([point.x - 274, point.y - 1, point.z - 274,
+		point.x + 299, point.y, point.z + 249])
+	var cold: int = _budget.acquire(Budget.COLD_BYTES)
+	var token: int = _locations.begin_prepare(cold).token
+	var added: Locations.Result = _locations.stage_add(token, row)
+	assert_equal(added.error, &"", "actual complete narrow envelope")
+	assert_equal(_locations.seal(token), &"", "ordinary geometry remains completely qualified")
+	assert_true(_locations.publish(token), "actual endpoint publication")
+	assert_equal(_budget.release(cold), &"", "original Location lease released")
+	return added.location
+
+
+func _source_z_edge(first: Vector2i, last: Vector2i, a: Vector3i, b: Vector3i) -> Routes.Edge:
+	"""The ordinary real edge carries no profile filter, flag or hidden movement permission."""
+	var edge: Routes.Edge = _edge()
+	edge.from_location = first; edge.to_location = last
+	edge.points = PackedInt32Array([a.x, a.y, a.z, b.x, b.y, b.z])
+	edge.length_u = absi(a.z - b.z)
+	return edge
+
+
+func test_initial_masks_include_complete_endpoint_body_tool_and_stance() -> void:
+	"""Selected forward2/back6 fit from original publication; the broader all-yaw12 never receives a bit."""
+	_turn_source_case = 3
+	_actual_fixture()
+	var h: Vector3i = Vector3i(X + 512, 512, Z + 1024)
+	var g: Vector3i = h + Vector3i(0, 0, 1024)
+	var station: Vector2i = _narrow_source_location(h)
+	var gateway: Vector2i = _location(g)
+	var token: int = _begin()
+	var forward: Routes.Result = _routes.stage_add(token, _source_z_edge(gateway, station, g, h))
+	var backward: Routes.Result = _routes.stage_add(token, _source_z_edge(station, gateway, h, g))
+	assert_equal(forward.error, &"", "real forward source and both endpoints fit")
+	assert_equal(backward.error, &"", "real reverse source and both endpoints fit")
+	assert_equal(_binding.seal(token), &"", "original complete masks seal")
+	assert_equal(_binding.publish(token), &"", "no mask deletion after publication")
+	_end(token)
+	assert_equal(_binding.static_profile_edge_refusal(forward.ref, 2, 1, 3), &"", "exact yaw0 forward source")
+	assert_equal(_binding.static_profile_edge_refusal(backward.ref, 6, 1, 3), &"", "same body yaw and opposite path")
+	for edge: Vector2i in [forward.ref, backward.ref]:
+		assert_equal(_binding.static_profile_edge_refusal(edge, 12, 1, 3), &"WORLD_ROUTE_CERTIFICATE_STALE",
+			"wide ground never qualified the narrow endpoint")
+
+
+func test_original_sealed_location_candidate_recompiles_complete_endpoint_masks() -> void:
+	"""The nested actual route observer must read its exact sealed companion, without enabling general callbacks."""
+	_turn_source_case = 3
+	_actual_fixture()
+	var h: Vector3i = Vector3i(X + 512, 512, Z + 1024)
+	var g: Vector3i = h + Vector3i(0, 0, 1024)
+	var station: Vector2i = _narrow_source_location(h)
+	var gateway: Vector2i = _location(g)
+	var token: int = _begin()
+	var forward: Routes.Result = _routes.stage_add(token, _source_z_edge(gateway, station, g, h))
+	var backward: Routes.Result = _routes.stage_add(token, _source_z_edge(station, gateway, h, g))
+	assert_equal(forward.error, &"", "real forward initial edge")
+	assert_equal(backward.error, &"", "real reverse initial edge")
+	assert_equal(_binding.seal(token), &"", "initial masks seal")
+	assert_equal(_binding.publish(token), &"", "initial graph publishes")
+	_end(token)
+	_lease = _budget.acquire(Budget.COLD_BYTES)
+	var companion: Locations.Result = _locations.begin_prepare(_lease)
+	assert_equal(companion.error, &"", "original actual Location candidate")
+	assert_equal(_locations.seal(companion.token), &"", "sealed companion before graph refresh")
+	var graph: Routes.Result = _binding.begin_prepare(_lease, 0, companion.token)
+	assert_equal(graph.error, &"", "actual paired graph candidate")
+	assert_equal(_routes.stage_refresh(graph.token, forward.ref), &"", "forward source survives exact sealed companion callback")
+	assert_equal(_routes.stage_refresh(graph.token, backward.ref), &"", "backward source survives exact sealed companion callback")
+	assert_equal(_binding.seal(graph.token), &"", "all complete masks and source guards remain sealed")
+	_binding.abort(graph.token)
+	assert_true(_locations.abort(companion.token), "both candidates remain independently abortable")
+	assert_equal(_budget.release(_lease), &"", "original paired cold lease released")
+	_lease = 0
+
+
+func test_prepared_endpoint_observer_rejects_late_original_tuple_drift() -> void:
+	"""A valid pre-observer route packet cannot hide replacement cold metadata, stale generation or stage revision."""
+	_actual_fixture()
+	for fault: int in range(1, 4):
+		_lease = _budget.acquire(Budget.COLD_BYTES)
+		var companion: Locations.Result = _locations.begin_prepare(_lease)
+		assert_equal(companion.error, &"", "real reusable Location preparation")
+		assert_equal(_locations.seal(companion.token), &"", "exact sealed candidate")
+		var graph: Routes.Result = _binding.begin_prepare(_lease, 0, companion.token)
+		assert_equal(graph.error, &"", "real graph preparation")
+		var sentinel: Locations.Record = Locations.Record.new()
+		sentinel.point = Vector3i(71, 72, 73)
+		assert_true(Binding._prepared_endpoint_into(_binding, _first, sentinel) != &"", "reader cannot escape the original edge callback")
+		assert_equal(sentinel.point, Vector3i(71, 72, 73), "refused borrowed output unchanged")
+		(_binding as PreparedEndpointBinding).fault = fault
+		assert_equal(_routes.stage_add(graph.token, _edge()).error, &"WORLD_ROUTE_NO_FITTING_PROFILE",
+			"late actual companion drift refuses before any mask publication")
+		(_binding as PreparedEndpointBinding).fault = 0
+		assert_equal(_binding._stage.generations[0], 0, "no candidate certificate issued")
+		assert_equal(_routes.last_published_token(), 0, "actual graph remains unpublished")
+		_binding.abort(graph.token)
+		assert_true(_locations.abort(companion.token), "original Location candidate released")
+		assert_equal(_budget.release(_lease), &"", "original cold scope remains owned and retryable")
+		_lease = 0
+
+
+func test_initial_mask_refuses_endpoint_missing_one_unit_of_high_held_pick() -> void:
+	"""The pick's BODY/TURN rows remain complete even though the lower body fits the narrow endpoint."""
+	_turn_source_case = 3
+	_actual_fixture()
+	var h: Vector3i = Vector3i(X + 512, 512, Z + 1024)
+	var g: Vector3i = h + Vector3i(0, 0, 1024)
+	var station: Vector2i = _narrow_source_location(h, 1035)
+	var gateway: Vector2i = _location(g)
+	var token: int = _begin()
+	assert_equal(_routes.stage_add(token, _source_z_edge(gateway, station, g, h)).error,
+		&"WORLD_ROUTE_NO_FITTING_PROFILE", "one missing high-pick plane prevents initial eligibility")
+	_end(token)
+
+
 func _turn_route_image() -> PackedByteArray:
 	"""Test-only exact authority capture; scratch/cache controls are not save or movement state."""
 	var image: PackedByteArray = _routes._motion.resident.to_byte_array()
@@ -1185,11 +1348,11 @@ func test_stationary_turn_refuses_actual_unregistered_living_occupant_then_retri
 	assert_true(_transforms.place(other, X + 512, 512, Z + 512, 0), "actual unregistered occupant at the turning root")
 	var pose: PackedByteArray = _transforms.state_bytes()
 	var route: PackedByteArray = _turn_route_image()
-	assert_equal(_turn(16384), &"ROUTE_TURN_ACTOR_UNBOUND", "missing actor registration cannot grant free turn space")
+	assert_equal(_turn(16384), &"ROUTE_UNREGISTERED_RESIDENT_NEAR", "ADR1219: its reach cube cannot be free turn space")
 	assert_equal(_transforms.state_bytes(), pose, "refusal keeps the entire actual Transform image")
 	assert_equal(_turn_route_image(), route, "refusal creates no actor or route authority")
-	assert_true(_residents.despawn(other).ok, "remove actual unregistered resident")
-	assert_equal(_turn(16384), &"", "current actual removal permits a fresh turn proof")
+	assert_true(_transforms.place(other, X + 512 + 4 * Routes.UNREGISTERED_REACH_U, 512, Z + 512, 0), "walks far away")
+	assert_equal(_turn(16384), &"", "an unregistered resident beyond its reach cube is provably clear, unregistered")
 
 
 func test_stationary_turn_uses_complete_recovery_union_against_another_actual_actor() -> void:
@@ -1253,3 +1416,334 @@ func _arm_turn_location_probe(probe: Callable) -> void:
 	"""Keep the negative-only subclass type explicit for suites that inherit this actual fixture."""
 	var observed: RefusingLocations = _locations as RefusingLocations
 	observed.turn_probe = probe
+
+
+func _publish_owner_rows(boxes: Array[PackedInt32Array], role: int) -> void:
+	"""ADR1205: one actual published Space transaction adding the given rows."""
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	for box: PackedInt32Array in boxes:
+		_region(token, box, role)
+	assert_equal(_owner.seal(token), &"", "actual geometry candidate")
+	_owner.publish(token)
+
+
+func _far_rows(count: int) -> Array[PackedInt32Array]:
+	"""Small obstacles four metres and more from the fixture path; none meets any profile sweep."""
+	var rows: Array[PackedInt32Array] = []
+	for index: int in count:
+		var x: int = X + 4096 + (index % 16) * 128
+		@warning_ignore("integer_division")
+		var z: int = Z + (index / 16) * 128
+		rows.append(PackedInt32Array([x, 512, z, x + 64, 768, z + 64]))
+	return rows
+
+
+func _refresh(edge: Vector2i, space_token: int = 0) -> StringName:
+	"""Requalify one edge in its own route preparation; publish on success."""
+	if space_token == 0:
+		_refresh_endpoints()
+	_lease = _budget.acquire(Budget.COLD_BYTES)
+	var begun: Routes.Result = _binding.begin_prepare(_lease, space_token)
+	var code: StringName = begun.error
+	if code == &"": code = _routes.stage_refresh(begun.token, edge)
+	if code == &"": code = _binding.seal(begun.token)
+	if code == &"" and space_token != 0: _owner.publish(space_token)
+	if code == &"": code = _binding.publish(begun.token)
+	_end(begun.token)
+	return code
+
+
+func _refresh_endpoints() -> void:
+	"""Both endpoints requalified at the current published revision, as every revision bump requires."""
+	var cold: int = _budget.acquire(Budget.COLD_BYTES)
+	var token: int = _locations.begin_prepare(cold).token
+	for location: Vector2i in [_first, _last]:
+		assert_equal(_locations.stage_refresh(token, location), &"", "endpoint requalified")
+	assert_equal(_locations.seal(token), &"", "endpoints sealed")
+	assert_true(_locations.publish(token), "endpoints published")
+	assert_equal(_budget.release(cold), &"", "no output retained")
+
+
+func test_far_change_carries_the_certificate_without_volume_checks() -> void:
+	"""ADR1205: a carried edge's proof cost does not grow with the image; a full recheck's does."""
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	var mask: PackedByteArray = _binding._live.masks.slice(edge.x * Binding.MASK_BYTES, (edge.x + 1) * Binding.MASK_BYTES)
+	_publish_owner_rows(_far_rows(1), Space.OBSTACLE)
+	assert_equal(_refresh(edge), &"", "carried refresh publishes")
+	assert_equal(_binding._carried_edges, 1, "the far change misses every sweep")
+	var one: int = _binding._proof_checks
+	_publish_owner_rows(_far_rows(60), Space.OBSTACLE)
+	assert_equal(_refresh(edge), &"", "carried again over sixty more rows")
+	assert_equal(_binding._carried_edges, 1, "still carried")
+	_publish_owner_rows([PackedInt32Array([X + 8192, 512, Z, X + 8256, 768, Z + 64])], Space.OBSTACLE)
+	assert_equal(_refresh(edge), &"", "one more far row, sixty-one more image rows than the first refresh")
+	assert_equal(_binding._carried_edges, 1, "carried a third time")
+	assert_equal(_binding._proof_checks, one, "same cost as the first one-row change: no check scans an image row")
+	assert_true(_binding._live.masks.slice(edge.x * Binding.MASK_BYTES, (edge.x + 1) * Binding.MASK_BYTES) == mask,
+		"same certificate bits")
+	_owner._journal.reset(_owner.revision() + 1)
+	assert_equal(_refresh(edge), &"", "full recheck of the same image")
+	assert_equal(_binding._carried_edges, 0, "a raised floor forces the full proof")
+	assert_true(_binding._proof_checks > one, "the full proof scans the image rows")
+
+
+func test_change_meeting_the_path_is_rechecked_and_refused() -> void:
+	"""ADR1205: a blocker across the span is journaled, so the edge is fully rechecked and refused."""
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	_publish_owner_rows([PackedInt32Array([X + 1024, 512, Z, X + 1025, 1536, Z + 2048])], Space.UNFINISHED)
+	assert_equal(_refresh(edge), &"WORLD_ROUTE_NO_FITTING_PROFILE", "journaled blocker refuses the refresh")
+	assert_equal(_binding._carried_edges, 0, "nothing carried across the blocker")
+
+
+func test_staged_change_meeting_the_path_is_rechecked_and_refused() -> void:
+	"""ADR1205: the same holds for a sealed, unpublished Space stage compared against live."""
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	_region(token, PackedInt32Array([X + 1024, 512, Z, X + 1025, 1536, Z + 2048]), Space.UNFINISHED)
+	assert_equal(_owner.seal(token), &"", "staged blocker")
+	assert_equal(_refresh(edge, token), &"WORLD_ROUTE_NO_FITTING_PROFILE", "staged blocker refuses the refresh")
+	assert_equal(_binding._carried_edges, 0, "nothing carried across the staged blocker")
+	assert_true(_owner.abort(token), "candidate discarded")
+	token = _stage_distant_geometry()
+	assert_equal(_refresh(edge, token), &"", "a distant staged change carries")
+	assert_equal(_binding._carried_edges, 1, "staged far change misses every sweep")
+
+
+func test_journal_overflow_falls_back_to_a_full_recheck() -> void:
+	"""ADR1205: evicted history raises the floor above the certificate, which is then proved in full."""
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	_publish_owner_rows(_far_rows(Journal.CAPACITY + 1), Space.OBSTACLE)
+	assert_true(_owner._journal.floor_revision() > _binding._live.geometry[edge.x], "ring overflowed past the certificate")
+	assert_equal(_refresh(edge), &"", "full recheck still qualifies the clear path")
+	assert_equal(_binding._carried_edges, 0, "nothing carried after overflow")
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	for box: PackedInt32Array in _far_rows(Journal.CAPACITY + 1):
+		box[1] += 1024
+		box[4] += 1024
+		_region(token, box, Space.OBSTACLE)
+	assert_equal(_owner.seal(token), &"", "oversized staged candidate")
+	assert_equal(_refresh(edge, token), &"", "full recheck against the oversized stage")
+	assert_equal(_binding._carried_edges, 0, "staged overflow carries nothing")
+
+
+func test_content_revision_change_forces_a_full_recheck() -> void:
+	"""ADR1205: new catalog content never inherits a mask, even with no geometry change near the edge."""
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	_publish_owner_rows(_far_rows(1), Space.OBSTACLE)
+	assert_equal(_load_catalog(2), &"", "actual immutable catalog replaced")
+	assert_equal(_refresh(edge), &"", "complete new proof")
+	assert_equal(_binding._carried_edges, 0, "content change forces a full check")
+	_binding._live.content[edge.x] += 1
+	_publish_owner_rows(_far_rows(1), Space.OBSTACLE)
+	_refresh_endpoints()
+	var token: int = _begin()
+	assert_equal(_routes.stage_refresh(token, edge), &"", "profile-content mismatch is proved in full")
+	assert_equal(_binding._carried_edges, 0, "a stale profile content revision is never carried")
+	_end(token)
+
+
+func test_floor_metadata_change_is_inert_to_route_clearance() -> void:
+	"""ADR1205: a new FLOOR_DATUM row across the path changes no predicate, so the edge is carried."""
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	_publish_owner_rows([PackedInt32Array([X, 512, Z, X + 2048, 513, Z + 2048])], Space.FLOOR_DATUM)
+	assert_equal(_refresh(edge), &"", "floor metadata leaves the span clear")
+	assert_equal(_binding._carried_edges, 1, "inert role carried")
+
+
+static func wipe_routes(routes: Routes) -> void:
+	"""What a freshly composed Routes holds before any graph or actor: blank preallocated banks at revision 1, no
+	occupancy index and no last tick. Shared with the WorldRoutes and live-chain cold-load tests."""
+	routes._live = Routes.EdgeBank.new()
+	routes._live.allocate(routes._edge_capacity, routes._vertex_capacity)
+	routes._stage = Routes.EdgeBank.new()
+	routes._stage.allocate(routes._edge_capacity, routes._vertex_capacity)
+	routes._motion = Routes.MotionBank.new()
+	routes._motion.allocate(routes._link_capacity)
+	routes._load_motion = Routes.MotionBank.new()
+	routes._load_motion.allocate(routes._link_capacity)
+	routes._occupancy_heads.fill(-1)
+	routes._occupancy_next.fill(-1)
+	routes._occupancy_cell.fill(0)
+	routes._last_tick = -1
+	routes._last_published_token = 0
+
+
+static func wipe_certificates(world_routes: Binding, owner: Owner) -> void:
+	"""What a freshly composed WorldRoutes and SpaceOwner hold: blank certificate banks, no catalog pin, no
+	remembered search, and both journals reset at the current revision (SpaceOwner's own load does exactly that)."""
+	world_routes._live = Binding.Certificates.new()
+	world_routes._live.allocate()
+	world_routes._stage = Binding.Certificates.new()
+	world_routes._stage.allocate()
+	world_routes._live_catalog_revision = 0
+	world_routes._witness_work = 0
+	owner._journal.reset(owner.revision())
+	owner._location_journal.reset(owner.revision())
+
+
+static func route_images(routes: Routes, world_routes: Binding, budget: Budget) -> Array[PackedByteArray]:
+	"""ADR1221: both route owner images under one released lease; empty when either capture refuses."""
+	var images: Array[PackedByteArray] = [PackedByteArray(), PackedByteArray()]
+	var cold: int = budget.acquire(Budget.COLD_BYTES)
+	var code: StringName = routes.capture_state_into(cold, images[0]) if cold != 0 else Budget.REFUSE_BUSY
+	if code == &"": code = world_routes.capture_state_into(cold, images[1])
+	if cold != 0: budget.release(cold)
+	if code != &"": images.clear()
+	return images
+
+
+static func cold_restore_route_owners(routes: Routes, world_routes: Binding, owner: Owner, budget: Budget) -> StringName:
+	"""ADR1221: capture both route owners, blank them as a fresh Session's are, restore them in dependency order
+	(Routes, then its certificates) and require that the restored owners write back the very same images."""
+	var images: Array[PackedByteArray] = route_images(routes, world_routes, budget)
+	if images.is_empty(): return &"COLD_CAPTURE_REFUSED"
+	wipe_routes(routes)
+	wipe_certificates(world_routes, owner)
+	var cold: int = budget.acquire(Budget.COLD_BYTES)
+	var code: StringName = routes.restore_state_bytes(cold, images[0])
+	if code == &"": code = world_routes.restore_state_bytes(cold, images[1])
+	budget.release(cold)
+	if code == &"" and route_images(routes, world_routes, budget) != images: code = &"COLD_IMAGE_DRIFT"
+	return code
+
+
+static func wipe_contact_scope(contacts: RefCounted) -> void:
+	"""What a freshly configured Contacts retains between calls: no scope at all."""
+	contacts._ordinal = -1
+	contacts._action = -1
+	contacts._phase_operation = -1
+	contacts._phase_episode = -1
+	contacts._valid = false
+	contacts._phase_mode = false
+	for member: String in ["_placement", "_project", "_primary_job", "_material_container", "_phase_site",
+			"_phase_output_container"]:
+		contacts.set(member, NULL_REF)
+
+
+static func entry_owner_images(contacts: RefCounted, delivery: RefCounted, budget: Budget) -> Array[PackedByteArray]:
+	"""ADR1221 steps 2 and 3: Contacts' scope and the Planner's admissions, with Delivery and the arena quiescent
+	(neither writes anything); empty when any capture refuses."""
+	var images: Array[PackedByteArray] = [PackedByteArray(), PackedByteArray()]
+	var code: StringName = contacts.capture_state_into(images[0])
+	if code == &"": code = delivery.save_quiescence_refusal()
+	if code == &"" and not budget.is_quiescent(): code = Budget.REFUSE_BUSY
+	if code == &"": code = delivery._planner.capture_admissions_into(images[1])
+	if code != &"": images.clear()
+	return images
+
+
+static func cold_restore_entry_owners(contacts: RefCounted, delivery: RefCounted, budget: Budget) -> StringName:
+	"""ADR1221: capture Contacts, Delivery, the arena and the Planner, blank Contacts' scope and the Planner's record
+	as fresh owners hold them, restore all four and require the very same images back."""
+	var images: Array[PackedByteArray] = entry_owner_images(contacts, delivery, budget)
+	if images.is_empty(): return &"COLD_CAPTURE_REFUSED"
+	wipe_contact_scope(contacts)
+	delivery._planner.clear()
+	var code: StringName = &"" if budget.is_quiescent() else Budget.REFUSE_BUSY
+	if code == &"": code = contacts.restore_state_bytes(images[0])
+	if code == &"": code = delivery._planner.restore_admissions(images[1])
+	if code == &"": code = delivery.save_quiescence_refusal()
+	if code == &"" and entry_owner_images(contacts, delivery, budget) != images: code = &"COLD_IMAGE_DRIFT"
+	return code
+
+
+func _cold_images() -> Array[PackedByteArray]:
+	"""The Routes image and the certificate image, captured under one released lease."""
+	var graph: PackedByteArray = PackedByteArray()
+	var certificates: PackedByteArray = PackedByteArray()
+	var cold: int = _budget.acquire(Budget.COLD_BYTES)
+	assert_equal(_routes.capture_state_into(cold, graph), &"", "graph captured")
+	assert_equal(_binding.capture_state_into(cold, certificates), &"", "certificates captured")
+	assert_equal(_budget.release(cold), &"", "lease returned")
+	return [graph, certificates]
+
+
+func _restore_cold_images(images: Array[PackedByteArray]) -> StringName:
+	"""Routes first, then its certificates, under one released lease."""
+	var cold: int = _budget.acquire(Budget.COLD_BYTES)
+	var code: StringName = _routes.restore_state_bytes(cold, images[0])
+	if code == &"": code = _binding.restore_state_bytes(cold, images[1])
+	assert_equal(_budget.release(cold), &"", "lease returned")
+	return code
+
+
+func test_cold_route_images_restore_into_blank_owners_and_the_actor_walks_on() -> void:
+	"""ADR1221: mid-walk the graph, actor and certificates are saved, every bank blanked as a fresh Session's is,
+	and the restored owners re-encode identically and finish the walk exactly as the uninterrupted test does."""
+	_actual_fixture()
+	_publish_route()
+	_admit_actor()
+	assert_equal(_routes.request_route(_worker, _last, 1), &"", "source-qualified route")
+	for tick: int in range(1, 5):
+		_routes.advance_tick(tick)
+	var images: Array[PackedByteArray] = _cold_images()
+	assert_equal(images[1].size(), Binding.CERT_WIRE_BYTES, "fixed certificate image")
+	wipe_routes(_routes)
+	wipe_certificates(_binding, _owner)
+	assert_equal(_restore_cold_images(images), &"", "both owners restored")
+	assert_equal(_cold_images(), images, "both re-encode their images")
+	for tick: int in range(5, 11):
+		_routes.advance_tick(tick)
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "restored actor readable")
+	assert_equal(actor.point, Vector3i(X + 1536, 512, Z + 512), "same ten-tick arrival")
+	assert_equal(actor.location, _last, "same destination")
+
+
+func test_restored_journal_still_carries_the_restored_certificate() -> void:
+	"""ADR1205 + ADR1221: a far change published before the save is still carried after the load, because the
+	journal travels with the certificate; a journal reset at load would force a full recheck instead."""
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	_publish_owner_rows(_far_rows(1), Space.OBSTACLE)
+	var images: Array[PackedByteArray] = _cold_images()
+	wipe_routes(_routes)
+	wipe_certificates(_binding, _owner)
+	assert_equal(_restore_cold_images(images), &"", "restored")
+	assert_equal(_refresh(edge), &"", "requalified after the load")
+	assert_equal(_binding._carried_edges, 1, "carried exactly as without the load")
+
+
+func _certificate_corruptions(edge: Vector2i) -> Array:
+	"""[label, offset, width, value, expected refusal] for one damaged certificate or journal field each."""
+	var generations: int = 40 + Binding.EDGE_CAPACITY * Binding.MASK_BYTES
+	var geometry: int = generations + 4 * Binding.EDGE_CAPACITY
+	var journal: int = geometry + 16 * Binding.EDGE_CAPACITY
+	var blank: int = 3 if edge.x != 3 else 4
+	return [["magic", 0, 8, 1, Binding.REFUSE_LOAD_HEADER], ["catalog revision", 32, 8, 99, Binding.REFUSE_LOAD_HEADER],
+		["live generation", generations + 4 * edge.x, 4, edge.y + 1, Binding.REFUSE_LOAD_CERTIFICATE],
+		["blank generation", generations + 4 * blank, 4, 1, Binding.REFUSE_LOAD_CERTIFICATE],
+		["blank mask", 40 + blank * Binding.MASK_BYTES, 1, 1, Binding.REFUSE_LOAD_CERTIFICATE],
+		["bit past the profiles", 40 + edge.x * Binding.MASK_BYTES + Binding.MASK_BYTES - 1, 1, 128,
+			Binding.REFUSE_LOAD_CERTIFICATE],
+		["geometry revision", geometry + 8 * edge.x, 8, 99, Binding.REFUSE_LOAD_CERTIFICATE],
+		["journal floor", journal, 8, _owner.revision() + 2, &"JOURNAL_LOAD_HEADER"],
+		["journal view flag", journal + 16, 8, 1, &"JOURNAL_LOAD_HEADER"],
+		["journal tail", journal + Journal.WIRE_BYTES - 1, 1, 1, &"JOURNAL_LOAD_SIDE"],
+		["full journal count", journal + Journal.WIRE_BYTES + 8, 8, Journal.CAPACITY + 1, &"JOURNAL_LOAD_HEADER"]]
+
+
+func test_cold_certificate_image_refuses_every_corrupt_field_and_keeps_live_banks() -> void:
+	"""ADR1221: each damaged field is refused with its exact code before the bank swap or any journal write."""
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	var images: Array[PackedByteArray] = _cold_images()
+	for damage: Array in _certificate_corruptions(edge):
+		var bad: PackedByteArray = images[1].duplicate()
+		if damage[2] == 1: bad[damage[1]] = damage[3]
+		elif damage[2] == 4: bad.encode_s32(damage[1], damage[3])
+		else: bad.encode_s64(damage[1], damage[3])
+		assert_equal(_restore_cold_images([images[0], bad]), damage[4], "refused: %s" % damage[0])
+		assert_equal(_cold_images(), images, "live banks and journals unchanged after: %s" % damage[0])
+	_lease = _budget.acquire(Budget.COLD_BYTES)
+	assert_equal(_binding.restore_state_bytes(_lease, images[1].slice(1)), Binding.REFUSE_LOAD_SHAPE, "truncated")
+	var token: int = _binding.begin_prepare(_lease).token
+	assert_equal(_binding.restore_state_bytes(_lease, images[1]), Binding.REFUSE_LOAD_BUSY, "open preparation")
+	_end(token)
+	assert_equal(_restore_cold_images(images), &"", "the intact images restore")

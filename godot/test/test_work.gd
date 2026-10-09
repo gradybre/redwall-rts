@@ -1710,3 +1710,57 @@ func test_spatial_handling_numbers_reject_changed_original_contributor() -> void
 	assert_true(_jobs.assign_worker(first, job).ok, "restore original full assignment")
 	assert_true(_jobs.set_state(job, JobsScript.JOB_STATE_WORK).ok, "restore work phase")
 	assert_equal(WorkScript._handling_numbers_leaf(_work, job), &"", "unchanged original facts retry exactly")
+
+
+# --- REQ-SET-034 / ADR 1226: rest at the next 30-WU safe point, then resume ----------------------
+
+## A night hour of GDD 5.3's default schedule (22:00-06:00 SLEEP).
+const HOUR_NIGHT: int = 23
+
+
+func test_a_resting_worker_finishes_only_the_current_safe_segment_then_rests_and_resumes() -> void:
+	"""REQ-SET-034: once the hour forbids work, Work stops exactly at the next 30-WU safe point (the tick that would
+	cross it is capped), refuses there with WORK_SCHEDULE_REST and changes nothing, and resumes in a work hour."""
+	var worker: int = _base_rate_worker()
+	var job: int = _worked_job(worker, WorkScript.SAFE_SEGMENT_MWU + 130)
+	assert_true(_schedule.resolve(worker, HOUR_NIGHT, false).ok, "the hour turns to SLEEP")
+	var out: WorkScript.TickResult = _work.tick_solo(job)
+	assert_true(out.ok and out.accepted_mwu == 80, "work continues inside the segment")
+	out = _work.tick_solo(job)
+	assert_true(out.ok, "the crossing tick still works")
+	assert_equal(out.accepted_mwu, 50, "capped at the safe point")
+	assert_equal(_jobs.remaining_mwu_of(job).value, WorkScript.SAFE_SEGMENT_MWU, "standing on the safe point")
+	var before: PackedByteArray = _work.state_bytes()
+	var xp: int = _xp(worker)
+	out = _work.tick_solo(job)
+	assert_false(out.ok, "it rests")
+	assert_equal(out.error, WorkScript.REFUSE_SCHEDULE_REST, "with its own code")
+	assert_equal([_work.state_bytes(), _xp(worker), _jobs.remaining_mwu_of(job).value],
+		[before, xp, WorkScript.SAFE_SEGMENT_MWU], "resting spends nothing")
+	assert_true(_schedule.resolve(worker, HOUR_WORK, false).ok, "the work hour returns")
+	out = _work.tick_solo(job)
+	assert_true(out.ok and out.accepted_mwu == 80, "it resumes where it rested")
+
+
+func test_a_work_hour_never_rests_even_at_a_safe_point() -> void:
+	"""Only a resolved SLEEP or SOCIAL hour rests; WORK at a safe point, or an absent row, does not."""
+	var worker: int = _base_rate_worker()
+	var job: int = _worked_job(worker, WorkScript.SAFE_SEGMENT_MWU)
+	assert_true(_schedule.resolve(worker, HOUR_WORK, false).ok, "resolved to WORK")
+	assert_true(_work.tick_solo(job).ok, "a work hour works even at a safe point")
+	assert_false(_schedule.rests_now(-1) or _schedule.rests_now(worker), "WORK is not rest; no row is not rest")
+
+
+func test_a_resting_party_member_drops_out_at_the_safe_point_while_the_rest_work_on() -> void:
+	"""Decision 0017 parties: a member whose hour forbids work stops contributing at the coordinator's safe point;
+	the others keep the shared progress moving (the cap applies only while a resting member contributes)."""
+	var first: int = _base_rate_worker()
+	var second: int = _base_rate_worker()
+	var coordinator: int = _coordinator_job(WorkScript.SAFE_SEGMENT_MWU)
+	_member_job(coordinator, first)
+	_member_job(coordinator, second)
+	assert_true(_schedule.resolve(second, HOUR_NIGHT, false).ok, "the second member's hour is SLEEP")
+	var out: WorkScript.TickResult = _work.tick_party(coordinator)
+	assert_true(out.ok, "the party still works")
+	assert_equal(out.accepted_mwu, 80, "only the first member contributed")
+	assert_equal(_jobs.remaining_mwu_of(coordinator).value, WorkScript.SAFE_SEGMENT_MWU - 80, "past the safe point")

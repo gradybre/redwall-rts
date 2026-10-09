@@ -1,0 +1,14 @@
+stair-sequence-progress {"part": 0, "interval": 0, "pairs": 54, "checks": 0, "unresolved": 0}
+stair-sequence-progress {"part": 0, "interval": 30, "pairs": 1260, "checks": 0, "unresolved": 0}
+stair-sequence-progress {"part": 0, "interval": 60, "pairs": 2658, "checks": 162, "unresolved": 0}
+stair-sequence-progress {"part": 1, "interval": 0, "pairs": 4044, "checks": 162, "unresolved": 0}
+stair-sequence-progress {"part": 1, "interval": 30, "pairs": 4044, "checks": 162, "unresolved": 0}
+stair-sequence-progress {"part": 1, "interval": 60, "pairs": 4044, "checks": 162, "unresolved": 0}
+{"gait": "descent", "clear": true, "unresolved": 0, "pairs": 4044}
+stair-sequence-progress {"part": 0, "interval": 0, "pairs": 54, "checks": 0, "unresolved": 0}
+stair-sequence-progress {"part": 0, "interval": 30, "pairs": 2328, "checks": 204, "unresolved": 0}
+stair-sequence-progress {"part": 0, "interval": 60, "pairs": 3732, "checks": 336, "unresolved": 0}
+stair-sequence-progress {"part": 1, "interval": 0, "pairs": 4686, "checks": 336, "unresolved": 0}
+stair-sequence-progress {"part": 1, "interval": 30, "pairs": 4686, "checks": 336, "unresolved": 0}
+stair-sequence-progress {"part": 1, "interval": 60, "pairs": 4686, "checks": 336, "unresolved": 0}
+{"gait": "ascent", "clear": true, "unresolved": 0, "pairs": 4686}

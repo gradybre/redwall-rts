@@ -373,9 +373,17 @@ func _make_plan(bindings: RoomBindings, request: Dictionary, level: Levels.Recor
 	plan.level = _level_id
 	plan.origin_u = _datum
 	plan.cell_size_u = _pitch
-	plan.height_u = level.clear_height_u
+	plan.height_u = _excavated_height(level.clear_height_u)
 	plan.cells = request.cells
 	return plan
+
+
+func _excavated_height(clear_height_u: int) -> int:
+	"""DEC-054: the level's clear height, capped at the band the published dig rows reach from the floor."""
+	var provider: WorldRoutes = _access._actual() if _access != null else null
+	if provider == null or provider._profiles == null: return clear_height_u
+	var reach: int = Approach.reachable_height_u(provider._profiles, -1)
+	return mini(clear_height_u, reach) if reach > 0 else clear_height_u
 
 
 func _selected_refusal(request: Dictionary, bindings: RoomBindings, levels: Levels) -> StringName:

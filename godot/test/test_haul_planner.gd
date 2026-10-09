@@ -499,3 +499,52 @@ func test_spatial_admission_cannot_substitute_flat_store_or_leave_partial_claim(
 	assert_equal(_w.pool.state_bytes(), pool_image, "no partial claim")
 	assert_equal(_w.planner._job_generation, generations, "no Planner row")
 	assert_true(_w.planner.admit(JOB, _mouse, _stones, 1000, NOW + 100).ok, "ordinary flat admission still works")
+
+
+# --- ADR1221: the admission record's local wire ---------------------------------------------
+
+func _admission_image() -> PackedByteArray:
+	"""One whole schema-1 admission image."""
+	var image: PackedByteArray = PackedByteArray()
+	assert_equal(_w.planner.capture_admissions_into(image), HaulPlannerScript.REFUSE_NONE, "captured")
+	return image
+
+
+func test_admissions_restore_into_a_cleared_record_and_the_haul_completes() -> void:
+	"""ADR1221: a store and a ground admission survive clear-and-restore exactly; the store haul then cancels as
+	if never saved, returning its grams and claim."""
+	var depot_store: Vector2i = _w.store(_depot, 400000, HaulWorld.tile(50, 40))
+	assert_true(_w.planner.admit(JOB, _mouse, _stones, 12000, NOW).ok, "store admission")
+	var image: PackedByteArray = _admission_image()
+	assert_equal(image.size(), 12 + 24 * HaulPlannerScript.JOB_CAPACITY, "declared size")
+	_w.planner.clear()
+	assert_false(_w.planner.is_admitted(JOB), "fresh record")
+	assert_equal(_w.planner.restore_admissions(image), HaulPlannerScript.REFUSE_NONE, "restored")
+	assert_equal(_admission_image(), image, "re-encodes")
+	assert_equal(_w.planner.destination_of(JOB), depot_store, "same destination")
+	assert_equal(_w.planner.audit(), HaulPlannerScript.REFUSE_NONE, "grams agree with the store")
+	assert_true(_w.planner.cancel(JOB).ok, "the restored admission cancels")
+	assert_equal(_w.inventory.container_reserved_mass_g(depot_store), 0, "grams back")
+
+
+func test_corrupt_admission_images_are_refused_and_nothing_is_written() -> void:
+	"""ADR1221: shape, header, a non-canonical empty row, a dead store, grams beyond the store, a ground row with
+	grams and an admission with no pool claim are each refused with the record unchanged."""
+	var depot_store: Vector2i = _w.store(_depot, 400000, HaulWorld.tile(50, 40))
+	assert_true(_w.planner.admit(JOB, _mouse, _stones, 12000, NOW).ok, "store admission")
+	var image: PackedByteArray = _admission_image()
+	var capacity: int = HaulPlannerScript.JOB_CAPACITY
+	var cases: Array = [["magic", 0, 4, 1, HaulPlannerScript.REFUSE_LOAD_SHAPE],
+		["capacity", 8, 4, 7, HaulPlannerScript.REFUSE_LOAD_SHAPE],
+		["empty row tile", 12 + 4 * (3 * capacity + 1), 4, 5, HaulPlannerScript.REFUSE_LOAD_ROW],
+		["dead store generation", 12 + 4 * (2 * capacity + JOB.x), 4, depot_store.y + 1, HaulPlannerScript.REFUSE_LOAD_ROW],
+		["grams beyond the store", 12 + 16 * capacity + 8 * JOB.x, 8, 12000000, HaulPlannerScript.REFUSE_LOAD_ROW],
+		["no pool claim", 12 + 4 * OTHER_JOB.x, 4, 1, HaulPlannerScript.REFUSE_LOAD_ROW]]
+	for damage: Array in cases:
+		var bad: PackedByteArray = image.duplicate()
+		if damage[2] == 4: bad.encode_s32(damage[1], damage[3])
+		else: bad.encode_s64(damage[1], damage[3])
+		assert_equal(_w.planner.restore_admissions(bad), damage[4], "refused: %s" % damage[0])
+		assert_equal(_admission_image(), image, "record unchanged after: %s" % damage[0])
+	assert_equal(_w.planner.restore_admissions(image.slice(1)), HaulPlannerScript.REFUSE_LOAD_SHAPE, "truncated")
+	assert_equal(_w.planner.restore_admissions(image), HaulPlannerScript.REFUSE_NONE, "the intact image restores")

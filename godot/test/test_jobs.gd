@@ -1778,3 +1778,105 @@ func test_the_into_tool_gate_read_costs_less_than_the_allocating_one_per_call() 
 		"the _into form allocates nothing: %d usec against %d usec for %d reads" % [into_usec,
 			allocating_usec, TIMED_GATE_READS])
 	assert_equal(out.value, JobsScript.GATE_SATISFIED, "and the caller's own result was written")
+
+
+# --- ADR 1223: a bound work dispatcher, its Jobs and its reserved crew ----------------------------
+
+class Dispatcher extends RefCounted:
+	## A test dispatcher: owns the listed Job slots and reserves one resident slot.
+	var owned: PackedInt32Array = PackedInt32Array()
+	var crew: int = -1
+
+	func owns(job_slot: int) -> bool:
+		"""True for a Job this dispatcher created."""
+		return owned.has(job_slot)
+
+	func reserves(resident_slot: int) -> bool:
+		"""True for this dispatcher's crew."""
+		return resident_slot == crew
+
+
+func _dispatched_job(dispatcher: Dispatcher, urgency: int) -> int:
+	"""A BUILD Job the dispatcher owns, requested by a live reference, in the given urgency bucket."""
+	var job: int = _make_job(JobsScript.JOB_KIND_BUILD)
+	assert_true(_jobs.set_requester(job, _residents.ref_of(_spawn_resident())).ok, "its requester is live")
+	assert_true(_jobs.set_urgency(job, urgency).ok, "it ranks in bucket %d" % urgency)
+	dispatcher.owned.append(job)
+	return job
+
+
+func test_a_dispatched_job_is_offered_to_nobody_and_the_next_best_job_wins() -> void:
+	"""ADR 1223: a dispatcher's Job outranks an ordinary one, yet selection passes it over for the ordinary one and
+	a direct commitment of anyone but the crew refuses with the dispatch code."""
+	var dispatcher: Dispatcher = Dispatcher.new()
+	var crew: int = _spawn_worker()
+	var other: int = _spawn_worker()
+	dispatcher.crew = crew
+	assert_true(_jobs.bind_dispatcher(dispatcher.owns, dispatcher.reserves).ok, "dispatcher bound")
+	var dispatched: int = _dispatched_job(dispatcher, JobsScript.URGENCY_RESCUE)
+	var ordinary: int = _make_job(JobsScript.JOB_KIND_BUILD)
+	assert_equal(_select(other).value, ordinary, "the ordinary Job wins although the dispatched one ranks higher")
+	assert_equal(_jobs.is_eligible(other, dispatched).error, JobsScript.REFUSE_DISPATCHED_JOB, "eligibility names why")
+	assert_equal(_jobs.assign_worker(other, dispatched).error, JobsScript.REFUSE_DISPATCHED_JOB, "no commitment either")
+	assert_equal(_jobs.worker_of(dispatched), JobsScript.NULL_REF, "the dispatched Job is still unworked")
+
+
+func test_a_reserved_crew_is_never_selected_and_commits_only_to_its_dispatchers_jobs() -> void:
+	"""ADR 1223: the crew's selection pass refuses before any scan (no continuation is written), an ordinary Job is
+	refused it, and its dispatcher's Job binds through the full step 1-6 revalidation."""
+	var dispatcher: Dispatcher = Dispatcher.new()
+	var crew: int = _spawn_worker()
+	dispatcher.crew = crew
+	assert_true(_jobs.bind_dispatcher(dispatcher.owns, dispatcher.reserves).ok, "dispatcher bound")
+	var ordinary: int = _make_job(JobsScript.JOB_KIND_BUILD)
+	var dispatched: int = _dispatched_job(dispatcher, JobsScript.URGENCY_ORDINARY)
+	assert_equal(_select(crew).error, JobsScript.REFUSE_AGENT_RESERVED, "the JobSelector never selects the crew")
+	assert_false(_jobs.has_continuation(crew), "and leaves no continuation behind")
+	assert_equal(_jobs.assign_worker(crew, ordinary).error, JobsScript.REFUSE_AGENT_RESERVED, "no ordinary work")
+	assert_true(_jobs.assign_worker(crew, dispatched).ok, "the dispatcher commits its own crew")
+	assert_equal(_jobs.worker_of(ordinary), JobsScript.NULL_REF, "the ordinary Job stays on offer")
+
+
+func test_a_dispatchers_commitment_still_revalidates_steps_one_and_two() -> void:
+	"""ADR 1223 keeps REQ-SET-030: the crew's own Job is refused in a SLEEP hour and to a dead crew."""
+	var dispatcher: Dispatcher = Dispatcher.new()
+	var crew: int = _spawn_worker(HOUR_SLEEP)
+	dispatcher.crew = crew
+	assert_true(_jobs.bind_dispatcher(dispatcher.owns, dispatcher.reserves).ok, "dispatcher bound")
+	var dispatched: int = _dispatched_job(dispatcher, JobsScript.URGENCY_ORDINARY)
+	assert_equal(_jobs.assign_worker(crew, dispatched).error, JobsScript.REFUSE_ACTIVITY_FORBIDS_WORK, "step 2 first")
+	assert_true(_schedule.resolve(crew, HOUR_WORK, false).ok, "a work hour")
+	assert_true(_needs.apply_health_event(crew, -100).ok, "the crew dies")
+	assert_equal(_jobs.assign_worker(crew, dispatched).error, JobsScript.REFUSE_RESIDENT_DEAD, "step 1 still applies")
+
+
+func test_an_unbound_cleared_or_freed_dispatcher_leaves_every_job_and_resident_ordinary() -> void:
+	"""ADR 1223: binding is composition only. Invalid Callables refuse; clearing it or freeing the dispatcher makes
+	its Jobs and crew ordinary again, with no store state changed by any of it."""
+	var crew: int = _spawn_worker()
+	var dispatcher: Dispatcher = Dispatcher.new()
+	dispatcher.crew = crew
+	var dispatched: int = _dispatched_job(dispatcher, JobsScript.URGENCY_ORDINARY)
+	var before: PackedByteArray = _jobs.state_bytes()
+	assert_equal(_jobs.bind_dispatcher(Callable(), dispatcher.reserves).error, JobsScript.REFUSE_INVALID_DISPATCHER,
+		"an invalid Callable refuses")
+	assert_true(_jobs.bind_dispatcher(dispatcher.owns, dispatcher.reserves).ok, "bound")
+	assert_equal(_jobs.state_bytes(), before, "binding writes no state")
+	assert_equal(_select(crew).error, JobsScript.REFUSE_AGENT_RESERVED, "while bound the crew is reserved")
+	_jobs.clear_dispatcher()
+	assert_equal(_select(crew, 1).value, dispatched, "cleared: an ordinary pass takes the Job")
+	assert_true(_jobs.bind_dispatcher(dispatcher.owns, dispatcher.reserves).ok, "bound again")
+	dispatcher = null
+	assert_true(_jobs.is_eligible(_spawn_worker(), dispatched).ok, "a freed dispatcher reads as unbound")
+
+
+func test_a_busy_agent_is_due_on_its_stagger_tick_but_never_offered_work() -> void:
+	"""ADR1226 (REQ-SET-034): `is_due` keeps the same persistent-ID stagger for busy agents, so the settlement
+	re-resolves a working resident's hour every 30 ticks; `should_evaluate` still offers work only to the idle."""
+	var worker: int = _spawn_worker()
+	assert_true(_jobs.assign_worker(worker, _make_job(JobsScript.JOB_KIND_HAUL)).ok, "the worker is busy")
+	var due: int = _due_tick(worker)
+	assert_true(_jobs.is_due(worker, due), "due on its stagger tick")
+	assert_false(_jobs.is_due(worker, due + 1), "and on no other")
+	assert_false(_jobs.should_evaluate(worker, due), "never offered a second job")
+	assert_false(_jobs.is_due(-1, due) or _jobs.is_due(worker, -1), "no row or negative tick is due")

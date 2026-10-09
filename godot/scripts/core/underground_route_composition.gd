@@ -9,15 +9,26 @@ const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
 const Movement := preload("res://scripts/core/movement.gd")
 const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
-const PROFILE_CONTENT_REVISION: int = 3
-const CATALOG_REVISION: int = 1
-const CATALOG_PATH: String = "res://data/underground/mole-worker/qualified-step-v4/ground-pace.ugconn"
-const CATALOG_SHA: String = "454eaab1b2a722aab2700285d31a0bcc093312dad211208da7993baa32bc2f24"
+## ADR1229: the T1-T6 first-entry bundle (content 10, Frontier on source 4, workpieces on source 5); ADR1217 step 5
+## mounted the claw bundle `qualified-claw-v6` (content 9).
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v9/catalog_source.gd")
+## ADR1229: the claw stair tables Routes samples for the stair and short-step rows 51-55.
+const StairMotion := preload("res://scripts/core/underground_stair_motion.gd")
+const MotionPins := preload("res://data/underground/mole-worker/qualified-claw-stair-motion-v1/catalog_source.gd")
+const PROFILE_CONTENT_REVISION: int = Bundle.CONTENT_REVISION
+# ADR1190/1195: the mounted graph selects the published first-entry structure, which carries the same
+# ground paces plus the L0/T0 regions; selecting it before the first WorldRoutes binding is final.
+const CATALOG_REVISION: int = Bundle.CATALOG_REVISION
+const CATALOG_PATH: String = Bundle.CATALOG_PATH
+const CATALOG_SHA: String = Bundle.CATALOG_SHA
+## ADR1200/1206/1217/1229: content 6's fifteen, claw WALK 42, the narrow claw rows 43-50 and the short steps 51/52 as
+## ground caps, then DEC-050's authored stair paces (descent 53, ascent 54, half-turn 55).
+const GROUND_PACE_COUNT: int = 29
 
-const CATALOG_DIGEST_0: int = -6187198552126894523
-const CATALOG_DIGEST_1: int = -3743869169456484174
-const CATALOG_DIGEST_2: int = -8277596517807541495
-const CATALOG_DIGEST_3: int = 2607509635061225895
+const CATALOG_DIGEST_0: int = Bundle.CATALOG_DIGEST_0
+const CATALOG_DIGEST_1: int = Bundle.CATALOG_DIGEST_1
+const CATALOG_DIGEST_2: int = Bundle.CATALOG_DIGEST_2
+const CATALOG_DIGEST_3: int = Bundle.CATALOG_DIGEST_3
 
 
 static func construct(session: RefCounted) -> StringName:
@@ -25,7 +36,20 @@ static func construct(session: RefCounted) -> StringName:
 	if not Retirement.constructor_session_matches(session) or not session._busy \
 			or session._operations_state != 1 or session._operations_prefix != 4:
 		return &"UNDERGROUND_ROUTE_COMPOSITION_SCOPE"
-	var code: StringName = _prepare_candidate(session)
+	if session._retirement_owners.world_routes != null \
+			or session._retirement_owners.profiles._live.header[0] != PROFILE_CONTENT_REVISION:
+		return &"UNDERGROUND_ROUTE_COMPOSITION_SOURCE"
+	var config: WorldRoutes.Configuration = _configuration(session._retirement_owners)
+	var code: StringName = _prepare_catalog(config)
+	if code == &"": code = _original_refusal(session)
+	if code != &"": return code
+	var candidate: WorldRoutes = WorldRoutes.new()
+	code = candidate.configure(config)
+	if code == &"": code = _original_refusal(session)
+	if code != &"": return code
+	session._retirement_owners.world_routes = candidate
+	session._operations_prefix = 5
+	config = null # The temporary configuration dies before any graph bank allocation.
 	if code == &"": code = _bind_graph(session)
 	if code == &"": code = _bind_profiles(session)
 	if code == &"": code = _bind_approach(session)
@@ -52,24 +76,6 @@ static func unpublished_refusal(o: Retirement.Owners) -> StringName:
 	return &""
 
 
-static func _prepare_candidate(session: RefCounted) -> StringName:
-	"""The temporary configuration dies before graph allocation; only a fully configured provider is retained."""
-	if session._retirement_owners.world_routes != null \
-			or session._retirement_owners.profiles._live.header[0] != PROFILE_CONTENT_REVISION:
-		return &"UNDERGROUND_ROUTE_COMPOSITION_SOURCE"
-	var config: WorldRoutes.Configuration = _configuration(session._retirement_owners)
-	var code: StringName = _prepare_catalog(config, session._retirement_owners)
-	if code == &"": code = _original_refusal(session)
-	if code != &"": return code
-	var candidate: WorldRoutes = WorldRoutes.new()
-	code = candidate.configure(config)
-	if code == &"": code = _original_refusal(session)
-	if code != &"": return code
-	session._retirement_owners.world_routes = candidate
-	session._operations_prefix = 5
-	return &""
-
-
 static func _configuration(o: Retirement.Owners) -> WorldRoutes.Configuration:
 	"""Borrow exact actual owners; create the sole Movement source and Catalog in their existing arenas."""
 	var config: WorldRoutes.Configuration = WorldRoutes.Configuration.new()
@@ -89,12 +95,12 @@ static func _configuration(o: Retirement.Owners) -> WorldRoutes.Configuration:
 	return config
 
 
-static func _prepare_catalog(config: WorldRoutes.Configuration, o: Retirement.Owners) -> StringName:
+static func _prepare_catalog(config: WorldRoutes.Configuration) -> StringName:
 	"""Load one explicit immutable pace artifact; no latest-version lookup or replacement speed exists."""
 	var code: StringName = config.catalog.configure(Catalog.RESERVED_BYTES)
 	if code == &"":
-		code = config.catalog.bind_actual(o.profiles, o.levels, config.movement, o.residents,
-			o.transforms, o.space._domain)
+		code = config.catalog.bind_actual(config.profiles, config.levels, config.movement, config.residents,
+			config.transforms, config.owner._domain)
 	return config.catalog.load_file(CATALOG_PATH, CATALOG_SHA, CATALOG_REVISION) if code == &"" else code
 
 
@@ -114,9 +120,17 @@ static func _bind_profiles(session: RefCounted) -> StringName:
 	var o: Retirement.Owners = session._retirement_owners
 	var code: StringName = o.routes.bind_profiles(o.profiles, o.inventory, o.gear, o.carry,
 		o.work, o.reservations, o.piles)
+	if code == &"": code = _bind_stair_motion(o.routes)
 	if code != &"": return code
 	session._operations_prefix = 7
 	return _original_refusal(session)
+
+
+static func _bind_stair_motion(routes: Routes) -> StringName:
+	"""ADR1229: load the pinned claw stair tables once and lend them to this Session's Routes."""
+	var motion: StairMotion = StairMotion.new()
+	var code: StringName = motion.load_file(MotionPins.WIRE_PATH, MotionPins.WIRE_SHA)
+	return routes.bind_stair_motion(motion) if code == &"" else code
 
 
 static func _bind_approach(session: RefCounted) -> StringName:
@@ -138,6 +152,8 @@ static func complete_refusal(o: Retirement.Owners) -> StringName:
 	var code: StringName = RoomComposition.complete_refusal(o)
 	if code == &"": code = Retirement.route_constructor_refusal(o, 8)
 	if code == &"": code = _source_refusal(o)
+	if code == &"" and (o.routes._stair_motion == null or not o.routes._stair_motion.is_loaded()):
+		code = &"UNDERGROUND_ROUTE_COMPOSITION_SOURCE" # ADR1229: a complete graph samples the claw stair tables.
 	return code
 
 
@@ -146,13 +162,13 @@ static func _source_refusal(o: Retirement.Owners) -> StringName:
 	var catalog: Catalog = o.world_routes._catalog
 	var movement: Movement = o.world_routes._movement
 	if o.profiles._live.header[0] != PROFILE_CONTENT_REVISION or catalog._live.header[0] != CATALOG_REVISION \
-			or catalog._live.header[7] != 12 or movement._world != null or movement._navigation != null \
+			or catalog._live.header[7] != GROUND_PACE_COUNT or movement._world != null or movement._navigation != null \
 			or o.world_routes._catalog_identity != catalog.get_instance_id() \
 			or o.world_routes._profile_identity != o.profiles.get_instance_id() \
 			or o.world_routes._levels_identity != o.levels.get_instance_id():
 		return &"UNDERGROUND_ROUTE_COMPOSITION_SOURCE"
-	for index: int in range(1, 7):
-		if catalog._live.header[index] != 0: return &"UNDERGROUND_ROUTE_COMPOSITION_SOURCE"
+	# The exact four-word source digest below pins every header field, including the entry structure's
+	# single variant and regions; a ground-only zero-region check no longer applies (ADR1195).
 	if catalog._live.digests.decode_s64(0) != CATALOG_DIGEST_0 \
 			or catalog._live.digests.decode_s64(8) != CATALOG_DIGEST_1 \
 			or catalog._live.digests.decode_s64(16) != CATALOG_DIGEST_2 \

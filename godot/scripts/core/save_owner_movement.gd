@@ -1,11 +1,23 @@
 extends RefCounted
 ## Owner 8 (`movement`) column validation bridge (MOVEMENT-S4-VALIDATE-R01 v1, ADR 0182).
 ##
-## ONE PUBLIC ENTRY POINT. `framed_refusal()` judges one already framed section 4 owner block
-## against the Movement store's own cold column predicate and returns a `SaveHeader.Refusal`.
-## It constructs no live Movement, SpatialWorld, Navigation, Residents, Transforms or
-## Directory instance, captures nothing, restores nothing, reads no clock, fires no callback,
-## emits no diagnostic, mutates no caller input and contains no float.
+## THREE PUBLIC ENTRY POINTS (ADR 1222 build step 2).
+##   * `framed_refusal()` judges one already framed section 4 owner block against the Movement
+##     store's own cold column predicate and returns a `SaveHeader.Refusal`. It constructs no
+##     live Movement, SpatialWorld, Navigation, Residents, Transforms or Directory instance,
+##     captures nothing, restores nothing, reads no clock, fires no callback, emits no
+##     diagnostic, mutates no caller input and contains no float.
+##   * `capture_into(store, record)` copies the live store's sixteen columns through
+##     `Movement.copy_columns_into()` and projects them into the record's i32 bucket in ordinal
+##     order -- the exact inverse of the projection below -- then judges the written record with
+##     `framed_refusal()`, so a capture can never emit an image apply would refuse. A refused
+##     capture leaves the record's contents unspecified; the caller discards it.
+##   * `apply(record, store)` runs `framed_refusal()` FIRST, then projects the record and calls
+##     `Movement.restore_columns()`, which re-runs the same predicate, writes nothing on
+##     refusal and rebuilds `_travelling_count`. A false maps to a Refusal carrying the store's
+##     exact `last_column_refusal()` code.
+## None of the three touches a clock, barrier, signal, callback, filesystem, JSON text,
+## reflection API or per-row object; the caller owns barrier and restore-order discipline.
 ##
 ## GATE ORDER:
 ##   1. a null record                   -> SAVE_COMPONENT_SHAPE
@@ -18,7 +30,8 @@ extends RefCounted
 ##      explicitly, in canonical `Schema.FIELD_KEYS[171..186]` order
 ##   7. `Movement.columns_refusal()`    -> the EXACT unwrapped column code, for example
 ##      COLUMN_STATE, in a detail naming owner 8 and carrying no row identity.
-## Success carries an empty code and an empty detail.
+## Success carries an empty code and an empty detail. `capture_into()` and `apply()` additionally
+## gate on a null store, before gate 3, answering the bridge-local `REFUSE_NULL_STORE`.
 ##
 ## CANONICAL ORDER IS NOT DECLARATION ORDER: `movement.gd` declares `_grid_next`/`_grid_cell`
 ## ahead of `_radius_u`/`_speed_u_per_s`, and the saved field window does not. Reordering
@@ -27,8 +40,14 @@ extends RefCounted
 ## LOCAL ACCEPTANCE IS NOT PUBLICATION. An accepted result certifies owner-8 local motion
 ## column domains only. Saved Residents identity, the section 2 cursor/profile/load and
 ## destination terms, navigation request and route generations, Transforms pose, the loaded
-## tick phase and common provenance remain MOVEMENT-SAVED-BINDINGS obligations; bulk capture
-## and apply, connected tunnels, swimming, diving and canopy access all stay open.
+## tick phase and common provenance remain MOVEMENT-SAVED-BINDINGS obligations; connected
+## tunnels, swimming, diving and canopy access all stay open. Bulk capture/apply are the two
+## entry points above.
+##
+## SECTION 9 FIELDS ARE SOMEONE ELSE'S WORK, RESTORED AFTER THIS. `save_section_navigation.gd`
+## carries owner 8's section-9 navigation-request and route-generation fields; this file and
+## `movement.gd`'s section 4 columns do not read, write or validate them, and nothing here
+## should be read as having closed that gate.
 ##
 ## MEMORY, CONDITIONALLY. The projection SHARES the caller's packed buffers by assignment: no
 ## `duplicate()` runs here. The contract's conservative figure is 65536 logical packed bytes
@@ -120,6 +139,8 @@ const SOURCE_RESIDENT_CAPACITY: int = 512
 ## The speed table the speed gate searches. Its LENGTH is pinned before any entry is read.
 const SOURCE_SPEED_TABLE_LENGTH: int = 3
 const SOURCE_SIZE_MOVEMENT_U_PER_S: Array[int] = [3277, 4096, 3072]
+## A capture or apply called without a live store. Bridge-local: no column code applies.
+const REFUSE_NULL_STORE: StringName = &"SAVE_COMPONENT_NULL_STORE"
 
 
 static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
@@ -147,6 +168,83 @@ static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
 		return _refuse(code, "%srefuses this image with column code %s"
 			% [COLUMN_DETAIL_PREFIX, String(code)])
 	return _accept()
+
+
+static func capture_into(store: Movement, record: Section.FramedOwner) -> SaveHeader.Refusal:
+	"""Capture the live store's sixteen columns into one owner 8 record, then judge the result.
+
+	Gates: a null record, a wrong owner, a null store, the schema and metadata guards, then the
+	store's own `copy_columns_into()` (its column code is forwarded), then a typed setter refusal
+	(SAVE_COMPONENT_SHAPE), and last `framed_refusal()` over what was written.
+	"""
+	var target: SaveHeader.Refusal = _target_refusal(record, store)
+	if not target.is_ok():
+		return target
+	var columns: Movement.Columns = Movement.Columns.new()
+	if not store.copy_columns_into(columns):
+		return _refuse(store.last_column_refusal(), "%scapture refused with %s"
+			% [COLUMN_DETAIL_PREFIX, String(store.last_column_refusal())])
+	if not _write_columns(columns, record):
+		return _refuse(Section.REFUSE_SHAPE,
+			"Movement owner %d capture could not write a column" % OWNER_INDEX)
+	return framed_refusal(record)
+
+
+static func _write_columns(columns: Movement.Columns, record: Section.FramedOwner) -> bool:
+	"""Write the sixteen captured columns into the record's typed buckets in ordinal order."""
+	return (record.set_i32(FIELD_VX, columns.vx) and record.set_i32(FIELD_VZ, columns.vz)
+			and record.set_i32(FIELD_REMAINDER_X, columns.remainder_x)
+			and record.set_i32(FIELD_REMAINDER_Z, columns.remainder_z)
+			and record.set_i32(FIELD_NEXT_X, columns.next_x)
+			and record.set_i32(FIELD_NEXT_Z, columns.next_z)
+			and record.set_i32(FIELD_CORRECTION_X, columns.correction_x)
+			and record.set_i32(FIELD_CORRECTION_Z, columns.correction_z)
+			and record.set_i32(FIELD_RADIUS_U, columns.radius_u)
+			and record.set_i32(FIELD_DESIRED_YAW, columns.desired_yaw)
+			and record.set_i32(FIELD_NEXT_YAW, columns.next_yaw)
+			and record.set_i32(FIELD_GRID_NEXT, columns.grid_next)
+			and record.set_i32(FIELD_GRID_CELL, columns.grid_cell)
+			and record.set_i32(FIELD_SPEED_U_PER_S, columns.speed_u_per_s)
+			and record.set_i32(FIELD_MOVEMENT_PHASE, columns.movement_phase)
+			and record.set_i32(FIELD_BLOCKED_TICKS, columns.blocked_ticks))
+
+
+static func apply(record: Section.FramedOwner, store: Movement) -> SaveHeader.Refusal:
+	"""Validate one owner 8 record, then install it into `store`. Refusal writes nothing.
+
+	`framed_refusal()` runs first and its refusal is returned unchanged. The projection shares the
+	record's buffers by assignment; `restore_columns()` takes its own private copies.
+	"""
+	var framed: SaveHeader.Refusal = framed_refusal(record)
+	if not framed.is_ok():
+		return framed
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no Movement store was supplied for owner %d"
+			% OWNER_INDEX)
+	var columns: Movement.Columns = Movement.Columns.new()
+	_project_columns(record, columns)
+	if not store.restore_columns(columns):
+		return _refuse(store.last_column_refusal(), "%srestore refused with %s"
+			% [COLUMN_DETAIL_PREFIX, String(store.last_column_refusal())])
+	return _accept()
+
+
+static func _target_refusal(record: Section.FramedOwner, store: Movement) -> SaveHeader.Refusal:
+	"""Capture's preflight: record, owner index, store, then the schema and metadata guards."""
+	if record == null:
+		return _refuse(Section.REFUSE_SHAPE,
+			"no framed owner was supplied for owner %d ('%s')" % [OWNER_INDEX, OWNER_KEY])
+	if record.owner != OWNER_INDEX:
+		return _refuse(Section.REFUSE_OWNER,
+			"owner %d was supplied where owner %d ('%s') is required"
+				% [record.owner, OWNER_INDEX, OWNER_KEY])
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no Movement store was supplied for owner %d"
+			% OWNER_INDEX)
+	var schema: SaveHeader.Refusal = Schema.schema_refusal()
+	if not schema.is_ok():
+		return schema
+	return _metadata_refusal()
 
 
 static func _metadata_refusal() -> SaveHeader.Refusal:

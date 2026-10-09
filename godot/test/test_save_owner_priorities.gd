@@ -221,3 +221,91 @@ func test_null_wrong_owner_and_bucket_counts_refuse() -> void:
 		elif variant == 2: frame.i32_columns.append(PackedInt32Array())
 		else: frame.i64_columns.append(PackedInt64Array())
 		assert_equal(Bridge.framed_refusal(frame).code,&"SAVE_COMPONENT_SHAPE","exact typed buckets")
+
+
+# --- ADR 1222 step 2: bulk capture and apply ------------------------------------------------------
+
+func _live_owner() -> Priorities:
+	"""A store with live, edited, freed and reused rows, built through the public lifecycle only."""
+	var owner: Priorities = Priorities.new()
+	for slot: int in [0, 3, 7, 511]:
+		assert_true(owner.spawn(slot).ok, "spawn %d" % slot)
+	assert_true(owner.set_priority(3, 0, 1).ok, "edit a priority")
+	assert_true(owner.set_auto_fallback(7, false).ok, "edit the fallback flag")
+	assert_true(owner.set_dangerous_work(511, true).ok, "edit the danger flag")
+	assert_true(owner.despawn(0).ok, "free a row")
+	assert_true(owner.spawn(0).ok, "reuse the freed row")
+	assert_true(owner.despawn(7).ok, "leave a freed row behind")
+	return owner
+
+
+func _image(owner: Priorities) -> Priorities.Columns:
+	"""The owner's four columns through the bulk reader."""
+	var columns: Priorities.Columns = Priorities.Columns.new()
+	assert_true(owner.copy_columns_into(columns), "bulk copy succeeds")
+	return columns
+
+
+func test_capture_then_apply_into_a_fresh_store_is_exact_and_continues_identically() -> void:
+	"""The restored store holds the same columns and count, and answers the next edits the same way."""
+	var source: Priorities = _live_owner()
+	var frame: Section.FramedOwner = Section.FramedOwner.new(11)
+	assert_true(Bridge.capture_into(source, frame).is_ok(), "capture succeeds")
+	var target: Priorities = Priorities.new()
+	assert_true(Bridge.apply(frame, target).is_ok(), "apply succeeds")
+	assert_true(_image(target).equals(_image(source)), "columns are byte-identical")
+	assert_equal(target.present_count(), source.present_count(), "present_count is rebuilt")
+	for store: Priorities in [source, target]:
+		assert_true(store.spawn(7).ok, "the freed row is reusable")
+		assert_equal(store.spawn(3).error, store.spawn(3).error, "occupied refusals agree")
+		assert_true(store.set_priority(511, 4, 4).ok, "a later edit succeeds")
+	assert_true(_image(target).equals(_image(source)), "both stores stayed identical after edits")
+
+
+func test_capture_matches_the_public_reader_projection() -> void:
+	"""The captured record equals the projection built only from public per-slot readers."""
+	var source: Priorities = _live_owner()
+	var frame: Section.FramedOwner = Section.FramedOwner.new(11)
+	assert_true(Bridge.capture_into(source, frame).is_ok(), "capture succeeds")
+	var witness: Array[PackedByteArray] = _from_owner(source)
+	for field: int in 4:
+		assert_true(frame.u8_column(field) == witness[field], "field %d matches" % field)
+
+
+func test_every_column_refusal_leaves_the_target_byte_identical() -> void:
+	"""Each column code refuses through apply with the exact code and writes nothing."""
+	var target: Priorities = _live_owner()
+	var before: Priorities.Columns = _image(target)
+	var count: int = target.present_count()
+	var cases: Array = [[0, 2, 2, CODES[0]], [1, 13, 9, CODES[1]], [2, 1, 2, CODES[2]],
+		[3, 1, 2, CODES[3]]]
+	for entry: Array in cases:
+		var image: Array[PackedByteArray] = _base()
+		_put(image, int(entry[0]), int(entry[1]), int(entry[2]))
+		var refusal: Variant = Bridge.apply(_frame(image), target)
+		assert_equal(refusal.code, entry[3], "exact code for field %d" % int(entry[0]))
+	var free_row: Array[PackedByteArray] = _base()
+	_put(free_row, 3, 5, 1)
+	assert_equal(Bridge.apply(_frame(free_row), target).code, &"COLUMN_FREE_ROW",
+		"a free row carrying data refuses")
+	assert_true(_image(target).equals(before), "no refusal wrote a column")
+	assert_equal(target.present_count(), count, "no refusal moved the count")
+
+
+func test_null_and_misshaped_inputs_refuse_without_writing() -> void:
+	"""Null stores, null records, a wrong owner and a short bulk buffer all refuse."""
+	var target: Priorities = _live_owner()
+	var before: Priorities.Columns = _image(target)
+	assert_equal(Bridge.apply(_frame(_base()), null).code, Bridge.REFUSE_NULL_STORE, "null store")
+	assert_equal(Bridge.capture_into(null, Section.FramedOwner.new(11)).code,
+		Bridge.REFUSE_NULL_STORE, "capture from no store")
+	assert_equal(Bridge.capture_into(target, null).code, &"SAVE_COMPONENT_SHAPE", "null record")
+	assert_equal(Bridge.capture_into(target, Section.FramedOwner.new(10)).code,
+		&"SAVE_COMPONENT_OWNER", "wrong owner")
+	var short: Priorities.Columns = Priorities.Columns.new()
+	short.present.resize(3)
+	assert_false(target.restore_columns(short), "a short column refuses")
+	assert_equal(target.last_column_refusal(), Priorities.REFUSE_COLUMN_SHAPE, "shape code")
+	assert_false(target.copy_columns_into(short), "a short output buffer refuses")
+	assert_false(target.restore_columns(null), "null columns refuse")
+	assert_true(_image(target).equals(before), "nothing was written")

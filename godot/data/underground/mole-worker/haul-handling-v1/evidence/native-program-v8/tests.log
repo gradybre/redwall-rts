@@ -1,0 +1,22 @@
+test_capture_oversize_closes_before_array_decoder (__main__.NativeProgramV8Tests.test_capture_oversize_closes_before_array_decoder) ... ok
+test_changed_stand_ready_key_breaks_the_tool_free_join (__main__.NativeProgramV8Tests.test_changed_stand_ready_key_breaks_the_tool_free_join) ... ok
+test_changed_tool_free_source_bytes_refuse (__main__.NativeProgramV8Tests.test_changed_tool_free_source_bytes_refuse) ... ok
+test_compiler_rebuilds_the_exact_v8_image (__main__.NativeProgramV8Tests.test_compiler_rebuilds_the_exact_v8_image) ... ok
+test_complete_native_lift_still_has_both_actual_triangle_contacts (__main__.NativeProgramV8Tests.test_complete_native_lift_still_has_both_actual_triangle_contacts) ... ok
+test_every_join_and_reversal_has_identical_native_inputs (__main__.NativeProgramV8Tests.test_every_join_and_reversal_has_identical_native_inputs) ... ok
+test_every_native_event_has_exact_source_selection_and_visibility (__main__.NativeProgramV8Tests.test_every_native_event_has_exact_source_selection_and_visibility) ... ok
+test_hidden_stock_coefficient_is_still_exact (__main__.NativeProgramV8Tests.test_hidden_stock_coefficient_is_still_exact) ... ok
+test_invalid_clock_does_not_index_another_clip (__main__.NativeProgramV8Tests.test_invalid_clock_does_not_index_another_clip) ... ok
+test_one_shot_join_reaches_its_final_key (__main__.NativeProgramV8Tests.test_one_shot_join_reaches_its_final_key) ... ok
+test_the_eight_reviewed_clips_are_byte_identical_to_v7 (__main__.NativeProgramV8Tests.test_the_eight_reviewed_clips_are_byte_identical_to_v7) ... ok
+test_tool_free_body_columns_are_the_pinned_source_and_hidden_stock_is_the_fixture (__main__.NativeProgramV8Tests.test_tool_free_body_columns_are_the_pinned_source_and_hidden_stock_is_the_fixture) ... ok
+test_true_loop_wraps_return_to_first_key (__main__.NativeProgramV8Tests.test_true_loop_wraps_return_to_first_key) ... ok
+test_v7_executables_and_reviewed_image_are_unchanged (__main__.NativeProgramV8Tests.test_v7_executables_and_reviewed_image_are_unchanged) ... ok
+test_visible_stock_during_tool_free_walk_refuses (__main__.NativeProgramV8Tests.test_visible_stock_during_tool_free_walk_refuses) ... ok
+test_wire_census_matches_loader_declarations (__main__.NativeProgramV8Tests.test_wire_census_matches_loader_declarations) ... ok
+test_world_root_applied_twice_on_walk_is_detected (__main__.NativeProgramV8Tests.test_world_root_applied_twice_on_walk_is_detected) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 8.827s
+
+OK

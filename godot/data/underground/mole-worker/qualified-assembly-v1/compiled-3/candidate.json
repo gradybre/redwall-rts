@@ -1,0 +1,449 @@
+{
+  "schema": 1,
+  "parent_actor_sha256": "adc617642313ac004c050d4877ef0b9f4024bb9c88e3ea92ce9a924471bd5ab9",
+  "ready_pose_sha256": "393edbafa3490d93e19959d5b8e84b5022bfd475a2afdfca79754712e7fdf462",
+  "verified_source_files": 537,
+  "source_inputs": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor": "adc617642313ac004c050d4877ef0b9f4024bb9c88e3ea92ce9a924471bd5ab9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/program.json": "5caaec976eb3f8995784dc5f8d98cdb6c233020372d87964620b0da1c4e41c6e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/roles.json": "0f2da835a381460231c1560ea116fa3aafd51d32a4f3185f25b11b782bd4fd83",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/plan.json": "ffdebb3cbacafab9766679cc5b7bd0894c80e6e3499ab91a1e3d225bf8991ee2",
+    "godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/analysis-carry-arm-v7/invocation.json": "5e599305d6fa7e6c15ea6b5029fd82ac4749e3cc6b0b581f6b6c30875c1934c0",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v4/mole-worker.ugactor": "cae2e9b210ce1019153b298c8f98504683f080a150c66d030d113d18b4b678e9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v4/candidate.json": "4a771e103b400e967bb752fd0ce340735574fc84aa2c5373dd1a2ff7c770dc57",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v4/plan.json": "50fd154de80b00625c7e7cd677334aa6ecd4cd735ce1c7499ff2bf091281340c",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compact-program-compile-v2/result/mole-worker.ugactor": "f575382e1fdc4b5e20b70254a8c7a5b3ebf6f0256266627dc79d43f3e12dae37",
+    "godot/demo/assets/underground-matrices/mole-grip-v3.ugpal": "08de54533d28b1a45a2e171180a0ca68812912f67c9b7294bf26c25eec424cda",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/grip-proof-v2/envelopes.json": "69397b67ac29c8b52ab08821efeaf9984e94d6affa5f8af84888d276df308099",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/grip-source-v3/source-plan.json": "0ea14eb045f32da39472c7d039463d13f7e50a372d4f35cef77e21cd1a2489b5",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/topology-v5/topology.json": "da623e5c7c3c5a6aff5c466b143425422f3aa2253497527c84f713738f997b42"
+  },
+  "historical_source_snapshot": {
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    },
+    "res://demo/cast/underground_actor.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "64ce149244114c7404e6e7374b6c268fa2ebbe2e70dfa940d3d3e791c763c4b6",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/demo/cast/underground_actor.gd"
+    },
+    "res://scripts/core/buildings.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "ee2049178e1abee2d38fd26933f6620d445ec2ef48ca52ad8e0badde29452977",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/buildings.gd"
+    },
+    "res://scripts/core/construction.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "1ce4a49cebff074ac673d574af2b0e4d9b674ff7056d2524b63eabb5138f73c1",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/construction.gd"
+    },
+    "res://scripts/core/entity_directory.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "0a143ce501ee8d634536d45f1e105f19ff0de16ddba9c614b864fe0e9d3468a2",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/entity_directory.gd"
+    },
+    "res://scripts/core/excavation_contract.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "fc97c2bc63099e5fdd3f5ccf081b94544f92ce38d85f1e2297766b7bb8471e4f",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/excavation_contract.gd"
+    },
+    "res://scripts/core/inventory.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/inventory.gd"
+    },
+    "res://scripts/core/modular_project_contract.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "3dbdac6d134bba1d22bb907382544b16b2d6666acabc7df62e6937b22b0dcb58",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/modular_project_contract.gd"
+    },
+    "res://scripts/core/reservations.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "0b29425425c07743cebc343a56958e8f2db054c255f44a25a9cc2813d693a2d2",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/reservations.gd"
+    },
+    "res://scripts/core/resource_nodes.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "064779f8a601f36e1909f5a00052dae3d6ca0d8f367b594807c000ac16b54465",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/resource_nodes.gd"
+    },
+    "res://scripts/core/transforms.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "e0ddf877bcfee5f7372b88bf4c98fdbb2210f8c3397dae5d046fd8eed58c45c7",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/transforms.gd"
+    },
+    "res://scripts/core/world_init.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "ce9545914469352b139786afef71def170cc94e61f5e7a0fe7aaa351106335c4",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/world_init.gd"
+    },
+    "res://scripts/core/work.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "381837821f30bac26b498e44903ad5c9bdd12728d53b1555cfc6219703ddf73d",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/work.gd"
+    },
+    "res://scripts/systems/settlement_system.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "8d0a07bffad85090d3d505e052b780636fefc106fc52a6f722f492a17bcdbb3a",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/systems/settlement_system.gd"
+    },
+    "res://scripts/systems/ui_manager.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "661d4978f352382fea9593525f8eb1cf5e969e1c7255a9875dedbb4dc3863c5d",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/systems/ui_manager.gd"
+    },
+    "res://scripts/ui/ui_world_session.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "5fecba431926ac68fef7d076183f1c3cd1298934c940c1f103f00d223b3947b5",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/ui/ui_world_session.gd"
+    }
+  },
+  "candidate_inputs": {
+    "report.json": "db8554ec29bab8418b9b9dad6e69284d1caf004e01dd5940a13f44120cf4e938",
+    "entry.npz": "e0a4eab08715883ce0aa9ac1cc9efa553e3ac7c334b377ba34b9d63444ec3722",
+    "seat.npz": "117617925fe00bc7bdc757cdec2fafc02c198247431a37da331d285b1092ebab",
+    "recovery.npz": "c7f386ba452322a48b4d5ac3caca0321736bdbcb9299d46fbe042c6d8ec03f8d"
+  },
+  "producer_sources": {
+    "godot/data/underground/mole-worker/qualified-assembly-v1/compile_assembly.py": "fdabe0bd8e3dc78add6f45deebad0a2d155c4a5f098bbcf66d832a0d5ffc4a01",
+    "godot/data/underground/mole-worker/qualified-assembly-v1/prove_assembly.py": "61b1d2c18705f607f527fe77f2fc05a5f4323c151e6fa35f2e43664d392ed3f5",
+    "godot/data/underground/mole-worker/qualified-assembly-v1/author_assembly.py": "631fdea50019166411b9a32bf35fa9264fa366775ddea4c04d91efd72af9b62b",
+    "godot/data/underground/mole-worker/qualified-assembly-v1/inspect_assembly.py": "54ab657fe3048802f8c02c6ceebfc6a71a87f14b82409d37775add017828e76c",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be"
+  },
+  "proof_inputs": {
+    "terrain": "f2f9e8e666853d046ed2bd00414302a3a34a490e4d7b4fc953c61b13551e9233",
+    "tool_body": "8f1a21e23a725929af6f0bd82bfa56fc4481c2b7c0c00b2844475abe7d407c92"
+  },
+  "source_frames": [
+    55,
+    2,
+    55
+  ],
+  "source_intervals": 109,
+  "mesh_fingerprints": [
+    "29f8d3218fddfaa6f2369c1c1c7dfd9b0a429b3df5cbefa38c6bf6ab9364fe14",
+    "c4029dd3ea3266e6fac9f9d5734c37925d7300020d494ca0f83529567a9a9b3a"
+  ],
+  "root_delta_u": [
+    0,
+    0,
+    0
+  ],
+  "root_yaw": 0,
+  "targets": [
+    {
+      "assembly": 0,
+      "existing_target_kind": "retained_natural",
+      "station_root_u": [
+        -832,
+        0,
+        512
+      ],
+      "source_part_id": 1,
+      "source_part_name": "L0_left_bearer",
+      "source_part_bounds_u": [
+        -896,
+        -192,
+        -2048,
+        -768,
+        -64,
+        0
+      ],
+      "source_quarter_turn": 1,
+      "source_translation_u": [
+        1024,
+        192,
+        -768
+      ],
+      "target_bounds_u": [
+        -1024,
+        0,
+        0,
+        1024,
+        128,
+        128
+      ],
+      "local_target_box_u": [
+        -192,
+        0,
+        -512,
+        1856,
+        128,
+        -384
+      ],
+      "local_patch_limits_u": [
+        -192,
+        128,
+        -512,
+        1856,
+        128,
+        -384
+      ],
+      "target_kind": "paid_wip_bearer_candidate",
+      "worker_support": false,
+      "scope": "authored workpiece pose only; requires actual paid WIP and source-part binding"
+    },
+    {
+      "assembly": 1,
+      "existing_target_kind": "installed_part",
+      "station_root_u": [
+        0,
+        0,
+        -1536
+      ],
+      "source_part_id": 8,
+      "source_part_name": "T0_left_bearer",
+      "source_part_bounds_u": [
+        -896,
+        -320,
+        -2560,
+        -768,
+        -192,
+        -2048
+      ],
+      "source_quarter_turn": 1,
+      "source_translation_u": [
+        2304,
+        320,
+        -2816
+      ],
+      "target_bounds_u": [
+        -256,
+        0,
+        -2048,
+        256,
+        128,
+        -1920
+      ],
+      "local_target_box_u": [
+        -256,
+        0,
+        -512,
+        256,
+        128,
+        -384
+      ],
+      "local_patch_limits_u": [
+        -256,
+        128,
+        -512,
+        256,
+        128,
+        -384
+      ],
+      "target_kind": "paid_wip_bearer_candidate",
+      "worker_support": false,
+      "scope": "authored workpiece pose only; requires actual paid WIP and source-part binding"
+    }
+  ],
+  "bearer_track_z_u": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "contact_vertex": 14014,
+  "foot_plant": {
+    "foot_down_u": [
+      -0.010893930563632415,
+      3.4077425408175017
+    ],
+    "source_contact_vertices": [
+      15936,
+      3622
+    ],
+    "solve": [
+      {
+        "iteration": 0,
+        "down_u": [
+          0.0,
+          0.0
+        ],
+        "vertices": [
+          15936,
+          3622
+        ],
+        "source_height_u": [
+          0.0001731457980502782,
+          3.4096437907691124
+        ]
+      },
+      {
+        "iteration": 1,
+        "down_u": [
+          -0.0017799792019497218,
+          3.4076906657691124
+        ],
+        "vertices": [
+          15936,
+          3622
+        ],
+        "source_height_u": [
+          -0.008301159547616455,
+          0.0020049018961025844
+        ]
+      },
+      {
+        "iteration": 2,
+        "down_u": [
+          -0.012034263749566176,
+          3.407742442665215
+        ],
+        "vertices": [
+          15936,
+          3622
+        ],
+        "source_height_u": [
+          0.0030934581859337618,
+          0.0019532231522867427
+        ]
+      },
+      {
+        "iteration": 3,
+        "down_u": [
+          -0.010893930563632415,
+          3.4077425408175017
+        ],
+        "vertices": [
+          15936,
+          3622
+        ],
+        "source_height_u": [
+          0.0018262678545420963,
+          0.001953150706287321
+        ]
+      }
+    ],
+    "unchanged_ready_endpoints": true,
+    "plant_intervals": 8,
+    "unplant_intervals": 8
+  },
+  "body_triangles": 10209,
+  "pick_triangles": 1150,
+  "palm_contact_triangles": 478,
+  "scope": "Separate immutable handling source. The whole paid bill remains unchanged; the selected complete bearer remains ground-supported. No hauling, force simulation, runtime contact alias or paid state is emitted.",
+  "production_qualified": false,
+  "remaining": [
+    "NATIVE_EXECUTION",
+    "CANONICAL_HANDLING_OWNER",
+    "ACTUAL_LOOSE_INVENTORY_AND_PAID_WORKPIECE_BINDING",
+    "SHARED_PROFILE_PUBLICATION"
+  ]
+}

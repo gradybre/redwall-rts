@@ -6,17 +6,24 @@ const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Content := preload("res://demo/cast/underground_actor_content.gd")
 const Actor := preload("res://demo/cast/underground_actor.gd")
 const Space := preload("res://scripts/core/room_space.gd")
-const Pins := preload("./qualified-step-v4/catalog_source.gd")
-const PROFILE_COUNT: int = 29
-const BOX_COUNT: int = 271
-const CONTENT_REVISION: int = 3
+## ADR1229 increment 6: the runtime loads content 10 (`qualified-claw-stairs-v11`): content 9's rows 0-50 keep their
+## words (the pick rows 0-29 stay published and dormant, DEC-052); 51-55 are the stair and short-step rows, 56-63 the
+## claw dig and tap rows, 64 the tread fitting tap, 65/66 the paw handling rows; sources 4/5 are the v2 claw and paw
+## images (ADR 1217 step 5 loaded content 9, `qualified-claw-approach-v10`).
+const Pins := preload("./qualified-claw-stairs-v11/catalog_source.gd")
+const PROFILE_COUNT: int = 67
+const BOX_COUNT: int = 547
+const CONTENT_REVISION: int = 10
 const PROFILE_REVISION: int = 1
-const WIRE_BYTES: int = 10502
-const PAIRED_BANK_BYTES: int = 20988
+const WIRE_BYTES: int = 22114
+const PAIRED_BANK_BYTES: int = 44212
 const SOURCE_CHARS: int = 262144
 const HASH_CHARS: int = 1024
 const CONTROL_RESERVE: int = 32768 # Existing Profiles reserve, never an additional arena.
-const WIRE_PATH: String = "res://data/underground/mole-worker/qualified-step-v4/mole-worker.ugprof"
+const WIRE_PATH: String = "res://data/underground/mole-worker/qualified-claw-stairs-v11/mole-worker.ugprof"
+## ADR1200/1206/1217/1229: actor, assembly-handling (row 29), wood haul v10 (30-36), stone haul v10 (37-41), claw v2
+## (42-64), paw v2 (65-66).
+const SOURCE_COUNT: int = 6
 
 
 static func load_into(profiles: Profiles, content: Content, domain: Space.Domain) -> StringName:
@@ -149,22 +156,31 @@ static func catalog_refusal(profiles: Profiles) -> StringName:
 	if profiles == null or profiles.get_script() != Profiles or profiles.content_revision() != CONTENT_REVISION \
 			or profiles.profile_count(CONTENT_REVISION) != PROFILE_COUNT:
 		return &"MOLE_CATALOG_OWNER"
-	var source: PackedByteArray = PackedByteArray()
-	source.resize(32)
-	if not profiles.source_hash_into(0, CONTENT_REVISION, source) or source.hex_encode() != Pins.ACTOR_SHA \
-			or profiles.source_hash_into(1, CONTENT_REVISION, source):
-		return &"MOLE_CATALOG_CONTENT"
 	var hashing: HashingContext = HashingContext.new()
 	hashing.start(HashingContext.HASH_SHA256)
 	hashing.update(_wire_header())
-	hashing.update(source)
-	var code: StringName = _hash_rows(profiles, hashing)
+	var code: StringName = _hash_sources(profiles, hashing)
+	if code == &"":
+		code = _hash_rows(profiles, hashing)
 	if code == &"":
 		code = _hash_boxes(profiles, hashing)
 	if code != &"":
 		return code
 	hashing.update("UGPEND01".to_ascii_buffer())
 	return &"" if hashing.finish().hex_encode() == Pins.WIRE_SHA else &"MOLE_CATALOG_GEOMETRY_DRIFT"
+
+
+static func _hash_sources(profiles: Profiles, hashing: HashingContext) -> StringName:
+	"""Every source digest is exactly its pinned image, in wire order; no source past the last one exists."""
+	var digests: PackedStringArray = PackedStringArray([Pins.ACTOR_SHA, Pins.HANDLING_SOURCE_SHA,
+		Pins.HAUL_SOURCE_SHA, Pins.STONE_SOURCE_SHA, Pins.CLAW_SOURCE_SHA, Pins.PAW_SOURCE_SHA])
+	var digest: PackedByteArray = PackedByteArray()
+	digest.resize(32)
+	for source: int in SOURCE_COUNT:
+		if not profiles.source_hash_into(source, CONTENT_REVISION, digest) or digest.hex_encode() != digests[source]:
+			return &"MOLE_CATALOG_CONTENT"
+		hashing.update(digest)
+	return &"MOLE_CATALOG_CONTENT" if profiles.source_hash_into(SOURCE_COUNT, CONTENT_REVISION, digest) else &""
 
 
 static func _wire_header() -> PackedByteArray:
@@ -175,7 +191,7 @@ static func _wire_header() -> PackedByteArray:
 	bytes.encode_s64(12, CONTENT_REVISION)
 	bytes.encode_u32(20, PROFILE_COUNT)
 	bytes.encode_u32(24, BOX_COUNT)
-	bytes.encode_u32(28, 1)
+	bytes.encode_u32(28, SOURCE_COUNT)
 	return bytes
 
 

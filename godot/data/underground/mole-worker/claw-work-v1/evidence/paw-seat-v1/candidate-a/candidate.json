@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "decision": "1217",
+  "motion": "M5 paw handling (seat) and M4a paw seating (tap)",
+  "recipe": {
+    "lean_degrees": 40,
+    "drop_u": 64,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90
+  },
+  "contact_targets_u": {
+    "right": [
+      128.0,
+      128.0,
+      -448.0
+    ],
+    "left": [
+      -128.0,
+      128.0,
+      -448.0
+    ]
+  },
+  "palm_vertices": {
+    "right": 4,
+    "left": 13886
+  },
+  "seat_offsets_u": {
+    "right": 0.0019527794163423096,
+    "left": 0.001952142676600488
+  },
+  "plane_u": 128,
+  "tap": {
+    "raise_u": 80,
+    "depth_u": 2,
+    "keys": 33
+  },
+  "stand_sha256": "05564adf19b2b29142d99c469839b3aa18c20cdce995d055669528ce88e51b89",
+  "source_pins": {
+    "palette": "5b368eb3ad594b4a6f82b5981a891150e6f7053944daf888d4ab5aa293c822fe",
+    "open_body": "a938d479014ebd3a431a118a7b1c9f7aa0b522d0a33a5c5d281e58e1e2f497c1",
+    "topology": "da623e5c7c3c5a6aff5c466b143425422f3aa2253497527c84f713738f997b42",
+    "stand": "7086ef2a3aab64537d7822393c04ece86d67879e59e1c7e54d333a5c7f974c7d",
+    "profiles": "30c3dc1f5e9162f5530f410c437ed6f85d28dc6879f88dec81cb193ea87b0df5"
+  },
+  "clips": {
+    "seat_work": {
+      "id": "mole_worker.paw_seat.work_v1",
+      "frames": 2,
+      "sha256": "741d13662cc099623633fc5f753977e51412913bff5841646518346e338dabe4"
+    },
+    "seat_entry": {
+      "id": "mole_worker.paw_seat.entry_v1",
+      "frames": 31,
+      "sha256": "4cc22be4377716668df303337ddcd688ac79bc856e399b6b3a3cfd7536c840c3"
+    },
+    "seat_recovery": {
+      "id": "mole_worker.paw_seat.recovery_v1",
+      "frames": 31,
+      "sha256": "1434d689e1469954556b9af54371e3023b278c286b326a5c446e4c4892eb60e3"
+    },
+    "tap_work": {
+      "id": "mole_worker.paw_tap.work_v1",
+      "frames": 33,
+      "sha256": "cf711f65415f7f098158d3041c7a1c8ddd8bba28dc6d81b8483fc0c99a8b0b92"
+    },
+    "tap_entry": {
+      "id": "mole_worker.paw_tap.entry_v1",
+      "frames": 31,
+      "sha256": "8f454d01c2fd4a3cf1071e074d89a257b507e4c0d1cbbb20a144918035c44340"
+    },
+    "tap_recovery": {
+      "id": "mole_worker.paw_tap.recovery_v1",
+      "frames": 31,
+      "sha256": "ccdbf97db54df600c0ffbcbee9cd276423a4aebbc29dd8eb100718bcf2dff61e"
+    }
+  },
+  "producer_sources": {
+    "godot/data/underground/mole-worker/claw-work-v1/author_paw_seat.py": "d1ccef99689627c5b7f8a19ab2308123c0aafc0190bb83768db294b65ff2a87a",
+    "godot/data/underground/mole-worker/claw-work-v1/author_claw_pair.py": "6a1c3f508e89631dd990b603896c4546d0b0051a9e5f1a1ad40eb5508f34f075",
+    "godot/data/underground/mole-worker/claw-work-v1/author_claw_stroke.py": "3edc742c993acd7a1731160633396b62a4fdf5e0014453432decab5e5974dda6",
+    "godot/data/underground/mole-worker/claw-work-v1/claw_source.py": "e0311359eaa5d485b34c1e14f41a1cf982fabd48b9d0fe396e2f57d119a22718"
+  },
+  "tool": null,
+  "paw": "open (original cast mesh)",
+  "production_qualified": false
+}

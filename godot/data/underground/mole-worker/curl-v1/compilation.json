@@ -1,0 +1,223 @@
+{
+  "schema": 1,
+  "source_sha256": "d72d3fd63705beb191775ace4150ac2d1d68f8d0c60d0832b07c9dc27b1bcb74",
+  "proof_sha256": "8f5e4d2c02eb5e7c33c1ba310463e63fbf39e6293e0ae6a33cbbb53661d97d76",
+  "plan_sha256": "432f669df101fe4e776a7da9d0b08ebe8df4c9415de57f41e7bb4825c3bf8daf",
+  "content_sha256": "8ad9d1ad9f14515edac430648d28dc7728ce1bde1debc40191105935134d8457",
+  "content_bytes": 426888,
+  "frames": 354,
+  "verified_source_files": 612,
+  "clips": [
+    "mole_digger.idle.plain.held_pick.curl_grip_v1",
+    "mole_digger.walk.plain.held_pick.curl_grip_v1",
+    "mole_digger.walk.ramp_up.held_pick.curl_grip_v1",
+    "mole_digger.walk.ramp_down.held_pick.curl_grip_v1",
+    "mole_digger.cautious_crouch_walk_forward.plain.held_pick.curl_grip_v1",
+    "mole_digger.cautious_crouch_walk_forward.standard_bore.held_pick.curl_grip_v1",
+    "mole_digger.heavy_hammer_swing.plain.curl_grip_v1"
+  ],
+  "state_unions": [
+    {
+      "id": "held_pick_upright",
+      "mode": "walk",
+      "states": {
+        "idle": [
+          "mole_digger.idle.plain.held_pick.curl_grip_v1"
+        ],
+        "walk": [
+          "mole_digger.walk.plain.held_pick.curl_grip_v1",
+          "mole_digger.walk.ramp_up.held_pick.curl_grip_v1",
+          "mole_digger.walk.ramp_down.held_pick.curl_grip_v1"
+        ],
+        "entry": [
+          "mole_digger.idle.plain.held_pick.curl_grip_v1",
+          "mole_digger.walk.plain.held_pick.curl_grip_v1"
+        ],
+        "reversal": [
+          "mole_digger.idle.plain.held_pick.curl_grip_v1",
+          "mole_digger.walk.plain.held_pick.curl_grip_v1",
+          "mole_digger.walk.ramp_up.held_pick.curl_grip_v1",
+          "mole_digger.walk.ramp_down.held_pick.curl_grip_v1"
+        ],
+        "recovery": [
+          "mole_digger.idle.plain.held_pick.curl_grip_v1",
+          "mole_digger.walk.plain.held_pick.curl_grip_v1"
+        ]
+      },
+      "state_mask": 451,
+      "all_parts_u": [
+        -1006,
+        -148,
+        -1006,
+        1006,
+        965,
+        1006
+      ],
+      "body_non_target_u": [
+        -1006,
+        -148,
+        -1006,
+        1006,
+        965,
+        1006
+      ],
+      "active_tool_stroke_u": null,
+      "recovery_all_parts_u": [
+        -1006,
+        -148,
+        -1006,
+        1006,
+        965,
+        1006
+      ],
+      "qualification": "SOURCE_STATE_UNION_ONLY",
+      "remaining": [
+        "EXACT_WORK_YAW_AND_CONTACT",
+        "ACTUAL_STANCE_SUPPORT",
+        "DYNAMIC_OWNER_KEY",
+        "ANIMATED_QUALITY_AND_MODE_HANDOFF"
+      ],
+      "production_qualified": false
+    },
+    {
+      "id": "held_pick_stooped",
+      "mode": "walk",
+      "states": {
+        "idle": [
+          "mole_digger.idle.plain.held_pick.curl_grip_v1"
+        ],
+        "walk": [
+          "mole_digger.walk.plain.held_pick.curl_grip_v1"
+        ],
+        "crouch": [
+          "mole_digger.cautious_crouch_walk_forward.plain.held_pick.curl_grip_v1",
+          "mole_digger.cautious_crouch_walk_forward.standard_bore.held_pick.curl_grip_v1"
+        ],
+        "entry": [
+          "mole_digger.idle.plain.held_pick.curl_grip_v1",
+          "mole_digger.cautious_crouch_walk_forward.plain.held_pick.curl_grip_v1"
+        ],
+        "reversal": [
+          "mole_digger.cautious_crouch_walk_forward.plain.held_pick.curl_grip_v1",
+          "mole_digger.cautious_crouch_walk_forward.standard_bore.held_pick.curl_grip_v1"
+        ],
+        "recovery": [
+          "mole_digger.idle.plain.held_pick.curl_grip_v1",
+          "mole_digger.cautious_crouch_walk_forward.plain.held_pick.curl_grip_v1",
+          "mole_digger.cautious_crouch_walk_forward.standard_bore.held_pick.curl_grip_v1"
+        ]
+      },
+      "state_mask": 467,
+      "all_parts_u": [
+        -918,
+        -148,
+        -918,
+        918,
+        930,
+        918
+      ],
+      "body_non_target_u": [
+        -918,
+        -148,
+        -918,
+        918,
+        930,
+        918
+      ],
+      "active_tool_stroke_u": null,
+      "recovery_all_parts_u": [
+        -918,
+        -148,
+        -918,
+        918,
+        930,
+        918
+      ],
+      "qualification": "SOURCE_STATE_UNION_ONLY",
+      "remaining": [
+        "EXACT_WORK_YAW_AND_CONTACT",
+        "ACTUAL_STANCE_SUPPORT",
+        "DYNAMIC_OWNER_KEY",
+        "ANIMATED_QUALITY_AND_MODE_HANDOFF"
+      ],
+      "production_qualified": false
+    },
+    {
+      "id": "held_pick_work",
+      "mode": "work",
+      "states": {
+        "idle": [
+          "mole_digger.idle.plain.held_pick.curl_grip_v1"
+        ],
+        "work": [
+          "mole_digger.heavy_hammer_swing.plain.curl_grip_v1"
+        ],
+        "entry": [
+          "mole_digger.idle.plain.held_pick.curl_grip_v1",
+          "mole_digger.heavy_hammer_swing.plain.curl_grip_v1"
+        ],
+        "recovery": [
+          "mole_digger.idle.plain.held_pick.curl_grip_v1",
+          "mole_digger.heavy_hammer_swing.plain.curl_grip_v1"
+        ]
+      },
+      "state_mask": 329,
+      "all_parts_u": [
+        -1138,
+        -257,
+        -1138,
+        1138,
+        1319,
+        1138
+      ],
+      "body_non_target_u": [
+        -971,
+        -1,
+        -971,
+        971,
+        1157,
+        971
+      ],
+      "active_tool_stroke_u": [
+        -1138,
+        -257,
+        -1138,
+        1138,
+        1319,
+        1138
+      ],
+      "recovery_all_parts_u": [
+        -1138,
+        -257,
+        -1138,
+        1138,
+        1319,
+        1138
+      ],
+      "qualification": "SOURCE_STATE_UNION_ONLY",
+      "remaining": [
+        "EXACT_WORK_YAW_AND_CONTACT",
+        "ACTUAL_STANCE_SUPPORT",
+        "DYNAMIC_OWNER_KEY",
+        "ANIMATED_QUALITY_AND_MODE_HANDOFF"
+      ],
+      "production_qualified": false
+    }
+  ],
+  "presentation_budget": {
+    "retained_palette_bytes": 426216,
+    "decode_staging_bytes": 426216,
+    "borrowed_mesh_array_allowance_bytes": 4396032,
+    "packed_tables_bytes": 648,
+    "reader_native_control_reserve_bytes": 2097152,
+    "admitted_peak_bytes": 6920048,
+    "world_basis_separately_shared_bytes": 544768,
+    "native_peak_measured": false,
+    "excluded_borrowed_resources": "original meshes/textures and per-Actor RIDs; separate actual presentation-owner admission"
+  },
+  "production_qualified": false,
+  "producer_sources": {
+    "compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972"
+  }
+}

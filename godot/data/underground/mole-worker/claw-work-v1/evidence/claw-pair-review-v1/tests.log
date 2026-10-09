@@ -1,0 +1,24 @@
+test_paws_run_half_a_cycle_apart_and_start_above_the_face (__main__.ClawPairDerivation.test_paws_run_half_a_cycle_apart_and_start_above_the_face)
+Left = right shifted 16 keys; at the clip start both claws are 10 u above the face. ... ok
+test_recipe_outside_its_domain_refuses (__main__.ClawPairDerivation.test_recipe_outside_its_domain_refuses)
+A head lift above 60 degrees, or crossed paws, refuse before any solve. ... ok
+test_station_is_the_moved_in_one (__main__.ClawPairDerivation.test_station_is_the_moved_in_one)
+The cube's near face is 406 u ahead: 512 minus the derived 106 u inset. ... ok
+test_candidates_clear_every_proof (__main__.ClawPairEvidence.test_candidates_clear_every_proof)
+Both paws: contact on the face, below-face hull in the cube, world, both arms and arm-to-arm clear. ... ok
+test_probe_record_counts (__main__.ClawPairEvidence.test_probe_record_counts)
+The recorded probe's clear count matches its rows. ... ok
+test_stroke_admits_no_released_contact (__main__.ClawPairEvidence.test_stroke_admits_no_released_contact)
+The stand-contact release applies to the entry only, as a prefix from the ready key. ... ok
+test_rebuild_matches_every_stored_clip (__main__.ClawPairRebuild.test_rebuild_matches_every_stored_clip)
+Each candidate's three clips rebuild byte for byte. ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.798s
+
+OK
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 1.436s
+
+OK

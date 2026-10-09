@@ -1,0 +1,26 @@
+{
+  "clips": [
+    "stand",
+    "walk",
+    "dig_entry",
+    "dig_stroke",
+    "dig_recovery",
+    "seat_entry",
+    "seat_work",
+    "seat_recovery",
+    "tap_entry",
+    "tap_work",
+    "tap_recovery"
+  ],
+  "revision": 1,
+  "runtime_admitted": false,
+  "schema": 1,
+  "world_root_bounds_u": [
+    0,
+    -32256,
+    0,
+    262144,
+    16896,
+    262144
+  ]
+}

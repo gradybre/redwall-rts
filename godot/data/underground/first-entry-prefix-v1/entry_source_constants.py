@@ -53,14 +53,18 @@ def _linked(packet):
     cat, group, recipe, frontier, pieces, ground = (packet[name] for name in FILES.values())
     profile = packet["mole-worker.ugprof"]
     cc, gc = _catalog(cat, 1), _catalog(ground, 2)
-    require(cat[48:136] == ground[48:136] and cc[6] == gc[6], "GROUND_SOURCE")
+    require(cat[48:136] == ground[48:136] and _paces_extend(cat, cc[6], ground, gc[6]), "GROUND_SOURCE")
     require(len(profile) >= 40 and profile[:8] == b"UGPROF01" and profile[-8:] == b"UGPEND01"
             and words(profile, 8, kind="I") == (2,), "PROFILE_FORMAT")
     content, profiles, boxes, sources = struct.unpack_from("<qIII", profile, 12)
     require(content == words(cat, 48)[0] and 1 <= profiles <= 256 and 1 <= boxes <= 3072
             and 2 <= sources <= 64 and len(profile) == 40 + sources * 32 + profiles * 98 + boxes * 28,
             "PROFILE_CENSUS")
-    require(cat[72:104] == profile[32:64], "CATALOG_SOURCE")
+    # The Catalog binds the source named by its own source word (header[10]), as Godot's SourceFacts reads it;
+    # ADR 1217 step 4e binds source 4 (the claw image), where earlier bundles bound source 0.
+    catalog_source = words(cat, 64)[0]
+    require(0 <= catalog_source < sources and
+            cat[72:104] == profile[32 + 32 * catalog_source:64 + 32 * catalog_source], "CATALOG_SOURCE")
     require(len(group) >= 96 and group[:8] == b"UGASMB01" and group[-8:] == b"UGAEND01"
             and words(group, 8, kind="I") == (1,), "GROUP_FORMAT")
     assemblies = words(group, 48, kind="I")[0]
@@ -81,6 +85,18 @@ def _linked(packet):
     result["CONTENT_REVISION"] = content
     result.update({name + "_COUNT": count for name, count in zip(TABLES, counts)})
     return result
+
+
+def _paces_extend(cat, cat_paces, ground, ground_paces):
+    """The structure carries the ground caps exactly, optionally followed by authored connector rows (ADR 1229:
+    family >= 0, RATE_AUTHORED), as DEC-050's stair paces are."""
+    if cat_paces < ground_paces:
+        return False
+    rows = cat[len(cat) - 8 - 36 * cat_paces:len(cat) - 8]
+    if rows[:36 * ground_paces] != ground[136:len(ground) - 8]:
+        return False
+    extra = [struct.unpack_from("<7iq", rows, 36 * r) for r in range(ground_paces, cat_paces)]
+    return all(row[1] >= 0 and row[6] == 1 and row[5] >= 1 for row in extra)
 
 
 def _frontier(raw, cat, group, recipe, profile, assemblies):

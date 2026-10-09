@@ -3,6 +3,7 @@ extends RefCounted
 ## ADR1146: private initialization, no external authority binding, 1536B within existing PROFILE_BYTES.
 
 const RouteComposition := preload("res://scripts/core/underground_route_composition.gd")
+const EntryComposition := preload("res://scripts/core/underground_entry_composition.gd")
 const Composition := preload("res://scripts/core/underground_room_composition.gd")
 const Retirement := preload("res://scripts/core/underground_world_retirement.gd")
 const World := preload("res://scripts/core/world_init.gd")
@@ -36,9 +37,34 @@ const Driver := preload("res://data/underground/mole-worker/mole_profile_driver.
 const LEVEL_PATH: String = "res://data/underground/initial_level_pack.uglvl"
 const LEVEL_SHA: String = "c5deb094b335bf6e5db018eeed591a115086b79bd909f829ed6e34166db81f94"
 const LEVEL_REVISION: int = 1
-const PROFILE_SOURCE_COUNT: int = 1
+const PROFILE_SOURCE_COUNT: int = Catalog.SOURCE_COUNT
 const ACTOR_PATH: String = "res://data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor"
 const PRESENTATION_BYTES: int = 7141920
+# ADR1201: one immutable Content per profile source image. Each byte count is that image's exact
+# Content.required_peak_bytes() (retained palette + larger decode/mesh pass + tables + 2 MiB controls).
+# They are summed, never shared, so the set reservation is an explicit upper bound, not a measurement.
+const HANDLING_ACTOR_PATH: String = "res://data/underground/mole-worker/qualified-assembly-v1/compiled-3/mole-worker.ugactor"
+const HANDLING_ACTOR_SHA: String = "b94d676e999c87dd399a4dc110674620a4fbc66f0ca07e494b8bedadac683b66"
+const HANDLING_PRESENTATION_BYTES: int = 6628488
+# ADR1217 step 5: content 9's sources 2/3 are the haul images v10 (the corrected stand, walk and joins; same clips,
+# parts and reservations as v8/v9).
+const HAUL_ACTOR_PATH: String = "res://data/underground/mole-worker/stand-walk-v2/evidence/native-haul-v10-wood/compiled/haul-handling.ugactor"
+const HAUL_ACTOR_SHA: String = "fa8dc668f7ae881d5fcc88a9dd1b6796b7f37466d0cca5e1994647e04a54dc71"
+const HAUL_PRESENTATION_BYTES: int = 7486168
+# ADR1206/1211: the native stone image is the fourth source (rows 37-41); v10 since ADR1217 step 5.
+const STONE_ACTOR_PATH: String = "res://data/underground/mole-worker/stand-walk-v2/evidence/native-haul-v10-stone/compiled/stone-handling.ugactor"
+const STONE_ACTOR_SHA: String = "1756932c3839c3dbf2d66a715f65f5dfea7861ddafdf7f5921687b821040e6e6"
+const STONE_PRESENTATION_BYTES: int = 7285004
+# ADR1229: content 10's v2 claw image (source 4, rows 42-64: the claw rows, the stair and short-step rows and the
+# tread fitting tap) and v2 paw image (source 5, rows 65/66). ADR1217 step 5 loaded the v1 pair (8 and 3 clips).
+const CLAW_ACTOR_PATH: String = "res://data/underground/mole-worker/claw-work-v1/evidence/native-claw-stairs-v1/claw/compiled/claw-stairs.ugactor"
+const CLAW_ACTOR_SHA: String = "b85f91952992fecfc4b0b89affb0b605b3d7c8e15b9c3e8f66ab03969efd6675"
+const CLAW_PRESENTATION_BYTES: int = 7551924
+const PAW_ACTOR_PATH: String = "res://data/underground/mole-worker/claw-work-v1/evidence/native-claw-stairs-v1/paw/compiled/paw-stairs.ugactor"
+const PAW_ACTOR_SHA: String = "9cdafc55914ba2ca25858d54ff1692df324c4e7eed019b04066b55de560bae3d"
+const PAW_PRESENTATION_BYTES: int = 6641672
+const PRESENTATION_SET_BYTES: int = PRESENTATION_BYTES + HANDLING_PRESENTATION_BYTES + HAUL_PRESENTATION_BYTES \
+	+ STONE_PRESENTATION_BYTES + CLAW_PRESENTATION_BYTES + PAW_PRESENTATION_BYTES
 const CONTROL_BYTES: int = 1024
 const HELPER_BYTES: int = 512
 const RESERVED_BYTES: int = CONTROL_BYTES + HELPER_BYTES
@@ -474,7 +500,7 @@ func compose_surface_anchor() -> StringName:
 	"""Retain the actual natural publisher once; this constructs no endpoint or physical permission."""
 	var code: StringName = current_refusal()
 	if code != &"": return code
-	if _operations_state == 2 and _operations_prefix == 9: return Retirement.surface_refusal(_retirement_owners)
+	if _operations_state == 2 and (_operations_prefix == 9 or _operations_prefix == 17): return Retirement.surface_refusal(_retirement_owners)
 	if _operations_state != 2 or _operations_prefix != 8: return &"UNDERGROUND_SURFACE_SCOPE"
 	if not _budget.is_quiescent() or _space.has_prepared(): return &"UNDERGROUND_SESSION_NOT_QUIESCENT"
 	code = RouteComposition.unpublished_refusal(_retirement_owners)
@@ -518,9 +544,40 @@ func _finish_surface_composition(code: StringName) -> void:
 		_operations_state = 3
 
 
+func compose_entry_owners(original_host: Object) -> StringName:
+	"""ADR1184/1195: extend the surface-ready Session with the fixed first-entry owners (prefix 9 to 17)."""
+	var code: StringName = current_refusal()
+	if code != &"": return code
+	if _operations_state == 2 and _operations_prefix == 17:
+		return Retirement.entry_constructor_shape_refusal(_retirement_owners, 17)
+	if _operations_state != 2 or _operations_prefix != 9: return &"UNDERGROUND_ENTRY_COMPOSITION_SCOPE"
+	if not _budget.is_quiescent() or _space.has_prepared(): return &"UNDERGROUND_SESSION_NOT_QUIESCENT"
+	_busy = true
+	_poisoned = false
+	_operations_state = 1
+	code = EntryComposition.construct(self, original_host)
+	if code == &"": code = _content_refusal()
+	if code == &"": code = _original_refusal()
+	if code == &"": code = _foundation_refusal()
+	if code == &"": code = Retirement.entry_constructor_shape_refusal(_retirement_owners, 17)
+	_finish_entry_composition(code)
+	_busy = false
+	return code
+
+
+func _finish_entry_composition(code: StringName) -> void:
+	"""Only a refusal before the first retained entry owner may restore the surface-ready group."""
+	var restored: bool = code != &"" and _operations_prefix == 9 and _content_refusal() == &""
+	_operations_state = 2 if code == &"" or restored else 3
+	if not restored: return
+	if _owners_refusal() != &"" or _foundation_refusal() != &"" or _retirement_packet_refusal() != &"" \
+			or _directory._persistent_id[_world_ref.x] != _world_pid or _world._published_seed != _seed:
+		_operations_state = 3
+
+
 func surface_anchor() -> Retirement.SurfaceAnchor:
 	"""Borrow the original publisher only while this exact Session and its current source remain usable."""
-	return _retirement_owners.surface_anchor if current_refusal() == &"" and _operations_prefix == 9 else null
+	return _retirement_owners.surface_anchor if current_refusal() == &"" and (_operations_prefix == 9 or _operations_prefix == 17) else null
 
 
 func room_orders() -> Retirement.Orders:
@@ -583,6 +640,11 @@ func _retirement_packet_refusal() -> StringName:
 
 func _operational_retirement_refusal(o: Retirement.Owners) -> StringName:
 	"""Our source-owned constructor output is distinct from arbitrary external packet registration."""
+	if _operations_state == 2 and _operations_prefix == 17:
+		# ADR1195: complete route and surface owners plus the exact fixed entry-owner chain.
+		var code: StringName = RouteComposition.complete_refusal(o)
+		if code == &"": code = Retirement.surface_refusal(o)
+		return Retirement.entry_constructor_shape_refusal(o, 17) if code == &"" else code
 	if _operations_state == 2 and _operations_prefix >= 8 and _operations_prefix <= 9:
 		if (o.surface_anchor != null) != (_operations_prefix == 9): return &"UNDERGROUND_SURFACE_SCOPE"
 		var code: StringName = RouteComposition.complete_refusal(o)

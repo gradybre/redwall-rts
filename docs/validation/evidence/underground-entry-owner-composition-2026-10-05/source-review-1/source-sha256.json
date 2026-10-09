@@ -1,0 +1,11 @@
+{
+  "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/census.py": "fd0247decf599bc51981ec498051b49d6f91325b30e7861c33a206183ac0fe98",
+  "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/reproduce.py": "ec020721b6a6014abc3e1aa01fe2c7527825bd4b9241ebf5ea9a051bf96f054a",
+  "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/test_census.py": "d803390876197c6fcdab1da8d0b9ba44fa3936a4565ad97df3d10dbe43995bef",
+  "godot/scripts/core/underground_room_composition.gd": "66b73295a0e9133d52d5641dbe9ae8da63bc60fb6fee52b352f9c7bbb4cb27bf",
+  "godot/scripts/core/underground_route_composition.gd": "545a8d78a84d864bb2fb2d699e679db17d092c1d073b7c13404ff593feede766",
+  "godot/scripts/core/underground_world_retirement.gd": "5d24035162ef0851a4034e2c1204eb24da7be33ef10bae2d2114e2720a9ba1f3",
+  "godot/scripts/systems/settlement_system.gd": "10ffeede717caa71864c2db0f64f874050528620956458b3fc5c5d197d826ebf",
+  "godot/test/test_underground_host.gd": "8b23560b8c87f7d3352660309a0c04a6699efac60ab8322ccf5c1622db9df809",
+  "godot/test/test_underground_room_composition.gd": "a585eb767526a5ece79285c3881b8824fe5cae552b743df547b3d03067aca4c1"
+}

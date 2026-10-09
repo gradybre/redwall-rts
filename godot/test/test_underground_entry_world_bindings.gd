@@ -317,13 +317,14 @@ func _open_real_phase_job(site: Vector2i, operation: int, ordinal: int) -> int:
 	assert_true(_world._construction.remaining_mwu_into(opened.ref, amount), "actual quoted remaining work")
 	var job: int = _world._jobs.create_job(Jobs.JOB_KIND_BUILD, 0, 0, amount.value, 0).value
 	assert_true(_world._jobs.set_requester(job, opened.ref).ok, "actual Project generation")
-	assert_true(_world._jobs.set_tool_gate(job, Jobs.GATE_SATISFIED).ok, "actual equipped tool is required")
+	var gate: int = Jobs.GATE_SATISFIED if _tool != NULL_REF else Jobs.GATE_NOT_REQUIRED # DEC-052: claws need none.
+	assert_true(_world._jobs.set_tool_gate(job, gate).ok, "actual tool gate")
 	assert_true(_sites.bind_job(site, _world._jobs.ref_of(job)).ok, "single exact phase Job")
 	assert_true(_sites.bind_material_container(site, _storage).ok, "source-selected actual storage")
 	if operation == Contract.OP_CUT: assert_true(_sites.bind_output(site, _output).ok, "finite actual spoil destination")
 	var worker: int = _world._residents.directory().get_typed_row(_world._worker)
 	assert_true(_world._jobs.assign_worker(worker, job).ok, "actual single worker assignment")
-	assert_true(_world._work.claim_tool_for_work(worker, _tool).ok, "real equipped Gear claim")
+	if _tool != NULL_REF: assert_true(_world._work.claim_tool_for_work(worker, _tool).ok, "real equipped Gear claim")
 	_select_phase_actor(job, ordinal)
 	return job
 
@@ -836,7 +837,7 @@ func test_four_real_l0_cubes_then_paid_l0_installation_conserve_all_adopted_good
 	assert_equal(_world._inventory.lot_quantity_milli(_wood), 1500, "4000 wood charged once for seven included parts")
 	assert_equal(_sites.earth_conservation_refusal(), &"", "actual earth account")
 	assert_equal(_sites.support_conservation_refusal(), &"", "actual paid brace account")
-	assert_equal(_accepted_work_mwu, 68000, "four9000 phase bills plus32000 landing through real Work")
+	assert_equal(_accepted_work_mwu, 48920, "four4230 phase bills (DEC-059) plus32000 landing through real Work")
 	_assert_timber_prisms(7)
 	assert_equal(_world._routes._live.edge_count, 16, "no ground connection to installed L0 or stair edge invented")
 
@@ -983,7 +984,7 @@ func _assert_complete_prefix_ledger() -> void:
 	assert_equal(_world._inventory.lot_quantity_milli(_wood), 0, "all6500 adopted wood spent, no bearer surcharge")
 	assert_equal(_world._inventory.lot_quantity_milli(_stone), 0, "all1500 adopted brace stone spent")
 	assert_equal(_sites.virgin_sourced_milli(), 12000, "six2000 spoil outputs, never an assembly output")
-	assert_equal(_accepted_work_mwu, 98000, "six9000 phase bills plus32000 landing and12000 tread are earned through real Work")
+	assert_equal(_accepted_work_mwu, 69380, "six4230 phase bills (DEC-059) plus32000 landing and12000 tread are earned through real Work")
 	assert_equal(_sites.earth_conservation_refusal(), &"", "complete spoil conservation")
 	assert_equal(_sites.support_conservation_refusal(), &"", "complete brace conservation")
 	assert_true(_world._inventory.audit().ok and _world._pool.audit(_world._inventory).ok, "real conservation audits")

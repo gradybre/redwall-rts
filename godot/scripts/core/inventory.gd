@@ -211,6 +211,7 @@ const SpatialLocations := preload("res://scripts/core/inventory_spatial_contract
 ## PROV-R01's protected InventoryProvenance domain. Read, never mirrored: this module
 ## publishes no provenance number of its own, so there is exactly one copy of each.
 const CatalogScript := preload("res://scripts/core/catalog.gd")
+const ColumnProofs := preload("res://scripts/core/column_proofs.gd")
 
 const NULL_SLOT: int = -1
 const NULL_GENERATION: int = 0
@@ -4653,9 +4654,6 @@ func copy_canonical_columns_into(out: CanonicalColumns) -> bool:
 	only into the caller's buffer -- the live columns are not touched, in this call or any other.
 	"""
 	_canonical_detail = ""
-	if _has_spatial_endpoints():
-		_canonical_detail = String(REFUSE_SPATIAL_CODEC)
-		return false
 	var quiescent: StringName = _canonical_quiescent_refusal()
 	if quiescent != REFUSE_NONE:
 		return false
@@ -4714,6 +4712,8 @@ func _canonical_partition_refusal(live: PackedByteArray, generation: PackedInt32
 	if free_count < 0 or free_count > capacity:
 		_canonical_detail = "%s free count %d is outside 0..%d" % [label, free_count, capacity]
 		return REFUSE_CANONICAL_FREE_STACK
+	if _canonical_partition_proven(live, generation, free, free_count, capacity):
+		return REFUSE_NONE
 	var seen: PackedByteArray = PackedByteArray()
 	seen.resize(capacity)
 	seen.fill(0)
@@ -4724,6 +4724,25 @@ func _canonical_partition_refusal(live: PackedByteArray, generation: PackedInt32
 	if prefix != REFUSE_NONE:
 		return prefix
 	return _canonical_unaccounted_refusal(live, generation, seen, label)
+
+
+static func _canonical_partition_proven(live: PackedByteArray, generation: PackedInt32Array,
+		free: PackedInt32Array, free_count: int, capacity: int) -> bool:
+	"""ADR 1235: the three partition walks below provably accept. With 0/1 occupancy, every
+	generation in 1..INT32_MAX-1 (so no slot is retired) and the used prefix exactly the set of
+	non-live slots, no walk can refuse; any doubt returns false and the walks run unchanged."""
+	if live.size() != capacity or generation.size() != capacity or free.size() < free_count:
+		return false
+	if not ColumnProofs.bytes_are_flags(live) or generation.has(MAX_INT32) \
+			or ColumnProofs.i32_minimum(generation) < CANONICAL_GENERATION_MIN:
+		return false
+	return ColumnProofs.is_permutation_of(free.slice(0, free_count),
+		ColumnProofs.ascending_except(capacity, ColumnProofs.rows_holding(live, 1)))
+
+
+static func _live_slots(live: PackedByteArray, capacity: int) -> PackedInt32Array:
+	"""Ascending slots below `capacity` whose occupancy byte is exactly 1."""
+	return ColumnProofs.rows_holding(live.slice(0, capacity), 1)
 
 
 func _canonical_occupancy_refusal(live: PackedByteArray, generation: PackedInt32Array,
@@ -4779,90 +4798,64 @@ func _canonical_unaccounted_refusal(live: PackedByteArray, generation: PackedInt
 
 
 func _project_containers_into(out: CanonicalColumns) -> void:
-	"""Project every physical container row. No row is omitted and none is reordered."""
-	for slot: int in range(_c_capacity):
-		_project_container_row(out, slot)
+	"""Project every physical container row. No row is omitted and none is reordered.
 
-
-func _project_container_row(out: CanonicalColumns, slot: int) -> void:
-	"""Copy one live container exactly, or write INV-CANON-R01's unused container payload."""
-	out.c_live[slot] = _c_live[slot]
-	out.c_generation[slot] = _c_generation[slot]
-	if _c_live[slot] == 1:
-		out.c_owner_slot[slot] = _c_owner_slot[slot]
-		out.c_owner_generation[slot] = _c_owner_generation[slot]
-		out.c_policy[slot] = _c_policy[slot]
-		out.c_lot_count[slot] = _c_lot_count[slot]
-		out.c_first_lot[slot] = _c_first_lot[slot]
-		out.c_max_mass_g[slot] = _c_max_mass_g[slot]
-		out.c_filters[slot] = _c_filters[slot]
-		out.c_reserved_mass_g[slot] = _c_reserved_mass_g[slot]
-		out.c_used_mass_g[slot] = _c_used_mass_g[slot]
+	ADR 1235: each payload column is filled with INV-CANON-R01's unused value and only the live
+	rows are copied over it -- the same bytes as projecting row by row.
+	"""
+	out.c_live = _c_live.duplicate()
+	out.c_generation = _c_generation.duplicate()
+	var live: PackedInt32Array = _live_slots(_c_live, _c_capacity)
+	_project_i32(out.c_owner_slot, _c_owner_slot, live, NULL_SLOT)
+	_project_i32(out.c_owner_generation, _c_owner_generation, live, NULL_GENERATION)
+	_project_i32(out.c_policy, _c_policy, live, UNSET_POLICY)
+	_project_i32(out.c_lot_count, _c_lot_count, live, 0)
+	_project_i32(out.c_first_lot, _c_first_lot, live, NULL_SLOT)
+	_project_i32(out.c_anchor_tile, _c_anchor_tile, live, UNPLACED_TILE)
+	for pair: Array in [[out.c_max_mass_g, _c_max_mass_g], [out.c_filters, _c_filters],
+			[out.c_reserved_mass_g, _c_reserved_mass_g], [out.c_used_mass_g, _c_used_mass_g]]:
+		_project_i64(pair[0], pair[1], live)
+	out.c_reachable.fill(0)
+	for slot: int in live:
 		out.c_reachable[slot] = _c_reachable[slot]
-		out.c_anchor_tile[slot] = _c_anchor_tile[slot]
-		return
-	out.c_owner_slot[slot] = NULL_SLOT
-	out.c_owner_generation[slot] = NULL_GENERATION
-	out.c_policy[slot] = UNSET_POLICY
-	out.c_lot_count[slot] = 0
-	out.c_first_lot[slot] = NULL_SLOT
-	out.c_max_mass_g[slot] = 0
-	out.c_filters[slot] = 0
-	out.c_reserved_mass_g[slot] = 0
-	out.c_used_mass_g[slot] = 0
-	out.c_reachable[slot] = 0
-	out.c_anchor_tile[slot] = UNPLACED_TILE
+
+
+static func _project_i32(out: PackedInt32Array, source: PackedInt32Array, live: PackedInt32Array,
+		unused: int) -> void:
+	"""Fill `out` (in place) with `unused`, then copy the live rows of `source` over it."""
+	out.fill(unused)
+	for slot: int in live:
+		out[slot] = source[slot]
+
+
+static func _project_i64(out: PackedInt64Array, source: PackedInt64Array,
+		live: PackedInt32Array) -> void:
+	"""Fill `out` (in place) with 0, then copy the live rows of `source` over it."""
+	out.fill(0)
+	for slot: int in live:
+		out[slot] = source[slot]
 
 
 func _project_lots_into(out: CanonicalColumns) -> void:
-	"""Project every physical lot row. No row is omitted and none is reordered."""
-	for slot: int in range(_l_capacity):
-		_project_lot_row(out, slot)
+	"""Project every physical lot row. No row is omitted and none is reordered.
 
-
-func _project_lot_row(out: CanonicalColumns, slot: int) -> void:
-	"""Copy one live lot exactly, or write INV-CANON-R01's unused lot payload.
-
-	A live lot's `_l_container_slot` of NULL_SLOT is decision 0061's EQUIPPED record and is
-	copied as it stands; the mask is never applied on container nullness.
+	ADR 1235: unused-filled columns with the live rows copied over them, as for containers.
 	"""
-	out.l_live[slot] = _l_live[slot]
-	out.l_generation[slot] = _l_generation[slot]
-	if _l_live[slot] == 1:
-		out.l_item_id[slot] = _l_item_id[slot]
-		out.l_quality[slot] = _l_quality[slot]
-		out.l_provenance[slot] = _l_provenance[slot]
-		out.l_recipe_id[slot] = _l_recipe_id[slot]
-		out.l_container_slot[slot] = _l_container_slot[slot]
-		out.l_container_generation[slot] = _l_container_generation[slot]
-		out.l_next[slot] = _l_next[slot]
-		out.l_prev[slot] = _l_prev[slot]
-		out.l_quantity_milli[slot] = _l_quantity_milli[slot]
-		out.l_reserved_milli[slot] = _l_reserved_milli[slot]
-		out.l_age_milli_hours[slot] = _l_age_milli_hours[slot]
-		out.l_age_remainder[slot] = _l_age_remainder[slot]
-		return
-	_write_unused_lot_payload(out, slot)
-
-
-func _write_unused_lot_payload(out: CanonicalColumns, slot: int) -> void:
-	"""INV-CANON-R01's twelve unused lot values, spelled in this module's own clear sentinels.
-
-	`_l_reserved_milli` becoming 0 is the reserved-merge residue case: `_apply_merge()` moved
-	the claim to the destination and left the number on the dead source.
-	"""
-	out.l_item_id[slot] = 0
-	out.l_quality[slot] = 0
-	out.l_provenance[slot] = UNSET_PROVENANCE
-	out.l_recipe_id[slot] = 0
-	out.l_container_slot[slot] = NULL_SLOT
-	out.l_container_generation[slot] = NULL_GENERATION
-	out.l_next[slot] = NULL_SLOT
-	out.l_prev[slot] = NULL_SLOT
-	out.l_quantity_milli[slot] = 0
-	out.l_reserved_milli[slot] = 0
-	out.l_age_milli_hours[slot] = 0
-	out.l_age_remainder[slot] = 0
+	out.l_live = _l_live.duplicate()
+	out.l_generation = _l_generation.duplicate()
+	var live: PackedInt32Array = _live_slots(_l_live, _l_capacity)
+	_project_i32(out.l_item_id, _l_item_id, live, 0)
+	_project_i32(out.l_quality, _l_quality, live, 0)
+	_project_i32(out.l_provenance, _l_provenance, live, UNSET_PROVENANCE)
+	_project_i32(out.l_recipe_id, _l_recipe_id, live, 0)
+	_project_i32(out.l_container_slot, _l_container_slot, live, NULL_SLOT)
+	_project_i32(out.l_container_generation, _l_container_generation, live, NULL_GENERATION)
+	_project_i32(out.l_next, _l_next, live, NULL_SLOT)
+	_project_i32(out.l_prev, _l_prev, live, NULL_SLOT)
+	for pair: Array in [[out.l_quantity_milli, _l_quantity_milli],
+			[out.l_reserved_milli, _l_reserved_milli], [out.l_age_milli_hours, _l_age_milli_hours],
+			[out.l_age_remainder, _l_age_remainder]]:
+		_project_i64(pair[0], pair[1], live)
 
 
 func _project_stacks_into(out: CanonicalColumns) -> void:
@@ -4874,10 +4867,19 @@ func _project_stacks_into(out: CanonicalColumns) -> void:
 	"""
 	out.c_free_count = _c_free_count
 	out.l_free_count = _l_free_count
-	for index: int in range(_c_capacity):
-		out.c_free[index] = _c_free[index] if index < _c_free_count else NULL_SLOT
-	for index: int in range(_l_capacity):
-		out.l_free[index] = _l_free[index] if index < _l_free_count else NULL_SLOT
+	out.c_free = _stack_projection(_c_free, _c_free_count, _c_capacity)
+	out.l_free = _stack_projection(_l_free, _l_free_count, _l_capacity)
+
+
+static func _stack_projection(free: PackedInt32Array, count: int,
+		capacity: int) -> PackedInt32Array:
+	"""The first `count` entries in order, then NULL_SLOT up to `capacity` (native slices)."""
+	var projected: PackedInt32Array = free.slice(0, count)
+	var tail: PackedInt32Array = PackedInt32Array()
+	tail.resize(capacity - count)
+	tail.fill(NULL_SLOT)
+	projected.append_array(tail)
+	return projected
 
 
 func restore_canonical_columns(cols: CanonicalColumns) -> bool:
@@ -4889,7 +4891,8 @@ func restore_canonical_columns(cols: CanonicalColumns) -> bool:
 
 	EQUIPMENT ATTESTATION IS NOT RE-CHECKED HERE. `audit()`'s equipped biconditional needs a
 	bound `gear.gd` authority, which the load orchestrator rebinds after the six section 7
-	owners are published; running it now would refuse every legitimate equipped lot.
+	owners are published; running it now would refuse every legitimate equipped lot. ADR 1228:
+	section 6 restores the (here empty) spatial arena later and proves each anchored container.
 	"""
 	_canonical_detail = ""
 	if _has_spatial_endpoints():
@@ -4935,6 +4938,9 @@ func _canonical_columns_refusal(cols: CanonicalColumns) -> StringName:
 
 func _canonical_tail_refusal(cols: CanonicalColumns) -> StringName:
 	"""Both excluded free-stack tails must be the rebuilt `NULL_SLOT`, never leftover values."""
+	if _null_tail(cols.c_free, cols.c_free_count, cols.container_capacity) \
+			and _null_tail(cols.l_free, cols.l_free_count, cols.lot_capacity):
+		return REFUSE_NONE
 	for index: int in range(cols.c_free_count, cols.container_capacity):
 		if cols.c_free[index] != NULL_SLOT:
 			_canonical_detail = "container free tail %d holds %d, not %d" \
@@ -4948,8 +4954,16 @@ func _canonical_tail_refusal(cols: CanonicalColumns) -> StringName:
 	return REFUSE_NONE
 
 
+static func _null_tail(free: PackedInt32Array, count: int, capacity: int) -> bool:
+	"""ADR 1235: every cell of `[count, capacity)` is NULL_SLOT (a native count)."""
+	return count >= 0 and count <= capacity and free.size() >= capacity \
+		and free.slice(count, capacity).count(NULL_SLOT) == capacity - count
+
+
 func _canonical_inactive_refusal(cols: CanonicalColumns) -> StringName:
 	"""Every inactive row carries exactly the unused payload, checked value by value."""
+	if _canonical_inactive_proven(cols):
+		return REFUSE_NONE
 	for slot: int in range(cols.container_capacity):
 		if cols.c_live[slot] == 1:
 			continue
@@ -4970,6 +4984,43 @@ func _canonical_inactive_refusal(cols: CanonicalColumns) -> StringName:
 		_canonical_detail = "inactive lot %d carries a noncanonical payload" % slot
 		return REFUSE_CANONICAL_INACTIVE_PAYLOAD
 	return REFUSE_NONE
+
+
+static func _canonical_inactive_proven(cols: CanonicalColumns) -> bool:
+	"""ADR 1235: every inactive row provably carries the unused payload, column by column."""
+	if cols.c_live.size() != cols.container_capacity or cols.l_live.size() != cols.lot_capacity:
+		return false
+	var containers: PackedInt32Array = _live_slots(cols.c_live, cols.container_capacity)
+	var lots: PackedInt32Array = _live_slots(cols.l_live, cols.lot_capacity)
+	return _narrow_unused_proven([[cols.c_owner_slot, NULL_SLOT], [cols.c_lot_count, 0],
+			[cols.c_owner_generation, NULL_GENERATION], [cols.c_policy, UNSET_POLICY],
+			[cols.c_first_lot, NULL_SLOT], [cols.c_anchor_tile, UNPLACED_TILE]], containers) \
+		and _wide_unused_proven([cols.c_max_mass_g, cols.c_filters, cols.c_reserved_mass_g,
+			cols.c_used_mass_g], containers) \
+		and ColumnProofs.u8_others_equal(cols.c_reachable, containers, 0) \
+		and _narrow_unused_proven([[cols.l_item_id, 0], [cols.l_quality, 0],
+			[cols.l_provenance, UNSET_PROVENANCE], [cols.l_recipe_id, 0],
+			[cols.l_container_slot, NULL_SLOT], [cols.l_container_generation, NULL_GENERATION],
+			[cols.l_next, NULL_SLOT], [cols.l_prev, NULL_SLOT]], lots) \
+		and _wide_unused_proven([cols.l_quantity_milli, cols.l_reserved_milli,
+			cols.l_age_milli_hours, cols.l_age_remainder], lots)
+
+
+static func _narrow_unused_proven(pairs: Array, live: PackedInt32Array) -> bool:
+	"""Each `[column, unused]` pair holds `unused` on every row outside `live`."""
+	for pair: Array in pairs:
+		var column: PackedInt32Array = pair[0]
+		if not ColumnProofs.i32_others_equal(column, live, pair[1]):
+			return false
+	return true
+
+
+static func _wide_unused_proven(columns: Array, live: PackedInt32Array) -> bool:
+	"""Each int64 column holds 0 on every row outside `live`."""
+	for column: PackedInt64Array in columns:
+		if not ColumnProofs.i64_others_equal(column, live, 0):
+			return false
+	return true
 
 
 func _canonical_lot_is_masked(cols: CanonicalColumns, slot: int) -> bool:
@@ -4995,8 +5046,19 @@ func _canonical_live_refusal(cols: CanonicalColumns) -> StringName:
 
 
 func _canonical_live_anchor_refusal(cols: CanonicalColumns) -> StringName:
-	"""DEMO-CONTAIN-R01: a live container is UNPLACED_TILE or on a cell in the anchor domain."""
-	for slot: int in range(cols.container_capacity):
+	"""DEMO-CONTAIN-R01: a live container is UNPLACED_TILE or on a cell in the anchor domain, or
+	(ADR 1228) anchored at a distinct spatial endpoint row of the arena."""
+	var rows: PackedByteArray = PackedByteArray()
+	rows.resize(SPATIAL_ENDPOINT_CAPACITY)
+	for slot: int in _live_slots(cols.c_live, cols.container_capacity):
+		var row: int = -2 - cols.c_anchor_tile[slot]
+		if cols.c_live[slot] == 1 and row >= 0 and row < SPATIAL_ENDPOINT_CAPACITY \
+				and cols.c_policy[slot] != POLICY_SATCHEL:
+			if rows[row] == 1:
+				_canonical_detail = "live container %d shares spatial endpoint row %d" % [slot, row]
+				return REFUSE_CANONICAL_LIVE_ROW
+			rows[row] = 1
+			continue
 		if cols.c_live[slot] == 1 and not is_anchor_tile_in_domain(cols.c_anchor_tile[slot]):
 			_canonical_detail = "live container %d is anchored at %d, outside %d and 0..%d" \
 				% [slot, cols.c_anchor_tile[slot], UNPLACED_TILE, ANCHOR_TILE_COUNT - 1]
@@ -5018,14 +5080,16 @@ func _canonical_live_pile_refusal(cols: CanonicalColumns) -> StringName:
 	var seen: PackedByteArray = PackedByteArray()
 	seen.resize(ANCHOR_TILE_COUNT)
 	seen.fill(0)
-	for slot: int in range(cols.container_capacity):
-		if cols.c_live[slot] != 1 or cols.c_policy[slot] != POLICY_GROUND_PILE:
+	for slot: int in _live_slots(cols.c_live, cols.container_capacity):
+		if cols.c_policy[slot] != POLICY_GROUND_PILE:
 			continue
 		var tile: int = cols.c_anchor_tile[slot]
-		if tile < 0 or tile >= ANCHOR_TILE_COUNT or seen[tile] == 1:
+		# ADR 1228: a spatial pile (anchor <= -2) has a distinct endpoint row by the anchor rule.
+		if tile > -2 and (tile < 0 or tile >= ANCHOR_TILE_COUNT or seen[tile] == 1):
 			_canonical_detail = "ground pile %d is unplaced or shares tile %d" % [slot, tile]
 			return REFUSE_CANONICAL_LIVE_ROW
-		seen[tile] = 1
+		if tile >= 0:
+			seen[tile] = 1
 		if cols.c_max_mass_g[slot] != GROUND_PILE_MAX_MASS_G or cols.c_owner_slot[slot] < 0 \
 				or cols.c_owner_generation[slot] <= NULL_GENERATION or cols.c_lot_count[slot] == 0:
 			_canonical_detail = "ground pile %d is empty or has a malformed owner or capacity" % slot
@@ -5035,9 +5099,7 @@ func _canonical_live_pile_refusal(cols: CanonicalColumns) -> StringName:
 
 func _canonical_live_lot_refusal(cols: CanonicalColumns) -> StringName:
 	"""Live lots keep GDD §4.2's own domains: a bounded item, provenance, quantity and age."""
-	for slot: int in range(cols.lot_capacity):
-		if cols.l_live[slot] != 1:
-			continue
+	for slot: int in _live_slots(cols.l_live, cols.lot_capacity):
 		if cols.l_item_id[slot] < 0 or cols.l_item_id[slot] >= ITEM_CAPACITY:
 			_canonical_detail = "live lot %d names item %d" % [slot, cols.l_item_id[slot]]
 			return REFUSE_CANONICAL_LIVE_ROW
@@ -5104,24 +5166,18 @@ func _rebuild_derived_state() -> void:
 
 	The tile -> pile map (decision 0532) is rebuilt here too: derived, never saved.
 	"""
-	_c_live_count = 0
-	_c_slot_high_water = 0
-	for slot: int in range(_c_capacity):
-		if _c_live[slot] == 1:
-			_c_live_count += 1
-			_c_slot_high_water = slot + 1
+	var live_containers: PackedInt32Array = _live_slots(_c_live, _c_capacity)
+	_c_live_count = live_containers.size()
+	_c_slot_high_water = 0 if live_containers.is_empty() else live_containers[-1] + 1
 	_rebuild_pile_map()
 	_clear_pile_candidates()
 	_sourced_milli.fill(0)
 	_sunk_milli.fill(0)
-	_l_live_count = 0
-	_l_slot_high_water = 0
+	var live_lots: PackedInt32Array = _live_slots(_l_live, _l_capacity)
+	_l_live_count = live_lots.size()
+	_l_slot_high_water = 0 if live_lots.is_empty() else live_lots[-1] + 1
 	_equipped_lot_count = 0
-	for slot: int in range(_l_capacity):
-		if _l_live[slot] != 1:
-			continue
-		_l_live_count += 1
-		_l_slot_high_water = slot + 1
+	for slot: int in live_lots:
 		if _l_container_slot[slot] == NULL_SLOT:
 			_equipped_lot_count += 1
 		_sourced_milli[_l_item_id[slot]] += _l_quantity_milli[slot]
@@ -5488,6 +5544,83 @@ static func world_retirement_release_preflighted_in(actual: RefCounted, ids: Ret
 	actual._spatial_world = NULL_REF
 	actual._spatial_checked_revision = 0
 	return &""
+
+
+# --- ADR 1228: section 6 owner `inventory` (the spatial endpoint arena) ----------------------------
+
+func save_spatial_columns() -> Array:
+	"""The eight registry columns: capacity, World, then the five endpoint columns. With no spatial
+	World bound (no Session) the arena is written as capacity 0, whatever a retired arena retains;
+	an unbound arena still holding an endpoint, or a bound World with no arena, has no canonical
+	image and returns []."""
+	if _spatial_world != NULL_REF and _spatial_container_slot.is_empty():
+		return []
+	if _spatial_world == NULL_REF:
+		if _has_spatial_endpoints():
+			return []
+		return [PackedInt32Array([0]), PackedInt32Array([NULL_SLOT]), PackedInt32Array([0]),
+			PackedInt32Array(), PackedInt32Array(), PackedInt32Array(), PackedInt32Array(), PackedInt64Array()]
+	return [PackedInt32Array([_spatial_container_slot.size()]), PackedInt32Array([_spatial_world.x]),
+		PackedInt32Array([_spatial_world.y]), _spatial_container_slot.duplicate(),
+		_spatial_container_generation.duplicate(), _spatial_location_slot.duplicate(),
+		_spatial_location_generation.duplicate(), _spatial_location_revision.duplicate()]
+
+
+func restore_spatial_columns(columns: Array) -> StringName:
+	"""Install the endpoint arena into the re-mounted composition, then audit every endpoint against
+	the restored containers and Locations; a refusal restores the previous arena exactly."""
+	var code: StringName = spatial_columns_refusal(columns)
+	if code != REFUSE_NONE or (columns[0] as PackedInt32Array)[0] == 0:
+		return code
+	var previous: Array = save_spatial_columns()
+	_install_spatial_columns(columns)
+	code = _audit_spatial_endpoints()
+	if code != REFUSE_NONE:
+		_install_spatial_columns(previous)
+	return code
+
+
+func _install_spatial_columns(columns: Array) -> void:
+	"""Private copies of the five endpoint columns."""
+	_spatial_container_slot = (columns[3] as PackedInt32Array).duplicate()
+	_spatial_container_generation = (columns[4] as PackedInt32Array).duplicate()
+	_spatial_location_slot = (columns[5] as PackedInt32Array).duplicate()
+	_spatial_location_generation = (columns[6] as PackedInt32Array).duplicate()
+	_spatial_location_revision = (columns[7] as PackedInt64Array).duplicate()
+
+
+func spatial_columns_refusal(columns: Array) -> StringName:
+	"""Types; an unbound image (capacity 0) only into an unbound, empty arena; a bound image at this
+	arena's capacity and this composition's World, each row null as (-1, 0) or a positive revision."""
+	if columns.size() != 8 or not _spatial_column_types_ok(columns):
+		return REFUSE_SPATIAL_CODEC
+	var capacity: int = (columns[0] as PackedInt32Array)[0]
+	var world: Vector2i = Vector2i(columns[1][0], columns[2][0])
+	if capacity == 0:
+		var empty: bool = world == NULL_REF and columns[3].is_empty()
+		return REFUSE_NONE if empty and _spatial_world == NULL_REF and not _has_spatial_endpoints() \
+			else REFUSE_SPATIAL_CODEC
+	if capacity != _spatial_container_slot.size() or world != _spatial_world or world == NULL_REF:
+		return REFUSE_SPATIAL_BINDING
+	for ordinal: int in range(3, 8):
+		if columns[ordinal].size() != capacity:
+			return REFUSE_SPATIAL_CODEC
+	for row: int in capacity:
+		var unused: bool = columns[3][row] == NULL_SLOT
+		if unused != (columns[4][row] == 0) or unused != (columns[5][row] == NULL_SLOT) \
+				or unused != (columns[6][row] == 0) or unused != (columns[7][row] == 0) \
+				or columns[3][row] < NULL_SLOT or columns[7][row] < 0:
+			return REFUSE_SPATIAL_LOCATION
+	return REFUSE_NONE
+
+
+static func _spatial_column_types_ok(columns: Array) -> bool:
+	"""Seven i32 columns and one i64 column; the three scalars one element each."""
+	for ordinal: int in 8:
+		var expected: int = TYPE_PACKED_INT64_ARRAY if ordinal == 7 else TYPE_PACKED_INT32_ARRAY
+		if typeof(columns[ordinal]) != expected or (ordinal < 3 and columns[ordinal].size() != 1):
+			return false
+	return true
 
 
 func _spatial_arena_accepts(capacity: int) -> bool:

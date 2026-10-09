@@ -1,0 +1,41 @@
+{
+  "clips": [
+    "approach",
+    "lift",
+    "place",
+    "recovery",
+    "hold",
+    "enter",
+    "carry",
+    "exit",
+    "stand",
+    "walk",
+    "enter_haul",
+    "leave_haul"
+  ],
+  "part_visibility_masks": [
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    1,
+    1,
+    3,
+    3
+  ],
+  "revision": 1,
+  "runtime_admitted": false,
+  "schema": 1,
+  "world_root_bounds_u": [
+    0,
+    -32256,
+    0,
+    262144,
+    16896,
+    262144
+  ]
+}

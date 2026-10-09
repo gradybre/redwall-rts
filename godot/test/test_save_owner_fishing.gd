@@ -367,3 +367,89 @@ func test_paired_priorities_not_just_acceptance() -> void:
 	c.stock_harvested_today_milli[93] = 77500
 	c.stock_harvested_today_milli[94] = 1
 	_expect(c,&"COLUMN_SPECIES_DUPLICATE","species before quota")
+
+
+# --- ADR 1222 step 2: bulk capture and apply ------------------------------------------------------
+
+func _bulk_owner() -> Owner:
+	"""A store with live, edited, freed and reused rows, built through the public lifecycle only."""
+	var owner: Owner = Owner.new()
+	var coast: Owner.OpResult = owner.create_habitat(Owner.HABITAT_COAST, Owner.NULL_REF,
+		PackedInt32Array([10, 11, 12]), 3, 1, 5)
+	var lake: Owner.OpResult = owner.create_habitat(Owner.HABITAT_LAKE, Owner.NULL_REF,
+		PackedInt32Array([20, 21, 22]), 0, 0, 0)
+	var river: Owner.OpResult = owner.create_habitat(Owner.HABITAT_RIVER, Owner.NULL_REF,
+		PackedInt32Array([30, 31, 32]), 0, 2, 25)
+	assert_true(coast.ok and lake.ok and river.ok, "create the three starting habitats")
+	assert_true(owner.set_intensive_harvest(lake.ref, true).ok, "edit the intensive flag")
+	assert_true(owner.set_closed(river.ref, 0, true).ok, "edit a closure flag")
+	assert_true(owner.destroy_habitat(coast.ref).ok, "free a habitat row")
+	var reused: Owner.OpResult = owner.create_habitat(Owner.HABITAT_COAST, Owner.NULL_REF,
+		PackedInt32Array([40, 41, 42]), 1, 1, 1)
+	assert_true(reused.ok, "reuse the freed row")
+	var extra: Owner.OpResult = owner.create_habitat(Owner.HABITAT_RIVER, Owner.NULL_REF,
+		PackedInt32Array([50, 51, 52]), 0, 0, 0)
+	assert_true(extra.ok, "create a fourth habitat")
+	assert_true(owner.destroy_habitat(extra.ref).ok, "leave a freed row behind")
+	return owner
+
+
+func _bulk_columns(owner: Owner) -> Owner.Columns:
+	"""The owner's 22 columns through the bulk reader."""
+	var columns: Owner.Columns = Owner.Columns.new()
+	assert_true(owner.copy_columns_into(columns), "bulk copy succeeds")
+	return columns
+
+
+func test_capture_then_apply_into_a_fresh_store_is_exact_and_continues_identically() -> void:
+	"""The restored store holds the same columns and continues to answer later calls the same way."""
+	var source: Owner = _bulk_owner()
+	var frame: Section.FramedOwner = Section.FramedOwner.new(4)
+	assert_true(Bridge.capture_into(source, frame).is_ok(), "capture succeeds")
+	var target: Owner = Owner.new()
+	assert_true(Bridge.apply(frame, target).is_ok(), "apply succeeds")
+	assert_true(_bulk_columns(target).equals(_bulk_columns(source)), "columns are byte-identical")
+	assert_equal(target.habitat_count(), source.habitat_count(), "the active list is rebuilt")
+	for store: Owner in [source, target]:
+		assert_true(store.recover_daily(Owner.SEASON_SPRING, 1).ok, "a later sweep succeeds")
+		store.reset_harvested_today()
+	assert_true(_bulk_columns(target).equals(_bulk_columns(source)),
+		"both stores stayed identical after the same later operations")
+
+
+func test_every_column_refusal_leaves_the_target_byte_identical() -> void:
+	"""Each column code refuses through apply with the exact code and writes nothing."""
+	var target: Owner = _bulk_owner()
+	var before: Owner.Columns = _bulk_columns(target)
+	var cases: Array = [["coast", "habitat_present", 31, 2, &"COLUMN_FLAG"],
+		["coast", "habitat_type", 31, -1, &"COLUMN_HABITAT_ENUM"],
+		["clear", "stock_present", 95, 1, &"COLUMN_STOCK_LINK"],
+		["coast", "stock_species_id", 95, 101, &"COLUMN_SPECIES_DUPLICATE"]]
+	for entry: Array in cases:
+		var c: Owner.Columns = _image(entry[0])
+		_put(c, FIELDS.find(entry[1]), int(entry[2]), int(entry[3]))
+		var refusal: Variant = Bridge.apply(_frame(c), target)
+		assert_equal(refusal.code, entry[4], "exact code for %s" % entry[1])
+	assert_true(_bulk_columns(target).equals(before), "no refusal wrote a column")
+
+
+func test_null_and_misshaped_inputs_refuse_without_writing() -> void:
+	"""Null stores, null records, a wrong owner and a short bulk buffer all refuse."""
+	var target: Owner = _bulk_owner()
+	var before: Owner.Columns = _bulk_columns(target)
+	var clear_frame: Section.FramedOwner = Section.FramedOwner.new(4)
+	assert_true(Bridge.capture_into(Owner.new(), clear_frame).is_ok(), "capture an empty store")
+	assert_equal(Bridge.apply(clear_frame, null).code, Bridge.REFUSE_NULL_STORE, "null store")
+	assert_equal(Bridge.capture_into(null, Section.FramedOwner.new(4)).code,
+		Bridge.REFUSE_NULL_STORE, "capture from no store")
+	assert_equal(Bridge.capture_into(target, null).code, Section.REFUSE_SHAPE, "null record")
+	assert_equal(Bridge.capture_into(target, Section.FramedOwner.new(3)).code,
+		Section.REFUSE_OWNER, "wrong owner")
+	var short: Owner.Columns = Owner.Columns.new()
+	short.habitat_present.resize(3)
+	assert_false(target.restore_columns(short), "a short column refuses")
+	assert_equal(target.last_column_refusal(), Owner.REFUSE_COLUMN_SHAPE, "shape code")
+	assert_false(target.copy_columns_into(short), "a short output buffer refuses")
+	assert_false(target.restore_columns(null), "null columns refuse")
+	assert_false(target.copy_columns_into(null), "null output refuses")
+	assert_true(_bulk_columns(target).equals(before), "nothing was written")

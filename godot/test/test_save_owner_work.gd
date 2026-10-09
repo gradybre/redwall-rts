@@ -303,3 +303,70 @@ func test_public_broken_tool_binding_remains_valid_history() -> void:
 	assert_equal(f._work.state_bytes(),before,"broken history unchanged")
 	assert_equal(f._work.bound_tool_count(),1,"broken binding count unchanged")
 	_dispose_fixture(f)
+
+
+# --- ADR 1222 step 2: bulk capture and apply ------------------------------------------------------
+
+func _live_fixture() -> Fixture:
+	"""A real store with a fractional carry, XP, a bound tool, a release and a reused binding."""
+	var f: Fixture = Fixture.new()
+	f.before_each()
+	f._use_gear()
+	var row: int = f._fractional_rate_worker()
+	var first: int = f._worked_job(row,1000000)
+	var lot: Vector2i = f._claimed_tool(row)
+	assert_true(f._work.tick_solo(first).ok,"real fractional work")
+	assert_true(f._work.release_tool_claim(row).ok,"release the first binding")
+	assert_true(f._work.claim_tool_for_work(row,lot).ok,"reuse the same lot for a new binding")
+	assert_true(f._work.set_memory_total(511,-2147483648).ok,"idle physical-tail memory")
+	return f
+
+func test_capture_then_apply_into_a_fresh_store_is_exact_and_continues_identically() -> void:
+	"""The restored store holds the same columns and bound count, and answers a later edit the same."""
+	var f: Fixture = _live_fixture()
+	var frame: Section.FramedOwner = Section.FramedOwner.new(16)
+	assert_true(Bridge.capture_into(f._work,frame).is_ok(),"capture succeeds")
+	var target: Work = Work.new(f._jobs)
+	assert_true(Bridge.apply(frame,target).is_ok(),"apply succeeds")
+	assert_equal(_from_owner(target),_from_owner(f._work),"columns are byte-identical")
+	assert_equal(target.bound_tool_count(),f._work.bound_tool_count(),"bound count is rebuilt")
+	for store: Work in [f._work,target]:
+		assert_true(store.set_memory_total(0,12345).ok,"a later local edit succeeds on both")
+	assert_equal(_from_owner(target),_from_owner(f._work),"both stores stayed identical after the edit")
+	assert_true(f.failures.is_empty(),"all supporting real fixture assertions pass: %s" % f.failures)
+	_dispose_fixture(f)
+
+func test_every_column_refusal_leaves_the_target_byte_identical() -> void:
+	"""Each column code refuses through apply with the exact code and writes nothing."""
+	var f: Fixture = _live_fixture()
+	var before: Array = _from_owner(f._work)
+	var count: int = f._work.bound_tool_count()
+	var cases: Array = [[0,511,-1,&"COLUMN_POTENTIAL_REMAINDER"],
+		[3,511,-1,&"COLUMN_WEAR_REMAINDER"],[8,511,2,&"COLUMN_BROKEN_FLAG"]]
+	for entry: Array in cases:
+		var image: Array = _from_owner(f._work)
+		_put(image,int(entry[0]),int(entry[1]),int(entry[2]))
+		var refusal: Variant = Bridge.apply(_frame(image),f._work)
+		assert_equal(refusal.code,entry[3],"exact code for field %d" % int(entry[0]))
+	assert_equal(_from_owner(f._work),before,"no refusal wrote a column")
+	assert_equal(f._work.bound_tool_count(),count,"no refusal moved the derived count")
+	_dispose_fixture(f)
+
+func test_null_and_misshaped_inputs_refuse_without_writing() -> void:
+	"""Null stores, null records, a wrong owner and a short bulk buffer all refuse."""
+	var f: Fixture = _live_fixture()
+	var before: Array = _from_owner(f._work)
+	assert_equal(Bridge.apply(_frame(_empty()),null).code,Bridge.REFUSE_NULL_STORE,"null store")
+	assert_equal(Bridge.capture_into(null,Section.FramedOwner.new(16)).code,
+		Bridge.REFUSE_NULL_STORE,"capture from no store")
+	assert_equal(Bridge.capture_into(f._work,null).code,&"SAVE_COMPONENT_SHAPE","null record")
+	assert_equal(Bridge.capture_into(f._work,Section.FramedOwner.new(10)).code,
+		&"SAVE_COMPONENT_OWNER","wrong owner")
+	var short: Work.Columns = Work.Columns.new()
+	short.potential_remainder.resize(3)
+	assert_false(f._work.restore_columns(short),"a short column refuses")
+	assert_equal(f._work.last_column_refusal(),Work.REFUSE_COLUMN_SHAPE,"shape code")
+	assert_false(f._work.copy_columns_into(short),"a short output buffer refuses")
+	assert_false(f._work.restore_columns(null),"null columns refuse")
+	assert_equal(_from_owner(f._work),before,"nothing was written")
+	_dispose_fixture(f)

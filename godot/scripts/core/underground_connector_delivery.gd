@@ -29,6 +29,8 @@ const Buildings := preload("res://scripts/core/buildings.gd")
 const Definitions := preload("res://scripts/core/building_definitions.gd")
 const WorkScript := preload("res://scripts/core/work.gd")
 const Clock := preload("res://scripts/core/sim_clock.gd")
+## ADR1217 step 5: content 9's grip certificate (wood/stone v10 images; rows 32-41 unchanged).
+const Grip := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/grip_certificate.gd")
 const RESERVED_BYTES: int = 4096
 const HELPER_BYTES: int = 1024
 const NATIVE_RESERVE: int = 2048 # A declaration ceiling, not measured native allocation.
@@ -41,6 +43,7 @@ const REFUSE_ARRIVAL: StringName = &"CONNECTOR_DELIVERY_NOT_ARRIVED"
 const REFUSE_HANDLING: StringName = &"CONNECTOR_DELIVERY_HANDLING_SOURCE"
 const REFUSE_BUDGET: StringName = &"CONNECTOR_DELIVERY_CHECKS"
 const REFUSE_TRANSFER: StringName = &"CONNECTOR_DELIVERY_TRANSFER"
+const REFUSE_STAND: StringName = &"CONNECTOR_DELIVERY_NO_HAUL_STAND"
 
 var _placements: Placements = null
 var _frontier: Frontier = null
@@ -82,6 +85,7 @@ var _box: Profiles.Box = null
 var _number: IntMath.IntResult = null
 var _frame: PackedInt32Array = PackedInt32Array()
 var _install: PackedInt32Array = PackedInt32Array()
+var _excavation: bool = false # ADR1197 G3: cut inputs for an entry excavation phase Project.
 var _endpoint: PackedInt32Array = PackedInt32Array()
 var _bounds: PackedInt32Array = PackedInt32Array()
 var _support: PackedInt32Array = PackedInt32Array()
@@ -103,7 +107,9 @@ func configure(placements: Placements, frontier: Frontier, planner: Planner,
 	var code: StringName = _binding_leaf(self)
 	if code == &"": code = work.bind_spatial_delivery(self)
 	if code != &"":
-		_placements = null; _frontier = null; _planner = null; _provider = null; _work = null; _clock = null
+		# A late refusal must not hide an already installed one-way Work binding.
+		if work._spatial_delivery == null or work._spatial_delivery.get_ref() != self:
+			_placements = null; _frontier = null; _planner = null; _provider = null; _work = null; _clock = null
 		return code
 	_allocate()
 	_configured = true
@@ -165,6 +171,7 @@ static func _clear(a: RefCounted) -> void:
 	a._busy = false
 	a._poisoned = false
 	a._work_tick = false
+	a._excavation = false
 	a._job = NULL_REF
 	a._worker = NULL_REF
 	a._project = NULL_REF
@@ -236,17 +243,19 @@ static func _full_row(ids: Directory, ref: Vector2i, kind: int) -> int:
 
 
 func _pin_project() -> StringName:
-	"""Only the current unpaid connector assembly may request its actual material container."""
+	"""The current unpaid connector assembly, or an entry cut awaiting inputs, may request its material container."""
 	var row: int = _directory_row(_project, Directory.KIND_CONSTRUCTION)
 	var construction: Construction = _placements._construction
 	if row < 0 or construction._present[row] != 1 or construction._ref_slot[row] != _project.x \
-			or construction._ref_generation[row] != _project.y or construction._purpose[row] != Construction.PURPOSE_CONNECTOR_INSTALL \
+			or construction._ref_generation[row] != _project.y \
 			or construction._phase[row] > Construction.PHASE_READY or construction._paused[row] != 0:
 		return REFUSE_JOB
-	_placement = Vector2i(construction._subject_slot[row], construction._subject_generation[row])
+	_excavation = construction._purpose[row] == Construction.PURPOSE_EXCAVATION
+	if not _excavation and construction._purpose[row] != Construction.PURPOSE_CONNECTOR_INSTALL: return REFUSE_JOB
 	_destination = Vector2i(construction._material_container_slot[row], construction._material_container_generation[row])
+	_placement = _entry_placement() if _excavation else Vector2i(construction._subject_slot[row], construction._subject_generation[row])
 	var code: StringName = _placements.placement_into(_placement, _order)
-	if code != &"" or _order.project != _project: return REFUSE_SOURCE
+	if code != &"" or (not _excavation and _order.project != _project): return REFUSE_SOURCE
 	_geometry_revision = _placements._space._header[17]
 	_frontier_revision = _frontier._header[0]
 	_location_receipt = _placements._locations._last_published_token
@@ -256,9 +265,24 @@ func _pin_project() -> StringName:
 	return code if code != &"" else _pin_material()
 
 
+func _entry_placement() -> Vector2i:
+	"""Excavation hauls serve the one live entry Placement; zero or several refuse rather than choose."""
+	var found: Vector2i = NULL_REF
+	for row: int in _placements._capacity:
+		var ref: Vector2i = Vector2i(row, _placements._live.i32[Placements.GENERATION * _placements._capacity + row])
+		if not _placements._is_live(_placements._live, ref): continue
+		if found != NULL_REF: return NULL_REF
+		found = ref
+	return found
+
+
 func _pin_material() -> StringName:
 	"""The selected Inventory endpoint must match the immutable assembly material selector exactly."""
 	if _frame.size() != 9 or _install.size() != 9: return REFUSE_SOURCE
+	if _excavation:
+		_destination_location = _placements._inventory.spatial_location_of(_destination)
+		var read: StringName = _placements._locations.read_location_into(_destination_location, _location)
+		return read if read != &"" else _material_leaf(self)
 	var code: StringName = _frontier.endpoint_into(_install[7], _endpoint)
 	if code != &"" or _endpoint.size() != 7 or _endpoint[3] != Locations.ROLE_STORAGE:
 		return REFUSE_ENDPOINT
@@ -285,11 +309,12 @@ static func _material_leaf(a: RefCounted) -> StringName:
 	var row: int = a._destination_location.x
 	if _location32(locations, Locations.ROLE, row) != Locations.ROLE_STORAGE:
 		return REFUSE_ENDPOINT
+	var section: Vector2i = _location_pair(locations, Locations.SECTION_SLOT, row)
+	if a._excavation: return _excavation_material_leaf(a, row, section)
 	for axis: int in 3:
 		var point: int = _coordinate(a._frame, a._endpoint[4], a._endpoint[5], a._endpoint[6], axis)
 		if not Space.int32(point) or _location32(locations, Locations.X + axis, row) != point:
 			return REFUSE_ENDPOINT
-	var section: Vector2i = _location_pair(locations, Locations.SECTION_SLOT, row)
 	if a._endpoint[0] == Frontier.SURFACE_ANCHOR or a._endpoint[0] == Frontier.SURFACE_CONTACT:
 		var anchor: Vector2i = Vector2i(a._frame[7], a._frame[8])
 		if not _location_live(locations, anchor) \
@@ -302,6 +327,15 @@ static func _material_leaf(a: RefCounted) -> StringName:
 			or _location_pair(locations, Locations.ROOM_SLOT, row) != a._order.corridor:
 		return REFUSE_ENDPOINT
 	return _installed_material_leaf(a, section)
+
+
+static func _excavation_material_leaf(a: RefCounted, row: int, section: Vector2i) -> StringName:
+	"""Sites already proved this container for the cut at bind time and re-proves it at delivery; Delivery
+	additionally requires a live room-free storage endpoint in the entry anchor's own surface section."""
+	var locations: Locations = a._placements._locations
+	var entry: Vector2i = Vector2i(a._frame[7], a._frame[8])
+	return &"" if _location_live(locations, entry) and _location_pair(locations, Locations.ROOM_SLOT, row) == NULL_REF \
+		and _location_pair(locations, Locations.SECTION_SLOT, entry.x) == section else REFUSE_ENDPOINT
 
 
 static func _installed_material_leaf(a: RefCounted, section: Vector2i) -> StringName:
@@ -354,9 +388,13 @@ func _size_admission(requested: int) -> StringName:
 			or _job_remaining != Planner.HAUL_LOAD_MILLI_WU or handles_job(self, _job): return REFUSE_JOB
 	if not _placements._carry.carry_limit_g_into(worker_row, _number): return REFUSE_TRANSFER
 	var mass: int = inventory.item_mass_g(inventory.lot_item_id(_source_lot))
+	var grip: bool = Grip.uses(_placements._profiles)
+	if grip: requested = mini(requested, Grip.QUANTITY_MILLI)
 	if not Planner.payload_milli_into(mini(requested, inventory.lot_available_milli(_source_lot)), mass,
 		_number.value, 0, _number) or _number.value <= 0: return REFUSE_TRANSFER
 	_quantity = _number.value
+	if grip and (_quantity != Grip.QUANTITY_MILLI or Grip.carry_row_for(inventory.lot_item_id(_source_lot)) < 0):
+		return REFUSE_TRANSFER
 	if not IntMath.inventory_capacity_debit_g_into(_quantity, mass, _number): return REFUSE_TRANSFER
 	_grams = _number.value
 	return &""
@@ -516,9 +554,23 @@ func _observe_admission() -> StringName:
 	if code == &"": code = _admission_profile_leaf(self)
 	if code == &"": code = _placements._locations.read_location_into(graph._resident_pair(Routes.R_LOCATION_SLOT, row), _location)
 	if code == &"": code = _provider._terrain.binding_refusal()
-	if code == &"": code = _reach(graph._resident_pair(Routes.R_LOCATION_SLOT, row), _source_location)
-	if code == &"": code = _reach(_source_location, _destination_location)
+	if code == &"" and Grip.uses(_placements._profiles): code = _reach_stands(graph._resident_pair(Routes.R_LOCATION_SLOT, row))
+	elif code == &"":
+		code = _reach(graph._resident_pair(Routes.R_LOCATION_SLOT, row), _source_location)
+		if code == &"": code = _reach(_source_location, _destination_location)
 	return code if code != &"" else _operation_leaf(self, null)
+
+
+func _reach_stands(origin: Vector2i) -> StringName:
+	"""ADR1198 grip hauling: walk to the source's stand (already carried goods start where the worker is), then
+	carry one whole unit over CARRY edges to the destination's stand with the certified loaded gait."""
+	var source: Vector2i = _source_location if _carried_source(self) else stand_of(self, _source_location)
+	var destination: Vector2i = stand_of(self, _destination_location)
+	if source == NULL_REF or destination == NULL_REF: return REFUSE_STAND
+	var code: StringName = _reach(origin, source) if origin != source else &""
+	if code != &"": return code
+	var carry: int = Grip.carry_row_for(_placements._inventory.lot_item_id(_source_lot))
+	return _reach(source, destination, carry, 1, _placements._profiles.content_revision()) if carry >= 0 else REFUSE_TRANSFER
 
 
 static func _admission_profile_leaf(a: RefCounted) -> StringName:
@@ -538,10 +590,15 @@ static func _carried_source(a: RefCounted) -> bool:
 		and inventory._c_policy[a._source_container.x] == Inventory.POLICY_SATCHEL
 
 
-func _reach(first: Vector2i, last: Vector2i) -> StringName:
-	"""Borrow the actual graph's finite search; no path image, destination map or movement permission is retained."""
+func _reach(first: Vector2i, last: Vector2i, profile: int = -1, revision: int = 0, content: int = 0) -> StringName:
+	"""Borrow the actual graph's finite search; no path image, destination map or movement permission is retained.
+	Without an explicit certified profile the worker's current selection searches."""
+	if profile < 0:
+		profile = _selection.profile_id
+		revision = _selection.profile_revision
+		content = _selection.content_revision
 	var code: StringName = WorldRoutes.profile_reachability_refusal(_provider, first, last,
-		_selection.profile_id, _selection.profile_revision, _selection.content_revision, _checks, _remaining)
+		profile, revision, content, _checks, _remaining)
 	if code == &"": _checks = _remaining[0]
 	return code
 
@@ -553,6 +610,7 @@ func _observe_handling() -> StringName:
 	var code: StringName = _placements._routes._current_profile_into(row, _selection)
 	if code == &"": code = _handling_profile_leaf(self)
 	var endpoint: Vector2i = _destination_location if _action == UNLOAD else _source_location
+	if code == &"" and _grip_selected(self): endpoint =_placements._routes._resident_pair(Routes.R_LOCATION_SLOT, row)
 	if code == &"": code = _placements._locations.read_location_into(endpoint, _location)
 	if code == &"": code = _provider._terrain.binding_refusal()
 	return code if code != &"" else _operation_leaf(self, null)
@@ -564,11 +622,64 @@ static func _handling_profile_leaf(a: RefCounted) -> StringName:
 	var selected: Profiles.Selection = a._selection
 	var profile: int = selected.profile_id
 	if profile < 0 or profile >= profiles._live.header[1] or selected.mode != Profiles.MODE_WORK \
-			or selected.tool != NULL_REF or profiles._field(profiles._live, profile, Profiles.F_WORK_KIND) != Jobs.JOB_KIND_HAUL \
-			or profiles._field(profiles._live, profile, Profiles.F_CONTACT_KIND) != Profiles.CONTACT_ANCHOR_AND_PATCH:
+			or selected.tool != NULL_REF or profiles._field(profiles._live, profile, Profiles.F_WORK_KIND) != Jobs.JOB_KIND_HAUL:
+		return REFUSE_HANDLING
+	if _grip_selected(a): return _grip_profile_leaf(a)
+	if profiles._field(profiles._live, profile, Profiles.F_CONTACT_KIND) != Profiles.CONTACT_ANCHOR_AND_PATCH:
 		return REFUSE_HANDLING
 	var states: int = Profiles.STATE_WORK | Profiles.STATE_ENTRY | Profiles.STATE_REVERSAL | Profiles.STATE_RECOVERY
 	return &"" if (profiles._field(profiles._live, profile, Profiles.F_STATES) & states) == states else REFUSE_HANDLING
+
+
+static func _grip_selected(a: RefCounted) -> bool:
+	"""The selected row's own contact kind decides the station seam; no caller flag or retained mode exists."""
+	var profiles: Profiles = a._placements._profiles
+	var row: int = a._selection.profile_id
+	return row >= 0 and row < profiles._live.header[1] and a._selection.mode == Profiles.MODE_WORK \
+		and profiles._field(profiles._live, row, Profiles.F_CONTACT_KIND) == Profiles.CONTACT_HAUL_GRIP
+
+
+static func _grip_profile_leaf(a: RefCounted) -> StringName:
+	"""A certified grip row, lifting for LOAD and setting down for UNLOAD, for exactly one whole unit."""
+	var row: int = a._selection.profile_id
+	if not Grip.is_grip(row) or Grip.profile_refusal(a._placements._profiles, row) != &"" \
+			or a._selection.profile_revision != 1 or a._selection.content_revision != a._placements._profiles.content_revision() \
+			or Grip.is_load(row) != (a._action == LOAD) or a._quantity != Grip.QUANTITY_MILLI: return REFUSE_HANDLING
+	# ADR1206: the grip row's cargo family must be the shipped item's (wood rows never lift stone).
+	var inventory: Inventory = a._placements._inventory
+	if a._action == LOAD and inventory.is_lot_valid(a._source_lot) \
+			and inventory.lot_item_id(a._source_lot) != Grip.item_of(row): return REFUSE_HANDLING
+	return &""
+
+
+static func stand_of(a: RefCounted, storage: Vector2i) -> Vector2i:
+	"""The one live WORK endpoint at a certified stand offset from a storage point, in its section, level and room;
+	none or several refuse. The stand is derived from the certificate, never from a caller-supplied map."""
+	var locations: Locations = a._placements._locations
+	if not _location_live(locations, storage) or not _spend(a, 4 * locations._capacity): return NULL_REF
+	var found: Vector2i = NULL_REF
+	for row: int in locations._capacity:
+		var ref: Vector2i = Vector2i(row, _location32(locations, Locations.GENERATION, row))
+		if not _location_live(locations, ref) or not _beside(locations, ref, storage): continue
+		if found != NULL_REF: return NULL_REF
+		found = ref
+	return found
+
+
+static func _beside(locations: Locations, stand: Vector2i, storage: Vector2i) -> bool:
+	"""A WORK endpoint in the storage endpoint's section/level/room whose point is S minus a certified S-R."""
+	if _location32(locations, Locations.ROLE, stand.x) != Locations.ROLE_WORK \
+			or _location_pair(locations, Locations.SECTION_SLOT, stand.x) != _location_pair(locations, Locations.SECTION_SLOT, storage.x) \
+			or _location_pair(locations, Locations.ROOM_SLOT, stand.x) != _location_pair(locations, Locations.ROOM_SLOT, storage.x) \
+			or _location32(locations, Locations.LEVEL, stand.x) != _location32(locations, Locations.LEVEL, storage.x): return false
+	var offset: Vector3i = _location_point(locations, storage.x) - _location_point(locations, stand.x)
+	return offset == Grip.stock_offset(0) or offset == Grip.stock_offset(Grip.QUARTER)
+
+
+static func _location_point(locations: Locations, row: int) -> Vector3i:
+	"""Exact packed endpoint point."""
+	return Vector3i(_location32(locations, Locations.X, row), _location32(locations, Locations.Y, row),
+		_location32(locations, Locations.Z, row))
 
 
 static func _cleanup_binding(a: RefCounted) -> StringName:
@@ -644,7 +755,7 @@ static func _source_leaf(a: RefCounted) -> StringName:
 	if not _spend(a, 512) or p._busy or not p._ready or not p._is_live(p._live, a._placement): return REFUSE_SOURCE
 	if p._space._header[17] != a._geometry_revision or a._frontier._header[0] != a._frontier_revision \
 			or p._locations._last_published_token != a._location_receipt or p._routes._last_published_token != a._route_receipt \
-			or p._pair(p._live, Placements.PROJECT_SLOT, a._placement.x) != a._project \
+			or (not a._excavation and p._pair(p._live, Placements.PROJECT_SLOT, a._placement.x) != a._project) \
 			or p._pair(p._live, Placements.ROOM_SLOT, a._placement.x) != a._order.corridor \
 			or p._get64(p._live, Placements.PAYLOAD_REVISION, a._placement.x) != a._order.payload_revision \
 			or p._get32(p._live, Placements.CATALOG_ROW, a._placement.x) != a._order.catalog_row \
@@ -680,11 +791,13 @@ static func _job_leaf(a: RefCounted) -> StringName:
 			or jobs._agent_job_slot[worker] != a._job.x or jobs._agent_job_generation[worker] != a._job.y: return REFUSE_JOB
 	row = _full_row(ids, a._project, Directory.KIND_CONSTRUCTION)
 	var c: Construction = a._placements._construction
-	return &"" if row >= 0 and c._present[row] == 1 and c._ref_slot[row] == a._project.x \
-		and c._ref_generation[row] == a._project.y and c._purpose[row] == Construction.PURPOSE_CONNECTOR_INSTALL \
-		and c._phase[row] <= Construction.PHASE_READY and c._paused[row] == 0 and c._type_id[row] == a._order.installed_count \
-		and Vector2i(c._subject_slot[row], c._subject_generation[row]) == a._placement \
-		and Vector2i(c._material_container_slot[row], c._material_container_generation[row]) == a._destination else REFUSE_JOB
+	if row < 0 or c._present[row] != 1 or c._ref_slot[row] != a._project.x or c._ref_generation[row] != a._project.y \
+			or c._phase[row] > Construction.PHASE_READY or c._paused[row] != 0 \
+			or Vector2i(c._material_container_slot[row], c._material_container_generation[row]) != a._destination:
+		return REFUSE_JOB
+	if a._excavation: return &"" if c._purpose[row] == Construction.PURPOSE_EXCAVATION else REFUSE_JOB
+	return &"" if c._purpose[row] == Construction.PURPOSE_CONNECTOR_INSTALL and c._type_id[row] == a._order.installed_count \
+		and Vector2i(c._subject_slot[row], c._subject_generation[row]) == a._placement else REFUSE_JOB
 
 
 static func _endpoint_leaf(a: RefCounted, container: Vector2i, endpoint: Vector2i) -> StringName:
@@ -722,7 +835,10 @@ static func _worker_leaf(a: RefCounted, transfer: Transfer) -> StringName:
 			or graph._resident_pair(Routes.R_EDGE_SLOT, row) != NULL_REF \
 			or graph._motion.resident[Routes.R_HEAD * Routes.RESIDENT_CAPACITY + row] >= 0: return REFUSE_ARRIVAL
 	var endpoint: Vector2i = graph._resident_pair(Routes.R_LOCATION_SLOT, row)
-	if a._action != ADMIT and endpoint != (a._destination_location if a._action == UNLOAD else a._source_location):
+	var storage: Vector2i = a._destination_location if a._action == UNLOAD else a._source_location
+	if a._action != ADMIT and _grip_selected(a):
+		if _grip_station_leaf(a, endpoint, storage) != &"": return REFUSE_ARRIVAL
+	elif a._action != ADMIT and endpoint != storage:
 		return REFUSE_ARRIVAL
 	if not _record_matches(a._placements._locations, endpoint, a._location, a._placements._space) \
 			or a._location.point != Vector3i(a._selection.x, a._selection.y, a._selection.z): return REFUSE_ARRIVAL
@@ -754,6 +870,16 @@ static func _staged_worker_leaf(a: RefCounted, transfer: Transfer) -> StringName
 		if code != &"": return code
 		if not Routes._same_selection(selected, graph._checked_selection): return REFUSE_TRANSFER
 	return _selected_profile_leaf(a)
+
+
+static func _grip_station_leaf(a: RefCounted, stand: Vector2i, storage: Vector2i) -> StringName:
+	"""Final leaf: the worker stands on the storage endpoint's stand, and the grip certificate places the stock
+	exactly on the storage point S at the certified offset from the worker's exact root and heading."""
+	var locations: Locations = a._placements._locations
+	if not _location_live(locations, stand) or not _location_live(locations, storage) \
+			or not _beside(locations, stand, storage): return REFUSE_ARRIVAL
+	return Grip.station_refusal(a._placements._profiles, a._selection.profile_id,
+		Vector3i(a._selection.x, a._selection.y, a._selection.z), a._selection.yaw, _location_point(locations, storage.x))
 
 
 static func _selected_profile_leaf(a: RefCounted) -> StringName:
@@ -797,9 +923,25 @@ static func _roles_leaf(a: RefCounted) -> StringName:
 		if code != &"": return code
 		if a._box.role == Profiles.STANCE_SUPPORT:
 			if not Space.contains_box(a._location.support, a._bounds): return REFUSE_HANDLING
+		elif a._box.role == Profiles.WORK_STROKE and _grip_selected(a):
+			if not _stock_contained(a): return REFUSE_HANDLING
 		elif not _body_contained(a): return REFUSE_HANDLING
-	var required: int = 7 if a._action == ADMIT or a._action == REPOST else 127
+	var required: int = 7 if a._action == ADMIT or a._action == REPOST else (31 if _grip_selected(a) else 127)
 	return &"" if (roles & required) == required else REFUSE_HANDLING
+
+
+static func _stock_contained(a: RefCounted) -> bool:
+	"""A grip row's stroke is the stock itself: above the floor in the stand's air, and its floor contact at S on the
+	stand's surveyed footing (floor support at S). It is not a foot, so no stance region is asked to cover it."""
+	var floor_y: int = a._location.envelope[1]
+	for axis: int in 6: a._support[axis] = a._bounds[axis]
+	if a._bounds[4] > floor_y:
+		a._support[1] = maxi(a._bounds[1], floor_y)
+		if not Space.contains_box(a._location.envelope, a._support): return false
+	if a._bounds[1] >= floor_y: return true
+	a._support[1] = a._bounds[1]
+	a._support[4] = mini(a._bounds[4], floor_y)
+	return Space.contains_box(a._location.support, a._support)
 
 
 static func _box_bounds(a: RefCounted, selected: Profiles.Selection, out: PackedInt32Array) -> StringName:
@@ -844,14 +986,15 @@ static func _body_contained(a: RefCounted) -> bool:
 
 
 static func _occupants_leaf(a: RefCounted) -> StringName:
-	"""Every other living Resident needs a current actual physical registration; unregistered bodies are never empty air."""
+	"""Every other living Resident is a registered body or, unregistered, its ADR1219 reach cube; never empty air."""
 	var graph: Routes = a._placements._routes
 	if not _spend(a, 16 * Routes.RESIDENT_CAPACITY): return REFUSE_BUDGET
 	var worker_row: int = _full_row(a._placements._ids, a._worker, Directory.KIND_RESIDENT)
 	for row: int in Routes.RESIDENT_CAPACITY:
 		if row == worker_row: continue
 		if graph._resident_ref(row) == NULL_REF:
-			var missing: StringName = WorldRoutes._turn_unregistered_refusal(graph, row)
+			var missing: StringName = Routes.unregistered_body_refusal(graph, row,
+				Vector3i(a._selection.x, a._selection.y, a._selection.z))
 			if missing != &"": return missing
 			continue
 		if not _spend(a, 512): return REFUSE_BUDGET
@@ -1139,3 +1282,79 @@ static func _terrain_building(t: Terrain, tile: int, bounds: PackedInt32Array) -
 	if dx < 0 or dz < 0 or dx >= width or dz >= depth: return &"TERRAIN_BUILDING_FOOTPRINT"
 	if Terrain._vertical_overlap(bounds, World.LAND_Y_UNITS - t._depth[type_id], World.LAND_Y_UNITS): return Terrain.REFUSE_FOUNDATION
 	return Terrain.REFUSE_BODY if Terrain._vertical_overlap(bounds, World.LAND_Y_UNITS, World.LAND_Y_UNITS + t._height[type_id]) else &""
+
+
+static func retirement_refusal_in(actual: RefCounted, original: RefCounted,
+		stopped_constructor: bool = false) -> StringName:
+	"""Match the original configured delivery or an exact retained late-refusal prefix, never another planner."""
+	if actual == null or original == null or original.delivery != actual \
+			or (not actual._configured and not stopped_constructor) or actual._placements == null \
+			or actual._placements != original.placements or actual._provider != original.world_routes \
+			or actual._work != original.work or actual._frontier == null or actual._planner == null \
+			or actual._clock == null or actual._clock.get_script() != Clock:
+		return REFUSE_BINDING
+	if actual._busy or actual._work_tick or actual._action != -1 or actual._job != NULL_REF:
+		return REFUSE_BUSY
+	if original.work._spatial_delivery == null or original.work._spatial_delivery.get_ref() != actual \
+			or original.work._delivery_script != actual.get_script():
+		return REFUSE_BINDING
+	return _retirement_sources_in(actual, original)
+
+
+static func _retirement_sources_in(actual: RefCounted, original: RefCounted) -> StringName:
+	"""The kernel additionally matches the exact private Host Planner/clock, using its already retained Host."""
+	if original.room_bindings == null or actual._frontier != original.room_bindings._entry_frontier \
+			or actual._planner.get_script() != Planner or actual._planner._inventory != original.inventory \
+			or actual._planner._reservations != original.reservations or actual._planner._residents != original.residents \
+			or actual._planner._buildings != original.buildings or actual._planner._piles != original.piles \
+			or actual._planner._store_policy == null or actual._planner._store_policy._directory != original.directory \
+			or actual._planner._store_policy._buildings != original.buildings \
+			or actual._planner._store_policy._inventory != original.inventory:
+		return REFUSE_BINDING
+	return &""
+
+
+static func world_retirement_release_preflighted_in(actual: RefCounted, original: RefCounted,
+		persistent_id: int, stopped_constructor: bool = false) -> StringName:
+	"""First in the new-owner tail: drop only Delivery memory after the exact canonical World clear."""
+	var code: StringName = retirement_refusal_in(actual, original, stopped_constructor)
+	if code != &"": return code
+	code = Buildings.whole_world_retirement_refusal_in(original.directory, original.world_ref, persistent_id, true)
+	if code != &"": return code
+	if original.world == null or original.world._published: return REFUSE_BINDING
+	actual._configured = true # Once-bound tombstone also covers a failed post-bind allocation/configuration.
+	actual._placements = null
+	actual._frontier = null
+	actual._planner = null
+	actual._provider = null
+	actual._work = null
+	actual._clock = null
+	_release_retired_packet_in(actual)
+	return &""
+
+
+static func _release_retired_packet_in(actual: RefCounted) -> void:
+	"""Release all owned caller scratch without allocating another packet or clearing a foreign Work link."""
+	actual._order = null
+	actual._selection = null
+	actual._location = null
+	actual._box = null
+	actual._number = null
+	actual._frame.clear()
+	actual._install.clear()
+	actual._endpoint.clear()
+	actual._bounds.clear()
+	actual._support.clear()
+	actual._remaining.clear()
+
+
+# ADR1221 (cold load): Delivery retains nothing between operations. Every per-haul fact is the Planner's admission
+# record (haul_planner.gd, saved by its own owner), the Reservation pool's claims, Inventory and the Job. Delivery
+# therefore writes no record; a save or load only requires it to be quiescent: no operation or work-tick window
+# open and no pinned Job.
+const REFUSE_LOAD_BUSY: StringName = &"DELIVERY_LOAD_BUSY"
+
+
+func save_quiescence_refusal() -> StringName:
+	"""ADR1221: empty when a save may be taken or a load accepted; Delivery has nothing else to write or read."""
+	return &"" if _configured and not _busy and not _work_tick and _job == NULL_REF else REFUSE_LOAD_BUSY

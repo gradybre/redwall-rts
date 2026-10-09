@@ -37,11 +37,42 @@ const Sites := preload("res://scripts/core/excavation_sites.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const Transforms := preload("res://scripts/core/transforms.gd")
+const EntryBindings := preload("res://scripts/core/underground_entry_bindings.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
+const RouteFixture := preload("res://test/test_underground_world_routes.gd")
 const SOURCE_PATH: String = "user://test-actual-connector-contacts-frontier.bin"
 const SOURCE_REVISION: int = 29
 const ROOT_X: int = -3584
 const ROOT_Z: int = 512
+
+
+class RetirementPins extends RefCounted:
+	## Component-level copy of original owner identities. The complete Session retirement kernel is tested separately.
+	var contacts: Contacts = null
+	var placements: Placements = null
+	var router: Router = null
+	var sites: Sites = null
+	var terrain: Terrain = null
+	var room_bindings: EntryBindings = EntryBindings.new()
+	var world_bindings: RefCounted = null
+	var world_routes: RefCounted = null
+	var directory: Directory = null
+	var world_ref: Vector2i = NULL_REF
+	var world: RefCounted = null
+	var construction: Construction = null
+	var budget: Budget = null
+
+
+func test_unconfigured_handling_and_release_observers_refuse_without_allocating_authority() -> void:
+	"""A fresh observer cannot reset an operation budget or grant a paid handling/pause transition."""
+	var contacts: Contacts = Contacts.new()
+	assert_equal(contacts.handling_observation_refusal(NULL_REF, NULL_REF, NULL_REF, NULL_REF),
+		Contacts.REFUSE_BINDING, "handling needs original owners")
+	assert_equal(contacts.release_observation_refusal(NULL_REF, NULL_REF, NULL_REF, NULL_REF),
+		Contacts.REFUSE_BINDING, "release needs original owners")
+	assert_false(contacts._busy, "refused callback leaves no reentry latch")
+	assert_equal(contacts._fragments.first.size(), 0, "no fragment allocation before configure")
+
 
 class Content extends RefCounted:
 	## Source flags below qualify only this component fixture, never supplied rig/content or a playable entrance.
@@ -715,6 +746,51 @@ func _unpaid_order() -> void:
 	assert_true(_fixture.failures.is_empty(), "actual unpaid order setup")
 
 
+func test_initial_worker_observation_cannot_mint_start_transition() -> void:
+	"""Router's early worker context remains an unprivileged observation even when the worker fits exactly."""
+	_unpaid_order()
+	assert_equal(_fixture.paid._stage_action, -1, "the purpose owner has not prepared START")
+	assert_equal(_fixture.contacts.worker_refusal(_fixture.placement, _fixture.project, 0,
+		_fixture.job, _fixture._f._worker), &"", "actual worker observation")
+	assert_equal(_fixture.contacts._action, -1, "the observer cannot choose the owner's next transition")
+	assert_equal(_fixture.contacts.final_leaf_refusal(_fixture.placement, _fixture.project, 0,
+		Contract.START), Contacts.REFUSE_SCOPE, "a copied worker result is not START authority")
+	assert_false(_fixture._router._funding.is_funded(_fixture.project), "no receipt from observation")
+
+
+func test_region_scans_charge_each_slot_once_and_each_present_row_in_full() -> void:
+	"""ADR1227 (G14): a Region-bank scan costs one check per slot plus the row's own checks per present row, never the
+	old per-slot precharge; exactly that budget passes and one check fewer refuses, poisoning the operation."""
+	_paid_order()
+	var contacts: Contacts = _fixture.contacts
+	var owner: RefCounted = _fixture._placements._space
+	var present: int = 0
+	for row: int in owner._region_capacity:
+		if owner._r_present[row] == 1: present += 1
+	assert_true(present > 0 and present < owner._region_capacity, "a partly filled bank: %d rows" % present)
+	var far: PackedInt32Array = PackedInt32Array([1 << 28, 1 << 28, 1 << 28, (1 << 28) + 1, (1 << 28) + 1, (1 << 28) + 1])
+	var bearing: int = owner._region_capacity + Contacts.PRESENT_REGION_CHECKS * present
+	assert_true(bearing < 12 * owner._region_capacity, "below the old 12-per-slot precharge")
+	_set_fragments(contacts, bearing)
+	assert_equal(contacts._installed_bearing_obstacles(far), &"", "exactly its reads fit")
+	assert_equal(contacts._fragments.remaining, 0, "and are all charged")
+	_set_fragments(contacts, bearing - 1)
+	assert_equal(contacts._installed_bearing_obstacles(far), Contacts.REFUSE_CAPACITY, "one check short refuses")
+	assert_true(contacts._fragments.failed, "and poisons the operation")
+	_set_fragments(contacts, owner._region_capacity + Contacts.PRESENT_DATUM_CHECKS * present)
+	contacts._unique_datum()
+	assert_true(contacts._fragments.remaining == 0 and not contacts._fragments.failed, "the datum scan charges the same way")
+	_set_fragments(contacts, owner._region_capacity + Contacts.PRESENT_DATUM_CHECKS * present - 1)
+	assert_equal(contacts._unique_datum(), NULL_REF, "one check short finds nothing")
+	assert_true(contacts._fragments.failed, "and poisons the operation")
+
+
+func _set_fragments(contacts: Contacts, remaining: int) -> void:
+	"""Arm the operation budget at exactly `remaining` checks."""
+	contacts._fragments.remaining = remaining
+	contacts._fragments.failed = false
+
+
 func _paid_order() -> void:
 	"""Funding and Construction remain the sole authorities for earned labor and material consumption."""
 	_unpaid_order()
@@ -1023,9 +1099,88 @@ func test_reflected_fixed_packets_fit_the_admitted_control_reserve() -> void:
 	for source: RefCounted in [actual, actual._order, actual._location, actual._other, actual._descriptor,
 			actual._selection, actual._box, actual._stance, actual._number, actual._fragments]:
 		bytes += _packet_numeric_bytes(source)
-	assert_equal(bytes, 3059, "source-derived reusable payload includes the sole original companion token, with no hidden per-placement bank")
+	# ADR1212: +160 for the ADR1215 air shape (72 B + air_count) in the two retained Location records.
+	assert_equal(bytes, 3219, "source-derived reusable payload includes the sole original companion token, with no hidden per-placement bank")
 	assert_true(bytes + 1024 <= Contacts.CONTROL_BYTES, "nested numeric helper ceiling fits the same reserve")
 	assert_equal(_packet_numeric_bytes(actual._fragments), 1633, "both fragment banks coexist and are counted")
+
+
+func _retirement_pins() -> RetirementPins:
+	"""Capture actual original stores and the same immutable source; this packet never supplies a World-clear result."""
+	var out: RetirementPins = RetirementPins.new()
+	out.contacts = _fixture.contacts
+	out.placements = _fixture._placements
+	out.router = _fixture._router
+	out.sites = _fixture._sites
+	out.terrain = _fixture._f._terrain
+	out.room_bindings._entry_frontier = _fixture.source
+	out.world_bindings = _fixture._physical
+	out.world_routes = _fixture._f._binding
+	out.directory = _fixture._f._residents.directory()
+	out.world_ref = _fixture._f._world_ref
+	out.world = _fixture._f._world
+	out.construction = _fixture._f._construction
+	out.budget = _fixture._f._budget
+	return out
+
+
+func test_contacts_retirement_requires_original_quiescent_owner_scope() -> void:
+	"""An unowned historical cold number is metadata; actual active Budget or contact/phase preparation still refuses."""
+	var pins: RetirementPins = _retirement_pins()
+	assert_equal(Contacts.retirement_refusal_in(_fixture.contacts, pins), &"", "original quiescent packet")
+	_fixture.contacts._phase_cold_token = 99
+	assert_equal(Contacts.retirement_refusal_in(_fixture.contacts, pins), &"", "discarded cold metadata owns no lease")
+	_fixture.contacts._busy = true
+	assert_equal(Contacts.retirement_refusal_in(_fixture.contacts, pins), Contacts.REFUSE_SCOPE, "live observer")
+	_fixture.contacts._busy = false
+	_fixture.contacts._valid = true
+	assert_equal(Contacts.retirement_refusal_in(_fixture.contacts, pins), Contacts.REFUSE_SCOPE, "live contact packet")
+	_fixture.contacts._valid = false
+	_fixture.contacts._phase_space_token = 1
+	assert_equal(Contacts.retirement_refusal_in(_fixture.contacts, pins), Contacts.REFUSE_SCOPE, "live phase token")
+	_fixture.contacts._phase_space_token = 0
+	var token: int = pins.budget.acquire(1)
+	assert_true(token > 0, "real cold lease")
+	assert_equal(Contacts.retirement_refusal_in(_fixture.contacts, pins), Contacts.REFUSE_SCOPE, "actual original lease")
+	assert_equal(pins.budget.release(token), &"", "release own test lease")
+	pins.world_ref.y += 1
+	assert_equal(Contacts.retirement_refusal_in(_fixture.contacts, pins), Contacts.REFUSE_BINDING, "full World generation")
+	pins.world_ref.y -= 1
+	pins.room_bindings._entry_frontier = EntrySource.new()
+	assert_equal(Contacts.retirement_refusal_in(_fixture.contacts, pins), Contacts.REFUSE_BINDING, "foreign immutable source")
+	assert_equal(_fixture.contacts._placements, _fixture._placements, "every refusal preserves original pins")
+
+
+func test_contacts_retirement_release_requires_actual_clear_and_tombstones_only_itself() -> void:
+	"""Actual store clear permits this leaf; complete whole-composition retirement remains the Session kernel's job."""
+	var pins: RetirementPins = _retirement_pins()
+	var persistent_id: int = pins.directory._persistent_id[pins.world_ref.x]
+	assert_equal(Contacts.world_retirement_release_preflighted_in(_fixture.contacts, pins, persistent_id),
+		&"WORLD_RETIREMENT_NOT_EMPTY", "live World cannot release Contacts")
+	_fixture._f._residents.clear()
+	_fixture._f._jobs.clear()
+	_fixture._f._work.clear()
+	_fixture._f._gear.clear()
+	_fixture._f._pool.clear()
+	_fixture._f._inventory.clear()
+	assert_true(_fixture._f._items.load_default(_fixture._f._inventory).ok, "same ordinary host definition reload")
+	_fixture._f._buildings.clear()
+	_fixture._f._construction.clear()
+	assert_equal(Contacts.world_retirement_release_preflighted_in(_fixture.contacts, pins, persistent_id),
+		Contacts.REFUSE_BINDING, "published World must also be cleared")
+	pins.world.clear()
+	assert_equal(Contacts.world_retirement_release_preflighted_in(_fixture.contacts, pins, persistent_id), &"", "actual empty original World")
+	assert_equal(_fixture.contacts._placements, null, "own strong Placement borrow released")
+	assert_equal(_fixture.contacts._router, null, "own weak Router borrow released")
+	assert_equal(_fixture.contacts._frame.size(), 0, "own fixed array released")
+	assert_equal(_fixture.contacts._fragments, null, "own fragment packet released")
+	assert_equal(_fixture._placements._world_routes, pins.world_routes, "foreign graph remains untouched")
+	assert_equal(_fixture._router._sites, pins.sites, "foreign Router remains untouched")
+	assert_equal(_fixture.contacts.configure(_fixture._placements, _fixture._router, _fixture.source,
+		Contacts.CONTROL_BYTES), Contacts.REFUSE_BINDING, "retired object cannot be configured again")
+	assert_false(_fixture.contacts.exact_binding(null, null, NULL_REF), "null values cannot make the tombstone match")
+	assert_equal(Contacts.world_retirement_release_preflighted_in(_fixture.contacts, pins, persistent_id),
+		Contacts.REFUSE_BINDING, "release is one-way")
 
 
 func _packet_numeric_bytes(source: RefCounted) -> int:
@@ -1107,7 +1262,8 @@ func test_unknown_actual_actor_cannot_be_omitted_from_productive_clearance() -> 
 	var other: Vector2i = _fixture._f._residents.spawn(&"mouse").ref
 	assert_true(_fixture._f._transforms.place(other, WorldTests.X + 512, 512, WorldTests.Z + 512, 0), "real overlapping actor")
 	var before: Array[PackedByteArray] = _payment_image()
-	assert_equal(_fixture.start().error, &"CONNECTOR_CONTACT_ACTOR_UNBOUND", "unknown complete actor shape refuses")
+	assert_equal(_fixture.start().error, &"ROUTE_UNREGISTERED_RESIDENT_NEAR",
+		"ADR1219: an unregistered resident within its reach cube of the station refuses")
 	_assert_payment_unchanged(before)
 	_bind_other_actor(other)
 	assert_true(_fixture.start().ok, "both actual actors now have complete committed profiles and separated poses")
@@ -1296,3 +1452,50 @@ func test_phase_discard_cannot_invalidate_a_different_mode_or_site() -> void:
 	f.contacts.discard_phase(f.placement, f.site(), PhaseContract.OP_BRACE, PhaseContract.STAGE_ADMIT)
 	assert_equal(f.contacts.phase_final_leaf_refusal(f.placement, f.site(), PhaseContract.OP_BRACE,
 		PhaseContract.STAGE_ADMIT), Contacts.REFUSE_SCOPE, "exact cleanup invalidates proof")
+
+
+
+func test_retained_contact_scope_restores_into_a_fresh_scope_and_the_order_still_pays() -> void:
+	"""ADR1221: after a worker observation and delivery the retained scope (Placement, Project, primary Job,
+	material container) is saved, blanked as a fresh Contacts holds it, restored, re-encoded identically, and the
+	actual paid START then succeeds exactly as without the load."""
+	_unpaid_order()
+	var image: PackedByteArray = PackedByteArray()
+	assert_equal(_fixture.contacts.capture_state_into(image), &"", "quiescent capture")
+	assert_equal(image.size(), Contacts.SCOPE_WIRE_BYTES, "declared size")
+	assert_equal(_fixture.contacts._primary_job != NULL_REF, true, "a retained primary Job is saved")
+	RouteFixture.wipe_contact_scope(_fixture.contacts)
+	assert_equal(_fixture.contacts.restore_state_bytes(image), &"", "restored")
+	var again: PackedByteArray = PackedByteArray()
+	assert_equal(_fixture.contacts.capture_state_into(again), &"", "recaptured")
+	assert_equal(again, image, "re-encodes")
+	var started: Construction.OpResult = _fixture.start()
+	assert_true(started.ok, "actual paid START after the load: %s" % started.error)
+
+
+func test_corrupt_contact_scope_images_are_refused_and_the_scope_is_kept() -> void:
+	"""ADR1221: magic, schema, flags, action and handle spellings are checked before any member is written."""
+	_unpaid_order()
+	var image: PackedByteArray = PackedByteArray()
+	assert_equal(_fixture.contacts.capture_state_into(image), &"", "quiescent capture")
+	var cases: Array = [["magic", 0, 7], ["schema", 4, 2], ["action", 12, 9], ["phase operation", 16, 4],
+		["placement null spelling", 30, 5], ["primary Job generation", 46, 0]]
+	for damage: Array in cases:
+		var bad: PackedByteArray = image.duplicate()
+		bad.encode_s32(damage[1], damage[2])
+		if damage[0] == "placement null spelling": bad.encode_s32(26, -1)
+		if damage[0] == "primary Job generation" and bad.decode_s32(42) < 0: bad.encode_s32(42, 3)
+		assert_equal(_fixture.contacts.restore_state_bytes(bad), Contacts.REFUSE_LOAD_SHAPE, "refused: %s" % damage[0])
+		var after: PackedByteArray = PackedByteArray()
+		_fixture.contacts.capture_state_into(after)
+		assert_equal(after, image, "scope unchanged after: %s" % damage[0])
+	var flag: PackedByteArray = image.duplicate()
+	flag[24] = 2
+	assert_equal(_fixture.contacts.restore_state_bytes(flag), Contacts.REFUSE_LOAD_SHAPE, "flag byte")
+	assert_equal(_fixture.contacts.restore_state_bytes(image.slice(1)), Contacts.REFUSE_LOAD_SHAPE, "truncated")
+	_fixture.contacts._busy = true
+	var out: PackedByteArray = PackedByteArray()
+	assert_equal(_fixture.contacts.capture_state_into(out), Contacts.REFUSE_LOAD_BUSY, "no capture mid-proof")
+	assert_equal(_fixture.contacts.restore_state_bytes(image), Contacts.REFUSE_LOAD_BUSY, "no restore mid-proof")
+	_fixture.contacts._busy = false
+

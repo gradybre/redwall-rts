@@ -29,10 +29,19 @@ const Transforms := preload("res://scripts/core/transforms.gd")
 const Inventory := preload("res://scripts/core/inventory.gd")
 const Gear := preload("res://scripts/core/gear.gd")
 const Workpieces := preload("res://scripts/core/underground_connector_workpieces.gd")
+## ADR1217 step 5: the handling program is the row Workpieces names (pick 29 dormant, paw 59 active).
+const Handling := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/handling_programs.gd")
+const StairPath := preload("res://scripts/core/underground_entry_stair_path.gd") # ADR1229: the stair stops.
+const StairPins := preload("res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
-const CONTROL_BYTES: int = 4096
+## ADR1212: +256 for the ADR1215 air shape in its two retained Location records (fixed 3,219 + 1,024 helper).
+const CONTROL_BYTES: int = 4352
 const FRAGMENT_CAPACITY: int = 32
 const SOURCE_CHECKS: int = 2048
+## ADR1227: a full Region scan charges one check per slot plus these per present row, so a full bank costs exactly
+## the old 16-per-slot (datum) and 12-per-slot (bearing) precharges and an emptier one costs what it reads.
+const PRESENT_DATUM_CHECKS: int = 15
+const PRESENT_REGION_CHECKS: int = 11
 const REFUSE_BINDING: StringName = &"CONNECTOR_CONTACT_BINDING"
 const REFUSE_SCOPE: StringName = &"CONNECTOR_CONTACT_SCOPE"
 const REFUSE_SOURCE: StringName = &"CONNECTOR_CONTACT_SOURCE"
@@ -239,8 +248,92 @@ func _allocate() -> void:
 
 func exact_binding(placements: Placements, router: Router, world: Vector2i) -> bool:
 	"""Metadata borrowing cannot grant contact permission to a coincident foreign World or composer."""
-	return _configured and placements == _placements and router == _actual_router() \
+	return _configured and _placements != null and _router != null \
+		and placements == _placements and router == _actual_router() \
 		and world == _placements._world and _binding_leaf() == &""
+
+
+static func retirement_refusal_in(actual: RefCounted, original: RefCounted) -> StringName:
+	"""The complete retirement kernel supplies its original packet; only this owner's retained pins are read here."""
+	if actual == null or original == null or original.contacts != actual or not actual._configured \
+			or actual._placements == null or actual._router == null or actual._frontier == null \
+			or actual._sites == null or actual._terrain == null or actual._fragments == null \
+			or original.room_bindings == null or original.world_bindings == null \
+			or original.world_routes == null or original.world == null or original.budget == null:
+		return REFUSE_BINDING
+	if actual._busy or actual._valid or actual._phase_space_token != 0 or actual._phase_companion_token != 0 \
+			or original.budget._token != 0 or original.budget._used != 0:
+		return REFUSE_SCOPE
+	if actual._placements != original.placements or actual._router.get_ref() != original.router \
+			or actual._sites != original.sites or actual._terrain != original.terrain \
+			or actual._frontier != original.room_bindings._entry_frontier:
+		return REFUSE_BINDING
+	return _retirement_original_stores_in(actual, original)
+
+
+static func _retirement_original_stores_in(actual: RefCounted, original: RefCounted) -> StringName:
+	"""Placement and Router remain bound until after Contacts; Workpieces and Delivery may already be released."""
+	if original.placements._ids != original.directory or original.placements._world != original.world_ref \
+			or original.placements._construction != original.construction \
+			or original.placements._world_routes != original.world_routes \
+			or original.placements._budget != original.budget or original.router == null \
+			or original.router._world != original.world_ref or original.router._construction != original.construction \
+			or original.router._sites != actual._sites or original.world._directory != original.directory \
+			or actual._terrain._world != original.world or actual._terrain._world_ref != original.world_ref \
+			or actual._terrain._budget != original.budget or original.world_routes._terrain != actual._terrain:
+		return REFUSE_BINDING
+	return &""
+
+
+static func world_retirement_release_preflighted_in(actual: RefCounted, original: RefCounted,
+		persistent_id: int) -> StringName:
+	"""Only the exact cleared, unpublished World permits dropping these pins; normal configure remains one-way."""
+	var code: StringName = retirement_refusal_in(actual, original)
+	if code != &"": return code
+	code = Routes.Buildings.whole_world_retirement_refusal_in(original.directory, original.world_ref, persistent_id, true)
+	if code != &"": return code
+	if original.world._published: return REFUSE_BINDING
+	_release_retired_controls_in(actual)
+	return &""
+
+
+static func _release_retired_controls_in(actual: RefCounted) -> void:
+	"""Release this packet only, with no foreign callback or recursive owner check after the first write."""
+	actual._poisoned = true
+	actual._placements = null
+	actual._router = null
+	actual._frontier = null
+	actual._sites = null
+	actual._terrain = null
+	actual._order = null
+	actual._location = null
+	actual._other = null
+	actual._descriptor = null
+	actual._selection = null
+	actual._box = null
+	actual._stance = null
+	actual._number = null
+	actual._fragments = null
+	_release_retired_arrays_in(actual)
+
+
+static func _release_retired_arrays_in(actual: RefCounted) -> void:
+	"""No array literal or replacement owner is allocated while releasing the fixed retained scratch."""
+	actual._frame.clear()
+	actual._install.clear()
+	actual._station.clear()
+	actual._endpoint.clear()
+	actual._cut.clear()
+	actual._bearing.clear()
+	actual._part.clear()
+	actual._region.clear()
+	actual._pair.clear()
+	actual._remaining.clear()
+	actual._bounds.clear()
+	actual._support.clear()
+	actual._target.clear()
+	actual._scratch.clear()
+	actual._episode.clear()
 
 
 func _actual_router() -> Router:
@@ -623,10 +716,14 @@ func _unique_datum() -> Vector2i:
 	"""A second actual identical datum is ambiguous; no first-match or synthetic full reference is permitted."""
 	var found: Vector2i = NULL_REF
 	var owner: Owner = _placements._space
-	if not _fragments.spend(16 * owner._region_capacity):
+	if not _fragments.spend(owner._region_capacity):
 		return NULL_REF
 	for row: int in owner._region_capacity:
-		if owner._r_present[row] != 1 or owner._r_role[row] != Space.FLOOR_DATUM \
+		if owner._r_present[row] != 1:
+			continue
+		if not _fragments.spend(PRESENT_DATUM_CHECKS): # ADR1227: a slot costs 1, a present row 16 in all.
+			return NULL_REF
+		if owner._r_role[row] != Space.FLOOR_DATUM \
 				or owner._r_claim_kind[row] != Owner.CLAIM_NONE or owner._r_level[row] != _other.level \
 				or owner._r_owner_slot[row] != _order.corridor.x or owner._r_owner_generation[row] != _order.corridor.y:
 			continue
@@ -686,8 +783,10 @@ func _workpiece_context_leaf() -> StringName:
 		return REFUSE_SCOPE
 	var code: StringName = Workpieces.prepared_leaf_refusal(actual, _placement, _project, _action, actual._cold_token)
 	if code != &"": return code
-	return _placements.prepared_installation_leaf_refusal(_placement, _project, _ordinal, actual._cold_token) \
-		if _action == Contract.COMMIT else _placements.prepared_workpiece_leaf_refusal(actual._context)
+	# ADR1229: this closes each Terrain observation; the installed witnesses (sealed Locations, paid Site columns)
+	# cannot change under a Terrain read, and ConnectorWork's final funding leaf re-derives them after Contacts.
+	return _placements.prepared_installation_leaf_refusal(_placement, _project, _ordinal, actual._cold_token, false) \
+		if _action == Contract.COMMIT else _placements.prepared_workpiece_leaf_refusal(actual._context, false)
 
 
 func _bearing_refusal(row: int, out: PackedInt32Array) -> StringName:
@@ -713,10 +812,14 @@ func _bearing_refusal(row: int, out: PackedInt32Array) -> StringName:
 func _retained_earth_refusal(bounds: PackedInt32Array) -> StringName:
 	"""Original terrain cannot refill a paid cavity or stand in for installed timber after excavation."""
 	var owner: Owner = _placements._space
-	if not _fragments.spend(12 * owner._region_capacity):
+	if not _fragments.spend(owner._region_capacity):
 		return REFUSE_CAPACITY
 	for row: int in owner._region_capacity:
-		if owner._r_present[row] != 1 or owner._r_role[row] == Space.FLOOR_DATUM:
+		if owner._r_present[row] != 1:
+			continue
+		if not _fragments.spend(PRESENT_REGION_CHECKS): # ADR1227: a slot costs 1, a present row 12 in all.
+			return REFUSE_CAPACITY
+		if owner._r_role[row] == Space.FLOOR_DATUM:
 			continue
 		_copy_region_box(row, _scratch)
 		if not Space.overlaps(bounds, _scratch):
@@ -809,10 +912,14 @@ func _installed_part_refusal(bounds: PackedInt32Array) -> StringName:
 func _installed_bearing_obstacles(bounds: PackedInt32Array) -> StringName:
 	"""An exact part and positive support union cannot hide another owner's claim or physical obstacle."""
 	var owner: Owner = _placements._space
-	if not _fragments.spend(12 * owner._region_capacity):
+	if not _fragments.spend(owner._region_capacity):
 		return REFUSE_CAPACITY
 	for row: int in owner._region_capacity:
-		if owner._r_present[row] != 1 or owner._r_role[row] == Space.FLOOR_DATUM or _installed_solid_row(row):
+		if owner._r_present[row] != 1:
+			continue
+		if not _fragments.spend(PRESENT_REGION_CHECKS): # ADR1227: a slot costs 1, a present row 12 in all.
+			return REFUSE_CAPACITY
+		if owner._r_role[row] == Space.FLOOR_DATUM or _installed_solid_row(row):
 			continue
 		if owner._r_claim_kind[row] == Owner.CLAIM_ROOM and _row_room_claim(row):
 			continue
@@ -882,7 +989,8 @@ func _part_cross(a: int, b: int, x: int, z: int) -> int:
 
 
 func _profile_refusal() -> StringName:
-	"""An installation source must explicitly name the real BUILD tool and complete certified WORK contact roles."""
+	"""An installation source names the real BUILD tool, or none (DEC-052 paw seating), and complete certified WORK
+	contact roles."""
 	var profiles: Profiles = _placements._profiles
 	var id: int = _station[5]
 	var code: StringName = profiles.descriptor_into(id, _frontier._header[5], _descriptor)
@@ -895,10 +1003,21 @@ func _profile_refusal() -> StringName:
 			or _descriptor.mode != Profiles.MODE_WORK or _descriptor.work_kind != Jobs.JOB_KIND_BUILD \
 			or _descriptor.yaw_kind != Profiles.YAW_EXACT or _descriptor.yaw != heading \
 			or _descriptor.posture != _station[6] or _descriptor.certificate_flags != Profiles.CERT_REQUIRED \
-			or _descriptor.contact_kind != Profiles.CONTACT_ANCHOR_AND_PATCH \
-			or _descriptor.tool_item < 0 or _descriptor.tool_item != _tool_item():
+			or not _install_contact_kind(_descriptor.contact_kind) or not _tool_fits(_descriptor.tool_item):
 		return REFUSE_PROFILE
 	return _scope_leaf()
+
+
+func _install_contact_kind(kind: int) -> bool:
+	"""The exact anchor-and-patch contact; at a tread station (ADR1229, DEC-058) the tread fitting motion, whose
+	paws make no certified contact: its whole motion was proved against the bearer at the station instead."""
+	return kind == Profiles.CONTACT_ANCHOR_AND_PATCH or (kind == Profiles.CONTACT_TREAD_FIT and _tread_station())
+
+
+func _tread_station() -> bool:
+	"""ADR1229: content 10's T1-T6 orders stand at a tread station on the tread above."""
+	return not _phase_mode and _frontier._header[5] == Handling.Paw10.CONTENT \
+		and Handling.PawPhysical10.Tread.is_tread(_ordinal)
 
 
 func _read_profile_box(ordinal: int, out: Profiles.Box, source_profile: int = -1) -> bool:
@@ -950,6 +1069,8 @@ func _profile_geometry(source_profile: int = -1) -> StringName:
 			stance = stance or _box.role == Profiles.STANCE_SUPPORT
 		if code != &"":
 			return code
+	# ADR1229: the tread rows carry no contact boxes; the fitting tap is certified at the station (_certified_tap).
+	if _tread_station(): return &"" if stance and (source_profile >= 0 or _certified_tap(source_profile)) else REFUSE_PROFILE
 	return &"" if point and patch and stance else REFUSE_PROFILE
 
 
@@ -964,10 +1085,14 @@ func _role_geometry(role: int, source_profile: int = -1) -> StringName:
 	var code: StringName = _terrain_refusal(_bounds, Terrain.EXCLUSIONS)
 	if code != &"":
 		return code
-	if _workpiece_owner() != null and role != Profiles.WORK_STROKE and Space.overlaps(_bounds, _target):
+	if _workpiece_owner() != null and role != Profiles.WORK_STROKE and Space.overlaps(_bounds, _target) \
+			and not _certified_tap(source_profile):
 		return REFUSE_GEOMETRY
 	if role == Profiles.STANCE_SUPPORT:
 		return &"" if Space.contains_box(_location.support, _bounds) else REFUSE_GEOMETRY
+	if _tread_station(): return _tread_role_volume(role, source_profile)
+	if _location.air_count > 0: # ADR1215: installation contacts are single-box; extra air is never proved here.
+		return REFUSE_GEOMETRY
 	_fragments.start(_bounds)
 	if not _fragments.subtract(_location.envelope):
 		return REFUSE_CAPACITY
@@ -977,6 +1102,52 @@ func _role_geometry(role: int, source_profile: int = -1) -> StringName:
 	elif not _subtract_stances(source_profile):
 		return REFUSE_CAPACITY if _fragments.failed else REFUSE_GEOMETRY
 	return &"" if _fragments.count == 0 else REFUSE_GEOMETRY
+
+
+func _tread_role_volume(role: int, source_profile: int) -> StringName:
+	"""ADR1229: a tread station's stop records only its footing, so each body box is proved against the actual
+	Regions, as the tread fitting and seating proofs stood: completed void, the station Room's own installed timber,
+	the order's own piece (held, or reached by the certified tap) and the stroke's target, then proved exterior air.
+	The Room's own reservation marker is nonphysical (as everywhere)."""
+	_fragments.start(_bounds)
+	if role == Profiles.WORK_STROKE and not _fragments.subtract(_target): return REFUSE_CAPACITY
+	var owner: Owner = _placements._space
+	var piece: int = _own_piece_region() if source_profile >= 0 or _certified_tap(source_profile) else -1
+	for region: int in owner._region_capacity:
+		if not _fragments.spend(): return REFUSE_CAPACITY
+		if owner._r_present[region] == 0: continue
+		_copy_region_box(region, _scratch)
+		if not Space.overlaps(_bounds, _scratch) or Handling.own_room_marker(owner, region, _location.room): continue
+		var kind: int = owner._r_role[region]
+		if kind == Space.SUPPORTED_VOID or _tread_timber(owner, region) or region == piece:
+			if not _fragments.subtract(_scratch): return REFUSE_CAPACITY
+		elif kind != Space.FLOOR_DATUM and kind != Space.PROTECTED_ACCESS: return REFUSE_GEOMETRY
+	if not _subtract_stances(source_profile): return REFUSE_CAPACITY if _fragments.failed else REFUSE_GEOMETRY
+	return _exterior_fragments()
+
+
+func _exterior_fragments() -> StringName:
+	"""Every remaining fragment must be proved exterior air."""
+	for fragment: int in _fragments.count:
+		if not _fragments.spend(Terrain.LOCAL_QUERY_CHECKS): return REFUSE_CAPACITY
+		for axis: int in 6: _scratch[axis] = _fragments.first[fragment * 6 + axis]
+		var code: StringName = _terrain_refusal(_scratch, Terrain.EXTERIOR)
+		if code != &"": return code
+	return &""
+
+
+func _own_piece_region() -> int:
+	"""The live Region of this order's own workpiece, or -1."""
+	var pieces: Workpieces = _workpiece_owner()
+	return pieces._live.fields[pieces.REGION_SLOT * pieces._capacity + _placement.x] if pieces != null else -1
+
+
+func _certified_tap(source_profile: int) -> bool:
+	"""ADR1217 step 5: the claw seating tap's entry/recovery AABB crosses the bearer prism only because the published
+	row does not split the paws at the contact plane; its offline triangle proof (step 2) clears the whole motion
+	against both bearer prisms at the canonical root. Only that exact row at that exact root is excused."""
+	return source_profile < 0 and Handling.tap_certified(_placements._profiles, _descriptor.profile_id,
+		_descriptor.profile_revision, _frontier._header[5], _ordinal, _location.point, _target)
 
 
 func _subtract_stances(source_profile: int = -1) -> bool:
@@ -1210,11 +1381,106 @@ func _resolve_all_endpoints() -> StringName:
 	if _station_location == NULL_REF or _material_location == NULL_REF or _retreat_location == NULL_REF:
 		return REFUSE_ENDPOINT
 	var code: StringName = _endpoint_payloads()
-	if code == &"":
-		code = _path_refusal(_material_location, _station_location, _install[7])
-	if code == &"":
-		code = _path_refusal(_station_location, _retreat_location, _install[8])
+	if code == &"" and _tread_station():
+		code = _stair_reach_refusal()
+	elif code == &"":
+		code = _approach_refusal()
+		if code == &"": code = _path_refusal(_station_location, _retreat_location, _install[8])
 	return _phase_resolve_output() if code == &"" and _phase_mode else code
+
+
+func _stair_reach_refusal() -> StringName:
+	"""ADR1229: a tread station is reached from M by the material profile to the crossing arrival, then down the
+	stair leg by leg, and left back up it to the crossing arrival; each leg is one static profile reachability. The
+	station's own arrival stop is retracted while its bearer is pending (FUND to commit), with the climb from the stop
+	its half-turn reaches; those legs are skipped then: the worker already stands on the station."""
+	var stops: StairPath.Stops = _tread_stops()
+	var level: int = _ordinal - 2
+	if stops.x != _retreat_location or stops.s[level + 1] != _station_location: return REFUSE_ENDPOINT
+	var code: StringName = _path_refusal(_material_location, _retreat_location, _install[7])
+	var legs: Array = [stops.x, stops.p, StairPins.CLAW_APPROACH_ROWS[0], stops.p, stops.a[0], StairPins.CLAW_STEP_FORWARD_ROW]
+	for below: int in level + 1:
+		legs.append_array([stops.a[below], stops.a[below + 1], StairPins.CLAW_DESCENT_ROW])
+	legs.append_array([stops.a[level + 1], stops.s[level + 1], StairPins.CLAW_STEP_BACK_ROW,
+		stops.s[level + 1], stops.a[level + 1], StairPins.CLAW_STEP_FORWARD_ROW,
+		stops.a[level + 1], stops.u[level + 1], StairPins.CLAW_TURN_ROW])
+	for above: int in range(level, -1, -1):
+		legs.append_array([stops.u[above + 1], stops.u[above], StairPins.CLAW_ASCENT_ROW])
+	legs.append_array([stops.u[0], stops.x, StairPins.CLAW_APPROACH_ROWS[2]])
+	var retracted: bool = stops.a[level + 1] == NULL_REF
+	for at: int in range(0, legs.size(), 3):
+		if code != &"": break
+		var first: Vector2i = legs[at]
+		var last: Vector2i = legs[at + 1]
+		if retracted and (first == NULL_REF or last == NULL_REF or first == stops.u[level + 1]): continue
+		if first == NULL_REF or last == NULL_REF: return REFUSE_ENDPOINT
+		code = _row_path_refusal(first, last, legs[at + 2])
+	return code
+
+
+func _tread_stops() -> StairPath.Stops:
+	"""Every live installed stair stop of this Frontier, by kind and level: one pass over the live Locations matches
+	their exact role, Room and transformed source point (each leg's edge certificate is checked separately)."""
+	var stops: StairPath.Stops = StairPath.Stops.new()
+	var wanted: PackedInt32Array = PackedInt32Array()
+	for selector: int in _frontier._header[8 + Frontier.ENDPOINT]:
+		if _frontier._field(Frontier.ENDPOINT, selector, 0) != Frontier.INSTALLED_CONTACT: continue
+		var local: Vector3i = Vector3i(_frontier._field(Frontier.ENDPOINT, selector, 4),
+			_frontier._field(Frontier.ENDPOINT, selector, 5), _frontier._field(Frontier.ENDPOINT, selector, 6))
+		var kind: Vector2i = StairPath.classify(local)
+		if kind.x < 0: continue
+		wanted.append_array(PackedInt32Array([kind.x, kind.y, _frontier._field(Frontier.ENDPOINT, selector, 3),
+			_coordinate(local.x, local.y, local.z, 0), _coordinate(local.x, local.y, local.z, 1),
+			_coordinate(local.x, local.y, local.z, 2)]))
+	var locations: Locations = _placements._locations
+	if not _fragments.spend(locations._capacity): return stops
+	for row: int in locations._capacity:
+		if locations._live.present[row] != 1: continue
+		if not _fragments.spend(4 + wanted.size()): return stops
+		if locations._ref_at(locations._live, Locations.ROOM_SLOT, row) != _location.room: continue
+		_record_stop(stops, wanted, locations, row)
+	return stops
+
+
+func _record_stop(stops: StairPath.Stops, wanted: PackedInt32Array, locations: Locations, row: int) -> void:
+	"""File one live Location under the stop it matches exactly, if any."""
+	var point: Vector3i = Vector3i(locations._get32(locations._live, Locations.X, row),
+		locations._get32(locations._live, Locations.Y, row), locations._get32(locations._live, Locations.Z, row))
+	var role: int = locations._get32(locations._live, Locations.ROLE, row)
+	for at: int in range(0, wanted.size(), 6):
+		if wanted[at + 2] == role and Vector3i(wanted[at + 3], wanted[at + 4], wanted[at + 5]) == point:
+			StairPath.record(stops, Vector2i(wanted[at], wanted[at + 1]),
+				Vector2i(row, locations._get32(locations._live, Locations.GENERATION, row)))
+			return
+
+
+func _row_path_refusal(first: Vector2i, last: Vector2i, profile: int) -> StringName:
+	"""One stair leg is one straight edge: its published certificate must admit the authored row at its loaded
+	revision (a constant-time static check; a graph search per leg would charge the Location census each time)."""
+	var graph: Routes = _placements._routes
+	var edge: Routes.Edge = Routes.Edge.new()
+	var profiles: Profiles = _placements._profiles
+	for row: int in graph._edge_capacity:
+		if not _fragments.spend(): return REFUSE_CAPACITY
+		if graph._live.present[row] != 1: continue
+		var ref: Vector2i = Vector2i(row, graph._live.fields[Routes.E_GENERATION * graph._edge_capacity + row])
+		if graph.edge_metadata_into(ref, edge) != &"" or edge.from_location != first or edge.to_location != last: continue
+		var code: StringName = _placements._world_routes.static_profile_edge_refusal(ref, profile,
+			profiles._live.quantities[Profiles.L_REVISION * profiles._profile_capacity + profile], _frontier._header[5])
+		return code if code != &"" else _scope_leaf()
+	return &"ROUTE_NOT_CONNECTED"
+
+
+func _approach_refusal() -> StringName:
+	"""ADR1202 split landing: a station whose own travel profile differs from the material selector's admits only
+	that narrow approach, so the worker changes profile at the authored retreat (arrival) endpoint: material to
+	arrival on the material profile, then arrival to station on the station's. Equal profiles go direct."""
+	var material: int = _install[7]
+	if _frontier._travel_profile[material] == _frontier._travel_profile[_station[0]] \
+			and _frontier._travel_revision[material] == _frontier._travel_revision[_station[0]]:
+		return _path_refusal(_material_location, _station_location, material)
+	var code: StringName = _path_refusal(_material_location, _retreat_location, material)
+	return code if code != &"" else _path_refusal(_retreat_location, _station_location, _station[0])
 
 
 func _endpoint_payloads() -> StringName:
@@ -1253,6 +1519,9 @@ func _physical_leaf() -> StringName:
 		code = _bearing_dependencies()
 	if code == &"":
 		code = _descriptor_leaf()
+	if code == &"" and not _phase_mode and (_action == Contract.PRODUCTIVE or _action == Contract.COMMIT) \
+			and _assembly_source_selected():
+		code = Workpieces.handled_leaf_refusal(_workpiece_owner(), _placement, _project)
 	return _profile_geometry() if code == &"" else code
 
 
@@ -1309,6 +1578,32 @@ func final_observation_refusal(placement: Vector2i, project: Vector2i, assembly:
 	return _leave(code if code != &"" else _scope_leaf())
 
 
+func handling_observation_refusal(placement: Vector2i, project: Vector2i, worker: Vector2i,
+		job: Vector2i) -> StringName:
+	"""The paid handling owner borrows one original graph budget before observations; its concrete tail repeats proof."""
+	if not _enter(): return REFUSE_REENTRY
+	var code: StringName = _binding_leaf() if _configured else REFUSE_BINDING
+	var pieces: Workpieces = _workpiece_owner() if code == &"" else null
+	if code == &"" and pieces == null: code = REFUSE_BINDING
+	if code == &"":
+		code = Workpieces.handling_leaf_refusal(pieces, placement, project, worker, job)
+	if code == &"":
+		code = _placements._world_routes.assembly_handling_refusal(pieces, placement, project, worker, job)
+	return _leave(code)
+
+
+func release_observation_refusal(placement: Vector2i, project: Vector2i, worker: Vector2i,
+		job: Vector2i) -> StringName:
+	"""Positioning-only release observes current owners under the caller's original whole-crew budget."""
+	if not _enter(): return REFUSE_REENTRY
+	var code: StringName = _binding_leaf() if _configured else REFUSE_BINDING
+	var pieces: Workpieces = _workpiece_owner() if code == &"" else null
+	if code == &"" and pieces == null: code = REFUSE_BINDING
+	if code == &"":
+		code = _placements._world_routes.assembly_release_observation_refusal(pieces, placement, project, worker, job)
+	return _leave(code)
+
+
 func _observe_workers() -> StringName:
 	"""Actual selection observers finish before the direct final worker and physical proof."""
 	var primary: int = _job_row(_primary_job)
@@ -1326,8 +1621,12 @@ func _observe_workers() -> StringName:
 			var code: StringName = _placements._profiles._prepare_query(worker, job, Profiles.MODE_WORK,
 				_station[6], -1, NULL_REF, _selection)
 			if code == &"":
-				code = _placements._routes.source_work_observation_refusal(worker, job, _station[5],
-					_profile_revision, _frontier._header[5])
+				if _assembly_start():
+					code = Routes.source_ready_leaf_refusal(_placements._routes, worker, job,
+						_handling_row(), 1, _frontier._header[5])
+				else:
+					code = _placements._routes.source_work_observation_refusal(worker, job, _station[5],
+						_profile_revision, _frontier._header[5])
 			if code != &"": return code
 		if jobs._is_coordinator[primary] == 0: break
 		row = jobs._member_next[row]
@@ -1578,6 +1877,8 @@ func _worker_leaf(job: Vector2i, worker: Vector2i) -> StringName:
 	if _phase_mode and _phase_needs_worker() and (_sites._worker_site[row] != _phase_site.x \
 			or _sites._worker_generation[row] != worker.y):
 		return REFUSE_WORKER
+	if _assembly_start() or _assembly_unfunded_worker() or _assembly_rehandling_worker():
+		return _assembly_start_worker_leaf(job, worker, row)
 	var code: StringName = _dynamic_selection(row, worker, job, _selection)
 	if code != &"" or not graph._committed_selection(row, _selection) \
 			or _selection.profile_id != _station[5] or _selection.profile_revision != _profile_revision \
@@ -1593,6 +1894,148 @@ func _worker_leaf(job: Vector2i, worker: Vector2i) -> StringName:
 	if code == &"": code = _worker_retreat_leaf(worker, job)
 	if code == &"": code = _occupancy_leaf(worker)
 	return _handling_leaf(worker, job) if code == &"" else code
+
+
+func _assembly_source_selected() -> bool:
+	"""Only the explicit new handling selector enters this protocol; legacy fixture paths keep their old contract."""
+	var actual: Workpieces = _workpiece_owner()
+	return actual != null and _ordinal >= 0 and _ordinal < actual._assembly_capacity \
+		and actual._parts.size() == 6 * actual._assembly_capacity \
+		and Handling.is_handling(actual._parts[Workpieces.PROFILE * actual._assembly_capacity + _ordinal],
+			actual._header[Workpieces.H_PROFILES])
+
+
+func _handling_row() -> int:
+	"""ADR1217 step 5: the set-down (handling) row the bound Workpieces names for this order's assembly."""
+	return Handling.profile_of(_workpiece_owner(), _ordinal)
+
+
+func _assembly_start() -> bool:
+	"""Funding starts at canonical handling READY; the INSTALL work selector is chosen only after handled recovery.
+	DEC-057: a replacement resuming an already handled piece revalidates at INSTALL WORK, not here."""
+	return not _phase_mode and _action == Contract.START and _assembly_source_selected() \
+		and _piece_state() != Workpieces.HANDLED
+
+
+func _piece_state() -> int:
+	"""The order's Workpieces row state (0 before funding), read without an observer."""
+	var pieces: Workpieces = _workpiece_owner()
+	if pieces == null or _placement.x < 0 or _placement.x >= pieces._capacity: return 0
+	return pieces._live.present[_placement.x]
+
+
+func _assembly_unfunded_worker() -> bool:
+	"""An early Router worker check observes READY before the paid owner stages START; it grants no transition."""
+	if _phase_mode or _action != -1 or not _assembly_source_selected(): return false
+	var row: int = _project_row()
+	if row < 0: return false
+	var construction: Construction = _placements._construction
+	var funding: RefCounted = _actual_router()._funding
+	return construction._phase[row] == Construction.PHASE_READY and construction._work_begun[row] == 0 \
+		and construction._paused[row] == 0 and funding._project_slot[row] == -1 \
+		and funding._project_generation[row] == 0
+
+
+func _assembly_rehandling_worker() -> bool:
+	"""DEC-057: a replacement for a lost crew is revalidated at canonical handling READY, exactly as at START, while the
+	funded order's piece is still pending handling; it grants no transition or fastening work by itself."""
+	if _phase_mode or (_action != -1 and _action != Contract.START) or not _assembly_source_selected(): return false
+	var row: int = _project_row()
+	if row < 0: return false
+	var construction: Construction = _placements._construction
+	return construction._phase[row] == Construction.PHASE_WORKING and construction._work_begun[row] == 1 \
+		and construction._paused[row] == 0 and _piece_state() == Workpieces.PENDING_HANDLING
+
+
+func _rehandled_region() -> int:
+	"""DEC-057: the live Region of the order's own pending piece while a replacement re-handles it; -1 otherwise."""
+	if not _assembly_rehandling_worker(): return -1
+	var pieces: Workpieces = _workpiece_owner()
+	return pieces._live.fields[pieces.REGION_SLOT * pieces._capacity + _placement.x]
+
+
+func _assembly_start_worker_leaf(job: Vector2i, worker: Vector2i, row: int) -> StringName:
+	"""Actual BUILD assignment/tool/body and canonical READY precede payment, with no fastening work granted."""
+	var actual: Workpieces = _workpiece_owner()
+	var graph: Routes = _placements._routes
+	var code: StringName = Workpieces.source_leaf_refusal(actual, _placement, _project)
+	if code == &"": code = Routes.turn_selection_into(graph, row, _selection)
+	if code == &"": code = Handling.profile_refusal(_placements._profiles, _selection.profile_id,
+		_selection.profile_revision, _selection.content_revision)
+	if code != &"" or _selection.worker != worker or _selection.job != job \
+			or _selection.content_revision != _frontier._header[5] or _selection.yaw != 0 \
+			or _selection.yaw != _world_yaw() or Vector3i(_selection.x, _selection.y, _selection.z) != _location.point \
+			or graph._resident_pair(Routes.R_ROOM_SLOT, row) != _location.room \
+			or graph._resident_pair(Routes.R_SECTION_SLOT, row) != _location.section \
+			or graph._motion.resident[Routes.R_LEVEL * Routes.RESIDENT_CAPACITY + row] != _location.level:
+		return code if code != &"" else REFUSE_WORKER
+	code = Routes.source_ready_leaf_refusal(graph, worker, job, _handling_row(), 1, _frontier._header[5])
+	if code == &"": code = Handling.source_station(actual, _placement, _selection)
+	if code == &"": code = Handling.bearer_refusal(_ordinal, _location.point, _target, _selection.content_revision)
+	if code == &"": code = _assembly_start_geometry()
+	if code == &"": code = _worker_retreat_leaf(worker, job)
+	return _occupancy_leaf(worker, _handling_row()) if code == &"" else code
+
+
+func _assembly_start_geometry() -> StringName:
+	"""The full source fits current real air and footing before its future obstacle is published; no target is subtracted."""
+	if _terrain._checked_geometry_revision != _geometry_revision \
+			or not Terrain._final_owners_match(_terrain, _placements._space._sources): return REFUSE_BINDING
+	for part: int in Handling.part_count(_selection.profile_id, _selection.content_revision):
+		var code: StringName = Handling.box_into(_selection, part, _bounds)
+		if code == &"": code = _assembly_start_volume(part == 1)
+		if code != &"": return code
+	return &""
+
+
+func _assembly_start_volume(foot: bool) -> StringName:
+	"""Complete live physical/source proof is independent of the future full-part triangle certificate."""
+	if not _fragments.spend(Terrain.LOCAL_QUERY_CHECKS): return REFUSE_CAPACITY
+	var code: StringName = Terrain._final_local_tiles(_terrain, _bounds, Terrain.EXCLUSIONS)
+	if code != &"": return code
+	if foot and (not Space.contains_box(_location.support, _bounds) or Space.overlaps(_bounds, _target)):
+		return REFUSE_GEOMETRY
+	_fragments.start(_bounds)
+	code = _assembly_start_regions(foot)
+	if code != &"" or foot: return code
+	for fragment: int in _fragments.count:
+		if not _fragments.spend(Terrain.LOCAL_QUERY_CHECKS): return REFUSE_CAPACITY
+		for axis: int in 6: _scratch[axis] = _fragments.first[fragment * 6 + axis]
+		code = Terrain._final_local_tiles(_terrain, _scratch, Terrain.EXTERIOR)
+		if code != &"": return code
+	return &""
+
+
+func _assembly_start_regions(foot: bool) -> StringName:
+	"""Every overlapping Region; a foot may share proved SUPPORT only with its station Room's own marker (ADR 1202)."""
+	var owner: Owner = _placements._space
+	var piece: int = _rehandled_region()
+	for region: int in owner._region_capacity:
+		if not _fragments.spend(): return REFUSE_CAPACITY
+		if owner._r_present[region] == 0: continue
+		_copy_region_box(region, _scratch)
+		if not Space.overlaps(_bounds, _scratch): continue
+		if region == piece: # DEC-057: the pending piece being re-handled in place, never under a foot.
+			if foot: return REFUSE_GEOMETRY
+			continue
+		# ADR1229: the Room's own reservation marker is nonphysical for a tread station's body too (the Room's riser
+		# behind the station lies inside it).
+		if (foot or _tread_station()) and Handling.own_room_marker(owner, region, _location.room): continue
+		var role: int = owner._r_role[region]
+		if role == Space.SUPPORTED_VOID or (not foot and _tread_timber(owner, region)):
+			if not foot and not _fragments.subtract(_scratch): return REFUSE_CAPACITY
+		elif role == Space.DRY_SOLID or role == Space.SUPPORT:
+			if not foot: return REFUSE_GEOMETRY
+		elif role != Space.FLOOR_DATUM and role != Space.PROTECTED_ACCESS: return REFUSE_GEOMETRY
+	return &""
+
+
+func _tread_timber(owner: Owner, region: int) -> bool:
+	"""ADR 1229: at a tread station (content 10, T1-T6) the body may meet the station Room's own installed SUPPORT,
+	the timber its approved proofs stood among (tread-fit-v1); everywhere else SUPPORT blocks a body."""
+	return _frontier._header[5] == Handling.Paw10.CONTENT and Handling.PawPhysical10.Tread.is_tread(_ordinal) \
+		and owner._r_role[region] == Space.SUPPORT and owner._r_claim_kind[region] == Owner.CLAIM_NONE \
+		and Vector2i(owner._r_owner_slot[region], owner._r_owner_generation[region]) == _location.room
 
 
 func _handling_leaf(worker: Vector2i, job: Vector2i) -> StringName:
@@ -1619,7 +2062,9 @@ func _worker_retreat_leaf(worker: Vector2i, job: Vector2i) -> StringName:
 	if not _fragments.spend(256):
 		return REFUSE_CAPACITY
 	var profiles: Profiles = _placements._profiles
-	var profile: int = _frontier._travel_profile[_install[8]]
+	# ADR1229: a tread station is left by the step forward (facing down the stair, as the worker stands), not by the
+	# crossing arrival's own approach row, which the climb reaches only at its end.
+	var profile: int = StairPins.CLAW_STEP_FORWARD_ROW if _tread_station() else _frontier._travel_profile[_install[8]]
 	var mode: int = profiles._field(profiles._live, profile, Profiles.F_MODE)
 	var posture: int = profiles._field(profiles._live, profile, Profiles.F_POSTURE)
 	var family: int = -1
@@ -1819,14 +2264,18 @@ func _descriptor_leaf() -> StringName:
 	if profiles._field(profiles._live, row, Profiles.F_SOURCE) != _frontier._header[7] \
 			or profiles._field(profiles._live, row, Profiles.F_MODE) != Profiles.MODE_WORK \
 			or profiles._field(profiles._live, row, Profiles.F_WORK_KIND) != Jobs.JOB_KIND_BUILD \
-			or profiles._field(profiles._live, row, Profiles.F_TOOL) < 0 \
-			or profiles._field(profiles._live, row, Profiles.F_TOOL) != _tool_item() \
+			or not _tool_fits(profiles._field(profiles._live, row, Profiles.F_TOOL)) \
 			or profiles._field(profiles._live, row, Profiles.F_POSTURE) != _station[6] \
 			or profiles._field(profiles._live, row, Profiles.F_YAW_KIND) != Profiles.YAW_EXACT \
 			or profiles._field(profiles._live, row, Profiles.F_YAW) != _world_yaw() \
-			or profiles._field(profiles._live, row, Profiles.F_CONTACT_KIND) != Profiles.CONTACT_ANCHOR_AND_PATCH:
+			or not _install_contact_kind(profiles._field(profiles._live, row, Profiles.F_CONTACT_KIND)):
 		return REFUSE_PROFILE
 	return &""
+
+
+func _tool_fits(tool_item: int) -> bool:
+	"""DEC-052: a paw-seating source holds no tool (-1); a tooled source must name the real BUILD tool."""
+	return tool_item == -1 or tool_item == _tool_item()
 
 
 func _tool_item() -> int:
@@ -1890,8 +2339,9 @@ func _occupancy_leaf(worker: Vector2i, source_profile: int = -1) -> StringName:
 	for row: int in Routes.RESIDENT_CAPACITY:
 		var other: Vector2i = graph._resident_ref(row)
 		if other == NULL_REF:
-			if graph._residents.is_alive(row):
-				return &"CONNECTOR_CONTACT_ACTOR_UNBOUND"
+			var missing: StringName = Routes.unregistered_body_refusal(graph, row, _location.point) # ADR1219
+			if missing != &"":
+				return missing
 			continue
 		if other == worker:
 			continue
@@ -2170,6 +2620,11 @@ func _site_job_row(job: Vector2i, row: int) -> int:
 		and _sites._job_slot[_phase_site.x] == job.x and _sites._job_generation[_phase_site.x] == job.y else -1
 
 
+static func _gate_accepted(gate: int) -> bool:
+	"""A paid worker's Job either holds its claimed tool (dormant pick work) or needs none (DEC-052 claw and paw)."""
+	return gate == Jobs.GATE_SATISFIED or gate == Jobs.GATE_NOT_REQUIRED
+
+
 func _site_lifecycle_leaf() -> StringName:
 	"""Match current paid phase/pause/work truth immediately before a real worker or payment boundary."""
 	if _site_scope_leaf() != &"" or not _sites._operation_allowed(_phase_site.x, _phase_operation): return REFUSE_SCOPE
@@ -2181,7 +2636,7 @@ func _site_lifecycle_leaf() -> StringName:
 	if phase < 0 or phase >= Construction.PHASE_COUNT or construction._remaining_mwu[row] < 0: return REFUSE_SCOPE
 	if _action == Contract.CANCEL or _action == -1: return &""
 	var job_row: int = _job_row(_primary_job)
-	if _phase_needs_worker() and (job_row < 0 or _placements._jobs._tool_gate[job_row] != Jobs.GATE_SATISFIED \
+	if _phase_needs_worker() and (job_row < 0 or not _gate_accepted(_placements._jobs._tool_gate[job_row]) \
 			or _placements._jobs._remaining_mwu[job_row] != construction._remaining_mwu[row]): return REFUSE_WORKER
 	if construction._paused[row] != 0: return Construction.REFUSE_PAUSED
 	var funding: RefCounted = _sites._funding
@@ -2321,3 +2776,79 @@ func discard_phase(placement: Vector2i, site: Vector2i, operation: int, stage: i
 		_phase_output_container = NULL_REF
 		_phase_companion_token = 0
 		_phase_space_token = 0
+
+
+# ADR1221 (cold load): the contact scope that survives between calls. Every proof entry point re-pins its own
+# observation, but `_pin_scope` keeps the primary Job and material container while the Placement and Project are
+# unchanged, and `discard_transition`/`discard_phase` act only on an exactly matching retained scope. Those twelve
+# values are therefore future-affecting and saved; every other member is re-pinned by the next call. Schema 1:
+# magic, schema, ordinal, action, phase operation, phase episode (i32 each), the valid and phase flags (u8 each),
+# then six full refs (placement, project, primary Job, material container, phase Site, phase output container).
+const SCOPE_WIRE_MAGIC: int = 0x50435755 # "UWCP"
+const SCOPE_WIRE_SCHEMA: int = 1
+const SCOPE_WIRE_BYTES: int = 6 * 4 + 2 + 6 * 8
+const REFUSE_LOAD_BUSY: StringName = &"CONNECTOR_CONTACT_LOAD_BUSY"
+const REFUSE_LOAD_SHAPE: StringName = &"CONNECTOR_CONTACT_LOAD_SHAPE"
+
+
+func _scope_refs() -> Array[Vector2i]:
+	"""The six retained full references in wire order."""
+	return [_placement, _project, _primary_job, _material_container, _phase_site, _phase_output_container]
+
+
+func capture_state_into(out: PackedByteArray) -> StringName:
+	"""ADR1221: the retained scope at a quiescent boundary (no proof in progress), into one empty image."""
+	if not _configured or _busy or not out.is_empty():
+		return REFUSE_LOAD_BUSY
+	out.resize(SCOPE_WIRE_BYTES)
+	var words: PackedInt32Array = PackedInt32Array([SCOPE_WIRE_MAGIC, SCOPE_WIRE_SCHEMA, _ordinal, _action,
+		_phase_operation, _phase_episode])
+	for index: int in words.size():
+		out.encode_s32(4 * index, words[index])
+	out[24] = 1 if _valid else 0
+	out[25] = 1 if _phase_mode else 0
+	var at: int = 26
+	for ref: Vector2i in _scope_refs():
+		out.encode_s32(at, ref.x)
+		out.encode_s32(at + 4, ref.y)
+		at += 8
+	return &""
+
+
+func restore_state_bytes(bytes: PackedByteArray) -> StringName:
+	"""ADR1221: install a saved scope. Its handles are only shape-checked: no reader trusts them without re-proving
+	them (a stale Job or container is refused by `_job_row` and the material leaves at its next use)."""
+	if not _configured or _busy:
+		return REFUSE_LOAD_BUSY
+	if bytes.size() != SCOPE_WIRE_BYTES or bytes.decode_s32(0) != SCOPE_WIRE_MAGIC \
+			or bytes.decode_s32(4) != SCOPE_WIRE_SCHEMA or bytes[24] > 1 or bytes[25] > 1:
+		return REFUSE_LOAD_SHAPE
+	var action: int = bytes.decode_s32(12)
+	if bytes.decode_s32(8) < -1 or action < -1 or action > Contract.START or bytes.decode_s32(16) < -1 \
+			or bytes.decode_s32(16) > PhaseContract.OP_FINISH or bytes.decode_s32(20) < -1:
+		return REFUSE_LOAD_SHAPE
+	for index: int in 6:
+		var ref: Vector2i = Vector2i(bytes.decode_s32(26 + 8 * index), bytes.decode_s32(30 + 8 * index))
+		if ref != NULL_REF and (ref.x < 0 or ref.y < 1):
+			return REFUSE_LOAD_SHAPE
+	_install_scope(bytes)
+	return &""
+
+
+func _install_scope(bytes: PackedByteArray) -> void:
+	"""Write an accepted scope image into the retained members."""
+	_ordinal = bytes.decode_s32(8)
+	_action = bytes.decode_s32(12)
+	_phase_operation = bytes.decode_s32(16)
+	_phase_episode = bytes.decode_s32(20)
+	_valid = bytes[24] == 1
+	_phase_mode = bytes[25] == 1
+	var refs: Array[Vector2i] = []
+	for index: int in 6:
+		refs.append(Vector2i(bytes.decode_s32(26 + 8 * index), bytes.decode_s32(30 + 8 * index)))
+	_placement = refs[0]
+	_project = refs[1]
+	_primary_job = refs[2]
+	_material_container = refs[3]
+	_phase_site = refs[4]
+	_phase_output_container = refs[5]

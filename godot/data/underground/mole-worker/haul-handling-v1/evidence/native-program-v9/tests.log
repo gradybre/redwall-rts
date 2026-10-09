@@ -1,0 +1,11 @@
+test_changed_clip_bytes_refuse (__main__.NativeProgramV9Tests.test_changed_clip_bytes_refuse) ... ok
+test_compiler_rebuilds_the_exact_v9_image (__main__.NativeProgramV9Tests.test_compiler_rebuilds_the_exact_v9_image) ... ok
+test_replay_report_and_independent_verification (__main__.NativeProgramV9Tests.test_replay_report_and_independent_verification) ... ok
+test_stone_mesh_fingerprint_needs_exact_bits (__main__.NativeProgramV9Tests.test_stone_mesh_fingerprint_needs_exact_bits) ... ok
+test_v8_outputs_are_unchanged (__main__.NativeProgramV9Tests.test_v8_outputs_are_unchanged) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 43.840s
+
+OK
+[test_native_program_v9.py exit 0 in 44.0s]

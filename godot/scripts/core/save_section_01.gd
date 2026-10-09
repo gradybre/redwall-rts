@@ -3,41 +3,51 @@ extends RefCounted
 ## their semantic validators, their restore path and their canonical value adapters.
 ##
 ## R-WORLD-S1-001 (docs/rulings/2026-09-14_world_section_owner_encoders.md) is the binding
-## contract for every number in this file. Section 1 carries EXACTLY NINE owners in strict ASCII
-## key order and a missing block is not a permitted variant. `save_section_world_runtime.gd`
-## still owns the two fixed-format payloads -- the 4-byte `entity_directory` cursor and the
-## 80-byte `world_runtime` body -- and this module composes the section around them, so neither
-## layout is written twice.
+## contract for the nine owners it names. ADR 1072 declared a TENTH, `underground_space_owner`, and
+## took the section to schema 4; ADR 1222 step 0 brought this codec to that declaration. Blocks
+## appear in strict ASCII key order and a missing block is not a permitted variant.
+## `save_section_world_runtime.gd` still owns the two fixed-format payloads -- the 4-byte
+## `entity_directory` cursor and the 80-byte `world_runtime` body -- and this module composes the
+## section around them, so neither layout is written twice.
 ##
-## THE SECTION, OFFSET BY OFFSET (all offsets section-relative, little-endian, no padding):
+## THE SECTION (all offsets section-relative, little-endian, no padding):
 ##
 ##   |      0 | scenario_version:u32                                        |      4 |
 ##   |      4 | effective_seed:i32                                          |      4 |
 ##   |      8 | map_generator_schema:u32                                    |      4 |
 ##   |     12 | authored_map_digest: raw bytes                              |     32 |
-##   |     44 | store_count:u32, exactly 9                                  |      4 |
-##   |     48 | nine owner blocks, ASCII key order, tiling to the section end        |
+##   |     44 | store_count:u32, exactly 10                                 |      4 |
+##   |     48 | ten owner blocks, ASCII key order, tiling to the section end         |
 ##
 ## Each wrapper is `owner_key_byte_count:u32, owner_key, owner_schema_version:u32,
 ## primary_count:u64, payload_byte_length:u64, payload`, occupying `24 + len(owner_key)` bytes.
 ##
-## | Owner            | Schema | primary_count | Block off | Payload off | Payload bytes |
-## |------------------|-------:|--------------:|----------:|------------:|--------------:|
-## | buildings        |      1 |        16,384 |        48 |          81 |       196,632 |
-## | entity_directory |      1 |             1 |   196,713 |     196,753 |             4 |
-## | farming          |      1 |        16,384 |   196,757 |     196,788 |       737,360 |
-## | forage           |      1 |        16,384 |   934,148 |     934,178 |        65,544 |
-## | resource_nodes   |      2 |        16,384 |   999,722 |     999,760 |        65,544 |
-## | spatial_world    |      1 |       262,144 | 1,065,304 |   1,065,341 |     2,621,484 |
-## | weather          |      1 |             1 | 3,686,825 |   3,686,856 |            64 |
-## | world_init       |      1 |        16,384 | 3,686,920 |   3,686,954 |        65,697 |
-## | world_runtime    |      1 |             1 | 3,752,651 |   3,752,688 |            80 |
+## EXACTLY TWO COMPILED LAYOUTS (ADR 1222 step 0). The Space owner exists only while an
+## underground Session is mounted, so its block has an UNMOUNTED form (capacities 0, an all-zero
+## 18-entry header, every column empty: 416 payload bytes) and a MOUNTED form at the production
+## pack (6144 regions, 2048 sources: 504224 payload bytes). The decoder reads the two capacity
+## scalars at their compiled offsets -- identical in both layouts, since no earlier block changes
+## -- selects the layout they name, and then finds every later item at THAT layout's compiled
+## offset. Any other capacity pair, or a length that is not the named layout's, refuses.
 ##
-## `section_1_length = 44 + 4 + 311 + 3752409 = 3752768`. The descriptor's `row_count` is the
-## checked SUM of the nine primary counts, **344067** -- not a population, not a field count and
-## not the canonical record count.
+## | Owner                   | Schema | primary (U / M) | Payload bytes (U / M) |
+## |-------------------------|-------:|----------------:|----------------------:|
+## | buildings               |      1 |          16,384 |               196,632 |
+## | entity_directory        |      1 |               1 |                     4 |
+## | farming                 |      1 |          16,384 |               737,360 |
+## | forage                  |      1 |          16,384 |                65,544 |
+## | resource_nodes          |      2 |          16,384 |                65,544 |
+## | spatial_world           |      1 |         262,144 |             2,621,484 |
+## | underground_space_owner |      1 |       0 / 6,144 |         416 / 504,224 |
+## | weather                 |      1 |               1 |                    64 |
+## | world_init              |      1 |          16,384 |                65,697 |
+## | world_runtime           |      1 |               1 |                    80 |
 ##
-## THE SEVEN NEW OWNERS USE ONE ORDINARY PAYLOAD FORM: for each field in declared ordinal order,
+## Section length 3,753,231 UNMOUNTED / 4,257,039 MOUNTED. The descriptor's `row_count` is the
+## checked SUM of the ten primary counts, 344,067 / 350,211 -- not a population, not a field
+## count and not the canonical record count.
+##
+## THE EIGHT ORDINARY OWNERS USE ONE PAYLOAD FORM: for each field in declared ordinal order,
 ## `element_count:u64` then exactly `element_count * type_width` value bytes. EVERY SCALAR CARRIES
 ## AN EXPLICIT `element_count = 1`. There is no payload field-count word, no repeated field name or
 ## type, no length inferred from the bytes that remain, and no child-table header. Those count
@@ -94,6 +104,8 @@ const SpatialWorldScript := preload("res://scripts/core/spatial_world.gd")
 const WeatherScript := preload("res://scripts/core/weather.gd")
 const WorldInitScript := preload("res://scripts/core/world_init.gd")
 const OrchardHiveScript := preload("res://scripts/core/orchard_hive.gd")
+const SpaceOwner := preload("res://scripts/core/underground_space_owner.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
 
 # --- identity and framing ---------------------------------------------------------------------
 
@@ -129,43 +141,57 @@ const TYPE_U64: int = 3
 const TYPE_I64: int = 4
 const TYPE_WIDTHS: Array[int] = [1, 4, 4, 8, 8]
 
-const OWNER_COUNT: int = 9
+const OWNER_COUNT: int = 10
 const OWNER_BUILDINGS: int = 0
 const OWNER_ENTITY_DIRECTORY: int = 1
 const OWNER_FARMING: int = 2
 const OWNER_FORAGE: int = 3
 const OWNER_RESOURCE_NODES: int = 4
 const OWNER_SPATIAL_WORLD: int = 5
-const OWNER_WEATHER: int = 6
-const OWNER_WORLD_INIT: int = 7
-const OWNER_WORLD_RUNTIME: int = 8
+const OWNER_UNDERGROUND_SPACE: int = 6
+const OWNER_WEATHER: int = 7
+const OWNER_WORLD_INIT: int = 8
+const OWNER_WORLD_RUNTIME: int = 9
 
-## The nine keys in the strict ASCII order blocks must appear in.
+## The ten keys in the strict ASCII order blocks must appear in.
 const OWNER_KEYS: Array[String] = ["buildings", "entity_directory", "farming", "forage",
-	"resource_nodes", "spatial_world", "weather", "world_init", "world_runtime"]
+	"resource_nodes", "spatial_world", "underground_space_owner", "weather", "world_init",
+	"world_runtime"]
 
 ## Only `resource_nodes` is not 1, and only because the deposit scratch left its payload.
-const OWNER_SCHEMA_VERSIONS: Array[int] = [1, 1, 1, 1, 2, 1, 1, 1, 1]
+const OWNER_SCHEMA_VERSIONS: Array[int] = [1, 1, 1, 1, 2, 1, 1, 1, 1, 1]
 
-## Declared primary physical row extents. Grid-oriented for the mixed owners: `world_init` counts
-## exterior tiles despite two scalars and three basin columns, `spatial_world` counts cells despite
-## its revision scalar, and `weather` counts ONE aggregate row despite ten values.
-const OWNER_PRIMARY_COUNTS: Array[int] = [16384, 1, 16384, 16384, 16384, 262144, 1, 16384, 1]
+## ADR 1222 step 0: EXACTLY TWO compiled layouts, told apart by the space block's capacity
+## scalars. UNMOUNTED is a world with no underground Session (capacities 0, an all-zero header,
+## every column empty); MOUNTED is one at the production pack's fixed capacities. Every offset
+## after the space block is compiled per layout; no other capacity pair is a layout.
+const LAYOUT_UNMOUNTED: int = 0
+const LAYOUT_MOUNTED: int = 1
+const LAYOUT_COUNT: int = 2
+const SPACE_REGION_CAPACITIES: Array[int] = [0, Budget.REGION_CAPACITY]
+const SPACE_SOURCE_CAPACITIES: Array[int] = [0, Budget.SOURCE_CAPACITY]
 
-## Exact payload widths. Derived in `payload_bytes_of()` for the seven ordinary owners and checked
-## against these constants, so a field-table edit that changes a width fails rather than drifts.
-const OWNER_PAYLOAD_BYTES: Array[int] = [196632, 4, 737360, 65544, 65544, 2621484, 64, 65697, 80]
+## Declared primary physical row extents, UNMOUNTED layout. Grid-oriented for the mixed owners:
+## `world_init` counts exterior tiles despite two scalars and three basin columns,
+## `spatial_world` counts cells despite its revision scalar, `weather` counts ONE aggregate row
+## despite ten values, and the space owner counts its regions (0 here, 6144 when MOUNTED).
+const OWNER_PRIMARY_COUNTS: Array[int] = [16384, 1, 16384, 16384, 16384, 262144, 0, 1, 16384, 1]
 
-## Sum of the nine primary counts. The section descriptor's `row_count`, and nothing else.
-const DESCRIPTOR_ROW_COUNT: int = 344067
+## Exact payload widths, UNMOUNTED layout. Derived in `payload_bytes_of()` for the eight
+## ordinary owners and checked against these constants, so a field-table edit that changes a
+## width fails rather than drifts. The MOUNTED space payload is SPACE_MOUNTED_PAYLOAD_BYTES.
+const OWNER_PAYLOAD_BYTES: Array[int] = [196632, 4, 737360, 65544, 65544, 2621484, 416, 64,
+	65697, 80]
+const SPACE_MOUNTED_PAYLOAD_BYTES: int = 504224
 
-## 44 + 4 + 311 wrapper bytes + 3752409 payload bytes.
-const SECTION_BYTES: int = 3752768
+## Sum of the ten primary counts, per layout. The section descriptor's `row_count`, and nothing else.
+const DESCRIPTOR_ROW_COUNTS: Array[int] = [344067, 350211]
+
+## 44 + 4 + 358 wrapper bytes + the payloads: 3753231 UNMOUNTED, 4257039 MOUNTED.
+const SECTION_BYTES_BY_LAYOUT: Array[int] = [3753231, 4257039]
 
 ## SAVE-REPLAY-R01 outer format2: header264 plus fifteen64-byte descriptors gives1224.
-## Section-relative owner offsets and SECTION_BYTES remain R-WORLD-S1-001 unchanged.
 const FIRST_SECTION_OFFSET: int = 1224
-const SECTION_2_OFFSET: int = FIRST_SECTION_OFFSET + SECTION_BYTES
 
 # --- the seven ordinary owners' field tables ----------------------------------------------------
 #
@@ -208,6 +234,38 @@ const WORLD_INIT_FIELD_TYPES: Array[int] = [TYPE_U8, TYPE_I32, TYPE_U8, TYPE_U8,
 	TYPE_I32, TYPE_I32, TYPE_I32]
 const WORLD_INIT_FIELD_COUNTS: Array[int] = [1, 1, 16384, 16384, 16384, 16384, 7, 7, 7]
 
+## `underground_space_owner` (ADR 1072, owner schema 1): REG-R01's 33 fields in ordinal order.
+## Counts depend on the layout through each field's count kind: a scalar is 1, the header is
+## HEADER_FIELDS (18), a region column is the layout's region capacity and a source column its
+## source capacity. The owner's own wire (`state_bytes()`) holds the same 31 non-scalar columns in
+## a DIFFERENT order; SPACE_WIRE_ORDER maps it.
+const SPACE_FIELD_KEYS: Array[String] = ["_region_capacity", "_source_capacity", "_header",
+	"_r_present", "_r_retired", "_r_role", "_r_claim_kind", "_r_generation", "_r_lo_x", "_r_lo_y",
+	"_r_lo_z", "_r_hi_x", "_r_hi_y", "_r_hi_z", "_r_level", "_r_section_slot",
+	"_r_section_generation", "_r_owner_slot", "_r_owner_generation", "_r_claim_slot",
+	"_r_claim_generation", "_r_owner_revision", "_o_present", "_o_kind", "_o_slot",
+	"_o_generation", "_o_parent_slot", "_o_parent_generation", "_o_a", "_o_b", "_o_c", "_o_d",
+	"_o_revision"]
+const SPACE_FIELD_TYPES: Array[int] = [TYPE_I32, TYPE_I32, TYPE_I64, TYPE_U8, TYPE_U8, TYPE_U8,
+	TYPE_U8, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32,
+	TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I64, TYPE_U8, TYPE_U8,
+	TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I64]
+const SPACE_COUNT_SCALAR: int = 0
+const SPACE_COUNT_HEADER: int = 1
+const SPACE_COUNT_REGION: int = 2
+const SPACE_COUNT_SOURCE: int = 3
+const SPACE_FIELD_COUNT_KINDS: Array[int] = [0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+## Registry ordinals in the order `underground_space_owner.gd::_wire_columns()` writes them.
+const SPACE_WIRE_ORDER: Array[int] = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+	21, 19, 20, 22, 23, 24, 25, 32, 26, 27, 28, 29, 30, 31]
+## Header slots `_write_header()` fills from the schema and the two capacities; the last slot is
+## the revision, at least 1 on a configured owner.
+const SPACE_HEADER_SCHEMA: int = 0
+const SPACE_HEADER_REGION_CAPACITY: int = 1
+const SPACE_HEADER_SOURCE_CAPACITY: int = 2
+const SPACE_HEADER_REVISION: int = 17
+
 ## `entity_directory` and `world_runtime` are the two fixed-format exceptions and declare no
 ## ordinary field table; their payloads carry no element-count prefixes at all.
 ## The two fixed-format owners declare no ordinary field table at all; these empty typed arrays
@@ -242,12 +300,15 @@ const REFUSE_RESTORE_FAILED: StringName = &"SAVE_S1_RESTORE_FAILED"
 const REFUSE_SEED_DISAGREES: StringName = &"SAVE_S1_PUBLISHED_SEED_DISAGREES"
 const REFUSE_UNSEEDED_PUBLISHED: StringName = &"SAVE_S1_PUBLISHED_WORLD_UNSEEDED"
 const REFUSE_ADAPTER_FIELD: StringName = &"SAVE_S1_ADAPTER_UNKNOWN_FIELD"
+const REFUSE_SPACE_LAYOUT: StringName = &"SAVE_S1_SPACE_LAYOUT"
+const REFUSE_SPACE_HEADER: StringName = &"SAVE_S1_SPACE_HEADER"
+const REFUSE_SPACE_MOUNT: StringName = &"SAVE_S1_SPACE_MOUNT"
 
 
 # --- compiled offset table ----------------------------------------------------------------------
 
 static func owner_key_of(owner: int) -> String:
-	"""The exact ASCII owner key of block `owner`, 0..8 in wire order."""
+	"""The exact ASCII owner key of block `owner`, 0..9 in wire order."""
 	return OWNER_KEYS[owner]
 
 
@@ -256,21 +317,40 @@ static func wrapper_bytes_of(owner: int) -> int:
 	return WRAPPER_FIXED_BYTES + OWNER_KEYS[owner].to_utf8_buffer().size()
 
 
-static func block_offset_of(owner: int) -> int:
-	"""Section-relative offset of block `owner`, summed from the compiled widths before it."""
+static func primary_count_of(owner: int, layout: int = LAYOUT_UNMOUNTED) -> int:
+	"""Block `owner`'s declared primary count in `layout`; only the space owner's varies."""
+	if owner == OWNER_UNDERGROUND_SPACE:
+		return SPACE_REGION_CAPACITIES[layout]
+	return OWNER_PRIMARY_COUNTS[owner]
+
+
+static func compiled_payload_bytes_of(owner: int, layout: int = LAYOUT_UNMOUNTED) -> int:
+	"""Block `owner`'s compiled payload width in `layout`, from the constant tables."""
+	if owner == OWNER_UNDERGROUND_SPACE and layout == LAYOUT_MOUNTED:
+		return SPACE_MOUNTED_PAYLOAD_BYTES
+	return OWNER_PAYLOAD_BYTES[owner]
+
+
+static func block_offset_of(owner: int, layout: int = LAYOUT_UNMOUNTED) -> int:
+	"""Section-relative offset of block `owner` in `layout`, summed from the compiled widths."""
 	var offset: int = FIRST_BLOCK_OFFSET
 	for index: int in owner:
-		offset += wrapper_bytes_of(index) + OWNER_PAYLOAD_BYTES[index]
+		offset += wrapper_bytes_of(index) + compiled_payload_bytes_of(index, layout)
 	return offset
 
 
-static func payload_offset_of(owner: int) -> int:
-	"""Section-relative offset of block `owner`'s first payload byte."""
-	return block_offset_of(owner) + wrapper_bytes_of(owner)
+static func payload_offset_of(owner: int, layout: int = LAYOUT_UNMOUNTED) -> int:
+	"""Section-relative offset of block `owner`'s first payload byte in `layout`."""
+	return block_offset_of(owner, layout) + wrapper_bytes_of(owner)
+
+
+static func section_bytes_of(layout: int) -> int:
+	"""The exact section length of `layout`."""
+	return SECTION_BYTES_BY_LAYOUT[layout]
 
 
 static func field_keys_of(owner: int) -> Array[String]:
-	"""The ordinary field keys of one of the seven ordinary owners, in ordinal order.
+	"""The ordinary field keys of one of the eight ordinary owners, in ordinal order.
 
 	An if-chain rather than an indexed literal: GDScript builds an untyped `Array` from a literal
 	and then refuses to return it as `Array[String]`, so the literal form fails at run time in
@@ -286,6 +366,8 @@ static func field_keys_of(owner: int) -> Array[String]:
 		return RESOURCE_FIELD_KEYS
 	if owner == OWNER_SPATIAL_WORLD:
 		return SPATIAL_FIELD_KEYS
+	if owner == OWNER_UNDERGROUND_SPACE:
+		return SPACE_FIELD_KEYS
 	if owner == OWNER_WEATHER:
 		return WEATHER_FIELD_KEYS
 	if owner == OWNER_WORLD_INIT:
@@ -305,6 +387,8 @@ static func field_types_of(owner: int) -> Array[int]:
 		return RESOURCE_FIELD_TYPES
 	if owner == OWNER_SPATIAL_WORLD:
 		return SPATIAL_FIELD_TYPES
+	if owner == OWNER_UNDERGROUND_SPACE:
+		return SPACE_FIELD_TYPES
 	if owner == OWNER_WEATHER:
 		return WEATHER_FIELD_TYPES
 	if owner == OWNER_WORLD_INIT:
@@ -312,8 +396,8 @@ static func field_types_of(owner: int) -> Array[int]:
 	return FIXED_FORMAT_FIELD_NUMBERS
 
 
-static func field_counts_of(owner: int) -> Array[int]:
-	"""The ordinary field element counts of one owner, in ordinal order."""
+static func field_counts_of(owner: int, layout: int = LAYOUT_UNMOUNTED) -> Array[int]:
+	"""The ordinary field element counts of one owner in `layout`, in ordinal order."""
 	if owner == OWNER_BUILDINGS:
 		return BUILDINGS_FIELD_COUNTS
 	if owner == OWNER_FARMING:
@@ -324,6 +408,8 @@ static func field_counts_of(owner: int) -> Array[int]:
 		return RESOURCE_FIELD_COUNTS
 	if owner == OWNER_SPATIAL_WORLD:
 		return SPATIAL_FIELD_COUNTS
+	if owner == OWNER_UNDERGROUND_SPACE:
+		return space_field_counts(layout)
 	if owner == OWNER_WEATHER:
 		return WEATHER_FIELD_COUNTS
 	if owner == OWNER_WORLD_INIT:
@@ -331,58 +417,84 @@ static func field_counts_of(owner: int) -> Array[int]:
 	return FIXED_FORMAT_FIELD_NUMBERS
 
 
-static func field_count_offset_of(owner: int, ordinal: int) -> int:
-	"""Payload-relative offset of one field's `element_count:u64` prefix."""
+static func space_field_counts(layout: int) -> Array[int]:
+	"""The space owner's 33 element counts in `layout`, from each field's count kind."""
+	var counts: Array[int] = []
+	for kind: int in SPACE_FIELD_COUNT_KINDS:
+		if kind == SPACE_COUNT_SCALAR:
+			counts.append(1)
+		elif kind == SPACE_COUNT_HEADER:
+			counts.append(SpaceOwner.HEADER_FIELDS)
+		elif kind == SPACE_COUNT_REGION:
+			counts.append(SPACE_REGION_CAPACITIES[layout])
+		else:
+			counts.append(SPACE_SOURCE_CAPACITIES[layout])
+	return counts
+
+
+static func field_count_offset_of(owner: int, ordinal: int, layout: int = LAYOUT_UNMOUNTED) -> int:
+	"""Payload-relative offset of one field's `element_count:u64` prefix in `layout`."""
 	var types: Array[int] = field_types_of(owner)
-	var counts: Array[int] = field_counts_of(owner)
+	var counts: Array[int] = field_counts_of(owner, layout)
 	var offset: int = 0
 	for index: int in ordinal:
 		offset += SaveCodec.U64_BYTES + counts[index] * TYPE_WIDTHS[types[index]]
 	return offset
 
 
-static func field_value_offset_of(owner: int, ordinal: int) -> int:
+static func field_value_offset_of(owner: int, ordinal: int, layout: int = LAYOUT_UNMOUNTED) -> int:
 	"""Payload-relative offset of one field's first value byte, immediately after its count."""
-	return field_count_offset_of(owner, ordinal) + SaveCodec.U64_BYTES
+	return field_count_offset_of(owner, ordinal, layout) + SaveCodec.U64_BYTES
 
 
-static func payload_bytes_of(owner: int) -> int:
+static func payload_bytes_of(owner: int, layout: int = LAYOUT_UNMOUNTED) -> int:
 	"""Payload width DERIVED from the field table, so a table edit cannot silently keep a width."""
 	var keys: Array[String] = field_keys_of(owner)
 	if keys.is_empty():
 		return DIRECTORY_PAYLOAD_BYTES if owner == OWNER_ENTITY_DIRECTORY else RUNTIME_PAYLOAD_BYTES
-	return field_count_offset_of(owner, keys.size() - 1) + SaveCodec.U64_BYTES \
-		+ field_counts_of(owner)[keys.size() - 1] \
-		* TYPE_WIDTHS[field_types_of(owner)[keys.size() - 1]]
+	var last: int = keys.size() - 1
+	return field_value_offset_of(owner, last, layout) \
+		+ field_counts_of(owner, layout)[last] * TYPE_WIDTHS[field_types_of(owner)[last]]
 
 
 static func table_refusal() -> SaveHeader.Refusal:
-	"""Prove the compiled table is self-consistent before any of it is written or trusted.
+	"""Prove BOTH compiled layouts are self-consistent before any of either is written or trusted.
 
-	Checks the nine derived payload widths against `OWNER_PAYLOAD_BYTES`, the total against
-	`SECTION_BYTES`, the primary-count sum against `DESCRIPTOR_ROW_COUNT`, and the key order. A
-	drifting table refuses here instead of producing a file nobody else can read.
+	Checks the key order, then per layout the ten derived payload widths against the compiled
+	ones, the total against SECTION_BYTES_BY_LAYOUT and the primary-count sum against
+	DESCRIPTOR_ROW_COUNTS. A drifting table refuses here instead of producing an unreadable file.
 	"""
 	var previous: String = ""
-	var total: int = PREFIX_BYTES + STORE_COUNT_BYTES
-	var rows: int = 0
 	for owner: int in OWNER_COUNT:
 		if Digest.ascii_compare(previous, OWNER_KEYS[owner]) >= 0:
 			return SaveHeader.Refusal.new(REFUSE_OWNER_KEY,
 				"'%s' does not follow '%s' in ASCII order" % [OWNER_KEYS[owner], previous])
 		previous = OWNER_KEYS[owner]
-		if payload_bytes_of(owner) != OWNER_PAYLOAD_BYTES[owner]:
+	for layout: int in LAYOUT_COUNT:
+		var refusal: SaveHeader.Refusal = _layout_table_refusal(layout)
+		if not refusal.is_ok():
+			return refusal
+	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+
+
+static func _layout_table_refusal(layout: int) -> SaveHeader.Refusal:
+	"""One layout's derived widths, total and primary-count sum against its compiled constants."""
+	var total: int = PREFIX_BYTES + STORE_COUNT_BYTES
+	var rows: int = 0
+	for owner: int in OWNER_COUNT:
+		if payload_bytes_of(owner, layout) != compiled_payload_bytes_of(owner, layout):
 			return SaveHeader.Refusal.new(REFUSE_PAYLOAD_LENGTH,
-				"'%s' derives %d payload bytes against the declared %d"
-					% [OWNER_KEYS[owner], payload_bytes_of(owner), OWNER_PAYLOAD_BYTES[owner]])
-		total += wrapper_bytes_of(owner) + OWNER_PAYLOAD_BYTES[owner]
-		rows += OWNER_PRIMARY_COUNTS[owner]
-	if total != SECTION_BYTES:
-		return SaveHeader.Refusal.new(REFUSE_SECTION_LENGTH,
-			"the table sums to %d bytes, not %d" % [total, SECTION_BYTES])
-	if rows != DESCRIPTOR_ROW_COUNT:
-		return SaveHeader.Refusal.new(REFUSE_PRIMARY_COUNT,
-			"the primary counts sum to %d, not %d" % [rows, DESCRIPTOR_ROW_COUNT])
+				"layout %d: '%s' derives %d payload bytes against the declared %d" % [layout,
+					OWNER_KEYS[owner], payload_bytes_of(owner, layout),
+					compiled_payload_bytes_of(owner, layout)])
+		total += wrapper_bytes_of(owner) + compiled_payload_bytes_of(owner, layout)
+		rows += primary_count_of(owner, layout)
+	if total != SECTION_BYTES_BY_LAYOUT[layout]:
+		return SaveHeader.Refusal.new(REFUSE_SECTION_LENGTH, "layout %d sums to %d bytes, not %d"
+			% [layout, total, SECTION_BYTES_BY_LAYOUT[layout]])
+	if rows != DESCRIPTOR_ROW_COUNTS[layout]:
+		return SaveHeader.Refusal.new(REFUSE_PRIMARY_COUNT, "layout %d primary counts sum to %d, not %d"
+			% [layout, rows, DESCRIPTOR_ROW_COUNTS[layout]])
 	return SaveHeader.Refusal.new(REFUSE_NONE, "")
 
 
@@ -407,7 +519,7 @@ static func little_endian_refusal() -> SaveHeader.Refusal:
 # --- staged section state -----------------------------------------------------------------------
 
 class State:
-	"""One whole section 1 as data: the provenance prefix and all nine owners' values.
+	"""One whole section 1 as data: the provenance prefix and all ten owners' values.
 
 	Every packed column is sized ONCE here, at its declared element count, so neither capture nor
 	decode resizes one on a load path. Decoding rebinds a column to a freshly sliced buffer of the
@@ -435,6 +547,10 @@ class State:
 	var published: int = 0
 	var published_seed: int = 0
 	var world_map: WorldInitScript.SavedMap = null
+	## ADR 1222 step 0: the space block's layout and its 33 fields as RAW little-endian value
+	## bytes, indexed by registry ordinal (ordinals 0 and 1 are the two 4-byte capacity scalars).
+	var space_layout: int = LAYOUT_UNMOUNTED
+	var space_values: Array[PackedByteArray] = []
 
 	func _init() -> void:
 		"""Allocate every column at its declared extent, plus the two owned sub-records."""
@@ -453,6 +569,32 @@ class State:
 		height_units.resize(SPATIAL_FIELD_COUNTS[4])
 		weather_row.resize(WEATHER_FIELD_COUNTS[0])
 		weather_row64.resize(WEATHER_FIELD_COUNTS[1])
+		set_space_unmounted()
+
+	func set_space_unmounted() -> void:
+		"""The canonical UNMOUNTED space block: zero capacities, a zero header, empty columns."""
+		space_layout = LAYOUT_UNMOUNTED
+		space_values.clear()
+		var counts: Array[int] = SaveSection01.space_field_counts(LAYOUT_UNMOUNTED)
+		for ordinal: int in SPACE_FIELD_KEYS.size():
+			var raw: PackedByteArray = PackedByteArray()
+			raw.resize(counts[ordinal] * TYPE_WIDTHS[SPACE_FIELD_TYPES[ordinal]])
+			space_values.append(raw)
+
+	func space_shape_detail() -> String:
+		"""The first space field whose raw width is not its layout's, or an empty string."""
+		if space_layout < 0 or space_layout >= LAYOUT_COUNT:
+			return "space layout %d is not compiled" % space_layout
+		if space_values.size() != SPACE_FIELD_KEYS.size():
+			return "the space block holds %d fields, not %d" % [space_values.size(),
+				SPACE_FIELD_KEYS.size()]
+		var counts: Array[int] = SaveSection01.space_field_counts(space_layout)
+		for ordinal: int in SPACE_FIELD_KEYS.size():
+			var width: int = counts[ordinal] * TYPE_WIDTHS[SPACE_FIELD_TYPES[ordinal]]
+			if space_values[ordinal].size() != width:
+				return "%s is %d bytes, not %d" % [SPACE_FIELD_KEYS[ordinal],
+					space_values[ordinal].size(), width]
+		return ""
 
 	func column_shape_detail() -> String:
 		"""The first column whose length is not its declared extent, or an empty string."""
@@ -475,7 +617,7 @@ class State:
 			return "the farming tile history is not 16384-sized"
 		if not world_map.is_sized():
 			return "the world_init map columns are not at their declared extents"
-		return ""
+		return space_shape_detail()
 
 
 class Stores:
@@ -492,6 +634,9 @@ class Stores:
 	var spatial_world: SpatialWorldScript = null
 	var weather: WeatherScript = null
 	var world_init: WorldInitScript = null
+	## OPTIONAL (ADR 1222 step 0): the mounted underground Session's Space owner, or null for a
+	## world with no underground. Not part of `missing_detail()`; null means UNMOUNTED.
+	var space_owner: SpaceOwner = null
 
 	func missing_detail() -> String:
 		"""Names the first unbound store, or an empty string when all eight are present."""
@@ -509,7 +654,7 @@ class Stores:
 static func capture_into(stores: Stores, runtime: WorldRuntime.Record, scenario_version: int,
 		map_generator_schema: int, authored_map_digest: PackedByteArray,
 		out: State) -> SaveHeader.Refusal:
-	"""Snapshot all nine owners at a quiescent save boundary into `out`.
+	"""Snapshot all ten owners at a quiescent save boundary into `out`.
 
 	The provenance prefix's VALUES are the caller's: SAVE-R09-003 gives them to the map/scenario
 	producer and nothing here manufactures one. `effective_seed` is taken from the runtime record's
@@ -557,13 +702,57 @@ static func _capture_owners(stores: Stores, out: State) -> SaveHeader.Refusal:
 		return SaveHeader.Refusal.new(REFUSE_CAPTURE_FAILED, stores.world_init.section_1_detail())
 	out.published = 1 if stores.world_init.section_1_is_published() else 0
 	out.published_seed = stores.world_init.section_1_published_seed()
+	return capture_space(stores.space_owner, out)
+
+
+static func capture_space(owner: SpaceOwner, out: State) -> SaveHeader.Refusal:
+	"""The space block: UNMOUNTED for a null owner, else the owner's live bank as MOUNTED.
+
+	Reads the owner only through `state_bytes()`, which returns nothing unless the owner is at a
+	completed boundary; that empty answer refuses here. The wire's columns are re-indexed into
+	registry ordinals through SPACE_WIRE_ORDER, so the section writes them in declared order.
+	"""
+	if owner == null:
+		out.set_space_unmounted()
+		return SaveHeader.Refusal.new(REFUSE_NONE, "")
+	var wire: PackedByteArray = owner.state_bytes()
+	if wire.size() != Budget.SPACE_WIRE_BYTES:
+		return SaveHeader.Refusal.new(REFUSE_CAPTURE_FAILED,
+			"the space owner gave %d wire bytes, not the pack's %d (not at a completed boundary?)"
+				% [wire.size(), Budget.SPACE_WIRE_BYTES])
+	var values: Array[PackedByteArray] = _space_values_from_wire(wire, LAYOUT_MOUNTED)
+	out.space_layout = LAYOUT_MOUNTED
+	out.space_values = values
 	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+
+
+static func _space_values_from_wire(wire: PackedByteArray, layout: int) -> Array[PackedByteArray]:
+	"""Slice the owner's column-major wire into raw values by registry ordinal, scalars from layout."""
+	var values: Array[PackedByteArray] = []
+	values.resize(SPACE_FIELD_KEYS.size())
+	values[0] = PackedInt32Array([SPACE_REGION_CAPACITIES[layout]]).to_byte_array()
+	values[1] = PackedInt32Array([SPACE_SOURCE_CAPACITIES[layout]]).to_byte_array()
+	var counts: Array[int] = space_field_counts(layout)
+	var at: int = 0
+	for ordinal: int in SPACE_WIRE_ORDER:
+		var width: int = counts[ordinal] * TYPE_WIDTHS[SPACE_FIELD_TYPES[ordinal]]
+		values[ordinal] = wire.slice(at, at + width)
+		at += width
+	return values
+
+
+static func space_wire_of(state: State) -> PackedByteArray:
+	"""The owner's exact `state_bytes()` image rebuilt from a MOUNTED state's raw values."""
+	var wire: PackedByteArray = PackedByteArray()
+	for ordinal: int in SPACE_WIRE_ORDER:
+		wire.append_array(state.space_values[ordinal])
+	return wire
 
 
 # --- encode -------------------------------------------------------------------------------------
 
 static func encode_section(state: State, out: WorldRuntime.EncodeResult) -> bool:
-	"""Encode the whole 3752768-byte section: prefix, `store_count = 9`, then nine blocks.
+	"""Encode the whole section in its layout: prefix, `store_count = 10`, then ten blocks.
 
 	Every structural invariant is proved BEFORE a byte is emitted: the compiled table is
 	self-consistent, the host is little-endian, the staged columns are at their declared extents,
@@ -581,18 +770,27 @@ static func encode_section(state: State, out: WorldRuntime.EncodeResult) -> bool
 	var prefix: SaveHeader.Refusal = prefix_refusal(state)
 	if not prefix.is_ok():
 		return out.refuse(prefix.code, prefix.detail)
+	var space: SaveHeader.Refusal = space_refusal(state)
+	if not space.is_ok():
+		return out.refuse(space.code, space.detail)
+	return _encode_blocks(state, out)
+
+
+static func _encode_blocks(state: State, out: WorldRuntime.EncodeResult) -> bool:
+	"""The prefix then all ten blocks in `state.space_layout`, length-checked against the table."""
+	var layout: int = state.space_layout
 	var bytes: PackedByteArray = PackedByteArray()
 	bytes.append_array(_prefix_bytes(state))
 	for owner: int in OWNER_COUNT:
 		var payload: PackedByteArray = _payload_bytes(state, owner, out)
-		if payload.size() != OWNER_PAYLOAD_BYTES[owner]:
+		if payload.size() != compiled_payload_bytes_of(owner, layout):
 			return out.refuse(REFUSE_PAYLOAD_LENGTH, "'%s' encoded %d payload bytes, not %d"
-				% [OWNER_KEYS[owner], payload.size(), OWNER_PAYLOAD_BYTES[owner]])
-		bytes.append_array(_wrapper_bytes(owner))
+				% [OWNER_KEYS[owner], payload.size(), compiled_payload_bytes_of(owner, layout)])
+		bytes.append_array(_wrapper_bytes(owner, layout))
 		bytes.append_array(payload)
-	if bytes.size() != SECTION_BYTES:
+	if bytes.size() != section_bytes_of(layout):
 		return out.refuse(REFUSE_SECTION_LENGTH,
-			"section 1 encoded %d bytes, not %d" % [bytes.size(), SECTION_BYTES])
+			"section 1 encoded %d bytes, not %d" % [bytes.size(), section_bytes_of(layout)])
 	return out.succeed(bytes)
 
 
@@ -614,7 +812,7 @@ static func prefix_refusal(state: State) -> SaveHeader.Refusal:
 
 
 static func _prefix_bytes(state: State) -> PackedByteArray:
-	"""The 44-byte map-provenance prefix followed by `store_count = 9`, as 48 bytes."""
+	"""The 44-byte map-provenance prefix followed by `store_count = 10`, as 48 bytes."""
 	var writer: SaveCodec.Writer = SaveCodec.Writer.new(FIRST_BLOCK_OFFSET)
 	writer.write_u32(state.scenario_version)
 	writer.write_i32(state.effective_seed)
@@ -624,13 +822,13 @@ static func _prefix_bytes(state: State) -> PackedByteArray:
 	return writer.to_bytes()
 
 
-static func _wrapper_bytes(owner: int) -> PackedByteArray:
-	"""One block's `key_length, key, schema, primary_count, payload_length` wrapper."""
+static func _wrapper_bytes(owner: int, layout: int) -> PackedByteArray:
+	"""One block's `key_length, key, schema, primary_count, payload_length` wrapper in `layout`."""
 	var writer: SaveCodec.Writer = SaveCodec.Writer.new(wrapper_bytes_of(owner))
 	writer.write_utf8_u32(OWNER_KEYS[owner], OWNER_KEY_MAX_BYTES)
 	writer.write_u32(OWNER_SCHEMA_VERSIONS[owner])
-	writer.write_u64(OWNER_PRIMARY_COUNTS[owner])
-	writer.write_u64(OWNER_PAYLOAD_BYTES[owner])
+	writer.write_u64(primary_count_of(owner, layout))
+	writer.write_u64(compiled_payload_bytes_of(owner, layout))
 	return writer.to_bytes()
 
 
@@ -653,7 +851,7 @@ static func _payload_bytes(state: State, owner: int,
 static func _ordinary_payload_bytes(state: State, owner: int) -> PackedByteArray:
 	"""`element_count:u64` then the column's native little-endian bytes, per field, in order."""
 	var payload: PackedByteArray = PackedByteArray()
-	var counts: Array[int] = field_counts_of(owner)
+	var counts: Array[int] = field_counts_of(owner, state.space_layout)
 	for ordinal: int in counts.size():
 		payload.append_array(_count_prefix_bytes(counts[ordinal]))
 		payload.append_array(_field_value_bytes(state, owner, ordinal))
@@ -685,6 +883,8 @@ static func _field_value_bytes(state: State, owner: int, ordinal: int) -> Packed
 		return state.resource_slot.to_byte_array()
 	if owner == OWNER_SPATIAL_WORLD:
 		return _spatial_field_bytes(state, ordinal)
+	if owner == OWNER_UNDERGROUND_SPACE:
+		return state.space_values[ordinal]
 	if owner == OWNER_WEATHER:
 		return state.weather_row.to_byte_array() if ordinal == 0 \
 			else state.weather_row64.to_byte_array()
@@ -739,17 +939,36 @@ static func decode_section(bytes: PackedByteArray, offset: int, section_byte_len
 	"""Decode a whole section 1 at `offset` into `out`, reading every item at a COMPILED offset.
 
 	Allocate before consume (decision 0059): everything lands in a local State and the caller's is
-	overwritten only after all nine blocks, all 31 element counts and every prefix field validate.
+	overwritten only after all ten blocks, every element count and every prefix field validate.
 	A malformed section leaves `out` byte-identical, so a refused load cannot half-publish.
 
-	`section_byte_length` must be EXACTLY `SECTION_BYTES`. A shorter or longer section is refused
-	rather than measured: the target has one length, and accepting a different one would be
-	reinterpreting bytes written under another schema.
+	`section_byte_length` must be EXACTLY one compiled layout's length, and the space block's
+	capacity scalars must name that same layout. Any other length is refused rather than measured:
+	accepting it would be reinterpreting bytes written under another schema.
 	"""
 	var extent: SaveHeader.Refusal = section_extent_refusal(bytes, offset, section_byte_length)
 	if not extent.is_ok():
 		return extent
 	var staged: State = State.new()
+	staged.space_layout = layout_of(bytes, offset, section_byte_length)
+	if staged.space_layout < 0:
+		return SaveHeader.Refusal.new(REFUSE_SPACE_LAYOUT,
+			"the space capacities name no compiled layout, or not this section's length")
+	var blocks: SaveHeader.Refusal = _read_blocks(bytes, offset, staged)
+	if not blocks.is_ok():
+		return blocks
+	var invalid: SaveHeader.Refusal = prefix_refusal(staged)
+	if invalid.is_ok():
+		invalid = space_refusal(staged)
+	if not invalid.is_ok():
+		return invalid
+	_adopt(staged, out)
+	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+
+
+static func _read_blocks(bytes: PackedByteArray, offset: int, staged: State) -> SaveHeader.Refusal:
+	"""The prefix then all ten blocks at the staged layout's compiled offsets, tiling exactly."""
+	var layout: int = staged.space_layout
 	var prefix: SaveHeader.Refusal = _read_prefix(bytes, offset, staged)
 	if not prefix.is_ok():
 		return prefix
@@ -757,21 +976,33 @@ static func decode_section(bytes: PackedByteArray, offset: int, section_byte_len
 		var block: SaveHeader.Refusal = _read_block(bytes, offset, owner, staged)
 		if not block.is_ok():
 			return block
-	var last: int = block_offset_of(OWNER_COUNT - 1) + wrapper_bytes_of(OWNER_COUNT - 1) \
-		+ OWNER_PAYLOAD_BYTES[OWNER_COUNT - 1]
-	if last != section_byte_length:
+	var last: int = block_offset_of(OWNER_COUNT - 1, layout) + wrapper_bytes_of(OWNER_COUNT - 1) \
+		+ compiled_payload_bytes_of(OWNER_COUNT - 1, layout)
+	if last != section_bytes_of(layout):
 		return SaveHeader.Refusal.new(REFUSE_NOT_TILED,
-			"nine blocks end at %d, not the section end %d" % [last, section_byte_length])
-	var invalid: SaveHeader.Refusal = prefix_refusal(staged)
-	if not invalid.is_ok():
-		return invalid
-	_adopt(staged, out)
+			"ten blocks end at %d, not the section end %d" % [last, section_bytes_of(layout)])
 	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+
+
+static func layout_of(bytes: PackedByteArray, offset: int, section_byte_length: int) -> int:
+	"""The compiled layout named by the space block's two capacity scalars, or -1.
+
+	Both scalars sit at the SAME compiled offsets in either layout, because no block before the
+	space block changes. The pair must equal one layout's capacities exactly AND the section's
+	declared length must be that layout's; the caller has already proved the bytes are readable.
+	"""
+	var base: int = offset + payload_offset_of(OWNER_UNDERGROUND_SPACE)
+	var region: int = bytes.decode_s32(base + field_value_offset_of(OWNER_UNDERGROUND_SPACE, 0))
+	var source: int = bytes.decode_s32(base + field_value_offset_of(OWNER_UNDERGROUND_SPACE, 1))
+	for layout: int in LAYOUT_COUNT:
+		if region == SPACE_REGION_CAPACITIES[layout] and source == SPACE_SOURCE_CAPACITIES[layout]:
+			return layout if section_byte_length == section_bytes_of(layout) else -1
+	return -1
 
 
 static func section_extent_refusal(bytes: PackedByteArray, offset: int,
 		section_byte_length: int) -> SaveHeader.Refusal:
-	"""Prove the compiled table, the host endianness and that exactly SECTION_BYTES are readable.
+	"""Prove the compiled table, the host endianness and that one layout's exact length is readable.
 
 	The buffer bound is written as a SUBTRACTION so `offset + section_byte_length` is never formed
 	and cannot overflow into a bound that accidentally passes.
@@ -784,10 +1015,10 @@ static func section_extent_refusal(bytes: PackedByteArray, offset: int,
 		return endian
 	if offset < 0:
 		return SaveHeader.Refusal.new(REFUSE_NEGATIVE_OFFSET, "offset %d is negative" % offset)
-	if section_byte_length != SECTION_BYTES:
+	if not SECTION_BYTES_BY_LAYOUT.has(section_byte_length):
 		return SaveHeader.Refusal.new(REFUSE_SECTION_LENGTH,
-			"section 1 declares %d bytes, not the target %d"
-				% [section_byte_length, SECTION_BYTES])
+			"section 1 declares %d bytes, not a compiled layout's %s"
+				% [section_byte_length, str(SECTION_BYTES_BY_LAYOUT)])
 	if bytes.size() < section_byte_length or offset > bytes.size() - section_byte_length:
 		return SaveHeader.Refusal.new(REFUSE_TRUNCATED,
 			"section 1 needs %d bytes at offset %d, buffer holds %d"
@@ -826,7 +1057,8 @@ static func _read_block(bytes: PackedByteArray, offset: int, owner: int,
 	wrong key -- which is exactly the failure a cursor-walking decoder shares with its encoder and
 	therefore cannot see.
 	"""
-	var base: int = offset + block_offset_of(owner)
+	var layout: int = staged.space_layout
+	var base: int = offset + block_offset_of(owner, layout)
 	var key: PackedByteArray = OWNER_KEYS[owner].to_utf8_buffer()
 	var scalar: SaveCodec.Scalar = SaveCodec.Scalar.new()
 	if not SaveCodec.read_u32_at(bytes, base, scalar):
@@ -838,14 +1070,14 @@ static func _read_block(bytes: PackedByteArray, offset: int, owner: int,
 		return SaveHeader.Refusal.new(REFUSE_OWNER_KEY,
 			"block %d does not carry '%s' at offset %d" % [owner, OWNER_KEYS[owner], base])
 	var head: SaveHeader.Refusal = _read_wrapper_numbers(bytes, base + SaveCodec.U32_BYTES
-		+ key.size(), owner)
+		+ key.size(), owner, layout)
 	if not head.is_ok():
 		return head
-	return _read_payload(bytes, offset + payload_offset_of(owner), owner, staged)
+	return _read_payload(bytes, offset + payload_offset_of(owner, layout), owner, staged)
 
 
 static func _read_wrapper_numbers(bytes: PackedByteArray, at: int,
-		owner: int) -> SaveHeader.Refusal:
+		owner: int, layout: int) -> SaveHeader.Refusal:
 	"""Schema version, primary count and payload length, each against its compiled constant."""
 	var scalar: SaveCodec.Scalar = SaveCodec.Scalar.new()
 	if not SaveCodec.read_u32_at(bytes, at, scalar):
@@ -855,16 +1087,16 @@ static func _read_wrapper_numbers(bytes: PackedByteArray, at: int,
 			% [OWNER_KEYS[owner], scalar.value, OWNER_SCHEMA_VERSIONS[owner]])
 	if not SaveCodec.read_u64_at(bytes, at + SaveCodec.U32_BYTES, scalar):
 		return SaveHeader.Refusal.new(REFUSE_TRUNCATED, scalar.detail)
-	if scalar.value != OWNER_PRIMARY_COUNTS[owner]:
+	if scalar.value != primary_count_of(owner, layout):
 		return SaveHeader.Refusal.new(REFUSE_PRIMARY_COUNT,
 			"'%s' declares primary_count %d, not %d"
-				% [OWNER_KEYS[owner], scalar.value, OWNER_PRIMARY_COUNTS[owner]])
+				% [OWNER_KEYS[owner], scalar.value, primary_count_of(owner, layout)])
 	if not SaveCodec.read_u64_at(bytes, at + SaveCodec.U32_BYTES + SaveCodec.U64_BYTES, scalar):
 		return SaveHeader.Refusal.new(REFUSE_TRUNCATED, scalar.detail)
-	if scalar.value != OWNER_PAYLOAD_BYTES[owner]:
+	if scalar.value != compiled_payload_bytes_of(owner, layout):
 		return SaveHeader.Refusal.new(REFUSE_PAYLOAD_LENGTH,
 			"'%s' declares %d payload bytes, not %d"
-				% [OWNER_KEYS[owner], scalar.value, OWNER_PAYLOAD_BYTES[owner]])
+				% [OWNER_KEYS[owner], scalar.value, compiled_payload_bytes_of(owner, layout)])
 	return SaveHeader.Refusal.new(REFUSE_NONE, "")
 
 
@@ -879,26 +1111,28 @@ static func _read_payload(bytes: PackedByteArray, at: int, owner: int,
 		return WorldRuntime.cursor_refusal(scalar.value)
 	if owner == OWNER_WORLD_RUNTIME:
 		return WorldRuntime.decode_into(bytes, at, staged.runtime)
-	var counts: Array[int] = field_counts_of(owner)
+	var layout: int = staged.space_layout
+	var counts: Array[int] = field_counts_of(owner, layout)
 	for ordinal: int in counts.size():
-		var checked: SaveHeader.Refusal = _read_element_count(bytes, at, owner, ordinal)
+		var checked: SaveHeader.Refusal = _read_element_count(bytes, at, owner, ordinal, layout)
 		if not checked.is_ok():
 			return checked
-		_read_field_values(bytes, at + field_value_offset_of(owner, ordinal), owner, ordinal,
-			staged)
+		_read_field_values(bytes, at + field_value_offset_of(owner, ordinal, layout), owner,
+			ordinal, staged)
 	return SaveHeader.Refusal.new(REFUSE_NONE, "")
 
 
 static func _read_element_count(bytes: PackedByteArray, at: int, owner: int,
-		ordinal: int) -> SaveHeader.Refusal:
+		ordinal: int, layout: int) -> SaveHeader.Refusal:
 	"""One field's `element_count:u64`, which must EQUAL the compiled count. Never an allocation."""
 	var scalar: SaveCodec.Scalar = SaveCodec.Scalar.new()
-	if not SaveCodec.read_u64_at(bytes, at + field_count_offset_of(owner, ordinal), scalar):
+	var expected: int = field_counts_of(owner, layout)[ordinal]
+	if not SaveCodec.read_u64_at(bytes, at + field_count_offset_of(owner, ordinal, layout), scalar):
 		return SaveHeader.Refusal.new(REFUSE_TRUNCATED, scalar.detail)
-	if scalar.value != field_counts_of(owner)[ordinal]:
+	if scalar.value != expected:
 		return SaveHeader.Refusal.new(REFUSE_ELEMENT_COUNT,
 			"'%s.%s' declares %d elements, not %d" % [OWNER_KEYS[owner],
-				field_keys_of(owner)[ordinal], scalar.value, field_counts_of(owner)[ordinal]])
+				field_keys_of(owner)[ordinal], scalar.value, expected])
 	return SaveHeader.Refusal.new(REFUSE_NONE, "")
 
 
@@ -909,9 +1143,12 @@ static func _read_field_values(bytes: PackedByteArray, at: int, owner: int, ordi
 	The slice width is `element_count * type_width` from the compiled table, and the count sitting
 	in the file has already been proved equal to that count, so no length here comes from the file.
 	"""
-	var width: int = field_counts_of(owner)[ordinal] * TYPE_WIDTHS[field_types_of(owner)[ordinal]]
+	var width: int = field_counts_of(owner, staged.space_layout)[ordinal] \
+		* TYPE_WIDTHS[field_types_of(owner)[ordinal]]
 	var raw: PackedByteArray = bytes.slice(at, at + width)
-	if owner == OWNER_BUILDINGS:
+	if owner == OWNER_UNDERGROUND_SPACE:
+		staged.space_values[ordinal] = raw
+	elif owner == OWNER_BUILDINGS:
 		_bind_buildings(staged, ordinal, raw.to_int32_array())
 	elif owner == OWNER_FARMING:
 		_bind_farming(staged, ordinal, raw)
@@ -1038,12 +1275,19 @@ static func _adopt(staged: State, out: State) -> void:
 	out.published = staged.published
 	out.published_seed = staged.published_seed
 	out.world_map = staged.world_map
+	_adopt_space(staged, out)
+
+
+static func _adopt_space(staged: State, out: State) -> void:
+	"""Move the validated space block's layout and raw values into `out`, by reference."""
+	out.space_layout = staged.space_layout
+	out.space_values = staged.space_values
 
 
 # --- semantic validation -------------------------------------------------------------------------
 
 static func validate_section(state: State, stores: Stores) -> SaveHeader.Refusal:
-	"""Run all nine owner validators over a decoded section, before anything is published.
+	"""Run every owner validator over a decoded section, before anything is published.
 
 	Count, order, length and CRC agreement are NOT a substitute for these: a file can tile
 	perfectly and still carry a family with no streak, a half-null basin reference or an event
@@ -1065,7 +1309,45 @@ static func validate_section(state: State, stores: Stores) -> SaveHeader.Refusal
 	var owners: SaveHeader.Refusal = _owner_domain_refusal(state, stores)
 	if not owners.is_ok():
 		return owners
+	var space: SaveHeader.Refusal = space_refusal(state)
+	if not space.is_ok():
+		return space
 	return seed_agreement_refusal(state)
+
+
+static func space_refusal(state: State) -> SaveHeader.Refusal:
+	"""The space block's own rules, before any owner sees it (ADR 1222 step 0).
+
+	UNMOUNTED must be the canonical empty form: zero capacities and an all-zero header (its
+	columns are empty by shape). MOUNTED must carry the pack capacities in both scalars and in the
+	header, the owner's schema and a configured revision of at least 1. Everything else about the
+	bank is the owner's to judge, in `restore_state_bytes()`, when the Session is re-mounted.
+	"""
+	var shape: String = state.space_shape_detail()
+	if shape != "":
+		return SaveHeader.Refusal.new(REFUSE_COLUMN_SHAPE, shape)
+	var layout: int = state.space_layout
+	var scalars: Array[int] = [state.space_values[0].decode_s32(0), state.space_values[1].decode_s32(0)]
+	if scalars != [SPACE_REGION_CAPACITIES[layout], SPACE_SOURCE_CAPACITIES[layout]]:
+		return SaveHeader.Refusal.new(REFUSE_SPACE_LAYOUT,
+			"capacities %s do not name layout %d" % [str(scalars), layout])
+	var header: PackedInt64Array = state.space_values[2].to_int64_array()
+	if layout == LAYOUT_UNMOUNTED:
+		return _space_header_refusal(header == PackedInt64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0]), "an unmounted space header must be all zero")
+	var expected: Array[int] = [SpaceOwner.SCHEMA, Budget.REGION_CAPACITY, Budget.SOURCE_CAPACITY]
+	var agrees: bool = [header[SPACE_HEADER_SCHEMA], header[SPACE_HEADER_REGION_CAPACITY],
+		header[SPACE_HEADER_SOURCE_CAPACITY]] == expected
+	return _space_header_refusal(agrees and header[SPACE_HEADER_REVISION] >= 1,
+		"a mounted space header must carry schema %d, the pack capacities and a revision >= 1"
+			% SpaceOwner.SCHEMA)
+
+
+static func _space_header_refusal(valid: bool, detail: String) -> SaveHeader.Refusal:
+	"""REFUSE_SPACE_HEADER with `detail` unless `valid`."""
+	if valid:
+		return SaveHeader.Refusal.new(REFUSE_NONE, "")
+	return SaveHeader.Refusal.new(REFUSE_SPACE_HEADER, detail)
 
 
 static func _owner_domain_refusal(state: State, stores: Stores) -> SaveHeader.Refusal:
@@ -1172,6 +1454,30 @@ static func _publish_owners(state: State, stores: Stores) -> SaveHeader.Refusal:
 	return SaveHeader.Refusal.new(REFUSE_NONE, "")
 
 
+static func restore_space_owner(state: State, owner: SpaceOwner) -> SaveHeader.Refusal:
+	"""Publish the validated space block into the re-mounted Session's Space owner.
+
+	NOT part of `restore_section()`: the Space owner exists only after the orchestrator has
+	re-mounted the underground Session through its composers, and ADR 1221 restores it FIRST in
+	the underground group. UNMOUNTED requires that no owner is mounted; MOUNTED requires one and
+	hands it the exact `state_bytes()` image, which the owner validates in its staging bank and
+	refuses without touching its live bank.
+	"""
+	var space: SaveHeader.Refusal = space_refusal(state)
+	if not space.is_ok():
+		return space
+	if state.space_layout == LAYOUT_UNMOUNTED:
+		if owner == null:
+			return SaveHeader.Refusal.new(REFUSE_NONE, "")
+		return SaveHeader.Refusal.new(REFUSE_SPACE_MOUNT, "an unmounted save cannot fill a mounted Space")
+	if owner == null:
+		return SaveHeader.Refusal.new(REFUSE_SPACE_MOUNT, "a mounted save needs a re-mounted Space owner")
+	var code: StringName = owner.restore_state_bytes(space_wire_of(state))
+	if code != &"":
+		return SaveHeader.Refusal.new(REFUSE_RESTORE_FAILED, "underground_space_owner: %s" % code)
+	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+
+
 static func cross_check_refusal(stores: Stores) -> SaveHeader.Refusal:
 	"""Every cross-owner inverse, run against the LIVE stores after the component sections land.
 
@@ -1203,7 +1509,7 @@ static func cross_check_refusal(stores: Stores) -> SaveHeader.Refusal:
 # --- canonical value adapters (ARCH-HASH-001) -----------------------------------------------------
 #
 # `canonical_state_hash.gd` walks the compiled declaration and asks each owner for one field at a
-# time through `canonical_field_values(field_key, out)`. The nine adapters below are section 1's
+# time through `canonical_field_values(field_key, out)`. The ten adapters below are section 1's
 # side of that contract. They read the SAME staged columns the encoder writes, at the SAME declared
 # extents, so a save and a hash cannot disagree about what section 1 contains.
 #
@@ -1223,7 +1529,7 @@ class Adapter:
 	var _owner: int = 0
 
 	func _init(p_state: State, p_owner: int) -> void:
-		"""Bind this adapter to one staged section and one of its nine owners."""
+		"""Bind this adapter to one staged section and one of its ten owners."""
 		_state = p_state
 		_owner = p_owner
 
@@ -1261,13 +1567,25 @@ class Adapter:
 
 	func _ordinary_values(ordinal: int, out: Digest.FieldValues) -> bool:
 		"""One ordinary owner's field, at the declared element count the wire uses."""
-		var count: int = SaveSection01.field_counts_of(_owner)[ordinal]
+		var count: int = SaveSection01.field_counts_of(_owner, _state.space_layout)[ordinal]
 		var type_code: int = SaveSection01.field_types_of(_owner)[ordinal]
+		if _owner == OWNER_UNDERGROUND_SPACE:
+			return _space_values(ordinal, type_code, count, out)
 		if type_code == TYPE_U8:
 			return out.supply_bytes(_byte_column(ordinal), count)
 		if type_code == TYPE_I64:
 			return out.supply_int64(_wide_column(ordinal), count)
 		return out.supply_int32(_narrow_column(ordinal), count)
+
+	func _space_values(ordinal: int, type_code: int, count: int,
+			out: Digest.FieldValues) -> bool:
+		"""One space field, converted from its raw little-endian bytes to its typed column."""
+		var raw: PackedByteArray = _state.space_values[ordinal]
+		if type_code == TYPE_U8:
+			return out.supply_bytes(raw, count)
+		if type_code == TYPE_I64:
+			return out.supply_int64(raw.to_int64_array(), count)
+		return out.supply_int32(raw.to_int32_array(), count)
 
 	func _byte_column(ordinal: int) -> PackedByteArray:
 		"""The u8 column of (`_owner`, `ordinal`): farming's tending flag, spatial's two cell
@@ -1321,7 +1639,7 @@ class Adapter:
 
 
 static func register_adapters(walker: Digest.Walker, state: State) -> Digest.Refusal:
-	"""Register all nine section-1 owners' canonical value adapters on `walker`.
+	"""Register all ten section-1 owners' canonical value adapters on `walker`.
 
 	Refuses on the first owner the declaration does not know or that already has an adapter, so a
 	renamed or duplicated owner surfaces here instead of inside a digest.

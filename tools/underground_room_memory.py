@@ -21,6 +21,9 @@ ROOT = Path(__file__).resolve().parents[1]
 E = Path("docs/validation/evidence/underground-current-memory-2026-10-05")
 MANIFEST = Path("docs/validation/evidence/underground-entry-source-phases-2026-10-05/memory-manifest-3.json")
 MANIFEST_SHA = "0eb02a8f447fdea58032583e2828f4fe5f38dc28b15a9b810939cb532851ee7f"
+PROJECTION = Path("docs/validation/evidence/underground-memory-census-2026-10-06/projection.json")
+PROFILE_BYTES = 278528 # ADR1217 step 5 (underground_budget.gd PROFILE_BYTES)
+PROJECTION_SHA = "6f40c1acda4efc6e91246316a66bf5040adb97e05a6fef37481fa9af04caf4d0"
 P = Path("docs/validation/evidence/underground-room-frontier-publication-2026-10-04")
 I = Path("docs/validation/evidence/underground-room-itinerary-census-2026-10-05")
 C = Path("docs/validation/evidence/underground-room-owner-composition-2026-10-04")
@@ -41,14 +44,41 @@ def digest(data):
     return hashlib.sha256(data).hexdigest()
 
 
-def verified_inputs(index):
+def projection_rows():
+    """ADR 1212: the archived manifest-3 bytes of inputs that changed after the last passing pack."""
+    data = (ROOT / PROJECTION).read_bytes()
+    require(digest(data) == PROJECTION_SHA, "immutable reviewed-source projection changed")
+    rows = json.loads(data)["inputs"]
+    for relative, row in rows.items():
+        raw = (ROOT / row["locator"]).read_bytes()
+        require(digest(raw) == row["sha256"], "archived reviewed source changed: " + relative)
+    return rows
+
+
+def reviewed_bytes(relative, expected, live, projection, projected):
+    """Live bytes when unchanged; otherwise the archived reviewed bytes, recorded as projected.
+
+    A projected input's current bytes are not admitted here. The joint pack
+    refuses unless tools/underground_current_census.py recounts that module.
+    """
+    if digest(live) == expected:
+        return live
+    row = projection.get(relative)
+    require(row is not None and row["sha256"] == expected, "reviewed witness changed: " + relative)
+    projected.add(relative)
+    return (ROOT / row["locator"]).read_bytes()
+
+
+def verified_inputs(index, projected=None):
     """Verify the complete producer/baseline closure before any code executes."""
     data = (ROOT / MANIFEST).read_bytes()
     require(digest(data) == MANIFEST_SHA, "immutable manifest changed")
     manifest = json.loads(data)
+    projection = projection_rows()
+    projected = set() if projected is None else projected
     blobs = {}
     for relative, expected in manifest["witnesses"].items():
-        raw = (ROOT / relative).read_bytes()
+        raw = reviewed_bytes(relative, expected, (ROOT / relative).read_bytes(), projection, projected)
         require(digest(raw) == expected, "reviewed witness changed: " + relative)
         blobs[relative] = raw
     for group in ("baseline", "publisher_predecessors", "route_predecessors"):
@@ -63,8 +93,12 @@ def verified_inputs(index):
         module = current[name]
         require(module.name == name and module.relative_path == row["path"], "module identity: " + name)
         # Do not trust cached hashes or parsed constants when text was injected.
-        require(digest(module.text.encode()) == row["sha256"], "current reviewed source changed: " + name)
-        current[name] = audit.parse_module(name, module.relative_path, module.text)
+        live = module.text.encode()
+        if digest(live) != row["sha256"]:
+            require(row["path"] in projection, "current reviewed source changed: " + name)
+            live = reviewed_bytes(row["path"], row["sha256"], live, projection, projected)
+        require(digest(live) == row["sha256"], "current reviewed source changed: " + name)
+        current[name] = audit.parse_module(name, module.relative_path, live.decode())
     return manifest, blobs, {name: current[name] for name in manifest["sources"]}
 
 
@@ -451,7 +485,8 @@ def surface_composition(current, manifest, blobs, view, previous_routes):
 
 def build(index):
     """Return current recounts and explicitly separate unchanged older slices."""
-    manifest, blobs, current = verified_inputs(index)
+    archived = set()
+    manifest, blobs, current = verified_inputs(index, archived)
     alias = ui_notice_alias(current, manifest, blobs)
     view = FrozenInputs(blobs, current)
     entry = entry_air_contact_memory(current, manifest, blobs, view)
@@ -487,6 +522,7 @@ def build(index):
         "room_composition_projection": manifest["route_predecessors"], "ground_catalog": ground,
         "unchanged_locations_constructor_closure": closure,
         "additional_global_reserved_bytes": 0, "runtime_qualified": False, "native_measured": False,
+        "projected_reviewed_inputs": sorted(archived),
     }
     legacy = E / "predecessors/underground_motion_memory.py.txt"
     result["historical_motion"] = producer(legacy, blobs)["build"](historical)
@@ -531,10 +567,17 @@ def reconcile(result, index, session, retirement, ui_reset, motion):
     # Old constructors and caller frames were checked with their original
     # configuration above. Replace only derived dimensions after exact1173
     # source equivalence and current1168/1172 arithmetic have closed.
-    joint = result["current_publication_metadata"]["joint"]
-    terms = result["current_publication_metadata"]["terms"]
-    require(joint == result["current_source_runtime"]["joint"]["total"] == 248632
-            and motion["joint"]["total"] + 1536 + 8192 == joint, "current complete joint disagrees")
+    reviewed = result["current_publication_metadata"]["joint"]
+    require(reviewed == result["current_source_runtime"]["joint"]["total"] == 248632 == 238904 + 1536 + 8192,
+            "reviewed complete joint disagrees")
+    # ADR1212: the reviewed Session (1,536) and retirement (8,192) terms are unchanged; the Motion/Profile/Level
+    # term is the current source count (content 9 since ADR1217 step 5, which raised PROFILE_BYTES to 278,528), so the
+    # joint follows the published profile configuration.
+    joint = motion["joint"]["total"] + 1536 + 8192
+    require(joint <= PROFILE_BYTES, "current complete joint exceeds PROFILE_BYTES")
+    terms = {"paired_profiles": motion["joint"]["profiles"] - 32768, "profile_controls": 32768,
+             "levels": motion["joint"]["levels"]}
+    result["current_publication_metadata"]["historical_joint"] = reviewed
     session["historical_profile_accounting"] = {
         key: session[key] for key in ("existing_profile_paired_plus_control_bytes",
             "foundation_profile_level_session_bytes", "source_counted_motion_joint_before_session_bytes",
@@ -543,9 +586,9 @@ def reconcile(result, index, session, retirement, ui_reset, motion):
         foundation_profile_level_session_bytes=terms["paired_profiles"] + terms["profile_controls"] + terms["levels"] + 1536,
         source_counted_motion_joint_before_session_bytes=motion["joint"]["total"],
         profile_level_motion_session_joint_bytes=motion["joint"]["total"] + 1536,
-        joint_remaining_bytes=262144 - motion["joint"]["total"] - 1536)
+        joint_remaining_bytes=PROFILE_BYTES - motion["joint"]["total"] - 1536)
     retirement["accounting"].update(parent_1156_joint_bytes=session["profile_level_motion_session_joint_bytes"],
-        joint_with_retirement=joint, joint_remaining_bytes=262144-joint)
+        joint_with_retirement=joint, joint_remaining_bytes=PROFILE_BYTES-joint)
     # Preserve the old report's label exactly in historical_accounting only.
     retirement["accounting"]["current_source_joint_bytes"] = retirement["accounting"].pop("parent_1156_joint_bytes")
     ui_reset["accounting"].update(profile_joint_unchanged=joint)

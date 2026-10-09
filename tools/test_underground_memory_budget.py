@@ -75,9 +75,9 @@ class JointPackTests(unittest.TestCase):
     def test_motion_profiles_levels_share_the_existing_reservation(self) -> None:
         result = budget.build(self.index)
         joint = result["profile_motion_reservation"]["joint"]
-        self.assertEqual((joint["total"], joint["reservation"], joint["headroom"]), (238904, 262144, 23240))
+        self.assertEqual((joint["total"], joint["reservation"], joint["headroom"]), (262128, 278528, 16400)) # ADR1229: content 10
         self.assertEqual(joint["independent_maxima_total_refuses"], 444284)
-        self.assertEqual(result["live_with_reserve_bytes"], 99999806)
+        self.assertEqual(result["live_with_reserve_bytes"], 100250607)
         self.assertFalse(result["runtime_qualified"])
 
     def test_session_fits_current_source_counted_joint_without_global_increase(self) -> None:
@@ -86,8 +86,8 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(session["source_counted_motion_joint_before_session_bytes"],
                          result["profile_motion_reservation"]["joint"]["total"])
         self.assertEqual((session["retained_numeric_bytes"], session["strong_reference_or_alias_members"]), (43, 24))
-        self.assertEqual((session["profile_level_motion_session_joint_bytes"], session["joint_remaining_bytes"]), (240440, 21704))
-        self.assertEqual(result["live_with_reserve_bytes"], 99999806)
+        self.assertEqual((session["profile_level_motion_session_joint_bytes"], session["joint_remaining_bytes"]), (263664, 14864))
+        self.assertEqual(result["live_with_reserve_bytes"], 100250607)
         self.assertFalse(session["native_memory_qualified"])
 
     def test_session_unaccounted_owner_is_rejected(self) -> None:
@@ -97,8 +97,8 @@ class JointPackTests(unittest.TestCase):
         result = budget.build(self.index)
         row = result["host_retirement_reservation"]["accounting"]
         self.assertEqual((row["retirement_reserved_bytes"], row["joint_with_retirement"],
-                          row["joint_remaining_bytes"]), (8192, 248632, 13512))
-        self.assertEqual(result["contributions"]["PROFILE_BYTES"], 262144)
+                          row["joint_remaining_bytes"]), (8192, 271856, 6672))
+        self.assertEqual(result["contributions"]["PROFILE_BYTES"], 278528)
         self.assertEqual(result["session_reservation"]["additional_retirement_reference_slots_charged_separately"], 2)
 
     def test_retirement_extra_retained_packet_cannot_hide_in_shared_reserve(self) -> None:
@@ -122,8 +122,8 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(result["ui_reset_reservation"]["current_constructor_exclusive_reuse"],
                          route["constructor_exclusive_reuse"])
         self.assertEqual(route["retained_reference_delta"], 2)
-        self.assertEqual(result["contributions"]["PROFILE_BYTES"], 262144)
-        self.assertEqual(result["live_with_reserve_bytes"], 99999806)
+        self.assertEqual(result["contributions"]["PROFILE_BYTES"], 278528)
+        self.assertEqual(result["live_with_reserve_bytes"], 100250607)
 
     def test_ui_current_text_mutation_is_not_replaced_with_disk_source(self) -> None:
         for role, (name, _) in budget.ui_reset_memory.CURRENT.items():
@@ -141,7 +141,7 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(result["contributions"]["room_world_bindings"], 1024)
         self.assertEqual(result["room_world_reservation"]["logical_helper_and_included_native_bytes"], 986)
         self.assertEqual(result["room_world_reservation"]["maximum_shared_phase_bytes"], 1048912)
-        self.assertEqual(result["headroom_bytes"], 194)
+        self.assertEqual(result["headroom_bytes"], 49749393) # ADR1212 §7: DEC-053 gate 150,000,000; ADR1217 step 5 PROFILE_BYTES +16,384; ADR1229 6b +7,009; DEC-059 +296
 
     def test_ordinary_provider_extra_allocation_requires_a_new_census(self) -> None:
         self.refuses("underground_room_world_bindings", "_ordinary_checks.resize(1)", "_ordinary_checks.resize(2)")
@@ -179,7 +179,7 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual((clock["additional_logical_counted"], clock["combined_logical_counted"]), (208, 1298))
         self.assertEqual((clock["clock_caller_bytes"], clock["shared_caller_reservation"]), (44, 176))
         self.assertEqual(clock["joint"], result["profile_motion_reservation"]["joint"])
-        self.assertEqual(result["live_with_reserve_bytes"], 99999806)
+        self.assertEqual(result["live_with_reserve_bytes"], 100250607)
 
     def test_clock_cannot_retain_per_actor_ticks(self) -> None:
         self.refuses("underground_motion_clock", "const TREAD_TICKS", "var _ticks: int = 0\nconst TREAD_TICKS")
@@ -243,7 +243,7 @@ class JointPackTests(unittest.TestCase):
         self.refuses("underground_level_catalog", "MAX_RETAINED_BYTES: int = 244", "MAX_RETAINED_BYTES: int = 248")
 
     def test_motion_shared_profile_reservation_cannot_expand(self) -> None:
-        self.refuses("underground_budget", "PROFILE_BYTES: int = 262144", "PROFILE_BYTES: int = 524288")
+        self.refuses("underground_budget", "PROFILE_BYTES: int = 278528", "PROFILE_BYTES: int = 524288")
 
     def test_negative_larger_quote_dimension(self) -> None:
         self.refuses("modular_project_contract", "OUTPUT_CAPACITY: int = 2", "OUTPUT_CAPACITY: int = 3")
@@ -425,13 +425,16 @@ class JointPackTests(unittest.TestCase):
         # Exercise the packet parser directly. The current1171 full owner is
         # now source-pinned, so an added method cannot qualify as current code.
         anchor = budget.surface_anchor_reservation(index)
-        self.assertEqual(anchor["packet_bytes"], 204)
-        self.assertEqual(anchor["numeric_control_bytes"], 93)
-        with self.assertRaisesRegex(AssertionError, "current reviewed source changed: underground_surface_anchor"):
-            budget.build(index)
+        self.assertEqual(anchor["packet_bytes"], 284)
+        self.assertEqual(anchor["numeric_control_bytes"], 101) # ADR1212: +8, ADR1207 _last_checks.
+        # ADR1212: SurfaceAnchor is projected. A method with only a local is not a storage change, so the
+        # current census admits it; a new retained member is refused (test_underground_current_census.py).
+        import underground_current_census as census
+        projected = sorted(json.loads((budget.ROOT / budget.room_memory.PROJECTION).read_bytes())["inputs"])
+        census.projected_deltas(dict(index), projected, census.reviewed_table())
 
     def test_negative_binding_reserve_cannot_omit_existing_consumers(self) -> None:
-        self.refuses("underground_budget", "BINDINGS_AND_GROWTH_BYTES: int = 524288",
+        self.refuses("underground_budget", "BINDINGS_AND_GROWTH_BYTES: int = 524544",
                      "BINDINGS_AND_GROWTH_BYTES: int = 378119")
 
     def test_negative_placement_bank_width_growth(self) -> None:
@@ -510,7 +513,7 @@ class JointPackTests(unittest.TestCase):
                      "189 * placements + 89 * openings + 4096")
 
     def test_negative_corrected_binding_consumers_cannot_be_omitted(self) -> None:
-        self.refuses("underground_budget", "BINDINGS_AND_GROWTH_BYTES: int = 524288",
+        self.refuses("underground_budget", "BINDINGS_AND_GROWTH_BYTES: int = 524544",
                      "BINDINGS_AND_GROWTH_BYTES: int = 487498")
 
     def test_negative_route_leading_multiplier_preserves_precedence(self) -> None:
@@ -522,8 +525,8 @@ class JointPackTests(unittest.TestCase):
                      "2 * EDGE_CAPACITY * (MASK_BYTES + 4 + 16) * 2")
 
     def test_negative_joint_limit_even_when_individual_formulas_agree(self) -> None:
-        self.refuses("underground_budget", "BINDINGS_AND_GROWTH_BYTES: int = 524288",
-                     "BINDINGS_AND_GROWTH_BYTES: int = 624288")
+        self.refuses("underground_budget", "BINDINGS_AND_GROWTH_BYTES: int = 524544",
+                     "BINDINGS_AND_GROWTH_BYTES: int = 50524544") # exceeds the DEC-053 gate
 
     def test_negative_inadequate_endpoint_reserve(self) -> None:
         self.refuses("underground_budget", "INVENTORY_EXTENSION_BYTES: int = 131072",
@@ -539,10 +542,10 @@ class JointPackTests(unittest.TestCase):
 
     def test_positive_current_joint_pack_is_not_runtime_qualification(self) -> None:
         result = budget.build(self.index)
-        self.assertEqual(result["new_mutable_and_reserved_bytes"], 5007041)
-        self.assertEqual(result["declaration_bytes"], 23573)
-        self.assertEqual(result["live_with_reserve_bytes"], 99999806)
-        self.assertEqual(result["headroom_bytes"], 194)
+        self.assertEqual(result["new_mutable_and_reserved_bytes"], 5255770) # ADR1218 +5128 entry images; ADR1221 +196694 cold-load images; ADR1223 +9; ADR1217 step 5 +16384; ADR1229 +15260; 6b +7009; DEC-059 P1 +296
+        self.assertEqual(result["declaration_bytes"], 25645) # ADR1221 +165; ADR1222 Q7 +1115; ADR1228 +642
+        self.assertEqual(result["live_with_reserve_bytes"], 100250607)
+        self.assertEqual(result["headroom_bytes"], 49749393) # ADR1212 §7: DEC-053 gate 150,000,000; ADR1217 step 5 PROFILE_BYTES +16,384; ADR1229 6b +7,009; DEC-059 +296
         self.assertFalse(result["runtime_qualified"])
         workpieces = result["connector_workpieces_reservation"]
         self.assertEqual(workpieces["two_bank_bytes"], 10752)
@@ -557,24 +560,24 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(haul["reserved_bytes"], 3072)
         self.assertEqual(result["contributions"]["guarded_haul_transfers"], 3072)
         delivery = result["connector_delivery_reservation"]
-        self.assertEqual(delivery["fixed_numeric_and_packed_bytes"], 753)
+        self.assertEqual(delivery["fixed_numeric_and_packed_bytes"], 834)
         self.assertEqual(delivery["work_new_numeric_bytes"], 1)
-        self.assertEqual(delivery["declared_bytes"], 3826)
+        self.assertEqual(delivery["declared_bytes"], 3907)
         self.assertEqual(delivery["reserved_bytes"], 4096)
         self.assertEqual(result["contributions"]["connector_delivery"], 4096)
         recipes = result["connector_recipe_reservation"]
         self.assertEqual(budget.payload(recipes["columns"]), 16580)
         self.assertEqual(recipes["bank_bytes"], 16512)
-        self.assertEqual(recipes["known_binding_used_bytes"], 524288)
+        self.assertEqual(recipes["known_binding_used_bytes"], 524544)
         self.assertEqual(recipes["remaining_binding_reserve_bytes"], 0)
         contacts = recipes["connector_contacts_reservation"]
-        self.assertEqual(contacts["reserved_bytes"], 4096)
-        self.assertEqual(contacts["fixed_numeric_and_packed_bytes"], 3059)
+        self.assertEqual(contacts["reserved_bytes"], 4352)
+        self.assertEqual(contacts["fixed_numeric_and_packed_bytes"], 3219)
         self.assertEqual(contacts["fragment_banks_and_controls"], 1633)
         self.assertEqual(contacts["logical_helper_allowance_bytes"], 1024)
         self.assertEqual(recipes["entry_frontier_reservation"]["reserved_bytes"], 28597)
         self.assertEqual(recipes["entry_bindings_reservation"]["reserved_bytes"], 4096)
-        self.assertEqual(recipes["entry_bindings_reservation"]["fixed_numeric_and_packed_bytes"], 486)
+        self.assertEqual(recipes["entry_bindings_reservation"]["fixed_numeric_and_packed_bytes"], 646)
         self.assertEqual(recipes["funding_settlement_reservation"]["reserved_bytes"], 16)
         self.assertEqual(recipes["placement_reservation"]["reserved_bytes"], 108800)
         self.assertEqual(recipes["placement_reservation"]["fixed_controls"]["total_bytes"], 1895)
@@ -585,10 +588,10 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(budget.payload(assemblies["columns"]), 4316)
         self.assertEqual(assemblies["reserved_bytes"], 4760)
         anchor = recipes["surface_anchor_reservation"]
-        self.assertEqual(anchor["numeric_control_bytes"], 93)
-        self.assertEqual(anchor["packet_bytes"], 204)
+        self.assertEqual(anchor["numeric_control_bytes"], 101)
+        self.assertEqual(anchor["packet_bytes"], 284)
         self.assertEqual(anchor["surface_metadata_bytes"], 24)
-        self.assertEqual(anchor["fixed_numeric_and_packed_bytes"], 321)
+        self.assertEqual(anchor["fixed_numeric_and_packed_bytes"], 409)
         self.assertEqual(anchor["reserved_bytes"], 2048)
         self.assertEqual(budget.payload(result["quote"]["columns"]), 112)
         self.assertEqual(result["quote"]["numeric_control_bytes"], 72)

@@ -15,15 +15,19 @@ const Budget := preload("res://scripts/core/underground_budget.gd")
 const Space := preload("res://scripts/core/room_space.gd")
 const Contract := preload("res://scripts/core/excavation_contract.gd")
 const Jobs := preload("res://scripts/core/jobs.gd")
+const Itinerary := preload("res://scripts/core/underground_room_itinerary.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const MAX_STATIONS: int = 3
-const CONTROL_BYTES: int = 8192
+## ADR1212: the ADR1215 air recount is 8,970 B; the ceiling is charged inside Budget.COLD_BYTES.
+const CONTROL_BYTES: int = 9216
 const REFUSE_SCOPE: StringName = &"ROOM_FRONTIER_PUBLICATION_SCOPE"
 const REFUSE_BUSY: StringName = &"ROOM_FRONTIER_PUBLICATION_BUSY"
 const REFUSE_CHANGED: StringName = &"ROOM_FRONTIER_PUBLICATION_CHANGED"
 const REFUSE_SECTION: StringName = &"ROOM_FRONTIER_SECTION_SPAN"
 const REFUSE_PROFILE: StringName = &"ROOM_FRONTIER_SELECTED_PROFILE"
 const REFUSE_BUDGET: StringName = &"ROOM_FRONTIER_PUBLICATION_BUDGET"
+const REFUSE_AIR: StringName = &"ROOM_FRONTIER_STATION_AIR"
+const AIR_BOXES: int = 1 + Locations.MAX_AIR_EXTRA # ADR1215: per station, envelope first.
 
 
 class Request extends RefCounted:
@@ -37,6 +41,14 @@ class Request extends RefCounted:
 	var work_revision: int = 0
 	var face: int = -1
 	var yaw: int = -1
+	## ADR1215: optional caller air per station. Zero keeps the one-AABB record; otherwise the boxes (first holds
+	## the root) must contain every adjoining source's air primitive, and Locations proves each box is open void.
+	var air_counts: PackedInt32Array = PackedInt32Array([0, 0, 0])
+	var air: PackedInt32Array = PackedInt32Array()
+
+	func _init() -> void:
+		"""Fixed shape for the optional per-station air boxes."""
+		air.resize(MAX_STATIONS * AIR_BOXES * 6)
 
 
 class Result extends RefCounted:
@@ -114,7 +126,10 @@ static func _input(actual: Provider, candidate: Frontier.Candidate, request: Req
 	if candidate.project != NULL_REF or candidate.operation not in [Contract.OP_BRACE, Contract.OP_CUT] \
 			or request.face < 0 or request.face > 5 or request.work_profile < 0 or request.work_revision <= 0 \
 			or request.yaw < 0 or request.yaw > 65535 or request.count < 1 or request.count > MAX_STATIONS \
-			or request.sections.size() != 6 or request.points.size() != 9 or request.profiles.size() != 12: return REFUSE_SCOPE
+			or request.sections.size() != 6 or request.points.size() != 9 or request.profiles.size() != 12 \
+			or request.air_counts.size() != MAX_STATIONS or request.air.size() != MAX_STATIONS * AIR_BOXES * 6: return REFUSE_SCOPE
+	for index: int in MAX_STATIONS:
+		if request.air_counts[index] < 0 or request.air_counts[index] > AIR_BOXES: return REFUSE_AIR
 	for index: int in request.count:
 		if request.profiles[4 * index] < 0 or request.profiles[4 * index + 1] <= 0 \
 				or request.profiles[4 * index + 2] < 0 or request.profiles[4 * index + 3] <= 0: return REFUSE_PROFILE
@@ -178,12 +193,14 @@ static func _copy_request(source: Request, out: Request) -> void:
 	for index: int in 6: out.sections[index] = source.sections[index]
 	for index: int in 9: out.points[index] = source.points[index]
 	for index: int in 12: out.profiles[index] = source.profiles[index]
+	for index: int in MAX_STATIONS: out.air_counts[index] = source.air_counts[index]
+	for index: int in out.air.size(): out.air[index] = source.air[index]
 
 static func _same_request(a: Request, b: Request) -> bool:
 	"""All fixed input elements remain exact, including unused tails, after every observation."""
 	return a.gateway == b.gateway and a.count == b.count and a.sections == b.sections and a.points == b.points \
 		and a.profiles == b.profiles and a.work_profile == b.work_profile and a.work_revision == b.work_revision \
-		and a.face == b.face and a.yaw == b.yaw
+		and a.face == b.face and a.yaw == b.yaw and a.air_counts == b.air_counts and a.air == b.air
 
 static func _spend(q: Query, checks: int) -> bool:
 	"""The coordinator's original finite counter is monotone and never replenished by a failed observer."""
@@ -284,9 +301,17 @@ static func _new_ref(q: Query, index: int) -> Vector2i:
 
 
 static func _path(q: Query, first: Vector2i, last: Vector2i, profile: int, revision: int) -> StringName:
-	"""Static actual source-qualified graph search spends the same remaining coordinator budget."""
-	var code: StringName = WorldRoutes.profile_reachability_refusal(q.actual, first, last, profile, revision,
-		q.context.profiles, q.remaining, q.remaining_out)
+	"""Static actual source-qualified graph search spends the same remaining coordinator budget. ADR1213: a
+	selected-source anchor reaches an existing gateway through its compatible family, as contact_into does."""
+	var code: StringName
+	var policy: int = Profiles.selection_policy_leaf(q.config.profiles, profile, revision, q.context.profiles)
+	if policy not in [Profiles.POLICY_READY_FORWARD, Profiles.POLICY_READY_BACKWARD,
+			Profiles.POLICY_SHORT_FORWARD, Profiles.POLICY_SHORT_BACKWARD]:
+		code = WorldRoutes.profile_reachability_refusal(q.actual, first, last, profile, revision,
+			q.context.profiles, q.remaining, q.remaining_out)
+	else:
+		code = Itinerary.reachability_refusal(q.actual, first, last, profile, revision,
+			q.context.profiles, q.remaining, q.remaining_out)
 	if code == &"": q.remaining = q.remaining_out[0]
 	return code
 
@@ -302,8 +327,66 @@ static func _records(q: Query) -> StringName:
 			code = _extend_profile(q, row, int(q.request.profiles[4 * index + 4]), int(q.request.profiles[4 * index + 5]), false)
 			if code == &"": code = _extend_profile(q, row, int(q.request.profiles[4 * index + 6]), int(q.request.profiles[4 * index + 7]), false)
 		elif code == &"": code = _extend_profile(q, row, q.request.work_profile, q.request.work_revision, false)
+		if code == &"" and q.request.air_counts[index] > 0: code = _station_air(q, index, row)
 		if code != &"": return code
 	return _scope(q)
+
+
+static func _station_air(q: Query, index: int, row: Locations.Record) -> StringName:
+	"""ADR1215: replace the one-AABB air by the caller's boxes once they contain every adjoining air primitive."""
+	var count: int = q.request.air_counts[index]
+	var base: int = index * AIR_BOXES * 6
+	for axis: int in 6: q.bounds[axis] = q.request.air[base + axis]
+	if not Space.valid_box(q.bounds) or q.bounds[1] != row.point.y: return REFUSE_AIR
+	for axis: int in 3:
+		if row.point[axis] < q.bounds[axis] or row.point[axis] >= q.bounds[axis + 3]: return REFUSE_AIR
+	for box: int in count:
+		if q.request.air[base + box * 6 + 1] < row.point.y: return REFUSE_AIR
+	for profile: int in _station_sources(q, index):
+		if profile >= 0:
+			var code: StringName = _primitives_claimed(q, index, row.point, profile)
+			if code != &"": return code
+	for axis: int in 6: row.envelope[axis] = q.request.air[base + axis]
+	row.air_count = count - 1
+	row.air.fill(0)
+	for word: int in 6 * (count - 1): row.air[word] = q.request.air[base + 6 + word]
+	return &""
+
+
+static func _station_sources(q: Query, index: int) -> PackedInt32Array:
+	"""The adjoining source rows exactly as _records extends them."""
+	var last: bool = index + 1 == q.request.count
+	return PackedInt32Array([int(q.request.profiles[4 * index]), int(q.request.profiles[4 * index + 2]),
+		q.request.work_profile if last else int(q.request.profiles[4 * index + 4]), -1 if last else int(q.request.profiles[4 * index + 6])])
+
+
+static func _primitives_claimed(q: Query, index: int, point: Vector3i, profile: int) -> StringName:
+	"""Every body/turn/approach box above the root plane lies wholly inside one of the station's caller boxes."""
+	var revision: int = q.config.profiles._live.quantities[profile]
+	var code: StringName = q.config.profiles.descriptor_into(profile, q.context.profiles, q.descriptor)
+	if code != &"": return code
+	for ordinal: int in q.descriptor.box_count:
+		if not _spend(q, 64): return REFUSE_BUDGET
+		code = q.config.profiles.box_into(profile, revision, q.context.profiles, ordinal, q.box)
+		if code != &"": return code
+		if q.box.role not in [Profiles.BODY_HELD_LOAD, Profiles.TURN_RECOVERY, Profiles.WORK_APPROACH] \
+				or int(point.y) + q.box.high.y <= point.y: continue
+		if not _claimed(q, index, point, q.box): return REFUSE_AIR
+	return &""
+
+
+static func _claimed(q: Query, index: int, point: Vector3i, box: Profiles.Box) -> bool:
+	"""One caller box contains the primitive translated to the root, clamped to the root plane."""
+	var base: int = index * AIR_BOXES * 6
+	for at: int in q.request.air_counts[index]:
+		var inside: bool = true
+		for axis: int in 3:
+			var low: int = int(point[axis]) + box.low[axis]
+			if axis == 1: low = maxi(low, point.y)
+			inside = inside and low >= q.request.air[base + at * 6 + axis] \
+				and int(point[axis]) + box.high[axis] <= q.request.air[base + at * 6 + axis + 3]
+		if inside: return true
+	return false
 
 static func _init_record(q: Query, index: int) -> void:
 	"""Room identity comes from the existing root section; target Room identity stays in the independent Site candidate."""
@@ -527,6 +610,11 @@ static func _occupants(q: Query) -> StringName:
 		if not _spend(q, checks): return REFUSE_BUDGET
 		var code: StringName = WorldRoutes.workpiece_occupancy_refusal(q.actual, q.records[ordinal].envelope, checks)
 		if code != &"": return code
+		for extra: int in q.records[ordinal].air_count: # ADR1215: every claimed air box is checked for occupants.
+			for axis: int in 6: q.bounds[axis] = q.records[ordinal].air[extra * 6 + axis]
+			if not _spend(q, checks): return REFUSE_BUDGET
+			code = WorldRoutes.workpiece_occupancy_refusal(q.actual, q.bounds, checks)
+			if code != &"": return code
 	return &""
 
 static func _edge_matches(q: Query, row: int, ordinal: int) -> bool:

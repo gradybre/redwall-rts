@@ -20,6 +20,19 @@ const SAVE_PATH: String = "user://workpiece-capture.bin"
 const PROGRAM_SHA: String = "5353535353535353535353535353535353535353535353535353535353535353"
 const SET_DOWN_PROFILE: int = 5
 
+class RetirementPins extends RefCounted:
+	## Existing captured-owner shape only; component tests still require actual canonical clear before release.
+	var workpieces: RefCounted = null
+	var connector: RefCounted = null
+	var placements: RefCounted = null
+	var router: RefCounted = null
+	var contacts: RefCounted = null
+	var profiles: RefCounted = null
+	var budget: RefCounted = null
+	var world_ref: Vector2i = NULL_REF
+	var directory: RefCounted = null
+	var world: RefCounted = null
+
 class ObservedWorkpieceContacts extends EntryFixture.ObservedContacts:
 	var prepass_probe: Callable = Callable()
 	var final_probe: Callable = Callable()
@@ -469,6 +482,65 @@ func test_streamed_empty_restore_preserves_live_bank_on_malformed_full_refs() ->
 	file.close()
 
 
+func test_capture_versions_pending_and_handled_without_reinterpreting_legacy_presence() -> void:
+	"""The same21-byte row has an explicit new schema; old presence1 never silently means handling completed."""
+	assert_equal(_load(_source_image()), &"", "source loaded")
+	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	assert_equal(_pieces.capture_into(file), &"", "current empty capture")
+	file.close()
+	file = FileAccess.open(SAVE_PATH, FileAccess.READ)
+	file.seek(8)
+	assert_equal(file.get_32(), Workpieces.CAPTURE_VERSION, "versioned state byte")
+	assert_equal(file.get_length(), 60 + 4 * Workpieces.ROW_BYTES, "no extra column or bank")
+	file.close()
+	var original: Workpieces.Bank = _pieces._live
+	file = FileAccess.open(SAVE_PATH, FileAccess.READ_WRITE)
+	file.seek(8); file.store_32(1)
+	file.close()
+	file = FileAccess.open(SAVE_PATH, FileAccess.READ)
+	assert_equal(_pieces.restore_from(file), Workpieces.REFUSE_FORMAT, "legacy state meaning explicitly refuses")
+	assert_true(_pieces._live == original, "no refused swap")
+	assert_equal(_pieces._live.present.count(Workpieces.HANDLED), 0, "no handling proof inferred")
+	file.close()
+	file = FileAccess.open(SAVE_PATH, FileAccess.READ_WRITE)
+	file.seek(8); file.store_32(Workpieces.CAPTURE_VERSION)
+	file.close()
+	file = FileAccess.open(SAVE_PATH, FileAccess.READ)
+	assert_equal(_pieces.restore_from(file), &"", "exact current schema retry")
+	file.close()
+
+
+func test_retirement_loaded_prefix_and_live_world_refusal_preserve_original_banks() -> void:
+	"""Only exact configured/loaded constructor prefixes qualify; canonical live ownership never permits release."""
+	assert_equal(_load(_source_image()), &"", "explicit synthetic source for store lifetime only")
+	var original: RetirementPins = RetirementPins.new()
+	original.workpieces = _pieces
+	original.connector = _fixture._paid
+	original.placements = _fixture._placements
+	original.router = _fixture._router
+	original.contacts = _fixture._contacts
+	original.profiles = _fixture._world._profiles
+	original.budget = _fixture._world._budget
+	original.world_ref = _fixture._world._world_ref
+	original.directory = _fixture._world._residents.directory()
+	original.world = _fixture._world._world
+	assert_equal(Workpieces.retirement_refusal_in(_pieces, original), Workpieces.REFUSE_BINDING, "normal group needs both links")
+	assert_equal(Workpieces.retirement_refusal_in(_pieces, original, true), &"", "both links absent is exact loaded prefix")
+	assert_equal(_fixture._paid.bind_workpieces(_pieces), &"", "actual two-link activation")
+	assert_equal(Workpieces.retirement_refusal_in(_pieces, original), &"", "complete original binding")
+	var live: Workpieces.Bank = _pieces._live
+	var identity: int = original.directory._persistent_id[original.world_ref.x]
+	assert_equal(Workpieces.world_retirement_release_preflighted_in(_pieces, original, identity),
+		&"WORLD_RETIREMENT_NOT_EMPTY", "no caller success can replace canonical clear")
+	assert_true(_pieces._live == live and _pieces._loaded and _pieces._capacity == 4, "original banks and source retained")
+	var link: WeakRef = _fixture._placements._workpieces
+	_fixture._placements._workpieces = null
+	assert_equal(Workpieces.retirement_refusal_in(_pieces, original, true), Workpieces.REFUSE_BINDING,
+		"one missing activation link is not a stopped prefix")
+	_fixture._placements._workpieces = link
+	assert_equal(Workpieces.retirement_refusal_in(_pieces, original), &"", "exact original retry")
+
+
 func test_absent_reciprocal_publication_context_cannot_create_paid_workpiece() -> void:
 	"""Even a valid source and coincident cold number cannot impersonate actual initialized publication owners."""
 	assert_equal(_load(_source_image()), &"", "valid source")
@@ -530,6 +602,8 @@ func test_actual_l0_start_publishes_one_paid_raised_non_supporting_workpiece() -
 	assert_true(_pieces.is_quiescent() and _fixture._world._budget.is_quiescent(), "original scratch released after publication")
 
 
+# ADR1183: productive INSTALL work needs real paid handling, which this synthetic fixture cannot perform.
+# The completion, refund and productive-observer scenarios moved to test_underground_paid_assembly_handling.gd.
 func _started_l0() -> Vector2i:
 	"""One complete real four-cube cut sequence, grouped wood delivery and actual paid raised-piece publication."""
 	var project: Vector2i = _ready_l0()
@@ -538,68 +612,6 @@ func _started_l0() -> Vector2i:
 	if job < 0 or not _fixture._pay_installation(project, job): return NULL_REF
 	assert_true(_fixture.failures.is_empty(), "real paid START: %s" % _fixture.failures)
 	return project
-
-
-func test_real_work_completion_removes_piece_before_retiring_project_and_installs_once() -> void:
-	"""The same genuine Funding receipt becomes the complete paid L0; temporary geometry never survives retirement."""
-	var project: Vector2i = _started_l0()
-	if project == NULL_REF: return
-	var placement: Vector2i = _fixture._world._construction.subject_ref_of(project)
-	var region: Vector2i = _pieces.workpiece_region(placement, project)
-	var job: int = _fixture._router._primary_row(project)
-	_fixture._earn_actual_phase(job)
-	assert_true(_fixture.failures.is_empty(), "real productive contact and all remaining work: %s" % _fixture.failures)
-	if not _fixture.failures.is_empty(): return
-	var result: Construction.OpResult = _fixture._router.complete_order(project)
-	assert_true(result.ok, "actual paid completion: %s" % result.error)
-	if not result.ok: return
-	assert_equal(_pieces._live.present.count(1), 0, "no WIP row remains")
-	assert_equal(Workpieces._removed_leaf(_pieces, project, region), &"", "exact Region and Project source removed")
-	assert_false(_fixture._world._construction._directory.is_valid(project), "Project retires only after physical cleanup")
-	assert_equal(_fixture._placements._get32(_fixture._placements._live, Prefix.Placements.INSTALLED, placement.x), 1,
-		"one whole billed group, no partial installed bearer")
-	assert_equal(_fixture._world._inventory.lot_quantity_milli(_fixture._wood), 1500, "wood charged once including temporary bearer")
-	_fixture._assert_timber_prisms(7)
-	assert_true(_fixture.failures.is_empty(), "every actual included solid: %s" % _fixture.failures)
-
-
-func test_blocked_real_refund_keeps_piece_and_receipt_then_partial_work_refunds_exactly() -> void:
-	"""A refused destination cannot delete paid WIP; successful paused cancellation returns the actual proportional bill."""
-	var project: Vector2i = _started_l0()
-	if project == NULL_REF: return
-	var placement: Vector2i = _fixture._world._construction.subject_ref_of(project)
-	var region: Vector2i = _pieces.workpiece_region(placement, project)
-	assert_true(_fixture._world._work.tick_solo(_fixture._router._primary_row(project)).ok, "actual partial useful work")
-	var refund: IntMath.IntResult = IntMath.IntResult.new()
-	assert_true(_fixture._world._construction.cancellation_refund_milli_into(project, 0, refund), "actual refund policy")
-	assert_true(refund.value > 0 and refund.value < 4000, "partial progress incurs actual material loss")
-	assert_true(_fixture._world._construction.set_paused(project, true).ok, "paused cancellation remains legal")
-	assert_true(_fixture._world._inventory.set_container_reachable(_fixture._storage, false).ok, "real destination blocked")
-	var funding: PackedByteArray = _fixture._router._funding.state_bytes()
-	var geometry: PackedByteArray = _fixture._world._owner.state_bytes()
-	assert_false(_fixture._router.cancel_order(project, _fixture._storage).ok, "refused physical refund")
-	assert_equal(_pieces.workpiece_region(placement, project), region, "the same full obstacle stays live")
-	assert_equal(_fixture._router._funding.state_bytes(), funding, "same actual receipt")
-	assert_equal(_fixture._world._owner.state_bytes(), geometry, "no partial spatial removal")
-	assert_true(_fixture._world._inventory.set_container_reachable(_fixture._storage, true).ok, "real destination restored")
-	_assert_refund_result(project, placement, region, refund.value)
-
-
-func _assert_refund_result(project: Vector2i, placement: Vector2i, region: Vector2i, refund: int) -> void:
-	"""The successful shared settlement owns all returned goods and cancellation loss; Workpieces owns neither."""
-	var item: int = _fixture._world._items.compiled_id(&"wood")
-	var before: int = _fixture._world._inventory.total_live_milli(item)
-	var result: Construction.OpResult = _fixture._router.cancel_order(project, _fixture._storage)
-	assert_true(result.ok, "actual paid cancellation: %s" % result.error)
-	if not result.ok: return
-	assert_equal(_fixture._world._inventory.total_live_milli(item), before + refund, "only actual refund enters Inventory")
-	assert_equal(_fixture._router._funding.purpose_cancellation_loss_milli(Construction.PURPOSE_CONNECTOR_INSTALL, item),
-		4000 - refund, "actual shared loss domain, no duplicate escrow")
-	assert_equal(_pieces._live.present.count(1), 0, "successful refund clears one row")
-	assert_equal(Workpieces._removed_leaf(_pieces, project, region), &"", "physical and source retirement before Project")
-	assert_equal(_fixture._placements._get32(_fixture._placements._live, Prefix.Placements.INSTALLED, placement.x), 0,
-		"cancel preserves the original installed prefix")
-	assert_false(_fixture._world._construction._directory.is_valid(project), "paid Project retired")
 
 
 func test_paid_capture_refuses_omitted_row_and_restores_exact_live_obstacle() -> void:
@@ -629,28 +641,6 @@ func test_paid_capture_refuses_omitted_row_and_restores_exact_live_obstacle() ->
 	assert_equal(_pieces.workpiece_region(placement, project), region, "same full obstacle after restore")
 
 
-func test_first_productive_read_observes_new_terrain_revision_before_actual_worker_leaf() -> void:
-	"""A successful stale-receipt observation cannot credit a worker moved by that same real observer."""
-	var project: Vector2i = _started_l0()
-	if project == NULL_REF: return
-	var terrain: Prefix.WorldTests.ReenteringTerrain = _fixture._world._terrain as Prefix.WorldTests.ReenteringTerrain
-	assert_true(terrain._checked_geometry_revision != _fixture._world._owner.revision(), "set-down really changed Space")
-	terrain.binding_countdown = 1
-	terrain.binding_probe = _move_worker_after_terrain
-	_assert_refused_tick(project)
-	assert_equal(terrain.binding_probe_count, 1, "one normal World-source attestation ran")
-	assert_true(_fixture._world._transforms.place(_fixture._world._worker, Prefix.ORIGIN.x - 832,
-		Prefix.ORIGIN.y, Prefix.ORIGIN.z + 512, 0), "restore actual arrived pose")
-	assert_true(_fixture._world._work.tick_solo(_fixture._router._primary_row(project)).ok, "exact real retry earns work")
-	assert_equal(terrain._checked_geometry_revision, _fixture._world._owner.revision(), "ordinary Terrain reader owns its receipt")
-
-
-func _move_worker_after_terrain() -> void:
-	"""The actual Transform mutates after a successful ordinary Terrain binding observation."""
-	assert_true(_fixture._world._transforms.place(_fixture._world._worker, Prefix.ORIGIN.x - 832,
-		Prefix.ORIGIN.y, Prefix.ORIGIN.z + 1024, 0), "real departed worker")
-
-
 func _assert_refused_tick(project: Vector2i) -> void:
 	"""An observer can mutate its own facts, but cannot earn WU, XP, wear or change the existing paid receipt."""
 	var work: PackedByteArray = _fixture._world._work.state_bytes()
@@ -666,27 +656,6 @@ func _assert_refused_tick(project: Vector2i) -> void:
 	assert_equal(_fixture._world._inventory.state_bytes(), inventory, "no quantity change")
 	assert_equal(_fixture._world._construction._remaining_mwu[row], remaining,
 		"Project labor unchanged")
-
-
-func test_first_productive_terrain_observer_cannot_replace_actual_binding() -> void:
-	"""An equal freshly configured Terrain object is still not the original once-bound Contacts reader."""
-	var project: Vector2i = _started_l0()
-	if project == NULL_REF: return
-	var replacement: Prefix.ContactTests.Terrain = Prefix.ContactTests.Terrain.new()
-	assert_equal(replacement.configure(_fixture._world._world, _fixture._world._nodes, _fixture._world._owner,
-		_fixture._world._sources, _fixture._world._items, _fixture._world._budget), &"", "valid equal foreign reader")
-	var terrain: Prefix.WorldTests.ReenteringTerrain = _fixture._world._terrain as Prefix.WorldTests.ReenteringTerrain
-	terrain.binding_countdown = 1
-	terrain.binding_probe = _replace_route_terrain.bind(replacement)
-	_assert_refused_tick(project)
-	assert_equal(terrain.binding_probe_count, 1, "late valid reader replacement happened")
-	_fixture._world._binding._terrain = terrain
-	assert_true(_fixture._world._work.tick_solo(_fixture._router._primary_row(project)).ok, "original binding retry succeeds")
-
-
-func _replace_route_terrain(replacement: Prefix.ContactTests.Terrain) -> void:
-	"""Only the injected observer rewires its provider; production Contacts must detect the changed owner."""
-	_fixture._world._binding._terrain = replacement
 
 
 func test_first_productive_terrain_observer_cannot_advance_original_geometry_revision() -> void:

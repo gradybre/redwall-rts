@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "decision": "1217",
+  "content_revision": 7,
+  "profile_count": 51,
+  "box_count": 472,
+  "source_count": 5,
+  "wire_sha256": "8b79294f390fb8b16899ca83be70d01baa0eaf800f071d9042e2e1250cff2355",
+  "wire_bytes": 18414,
+  "paired_bank_bytes": 36812,
+  "sources": {
+    "2": "fa8dc668f7ae881d5fcc88a9dd1b6796b7f37466d0cca5e1994647e04a54dc71",
+    "3": "1756932c3839c3dbf2d66a715f65f5dfea7861ddafdf7f5921687b821040e6e6",
+    "4": "6be24202d75c31011423de4fe8dd62358d66497412f733c087c3b130561caae6"
+  },
+  "re_derived_rows": {
+    "30": "STAND, corrected stand (ADR 1217 step 1c)",
+    "31": "WALK, corrected walk"
+  },
+  "claw_rows": {
+    "42": "dig yaw 0",
+    "43": "tap yaw 0",
+    "44": "paw handling yaw 0",
+    "45": "dig yaw 16384",
+    "46": "tap yaw 16384",
+    "47": "dig yaw 32768",
+    "48": "tap yaw 32768",
+    "49": "dig yaw 49152",
+    "50": "tap yaw 49152"
+  },
+  "dormant_rows": "0-29 (pick, DEC-052)",
+  "superset_of": {
+    "wire_sha256": "30c3dc1f5e9162f5530f410c437ed6f85d28dc6879f88dec81cb193ea87b0df5"
+  },
+  "inputs": {
+    "godot/data/underground/mole-worker/stand-walk-v2/evidence/native-haul-v10-wood/compiled/haul-handling.ugactor": "fa8dc668f7ae881d5fcc88a9dd1b6796b7f37466d0cca5e1994647e04a54dc71",
+    "godot/data/underground/mole-worker/stand-walk-v2/evidence/native-haul-v10-stone/compiled/stone-handling.ugactor": "1756932c3839c3dbf2d66a715f65f5dfea7861ddafdf7f5921687b821040e6e6",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/native-claw-v1/compiled/claw-paw.ugactor": "6be24202d75c31011423de4fe8dd62358d66497412f733c087c3b130561caae6",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/claw-rows-v1/rows.json": "540bb052151f3c54a8972640e6ad7067967083b22f8dbd6f075e94aa131666e0",
+    "godot/data/underground/mole-worker/stand-walk-v2/evidence/stand-walk-v2/proof.json": "6a90c2887e587471ce0ee82eff176512aecb6881347a227c6b4ba2e36ebb8190"
+  },
+  "ground_sha256": "50d1400aa6a1f1a5b116a9e62d3cfb08a5bc61bf555428472529669860d7e5fd",
+  "motion_sha256": "482456e1f9b6c58264b39b243d8faebd2083f7d1cc99a8eacbf1c0af9c4cdbe3",
+  "motion_inputs": {
+    "godot/data/underground/mole-worker/qualified-stone-v7/motion.ugmotion": "3024e922f8959f0c386ba9c5d136cdc2a96c35c9de5c860dec03030a9b4d292c",
+    "godot/data/underground/mole-worker/qualified-claw-v8/mole-worker.ugprof": "8b79294f390fb8b16899ca83be70d01baa0eaf800f071d9042e2e1250cff2355",
+    "godot/data/underground/mole-worker/publish_claw_runtime.py": "052682e8eb62cb049cf3ea767ce67062f1664e6f8786e9bf99baa32f1a89302d"
+  },
+  "motion_numerical_input_sha256": "5f2932a450dbb7fb362274714887c79ebb6e1b2cc129bb06ea1bf6218326238f",
+  "runtime_admitted": false,
+  "not_qualified": [
+    "source programs and Routes dispatch for source 4 (ADR 1217 step 5)",
+    "presentation of source 4",
+    "consumer renewal and activation"
+  ]
+}

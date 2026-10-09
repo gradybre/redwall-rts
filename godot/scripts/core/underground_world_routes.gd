@@ -7,6 +7,11 @@ const Routes := preload("res://scripts/core/underground_routes.gd")
 const Owner := preload("res://scripts/core/underground_space_owner.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
+## ADR1217 step 5: the endpoint certificate bound to the installation's content (claw rows 43/47/52/59 for content 9,
+## pick rows 2/6/16/29 before); the handling program is selected by row (pick 29 dormant, paw 59 active).
+const AssemblyEndpoint := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/endpoint_certificates.gd")
+const Handling := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/handling_programs.gd")
+const Workpieces := preload("res://scripts/core/underground_connector_workpieces.gd")
 const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Levels := preload("res://scripts/core/underground_level_catalog.gd")
 const Terrain := preload("res://scripts/core/underground_terrain.gd")
@@ -19,6 +24,7 @@ const Budget := preload("res://scripts/core/underground_budget.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const SourceFacts := preload("res://scripts/core/underground_connector_source_facts.gd")
 const FinalFacts := preload("res://scripts/core/underground_final_facts.gd")
+const Journal := preload("res://scripts/core/underground_geometry_journal.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const MASK_BYTES: int = 32
 const EDGE_CAPACITY: int = Routes.MAX_EDGES
@@ -26,8 +32,13 @@ const CERTIFICATE_BYTES: int = 2 * EDGE_CAPACITY * (MASK_BYTES + 4 + 16)
 const CONTROL_RESERVE: int = 4096 # Fixed packets, weak links and numeric controls; not measured native RAM.
 const RESERVED_BYTES: int = CERTIFICATE_BYTES + CONTROL_RESERVE
 const FRAGMENT_CAPACITY: int = 1024
+const CHANGE_CAPACITY: int = Journal.CAPACITY # ADR1205: staged changed sides, Journal.STAGED_STRIDE I32 each.
+## ADR1205: no clearance predicate reads a FLOOR_DATUM row (Clearance.blocked and _body_blocked skip it; coverage
+## subtracts only SUPPORTED_VOID, SUPPORT and the pending OBSTACLE bearer; contacts read DRY_SOLID and SUPPORT),
+## so a change that only adds, moves or removes floor metadata cannot alter any certificate.
+const CLEARANCE_INERT_ROLE: int = Space.FLOOR_DATUM
 const SNAPSHOT_BYTES: int = 48 * Budget.REGION_CAPACITY + 16 * Budget.SOURCE_CAPACITY
-const COLD_BYTES: int = SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 1024
+const COLD_BYTES: int = SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 28 * CHANGE_CAPACITY + 1024
 const SOURCE_PASS_CHECKS: int = Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY
 const REACH_SCOPE_CHECKS: int = 1024 # Fixed source/digest/Domain leaves, charged at both query boundaries.
 const REACH_WITNESS_CHECKS: int = 64 # Per configured Location, reserved on both warm and fresh queries.
@@ -112,6 +123,9 @@ class Clearance extends RefCounted:
 	var cover: PackedInt32Array = PackedInt32Array()
 	var cut: PackedInt32Array = PackedInt32Array()
 	var core: PackedInt32Array = PackedInt32Array()
+	## ADR1205: boxes the sealed Space stage changes against live; -1 means unknown, so nothing is carried.
+	var changes: PackedInt32Array = PackedInt32Array()
+	var change_count: int = -1
 
 	func allocate(snapshot: Space.Snapshot, checks: int) -> void:
 		"""Caller proves the actual shared lease before constructing this entire cold packet."""
@@ -119,6 +133,7 @@ class Clearance extends RefCounted:
 		remaining = checks
 		fragments.resize(6 * FRAGMENT_CAPACITY)
 		next_fragments.resize(6 * FRAGMENT_CAPACITY)
+		changes.resize(Journal.STAGED_STRIDE * CHANGE_CAPACITY)
 		box.resize(6)
 		cover.resize(6)
 		cut.resize(6)
@@ -314,6 +329,17 @@ var _support: PackedInt32Array = PackedInt32Array()
 var _scratch: PackedInt32Array = PackedInt32Array()
 var _first_point: PackedInt32Array = PackedInt32Array()
 var _last_point: PackedInt32Array = PackedInt32Array()
+## ADR1205 incremental requalification. `_envelope` is one profile box swept along one segment; `_since` is the
+## live certificate's geometry revision and `_relevant` the number of changed boxes after it. `_carry_edge` holds
+## for an edge no such change meets; `_carried` for a profile its live certificate already admitted.
+var _envelope: PackedInt32Array = PackedInt32Array()
+var _since: int = 0
+var _relevant: int = 0
+var _carry_edge: bool = false
+var _carried: bool = false
+## Measurements only: checks the last sealed proof spent, and how many of its edges were carried.
+var _proof_checks: int = 0
+var _carried_edges: int = 0
 
 
 func configure(config: Configuration) -> StringName:
@@ -380,6 +406,7 @@ func _allocate_scratch() -> void:
 	_scratch.resize(6)
 	_first_point.resize(3)
 	_last_point.resize(3)
+	_envelope.resize(6)
 	_endpoint.envelope.resize(6)
 	_endpoint.support.resize(6)
 	_section.box.resize(6)
@@ -491,11 +518,14 @@ static func workpiece_occupancy_checks(actual: RefCounted) -> int:
 	for row: int in Routes.RESIDENT_CAPACITY:
 		if graph._resident_ref(row) != Routes.NULL_REF:
 			checks += 512 + 64 * Profiles.MAX_SELECTION_BOXES
+			if Handling.is_handling(graph._motion.resident[Routes.R_PROFILE * Routes.RESIDENT_CAPACITY + row],
+					graph._motion.resident_long[Routes.R_CONTENT_REVISION * Routes.RESIDENT_CAPACITY + row]):
+				checks += 2048
 	return checks
 
 
 static func workpiece_occupancy_refusal(actual: RefCounted, bounds: PackedInt32Array, checks: int) -> StringName:
-	"""A concrete final body proof works against unchanged live actors while this exact geometry candidate is sealed."""
+	"""A concrete body proof closes the original pre-copy operation or its exact sealed geometry candidate."""
 	if actual == null or checks < REACH_SCOPE_CHECKS + 16 * Routes.RESIDENT_CAPACITY \
 			or checks > Space.MAX_CHECKS or not Space.valid_box(bounds): return REFUSE_BUDGET
 	var graph: Routes = actual._routes_ref.get_ref() as Routes if actual._routes_ref != null else null
@@ -509,7 +539,8 @@ static func workpiece_occupancy_refusal(actual: RefCounted, bounds: PackedInt32A
 	if workpiece_occupancy_checks(actual) > checks: return REFUSE_BUDGET
 	for row: int in Routes.RESIDENT_CAPACITY:
 		if graph._resident_ref(row) == Routes.NULL_REF:
-			code = _turn_unregistered_refusal(graph, row)
+			code = Routes.unregistered_occupant_refusal(graph, row, Vector3i(bounds[0], bounds[1], bounds[2]),
+				Vector3i(bounds[3], bounds[4], bounds[5]))
 		else:
 			code = Routes.physical_selection_into(graph, row, graph._occupant_selection)
 			if code == &"": code = _workpiece_occupant_boxes(actual, graph, bounds)
@@ -531,8 +562,79 @@ static func _workpiece_occupant_boxes(actual: RefCounted, graph: Routes, bounds:
 			if not Space.int32(low) or not Space.int32(high): return &"ROUTE_ACTOR_BOUNDS"
 			actual._support[axis] = low
 			actual._support[axis + 3] = high
-		if Space.overlaps(bounds, actual._support): return &"ROUTE_OCCUPIED"
+		if Space.overlaps(bounds, actual._support):
+			return _assembly_candidate_certificate(actual, graph, bounds, selection) \
+				if Handling.is_handling(selection.profile_id, selection.content_revision) \
+						or Handling.is_install_tap(selection.profile_id, selection.content_revision) \
+				else &"ROUTE_OCCUPIED"
 	return &""
+
+
+static func _assembly_candidate_certificate(actual: RefCounted, graph: Routes, bounds: PackedInt32Array,
+		selection: Profiles.Selection) -> StringName:
+	"""Only this unchanged source at its exact original Project/part may overlap its own staged full bearer AABB."""
+	var context: Locations.InstallationContext = actual._installation
+	var pieces: Workpieces = _assembly_pieces(graph)
+	if context == null or pieces == null or context.issuer == null or context.issuer.get_ref() != pieces._placements \
+			or context != pieces._placements._context or context.router == null or context.router.get_ref() != pieces._router \
+			or context.paid_owner == null or context.paid_owner.get_ref() != pieces._paid_owner.get_ref() \
+			or context.space == null or context.space.get_ref() != graph._owner \
+			or context.locations == null or context.locations.get_ref() != graph._locations \
+			or context.budget != actual._budget or context.world != graph._world \
+			or context.construction != pieces._router._construction \
+			or (context.action != Locations.Modular.START and context.action != Locations.Modular.CANCEL) \
+			or _assembly_candidate_stage_refusal(actual, graph, pieces._placements, context) != &"" \
+			or selection.yaw != 0 or (context.action == Locations.Modular.START \
+				and _assembly_project(pieces, selection.job) != context.project):
+		return &"ROUTE_OCCUPIED"
+	var code: StringName = Workpieces.prepared_bounds_leaf_refusal(pieces, context.placement, context.project,
+		context.action, context.cold_token, bounds)
+	return _candidate_source_refusal(actual, pieces, context, selection, bounds) if code == &"" else code
+
+
+static func _candidate_source_refusal(actual: RefCounted, pieces: Workpieces, context: Locations.InstallationContext,
+		selection: Profiles.Selection, bounds: PackedInt32Array) -> StringName:
+	"""The handling row's source, root and full bearer; or (ADR1217 step 5) the triangle-proved claw seating tap."""
+	var root: Vector3i = Vector3i(selection.x, selection.y, selection.z)
+	if Handling.is_install_tap(selection.profile_id, selection.content_revision):
+		return &"" if Handling.tap_certified(actual._profiles, selection.profile_id, selection.profile_revision,
+			selection.content_revision, context.assembly, root, bounds) else &"ROUTE_OCCUPIED"
+	var code: StringName = Handling.profile_refusal(actual._profiles, selection.profile_id,
+		selection.profile_revision, selection.content_revision)
+	if code == &"": code = Handling.source_station(pieces, context.placement, selection)
+	return Handling.bearer_refusal(context.assembly, root, bounds, selection.content_revision) if code == &"" else code
+
+
+static func _assembly_candidate_stage_refusal(actual: RefCounted, graph: Routes, issuer: RefCounted,
+		context: Locations.InstallationContext) -> StringName:
+	"""Before copies all three banks are idle; afterward every original token must be sealed together."""
+	if issuer == null or issuer._poisoned or issuer._admission_mode or issuer._phase_mode \
+			or issuer._world_routes != actual or issuer._routes != graph or issuer._space != graph._owner \
+			or issuer._locations != graph._locations or issuer._context != context \
+			or issuer._prepared_placement != context.placement or issuer._prepared_project != context.project \
+			or issuer._prepared_assembly != context.assembly or issuer._prepared_action != context.action \
+			or issuer._prepared_obstacle != context.obstacle or issuer._cold_token != context.cold_token \
+			or issuer._space_token != context.space_token or issuer._location_token != context.location_token \
+			or issuer._route_token != context.route_token or issuer._base_geometry_revision != context.base_revision \
+			or issuer._target_geometry_revision != context.target_revision \
+			or issuer._payload_revision != context.payload_revision \
+			or context.placement_revision != issuer._live.header[issuer.H_REVISION] \
+			or context.profile_revision != actual._profiles._live.header[0] \
+			or context.catalog_revision != actual._catalog._live.header[0] \
+			or context.base_revision != graph._owner._header[17] \
+			or context.target_revision != context.base_revision + 1:
+		return &"ROUTE_OCCUPIED"
+	if context.space_token == 0:
+		return &"" if issuer._busy and context.location_token == 0 and context.route_token == 0 \
+			and graph._owner._stage_token == 0 and not graph._owner._sealed \
+			and graph._locations._token == 0 and not graph._locations._sealed \
+			and graph._token == 0 and not graph._sealed and actual._route_token == 0 and not actual._sealed \
+			else &"ROUTE_OCCUPIED"
+	return &"" if context.space_token > 0 and context.space_token == graph._owner._stage_token \
+		and graph._owner._sealed and context.location_token > 0 \
+		and context.location_token == graph._locations._token and graph._locations._sealed \
+		and context.route_token > 0 and context.route_token == graph._token and graph._sealed \
+		and context.target_revision == graph._owner._s_header[17] else &"ROUTE_OCCUPIED"
 
 
 static func _prepared_masks_refusal(actual: RefCounted, graph: Routes, target_revision: int, profile_revision: int) -> StringName:
@@ -702,11 +804,91 @@ func _begin_proof() -> StringName:
 		return REFUSE_BUDGET
 	_proof = Clearance.new()
 	_proof.allocate(snapshot, _domain._checks)
-	return &"" if _proof.spend(3 * (Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY)) else _proof.error
+	if not _proof.spend(3 * (Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY)):
+		return _proof.error
+	return _prepare_carry()
+
+
+func _prepare_carry() -> StringName:
+	"""ADR1205: derive the staged changes once; any doubt leaves carrying off for this whole proof."""
+	_proof.change_count = -1
+	_carried_edges = 0
+	if _live_catalog_revision != _catalog_revision:
+		return &""
+	if _space_token == 0:
+		_proof.change_count = 0
+		return &""
+	if not _proof.spend(_owner().region_capacity()):
+		return _proof.error
+	_proof.change_count = Journal.staged_changes_into(_owner(), _proof.changes, CHANGE_CAPACITY)
+	return &""
+
+
+func _kind_matches(edge: Routes.Edge) -> bool:
+	"""Only a certified profile of the edge's own mode, posture and connector family can ever serve it."""
+	return _descriptor.certificate_flags == Profiles.CERT_REQUIRED and _descriptor.mode == edge.mode \
+		and _descriptor.posture == edge.posture \
+		and (edge.family < 0 or (_descriptor.family_mask & (1 << edge.family)) != 0)
+
+
+func _carry_eligible(edge: Routes.Edge) -> bool:
+	"""The same live path, generation and content, proved at a revision whose later changes miss every sweep."""
+	if _proof.change_count < 0 or edge == null or edge.ref.x < 0 or edge.ref.x >= EDGE_CAPACITY \
+			or edge.point_count < 2 or edge.points.size() < edge.point_count * 3:
+		return false
+	var row: int = edge.ref.x
+	_since = _live.geometry[row]
+	if _live.generations[row] != edge.ref.y or _live.content[row] != _content_revision \
+			or _since <= 0 or _since > _base_revision or _since < _owner()._journal.floor_revision():
+		return false
+	_relevant = _owner()._journal.count_after(_since) + _proof.change_count
+	for profile: int in _profiles.profile_count(_content_revision):
+		if not _proof.spend() or _profiles.descriptor_into(profile, _content_revision, _descriptor) != &"":
+			return false
+		if _kind_matches(edge) and not _profile_sweeps_clean(edge):
+			return false
+	return true
+
+
+func _profile_sweeps_clean(edge: Routes.Edge) -> bool:
+	"""Every box of this profile swept along every segment misses each change since the certificate's revision."""
+	if _relevant == 0:
+		return true
+	for segment: int in edge.point_count - 1:
+		for ordinal: int in _descriptor.box_count:
+			if not _proof.spend(1 + _relevant) or _profile_box_into(ordinal, _body) != &"" \
+					or _sweep_into(_body, _point(edge, segment), _point(edge, segment + 1), _envelope) != &"" \
+					or not _owner()._journal.clean(_envelope, _since, CLEARANCE_INERT_ROLE) \
+					or _staged_change_meets(_envelope):
+				return false
+	return true
+
+
+func _staged_change_meets(box: PackedInt32Array) -> bool:
+	"""Whether any non-inert side the sealed Space stage changes against live overlaps `box`."""
+	for index: int in _proof.change_count:
+		var at: int = index * Journal.STAGED_STRIDE
+		if _proof.changes[at + 6] == CLEARANCE_INERT_ROLE:
+			continue
+		for axis: int in 6:
+			_scratch[axis] = _proof.changes[at + axis]
+		if Space.overlaps(box, _scratch):
+			return true
+	return false
 
 
 func _preparation_refusal() -> StringName:
 	"""Lease expiry, content reload and physical preparation drift invalidate the complete candidate."""
+	var code: StringName = _carried_context_refusal()
+	if code != &"" or _space_token == 0:
+		return code
+	if _proof != null and not _proof.spend(SOURCE_PASS_CHECKS):
+		return _proof.error
+	return _owner().prepared_refusal(_space_token)
+
+
+func _carried_context_refusal() -> StringName:
+	"""Everything but the source and claim pass: a carried edge reads no Space truth beyond the pinned image."""
 	if _route_token <= 0 or not _budget.covers(_cold_token, Budget.COLD_BYTES):
 		return REFUSE_BUDGET
 	var code: StringName = binding_refusal()
@@ -716,9 +898,7 @@ func _preparation_refusal() -> StringName:
 			or _owner().revision() != _base_revision:
 		return REFUSE_CONTEXT
 	if _space_token != 0:
-		if _proof != null and not _proof.spend(SOURCE_PASS_CHECKS):
-			return _proof.error
-		return _owner().prepared_refusal(_space_token)
+		return _owner().prepared_identity_refusal(_space_token)
 	return &"SPACE_TRANSACTION_BUSY" if _owner().has_prepared() else &""
 
 
@@ -728,11 +908,15 @@ func edge_refusal(edge: Routes.Edge, route_token: int, space_token: int, locatio
 			or route_token != _route_token or space_token != _space_token or location_token != _location_token:
 		return REFUSE_CONTEXT
 	_compiling = true
-	var code: StringName = _preparation_refusal()
+	_carry_edge = _carry_eligible(edge)
+	var code: StringName = _proof.error
+	if code == &"":
+		code = _carried_context_refusal() if _carry_edge else _preparation_refusal()
 	if code == &"":
 		code = _compile_edge(edge)
 	if code == &"":
-		code = _preparation_refusal()
+		code = _carried_context_refusal() if _carry_edge else _preparation_refusal()
+	_carry_edge = false
 	_compiling = false
 	return code
 
@@ -744,24 +928,34 @@ func _compile_edge(edge: Routes.Edge) -> StringName:
 		return REFUSE_CONTEXT
 	_stage.clear_row(edge.ref.x)
 	var code: StringName = _path_refusal(edge)
+	if code == &"" and _carry_edge:
+		code = _endpoint_observation_refusal(edge.from_location, _point(edge, 0))
+		if code == &"": code = _endpoint_observation_refusal(edge.to_location, _point(edge, edge.point_count - 1))
+	if code == &"":
+		code = _compile_profiles(edge)
+	_carried = false
 	if code != &"":
 		return code
+	_carried_edges += 1 if _carry_edge else 0
+	_stage.generations[edge.ref.x] = edge.ref.y
+	_stage.geometry[edge.ref.x] = _target_revision
+	_stage.content[edge.ref.x] = _content_revision
+	return &""
+
+
+func _compile_profiles(edge: Routes.Edge) -> StringName:
+	"""Each profile is proved on its own; a carried edge skips only what its unchanged inputs already proved."""
 	var accepted: int = 0
 	for profile: int in _profiles.profile_count(_content_revision):
 		if not _proof.spend():
 			return _proof.error
-		code = _profile_edge_refusal(profile, edge)
+		var code: StringName = _profile_edge_refusal(profile, edge)
 		if _proof.error != &"":
 			return _proof.error
 		if code == &"":
 			_stage.admit(edge.ref.x, profile)
 			accepted += 1
-	if accepted == 0:
-		return &"WORLD_ROUTE_NO_FITTING_PROFILE"
-	_stage.generations[edge.ref.x] = edge.ref.y
-	_stage.geometry[edge.ref.x] = _target_revision
-	_stage.content[edge.ref.x] = _content_revision
-	return &""
+	return &"" if accepted > 0 else &"WORLD_ROUTE_NO_FITTING_PROFILE"
 
 
 func _path_refusal(edge: Routes.Edge) -> StringName:
@@ -778,7 +972,15 @@ func _path_refusal(edge: Routes.Edge) -> StringName:
 			if edge.points[point * 3 + 1] != edge.points[1]:
 				return &"WORLD_ROUTE_GROUND_HEIGHT"
 		return &""
-	return &"WORLD_ROUTE_FIXED_CONNECTOR_SOURCE_REQUIRED"
+	return _stair_path_refusal(edge)
+
+
+func _stair_path_refusal(edge: Routes.Edge) -> StringName:
+	"""ADR1229: an EARTH_TIMBER edge is one straight span qualified per stair row from the bound claw stair tables;
+	without them, or for any other connector family, fixed connector geometry still needs its own source."""
+	if _routes()._stair_motion == null or edge.family != 0 or edge.point_count != 2 or edge.rotation != 0:
+		return &"WORLD_ROUTE_FIXED_CONNECTOR_SOURCE_REQUIRED"
+	return &""
 
 
 func _profile_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
@@ -786,9 +988,10 @@ func _profile_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
 	var code: StringName = _profiles.descriptor_into(profile, _content_revision, _descriptor)
 	if code != &"":
 		return code
-	if _descriptor.certificate_flags != Profiles.CERT_REQUIRED or _descriptor.mode != edge.mode \
-			or _descriptor.posture != edge.posture or (edge.family >= 0 and (_descriptor.family_mask & (1 << edge.family)) == 0):
+	if not _kind_matches(edge):
 		return &"WORLD_ROUTE_PROFILE_KIND"
+	if _stair_row(profile): return _stair_edge_refusal(profile, edge)
+	_carried = _carry_edge and _live.admits(edge.ref.x, profile) and not _may_excuse_pending()
 	code = _catalog.pace_into(profile, _descriptor.profile_revision, _content_revision,
 		edge.family, edge.variant, _catalog_revision, _pace)
 	if code != &"":
@@ -796,12 +999,210 @@ func _profile_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
 	if Routes.ShortStep.uses(_profiles) and Routes.ShortStep.is_short(profile):
 		code = Routes.ShortStep.span_refusal(profile, _point(edge, 0), _point(edge, edge.point_count - 1), edge.point_count, _pace.value)
 		if code != &"": return code
+	if not _carried:
+		code = _profile_endpoint_refusal(edge.from_location, _point(edge, 0))
+		if code == &"": code = _profile_endpoint_refusal(edge.to_location, _point(edge, edge.point_count - 1))
+	return _profile_segments_refusal(edge) if code == &"" else code
+
+
+func _stair_row(profile: int) -> bool:
+	"""ADR1229: content 10's source-proved travel rows (steps, descent, ascent, half-turn), once the tables are bound."""
+	return _routes()._stair_motion != null and Routes.Stair.owns(_profiles, profile)
+
+
+func _stair_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
+	"""ADR1229: a source-proved row qualifies on the exact span its approved proofs moved over, at its pace's whole
+	keys, between live endpoints, with every fixture deck it stood on installed under it, and with its whole motion's
+	body in completed void, installed timber of the edge's own Room or proved exterior air. Its triangles and support
+	were proved against that fixture (ADR 1217 M7, step 5b; ADR 1209 step 5), so no ground stance rule is re-derived."""
+	var motion: Routes.StairMotion = _routes()._stair_motion
+	var program: int = motion.program_of(profile)
+	var first: Vector3i = _point(edge, 0)
+	if program < 0 or edge.point_count != 2 or edge.rotation != 0 or _point(edge, 1) - first != motion.end_of(program):
+		return &"WORLD_ROUTE_STAIR_SPAN"
+	var code: StringName = _catalog.pace_into(profile, _descriptor.profile_revision, _content_revision,
+		edge.family, edge.variant, _catalog_revision, _pace)
+	if code != &"": return code
+	var intervals: int = motion.key_count(program) - 1 if motion.rooted(program) else Routes.Stair.STEP_CLIP_INTERVALS
+	if Routes.Stair.key_step(intervals, Routes.Stair.ticks_for(edge.length_u, _pace.value)) < 0:
+		return &"WORLD_ROUTE_STAIR_PACE"
+	code = _endpoint_observation_refusal(edge.from_location, first)
+	if code == &"": code = _endpoint_observation_refusal(edge.to_location, _point(edge, 1))
+	if code == &"": code = _stair_decks_refusal(motion, program, first, edge.room)
+	return _stair_bodies_refusal(first, edge.room) if code == &"" else code
+
+
+func _stair_decks_refusal(motion: Routes.StairMotion, program: int, first: Vector3i, room: Vector2i) -> StringName:
+	"""Every fixture deck of the motion is wholly covered by installed SUPPORT of the edge's own Room."""
+	for ordinal: int in motion.deck_count(program):
+		if not _proof.spend() or not motion.deck_into(program, ordinal, first, _scratch):
+			return _proof.error if _proof.error != &"" else &"WORLD_ROUTE_STAIR_SUPPORT"
+		_proof.start(_scratch)
+		if not _subtract_room_support(room): return _proof.error if _proof.error != &"" else REFUSE_COVERAGE
+		if _proof.count != 0: return &"WORLD_ROUTE_STAIR_SUPPORT"
+	return &""
+
+
+func _subtract_room_support(room: Vector2i) -> bool:
+	"""Subtract every SUPPORT row the Room owns (its installed timber and retained bearings) from the open fragments;
+	an edge outside any Room counts the World's own support."""
+	var rows: Space.Volumes = _proof.image.volumes
+	var owner: Vector2i = room if room != NULL_REF else _domain._world
+	for row: int in rows.role.size():
+		if not _proof.spend(): return false
+		if rows.role[row] != Space.SUPPORT or Vector2i(rows.owner_slot[row], rows.owner_generation[row]) != owner:
+			continue
+		_proof.read_box(row, _proof.cover)
+		if not _proof.subtract_cover(): return false
+		if _proof.count == 0: return true
+	return true
+
+
+func _stair_bodies_refusal(first: Vector3i, room: Vector2i) -> StringName:
+	"""Each body and recovery box at the start root: no exclusion, no foreign or pending matter, and full cover."""
+	for ordinal: int in _descriptor.box_count:
+		if not _proof.spend(): return _proof.error
+		var code: StringName = _profile_box_into(ordinal, _body)
+		if code != &"": return code
+		if _body.role != Profiles.BODY_HELD_LOAD and _body.role != Profiles.TURN_RECOVERY: continue
+		code = _sweep_into(_body, first, first, _bounds)
+		if code == &"": code = _terrain.exclusions_refusal(_bounds)
+		if code == &"" and _stair_blocked(room): code = _proof.error if _proof.error != &"" else &"WORLD_ROUTE_STAIR_BLOCKED"
+		if code == &"": code = _stair_covered_refusal(room)
+		if code != &"": return code
+	return &""
+
+
+func _stair_blocked(room: Vector2i) -> bool:
+	"""Only void, floor metadata and the Room's own installed SUPPORT may meet the motion's body box."""
+	var rows: Space.Volumes = _proof.image.volumes
+	var owner: Vector2i = room if room != NULL_REF else _domain._world
+	for row: int in rows.role.size():
+		if not _proof.spend(): return true
+		var role: int = rows.role[row]
+		if role == Space.FLOOR_DATUM or role == Space.SUPPORTED_VOID \
+				or (role == Space.SUPPORT and Vector2i(rows.owner_slot[row], rows.owner_generation[row]) == owner):
+			continue
+		_proof.read_box(row, _proof.box)
+		if Space.overlaps(_bounds, _proof.box): return true
+	return false
+
+
+func _stair_covered_refusal(room: Vector2i) -> StringName:
+	"""Completed void and the Room's timber cover the box; any remainder must be proved exterior air."""
+	_proof.start(_bounds)
+	if not _proof.subtract_role(Space.SUPPORTED_VOID) or not _subtract_room_support(room):
+		return _proof.error if _proof.error != &"" else REFUSE_COVERAGE
+	for fragment: int in _proof.count:
+		if not _proof.spend(Terrain.LOCAL_QUERY_CHECKS): return _proof.error
+		for axis: int in 6:
+			_scratch[axis] = _proof.fragments[fragment * 6 + axis]
+		var code: StringName = _terrain.exterior_refusal(_scratch)
+		if code != &"": return REFUSE_COVERAGE
+	return &""
+
+
+func _endpoint_observation_refusal(location: Vector2i, point: Vector3i) -> StringName:
+	"""The endpoint is live, refreshed to this proof's revision and still at the path's end; its payload is immutable."""
+	if not _proof.spend(Locations.PREPARED_OBSERVATION_CHECKS): return _proof.error
+	var code: StringName = _prepared_endpoint_into(self, location, _endpoint) \
+		if _location_token != 0 else _locations().read_location_into(location, _endpoint)
+	if code != &"": return code
+	if _endpoint.world != _domain._world \
+			or _endpoint.geometry_revision != (_target_revision if _location_token != 0 else _base_revision) \
+			or _endpoint.point != point or _endpoint.payload_revision <= 0:
+		return &"WORLD_ROUTE_ENDPOINT_STALE"
+	return &""
+
+
+func _profile_endpoint_refusal(location: Vector2i, point: Vector3i) -> StringName:
+	"""A source mask never promises arrival at an endpoint which cannot contain its full body and held tool."""
+	var code: StringName = _endpoint_observation_refusal(location, point)
+	if code != &"": return code
+	for ordinal: int in _descriptor.box_count:
+		if not _proof.spend(1 + _descriptor.box_count): return _proof.error
+		code = _profile_box_into(ordinal, _body)
+		if code == &"": code = _compiled_endpoint_box_refusal(point)
+		if code != &"": return code
+	return &""
+
+
+static func _prepared_endpoint_into(actual: RefCounted, location: Vector2i, out: Locations.Record) -> StringName:
+	"""Only this original edge observer can borrow its sealed companion; the general Location reader stays strict."""
+	if actual == null or actual._locations_ref == null or actual._routes_ref == null \
+			or out == null or out.envelope.size() != 6 or out.support.size() != 6: return REFUSE_CONTEXT
+	var locations: Locations = actual._locations_ref.get_ref() as Locations
+	var graph: Routes = actual._routes_ref.get_ref() as Routes
+	var code: StringName = Locations._route_observation_binding_refusal(locations, graph)
+	if code == &"": code = _prepared_endpoint_scope(actual, locations, graph)
+	if code != &"": return code
+	var bank: Locations.Bank = locations._stage
+	var capacity: int = locations._capacity
+	if location.x < 0 or location.x >= capacity or location.y <= 0 or bank.present[location.x] != 1 \
+			or bank.i32[Locations.GENERATION * capacity + location.x] != location.y:
+		return &"LOCATION_STALE"
+	if bank.i64[Locations.PAYLOAD_REVISION * capacity + location.x] <= 0 \
+			or bank.i64[Locations.GEOMETRY_REVISION * capacity + location.x] != actual._target_revision:
+		return &"LOCATION_GEOMETRY_STALE"
+	Locations._copy_route_observation(locations, bank, location.x, out)
+	return &""
+
+
+static func _prepared_endpoint_scope(actual: RefCounted, locations: Locations, graph: Routes) -> StringName:
+	"""The original callback and all original three-owner transaction tokens are checked without changing a latch."""
+	if not actual._compiling or actual._opening or actual._publishing or actual._reading or actual._sealed \
+			or actual._proof == null or graph._bindings != actual or not graph._in_callback \
+			or graph._callback_reentered or graph._searching or graph._sealed or graph._operation_error != &"" \
+			or graph._token <= 0 or graph._token != actual._route_token \
+			or locations._in_retention or locations._retention_reentered or not locations._sealed \
+			or locations._token <= 0 or locations._token != actual._location_token \
+			or locations._token != graph._location_token: return &"LOCATION_TOKEN_STALE"
+	if locations._remaining < 0: return &"LOCATION_OPERATION_BUDGET"
+	if not Locations._route_observation_shape_matches(locations): return &"LOCATION_OBSERVATION_SHAPE"
+	if locations._cold != actual._budget or locations._cold_token <= 0 \
+			or locations._cold_token != actual._cold_token or locations._cold_token != graph._cold_token \
+			or locations._cold._token != locations._cold_token or locations._cold._used < Budget.COLD_BYTES:
+		return &"LOCATION_TOKEN_STALE"
+	return _prepared_endpoint_geometry(actual, locations, graph)
+
+
+static func _prepared_endpoint_geometry(actual: RefCounted, locations: Locations, graph: Routes) -> StringName:
+	"""Equal target revisions cannot substitute a foreign original Space candidate or an aborted companion."""
+	var owner: Owner = locations._owner
+	if actual._owner_ref == null or actual._owner_ref.get_ref() != owner or owner._ready_error != &"" \
+			or locations._owner_token != actual._space_token or locations._owner_token != graph._space_token \
+			or owner._stage_token != locations._owner_token or (locations._owner_token != 0 and not owner._sealed):
+		return &"LOCATION_GEOMETRY_STALE"
+	if locations._base_geometry_revision <= 0 or locations._base_geometry_revision != actual._base_revision \
+			or locations._base_geometry_revision != graph._base_geometry_revision \
+			or locations._target_geometry_revision != actual._target_revision \
+			or locations._target_geometry_revision != graph._target_geometry_revision \
+			or owner._header[17] != locations._base_geometry_revision \
+			or locations._target_geometry_revision != (owner._s_header[17] if locations._owner_token != 0 else owner._header[17]):
+		return &"LOCATION_GEOMETRY_STALE"
+	return &""
+
+
+func _compiled_endpoint_box_refusal(point: Vector3i) -> StringName:
+	"""Initial masks use the same positive body and complete negative stance semantics as actual admission."""
+	if _body.role != Profiles.STANCE_SUPPORT and _body.role != Profiles.BODY_HELD_LOAD \
+			and _body.role != Profiles.TURN_RECOVERY: return &""
+	var code: StringName = _sweep_into(_body, point, point, _bounds)
+	if code != &"": return code
+	if _body.role == Profiles.STANCE_SUPPORT:
+		return &"" if Space.contains_box(_endpoint.support, _bounds) else &"WORLD_ROUTE_ENDPOINT_SUPPORT"
+	return &"" if _endpoint_body_contained(point) else &"WORLD_ROUTE_ENDPOINT_BODY"
+
+
+func _profile_segments_refusal(edge: Routes.Edge) -> StringName:
+	"""Every full segment still receives the original heading, stance, matter and coverage proof."""
+	var code: StringName = &""
 	for segment: int in edge.point_count - 1:
 		if not _proof.spend():
 			return _proof.error
 		var first: Vector3i = _point(edge, segment)
 		var last: Vector3i = _point(edge, segment + 1)
-		var policy: int = Profiles.selection_policy_leaf(_profiles, profile, _descriptor.profile_revision, _content_revision)
+		var policy: int = Profiles.selection_policy_leaf(_profiles, _descriptor.profile_id, _descriptor.profile_revision, _content_revision)
 		var backward: bool = policy == Profiles.POLICY_READY_BACKWARD or policy == Profiles.POLICY_SHORT_BACKWARD
 		var heading: int = (_descriptor.yaw + 32768) % 65536 if backward else _descriptor.yaw
 		if _descriptor.yaw_kind != Profiles.YAW_ALL \
@@ -842,9 +1243,52 @@ func _profile_segment_refusal(first: Vector3i, last: Vector3i) -> StringName:
 			code = _terrain.exclusions_refusal(_bounds)
 		if code != &"":
 			return code
-		if _proof.blocked(_bounds, true) or not _body_covered(first, last) or not _solid_contacts_covered(first, last):
+		if not _carried and (_body_blocked(first, last) or not _body_covered(first, last) \
+				or not _solid_contacts_covered(first, last)):
 			return _proof.error if _proof.error != &"" else REFUSE_COVERAGE
 	return &""
+
+
+func _body_blocked(first: Vector3i, last: Vector3i) -> bool:
+	"""The exact pending bearer may use its complete source proof; every other original blocker still refuses."""
+	for row: int in _proof.image.volumes.role.size():
+		if not _proof.spend(): return true
+		var role: int = _proof.image.volumes.role[row]
+		if role == Space.FLOOR_DATUM or role == Space.SUPPORTED_VOID or role == Space.SUPPORT or role == Space.DRY_SOLID:
+			continue
+		_proof.read_box(row, _proof.box)
+		if Space.overlaps(_bounds, _proof.box) and _pending_span_refusal(first, last, row) != &"": return true
+	return false
+
+
+func _pending_span_refusal(first: Vector3i, last: Vector3i, row: int) -> StringName:
+	"""No new permission is retained: recheck the original START scope and full source after every observer."""
+	if _installation == null or not _may_excuse_pending() \
+			or _proof.image.volumes.role[row] != Space.OBSTACLE: return REFUSE_COVERAGE
+	if not _proof.spend(4096): return _proof.error
+	return AssemblyEndpoint.prepared_span_refusal(self, first, last, row)
+
+
+func _may_excuse_pending() -> bool:
+	"""Only the certified narrow approach and retreat at yaw 0 may omit a pending bearer, so their old proofs never
+	carry (ADR1205): claw rows 43/47 in content 9 (ADR1217 step 4e), pick rows 2/6 before it."""
+	return AssemblyEndpoint.excuses_pending(_descriptor.profile_id, _descriptor.content_revision)
+
+
+func _subtract_pending_bearer(first: Vector3i, last: Vector3i) -> bool:
+	"""Subtract only the named prism from remaining conservative air, never from footing or foreign matter."""
+	if _proof.count == 0 or _installation == null: return true
+	for row: int in _proof.image.volumes.role.size():
+		if not _proof.spend(): return false
+		if _proof.image.volumes.role[row] != Space.OBSTACLE: continue
+		_proof.read_box(row, _proof.cover)
+		if not Space.overlaps(_bounds, _proof.cover): continue
+		if _pending_span_refusal(first, last, row) != &"":
+			if _proof.error != &"": return false
+			continue
+		if not _proof.subtract_cover(): return false
+		if _proof.count == 0: return true
+	return true
 
 
 func _solid_contacts_covered(first: Vector3i, last: Vector3i) -> bool:
@@ -889,7 +1333,7 @@ func _stance_sweeps_refusal(first: Vector3i, last: Vector3i) -> StringName:
 			code = _terrain.exclusions_refusal(_support)
 		if code != &"":
 			return code
-		if _proof.blocked(_support, true) or not _proof.covered(_support, Space.SUPPORT):
+		if not _carried and (_proof.blocked(_support, true) or not _proof.covered(_support, Space.SUPPORT)):
 			return _proof.error if _proof.error != &"" else &"WORLD_ROUTE_SUPPORT"
 	return &""
 
@@ -899,6 +1343,7 @@ func _body_covered(first: Vector3i, last: Vector3i) -> bool:
 	_proof.start(_bounds)
 	if not _proof.subtract_role(Space.SUPPORTED_VOID):
 		return false
+	if not _subtract_pending_bearer(first, last): return false
 	for ordinal: int in _descriptor.box_count:
 		if _proof.count == 0:
 			return true
@@ -938,6 +1383,7 @@ func seal(token: int) -> StringName:
 		code = _preparation_refusal()
 	if code == &"":
 		_sealed = true
+		_proof_checks = _domain._checks - _proof.remaining
 		_proof = null
 	_compiling = false
 	return code
@@ -1052,7 +1498,9 @@ func _selection_refusal(selection: Profiles.Selection) -> StringName:
 			or _descriptor.species != selection.species or _descriptor.life_stage != selection.life_stage \
 			or _descriptor.rig != selection.rig or _descriptor.mode != selection.mode \
 			or _descriptor.posture != selection.posture or _descriptor.yaw_kind != selection.orientation \
-			or (_descriptor.yaw_kind != Profiles.YAW_ALL and _descriptor.yaw != selection.yaw) \
+			or (_descriptor.yaw_kind != Profiles.YAW_ALL and _descriptor.yaw != selection.yaw \
+				and Profiles.selection_policy_leaf(_profiles, selection.profile_id, selection.profile_revision,
+					selection.content_revision) != Profiles.POLICY_STAIR_TURN) \
 			or _descriptor.certificate_flags != Profiles.CERT_REQUIRED:
 		return &"WORLD_ROUTE_PROFILE_STALE"
 	return &""
@@ -1515,6 +1963,9 @@ func actor_admission_refusal(location: Vector2i, selection: Profiles.Selection) 
 
 func _actor_admission_refusal(location: Vector2i, selection: Profiles.Selection) -> StringName:
 	"""Fit an actual grounded profile into a current complete endpoint; metadata or equal floor height is insufficient."""
+	if selection != null and Profiles.selection_policy_leaf(_profiles, selection.profile_id,
+			selection.profile_revision, selection.content_revision) == Profiles.POLICY_ASSEMBLY_HANDLING:
+		return _assembly_admission(location, selection)
 	var code: StringName = _hot_refusal()
 	if code == &"":
 		code = _selection_refusal(selection)
@@ -1526,6 +1977,8 @@ func _actor_admission_refusal(location: Vector2i, selection: Profiles.Selection)
 	if _endpoint.world != _domain._world or _endpoint.geometry_revision != _owner().revision() \
 			or _endpoint.point != point:
 		return &"WORLD_ROUTE_ENDPOINT_STALE"
+	if _stair_row(selection.profile_id) or _tread_tap(selection):
+		return _stair_occupancy_refusal(point, selection.worker)
 	for ordinal: int in _descriptor.box_count:
 		code = _profile_box_into(ordinal, _body)
 		if code == &"":
@@ -1533,6 +1986,162 @@ func _actor_admission_refusal(location: Vector2i, selection: Profiles.Selection)
 		if code != &"":
 			return code
 	return &""
+
+
+func _tread_tap(selection: Profiles.Selection) -> bool:
+	"""ADR1229: the tread fitting tap (row 64) stands on a tread station, whose stop records only its footing; its
+	motion among the tread fixture is proved by the installation's Contacts and its certified tap, as a stair row's by
+	its edge, so admission here is the occupancy and exclusion check alone."""
+	return _routes()._stair_motion != null and selection.profile_id == Routes.Stair.Pins.CLAW_TREAD_TAP_ROW \
+		and Routes.Claw2.owns(_profiles, selection.profile_id)
+
+
+func _assembly_admission(location: Vector2i, selection: Profiles.Selection) -> StringName:
+	"""An unfunded READY body needs complete actual air, never an exception for a prospective workpiece. DEC-057: once
+	the piece is live, a replacement re-handling it in place takes the funded proof, which excuses exactly that piece."""
+	var graph: Routes = _routes_ref.get_ref() as Routes if _routes_ref != null else null
+	var pieces: Workpieces = _assembly_pieces(graph)
+	if pieces == null: return REFUSE_BINDING
+	var project: Vector2i = _assembly_project(pieces, selection.job)
+	var row: int = Owner.CoreSources._final_row(graph._ids, project, Routes.Directory.KIND_CONSTRUCTION)
+	if row < 0: return REFUSE_BINDING
+	var placement: Vector2i = Vector2i(pieces._router._construction._subject_slot[row],
+		pieces._router._construction._subject_generation[row])
+	var code: StringName = Workpieces.source_leaf_refusal(pieces, placement, project)
+	if code == &"": code = _terrain.binding_refusal()
+	if code == &"": code = _locations().read_location_into(location, _endpoint)
+	if code == &"" and pieces._live.present[placement.x] != 0: # DEC-057: a replacement re-handles the live piece.
+		code = Handling.physical_refusal(self, graph, pieces, placement, project, selection.worker, selection.job, selection)
+	elif code == &"": code = Handling.physical_admission_refusal(self, graph, pieces, placement, project, location, selection)
+	return code
+
+
+static func _assembly_pieces(graph: Routes) -> Workpieces:
+	"""Resolve the already-bound original modular owner chain; no new pointer or provider is installed."""
+	if graph == null or graph._work == null or graph._work._modular_authority == null: return null
+	var router: RefCounted = graph._work._modular_authority.get_ref()
+	if router == null or router._connector_owner == null or router._connector_owner.get_ref() == null: return null
+	var paid: RefCounted = router._connector_owner.get_ref()
+	return paid._workpieces as Workpieces if paid._placements != null and paid._placements._routes == graph else null
+
+
+static func _handling_profile(pieces: Workpieces, placement: Vector2i) -> int:
+	"""The handling row Workpieces names for the Placement's installed assembly, or -1."""
+	var owner: RefCounted = pieces._placements
+	if placement.x < 0 or placement.x >= owner._capacity: return -1
+	return Handling.profile_of(pieces, owner._live.i32[owner.INSTALLED * owner._capacity + placement.x])
+
+
+static func _assembly_project(pieces: Workpieces, job: Vector2i) -> Vector2i:
+	"""An actual Router full Job binding, not a requester slot or caller token, selects the original Project."""
+	var row: int = Owner.CoreSources._final_row(pieces._router._jobs._directory, job, Routes.Directory.KIND_JOB)
+	if row < 0 or row >= pieces._router.JOB_CAPACITY \
+			or pieces._router._job_slot[row] != job.x or pieces._router._job_generation[row] != job.y: return Routes.NULL_REF
+	return Vector2i(pieces._router._project_slot[row], pieces._router._project_generation[row])
+
+
+func assembly_handling_refusal(pieces: Workpieces, placement: Vector2i, project: Vector2i,
+		worker: Vector2i, job: Vector2i) -> StringName:
+	"""Ordinary current-source observations precede the concrete shared physical tail; Routes repeats that tail."""
+	if _reading: return REFUSE_BUSY
+	_reading = true
+	var graph: Routes = _routes_ref.get_ref() as Routes if _routes_ref != null else null
+	var code: StringName = REFUSE_BINDING
+	if graph != null and _assembly_pieces(graph) == pieces:
+		var revision: int = graph._owner._header[17]
+		var receipt: int = graph._locations._last_published_token
+		var pose: int = graph._transforms._mutation_revision
+		code = Workpieces.handling_leaf_refusal(pieces, placement, project, worker, job)
+		if code == &"": code = _terrain.binding_refusal()
+		if code == &"":
+			code = _profiles.query_work_profile_into(worker, job, _handling_profile(pieces, placement), 1,
+				_profiles._live.header[0], Profiles.POSTURE_UPRIGHT, -1, Routes.NULL_REF, graph._selection)
+		if code == &"" and (graph._owner._header[17] != revision \
+				or graph._locations._last_published_token != receipt or graph._transforms._mutation_revision != pose):
+			code = REFUSE_CONTEXT
+		if code == &"": code = assembly_handling_leaf_refusal(self, pieces, placement, project, worker, job)
+	_reading = false
+	return code
+
+
+static func assembly_handling_leaf_refusal(actual: RefCounted, pieces: Workpieces, placement: Vector2i,
+		project: Vector2i, worker: Vector2i, job: Vector2i) -> StringName:
+	"""ConnectorWork and Routes use one concrete final chain after all observer dispatch has ended."""
+	var graph: Routes = actual._routes_ref.get_ref() as Routes if actual != null and actual._routes_ref != null else null
+	if graph == null or graph._bindings != actual: return REFUSE_BINDING
+	return Routes.assembly_handling_leaf_refusal(graph, pieces, placement, project, worker, job)
+
+
+func assembly_release_observation_refusal(pieces: Workpieces, placement: Vector2i, project: Vector2i,
+		worker: Vector2i, job: Vector2i) -> StringName:
+	"""A paused worker retains real source, tool and pose checks; ordinary observation grants no productive work."""
+	if _reading: return REFUSE_BUSY
+	_reading = true
+	var graph: Routes = _routes_ref.get_ref() as Routes if _routes_ref != null else null
+	var code: StringName = REFUSE_BINDING
+	if graph != null and _assembly_pieces(graph) == pieces:
+		var revision: int = graph._owner._header[17]
+		var receipt: int = graph._locations._last_published_token
+		var pose: int = graph._transforms._mutation_revision
+		code = _assembly_release_selection(graph, pieces, placement, project, worker, job)
+		if code == &"": code = _terrain.binding_refusal()
+		if code == &"":
+			code = _profiles.query_work_profile_into(worker, job, graph._selection.profile_id,
+				graph._selection.profile_revision, graph._selection.content_revision,
+				Profiles.POSTURE_UPRIGHT, -1, Routes.NULL_REF, graph._selection)
+		if code == &"" and (graph._owner._header[17] != revision \
+				or graph._locations._last_published_token != receipt or graph._transforms._mutation_revision != pose):
+			code = REFUSE_CONTEXT
+		if code == &"": code = assembly_release_leaf_refusal(self, pieces, placement, project, worker, job)
+	_reading = false
+	return code
+
+
+static func _assembly_release_selection(graph: Routes, pieces: Workpieces, placement: Vector2i,
+		project: Vector2i, worker: Vector2i, job: Vector2i) -> StringName:
+	"""The actual current BUILD assignment and source-ready tuple survive pause; neither pause nor a caller selector grants it."""
+	var code: StringName = Workpieces.source_leaf_refusal(pieces, placement, project)
+	if code != &"": return code
+	if graph == null or pieces._placements._routes != graph or pieces._placements._world_routes != graph._bindings \
+			or graph._profiles != pieces._profiles or pieces._busy or pieces._stage_action != -1 \
+			or pieces._context != null or pieces._cold_token != 0: return REFUSE_BINDING
+	code = Workpieces._assigned_worker_leaf(pieces, project, worker, job)
+	var row: int = Owner.CoreSources._final_row(graph._ids, worker, Routes.Directory.KIND_RESIDENT)
+	if code != &"" or row < 0 or row >= Routes.RESIDENT_CAPACITY: return REFUSE_CONTEXT
+	code = Routes.turn_selection_into(graph, row, graph._selection)
+	if code != &"": return code
+	if not Handling.is_handling(graph._selection.profile_id, graph._selection.content_revision) \
+			and not Handling.is_install_tap(graph._selection.profile_id, graph._selection.content_revision):
+		return REFUSE_CONTEXT
+	return Routes.source_ready_leaf_refusal(graph, worker, job, graph._selection.profile_id,
+		graph._selection.profile_revision, graph._selection.content_revision)
+
+
+static func assembly_release_leaf_refusal(actual: RefCounted, pieces: Workpieces, placement: Vector2i,
+		project: Vector2i, worker: Vector2i, job: Vector2i) -> StringName:
+	"""Concrete READY body/footing/foreign-actor proof closes the release after its last observation, without resetting budget."""
+	var graph: Routes = actual._routes_ref.get_ref() as Routes if actual != null and actual._routes_ref != null else null
+	if graph == null or graph._bindings != actual: return REFUSE_BINDING
+	var code: StringName = _assembly_release_selection(graph, pieces, placement, project, worker, job)
+	if code != &"": return code
+	var row: int = Owner.CoreSources._final_row(graph._ids, worker, Routes.Directory.KIND_RESIDENT)
+	if pieces._live.present[placement.x] == 0:
+		var project_row: int = Workpieces._project_row(pieces, placement, project)
+		if not Handling.is_handling(graph._selection.profile_id, graph._selection.content_revision) or project_row < 0 \
+				or Workpieces._funded(pieces, project, project_row) \
+				or pieces._router._construction._work_begun[project_row] != 0:
+			return REFUSE_CONTEXT
+		for field: int in 5:
+			if pieces._live.fields[field * pieces._capacity + placement.x] != 0: return REFUSE_CONTEXT
+		code = Handling.physical_admission_refusal(actual, graph, pieces, placement, project,
+			Vector2i(graph._motion.resident[Routes.R_LOCATION_SLOT * Routes.RESIDENT_CAPACITY + row],
+				graph._motion.resident[(Routes.R_LOCATION_SLOT + 1) * Routes.RESIDENT_CAPACITY + row]), graph._selection)
+	else:
+		code = Workpieces.live_leaf_refusal(pieces, placement, project)
+		if code == &"" and Handling.is_install_tap(graph._selection.profile_id, graph._selection.content_revision):
+			code = Workpieces.handled_leaf_refusal(pieces, placement, project)
+		if code == &"": code = Handling.physical_refusal(actual, graph, pieces, placement, project, worker, job, graph._selection)
+	return Routes._assembly_occupants_leaf(graph, row) if code == &"" else code
 
 
 func _endpoint_box_refusal(point: Vector3i, worker: Vector2i) -> StringName:
@@ -1559,7 +2168,7 @@ func _endpoint_body_contained(point: Vector3i) -> bool:
 		_scratch[axis] = _bounds[axis]
 	if _bounds[4] > floor_y:
 		_scratch[1] = maxi(_bounds[1], floor_y)
-		if not Space.contains_box(_endpoint.envelope, _scratch):
+		if not Locations.air_contains(_endpoint, _scratch): # ADR1215: envelope or one extra air box.
 			return false
 	if _bounds[1] >= floor_y:
 		return true
@@ -1609,6 +2218,32 @@ func _motion_refusal(worker: Vector2i, ref: Vector2i, segment: int, first: Vecto
 			code = _moving_box_refusal(worker, first, last)
 		if code != &"":
 			return code
+	return &""
+
+
+func stair_motion_refusal(worker: Vector2i, ref: Vector2i, origin: Vector3i,
+		selection: Profiles.Selection) -> StringName:
+	"""ADR1229: one tick of a source-proved crossing keeps its certificate and its whole motion's box unoccupied."""
+	if _reading:
+		return REFUSE_BUSY
+	_reading = true
+	var code: StringName = _certificate_refusal(ref, selection)
+	if code == &"" and (selection.worker != worker or not _stair_row(selection.profile_id)):
+		code = &"WORLD_ROUTE_MOTION_CONTEXT"
+	return _finish_read(_stair_occupancy_refusal(origin, worker) if code == &"" else code)
+
+
+func _stair_occupancy_refusal(origin: Vector3i, worker: Vector2i) -> StringName:
+	"""The motion's body and recovery boxes, placed at its start root, hold no other actor or live exclusion. A READY
+	stop of a stair row is proved by its Location; the motion itself by its edge certificate."""
+	for ordinal: int in _descriptor.box_count:
+		var code: StringName = _profile_box_into(ordinal, _body)
+		if code != &"": return code
+		if _body.role != Profiles.BODY_HELD_LOAD and _body.role != Profiles.TURN_RECOVERY: continue
+		code = _sweep_into(_body, origin, origin, _bounds)
+		if code == &"": code = _terrain.exclusions_refusal(_bounds)
+		if code == &"": code = _routes().occupancy_refusal(_bounds, worker)
+		if code != &"": return code
 	return &""
 
 
@@ -1829,7 +2464,7 @@ static func _turn_body_contained(actual: RefCounted, graph: Routes, point: Vecto
 	for axis: int in 6: actual._scratch[axis] = actual._bounds[axis]
 	if actual._bounds[4] > floor_y:
 		actual._scratch[1] = maxi(actual._bounds[1], floor_y)
-		if not Space.contains_box(actual._endpoint.envelope, actual._scratch): return false
+		if not Locations.air_contains(actual._endpoint, actual._scratch): return false # ADR1215
 	if actual._bounds[1] >= floor_y: return true
 	actual._scratch[1] = actual._bounds[1]
 	actual._scratch[4] = mini(actual._bounds[4], floor_y)
@@ -1862,7 +2497,8 @@ static func _turn_occupants(actual: RefCounted, graph: Routes, owner: Owner, loc
 	for row: int in Routes.RESIDENT_CAPACITY:
 		if row == except_row: continue
 		if graph._resident_ref(row) == NULL_REF:
-			var missing: StringName = _turn_unregistered_refusal(graph, row)
+			var missing: StringName = Routes.unregistered_body_refusal(graph, row, Vector3i(graph._checked_selection.x,
+				graph._checked_selection.y, graph._checked_selection.z))
 			if missing != &"": return missing
 			continue
 		if not graph._spend(512):
@@ -1872,19 +2508,6 @@ static func _turn_occupants(actual: RefCounted, graph: Routes, owner: Owner, loc
 		if code == &"": code = _turn_occupant_boxes(actual, graph)
 		if code != &"": return code
 	return &""
-
-
-static func _turn_unregistered_refusal(graph: Routes, row: int) -> StringName:
-	"""An actual living row needs a current body proof; direct full identity never turns missing registration into air."""
-	var residents: Residents = graph._residents
-	if residents._present[row] != 1: return &""
-	if residents._needs._present[row] != 1: return &"ROUTE_TURN_ACTOR_STALE"
-	if residents._needs._health[row] <= 0: return &""
-	var worker: Vector2i = Vector2i(residents._ref_slot[row], residents._ref_generation[row])
-	if Routes._turn_directory_row(graph, worker, Routes.Directory.KIND_RESIDENT) != row \
-			or graph._ids._persistent_id[worker.x] <= 0:
-		return &"ROUTE_TURN_ACTOR_STALE"
-	return &"ROUTE_TURN_ACTOR_UNBOUND"
 
 
 static func _turn_occupant_boxes(actual: RefCounted, graph: Routes) -> StringName:
@@ -1966,3 +2589,115 @@ static func commit_frontier_preflighted(actual: RefCounted, context: Locations.F
 	Routes._commit_preflighted_bank(context.graph, context.route_token)
 	_commit_preflighted_certificates(actual, context.catalog)
 	return true
+
+
+# ADR1221 (cold load): live route certificates are SAVED, not re-derived. A certificate is the result of the last
+# preparation's proof, and some of its inputs are not saved state at all (live World exclusions, the installation
+# context that excuses a pending bearer for source profiles 2 and 6), so a recompilation at load could differ from
+# the run that saved. ADR1205's carry rule then requires both SpaceOwner journals to be saved with them. Schema 1:
+# a header, the live bank's masks, generations, geometry and content columns, then the traversal and full journals.
+const CERT_WIRE_MAGIC: int = 0x52574755 # "UGWR"
+const CERT_WIRE_SCHEMA: int = 1
+const CERT_WIRE_HEADER: int = 5
+const CERT_WIRE_BYTES: int = 8 * CERT_WIRE_HEADER + EDGE_CAPACITY * (MASK_BYTES + 4 + 16) + 2 * Journal.WIRE_BYTES
+const REFUSE_LOAD_BUSY: StringName = &"WORLD_ROUTE_LOAD_BUSY"
+const REFUSE_LOAD_SHAPE: StringName = &"WORLD_ROUTE_LOAD_SHAPE"
+const REFUSE_LOAD_HEADER: StringName = &"WORLD_ROUTE_LOAD_HEADER"
+const REFUSE_LOAD_CERTIFICATE: StringName = &"WORLD_ROUTE_LOAD_CERTIFICATE"
+
+
+func _wire_quiescent() -> bool:
+	"""No preparation, compilation, publication or read is open, and the once-bound installation context (ADR1105)
+	holds no route candidate."""
+	return _domain != null and not _opening and not _compiling and not _publishing and not _reading \
+		and _route_token == 0 and _proof == null and (_installation == null or _installation.route_token == 0) \
+		and _routes() != null and _owner() != null
+
+
+func capture_state_into(cold_token: int, out: PackedByteArray) -> StringName:
+	"""ADR1221: the live certificates and both journals at a quiescent boundary, under the caller's lease."""
+	if not _wire_quiescent() or not out.is_empty() or _owner().has_prepared():
+		return REFUSE_LOAD_BUSY
+	if not _budget.covers(cold_token, CERT_WIRE_BYTES):
+		return REFUSE_BUDGET
+	out.resize(CERT_WIRE_BYTES)
+	var header: PackedInt64Array = PackedInt64Array([CERT_WIRE_MAGIC, CERT_WIRE_SCHEMA, EDGE_CAPACITY, MASK_BYTES,
+		_live_catalog_revision])
+	var at: int = Routes._wire_put64(out, 0, header)
+	at = Routes._wire_put8(out, at, _live.masks)
+	at = Routes._wire_put32(out, at, _live.generations)
+	at = Routes._wire_put64(out, at, _live.geometry)
+	at = Routes._wire_put64(out, at, _live.content)
+	at = _owner()._journal.write_into(out, at)
+	_owner()._location_journal.write_into(out, at)
+	return &""
+
+
+func restore_state_bytes(cold_token: int, bytes: PackedByteArray) -> StringName:
+	"""ADR1221: after Routes is restored, decode into the inactive bank, require exactly one current certificate per
+	live edge (its own generation, geometry and content revision, no bit past the content's profiles) and canonical
+	empty rows elsewhere, check both journals against the restored Space, then swap and install the journals."""
+	if not _wire_quiescent() or _owner().has_prepared() or binding_refusal() != &"":
+		return REFUSE_LOAD_BUSY
+	if bytes.size() != CERT_WIRE_BYTES:
+		return REFUSE_LOAD_SHAPE
+	if not _budget.covers(cold_token, CERT_WIRE_BYTES):
+		return REFUSE_BUDGET
+	var catalog_revision: int = bytes.decode_s64(32)
+	if bytes.decode_s64(0) != CERT_WIRE_MAGIC or bytes.decode_s64(8) != CERT_WIRE_SCHEMA \
+			or bytes.decode_s64(16) != EDGE_CAPACITY or bytes.decode_s64(24) != MASK_BYTES \
+			or (catalog_revision != 0 and catalog_revision != _catalog.content_revision()):
+		return REFUSE_LOAD_HEADER
+	var at: int = Routes._wire_get8(bytes, 8 * CERT_WIRE_HEADER, _stage.masks)
+	at = Routes._wire_get32(bytes, at, _stage.generations)
+	at = Routes._wire_get64(bytes, at, _stage.geometry)
+	at = Routes._wire_get64(bytes, at, _stage.content)
+	var code: StringName = _loaded_certificates_refusal(catalog_revision)
+	if code == &"": code = _owner()._journal.image_refusal(bytes, at, _owner().revision())
+	if code == &"": code = _owner()._location_journal.image_refusal(bytes, at + Journal.WIRE_BYTES, _owner().revision())
+	if code != &"":
+		return code
+	var previous: Certificates = _live
+	_live = _stage
+	_stage = previous
+	_live_catalog_revision = catalog_revision
+	_witness_work = 0 # A fresh World has no remembered reachability search; neither does a loaded one.
+	_owner()._location_journal.read_from(bytes, _owner()._journal.read_from(bytes, at))
+	return &""
+
+
+func _loaded_certificates_refusal(catalog_revision: int) -> StringName:
+	"""Row by row against the restored graph: a live edge has its certificate, nothing else has one."""
+	var graph: Routes = _routes()
+	for row: int in EDGE_CAPACITY:
+		var generation: int = _stage.generations[row]
+		var live: bool = row < graph._edge_capacity and graph._live.present[row] == 1
+		if live != (generation > 0) or (live and catalog_revision == 0):
+			return REFUSE_LOAD_CERTIFICATE
+		var code: StringName = _loaded_row_refusal(graph, row, generation) if live else _loaded_blank_refusal(row)
+		if code != &"":
+			return code
+	return &""
+
+
+func _loaded_blank_refusal(row: int) -> StringName:
+	"""A row with no live edge is all zero."""
+	if _stage.generations[row] != 0 or _stage.geometry[row] != 0 or _stage.content[row] != 0:
+		return REFUSE_LOAD_CERTIFICATE
+	for index: int in MASK_BYTES:
+		if _stage.masks[row * MASK_BYTES + index] != 0:
+			return REFUSE_LOAD_CERTIFICATE
+	return &""
+
+
+func _loaded_row_refusal(graph: Routes, row: int, generation: int) -> StringName:
+	"""The certificate of one live edge: same generation and revisions, and only bits of existing profiles."""
+	if generation != graph._edge_i32(graph._live, Routes.E_GENERATION, row) \
+			or _stage.geometry[row] != graph._edge_i64(graph._live, Routes.E_GEOMETRY_REVISION, row) \
+			or _stage.content[row] != graph._edge_i64(graph._live, Routes.E_CONTENT_REVISION, row):
+		return REFUSE_LOAD_CERTIFICATE
+	var profiles: int = _profiles.profile_count(_stage.content[row])
+	for profile: int in range(profiles, MASK_BYTES * 8):
+		if _stage.admits(row, profile):
+			return REFUSE_LOAD_CERTIFICATE
+	return &""

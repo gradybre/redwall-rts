@@ -1,5 +1,7 @@
 extends "res://test/framework/test_case.gd"
 const Residents := preload("res://scripts/core/residents.gd")
+const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
+const NeedsScript := preload("res://scripts/core/needs.gd")
 const Bridge := preload("res://scripts/core/save_owner_residents.gd")
 const Section := preload("res://scripts/core/save_section_component_columns.gd")
 const Schema := preload("res://scripts/core/save_component_columns_schema.gd")
@@ -310,3 +312,87 @@ func test_legacy_live_row_priority_remains_species_size_arrival_directory() -> v
 	assert_false(store.restore_columns(c),"same row arrival before Directory")
 	assert_equal(store.last_column_refusal(),&"COLUMN_ARRIVAL_TICK","arrival priority")
 	assert_equal(store.state_bytes(),before,"all refused live attempts preserve state")
+
+# --- ADR 1222 step 2: bulk capture and apply ------------------------------------------------------
+
+func _live_owner(directory: EntityDirectory, needs: NeedsScript) -> Residents:
+	"""A store with live, edited, freed and reused rows, built through the public lifecycle only."""
+	var owner: Residents = Residents.new(directory, needs)
+	var a: Residents.OpResult = owner.spawn(&"mouse")
+	var b: Residents.OpResult = owner.spawn(&"otter")
+	var c: Residents.OpResult = owner.spawn(&"badger")
+	assert_true(a.ok and b.ok and c.ok,"spawn three residents")
+	assert_true(owner.set_role(b.value,Residents.ROLE_WARDEN).ok,"edit a role")
+	assert_true(owner.set_skill_xp(c.value,0,500).ok,"edit a skill")
+	assert_true(owner.set_equipped_tool(c.value,4,10).ok,"edit equipment")
+	assert_true(owner.despawn(a.ref).ok,"free a row")
+	var d: Residents.OpResult = owner.spawn(&"mouse")
+	assert_true(d.ok,"reuse the freed row")
+	assert_true(owner.despawn(b.ref).ok,"leave a freed row behind")
+	return owner
+
+func _image(owner: Residents) -> Residents.Columns:
+	"""The owner's nineteen columns through the bulk reader."""
+	var columns: Residents.Columns = Residents.Columns.new()
+	assert_true(owner.copy_columns_into(columns),"bulk copy succeeds")
+	return columns
+
+func test_capture_then_apply_into_a_fresh_store_is_exact_and_continues_identically() -> void:
+	"""The restored store holds the same columns, and answers the next edit the same way."""
+	var directory: EntityDirectory = EntityDirectory.new()
+	var source: Residents = _live_owner(directory,NeedsScript.new())
+	var frame: Section.FramedOwner = Section.FramedOwner.new(12)
+	assert_true(Bridge.capture_into(source,frame).is_ok(),"capture succeeds")
+	var target: Residents = Residents.new(directory,NeedsScript.new())
+	assert_true(Bridge.apply(frame,target).is_ok(),"apply succeeds")
+	assert_true(_image(target).equals(_image(source)),"columns are byte-identical")
+	assert_equal(target.population(),source.population(),"population agrees")
+	var live_slot: int = _image(source).present.find(1,0)
+	for store: Residents in [source,target]:
+		assert_true(store.set_skill_xp(live_slot,1,777).ok,"a later edit succeeds")
+	assert_true(_image(target).equals(_image(source)),"both stores stayed identical after edits")
+
+func test_capture_matches_the_public_reader_projection() -> void:
+	"""The captured record equals the projection built only from public per-slot readers."""
+	var directory: EntityDirectory = EntityDirectory.new()
+	var source: Residents = _live_owner(directory,NeedsScript.new())
+	var frame: Section.FramedOwner = Section.FramedOwner.new(12)
+	assert_true(Bridge.capture_into(source,frame).is_ok(),"capture succeeds")
+	var witness: Residents.Columns = _image(source)
+	for field: int in 19:
+		var values: Variant = witness.get(FIELDS[field])
+		if TYPES[field] == 0: assert_true(frame.u8_column(field) == values,"field %d matches" % field)
+		elif TYPES[field] == 2: assert_true(frame.i32_column(field) == values,"field %d matches" % field)
+		else: assert_true(frame.i64_column(field) == values,"field %d matches" % field)
+
+func test_every_column_refusal_leaves_the_target_byte_identical() -> void:
+	"""Each column code refuses through apply with the exact code and writes nothing."""
+	var directory: EntityDirectory = EntityDirectory.new()
+	var target: Residents = _live_owner(directory,NeedsScript.new())
+	var before: Residents.Columns = _image(target)
+	for field: int in 19:
+		var c: Residents.Columns = Residents.Columns.new()
+		c.present[511] = 1
+		_put(c,field,6143 if field >= 17 else 511,_bad_value(field))
+		var frame: Section.FramedOwner = _frame(c)
+		assert_equal(Bridge.apply(frame,target).code,CODES[field],"exact code for field %d" % field)
+	assert_true(_image(target).equals(before),"no refusal wrote a column")
+
+func test_null_and_misshaped_inputs_refuse_without_writing() -> void:
+	"""Null stores, null records, a wrong owner and a short bulk buffer all refuse."""
+	var directory: EntityDirectory = EntityDirectory.new()
+	var target: Residents = _live_owner(directory,NeedsScript.new())
+	var before: Residents.Columns = _image(target)
+	assert_equal(Bridge.apply(_frame(Residents.Columns.new()),null).code,Bridge.REFUSE_NULL_STORE,"null store")
+	assert_equal(Bridge.capture_into(null,Section.FramedOwner.new(12)).code,
+		Bridge.REFUSE_NULL_STORE,"capture from no store")
+	assert_equal(Bridge.capture_into(target,null).code,&"SAVE_COMPONENT_SHAPE","null record")
+	assert_equal(Bridge.capture_into(target,Section.FramedOwner.new(9)).code,
+		&"SAVE_COMPONENT_OWNER","wrong owner")
+	var short: Residents.Columns = Residents.Columns.new()
+	short.present.resize(3)
+	assert_false(target.restore_columns(short),"a short column refuses")
+	assert_equal(target.last_column_refusal(),&"COLUMN_SHAPE","shape code")
+	assert_false(target.copy_columns_into(short),"a short output buffer refuses")
+	assert_false(target.restore_columns(null),"null columns refuse")
+	assert_true(_image(target).equals(before),"nothing was written")

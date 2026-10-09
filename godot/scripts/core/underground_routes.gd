@@ -23,10 +23,27 @@ const Piles := preload("res://scripts/core/ground_piles.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const SourceProgram := preload("res://data/underground/mole-worker/work-approach-v1/source_program.gd")
 const ShortStep := preload("res://data/underground/mole-worker/work-step-v1/source_program.gd")
+const Assembly := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
+## ADR1217 step 5: the claw work program (source 4) and the handling-program selector (pick 29 dormant, paw 59).
+const Claw := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/claw_program.gd")
+const Handling := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/handling_programs.gd")
+## ADR1229 increment 3: content 10's claw program (rows 42-50, 56-64), its stair program (51-55: steps, descent,
+## ascent, half-turn) and the claw stair motion tables the stair rows sample.
+const Claw2 := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/claw_program.gd")
+const Stair := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/stair_program.gd")
+const StairMotion := preload("res://scripts/core/underground_stair_motion.gd")
+const Workpieces := preload("res://scripts/core/underground_connector_workpieces.gd")
+const Router := preload("res://scripts/core/modular_projects.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const I32_MAX: int = 2147483647
 const I64_MAX: int = 9223372036854775807
 const RESIDENT_CAPACITY: int = Residents.RESIDENT_CAPACITY
+## ADR1219 (registration on arrival): a living Resident that is not a route actor -- every surface resident -- has
+## no authored body, so occupancy proofs bound it by a cube of this half-width around its Transform root. DEC-039's
+## tallest approved body is 2611 u (badger) and its longest tail 950 per mille of height (squirrel), so no approved
+## body reaches past height plus tail, which is under twice the tallest height. Conservative: it can only over-refuse.
+const UNREGISTERED_REACH_U: int = 2 * 2611
+const REFUSE_UNREGISTERED_NEAR: StringName = &"ROUTE_UNREGISTERED_RESIDENT_NEAR"
 const MAX_EDGES: int = 1536
 const MAX_VERTICES: int = 4096
 const MAX_LINKS: int = 4096
@@ -175,6 +192,7 @@ class MotionStep extends RefCounted:
 	var pace: int = 0
 	var cursor: int = -1
 	var consumed: int = 0
+	var stair_key: int = 0 # ADR1229: the presented key of a stair crossing after this tick.
 
 
 class ProfilePath extends RefCounted:
@@ -210,6 +228,11 @@ class Bindings extends RefCounted:
 		"""Prove the actual current pose and complete body/stance in a real supported endpoint."""
 		return &"ROUTE_WORLD_BINDING_UNAVAILABLE"
 
+	func assembly_handling_refusal(_pieces: Workpieces, _placement: Vector2i, _project: Vector2i,
+			_worker: Vector2i, _job: Vector2i) -> StringName:
+		"""Observe the actual stationary paid piece and close its complete source/physical proof before clock leaves."""
+		return &"ROUTE_WORLD_BINDING_UNAVAILABLE"
+
 	func travel_refusal(_edge: Vector2i, _selection: Profiles.Selection) -> StringName:
 		"""Qualify this actor's local body/load over a prospective complete span, independently of arrival."""
 		return &"ROUTE_WORLD_BINDING_UNAVAILABLE"
@@ -234,6 +257,11 @@ class Bindings extends RefCounted:
 
 	func pace_into(_selection: Profiles.Selection, _family: int, _variant: int, _out: IntMath.IntResult) -> StringName:
 		"""Read an authored integer units/second rate; missing stairs or ladder content never borrows ground pace."""
+		return &"ROUTE_WORLD_BINDING_UNAVAILABLE"
+
+	func stair_motion_refusal(_worker: Vector2i, _edge: Vector2i, _origin: Vector3i,
+			_selection: Profiles.Selection) -> StringName:
+		"""ADR1229: one tick of a source-proved crossing: its certificate and the whole motion's live occupancy."""
 		return &"ROUTE_WORLD_BINDING_UNAVAILABLE"
 
 	func publication_refusal(_route_token: int, _space_token: int, _location_token: int) -> StringName:
@@ -426,6 +454,7 @@ var _catalog_extent: PackedInt32Array = PackedInt32Array()
 var _candidate_bounds: PackedInt32Array = PackedInt32Array()
 var _occupant_bounds: PackedInt32Array = PackedInt32Array()
 var _extent_revision: int = 0
+var _stair_motion: StairMotion = null # ADR1229: the loaded claw stair tables, or null (stair rows then refuse).
 
 
 func _init(residents: Residents, transforms: Transforms) -> void:
@@ -569,6 +598,14 @@ func bind_profiles(profiles: Profiles, inventory: Inventory, gear: Gear, carry: 
 	_work = work
 	_jobs = work.jobs()
 	return refresh_profile_extent() if profiles.content_revision() > 0 else &""
+
+
+func bind_stair_motion(motion: StairMotion) -> StringName:
+	"""ADR1229: borrow the loaded claw stair tables once; without them every stair row refuses."""
+	if _reject_callback() or _stair_motion != null: return &"ROUTE_STAIR_MOTION_BOUND"
+	if motion == null or not motion.is_loaded(): return &"ROUTE_STAIR_MOTION_SOURCE"
+	_stair_motion = motion
+	return &""
 
 
 func binding_matches(residents: Residents, transforms: Transforms, locations: Locations,
@@ -2034,6 +2071,30 @@ func refresh_work_actor(worker: Vector2i, job: Vector2i, profile_id: int, profil
 		equipped_tool_hint, profile_id, profile_revision, content_revision)
 
 
+func hand_over_source_job(worker: Vector2i, job: Vector2i, next: Vector2i) -> StringName:
+	"""DEC-059 (P2): a source working for one Job hands its unchanged loop to the worker's next Job at the same
+	endpoint. The row, heading, source word and clock stay exactly as they are; only the Job changes, after the next
+	Job passes the complete admission proof a refresh runs (_qualify_actor_at) for the very same selection."""
+	var code: StringName = _actor_edit_refusal(worker)
+	if code != &"": return code
+	var row: int = _ids.get_typed_row(worker)
+	var profile: int = _motion.resident[R_PROFILE * RESIDENT_CAPACITY + row] if row >= 0 and row < RESIDENT_CAPACITY else -1
+	if profile < 0 or _resident_ref(row) != worker or next == job: return &"ROUTE_ACTOR_BUSY"
+	var held: int = _motion.resident_long[R_PROFILE_REVISION * RESIDENT_CAPACITY + row]
+	var content: int = _motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row]
+	code = source_work_leaf_refusal(self, worker, job, profile, held, content)
+	if code != &"": return code
+	_advancing = true
+	code = _qualify_actor_at(worker, next, _resident_pair(R_LOCATION_SLOT, row), Profiles.MODE_WORK,
+		_motion.resident[R_POSTURE * RESIDENT_CAPACITY + row], _motion.resident[R_FAMILY * RESIDENT_CAPACITY + row],
+		_resident_pair(R_TOOL_SLOT, row), profile, held, content)
+	_advancing = false
+	if code == &"" and (_selection.job != next or _selection.profile_id != profile):
+		code = &"ROUTE_ACTOR_PROFILE_DRIFT"
+	if code == &"": _set_resident_pair(R_JOB_SLOT, row, next)
+	return code
+
+
 func refresh_travel_actor(worker: Vector2i, job: Vector2i, profile_id: int, profile_revision: int,
 		content_revision: int, posture: int, family: int, equipped_tool_hint: Vector2i = NULL_REF) -> StringName:
 	"""Change direction only after the original canonical source has recovered to ready at a real endpoint."""
@@ -2091,6 +2152,14 @@ func _qualify_actor_at(worker: Vector2i, job: Vector2i, location: Vector2i,
 		mode: int, posture: int, family: int, hint: Vector2i, profile_id: int = -1,
 		profile_revision: int = 0, content_revision: int = 0) -> StringName:
 	"""Pin source values around the actual callback and re-read current identity/gear/load before publication."""
+	var pieces: Workpieces = _assembly_workpieces() if Handling.is_handling(profile_id, content_revision) else null
+	var bindings: Bindings = _bindings
+	if Handling.is_handling(profile_id, content_revision):
+		if pieces == null or bindings == null or _domain == null: return &"ROUTE_ASSEMBLY_UNBOUND"
+		_remaining = _domain._checks
+		_operation_error = &""
+		_in_callback = true
+		_callback_reentered = false
 	var code: StringName = _actor_profile_into(worker, job, mode, posture, family, hint, _selection,
 		profile_id, profile_revision, content_revision)
 	if code == &"" and Profiles.selection_policy_leaf(_profiles, _selection.profile_id,
@@ -2098,10 +2167,13 @@ func _qualify_actor_at(worker: Vector2i, job: Vector2i, location: Vector2i,
 		code = _source_profile_refusal(_profiles, _selection.profile_id, _selection.profile_revision, _selection.content_revision)
 	if code == &"":
 		code = _profile_endpoint_refusal(location)
-	if code != &"":
+	if code != &"" or Handling.is_handling(profile_id, content_revision) and _callback_reentered:
+		if Handling.is_handling(profile_id, content_revision): _in_callback = false
+		if code == &"": return &"ROUTE_CALLBACK_REENTRY"
 		return code
 	_copy_selection(_selection, _checked_selection)
-	code = _attest_actor(location, _selection)
+	code = bindings.actor_admission_refusal(location, _selection) if Handling.is_handling(profile_id, content_revision) \
+		else _attest_actor(location, _selection)
 	if code == &"" and not _same_selection(_selection, _checked_selection):
 		code = &"ROUTE_CALLBACK_CHANGED_PACKET"
 	if code == &"":
@@ -2115,7 +2187,83 @@ func _qualify_actor_at(worker: Vector2i, job: Vector2i, location: Vector2i,
 		code = _occupancy_context_refusal()
 	if code == &"":
 		code = _selected_bounds_into(_selection, _profile_box, _candidate_bounds)
+	if Handling.is_handling(profile_id, content_revision):
+		_in_callback = false
+		if _callback_reentered: return &"ROUTE_CALLBACK_REENTRY"
+		if _bindings != bindings or _selection.worker != worker or _selection.job != job \
+				or _selection.profile_id != profile_id or _selection.profile_revision != profile_revision \
+				or _selection.content_revision != content_revision or not _same_selection(_selection, _checked_selection):
+			return &"ROUTE_ACTOR_PROFILE_DRIFT"
+		if code == &"": code = _assembly_admission_leaf(self, pieces, location, _checked_selection, family)
 	return code
+
+
+static func _assembly_admission_leaf(actual: RefCounted, pieces: Workpieces, location: Vector2i,
+		expected: Profiles.Selection, family: int) -> StringName:
+	"""An unregistered worker may reach source READY, but no handling progress is inferred. Before funding there is
+	no paid target exception; DEC-057: once the piece is live (a replacement re-handling it in place) the funded
+	physical proof applies, excusing exactly that piece."""
+	if pieces == null or Workpieces._binding_leaf(pieces) != &"" or actual._bindings == null \
+			or pieces._placements._routes != actual or pieces._placements._world_routes != actual._bindings \
+			or actual._profiles != pieces._profiles or actual._ids != pieces._placements._ids \
+			or actual._jobs != pieces._router._jobs or actual._work != pieces._router._work \
+			or actual._residents != pieces._placements._residents or actual._transforms != pieces._placements._transforms \
+			or actual._locations != pieces._placements._locations or actual._owner != pieces._placements._space:
+		return &"ROUTE_ASSEMBLY_UNBOUND"
+	var row: int = _turn_directory_row(actual, expected.job, Directory.KIND_JOB)
+	if row < 0 or actual._jobs._kind[row] != Jobs.JOB_KIND_BUILD \
+			or pieces._router._job_slot[row] != expected.job.x or pieces._router._job_generation[row] != expected.job.y:
+		return &"ROUTE_ASSEMBLY_JOB"
+	var project: Vector2i = Vector2i(actual._jobs._requester_slot[row], actual._jobs._requester_generation[row])
+	if pieces._router._project_slot[row] != project.x or pieces._router._project_generation[row] != project.y:
+		return &"ROUTE_ASSEMBLY_PROJECT"
+	row = _turn_directory_row(actual, project, Directory.KIND_CONSTRUCTION)
+	if row < 0: return &"ROUTE_ASSEMBLY_PROJECT"
+	var placement: Vector2i = Vector2i(pieces._router._construction._subject_slot[row],
+		pieces._router._construction._subject_generation[row])
+	var code: StringName = Workpieces.source_leaf_refusal(pieces, placement, project)
+	if code == &"": code = _assembly_selected_leaf(actual, expected, family)
+	if code == &"" and pieces._live.present[placement.x] != 0: # DEC-057: re-handling a live piece in place.
+		code = Handling.physical_refusal(actual._bindings, actual, pieces, placement, project, expected.worker,
+			expected.job, expected)
+	elif code == &"": code = Handling.physical_admission_refusal(actual._bindings, actual, pieces,
+		placement, project, location, expected)
+	if code == &"": code = _assembly_occupants_leaf(actual, _turn_directory_row(actual, expected.worker, Directory.KIND_RESIDENT))
+	return code
+
+
+static func _assembly_selected_leaf(actual: RefCounted, expected: Profiles.Selection, family: int) -> StringName:
+	"""Re-read every dynamic key directly after the last ordinary observer, before any actor row is registered."""
+	var code: StringName = Handling.profile_refusal(actual._profiles, expected.profile_id,
+		expected.profile_revision, expected.content_revision)
+	if code == &"": code = _turn_dynamic_leaf(actual, expected.worker, expected.job, expected.mode,
+		expected.posture, family, expected.tool)
+	if code != &"": return code
+	var profiles: Profiles = actual._profiles
+	var stride: int = profiles._profile_capacity
+	for index: int in 3:
+		if profiles._live.fields[(Profiles.F_SPECIES + index) * stride + expected.profile_id] != profiles._identity[index]:
+			return &"ROUTE_ACTOR_PROFILE_DRIFT"
+	for index: int in 4:
+		if profiles._live.fields[(Profiles.F_TOOL + index) * stride + expected.profile_id] != profiles._query_values[index]:
+			return &"ROUTE_ACTOR_PROFILE_DRIFT"
+	if expected.species != profiles._identity[0] or expected.life_stage != profiles._identity[1] \
+			or expected.rig != profiles._identity[2] or expected.x != profiles._pose.x or expected.y != profiles._pose.y \
+			or expected.z != profiles._pose.z or expected.yaw != profiles._pose.yaw \
+			or expected.tool != profiles._candidate.tool or expected.satchel != profiles._candidate.satchel \
+			or expected.cargo != profiles._candidate.cargo or expected.cargo_quantity_milli != profiles._candidate.cargo_quantity_milli \
+			or expected.mode != Profiles.MODE_WORK or expected.posture != Profiles.POSTURE_UPRIGHT \
+			or profiles._live.fields[Profiles.F_WORK_KIND * stride + expected.profile_id] != profiles._query_values[4] \
+			or expected.cargo_quantity_milli < profiles._live.quantities[Profiles.L_QUANTITY_MIN * stride + expected.profile_id] \
+			or expected.cargo_quantity_milli > profiles._live.quantities[Profiles.L_QUANTITY_MAX * stride + expected.profile_id] \
+			or expected.yaw != profiles._live.fields[Profiles.F_YAW * stride + expected.profile_id] \
+			or expected.source_id != Handling.source_of(expected.profile_id, expected.content_revision) \
+			or expected.box_count != Handling.role_count(expected.profile_id, expected.content_revision) \
+			or expected.orientation != Profiles.YAW_EXACT \
+			or family != -1 and (family < 0 or family >= 5 \
+				or (profiles._live.fields[Profiles.F_FAMILIES * stride + expected.profile_id] & (1 << family)) == 0):
+		return &"ROUTE_ACTOR_PROFILE_DRIFT"
+	return &""
 
 
 func _actor_profile_into(worker: Vector2i, job: Vector2i, mode: int, posture: int, family: int,
@@ -2169,8 +2317,8 @@ func _source_clock_refusal(row: int) -> StringName:
 
 
 static func _source_word_known(value: int) -> bool:
-	"""Only the two admitted source versions may share the existing geometric phase column."""
-	return (value & ~63) == SourceProgram.TAG or (value & ~63) == ShortStep.TAG
+	"""Only the explicitly admitted source versions may share the existing geometric phase column."""
+	return (value & ~63) == SourceProgram.TAG or (value & ~63) == ShortStep.TAG or (value & ~63) == Assembly.TAG
 
 
 static func _source_word_for(profiles: Profiles, phase: int, source_phase: int) -> int:
@@ -2180,6 +2328,10 @@ static func _source_word_for(profiles: Profiles, phase: int, source_phase: int) 
 
 static func _source_profile_refusal(profiles: Profiles, profile: int, profile_revision: int, content: int) -> StringName:
 	"""Version selection never substitutes for the complete source/descriptor/current-revision proof."""
+	if Handling.is_handling(profile, content): return Handling.profile_refusal(profiles, profile, profile_revision, content)
+	if Stair.owns(profiles, profile): return Stair.profile_refusal(profiles, profile, profile_revision, content)
+	if Claw2.owns(profiles, profile): return Claw2.profile_refusal(profiles, profile, profile_revision, content)
+	if Claw.owns(profiles, profile): return Claw.profile_refusal(profiles, profile, profile_revision, content)
 	return ShortStep.profile_refusal(profiles, profile, profile_revision, content) if ShortStep.uses(profiles) \
 		else SourceProgram.profile_refusal(profiles, profile, profile_revision, content)
 
@@ -2200,6 +2352,14 @@ static func _source_clock_leaf(actual: RefCounted, row: int) -> StringName:
 		return &"ROUTE_SOURCE_CLOCK"
 	var code: StringName = _source_profile_refusal(actual._profiles, profile, profile_revision, content)
 	if code != &"": return code
+	if Handling.is_handling(profile, content):
+		return Handling.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row],
+			profile, content)
+	if Stair.owns(actual._profiles, profile): return _stair_clock_leaf(actual, row, phase, profile)
+	if Claw2.owns(actual._profiles, profile):
+		return Claw2.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
+	if Claw.owns(actual._profiles, profile):
+		return Claw.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
 	if not ShortStep.uses(actual._profiles):
 		return SourceProgram.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
 	code = ShortStep.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
@@ -2209,6 +2369,16 @@ static func _source_clock_leaf(actual: RefCounted, row: int) -> StringName:
 			actual._motion.resident_long[R_REMAINDER * RESIDENT_CAPACITY + row],
 			actual._motion.resident[R_EDGE_SLOT * RESIDENT_CAPACITY + row] >= 0)
 	return code
+
+
+static func _stair_clock_leaf(actual: RefCounted, row: int, phase: int, profile: int) -> StringName:
+	"""ADR1229: a stair state is READY at a Location or WALK on one edge, with its ticks in the progress column."""
+	var clock: int = actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
+	var code: StringName = Stair.clock_refusal(phase, clock, profile)
+	if code != &"": return code
+	return Stair.progress_refusal(phase, clock, actual._motion.resident_long[R_PROGRESS * RESIDENT_CAPACITY + row],
+		actual._motion.resident_long[R_REMAINDER * RESIDENT_CAPACITY + row],
+		actual._motion.resident[R_EDGE_SLOT * RESIDENT_CAPACITY + row] >= 0)
 
 
 func _set_route_phase(row: int, phase: int) -> void:
@@ -2223,23 +2393,36 @@ func _reset_source_clock(row: int) -> void:
 		_selection.profile_revision, _selection.content_revision)
 	if policy == Profiles.POLICY_AUTOMATIC and not _source_word_known(_motion.resident[R_PHASE * RESIDENT_CAPACITY + row]):
 		return # Ordinary refresh preserves the prior request tick exactly.
-	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = PHASE_IDLE if policy == Profiles.POLICY_AUTOMATIC \
+	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = Assembly.word(PHASE_IDLE, Assembly.Clock.READY) \
+		if policy == Profiles.POLICY_ASSEMBLY_HANDLING else PHASE_IDLE if policy == Profiles.POLICY_AUTOMATIC \
 		else _source_word_for(_profiles, PHASE_IDLE, SourceProgram.ENTRY if policy == Profiles.POLICY_SOURCE_WORK else SourceProgram.READY)
 	_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = 0
 
 
 func _source_refresh_refusal(row: int, profile: int, profile_revision: int, content: int) -> StringName:
-	"""An unclocked old actor cannot claim a ready pose; a source actor must finish recovery before any rebind."""
+	"""ADR1168 as amended by ADR1210: a source actor changes source profile only at READY. Switching between the
+	source-clocked and the automatic families, either way, also needs the actor at rest: a stationary idle route
+	with nothing queued and, from a source clock, exactly the canonical idle READY word. The caller then reruns
+	the complete fresh-admission proof (_qualify_actor_at) at the actor's endpoint before any column changes."""
 	var code: StringName = _source_clock_refusal(row)
 	if code != &"": return code
 	var old: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+	var automatic: bool = profile < 0 \
+		or Profiles.selection_policy_leaf(_profiles, profile, profile_revision, content) == Profiles.POLICY_AUTOMATIC
 	if _source_word_known(old):
-		if ShortStep.uses(_profiles) and (profile < 0 or Profiles.selection_policy_leaf(_profiles, profile, profile_revision, content) == Profiles.POLICY_AUTOMATIC):
-			return &"ROUTE_SOURCE_HANDOFF_REQUIRED"
+		if automatic:
+			return &"" if old == _source_word_for(_profiles, PHASE_IDLE, SourceProgram.READY) and _at_rest(row) \
+				else &"ROUTE_SOURCE_HANDOFF_REQUIRED"
 		return &"" if ((old >> 2) & 15) == SourceProgram.READY else &"ROUTE_SOURCE_HANDOFF_REQUIRED"
-	if profile >= 0 and Profiles.selection_policy_leaf(_profiles, profile, profile_revision, content) > Profiles.POLICY_AUTOMATIC:
-		return &"ROUTE_SOURCE_HANDOFF_REQUIRED"
+	if not automatic:
+		return &"" if old == PHASE_IDLE and _at_rest(row) else &"ROUTE_SOURCE_HANDOFF_REQUIRED"
 	return &""
+
+
+func _at_rest(row: int) -> bool:
+	"""ADR1210: stationary on its endpoint with no edge, no queued route and no pending dispatch tail."""
+	return _resident_pair(R_LOCATION_SLOT, row) != NULL_REF and _resident_pair(R_EDGE_SLOT, row) == NULL_REF \
+		and _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] < 0 and _motion.resident[R_TAIL * RESIDENT_CAPACITY + row] < 0
 
 
 static func _source_tuple_row(actual: RefCounted, worker: Vector2i, job: Vector2i, profile: int,
@@ -2289,7 +2472,8 @@ static func source_ready_leaf_refusal(actual: RefCounted, worker: Vector2i, job:
 	var row: int = _source_tuple_row(actual, worker, job, profile_id, profile_revision, content_revision)
 	if row < 0: return &"ROUTE_SOURCE_TUPLE_STALE"
 	var word: int = actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
-	return &"" if word == _source_word_for(actual._profiles, PHASE_IDLE, SourceProgram.READY) \
+	return &"" if word == (Assembly.word(PHASE_IDLE, Assembly.Clock.READY) if Handling.is_handling(profile_id, content_revision) \
+		else _source_word_for(actual._profiles, PHASE_IDLE, SourceProgram.READY)) \
 		and actual._motion.resident[R_EDGE_SLOT * RESIDENT_CAPACITY + row] == -1 \
 		and actual._motion.resident[R_EDGE_GENERATION * RESIDENT_CAPACITY + row] == 0 \
 		and actual._motion.resident[R_HEAD * RESIDENT_CAPACITY + row] == -1 \
@@ -2334,6 +2518,9 @@ func request_source_ready(worker: Vector2i, job: Vector2i) -> StringName:
 	if _resident_ref(row) != worker or _resident_pair(R_JOB_SLOT, row) != job \
 			or _resident_pair(R_EDGE_SLOT, row) != NULL_REF or _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] >= 0:
 		return &"ROUTE_ACTOR_BUSY"
+	if Handling.is_handling(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row],
+			_motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row]):
+		return _assembly_ready(row, worker, job)
 	_in_callback = true
 	_callback_reentered = false
 	code = _current_profile_into(row, _selection)
@@ -2343,18 +2530,220 @@ func request_source_ready(worker: Vector2i, job: Vector2i) -> StringName:
 	if code != &"": return code
 	var word: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
 	if not _source_word_known(word): return &"ROUTE_SOURCE_PROFILE"
-	var phase: int = (word >> 2) & 15
+	var profile: int = _motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]
 	var clock: int = _motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
-	var time: int = clock & I32_MAX
-	if phase == SourceProgram.ENTRY:
-		phase = SourceProgram.ENTRY_RETRACE
-	elif phase == SourceProgram.WORK:
-		phase = SourceProgram.RECOVERY if time == 0 else SourceProgram.RECOVERY_WAIT
-	elif phase == SourceProgram.WALK:
-		phase = SourceProgram.FADE_READY
-		clock = SourceProgram.clock(0, time)
-	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = _source_word_for(_profiles, word & 3, phase)
-	_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = clock
+	var next: Vector3i = _ready_request_of(profile, (word >> 2) & 15, clock & I32_MAX, clock >> 32)
+	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = _source_word_for(_profiles, word & 3, next.x)
+	_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = SourceProgram.clock(next.y, next.z)
+	return &""
+
+
+func _ready_request_of(profile: int, phase: int, time: int, old: int) -> Vector3i:
+	"""The selected row's own program decides the exact stop."""
+	if Stair.owns(_profiles, profile): return Stair.ready_request(phase, time)
+	if Claw2.owns(_profiles, profile): return Claw2.ready_request(phase, time, old, profile)
+	if Claw.owns(_profiles, profile): return Claw.ready_request(phase, time, old, profile)
+	return _pick_ready_request(phase, time, old)
+
+
+static func _pick_ready_request(phase: int, time: int, old: int) -> Vector3i:
+	"""The pick protocol's exact stop: entry retraces, work finishes its loop, a walk fades to READY."""
+	if phase == SourceProgram.ENTRY: return Vector3i(SourceProgram.ENTRY_RETRACE, time, old)
+	if phase == SourceProgram.WORK:
+		return Vector3i(SourceProgram.RECOVERY if time == 0 else SourceProgram.RECOVERY_WAIT, time, old)
+	if phase == SourceProgram.WALK: return Vector3i(SourceProgram.FADE_READY, 0, time)
+	return Vector3i(phase, time, old)
+
+
+func begin_assembly_handling(worker: Vector2i, job: Vector2i) -> StringName:
+	"""Enter only the original paid pending workpiece; selecting a descriptor alone never starts manipulation."""
+	var code: StringName = _actor_edit_refusal(worker)
+	if code != &"": return code
+	var row: int = _turn_directory_row(self, worker, Directory.KIND_RESIDENT)
+	if row < 0: return &"ROUTE_ACTOR_STALE"
+	return _assembly_transition(row, worker, job, 0)
+
+
+func _assembly_ready(row: int, worker: Vector2i, job: Vector2i) -> StringName:
+	"""Interrupted entry retraces; completed handling must first publish its actual durable state before normalizing."""
+	return _assembly_transition(row, worker, job, 2)
+
+
+func _assembly_workpieces() -> Workpieces:
+	"""Ordinary owner resolution precedes all final checks; the final chain pins the exact original reciprocal tuple."""
+	var work: Work = _work
+	var router: Router = work._modular_authority.get_ref() as Router if work != null and work._modular_authority != null else null
+	var paid: RefCounted = router._connector_owner.get_ref() if router != null and router._connector_owner != null else null
+	return paid.get("_workpieces") as Workpieces if paid != null else null
+
+
+func _assembly_transition(row: int, worker: Vector2i, job: Vector2i, action: int) -> StringName:
+	"""One bounded observed operation writes only the existing source word/clock after concrete original-owner proof."""
+	var pieces: Workpieces = _assembly_workpieces()
+	var bindings: Bindings = _bindings
+	if pieces == null or bindings == null or _domain == null or row < 0 or row >= RESIDENT_CAPACITY \
+			or Workpieces._binding_leaf(pieces) != &"":
+		return &"ROUTE_ASSEMBLY_UNBOUND"
+	var job_row: int = _turn_directory_row(self, job, Directory.KIND_JOB)
+	if job_row < 0: return &"ROUTE_ASSEMBLY_JOB"
+	# START publishes the bearer and advances the Space revision; the ordinary operational binding check
+	# re-attests immutable terrain facts at that revision before any final physical leaf reads them.
+	var bound: StringName = bindings.binding_refusal()
+	if bound != &"": return bound
+	var project: Vector2i = Vector2i(_jobs._requester_slot[job_row], _jobs._requester_generation[job_row])
+	var project_row: int = _turn_directory_row(self, project, Directory.KIND_CONSTRUCTION)
+	if project_row < 0: return &"ROUTE_ASSEMBLY_PROJECT"
+	var placement: Vector2i = Vector2i(pieces._router._construction._subject_slot[project_row],
+		pieces._router._construction._subject_generation[project_row])
+	var word: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+	var clock: int = _motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
+	_remaining = _domain._checks
+	_operation_error = &""
+	_callback_reentered = false
+	var code: StringName = assembly_handling_leaf_refusal(self, pieces, placement, project, worker, job)
+	if code != &"": return code
+	code = _assembly_action_leaf(self, pieces, placement, project_row, row, action)
+	if code != &"": return code
+	_in_callback = true
+	_callback_reentered = false
+	code = _current_profile_into(row, _selection)
+	if code == &"": code = _profile_endpoint_refusal(_resident_pair_leaf(self, R_LOCATION_SLOT, row))
+	if code == &"": code = _occupancy_context_refusal()
+	if code == &"": code = bindings.assembly_handling_refusal(pieces, placement, project, worker, job)
+	_in_callback = false
+	if _callback_reentered: return &"ROUTE_CALLBACK_REENTRY"
+	if code != &"": return code
+	if _bindings != bindings or _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] != word \
+			or _motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] != clock:
+		return &"ROUTE_SOURCE_TUPLE_STALE"
+	code = assembly_handling_leaf_refusal(self, pieces, placement, project, worker, job)
+	if code == &"": code = _assembly_action_leaf(self, pieces, placement, project_row, row, action)
+	if code != &"": return code
+	_publish_assembly_clock(self, row, action)
+	return &""
+
+
+static func _assembly_action_leaf(actual: RefCounted, pieces: Workpieces, placement: Vector2i,
+		project_row: int, row: int, action: int) -> StringName:
+	"""Recovery can finish a paused job, but entry and the completed-to-ready handoff retain their exact prerequisites."""
+	var phase: int = (actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row] >> 2) & 15
+	if action < 0 or action > 2: return &"ROUTE_ASSEMBLY_ACTION"
+	if action == 0:
+		if phase != Assembly.Clock.READY or pieces._live.present[placement.x] != Workpieces.PENDING_HANDLING \
+				or pieces._router._construction._phase[project_row] != pieces._router._construction.PHASE_WORKING \
+				or pieces._router._construction._paused[project_row] != 0:
+			return &"ROUTE_ASSEMBLY_NOT_PENDING"
+	elif action == 1:
+		if phase == Assembly.Clock.READY or phase == Assembly.Clock.HANDLED_READY:
+			return &"ROUTE_ASSEMBLY_NOT_ACTIVE"
+		if phase == Assembly.Clock.ENTRY and pieces._router._construction._paused[project_row] != 0:
+			return &"ROUTE_ASSEMBLY_PAUSED"
+	elif phase == Assembly.Clock.HANDLED_READY and pieces._live.present[placement.x] != Workpieces.HANDLED:
+		return Workpieces.REFUSE_HANDLING
+	return &""
+
+
+static func _publish_assembly_clock(actual: RefCounted, row: int, action: int) -> void:
+	"""Concrete source equations and direct column writes are the entire non-observing publication tail."""
+	var phase: int = (actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row] >> 2) & 15
+	var time: int = actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
+	var next: Vector2i = Vector2i(Assembly.Clock.ENTRY, 0) if action == 0 \
+		else Assembly.Clock.advance(phase, time) if action == 1 else Assembly.Clock.interrupt(phase, time)
+	if action == 2 and phase == Assembly.Clock.HANDLED_READY: next = Vector2i(Assembly.Clock.READY, 0)
+	actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = Assembly.word(PHASE_IDLE, next.x)
+	actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = next.y
+
+
+static func assembly_handled_ready_leaf_refusal(actual: RefCounted, worker: Vector2i, job: Vector2i,
+		profile_id: int, profile_revision: int, content_revision: int) -> StringName:
+	"""A distinct complete recovery witness is required; ordinary READY or a caller-provided elapsed time is insufficient."""
+	var row: int = _source_tuple_row(actual, worker, job, profile_id, profile_revision, content_revision)
+	if row < 0 or not Handling.is_handling(profile_id, content_revision): return &"ROUTE_SOURCE_TUPLE_STALE"
+	return &"" if actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row] == Assembly.word(PHASE_IDLE, Assembly.Clock.HANDLED_READY) \
+		and actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] == 0 \
+		and _resident_pair_leaf(actual, R_EDGE_SLOT, row) == NULL_REF \
+		and actual._motion.resident[R_HEAD * RESIDENT_CAPACITY + row] == -1 \
+		and actual._motion.resident[R_TAIL * RESIDENT_CAPACITY + row] == -1 else &"ROUTE_ASSEMBLY_NOT_HANDLED"
+
+
+static func assembly_release_leaf_refusal(actual: RefCounted, pieces: Workpieces, project: Vector2i) -> StringName:
+	"""A terminal retry needs no assigned worker, but no original actor may lose its Job in an unfinished source cycle."""
+	if pieces == null or Workpieces._binding_leaf(pieces) != &"" or actual == null \
+			or pieces._placements._routes != actual or actual._ids != pieces._placements._ids \
+			or actual._jobs != pieces._router._jobs or actual._profiles != pieces._profiles:
+		return &"ROUTE_ASSEMBLY_UNBOUND"
+	for row: int in RESIDENT_CAPACITY:
+		if _resident_ref_leaf(actual, row) == NULL_REF \
+				or not _source_word_known(actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row]): continue
+		var job: Vector2i = _resident_pair_leaf(actual, R_JOB_SLOT, row)
+		if job == NULL_REF: continue
+		var at: int = _turn_directory_row(actual, job, Directory.KIND_JOB)
+		if at < 0: return &"ROUTE_ASSEMBLY_JOB"
+		if pieces._router._project_slot[at] != project.x or pieces._router._project_generation[at] != project.y: continue
+		if pieces._router._job_slot[at] != job.x or pieces._router._job_generation[at] != job.y \
+				or actual._jobs._job_present[at] != 1 or actual._jobs._job_ref_slot[at] != job.x \
+				or actual._jobs._job_ref_generation[at] != job.y or actual._jobs._requester_slot[at] != project.x \
+				or actual._jobs._requester_generation[at] != project.y:
+			return &"ROUTE_ASSEMBLY_JOB"
+		var code: StringName = _source_clock_leaf(actual, row)
+		if code != &"": return code
+		if (actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row] & 63) != ((SourceProgram.READY << 2) | PHASE_IDLE) \
+				or _resident_pair_leaf(actual, R_EDGE_SLOT, row) != NULL_REF \
+				or actual._motion.resident[R_HEAD * RESIDENT_CAPACITY + row] != -1 \
+				or actual._motion.resident[R_TAIL * RESIDENT_CAPACITY + row] != -1:
+			return &"ROUTE_ASSEMBLY_RECOVERY_REQUIRED"
+	return &""
+
+
+static func assembly_handling_leaf_refusal(actual: RefCounted, pieces: Workpieces, placement: Vector2i,
+		project: Vector2i, worker: Vector2i, job: Vector2i) -> StringName:
+	"""Final paid/source/body/support/occupant proof uses only concrete direct readers and existing fixed scratch."""
+	var code: StringName = Workpieces.handling_leaf_refusal(pieces, placement, project, worker, job)
+	if code != &"": return code
+	if actual == null or pieces._placements._routes != actual or actual._bindings == null \
+			or pieces._placements._world_routes != actual._bindings or actual._profiles != pieces._profiles \
+			or actual._ids != pieces._placements._ids or actual._jobs != pieces._router._jobs \
+			or actual._residents != pieces._placements._residents or actual._transforms != pieces._placements._transforms \
+			or actual._locations != pieces._placements._locations or actual._owner != pieces._placements._space \
+			or actual._work == null or actual._work != pieces._router._work or actual._work._modular_authority == null \
+			or actual._work._modular_authority.get_ref() != pieces._router or actual._token != 0 \
+			or actual._callback_reentered or actual._searching or actual._occupancy_reading:
+		return &"ROUTE_ASSEMBLY_UNBOUND"
+	var assembly: int = pieces._router._construction._type_id[Workpieces._project_row(pieces, placement, project)]
+	var row: int = _source_tuple_row(actual, worker, job, Handling.profile_of(pieces, assembly),
+		pieces._profile_revisions[assembly], pieces._header[Workpieces.H_PROFILES])
+	if row < 0 or _resident_pair_leaf(actual, R_EDGE_SLOT, row) != NULL_REF \
+			or actual._motion.resident[R_HEAD * RESIDENT_CAPACITY + row] != -1 \
+			or actual._motion.resident[R_TAIL * RESIDENT_CAPACITY + row] != -1:
+		return &"ROUTE_SOURCE_TUPLE_STALE"
+	code = turn_selection_into(actual, row, actual._selection)
+	if code == &"": code = Handling.physical_refusal(actual._bindings, actual, pieces, placement, project, worker, job, actual._selection)
+	return _assembly_occupants_leaf(actual, row) if code == &"" else code
+
+
+static func _assembly_occupants_leaf(actual: RefCounted, mine: int) -> StringName:
+	"""Every living actual resident retains a complete current body; an unregistered occupant cannot disappear from proof."""
+	actual._remaining -= 16 * RESIDENT_CAPACITY
+	if actual._remaining < 0: return &"ROUTE_OPERATION_BUDGET"
+	for row: int in RESIDENT_CAPACITY:
+		if row == mine or actual._residents._present[row] != 1 or actual._residents._needs._present[row] != 1 \
+				or actual._residents._needs._health[row] <= 0: continue
+		var worker: Vector2i = Vector2i(actual._residents._ref_slot[row], actual._residents._ref_generation[row])
+		if _resident_ref_leaf(actual, row) == NULL_REF: # ADR1219 (sixth proof): unregistered = reach cube.
+			var missing: StringName = unregistered_body_refusal(actual, row,
+				Vector3i(actual._selection.x, actual._selection.y, actual._selection.z))
+			if missing != &"": return missing
+			continue
+		if _turn_directory_row(actual, worker, Directory.KIND_RESIDENT) != row \
+				or _resident_ref_leaf(actual, row) != worker: return &"ROUTE_ASSEMBLY_ACTOR_UNBOUND"
+		actual._remaining -= 512
+		if actual._remaining < 0: return &"ROUTE_OPERATION_BUDGET"
+		var code: StringName = physical_selection_into(actual, row, actual._occupant_selection)
+		if code == &"":
+			actual._remaining -= 3 * actual._occupant_selection.box_count
+			code = &"ROUTE_OPERATION_BUDGET" if actual._remaining < 0 else \
+				Handling.occupant_refusal(actual._bindings, actual._selection, actual._occupant_selection)
+		if code != &"": return code
 	return &""
 
 
@@ -2618,6 +3007,64 @@ func _release_route(row: int) -> void:
 	_motion.resident[R_TAIL * RESIDENT_CAPACITY + row] = -1
 
 
+func unregister_lost_actor(worker: Vector2i) -> StringName:
+	"""ADR1225 (amends ADR1168 for lost residents only): remove a registered actor whose resident has died or left.
+	Its queued links return to the free list, any span it held is released with its row, and the row becomes the
+	allocator's blank row, so every proof and the ADR1221 codec see it as never registered. A living resident is
+	refused: unregister-and-readmit stays forbidden for anyone who can still move."""
+	if _frontier_publish_blocked() or _reject_callback() or _token != 0 or _searching or _advancing:
+		return &"ROUTE_TRANSACTION_BUSY"
+	var code: StringName = _binding_refusal()
+	if code != &"": return code
+	if _owner.has_prepared(): return &"ROUTE_SPACE_TRANSACTION"
+	var row: int = _lost_actor_row(worker)
+	if row < 0: return &"ROUTE_ACTOR_NOT_REGISTERED"
+	if _ids.is_valid_of_kind(worker, Directory.KIND_RESIDENT) and _residents.is_alive(row):
+		return &"ROUTE_UNREGISTER_LIVING"
+	_release_route(row)
+	_unindex_actor(row)
+	for field: int in RESIDENT_FIELDS:
+		_motion.resident[field * RESIDENT_CAPACITY + row] = -1 if ACTOR_NULL_FIELDS.has(field) else 0
+	for field: int in RESIDENT_LONGS:
+		_motion.resident_long[field * RESIDENT_CAPACITY + row] = 0
+	return &""
+
+
+func unregister_resting_actor(worker: Vector2i) -> StringName:
+	"""DEC-059 shift change (amends ADR1225's rule for one case): a living resident leaves the underground roster
+	only at a resting point (ADR1210/1226): registered, on an endpoint with no edge, queue or tail, holding the idle
+	READY source word or an idle automatic row. It stays where it stands; its row becomes the blank row, as a lost
+	actor's does. Anyone moving, working or handling is refused."""
+	if _frontier_publish_blocked() or _reject_callback() or _token != 0 or _searching or _advancing:
+		return &"ROUTE_TRANSACTION_BUSY"
+	var code: StringName = _binding_refusal()
+	if code != &"": return code
+	if _owner.has_prepared(): return &"ROUTE_SPACE_TRANSACTION"
+	var row: int = _lost_actor_row(worker)
+	if row < 0: return &"ROUTE_ACTOR_NOT_REGISTERED"
+	var word: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+	if not _at_rest(row) or (word != PHASE_IDLE and word != _source_word_for(_profiles, PHASE_IDLE, SourceProgram.READY)):
+		return &"ROUTE_UNREGISTER_NOT_AT_REST"
+	_release_route(row)
+	_unindex_actor(row)
+	for field: int in RESIDENT_FIELDS:
+		_motion.resident[field * RESIDENT_CAPACITY + row] = -1 if ACTOR_NULL_FIELDS.has(field) else 0
+	for field: int in RESIDENT_LONGS:
+		_motion.resident_long[field * RESIDENT_CAPACITY + row] = 0
+	return &""
+
+
+func _lost_actor_row(worker: Vector2i) -> int:
+	"""The registered row of `worker`: its typed row while the reference is live, else the row still naming it."""
+	if _ids.is_valid_of_kind(worker, Directory.KIND_RESIDENT):
+		var row: int = _ids.get_typed_row(worker)
+		return row if row >= 0 and row < RESIDENT_CAPACITY and _resident_ref(row) == worker else -1
+	if worker.x < 0: return -1
+	for row: int in RESIDENT_CAPACITY:
+		if _resident_ref(row) == worker: return row
+	return -1
+
+
 func cancel_route(worker: Vector2i) -> StringName:
 	"""Cancel future spans; an actor already on a span retains it and finishes at its safe endpoint."""
 	var code: StringName = _actor_edit_refusal(worker)
@@ -2658,6 +3105,8 @@ func _transit_identity_refusal(row: int) -> StringName:
 	var edge: Vector2i = _resident_pair(R_EDGE_SLOT, row)
 	if not is_live_edge(edge):
 		return &"ROUTE_EDGE_STALE"
+	if Stair.owns(_profiles, _motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]):
+		return _stair_transit_refusal(row, edge)
 	var segment: int = _motion.resident[R_SEGMENT * RESIDENT_CAPACITY + row]
 	var progress: int = _motion.resident_long[R_PROGRESS * RESIDENT_CAPACITY + row]
 	if segment < 0 or segment + 1 >= _edge_i32(_live, E_PATH_COUNT, edge.x):
@@ -2669,6 +3118,30 @@ func _transit_identity_refusal(row: int) -> StringName:
 		return &"ROUTE_PROGRESS_STALE"
 	return &"" if _interpolate(first, second, progress, length) == Vector3i(_pose.x, _pose.y, _pose.z) \
 		else &"ROUTE_ACTOR_POSITION_DRIFT"
+
+
+func _stair_transit_refusal(row: int, edge: Vector2i) -> StringName:
+	"""ADR1229: mid-crossing the pose is the program's presented key: the root track, or the step's straight share."""
+	var program: int = _stair_motion.program_of(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]) \
+		if _stair_motion != null else -1
+	if program < 0 or _edge_i32(_live, E_PATH_COUNT, edge.x) != 2 or not _stair_section_held(row, edge):
+		return &"ROUTE_PROGRESS_STALE"
+	@warning_ignore("integer_division") var key: int = (_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] & I32_MAX) / Stair.ONE
+	var first: Vector3i = _vertex(edge.x, 0)
+	var second: Vector3i = _vertex(edge.x, 1)
+	var pose: Vector3i = first + _stair_motion.root_at(program, key)
+	if not _stair_motion.rooted(program):
+		var length: int = _segment_length(first, second)
+		@warning_ignore("integer_division") var done: int = length * key / Stair.STEP_CLIP_INTERVALS
+		pose = _interpolate(first, second, done, length)
+	return &"" if pose == Vector3i(_pose.x, _pose.y, _pose.z) else &"ROUTE_ACTOR_POSITION_DRIFT"
+
+
+func _stair_section_held(row: int, edge: Vector2i) -> bool:
+	"""ADR1229: mid-crossing the actor is in the edge's start-deck section or, past its far edge, the end deck's."""
+	var held: Vector2i = _resident_pair(R_SECTION_SLOT, row)
+	if held == _edge_pair(_live, E_SECTION_SLOT, edge.x): return true
+	return _locations.read_location_into(_edge_pair(_live, E_TO_SLOT, edge.x), _second) == &"" and held == _second.section
 
 
 func _vertex(row: int, ordinal: int) -> Vector3i:
@@ -2725,7 +3198,9 @@ func advance_tick(tick: int) -> int:
 	var moved: int = 0
 	for row: int in RESIDENT_CAPACITY:
 		if _resident_ref(row) == NULL_REF or _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] == PHASE_IDLE \
-				or _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] == _source_word_for(_profiles, PHASE_IDLE, SourceProgram.READY):
+				or _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] == _source_word_for(_profiles, PHASE_IDLE, SourceProgram.READY) \
+				or _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] == Assembly.word(PHASE_IDLE, Assembly.Clock.READY) \
+				or _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] == Assembly.word(PHASE_IDLE, Assembly.Clock.HANDLED_READY):
 			continue
 		var code: StringName = _advance_actor(row)
 		if code == &"":
@@ -2741,13 +3216,14 @@ func _advance_actor(row: int) -> StringName:
 	var code: StringName = read_actor_into(_resident_ref(row), _actor)
 	if code != &"":
 		return code
+	_begin_stair_crossing(row)
 	var word: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
 	if _source_word_known(word) and (((word >> 2) & 15) != SourceProgram.WALK \
 			or (_resident_pair(R_EDGE_SLOT, row) == NULL_REF and _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] < 0)):
 		return _advance_stationary_source(row)
 	code = _prepare_motion(row)
 	if code == &"":
-		code = _compute_motion(row)
+		code = _compute_stair_motion(row) if Stair.owns(_profiles, _selection.profile_id) else _compute_motion(row)
 	if code == &"":
 		code = _final_motion_refusal(row)
 	if code == &"":
@@ -2755,8 +3231,22 @@ func _advance_actor(row: int) -> StringName:
 	return code
 
 
+func _begin_stair_crossing(row: int) -> void:
+	"""ADR1229: a queued READY stair actor leaves the READY hub on this very tick, so a crossing takes exactly its
+	authored ticks. Only the source phase changes here; the motion that follows proves and commits everything else."""
+	var word: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+	if not Stair.owns(_profiles, _motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]) or ((word >> 2) & 15) != Stair.READY \
+			or _resident_pair(R_EDGE_SLOT, row) != NULL_REF or _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] < 0:
+		return
+	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = Stair.word(word & 3, Stair.WALK)
+	_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = Stair.clock(0)
+
+
 func _advance_stationary_source(row: int) -> StringName:
 	"""Headless entry/fade/recovery uses the same real endpoint proof before the sole canonical clock write."""
+	if Handling.is_handling(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row],
+			_motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row]):
+		return _assembly_transition(row, _resident_ref_leaf(self, row), _resident_pair_leaf(self, R_JOB_SLOT, row), 1)
 	if _resident_pair(R_EDGE_SLOT, row) != NULL_REF:
 		return &"ROUTE_SOURCE_CLOCK"
 	var word: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
@@ -2773,10 +3263,21 @@ func _advance_stationary_source(row: int) -> StringName:
 			or not _committed_selection(row, _selection): return &"ROUTE_SOURCE_TUPLE_STALE"
 	code = _source_clock_refusal(row)
 	if code != &"": return code
-	var phase: int = (word >> 2) & 15
-	var time: int = clock & I32_MAX
-	var old: int = clock >> 32
 	var queued: bool = _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] >= 0
+	var next: Vector3i = _stationary_next((word >> 2) & 15, clock & I32_MAX, clock >> 32, queued)
+	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = _source_word_for(_profiles, PHASE_QUEUED if queued else PHASE_IDLE, next.x)
+	_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = SourceProgram.clock(next.y, next.z)
+	return &""
+
+
+func _stationary_next(phase: int, time: int, old: int, queued: bool) -> Vector3i:
+	"""One headless tick of the selected row's program: a queued READY fades to WALK, an unqueued WALK fades to
+	READY (the claw program first walks on past its blocked keys, ADR1217 step 4d), every other phase advances."""
+	if Stair.owns(_profiles, _selection.profile_id): return Stair.stationary(phase, time, queued)
+	if Claw2.owns(_profiles, _selection.profile_id):
+		return Claw2.stationary(phase, time, old, _selection.profile_id, queued)
+	if Claw.owns(_profiles, _selection.profile_id):
+		return Claw.stationary(phase, time, old, _selection.profile_id, queued)
 	if phase == SourceProgram.READY and queued:
 		phase = SourceProgram.FADE_WALK
 	elif phase == SourceProgram.WALK and not queued:
@@ -2784,10 +3285,7 @@ func _advance_stationary_source(row: int) -> StringName:
 		old = time
 		time = 0
 	var profile: int = ShortStep.mapped(_selection.profile_id) if ShortStep.uses(_profiles) else _selection.profile_id
-	var next: Vector3i = SourceProgram.advance(phase, time, old, profile)
-	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = _source_word_for(_profiles, PHASE_QUEUED if queued else PHASE_IDLE, next.x)
-	_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = SourceProgram.clock(next.y, next.z)
-	return &""
+	return SourceProgram.advance(phase, time, old, profile)
 
 
 func _edge_profile_into(row: int, edge: int, out: Profiles.Selection) -> StringName:
@@ -2884,6 +3382,55 @@ func _compute_motion(row: int) -> StringName:
 			break
 	_step.remainder = _encode_fraction(_step.numerator % _step.denominator, _step.denominator)
 	return _read_motion_containment()
+
+
+func _compute_stair_motion(row: int) -> StringName:
+	"""ADR1229: one fixed tick of a source-proved crossing. The pose is the program's whole key for the elapsed ticks
+	(the root track and heading for a stair gait or the half-turn, the straight span for a step); the certificate and
+	the whole motion's live occupancy are re-proved each tick; the crossing ends exactly on the edge's last point."""
+	var code: StringName = _pace_refusal()
+	if code != &"": return code
+	var program: int = _stair_motion.program_of(_selection.profile_id) if _stair_motion != null else -1
+	if program < 0 or _edge_i32(_live, E_PATH_COUNT, _step.edge.x) != 2: return &"ROUTE_STAIR_MOTION_SOURCE"
+	var ticks: int = Stair.ticks_for(_edge_i64(_live, E_LENGTH, _step.edge.x), _number.value)
+	var step: int = Stair.key_step(_stair_intervals(program), ticks)
+	if step < 0 or _step.progress >= ticks: return &"ROUTE_SOURCE_STEP_PACE"
+	if _step.progress == 0 and _selection.yaw != _stair_motion.start_yaw(program): return &"ROUTE_TURN_UNCERTIFIED"
+	var first: Vector3i = _vertex(_step.edge.x, 0)
+	var last: Vector3i = _vertex(_step.edge.x, 1)
+	var elapsed: int = _step.progress + 1
+	_stair_pose(program, first, last, elapsed, ticks, step)
+	if elapsed == ticks and _step.point != last: return &"ROUTE_STAIR_GEOMETRY"
+	_copy_selection(_selection, _pinned_selection)
+	_in_callback = true
+	_callback_reentered = false
+	code = _bindings.stair_motion_refusal(_resident_ref(row), _step.edge, first, _selection)
+	_in_callback = false
+	if _callback_reentered or not _same_selection(_selection, _pinned_selection): return &"ROUTE_CALLBACK_REENTRY"
+	if code != &"": return code
+	_step.progress = elapsed
+	_step.segment = 0
+	_step.remainder = 0
+	_step.finished = elapsed == ticks
+	return _read_motion_containment()
+
+
+func _stair_intervals(program: int) -> int:
+	"""Presented clip intervals: the rooted programs' own keys; a step's five-key clip (claw v2 plan.json)."""
+	return _stair_motion.key_count(program) - 1 if _stair_motion.rooted(program) else Stair.STEP_CLIP_INTERVALS
+
+
+func _stair_pose(program: int, first: Vector3i, last: Vector3i, elapsed: int, ticks: int, step: int) -> void:
+	"""The root and heading after `elapsed` of `ticks` ticks; a backward step keeps facing its row's heading."""
+	_step.stair_key = elapsed * step
+	if _stair_motion.rooted(program):
+		_step.point = first + _stair_motion.root_at(program, _step.stair_key)
+		_step.yaw = _stair_motion.heading_at(program, _step.stair_key)
+		return
+	var length: int = _segment_length(first, last)
+	@warning_ignore("integer_division") var done: int = length * elapsed / ticks
+	_step.point = _interpolate(first, last, done, length)
+	_step.yaw = _selection.yaw
 
 
 static func _gcd(first: int, second: int) -> int:
@@ -3068,17 +3615,32 @@ func _read_motion_containment() -> StringName:
 		_step.section = _second.section
 		_step.level = _second.level
 		return &""
-	_in_callback = true
-	_callback_reentered = false
-	var code: StringName = _bindings.transit_region_into(_step.section, _step.segment, _step.point, _section)
-	_in_callback = false
-	if _callback_reentered:
-		return &"ROUTE_CALLBACK_REENTRY"
+	var code: StringName = _transit_into(_step.section)
+	if code == &"WORLD_ROUTE_SECTION_CONTAINMENT" and Stair.owns(_profiles, _selection.profile_id):
+		code = _stair_lower_transit()
 	if code != &"":
 		return code
 	_step.room = _section.owner if _ids.get_kind(_section.owner) == Directory.KIND_ROOM else NULL_REF
 	_step.level = _section.level
 	return &"" if _section.role == Space.FLOOR_DATUM else &"ROUTE_SECTION_STALE"
+
+
+func _transit_into(section: Vector2i) -> StringName:
+	"""One provider containment read of the current step point in `section`."""
+	_in_callback = true
+	_callback_reentered = false
+	var code: StringName = _bindings.transit_region_into(section, _step.segment, _step.point, _section)
+	_in_callback = false
+	return &"ROUTE_CALLBACK_REENTRY" if _callback_reentered else code
+
+
+func _stair_lower_transit() -> StringName:
+	"""ADR1229: a stair edge joins two decks, each with its own landing section; once its pose has crossed out of the
+	start deck's section it is contained in the end deck's (the two decks meet at the start deck's far edge)."""
+	var code: StringName = _locations.read_location_into(_edge_pair(_live, E_TO_SLOT, _step.edge.x), _second)
+	if code == &"": code = _transit_into(_second.section)
+	if code == &"": _step.section = _second.section
+	return code
 
 
 func _final_motion_refusal(row: int) -> StringName:
@@ -3128,12 +3690,36 @@ func _advance_source_motion_clock(row: int) -> void:
 	var word: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
 	if not _source_word_known(word): return
 	var clock: int = _motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
-	var time: int = ((clock & I32_MAX) + SourceProgram.ONE) % SourceProgram.WALK_DURATION
+	var profile: int = _motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]
+	if Stair.owns(_profiles, profile):
+		_advance_stair_clock(row, word)
+		return
+	if Claw2.owns(_profiles, profile) and (word & 3) == PHASE_IDLE:
+		var landed: Vector3i = Claw2.arrive(clock & I32_MAX, profile)
+		_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = _source_word_for(_profiles, PHASE_IDLE, landed.x)
+		_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = SourceProgram.clock(landed.y, landed.z)
+		return
+	if Claw.owns(_profiles, profile) and (word & 3) == PHASE_IDLE:
+		var arrived: Vector3i = Claw.arrive(clock & I32_MAX, profile) # ADR1217 step 4d: walk on past blocked keys.
+		_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = _source_word_for(_profiles, PHASE_IDLE, arrived.x)
+		_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = SourceProgram.clock(arrived.y, arrived.z)
+		return
+	var duration: int = Claw.WALK_DURATION if Claw.owns(_profiles, profile) or Claw2.owns(_profiles, profile) \
+		else SourceProgram.WALK_DURATION
+	var time: int = ((clock & I32_MAX) + SourceProgram.ONE) % duration
 	if (word & 3) == PHASE_IDLE:
 		_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = _source_word_for(_profiles, PHASE_IDLE, SourceProgram.FADE_READY)
 		_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = SourceProgram.clock(0, time)
 	else:
 		_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = SourceProgram.clock(time, 0)
+
+
+func _advance_stair_clock(row: int, word: int) -> void:
+	"""ADR1229: a crossing presents its key; it ends on the READY hub, or runs straight into a queued next crossing."""
+	var walking: bool = (word & 3) != PHASE_IDLE
+	var key: int = 0 if _step.finished else _step.stair_key
+	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = Stair.word(word & 3, Stair.WALK if walking else Stair.READY)
+	_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = Stair.clock(key if walking else 0)
 
 
 func _pop_route_head(row: int) -> void:
@@ -3301,8 +3887,56 @@ func occupancy_refusal(bounds: PackedInt32Array, except_worker: Vector2i = NULL_
 		_occupancy_epoch = 0
 	_occupancy_epoch += 1
 	code = _query_occupants(bounds, except_worker)
+	if code == &"": code = _unregistered_occupants(bounds, except_worker)
 	_occupancy_reading = false
 	return _occupancy_context_refusal() if code == &"" else code
+
+
+func _unregistered_occupants(bounds: PackedInt32Array, except_worker: Vector2i) -> StringName:
+	"""ADR1219: a living Resident with no route row is checked by its reach cube, never treated as empty air."""
+	_occupancy_remaining -= 16 * RESIDENT_CAPACITY
+	if _occupancy_remaining < 0:
+		return &"ROUTE_OCCUPANCY_QUERY_BUDGET"
+	var low: Vector3i = Vector3i(bounds[0], bounds[1], bounds[2])
+	var high: Vector3i = Vector3i(bounds[3], bounds[4], bounds[5])
+	for row: int in RESIDENT_CAPACITY:
+		if _resident_ref(row) != NULL_REF or (except_worker.x == _residents._ref_slot[row]
+				and except_worker.y == _residents._ref_generation[row] and _residents._present[row] == 1):
+			continue
+		var code: StringName = unregistered_occupant_refusal(self, row, low, high)
+		if code != &"":
+			return code
+	return &""
+
+
+static func unregistered_occupant_refusal(actual: RefCounted, row: int, low: Vector3i, high: Vector3i) -> StringName:
+	"""ADR1219: an absent or dead row occupies nothing; a living unregistered Resident occupies the half-open cube
+	of half-width UNREGISTERED_REACH_U around its own Transform root. A Resident never placed has no known position,
+	so it can never be proved clear. Direct column reads only: no Directory or Transforms observer is dispatched."""
+	var residents: Residents = actual._residents
+	if residents._present[row] != 1: return &""
+	if residents._needs._present[row] != 1: return &"ROUTE_TURN_ACTOR_STALE"
+	if residents._needs._health[row] <= 0: return &""
+	var worker: Vector2i = Vector2i(residents._ref_slot[row], residents._ref_generation[row])
+	if _turn_directory_row(actual, worker, Directory.KIND_RESIDENT) != row or actual._ids._persistent_id[worker.x] <= 0:
+		return &"ROUTE_TURN_ACTOR_STALE"
+	var transforms: Transforms = actual._transforms
+	var at: int = Transforms.POSITIONED_BASE[Directory.KIND_RESIDENT] + row
+	if transforms._bound_persistent_id[at] != actual._ids._persistent_id[worker.x]: return &"ROUTE_TURN_ACTOR_UNBOUND"
+	var root: Vector3i = Vector3i(transforms._x[at], transforms._y[at], transforms._z[at])
+	for axis: int in 3:
+		if int(root[axis]) - UNREGISTERED_REACH_U >= high[axis] or int(root[axis]) + UNREGISTERED_REACH_U <= low[axis]:
+			return &""
+	return REFUSE_UNREGISTERED_NEAR
+
+
+static func unregistered_body_refusal(actual: RefCounted, row: int, point: Vector3i) -> StringName:
+	"""ADR1219: the same reach test against a registered body at `point` bounded by the whole current catalog extent."""
+	if actual._extent_revision <= 0 or actual._extent_revision != actual._profiles.content_revision():
+		return &"ROUTE_OCCUPANCY_STALE"
+	var extent: PackedInt32Array = actual._catalog_extent
+	return unregistered_occupant_refusal(actual, row, point + Vector3i(extent[0], extent[1], extent[2]),
+		point + Vector3i(extent[3], extent[4], extent[5]))
 
 
 func _query_occupants(bounds: PackedInt32Array, except_worker: Vector2i) -> StringName:
@@ -3399,7 +4033,7 @@ func _occupant_box_refusal(index: int, bounds: PackedInt32Array) -> StringName:
 
 static func turn_selection_into(actual: RefCounted, row: int, out: Profiles.Selection) -> StringName:
 	"""Read one committed profile from direct current actor/Job/tool/load facts after all observers."""
-	if row < 0 or row >= RESIDENT_CAPACITY or actual._resident_ref(row) == NULL_REF:
+	if actual == null or out == null or row < 0 or row >= RESIDENT_CAPACITY or _resident_ref_leaf(actual, row) == NULL_REF:
 		return &"ROUTE_ACTOR_NOT_REGISTERED"
 	var profile: int = actual._motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]
 	var profiles: Profiles = actual._profiles
@@ -3411,18 +4045,20 @@ static func turn_selection_into(actual: RefCounted, row: int, out: Profiles.Sele
 	var mode: int = actual._motion.resident[R_MODE * RESIDENT_CAPACITY + row]
 	var posture: int = actual._motion.resident[R_POSTURE * RESIDENT_CAPACITY + row]
 	var family: int = actual._motion.resident[R_FAMILY * RESIDENT_CAPACITY + row]
-	var code: StringName = _turn_dynamic_leaf(actual, actual._resident_ref(row),
-		actual._resident_pair(R_JOB_SLOT, row), mode, posture, family, actual._resident_pair(R_TOOL_SLOT, row))
+	var code: StringName = _turn_dynamic_leaf(actual, _resident_ref_leaf(actual, row),
+		_resident_pair_leaf(actual, R_JOB_SLOT, row), mode, posture, family, _resident_pair_leaf(actual, R_TOOL_SLOT, row))
 	if code != &"": return code
-	if not profiles._matches(profile, mode, posture, family):
+	if not _physical_profile_matches(actual, row, profile) \
+			or profiles._live.fields[Profiles.F_WORK_KIND * profiles._profile_capacity + profile] != profiles._query_values[4] \
+			or not _physical_payload_matches(actual, row):
 		return &"ROUTE_TURN_PROFILE_STALE"
 	_turn_write_selection(actual, row, profile, out)
-	return &"" if actual._committed_selection(row, out) else &"ROUTE_TURN_PROFILE_STALE"
+	return &""
 
 
 static func physical_selection_into(actual: RefCounted, row: int, out: Profiles.Selection) -> StringName:
 	"""Read the retained complete body source after assignment release; this grants neither work nor turning."""
-	if row < 0 or row >= RESIDENT_CAPACITY or actual._resident_ref(row) == NULL_REF:
+	if actual == null or out == null or row < 0 or row >= RESIDENT_CAPACITY or _resident_ref_leaf(actual, row) == NULL_REF:
 		return &"ROUTE_ACTOR_NOT_REGISTERED"
 	var profile: int = actual._motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]
 	var profiles: Profiles = actual._profiles
@@ -3431,15 +4067,15 @@ static func physical_selection_into(actual: RefCounted, row: int, out: Profiles.
 			or profiles._live.header[0] != actual._motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row] \
 			or profiles._live.quantities[profile] != actual._motion.resident_long[R_PROFILE_REVISION * RESIDENT_CAPACITY + row]:
 		return &"ROUTE_TURN_PROFILE_STALE"
-	var code: StringName = _turn_identity_leaf(actual, actual._resident_ref(row))
+	var code: StringName = _turn_identity_leaf(actual, _resident_ref_leaf(actual, row))
 	if code != &"": return code
 	profiles._query_values.fill(-1)
 	profiles._candidate.tool = NULL_REF
 	profiles._candidate.satchel = NULL_REF
 	profiles._candidate.cargo = NULL_REF
 	profiles._candidate.cargo_quantity_milli = 0
-	code = _physical_tool_leaf(actual, actual._resident_ref(row), actual._resident_pair(R_TOOL_SLOT, row))
-	if code == &"": code = _turn_cargo_leaf(actual, actual._resident_ref(row))
+	code = _physical_tool_leaf(actual, _resident_ref_leaf(actual, row), _resident_pair_leaf(actual, R_TOOL_SLOT, row))
+	if code == &"": code = _turn_cargo_leaf(actual, _resident_ref_leaf(actual, row))
 	if code != &"": return code
 	if not _physical_profile_matches(actual, row, profile): return &"ROUTE_TURN_PROFILE_STALE"
 	if not _physical_payload_matches(actual, row): return &"ROUTE_TURN_PROFILE_STALE"
@@ -3450,10 +4086,22 @@ static func physical_selection_into(actual: RefCounted, row: int, out: Profiles.
 static func _physical_payload_matches(actual: RefCounted, row: int) -> bool:
 	"""A changed full carried/equipped payload refuses before writing any caller-owned Selection field."""
 	var candidate: Profiles.Selection = actual._profiles._candidate
-	return candidate.tool == actual._resident_pair(R_TOOL_SLOT, row) \
-		and candidate.cargo == actual._resident_pair(R_CARGO_SLOT, row) \
-		and candidate.satchel == actual._resident_pair(R_SATCHEL_SLOT, row) \
+	return candidate.tool == _resident_pair_leaf(actual, R_TOOL_SLOT, row) \
+		and candidate.cargo == _resident_pair_leaf(actual, R_CARGO_SLOT, row) \
+		and candidate.satchel == _resident_pair_leaf(actual, R_SATCHEL_SLOT, row) \
 		and candidate.cargo_quantity_milli == actual._motion.resident_long[R_QUANTITY * RESIDENT_CAPACITY + row]
+
+
+static func _resident_ref_leaf(actual: RefCounted, row: int) -> Vector2i:
+	"""Final ownership reads cannot dispatch a Routes subclass after another owner's last observation."""
+	return Vector2i(actual._motion.resident[R_SLOT * RESIDENT_CAPACITY + row],
+		actual._motion.resident[R_GENERATION * RESIDENT_CAPACITY + row])
+
+
+static func _resident_pair_leaf(actual: RefCounted, field: int, row: int) -> Vector2i:
+	"""Borrow one original packed full reference without an overridable private reader."""
+	return Vector2i(actual._motion.resident[field * RESIDENT_CAPACITY + row],
+		actual._motion.resident[(field + 1) * RESIDENT_CAPACITY + row])
 
 
 static func _physical_tool_leaf(actual: RefCounted, worker: Vector2i, tool: Vector2i) -> StringName:
@@ -3464,7 +4112,8 @@ static func _physical_tool_leaf(actual: RefCounted, worker: Vector2i, tool: Vect
 		return &"" if actual._residents._equip_tool_item_id[row] == Residents.NO_TOOL_ITEM else &"ROUTE_TURN_ACTOR_STALE"
 	var gear: Gear = profiles._gear as Gear
 	var inventory: Inventory = profiles._inventory
-	if tool.x < 0 or tool.x >= Gear.LOT_CAPACITY or tool.y <= 0: return &"ROUTE_TURN_ACTOR_STALE"
+	if gear == null or inventory == null or tool.x < 0 or tool.x >= Gear.LOT_CAPACITY or tool.y <= 0:
+		return &"ROUTE_TURN_ACTOR_STALE"
 	var at: int = gear._lot_row[tool.x]
 	if at < 0 or at >= gear._row_capacity or gear._occupied[at] != 1 or gear._lot_slot[at] != tool.x \
 			or gear._lot_generation[at] != tool.y or tool.x >= inventory._l_capacity or inventory._l_live[tool.x] != 1 \
@@ -3504,20 +4153,20 @@ static func _turn_write_selection(actual: RefCounted, row: int, profile: int, ou
 	out.profile_id = profile
 	out.profile_revision = profiles._live.quantities[profile]
 	out.content_revision = profiles._live.header[0]
-	out.source_id = profiles._field(profiles._live, profile, Profiles.F_SOURCE)
+	out.source_id = profiles._live.fields[Profiles.F_SOURCE * profiles._profile_capacity + profile]
 	out.species = profiles._identity[0]
 	out.life_stage = profiles._identity[1]
 	out.rig = profiles._identity[2]
-	out.mode = profiles._field(profiles._live, profile, Profiles.F_MODE)
-	out.posture = profiles._field(profiles._live, profile, Profiles.F_POSTURE)
+	out.mode = profiles._live.fields[Profiles.F_MODE * profiles._profile_capacity + profile]
+	out.posture = profiles._live.fields[Profiles.F_POSTURE * profiles._profile_capacity + profile]
 	out.x = profiles._pose.x
 	out.y = profiles._pose.y
 	out.z = profiles._pose.z
 	out.yaw = profiles._pose.yaw
-	out.orientation = profiles._field(profiles._live, profile, Profiles.F_YAW_KIND)
-	out.box_count = profiles._field(profiles._live, profile, Profiles.F_BOX_COUNT)
-	out.worker = actual._resident_ref(row)
-	out.job = actual._resident_pair(R_JOB_SLOT, row)
+	out.orientation = profiles._live.fields[Profiles.F_YAW_KIND * profiles._profile_capacity + profile]
+	out.box_count = profiles._live.fields[Profiles.F_BOX_COUNT * profiles._profile_capacity + profile]
+	out.worker = _resident_ref_leaf(actual, row)
+	out.job = _resident_pair_leaf(actual, R_JOB_SLOT, row)
 	out.tool = profiles._candidate.tool
 	out.satchel = profiles._candidate.satchel
 	out.cargo = profiles._candidate.cargo
@@ -3634,9 +4283,12 @@ static func _turn_tool_leaf(actual: RefCounted, worker: Vector2i, job: Vector2i,
 	if tool == NULL_REF:
 		return &"" if actual._residents._equip_tool_item_id[row] == Residents.NO_TOOL_ITEM else &"ROUTE_TURN_ACTOR_STALE"
 	var gear: Gear = actual._profiles._gear as Gear
-	var at: int = gear._resolve_row(tool)
 	var inventory: Inventory = actual._profiles._inventory
-	if at < 0 or tool.x >= inventory._l_capacity or inventory._l_live[tool.x] != 1 \
+	if gear == null or inventory == null or tool.x < 0 or tool.x >= Gear.LOT_CAPACITY or tool.y <= 0:
+		return &"ROUTE_TURN_ACTOR_STALE"
+	var at: int = gear._lot_row[tool.x]
+	if at < 0 or at >= gear._row_capacity or gear._occupied[at] != 1 or gear._lot_slot[at] != tool.x \
+			or gear._lot_generation[at] != tool.y or tool.x >= inventory._l_capacity or inventory._l_live[tool.x] != 1 \
 			or inventory._l_generation[tool.x] != tool.y or inventory._l_container_slot[tool.x] != -1 \
 			or gear._equipped[at] != 1 or gear._owner_slot[at] != worker.x or gear._owner_generation[at] != worker.y \
 			or actual._residents._equip_tool_item_id[row] != gear._item_id[at]: return &"ROUTE_TURN_ACTOR_STALE"
@@ -3772,3 +4424,401 @@ func _frontier_publish_blocked() -> bool:
 	if _locations == null or _locations._frontier == null: return false
 	_locations._remaining = -1
 	return true
+
+
+# ADR1221 (cold load): the local Routes wire, schema 1. A header, then the live edge bank's columns, the vertex arena
+# and the actor bank's resident, resident_long and link columns, each little-endian in declared field order and
+# ascending row order. The free heaps, the adjacency order and the occupancy index are derived: never written,
+# rebuilt on restore. A restore decodes into the inactive banks (_stage, _load_motion), proves them, then swaps.
+const WIRE_MAGIC: int = 0x54524755 # "UGRT"
+const WIRE_SCHEMA: int = 1
+const WIRE_HEADER_FIELDS: int = 12
+const REFUSE_LOAD_BUSY: StringName = &"ROUTE_LOAD_BUSY"
+const REFUSE_LOAD_SHAPE: StringName = &"ROUTE_LOAD_SHAPE"
+const REFUSE_LOAD_HEADER: StringName = &"ROUTE_LOAD_HEADER"
+const REFUSE_LOAD_EDGE: StringName = &"ROUTE_LOAD_EDGE"
+const REFUSE_LOAD_PATH: StringName = &"ROUTE_LOAD_PATH"
+const REFUSE_LOAD_ACTOR: StringName = &"ROUTE_LOAD_ACTOR"
+const REFUSE_LOAD_LINK: StringName = &"ROUTE_LOAD_LINK"
+## The resident columns `MotionBank.allocate` fills with -1 on an unregistered row; every other column is zero.
+const ACTOR_NULL_FIELDS: Array[int] = [R_SLOT, R_LOCATION_SLOT, R_EDGE_SLOT, R_JOB_SLOT, R_HEAD, R_TAIL, R_MODE,
+	R_POSTURE, R_PHASE, R_PROFILE, R_FAMILY, R_TOOL_SLOT, R_CARGO_SLOT, R_SATCHEL_SLOT, R_ROOM_SLOT, R_SECTION_SLOT]
+## Full references a registered actor may hold null: its Job, gear, load and Room.
+const ACTOR_REF_FIELDS: Array[int] = [R_JOB_SLOT, R_TOOL_SLOT, R_CARGO_SLOT, R_SATCHEL_SLOT, R_ROOM_SLOT]
+
+
+func wire_bytes() -> int:
+	"""Exact schema-1 image size; zero before configuration."""
+	if _edge_capacity == 0:
+		return 0
+	return 8 * WIRE_HEADER_FIELDS + (4 * EDGE_FIELDS + 8 * EDGE_LONGS + 2) * _edge_capacity + 12 * _vertex_capacity \
+		+ (4 * RESIDENT_FIELDS + 8 * RESIDENT_LONGS) * RESIDENT_CAPACITY + 4 * LINK_FIELDS * _link_capacity
+
+
+func _wire_quiescent() -> bool:
+	"""A save or load happens only between operations: no graph candidate, search, motion or callback is open."""
+	return _edge_capacity > 0 and _token == 0 and not _searching and not _advancing and not _in_callback \
+		and not _occupancy_reading and _profiles != null and _locations != null and _owner != null
+
+
+func capture_state_into(cold_token: int, out: PackedByteArray) -> StringName:
+	"""ADR1221: the whole graph and every actor at a quiescent boundary, into one empty image under the lease."""
+	if not _wire_quiescent() or not out.is_empty():
+		return REFUSE_LOAD_BUSY
+	if not _cold.covers(cold_token, wire_bytes()):
+		return &"ROUTE_COLD_LEASE"
+	out.resize(wire_bytes())
+	var header: PackedInt64Array = PackedInt64Array([WIRE_MAGIC, WIRE_SCHEMA, _edge_capacity, _vertex_capacity,
+		_link_capacity, _location_capacity, _world.x, _world.y, _live.revision, _live.edge_count, _live.vertex_count,
+		_last_tick])
+	var at: int = _wire_put64(out, 0, header)
+	at = _wire_put32(out, at, _live.fields)
+	at = _wire_put64(out, at, _live.longs)
+	at = _wire_put8(out, at, _live.present)
+	at = _wire_put8(out, at, _live.retired)
+	at = _wire_put32(out, at, _live.vertices)
+	at = _wire_put32(out, at, _motion.resident)
+	at = _wire_put64(out, at, _motion.resident_long)
+	_wire_put32(out, at, _motion.links)
+	return &""
+
+
+static func _wire_put8(out: PackedByteArray, at: int, column: PackedByteArray) -> int:
+	"""Copy one byte column; returns the next offset."""
+	for value: int in column:
+		out[at] = value
+		at += 1
+	return at
+
+
+static func _wire_put32(out: PackedByteArray, at: int, column: PackedInt32Array) -> int:
+	"""Encode one signed 32-bit column little-endian; returns the next offset."""
+	for value: int in column:
+		out.encode_s32(at, value)
+		at += 4
+	return at
+
+
+static func _wire_put64(out: PackedByteArray, at: int, column: PackedInt64Array) -> int:
+	"""Encode one signed 64-bit column little-endian; returns the next offset."""
+	for value: int in column:
+		out.encode_s64(at, value)
+		at += 8
+	return at
+
+
+static func _wire_get8(bytes: PackedByteArray, at: int, column: PackedByteArray) -> int:
+	"""Decode one byte column into preallocated storage; returns the next offset."""
+	for index: int in column.size():
+		column[index] = bytes[at]
+		at += 1
+	return at
+
+
+static func _wire_get32(bytes: PackedByteArray, at: int, column: PackedInt32Array) -> int:
+	"""Decode one signed 32-bit column into preallocated storage; returns the next offset."""
+	for index: int in column.size():
+		column[index] = bytes.decode_s32(at)
+		at += 4
+	return at
+
+
+static func _wire_get64(bytes: PackedByteArray, at: int, column: PackedInt64Array) -> int:
+	"""Decode one signed 64-bit column into preallocated storage; returns the next offset."""
+	for index: int in column.size():
+		column[index] = bytes.decode_s64(at)
+		at += 8
+	return at
+
+
+func restore_state_bytes(cold_token: int, bytes: PackedByteArray) -> StringName:
+	"""ADR1221: decode into the inactive banks, prove every edge, path, actor and queue against the restored
+	Locations, Space, Directory, Residents and Transforms, then swap. A refusal leaves the live banks untouched."""
+	if not _wire_quiescent() or _binding_refusal() != &"" or _owner.has_prepared():
+		return REFUSE_LOAD_BUSY
+	if bytes.size() != wire_bytes():
+		return REFUSE_LOAD_SHAPE
+	if not _cold.covers(cold_token, wire_bytes()):
+		return &"ROUTE_COLD_LEASE"
+	var code: StringName = _wire_header_refusal(bytes)
+	if code != &"":
+		return code
+	_decode_wire(bytes)
+	_remaining = _domain._checks
+	_operation_error = &""
+	code = _loaded_graph_refusal(bytes.decode_s64(9 * 8), bytes.decode_s64(10 * 8))
+	if code == &"":
+		code = _install_loaded_banks(bytes.decode_s64(11 * 8))
+	_remaining = 0
+	_operation_error = &""
+	return code
+
+
+func _wire_header_refusal(bytes: PackedByteArray) -> StringName:
+	"""Schema, the configured capacities and the bound World must match exactly; counts and ticks are in range."""
+	var expected: PackedInt64Array = PackedInt64Array([WIRE_MAGIC, WIRE_SCHEMA, _edge_capacity, _vertex_capacity,
+		_link_capacity, _location_capacity, _world.x, _world.y])
+	for index: int in expected.size():
+		if bytes.decode_s64(index * 8) != expected[index]:
+			return REFUSE_LOAD_HEADER
+	var graph_revision: int = bytes.decode_s64(8 * 8)
+	var edges: int = bytes.decode_s64(9 * 8)
+	var vertices: int = bytes.decode_s64(10 * 8)
+	if graph_revision < 1 or graph_revision >= I64_MAX or edges < 0 or edges > _edge_capacity \
+			or vertices < 0 or vertices > _vertex_capacity or bytes.decode_s64(11 * 8) < -1:
+		return REFUSE_LOAD_HEADER
+	return &""
+
+
+func _decode_wire(bytes: PackedByteArray) -> void:
+	"""Stream every column into the preallocated inactive banks; nothing is allocated."""
+	var at: int = 8 * WIRE_HEADER_FIELDS
+	at = _wire_get32(bytes, at, _stage.fields)
+	at = _wire_get64(bytes, at, _stage.longs)
+	at = _wire_get8(bytes, at, _stage.present)
+	at = _wire_get8(bytes, at, _stage.retired)
+	at = _wire_get32(bytes, at, _stage.vertices)
+	at = _wire_get32(bytes, at, _load_motion.resident)
+	at = _wire_get64(bytes, at, _load_motion.resident_long)
+	_wire_get32(bytes, at, _load_motion.links)
+	_stage.revision = bytes.decode_s64(8 * 8)
+
+
+func _loaded_graph_refusal(edges: int, vertices: int) -> StringName:
+	"""Every staged row is canonical, the paths tile the vertex prefix exactly, every present span is a complete
+	current-domain path between live endpoints, and the adjacency order is rebuilt."""
+	_stage.edge_count = 0
+	_stage.vertex_count = vertices
+	for row: int in _edge_capacity:
+		if not _spend():
+			return _operation_error
+		var code: StringName = _loaded_row_refusal(row)
+		if code != &"":
+			return code
+		_stage.edge_count += _stage.present[row]
+	if _stage.edge_count != edges:
+		return REFUSE_LOAD_EDGE
+	var tiled: StringName = _loaded_tiling_refusal()
+	if tiled != &"":
+		return tiled
+	for row: int in _edge_capacity:
+		if _stage.present[row] == 1:
+			var code: StringName = _loaded_edge_refusal(row)
+			if code != &"":
+				return code
+	return _build_edge_order()
+
+
+func _loaded_row_refusal(row: int) -> StringName:
+	"""Lifecycle flags, retained generations and the canonical empty payload of an absent row."""
+	var generation: int = _edge_i32(_stage, E_GENERATION, row)
+	var present: int = _stage.present[row]
+	var retired: int = _stage.retired[row]
+	if present > 1 or retired > 1 or generation < 0 or (present == 1 and (retired == 1 or generation < 1)) \
+			or (retired == 1 and generation != I32_MAX) or (present == 0 and generation == I32_MAX and retired == 0):
+		return REFUSE_LOAD_EDGE
+	if present == 1:
+		return &""
+	for field: int in range(1, EDGE_FIELDS):
+		if _edge_i32(_stage, field, row) != 0:
+			return REFUSE_LOAD_EDGE
+	for field: int in EDGE_LONGS:
+		if _edge_i64(_stage, field, row) != 0:
+			return REFUSE_LOAD_EDGE
+	return &""
+
+
+func _loaded_tiling_refusal() -> StringName:
+	"""Present paths cover [0, vertex_count) once each (marked in the charged whole-edge packet); the tail is zero."""
+	var covered: int = 0
+	var code: StringName = &""
+	_edge.points.fill(0)
+	for row: int in _edge_capacity:
+		if _stage.present[row] == 0 or code != &"":
+			continue
+		var start: int = _edge_i32(_stage, E_PATH_START, row)
+		var count: int = _edge_i32(_stage, E_PATH_COUNT, row)
+		if count < 2 or start < 0 or start > _stage.vertex_count - count or not _spend(count):
+			code = REFUSE_LOAD_PATH
+			continue
+		for index: int in range(start, start + count):
+			code = REFUSE_LOAD_PATH if _edge.points[index] != 0 else code
+			_edge.points[index] = 1
+		covered += count
+	_edge.points.fill(0)
+	if code != &"" or covered != _stage.vertex_count:
+		return REFUSE_LOAD_PATH
+	for index: int in range(_stage.vertex_count * 3, _stage.vertices.size()):
+		if _stage.vertices[index] != 0:
+			return REFUSE_LOAD_PATH
+	return &""
+
+
+func _loaded_edge_refusal(row: int) -> StringName:
+	"""One present span: authored ranges, revisions no newer than the restored owners, live endpoints at its ends,
+	a live FLOOR_DATUM section and its exact integer length (the shared stage_add format proof)."""
+	if not _spend(1 + _edge_i32(_stage, E_PATH_COUNT, row) * 34):
+		return _operation_error
+	if _section_into(_edge_pair(_stage, E_SECTION_SLOT, row)) != &"":
+		return REFUSE_LOAD_EDGE
+	_read_edge(_stage, row, _edge)
+	var content: int = _edge.content_revision
+	var geometry: int = _edge.geometry_revision
+	if content < 1 or content > _profiles.content_revision() or geometry < 1 or geometry > _owner.revision():
+		return REFUSE_LOAD_EDGE
+	# The format proof pins revisions to the current ones; a loaded span keeps its own and is re-proved on use.
+	_edge.content_revision = _profiles.content_revision()
+	_edge.geometry_revision = _target_geometry_revision
+	var code: StringName = _edge_format_refusal(_edge)
+	_edge.content_revision = content
+	_edge.geometry_revision = geometry
+	return REFUSE_LOAD_EDGE if code != &"" else &""
+
+
+func _install_loaded_banks(tick: int) -> StringName:
+	"""Swap the proven graph in, prove the actor bank against it, then rebuild the derived heaps and occupancy.
+	Any refusal swaps the original banks back; their own heaps and order were never touched."""
+	_rebuild_edge_free(_stage)
+	_swap_loaded_banks()
+	var code: StringName = _loaded_motion_refusal()
+	if code != &"":
+		_swap_loaded_banks()
+		return code
+	_rebuild_link_free(_motion)
+	code = refresh_occupancy()
+	if code != &"":
+		_swap_loaded_banks()
+		# The original actors passed this very proof before the load began; re-index them for the next query.
+		var original: StringName = refresh_occupancy()
+		return code if original == &"" else original
+	_last_tick = tick
+	_last_published_token = 0
+	return &""
+
+
+func _swap_loaded_banks() -> void:
+	"""Exchange live and inactive graph and actor banks without copying a column."""
+	var bank: EdgeBank = _live
+	_live = _stage
+	_stage = bank
+	var motion: MotionBank = _motion
+	_motion = _load_motion
+	_load_motion = motion
+
+
+static func _rebuild_edge_free(bank: EdgeBank) -> void:
+	"""The free heap is every absent, unretired row in ascending order (a valid minimum heap), tail -1."""
+	bank.free_rows.fill(-1)
+	bank.free_count = 0
+	for row: int in bank.present.size():
+		if bank.present[row] == 0 and bank.retired[row] == 0:
+			bank.free_rows[bank.free_count] = row
+			bank.free_count += 1
+
+
+func _rebuild_link_free(motion: MotionBank) -> void:
+	"""The free link heap is every unowned link in ascending order, tail -1."""
+	motion.free_links.fill(-1)
+	motion.free_count = 0
+	for link: int in _link_capacity:
+		if motion.links[L_OWNER * _link_capacity + link] == -1:
+			motion.free_links[motion.free_count] = link
+			motion.free_count += 1
+
+
+func _loaded_motion_refusal() -> StringName:
+	"""Every link is free and blank or owned and live; every actor row is proved; every owned link lies on exactly
+	its owner's single terminated chain."""
+	var owned: int = 0
+	for link: int in _link_capacity:
+		var owner_row: int = _link(L_OWNER, link)
+		if owner_row == -1:
+			for field: int in LINK_FIELDS:
+				if _link(field, link) != -1:
+					return REFUSE_LOAD_LINK
+		elif owner_row < 0 or owner_row >= RESIDENT_CAPACITY \
+				or not is_live_edge(Vector2i(_link(L_EDGE_SLOT, link), _link(L_EDGE_GENERATION, link))):
+			return REFUSE_LOAD_LINK
+		else:
+			owned += 1
+	var chained: int = 0
+	for row: int in RESIDENT_CAPACITY:
+		var code: StringName = _loaded_actor_refusal(row)
+		if code != &"":
+			return code
+		chained += _route_count(row) if _motion.resident[R_SLOT * RESIDENT_CAPACITY + row] >= 0 else 0
+	return &"" if chained == owned else REFUSE_LOAD_LINK
+
+
+func _loaded_actor_refusal(row: int) -> StringName:
+	"""An unregistered row is canonical; a registered one is the live Resident of its typed row, contained exactly
+	where its pose says (endpoint or span progress), with a canonical source clock, queue and field ranges."""
+	if not _spend(16):
+		return _operation_error
+	if _motion.resident[R_SLOT * RESIDENT_CAPACITY + row] < 0:
+		return _unregistered_row_refusal(row)
+	var worker: Vector2i = _resident_ref(row)
+	if not _ids.is_valid_of_kind(worker, Directory.KIND_RESIDENT) or _ids.get_typed_row(worker) != row \
+			or not _residents.is_alive(row) or not _transforms.read_into(worker, _pose):
+		return REFUSE_LOAD_ACTOR
+	if _actor_location_refusal(row) != &"" or _source_clock_refusal(row) != &"" or _route_count(row) < 0:
+		return REFUSE_LOAD_ACTOR
+	return _loaded_actor_fields_refusal(row)
+
+
+func _unregistered_row_refusal(row: int) -> StringName:
+	"""Exactly the allocator's blank row: -1 in the declared null columns, zero everywhere else."""
+	for field: int in RESIDENT_FIELDS:
+		var blank: int = -1 if ACTOR_NULL_FIELDS.has(field) else 0
+		if _motion.resident[field * RESIDENT_CAPACITY + row] != blank:
+			return REFUSE_LOAD_ACTOR
+	for field: int in RESIDENT_LONGS:
+		if _motion.resident_long[field * RESIDENT_CAPACITY + row] != 0:
+			return REFUSE_LOAD_ACTOR
+	return &""
+
+
+func _loaded_actor_fields_refusal(row: int) -> StringName:
+	"""Enumerations, revisions, null spellings, the reduced motion fraction and the phase/span agreement."""
+	var mode: int = _motion.resident[R_MODE * RESIDENT_CAPACITY + row]
+	var posture: int = _motion.resident[R_POSTURE * RESIDENT_CAPACITY + row]
+	var family: int = _motion.resident[R_FAMILY * RESIDENT_CAPACITY + row]
+	var profile: int = _motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]
+	var content: int = _motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row]
+	if mode < Profiles.MODE_STAND or mode > Profiles.MODE_CLIMB or posture < Profiles.POSTURE_UPRIGHT \
+			or posture > Profiles.POSTURE_STOOPED or family < -1 or family >= 5 or profile < 0 \
+			or profile >= Profiles.MAX_PROFILES or content < 1 or content > _profiles.content_revision() \
+			or _motion.resident_long[R_PROFILE_REVISION * RESIDENT_CAPACITY + row] < 1 \
+			or _motion.resident_long[R_QUANTITY * RESIDENT_CAPACITY + row] < 0:
+		return REFUSE_LOAD_ACTOR
+	for field: int in ACTOR_REF_FIELDS:
+		var ref: Vector2i = _resident_pair(field, row)
+		if ref != NULL_REF and (ref.x < 0 or ref.y < 1):
+			return REFUSE_LOAD_ACTOR
+	if not _loaded_fraction_canonical(_motion.resident_long[R_REMAINDER * RESIDENT_CAPACITY + row]):
+		return REFUSE_LOAD_ACTOR
+	return _loaded_phase_refusal(row)
+
+
+static func _loaded_fraction_canonical(encoded: int) -> bool:
+	"""Zero, or a reduced positive numerator below a 31-bit denominator, exactly as `_encode_fraction` writes it."""
+	if encoded == 0:
+		return true
+	var numerator: int = encoded >> 32
+	var denominator: int = encoded & 4294967295
+	return encoded > 0 and numerator > 0 and numerator < denominator and denominator <= I32_MAX \
+		and _gcd(numerator, denominator) == 1
+
+
+func _loaded_phase_refusal(row: int) -> StringName:
+	"""An idle or queued actor stands on its endpoint with zero span progress; a travelling one occupies a span;
+	a queued one has a queue."""
+	var phase: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] & 3
+	var on_edge: bool = _resident_pair(R_EDGE_SLOT, row) != NULL_REF
+	if not on_edge and (_motion.resident[R_SEGMENT * RESIDENT_CAPACITY + row] != 0 \
+			or _motion.resident_long[R_PROGRESS * RESIDENT_CAPACITY + row] != 0):
+		return REFUSE_LOAD_ACTOR
+	if (phase == PHASE_IDLE and on_edge) or (phase == PHASE_TRAVELLING and not on_edge) \
+			or (phase == PHASE_QUEUED and (on_edge or _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] < 0)):
+		return REFUSE_LOAD_ACTOR
+	return &""

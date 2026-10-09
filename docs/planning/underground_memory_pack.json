@@ -20,476 +20,476 @@
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2725
+        "line": 2741
       },
       "_changed_rows": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2724
+        "line": 2740
       },
       "_header": {
         "width": 8,
         "capacity": 18,
         "bytes": 144,
         "resize_expression": "HEADER_FIELDS",
-        "line": 2722
+        "line": 2738
       },
       "_o_a": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2790
+        "line": 2806
       },
       "_o_b": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2791
+        "line": 2807
       },
       "_o_c": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2792
+        "line": 2808
       },
       "_o_d": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2793
+        "line": 2809
       },
       "_o_generation": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2786
+        "line": 2802
       },
       "_o_kind": {
         "width": 1,
         "capacity": 2048,
         "bytes": 2048,
         "resize_expression": "_source_capacity",
-        "line": 2784
+        "line": 2800
       },
       "_o_parent_generation": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2789
+        "line": 2805
       },
       "_o_parent_slot": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2788
+        "line": 2804
       },
       "_o_present": {
         "width": 1,
         "capacity": 2048,
         "bytes": 2048,
         "resize_expression": "_source_capacity",
-        "line": 2783
+        "line": 2799
       },
       "_o_revision": {
         "width": 8,
         "capacity": 2048,
         "bytes": 16384,
         "resize_expression": "_source_capacity",
-        "line": 2787
+        "line": 2803
       },
       "_o_slot": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2785
+        "line": 2801
       },
       "_r_claim_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2754
+        "line": 2770
       },
       "_r_claim_kind": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2739
+        "line": 2755
       },
       "_r_claim_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2753
+        "line": 2769
       },
       "_r_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2740
+        "line": 2756
       },
       "_r_hi_x": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2744
+        "line": 2760
       },
       "_r_hi_y": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2745
+        "line": 2761
       },
       "_r_hi_z": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2746
+        "line": 2762
       },
       "_r_level": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2747
+        "line": 2763
       },
       "_r_lo_x": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2741
+        "line": 2757
       },
       "_r_lo_y": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2742
+        "line": 2758
       },
       "_r_lo_z": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2743
+        "line": 2759
       },
       "_r_owner_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2751
+        "line": 2767
       },
       "_r_owner_revision": {
         "width": 8,
         "capacity": 6144,
         "bytes": 49152,
         "resize_expression": "_region_capacity",
-        "line": 2752
+        "line": 2768
       },
       "_r_owner_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2750
+        "line": 2766
       },
       "_r_present": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2736
+        "line": 2752
       },
       "_r_retired": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2737
+        "line": 2753
       },
       "_r_role": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2738
+        "line": 2754
       },
       "_r_section_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2749
+        "line": 2765
       },
       "_r_section_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2748
+        "line": 2764
       },
       "_region_free_heap": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2726
+        "line": 2742
       },
       "_s_header": {
         "width": 8,
         "capacity": 18,
         "bytes": 144,
         "resize_expression": "HEADER_FIELDS",
-        "line": 2723
+        "line": 2739
       },
       "_s_o_a": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2806
+        "line": 2822
       },
       "_s_o_b": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2807
+        "line": 2823
       },
       "_s_o_c": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2808
+        "line": 2824
       },
       "_s_o_d": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2809
+        "line": 2825
       },
       "_s_o_generation": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2802
+        "line": 2818
       },
       "_s_o_kind": {
         "width": 1,
         "capacity": 2048,
         "bytes": 2048,
         "resize_expression": "_source_capacity",
-        "line": 2800
+        "line": 2816
       },
       "_s_o_parent_generation": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2805
+        "line": 2821
       },
       "_s_o_parent_slot": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2804
+        "line": 2820
       },
       "_s_o_present": {
         "width": 1,
         "capacity": 2048,
         "bytes": 2048,
         "resize_expression": "_source_capacity",
-        "line": 2799
+        "line": 2815
       },
       "_s_o_revision": {
         "width": 8,
         "capacity": 2048,
         "bytes": 16384,
         "resize_expression": "_source_capacity",
-        "line": 2803
+        "line": 2819
       },
       "_s_o_slot": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2801
+        "line": 2817
       },
       "_s_r_claim_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2778
+        "line": 2794
       },
       "_s_r_claim_kind": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2763
+        "line": 2779
       },
       "_s_r_claim_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2777
+        "line": 2793
       },
       "_s_r_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2764
+        "line": 2780
       },
       "_s_r_hi_x": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2768
+        "line": 2784
       },
       "_s_r_hi_y": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2769
+        "line": 2785
       },
       "_s_r_hi_z": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2770
+        "line": 2786
       },
       "_s_r_level": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2771
+        "line": 2787
       },
       "_s_r_lo_x": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2765
+        "line": 2781
       },
       "_s_r_lo_y": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2766
+        "line": 2782
       },
       "_s_r_lo_z": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2767
+        "line": 2783
       },
       "_s_r_owner_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2775
+        "line": 2791
       },
       "_s_r_owner_revision": {
         "width": 8,
         "capacity": 6144,
         "bytes": 49152,
         "resize_expression": "_region_capacity",
-        "line": 2776
+        "line": 2792
       },
       "_s_r_owner_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2774
+        "line": 2790
       },
       "_s_r_present": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2760
+        "line": 2776
       },
       "_s_r_retired": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2761
+        "line": 2777
       },
       "_s_r_role": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2762
+        "line": 2778
       },
       "_s_r_section_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2773
+        "line": 2789
       },
       "_s_r_section_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2772
+        "line": 2788
       },
       "_s_region_free_heap": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2727
+        "line": 2743
       },
       "_s_source_free_heap": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2729
+        "line": 2745
       },
       "_source_free_heap": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2728
+        "line": 2744
       }
     },
     "underground_space_authority": {
@@ -793,35 +793,35 @@
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "capacity",
-        "line": 5504
+        "line": 5637
       },
       "_spatial_container_slot": {
         "width": 4,
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "capacity",
-        "line": 5503
+        "line": 5636
       },
       "_spatial_location_generation": {
         "width": 4,
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "capacity",
-        "line": 5506
+        "line": 5639
       },
       "_spatial_location_revision": {
         "width": 8,
         "capacity": 1024,
         "bytes": 8192,
         "resize_expression": "capacity",
-        "line": 5507
+        "line": 5640
       },
       "_spatial_location_slot": {
         "width": 4,
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "capacity",
-        "line": 5505
+        "line": 5638
       }
     }
   },
@@ -911,63 +911,63 @@
         "capacity": 96,
         "bytes": 96,
         "resize_expression": "96",
-        "line": 65
+        "line": 66
       },
       "_hash": {
         "width": 1,
         "capacity": 32,
         "bytes": 32,
         "resize_expression": "32",
-        "line": 71
+        "line": 72
       },
       "_header": {
         "width": 8,
         "capacity": 4,
         "bytes": 32,
         "resize_expression": "4",
-        "line": 64
+        "line": 65
       },
       "_input_count": {
         "width": 4,
         "capacity": 256,
         "bytes": 1024,
         "resize_expression": "_capacity",
-        "line": 67
+        "line": 68
       },
       "_input_key": {
         "width": 4,
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "_input_capacity",
-        "line": 68
+        "line": 69
       },
       "_part": {
         "width": 4,
         "capacity": 9,
         "bytes": 36,
         "resize_expression": "9",
-        "line": 72
+        "line": 73
       },
       "_part_id": {
         "width": 4,
         "capacity": 256,
         "bytes": 1024,
         "resize_expression": "_capacity",
-        "line": 66
+        "line": 67
       },
       "_quantity": {
         "width": 8,
         "capacity": 1024,
         "bytes": 8192,
         "resize_expression": "_input_capacity",
-        "line": 70
+        "line": 71
       },
       "_work_mwu": {
         "width": 8,
         "capacity": 256,
         "bytes": 2048,
         "resize_expression": "_capacity",
-        "line": 69
+        "line": 70
       }
     },
     "part_capacity": 256,
@@ -980,56 +980,56 @@
           "capacity": 96,
           "bytes": 96,
           "resize_expression": "96",
-          "line": 66
+          "line": 67
         },
         "_first_part": {
           "width": 4,
           "capacity": 256,
           "bytes": 1024,
           "resize_expression": "_capacity",
-          "line": 68
+          "line": 69
         },
         "_hash": {
           "width": 1,
           "capacity": 32,
           "bytes": 32,
           "resize_expression": "32",
-          "line": 71
+          "line": 72
         },
         "_header": {
           "width": 8,
           "capacity": 7,
           "bytes": 56,
           "resize_expression": "7",
-          "line": 65
+          "line": 66
         },
         "_kind": {
           "width": 4,
           "capacity": 256,
           "bytes": 1024,
           "resize_expression": "_capacity",
-          "line": 67
+          "line": 68
         },
         "_part": {
           "width": 4,
           "capacity": 9,
           "bytes": 36,
           "resize_expression": "9",
-          "line": 72
+          "line": 73
         },
         "_part_count": {
           "width": 4,
           "capacity": 256,
           "bytes": 1024,
           "resize_expression": "_capacity",
-          "line": 69
+          "line": 70
         },
         "_recipe_anchor": {
           "width": 4,
           "capacity": 256,
           "bytes": 1024,
           "resize_expression": "_capacity",
-          "line": 70
+          "line": 71
         }
       },
       "group_capacity": 256,
@@ -1038,10 +1038,10 @@
       "reserved_bytes": 4760
     },
     "surface_anchor_reservation": {
-      "numeric_control_bytes": 93,
-      "packet_bytes": 204,
+      "numeric_control_bytes": 101,
+      "packet_bytes": 284,
       "surface_metadata_bytes": 24,
-      "fixed_numeric_and_packed_bytes": 321,
+      "fixed_numeric_and_packed_bytes": 409,
       "reserved_bytes": 2048,
       "logical_helper_allowance_bytes": 1024,
       "scope": "Fixed composition references and native overhead remain unmeasured; no independent authoritative bank."
@@ -1164,9 +1164,9 @@
     },
     "entry_bindings_reservation": {
       "numeric_controls": 74,
-      "packet_bytes": 300,
+      "packet_bytes": 460,
       "packed_rows": 112,
-      "fixed_numeric_and_packed_bytes": 486,
+      "fixed_numeric_and_packed_bytes": 646,
       "logical_helper_allowance_bytes": 2048,
       "reserved_bytes": 4096,
       "scope": "Admission-only extension; borrowed references, native headers/frames and actual peaks still require measurement."
@@ -1175,10 +1175,10 @@
       "numeric_controls": 221,
       "packed_rows": 452,
       "fragment_banks_and_controls": 1633,
-      "owned_packet_bytes": 753,
-      "fixed_numeric_and_packed_bytes": 3059,
+      "owned_packet_bytes": 913,
+      "fixed_numeric_and_packed_bytes": 3219,
       "logical_helper_allowance_bytes": 1024,
-      "reserved_bytes": 4096,
+      "reserved_bytes": 4352,
       "scope": "Exact finite source census; borrowed references, native headers and composed helper/native peaks remain unmeasured."
     },
     "known_binding_consumers": {
@@ -1192,9 +1192,9 @@
       "connector_work": 563,
       "entry_frontier": 28597,
       "entry_bindings": 4096,
-      "connector_contacts": 4096
+      "connector_contacts": 4352
     },
-    "known_binding_used_bytes": 524288,
+    "known_binding_used_bytes": 524544,
     "remaining_binding_reserve_bytes": 0,
     "scope": "Known logical consumers include concrete Frontier, EntryBindings and Contacts. The shared bindings reserve is fully assigned; whole native memory qualification remains open."
   },
@@ -1332,42 +1332,42 @@
         "capacity": 6,
         "bytes": 24,
         "resize_expression": "6",
-        "line": 123
+        "line": 133
       },
       "_digests": {
         "width": 1,
         "capacity": 160,
         "bytes": 160,
         "resize_expression": "160",
-        "line": 120
+        "line": 130
       },
       "_header": {
         "width": 8,
         "capacity": 9,
         "bytes": 72,
         "resize_expression": "9",
-        "line": 119
+        "line": 129
       },
       "_parts": {
         "width": 4,
         "capacity": 1536,
         "bytes": 6144,
         "resize_expression": "6 * assemblies",
-        "line": 121
+        "line": 131
       },
       "_profile_revisions": {
         "width": 8,
         "capacity": 256,
         "bytes": 2048,
         "resize_expression": "assemblies",
-        "line": 122
+        "line": 132
       },
       "_scratch": {
         "width": 4,
         "capacity": 6,
         "bytes": 24,
         "resize_expression": "6",
-        "line": 124
+        "line": 134
       }
     },
     "two_bank_bytes": 10752,
@@ -1458,6 +1458,7 @@
       "_busy": "bool",
       "_poisoned": "bool",
       "_work_tick": "bool",
+      "_excavation": "bool",
       "_job": "Vector2i",
       "_worker": "Vector2i",
       "_project": "Vector2i",
@@ -1485,11 +1486,11 @@
     "packet_bytes": {
       "order": 96,
       "selection": 168,
-      "location": 116,
+      "location": 196,
       "box": 32,
       "number": 9
     },
-    "fixed_numeric_and_packed_bytes": 753,
+    "fixed_numeric_and_packed_bytes": 834,
     "work_new_numeric_bytes": 1,
     "work_bindings": {
       "_delivery_script": "Script",
@@ -1498,12 +1499,12 @@
     },
     "logical_helper_allowance_bytes": 1024,
     "native_reserve_bytes": 2048,
-    "declared_bytes": 3826,
+    "declared_bytes": 3907,
     "reserved_bytes": 4096,
     "scope": "Separate ADR1140 per-world contribution. Reviewed coupled logical helper census817 fits1024; the borrowed216-byte Transfer is already charged in1141. No new gameplay bank; runtime memory remains unqualified."
   },
   "profile_motion_reservation": {
-    "source_sha256": "199bb60bfc6e62ac3f5e365d6d0b4247f82393511bc0eefaeedb31a93aefe8cd",
+    "source_sha256": "8b9fb7a07770a7ad670cc47872046f9df01e24c17298903fbd3ee9ad7c7ff9d8",
     "status": "SOURCE_COUNTED_COMPONENT_ONLY; no native allocation or travel/timing qualification",
     "bank_members": {
       "ints": [
@@ -1799,23 +1800,23 @@
       "bounded header/slice/string/digest temporaries and interpreter frames"
     ],
     "native_measured": false,
-    "foreign_call_lifetime": "MoleCatalog runtime source hashing and exact Profile wire check run sequentially before decoding. Their existing32KiB Profiles control reserve is included once in53756, not additionally allocated. Actual Content palettes in tests have separate declared presentation reservation; none is retained by Motion.",
+    "foreign_call_lifetime": "MoleCatalog runtime source hashing and exact Profile wire check run sequentially before decoding. Their existing32KiB Profiles control reserve is included once in62432, not additionally allocated. Actual Content palettes in tests have separate declared presentation reservation; none is retained by Motion.",
     "profile_configuration": {
-      "profiles": 29,
-      "boxes": 271,
-      "sources": 1
+      "profiles": 67,
+      "boxes": 547,
+      "sources": 6
     },
     "joint": {
-      "profiles": 53756,
+      "profiles": 76980,
       "levels": 2292,
       "paired_motion": 141720,
       "decode": 4096,
       "caller": 176,
       "logical_helper": 4096,
       "native": 32768,
-      "total": 238904,
-      "reservation": 262144,
-      "headroom": 23240,
+      "total": 262128,
+      "reservation": 278528,
+      "headroom": 16400,
       "independent_maxima_total_refuses": 444284
     },
     "admission_limit": "This component assumes a single caller-owned composed source catalog. Root owns shared reservation enforcement; constructing arbitrary extra owners is not an admitted World configuration."
@@ -4219,12 +4220,12 @@
       "current_source_sha256": {
         "godot/scripts/core/gear.gd": "aeed59191a5e06fbd6e8b4bccf93d9b991ff9a73e2a1229afa1f2ed0cc6972ea",
         "godot/scripts/core/haul_carry.gd": "0f878cae0faa419da7d4ff563a2ea7f88cba95a5fe2c8eeeb613843ff903872b",
-        "godot/scripts/core/inventory.gd": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
+        "godot/scripts/core/inventory.gd": "7e93fe28fd7e15e5ee0d401af47b06e91939ec4cd86c0195b5dfac8a3ecdff77",
         "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
         "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
-        "godot/scripts/core/underground_profiles.gd": "2dd505f98fe55b640fd96d254d155093a3f88baf42315ffe95baebcc6f0234ec",
-        "godot/scripts/core/underground_routes.gd": "27d4f2e92472803235129159dd9fd92291b75aa09057bbf58f5417783f4eea1f",
-        "godot/scripts/core/underground_world_routes.gd": "45fd127a49ca04133fc9fb4ddeed275fa5700fc9f41fdf7914c22206b81b2b66"
+        "godot/scripts/core/underground_profiles.gd": "4adcdc2be52254d7c9ca73f7790b64cdd58e62f35d512dbd6f47a9f573d17d28",
+        "godot/scripts/core/underground_routes.gd": "e16a8392a9d469af43d3adf2410db5a7cdc41cb51c3b5d590c572fd1bd9c2146",
+        "godot/scripts/core/underground_world_routes.gd": "602f20d30812f4da61d624d3d42ade7eb1fe44729b751942b9d64dee1b4ee531"
       }
     },
     "current_profile_control": {
@@ -4698,8 +4699,8 @@
     "native_measured": false
   },
   "motion_clock_reservation": {
-    "clock_source_sha256": "a76b16440bbffe3751bfdc361e3e4195f80a3cd895e17af65d8d7773be6e4141",
-    "motion_source_sha256": "199bb60bfc6e62ac3f5e365d6d0b4247f82393511bc0eefaeedb31a93aefe8cd",
+    "clock_source_sha256": "ffe6340027f5d6adf0d0b416539423102a586f0e402091af3dcbfab70be1d0ed",
+    "motion_source_sha256": "8b9fb7a07770a7ad670cc47872046f9df01e24c17298903fbd3ee9ad7c7ff9d8",
     "scope": "Logical source census only; no native allocation, route or presentation qualification",
     "retained_fields_or_banks": 0,
     "accepted_variant_payload_bytes": 32,
@@ -4721,16 +4722,16 @@
     "clock_caller_bytes": 44,
     "shared_caller_reservation": 176,
     "joint": {
-      "profiles": 53756,
+      "profiles": 76980,
       "levels": 2292,
       "paired_motion": 141720,
       "decode": 4096,
       "caller": 176,
       "logical_helper": 4096,
       "native": 32768,
-      "total": 238904,
-      "reservation": 262144,
-      "headroom": 23240,
+      "total": 262128,
+      "reservation": 278528,
+      "headroom": 16400,
       "independent_maxima_total_refuses": 444284
     },
     "native_measured": false,
@@ -4743,7 +4744,7 @@
     "lifetime": "One synchronous caller; no resident clock. Motion phase frame and clock frame coexist. The existing maximum Motion chain is conservatively retained in the total, plus the entire clock-only maximum. The clock 44-byte output replaces, rather than adds to, the existing 176-byte caller ceiling."
   },
   "session_reservation": {
-    "source_sha256": "f3026b276973c9992f92d910a64fd1a225cedcae8ca4c9ef748de8e9ddfce712",
+    "source_sha256": "054e63c7b16b10c6f929c81c62c0fd0124c21cd7e83b491cb6d1be68f5588e06",
     "retained_numeric_bytes": 43,
     "strong_reference_or_alias_members": 24,
     "additional_retirement_reference_slots_charged_separately": 2,
@@ -4770,13 +4771,13 @@
     "references_are_not_measured_native_bytes": true,
     "own_total_slice_bytes": 1536,
     "slice_source": "existing PROFILE_BYTES; no global reserve increase",
-    "existing_profile_paired_plus_control_bytes": 53756,
+    "existing_profile_paired_plus_control_bytes": 76980,
     "existing_level_bytes": 2292,
-    "foundation_profile_level_session_bytes": 57584,
-    "source_counted_motion_joint_before_session_bytes": 238904,
-    "profile_level_motion_session_joint_bytes": 240440,
+    "foundation_profile_level_session_bytes": 80808,
+    "source_counted_motion_joint_before_session_bytes": 262128,
+    "profile_level_motion_session_joint_bytes": 263664,
     "profile_envelope_bytes": 262144,
-    "joint_remaining_bytes": 21704,
+    "joint_remaining_bytes": 14864,
     "sequential_foundation_allocations": {
       "Space.Domain": 1,
       "Budget": 1,
@@ -6094,10 +6095,10 @@
       "existing_native_symbol_bytes_assumed": 2048,
       "helper_expression_bytes_assumed": 256,
       "profile_ceiling": 262144,
-      "joint_with_retirement": 248632,
-      "joint_remaining_bytes": 13512,
+      "joint_with_retirement": 271856,
+      "joint_remaining_bytes": 6672,
       "direct_reset_helper_bytes": 1199,
-      "current_source_joint_bytes": 240440
+      "current_source_joint_bytes": 263664
     },
     "lifetime": "One permanent Session-owned caller Owners plus one private Scope and its fixed Owners copy; the original Session1536 is charged once, and the two new references/host integer are in retirement8192. All own selected call frames include implicit self and reference-valued returns; complete accepted1155 static owner frames are composed. Original cold source checking and store-clear internals keep their existing owner reservations, with each caller prefix included here. No new source image is decoded/copied.",
     "native_measured": false,
@@ -6824,13 +6825,13 @@
       "godot/scripts/systems/settlement_system.gd": "29e815445d283dc9e4e216edb7e7fa7500ef62b918a7b83b190fc24418dbc3a5"
     },
     "source_sha256": {
-      "godot/scripts/core/underground_world_retirement.gd": "d44232dfaa9581d82e5887bafc36664602ed830716a92d069a87dfd6aa2da889",
-      "godot/scripts/core/buildings.gd": "e893b278f8b1f35e6e8f6e3971e8ade136662a0d3f1f5b619042d18e17506fcd",
-      "godot/scripts/core/construction.gd": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a",
-      "godot/scripts/core/work.gd": "a79363ab3e6a116e89b32fc89ded50aa32a0849a81e34b6737043a3362255338",
-      "godot/scripts/core/inventory.gd": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
-      "godot/scripts/core/underground_session.gd": "f3026b276973c9992f92d910a64fd1a225cedcae8ca4c9ef748de8e9ddfce712",
-      "godot/scripts/systems/settlement_system.gd": "66e8eda0c6de0fef72d7139229c31b76d8df73803e098e1b7312e0167f43dd50"
+      "godot/scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
+      "godot/scripts/core/buildings.gd": "ecee0a6758e695065d7e5db7c61241bf0ad5d99f1bfff99fb94a139dbb1bb0c6",
+      "godot/scripts/core/construction.gd": "48a6d74a8e1e26e7959ac9af9046ca6dce014f0cfe3ab177de383bc34b980fa4",
+      "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310",
+      "godot/scripts/core/inventory.gd": "7e93fe28fd7e15e5ee0d401af47b06e91939ec4cd86c0195b5dfac8a3ecdff77",
+      "godot/scripts/core/underground_session.gd": "054e63c7b16b10c6f929c81c62c0fd0124c21cd7e83b491cb6d1be68f5588e06",
+      "godot/scripts/systems/settlement_system.gd": "c1a6b14bdb229de0a5de4baa81c347f266daba04f845c452d77c9669f7cfe8bf"
     },
     "current_composition_source_sha256": {
       "godot/scripts/core/underground_session.gd": "f3026b276973c9992f92d910a64fd1a225cedcae8ca4c9ef748de8e9ddfce712",
@@ -7735,7 +7736,7 @@
       "helpers": 1919,
       "helper_ceiling": 2048,
       "original_session_reserved_bytes": 1536,
-      "profile_joint_unchanged": 248632,
+      "profile_joint_unchanged": 271856,
       "profile_ceiling": 262144,
       "reference_bytes_assumed": 32,
       "one_outcome_header_assumed": 256,
@@ -23282,7 +23283,8 @@
       },
       "native_measured": false,
       "world_activation_qualified": false,
-      "scope": "Exact source delta from immutable predecessor; no new decoder, object bank, rate or permission. Root separately renews shared checker and whole-pack output."
+      "scope": "Exact source delta from immutable predecessor; no new decoder, object bank, rate or permission. Root separately renews shared checker and whole-pack output.",
+      "historical_joint": 248632
     },
     "historical_itinerary": {
       "scope": "Logical declared numeric/packed payload census only; no native allocation or runtime qualification.",
@@ -41093,7 +41095,7 @@
         "helper_ceiling": 2048,
         "retirement_reserved_bytes": 8192,
         "existing_session_reserved_bytes": 1536,
-        "profile_joint": 248632,
+        "profile_joint": 271856,
         "profile_ceiling": 262144
       },
       "native_measured": false,
@@ -41220,6 +41222,50 @@
     "additional_global_reserved_bytes": 0,
     "runtime_qualified": false,
     "native_measured": false,
+    "projected_reviewed_inputs": [
+      "godot/data/underground/mole-worker/mole_profile_catalog.gd",
+      "godot/data/underground/mole-worker/qualified-step-v4/catalog_source.gd",
+      "godot/data/underground/mole-worker/qualified-step-v4/manifest.json",
+      "godot/data/underground/mole-worker/work-step-v1/source_program.gd",
+      "godot/scripts/core/buildings.gd",
+      "godot/scripts/core/construction.gd",
+      "godot/scripts/core/excavation_contract.gd",
+      "godot/scripts/core/excavation_inventory.gd",
+      "godot/scripts/core/excavation_sites.gd",
+      "godot/scripts/core/inventory.gd",
+      "godot/scripts/core/jobs.gd",
+      "godot/scripts/core/modular_projects.gd",
+      "godot/scripts/core/movement.gd",
+      "godot/scripts/core/resource_nodes.gd",
+      "godot/scripts/core/transforms.gd",
+      "godot/scripts/core/underground_budget.gd",
+      "godot/scripts/core/underground_connector_catalog.gd",
+      "godot/scripts/core/underground_connector_contacts.gd",
+      "godot/scripts/core/underground_connector_placements.gd",
+      "godot/scripts/core/underground_entry_world_bindings.gd",
+      "godot/scripts/core/underground_final_facts.gd",
+      "godot/scripts/core/underground_locations.gd",
+      "godot/scripts/core/underground_motion_catalog.gd",
+      "godot/scripts/core/underground_motion_clock.gd",
+      "godot/scripts/core/underground_phase_structure.gd",
+      "godot/scripts/core/underground_profiles.gd",
+      "godot/scripts/core/underground_room_bindings.gd",
+      "godot/scripts/core/underground_room_composition.gd",
+      "godot/scripts/core/underground_room_frontier.gd",
+      "godot/scripts/core/underground_room_frontier_publication.gd",
+      "godot/scripts/core/underground_room_itinerary.gd",
+      "godot/scripts/core/underground_room_world_bindings.gd",
+      "godot/scripts/core/underground_route_composition.gd",
+      "godot/scripts/core/underground_routes.gd",
+      "godot/scripts/core/underground_session.gd",
+      "godot/scripts/core/underground_space_owner.gd",
+      "godot/scripts/core/underground_surface_anchor.gd",
+      "godot/scripts/core/underground_world_retirement.gd",
+      "godot/scripts/core/underground_world_routes.gd",
+      "godot/scripts/core/work.gd",
+      "godot/scripts/core/world_init.gd",
+      "godot/scripts/systems/settlement_system.gd"
+    ],
     "historical_motion": {
       "source_sha256": "46e71996e15c1ccc12906831775b23f7a7c66d69bc2d161ddfdd78d0f6db67e3",
       "status": "SOURCE_COUNTED_COMPONENT_ONLY; no native allocation or travel/timing qualification",
@@ -41539,6 +41585,2762 @@
       "admission_limit": "This component assumes a single caller-owned composed source catalog. Root owns shared reservation enforcement; constructing arbitrary extra owners is not an admitted World configuration."
     }
   },
+  "current_source_census": {
+    "scope": "ADR 1212: recount the current retained storage the reviewed room census no longer sees.",
+    "reviewed_inputs": {
+      "godot/data/underground/mole-worker/mole_profile_catalog.gd": {
+        "charges": [
+          {
+            "bytes": 8676,
+            "carried_by": "PROFILE_BYTES joint (motion census, 257,308 of 262,144)",
+            "store": "content 6 paired Profile bank (42 rows, 377 boxes, 4 sources): 62,432 B with the 32 KiB control, was 53,756"
+          },
+          {
+            "bytes": 96,
+            "carried_by": "Profiles CONTROL_RESERVE (load-time, released)",
+            "store": "three 32-byte digest buffers while hashing sources at load"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1217 step 5: content 9 (60 rows, 517 boxes, 6 sources; paired bank 41,160 B, counted in the Motion/Profile joint under the raised PROFILE_BYTES); the six source digests are hashed through one 32-byte scratch and one PackedStringArray of the pinned digests"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "PROFILE_BYTES joint (motion census)",
+            "store": "ADR1229: content 10 (67 rows, 547 boxes, 6 sources; paired bank 44,212 B, +3,052 B over content 9) in the Motion/Profile joint, 262,128 of 278,528"
+          }
+        ],
+        "delta": {
+          "resizes_added": [
+            "digest.resize(32)"
+          ],
+          "resizes_removed": [
+            "source.resize(32)"
+          ],
+          "int_constants_added": [
+            [
+              "BOX_COUNT",
+              "547"
+            ],
+            [
+              "CONTENT_REVISION",
+              "10"
+            ],
+            [
+              "PAIRED_BANK_BYTES",
+              "44212"
+            ],
+            [
+              "PROFILE_COUNT",
+              "67"
+            ],
+            [
+              "SOURCE_COUNT",
+              "6"
+            ],
+            [
+              "WIRE_BYTES",
+              "22114"
+            ]
+          ],
+          "int_constants_removed": [
+            [
+              "BOX_COUNT",
+              "271"
+            ],
+            [
+              "CONTENT_REVISION",
+              "3"
+            ],
+            [
+              "PAIRED_BANK_BYTES",
+              "20988"
+            ],
+            [
+              "PROFILE_COUNT",
+              "29"
+            ],
+            [
+              "WIRE_BYTES",
+              "10502"
+            ]
+          ],
+          "allocation_sites": {
+            "PackedStringArray(": 1
+          }
+        }
+      },
+      "godot/data/underground/mole-worker/qualified-step-v4/catalog_source.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "historical publication pins renewed in place (ADR 1205); not loaded at runtime"
+          }
+        ],
+        "delta": {}
+      },
+      "godot/data/underground/mole-worker/qualified-step-v4/manifest.json": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "historical publication manifest (ADR 1205); not loaded at runtime"
+          }
+        ],
+        "delta": null
+      },
+      "godot/data/underground/mole-worker/work-step-v1/source_program.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "no retained-storage change"
+          }
+        ],
+        "delta": {}
+      },
+      "godot/scripts/core/buildings.gd": {
+        "charges": [
+          {
+            "bytes": 10496000,
+            "carried_by": "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "sections 4+5+6-flag capture/apply: one Columns (3,298,304) and one Links (1,884,160) image plus the matching FramedOwner and section 5/6 blocks, and 131,072 bytes of cold validator bitmaps"
+          },
+          {
+            "bytes": 983040,
+            "carried_by": "ADR 1235 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "ADR 1235 whole-column proof of columns_refusal(): native slices of one column at a time while differing rows are located (at most twice the largest, 81,920 x 4 B) plus the differing-row list (at most 81,920 x 4 B); no retained member"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_last_column_refusal",
+              "StringName"
+            ]
+          ],
+          "resizes_added": [
+            "b_ref_generation.resize(BUILDING_CAPACITY)",
+            "b_ref_slot.resize(BUILDING_CAPACITY)",
+            "b_room_count.resize(BUILDING_CAPACITY)",
+            "b_room_head.resize(BUILDING_CAPACITY)",
+            "covered.resize(ROOM_TILE_LINK_CAPACITY)",
+            "f_installed.resize(FURNITURE_CAPACITY)",
+            "f_ref_generation.resize(FURNITURE_CAPACITY)",
+            "f_ref_slot.resize(FURNITURE_CAPACITY)",
+            "f_room_next.resize(FURNITURE_CAPACITY)",
+            "f_room_prev.resize(FURNITURE_CAPACITY)",
+            "r_building_next.resize(ROOM_CAPACITY)",
+            "r_building_prev.resize(ROOM_CAPACITY)",
+            "r_furniture_count.resize(ROOM_CAPACITY)",
+            "r_furniture_head.resize(ROOM_CAPACITY)",
+            "r_ref_generation.resize(ROOM_CAPACITY)",
+            "r_ref_slot.resize(ROOM_CAPACITY)",
+            "r_spatial_kind.resize(ROOM_CAPACITY)",
+            "room_tile_id.resize(ROOM_TILE_LINK_CAPACITY)",
+            "seen.resize(FURNITURE_CAPACITY)",
+            "seen.resize(ROOM_CAPACITY)",
+            "seen.resize(TILE_COUNT)"
+          ],
+          "classes": {
+            "Links": [
+              null,
+              [
+                [
+                  "b_ref_generation",
+                  "PackedInt32Array"
+                ],
+                [
+                  "b_ref_slot",
+                  "PackedInt32Array"
+                ],
+                [
+                  "b_room_count",
+                  "PackedInt32Array"
+                ],
+                [
+                  "b_room_head",
+                  "PackedInt32Array"
+                ],
+                [
+                  "f_installed",
+                  "PackedByteArray"
+                ],
+                [
+                  "f_ref_generation",
+                  "PackedInt32Array"
+                ],
+                [
+                  "f_ref_slot",
+                  "PackedInt32Array"
+                ],
+                [
+                  "f_room_next",
+                  "PackedInt32Array"
+                ],
+                [
+                  "f_room_prev",
+                  "PackedInt32Array"
+                ],
+                [
+                  "r_building_next",
+                  "PackedInt32Array"
+                ],
+                [
+                  "r_building_prev",
+                  "PackedInt32Array"
+                ],
+                [
+                  "r_furniture_count",
+                  "PackedInt32Array"
+                ],
+                [
+                  "r_furniture_head",
+                  "PackedInt32Array"
+                ],
+                [
+                  "r_ref_generation",
+                  "PackedInt32Array"
+                ],
+                [
+                  "r_ref_slot",
+                  "PackedInt32Array"
+                ],
+                [
+                  "r_spatial_kind",
+                  "PackedByteArray"
+                ],
+                [
+                  "room_tile_id",
+                  "PackedInt32Array"
+                ]
+              ]
+            ]
+          },
+          "allocation_sites": {
+            "([": 2,
+            ".duplicate(": 46,
+            "=[": 1,
+            "PackedByteArray(": 8,
+            "PackedInt32Array(": 15,
+            "in[": 4,
+            "range(": 1
+          }
+        }
+      },
+      "godot/scripts/core/construction.gd": {
+        "charges": [
+          {
+            "bytes": 26210304,
+            "carried_by": "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "sections 4+5+6 capture/apply: two Columns images (frozen and extension, 4,893,696 each) and one Ledger (3,317,760), plus the matching FramedOwner and section 5/6 blocks"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1228: a retired excavation or modular row also clears its worker capacity (the exact never-used clear row); no storage change"
+          },
+          {
+            "bytes": 9621504,
+            "carried_by": "ADR 1235 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "ADR 1235 whole-column proofs of columns_refusal() and restore_columns(): the delivered ledger's sorted copy (2,654,208 B), native slices while its differing cells are located (at most 5,308,416 B), the differing-cell and differing-row lists (at most 1,327,104 + 331,776 B); the column proof and the present-row lists are smaller and not concurrent; no retained member"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_last_column_refusal",
+              "StringName"
+            ]
+          ],
+          "resizes_added": [
+            "delivered_milli.resize(DELIVERED_CELLS)",
+            "paid_base_type.resize(CONSTRUCTION_CAPACITY)",
+            "paid_upgrade_mask.resize(CONSTRUCTION_CAPACITY)"
+          ],
+          "classes": {
+            "Ledger": [
+              null,
+              [
+                [
+                  "delivered_milli",
+                  "PackedInt64Array"
+                ],
+                [
+                  "paid_base_type",
+                  "PackedInt32Array"
+                ],
+                [
+                  "paid_upgrade_mask",
+                  "PackedInt32Array"
+                ]
+              ]
+            ]
+          },
+          "allocation_sites": {
+            "([": 1,
+            ".duplicate(": 19,
+            "PackedInt32Array(": 3,
+            "PackedInt64Array(": 1,
+            "in[": 2,
+            "range(": 1,
+            "return[": 1
+          }
+        }
+      },
+      "godot/scripts/core/excavation_inventory.gd": {
+        "charges": [
+          {
+            "bytes": 3936264,
+            "carried_by": "ADR 1228 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "section 6 excavation_inventory capture/apply: one copy of the eighteen columns at production capacity (free stack 131,072, project rows 2,322,432, receipts 1,441,792, losses 8,192, scalars 8) and a 32,768-byte receipt visit bitmap"
+          }
+        ],
+        "delta": {
+          "resizes_added": [
+            "seen.resize(_capacity)"
+          ],
+          "int_constants_added": [
+            [
+              "SAVE_COLUMN_COUNT",
+              "18"
+            ]
+          ],
+          "allocation_sites": {
+            ".duplicate(": 30,
+            ".slice(": 1,
+            "PackedByteArray(": 1,
+            "PackedInt32Array(": 2,
+            "range(": 2,
+            "return[": 1
+          }
+        }
+      },
+      "godot/scripts/core/excavation_sites.gd": {
+        "charges": [
+          {
+            "bytes": 8684325,
+            "carried_by": "ADR 1228 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "section 6 excavation_sites capture/apply: one copy of the forty columns at production capacity (73,909 rows x 61 B, 369,545 earned-work i64, 512 worker pairs, 108 scalar bytes), the sorted-key validation copy and the rebuilt key order (591,272 B each) and the rebuilt Job index (32,768 B)"
+          }
+        ],
+        "delta": {
+          "resizes_added": [
+            "order.resize(_count)",
+            "out.resize(Jobs.JOB_CAPACITY)"
+          ],
+          "int_constants_added": [
+            [
+              "SAVE_COLUMN_COUNT",
+              "40"
+            ],
+            [
+              "SAVE_SCALAR_COUNT",
+              "20"
+            ]
+          ],
+          "allocation_sites": {
+            "([": 1,
+            ",[": 18,
+            ".duplicate(": 22,
+            ".slice(": 1,
+            "=[": 2,
+            "PackedInt32Array(": 6,
+            "PackedInt64Array(": 2,
+            "in[": 3,
+            "range(": 2
+          }
+        }
+      },
+      "godot/scripts/core/inventory.gd": {
+        "charges": [
+          {
+            "bytes": 50200,
+            "carried_by": "ADR 1228 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "section 6 inventory spatial capture/apply: the 1,024-row endpoint arena (24 B a row plus 12 scalar bytes) captured, and the previous arena held through the post-install audit; section 7's canonical anchor check marks 1,024 endpoint rows (1,024 B)"
+          },
+          {
+            "bytes": 4460544,
+            "carried_by": "ADR 1235 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "ADR 1235 whole-column proofs of the canonical partition, tail and inactive checks and the vectorised projection: a range() Array of up to 101,376 ints (2,433,024 B) and five 101,376-slot int32 columns (sorted generation copy, live list, ascending set, prefix slice and its sort; 2,027,520 B); the projection's replacement occupancy, generation and free-stack columns (1,059,840 B) are built after the proof and are not concurrent; no retained member"
+          }
+        ],
+        "delta": {
+          "resizes_added": [
+            "rows.resize(SPATIAL_ENDPOINT_CAPACITY)",
+            "tail.resize(capacity - count)"
+          ],
+          "allocation_sites": {
+            "([": 4,
+            ",[": 18,
+            ".duplicate(": 14,
+            ".slice(": 4,
+            "PackedByteArray(": 1,
+            "PackedInt32Array(": 11,
+            "PackedInt64Array(": 1,
+            "in[": 2,
+            "range(": -8,
+            "return[": 4
+          }
+        }
+      },
+      "godot/scripts/core/jobs.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1223: the bound dispatcher's two method Callables (object id plus method name, native Variant overhead, unmeasured as in every row) and one bool of per-pass scratch; no packed column, no saved state"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_dispatch_owns",
+              "Callable"
+            ],
+            [
+              "_dispatch_reserves",
+              "Callable"
+            ],
+            [
+              "_scratch_reserved",
+              "bool"
+            ]
+          ]
+        }
+      },
+      "godot/scripts/core/modular_projects.gd": {
+        "charges": [
+          {
+            "bytes": 131072,
+            "carried_by": "ADR 1228 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "section 6 modular_projects capture/apply: one copy of the four JOB_CAPACITY i32 binding columns"
+          }
+        ],
+        "delta": {
+          "allocation_sites": {
+            ".duplicate(": 8,
+            "in[": 1,
+            "return[": 1
+          }
+        }
+      },
+      "godot/scripts/core/movement.gd": {
+        "charges": [
+          {
+            "bytes": 102400,
+            "carried_by": "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "section-4 capture/apply: one Columns image plus one FramedOwner of 32,768 value bytes each; section-9 cursors: one 18,432-byte block plus its Record copy"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_last_column_refusal",
+              "StringName"
+            ]
+          ],
+          "int_constants_added": [
+            [
+              "CURSOR_COLUMN_COUNT",
+              "9"
+            ]
+          ],
+          "allocation_sites": {
+            ".duplicate(": 16,
+            ".slice(": 9,
+            "PackedInt32Array(": 1,
+            "return[": 1
+          }
+        }
+      },
+      "godot/scripts/core/resource_nodes.gd": {
+        "charges": [
+          {
+            "bytes": 344064,
+            "carried_by": "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "section-4 capture/apply: one Columns image plus one FramedOwner of 172,032 value bytes each"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_last_column_refusal",
+              "StringName"
+            ]
+          ],
+          "resizes_added": [
+            "capacity_milli.resize(RESOURCE_NODE_CAPACITY)",
+            "exhausted.resize(RESOURCE_NODE_CAPACITY)",
+            "planted_day.resize(RESOURCE_NODE_CAPACITY)",
+            "present.resize(RESOURCE_NODE_CAPACITY)",
+            "quantity_milli.resize(RESOURCE_NODE_CAPACITY)",
+            "ref_generation.resize(RESOURCE_NODE_CAPACITY)",
+            "ref_slot.resize(RESOURCE_NODE_CAPACITY)",
+            "regrow_days.resize(RESOURCE_NODE_CAPACITY)",
+            "resource_id.resize(RESOURCE_NODE_CAPACITY)",
+            "tile.resize(RESOURCE_NODE_CAPACITY)"
+          ],
+          "classes": {
+            "Columns": [
+              null,
+              [
+                [
+                  "capacity_milli",
+                  "PackedInt64Array"
+                ],
+                [
+                  "exhausted",
+                  "PackedByteArray"
+                ],
+                [
+                  "planted_day",
+                  "PackedInt32Array"
+                ],
+                [
+                  "present",
+                  "PackedByteArray"
+                ],
+                [
+                  "quantity_milli",
+                  "PackedInt64Array"
+                ],
+                [
+                  "ref_generation",
+                  "PackedInt32Array"
+                ],
+                [
+                  "ref_slot",
+                  "PackedInt32Array"
+                ],
+                [
+                  "regrow_days",
+                  "PackedInt32Array"
+                ],
+                [
+                  "resource_id",
+                  "PackedInt32Array"
+                ],
+                [
+                  "tile",
+                  "PackedInt32Array"
+                ]
+              ]
+            ]
+          },
+          "allocation_sites": {
+            ".duplicate(": 10,
+            "PackedByteArray(": 2,
+            "PackedInt32Array(": 6,
+            "PackedInt64Array(": 2,
+            "range(": 1
+          }
+        }
+      },
+      "godot/scripts/core/transforms.gd": {
+        "charges": [
+          {
+            "bytes": 6303744,
+            "carried_by": "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "section-4 capture/apply: one Columns image plus one FramedOwner of 3,151,872 value bytes each"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_last_column_refusal",
+              "StringName"
+            ]
+          ],
+          "resizes_added": [
+            "bound_persistent_id.resize(TRANSFORM_CAPACITY)",
+            "prev_x.resize(TRANSFORM_CAPACITY)",
+            "prev_y.resize(TRANSFORM_CAPACITY)",
+            "prev_yaw.resize(TRANSFORM_CAPACITY)",
+            "prev_z.resize(TRANSFORM_CAPACITY)",
+            "x.resize(TRANSFORM_CAPACITY)",
+            "y.resize(TRANSFORM_CAPACITY)",
+            "yaw.resize(TRANSFORM_CAPACITY)",
+            "z.resize(TRANSFORM_CAPACITY)"
+          ],
+          "classes": {
+            "Columns": [
+              null,
+              [
+                [
+                  "bound_persistent_id",
+                  "PackedInt32Array"
+                ],
+                [
+                  "prev_x",
+                  "PackedInt32Array"
+                ],
+                [
+                  "prev_y",
+                  "PackedInt32Array"
+                ],
+                [
+                  "prev_yaw",
+                  "PackedInt32Array"
+                ],
+                [
+                  "prev_z",
+                  "PackedInt32Array"
+                ],
+                [
+                  "x",
+                  "PackedInt32Array"
+                ],
+                [
+                  "y",
+                  "PackedInt32Array"
+                ],
+                [
+                  "yaw",
+                  "PackedInt32Array"
+                ],
+                [
+                  "z",
+                  "PackedInt32Array"
+                ]
+              ]
+            ]
+          },
+          "allocation_sites": {
+            ".duplicate(": 9,
+            "PackedInt32Array(": 9
+          }
+        }
+      },
+      "godot/scripts/core/underground_budget.gd": {
+        "charges": [
+          {
+            "bytes": 256,
+            "carried_by": "joint pack (the reserve is a pack contribution)",
+            "store": "BINDINGS_AND_GROWTH_BYTES 524,288 -> 524,544 for the Contacts control below"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1217 step 5: PROFILE_BYTES 262,144 -> 278,528 (+16,384 B reserve) so content 9's paired profile bank keeps the Motion/Profile/Level joint plus the Session and retirement slices inside one assigned reserve"
+          }
+        ],
+        "delta": {
+          "int_constants_added": [
+            [
+              "BINDINGS_AND_GROWTH_BYTES",
+              "524544"
+            ],
+            [
+              "PROFILE_BYTES",
+              "278528"
+            ]
+          ],
+          "int_constants_removed": [
+            [
+              "BINDINGS_AND_GROWTH_BYTES",
+              "524288"
+            ],
+            [
+              "PROFILE_BYTES",
+              "262144"
+            ]
+          ]
+        }
+      },
+      "godot/scripts/core/underground_connector_catalog.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "no retained-storage change"
+          }
+        ],
+        "delta": {}
+      },
+      "godot/scripts/core/underground_connector_contacts.gd": {
+        "charges": [
+          {
+            "bytes": 256,
+            "carried_by": "BINDINGS_AND_GROWTH_BYTES (fully assigned, 524,544)",
+            "store": "CONTROL_BYTES 4,096 -> 4,352: ADR 1215 air in its two Location records (+160; fixed 3,219)"
+          },
+          {
+            "bytes": 74,
+            "carried_by": "none (new)",
+            "store": "ADR 1221: retained contact scope image (SCOPE_WIRE_BYTES 74), one caller image at a time, charged as retained, conservatively"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1227: PRESENT_DATUM_CHECKS 15 and PRESENT_REGION_CHECKS 11 are check-charge constants; no retained storage"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR1229 increment 6b: the tread-station stair reach (StairPath.Stops, one per resolution, and the leg list), the per-region tread body proof and the step-forward retreat; cold-path caller allocations only, inside the existing Contacts control and fragment banks, no retained member"
+          }
+        ],
+        "delta": {
+          "resizes_added": [
+            "out.resize(SCOPE_WIRE_BYTES)"
+          ],
+          "int_constants_added": [
+            [
+              "CONTROL_BYTES",
+              "4352"
+            ],
+            [
+              "PRESENT_DATUM_CHECKS",
+              "15"
+            ],
+            [
+              "PRESENT_REGION_CHECKS",
+              "11"
+            ],
+            [
+              "SCOPE_WIRE_BYTES",
+              "6 * 4 + 2 + 6 * 8"
+            ],
+            [
+              "SCOPE_WIRE_MAGIC",
+              "0x50435755"
+            ],
+            [
+              "SCOPE_WIRE_SCHEMA",
+              "1"
+            ]
+          ],
+          "int_constants_removed": [
+            [
+              "CONTROL_BYTES",
+              "4096"
+            ]
+          ],
+          "allocation_sites": {
+            "([": 4,
+            ".new(": 2,
+            "=[": 2,
+            "PackedInt32Array(": 3,
+            "range(": 3,
+            "return[": 1
+          }
+        }
+      },
+      "godot/scripts/core/underground_connector_placements.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "no retained-storage change"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1228: restore_file() adopts the image's frontier pin into a never-admitted store (scalar reads, no allocation)"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1228: restore_file() adopts the image's frontier pin into a never-admitted store and defers the anchor check to the loader's audit() (scalar reads, no allocation)"
+          }
+        ],
+        "delta": {
+          "allocation_sites": {
+            "range(": 2
+          }
+        }
+      },
+      "godot/scripts/core/underground_entry_world_bindings.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1225: one rebinding predicate for a replacement crew; no member, packet or resize"
+          }
+        ],
+        "delta": {}
+      },
+      "godot/scripts/core/underground_final_facts.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "no retained-storage change"
+          }
+        ],
+        "delta": {}
+      },
+      "godot/scripts/core/underground_locations.gd": {
+        "charges": [
+          {
+            "bytes": 161,
+            "carried_by": "new contribution",
+            "store": "carry controls (ADR 1207), ADR 1215 _air_box and _air_slots, and the borrowed ContactRetirementContext numeric packet (ADR 1202); the Bank air pool is the room_composition row"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1228: one bool, _loading_rows, true only inside a cold load's row re-proof; logical byte inside the existing carry-control packet"
+          },
+          {
+            "bytes": 6201,
+            "carried_by": "new contribution",
+            "store": "ADR1229 increment 6b: the installed-witness pass's prism cache (_prism_boxes, 6 x Catalog.MAX_PARTS int32 = 6,144 B; _prism_key, 5 int64) and its counters (_witness_pass, _sources_pass, _in_witness_pass): within one synchronous pass the paid prefix's prisms and the source verdict are derived once and shared by every record; nothing survives a pass; never saved"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_air_box",
+              "PackedInt32Array"
+            ],
+            [
+              "_air_slots",
+              "int"
+            ],
+            [
+              "_carried_locations",
+              "int"
+            ],
+            [
+              "_carry_content",
+              "int"
+            ],
+            [
+              "_carry_geometry",
+              "bool"
+            ],
+            [
+              "_contact_retirement",
+              "ContactRetirementContext"
+            ],
+            [
+              "_in_witness_pass",
+              "bool"
+            ],
+            [
+              "_loading_rows",
+              "bool"
+            ],
+            [
+              "_prism_boxes",
+              "PackedInt32Array"
+            ],
+            [
+              "_prism_key",
+              "PackedInt64Array"
+            ],
+            [
+              "_sources_pass",
+              "int"
+            ],
+            [
+              "_witness_pass",
+              "int"
+            ]
+          ],
+          "resizes_added": [
+            "_air_box.resize(6)",
+            "_prism_boxes.resize(6 * ConnectorCatalog.MAX_PARTS)",
+            "_prism_key.resize(5)",
+            "air.resize(6 * MAX_AIR_EXTRA)",
+            "air.resize(AIR_FIELDS * air_slots)"
+          ],
+          "int_constants_added": [
+            [
+              "AIR_ARENA_BYTES_PER_SLOT",
+              "2 * AIR_SLOT_BYTES"
+            ],
+            [
+              "AIR_FIELDS",
+              "7"
+            ],
+            [
+              "AIR_SLOT_BYTES",
+              "4 * AIR_FIELDS"
+            ],
+            [
+              "MAX_AIR_EXTRA",
+              "3"
+            ],
+            [
+              "MAX_AIR_SLOTS",
+              "256"
+            ],
+            [
+              "SCHEMA",
+              "2"
+            ]
+          ],
+          "int_constants_removed": [
+            [
+              "SCHEMA",
+              "1"
+            ]
+          ],
+          "classes": {
+            "Bank": [
+              [
+                [
+                  "count",
+                  "int"
+                ],
+                [
+                  "free_count",
+                  "int"
+                ],
+                [
+                  "free_rows",
+                  "PackedInt32Array"
+                ],
+                [
+                  "header",
+                  "PackedInt64Array"
+                ],
+                [
+                  "i32",
+                  "PackedInt32Array"
+                ],
+                [
+                  "i64",
+                  "PackedInt64Array"
+                ],
+                [
+                  "ordered",
+                  "PackedInt32Array"
+                ],
+                [
+                  "present",
+                  "PackedByteArray"
+                ],
+                [
+                  "retired",
+                  "PackedByteArray"
+                ]
+              ],
+              [
+                [
+                  "air",
+                  "PackedInt32Array"
+                ],
+                [
+                  "count",
+                  "int"
+                ],
+                [
+                  "free_count",
+                  "int"
+                ],
+                [
+                  "free_rows",
+                  "PackedInt32Array"
+                ],
+                [
+                  "header",
+                  "PackedInt64Array"
+                ],
+                [
+                  "i32",
+                  "PackedInt32Array"
+                ],
+                [
+                  "i64",
+                  "PackedInt64Array"
+                ],
+                [
+                  "ordered",
+                  "PackedInt32Array"
+                ],
+                [
+                  "present",
+                  "PackedByteArray"
+                ],
+                [
+                  "retired",
+                  "PackedByteArray"
+                ]
+              ]
+            ],
+            "ContactRetirementContext": [
+              null,
+              [
+                [
+                  "budget",
+                  "Budget"
+                ],
+                [
+                  "candidate",
+                  "Bank"
+                ],
+                [
+                  "catalog",
+                  "int"
+                ],
+                [
+                  "cold",
+                  "int"
+                ],
+                [
+                  "first",
+                  "Vector2i"
+                ],
+                [
+                  "graph",
+                  "RefCounted"
+                ],
+                [
+                  "graph_candidate",
+                  "RefCounted"
+                ],
+                [
+                  "graph_live",
+                  "RefCounted"
+                ],
+                [
+                  "graph_revision",
+                  "int"
+                ],
+                [
+                  "issuer",
+                  "RefCounted"
+                ],
+                [
+                  "issuer_script",
+                  "Script"
+                ],
+                [
+                  "live",
+                  "Bank"
+                ],
+                [
+                  "location_revision",
+                  "int"
+                ],
+                [
+                  "location_token",
+                  "int"
+                ],
+                [
+                  "locations",
+                  "RefCounted"
+                ],
+                [
+                  "masks_candidate",
+                  "RefCounted"
+                ],
+                [
+                  "masks_live",
+                  "RefCounted"
+                ],
+                [
+                  "owner",
+                  "RefCounted"
+                ],
+                [
+                  "phase",
+                  "int"
+                ],
+                [
+                  "placement",
+                  "Vector2i"
+                ],
+                [
+                  "profiles",
+                  "int"
+                ],
+                [
+                  "revision",
+                  "int"
+                ],
+                [
+                  "route_receipt",
+                  "int"
+                ],
+                [
+                  "route_token",
+                  "int"
+                ],
+                [
+                  "routes",
+                  "RefCounted"
+                ],
+                [
+                  "second",
+                  "Vector2i"
+                ],
+                [
+                  "world",
+                  "Vector2i"
+                ]
+              ]
+            ],
+            "Record": [
+              [
+                [
+                  "envelope",
+                  "PackedInt32Array"
+                ],
+                [
+                  "geometry_revision",
+                  "int"
+                ],
+                [
+                  "level",
+                  "int"
+                ],
+                [
+                  "payload_revision",
+                  "int"
+                ],
+                [
+                  "point",
+                  "Vector3i"
+                ],
+                [
+                  "role",
+                  "int"
+                ],
+                [
+                  "room",
+                  "Vector2i"
+                ],
+                [
+                  "section",
+                  "Vector2i"
+                ],
+                [
+                  "support",
+                  "PackedInt32Array"
+                ],
+                [
+                  "world",
+                  "Vector2i"
+                ]
+              ],
+              [
+                [
+                  "air",
+                  "PackedInt32Array"
+                ],
+                [
+                  "air_count",
+                  "int"
+                ],
+                [
+                  "envelope",
+                  "PackedInt32Array"
+                ],
+                [
+                  "geometry_revision",
+                  "int"
+                ],
+                [
+                  "level",
+                  "int"
+                ],
+                [
+                  "payload_revision",
+                  "int"
+                ],
+                [
+                  "point",
+                  "Vector3i"
+                ],
+                [
+                  "role",
+                  "int"
+                ],
+                [
+                  "room",
+                  "Vector2i"
+                ],
+                [
+                  "section",
+                  "Vector2i"
+                ],
+                [
+                  "support",
+                  "PackedInt32Array"
+                ],
+                [
+                  "world",
+                  "Vector2i"
+                ]
+              ]
+            ]
+          },
+          "allocation_sites": {
+            ".duplicate(": 1,
+            ".new(": 1,
+            "=[": 1,
+            "PackedInt32Array(": 4,
+            "PackedInt64Array(": 1,
+            "in[": -1,
+            "range(": 2
+          }
+        }
+      },
+      "godot/scripts/core/underground_motion_catalog.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "REVISION constant 6; tables and bank unchanged"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1217 step 5: rebound to the content-9 motion wire (REVISION 9); tables unchanged"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR1229: rebound to the content-10 motion wire (revision 10); banks and tables unchanged"
+          }
+        ],
+        "delta": {
+          "int_constants_added": [
+            [
+              "REVISION",
+              "10"
+            ]
+          ]
+        }
+      },
+      "godot/scripts/core/underground_motion_clock.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "no retained-storage change"
+          }
+        ],
+        "delta": {}
+      },
+      "godot/scripts/core/underground_phase_structure.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "DEC-054 (ADR 1220): Room height below the level roof; comparisons only, no retained-storage change"
+          }
+        ],
+        "delta": {}
+      },
+      "godot/scripts/core/underground_profiles.gd": {
+        "charges": [
+          {
+            "bytes": 336,
+            "carried_by": "Profiles CONTROL_RESERVE (load-time, released)",
+            "store": "two load-time key-order scratch columns, one int per profile row (2 x 42 x 4); ADR 1229 adds three integer constants (POLICY_STAIR, POLICY_STAIR_TURN, CONTACT_TREAD_FIT) and no storage"
+          }
+        ],
+        "delta": {
+          "resizes_added": [
+            "last_of.resize(_stage.header[3])",
+            "same_key.resize(_stage.header[3])"
+          ],
+          "int_constants_added": [
+            [
+              "CONTACT_ASSEMBLY_PALM",
+              "3"
+            ],
+            [
+              "CONTACT_HAUL_GRIP",
+              "4"
+            ],
+            [
+              "CONTACT_TREAD_FIT",
+              "5"
+            ],
+            [
+              "POLICY_ASSEMBLY_HANDLING",
+              "7"
+            ],
+            [
+              "POLICY_STAIR",
+              "8"
+            ],
+            [
+              "POLICY_STAIR_TURN",
+              "9"
+            ]
+          ],
+          "allocation_sites": {
+            "PackedInt32Array(": 2
+          }
+        }
+      },
+      "godot/scripts/core/underground_room_bindings.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "DEC-054 (ADR 1220): Room height below the level roof; comparisons only, no retained-storage change"
+          }
+        ],
+        "delta": {}
+      },
+      "godot/scripts/core/underground_room_composition.gd": {
+        "charges": [
+          {
+            "bytes": 5376,
+            "carried_by": "LOCATION_AND_TOPOLOGY_BYTES unassigned remainder (recounted)",
+            "store": "ADR 1215 session air pool, 64 slots: 3,584 B in the two Location banks + 1,792 B wire"
+          }
+        ],
+        "delta": {
+          "int_constants_added": [
+            [
+              "LOCATION_AIR_SLOTS",
+              "64"
+            ]
+          ]
+        }
+      },
+      "godot/scripts/core/underground_room_frontier.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "no retained-storage change"
+          }
+        ],
+        "delta": {}
+      },
+      "godot/scripts/core/underground_room_frontier_publication.gd": {
+        "charges": [
+          {
+            "bytes": 920,
+            "carried_by": "Room publication CONTROL_BYTES (8,970 of 9,216) inside Budget.COLD_BYTES",
+            "store": "ADR 1215 air shape in the caller and private Requests (2 x 300) and four Query Records (4 x 80)"
+          }
+        ],
+        "delta": {
+          "resizes_added": [
+            "air.resize(MAX_STATIONS * AIR_BOXES * 6)"
+          ],
+          "int_constants_added": [
+            [
+              "AIR_BOXES",
+              "1 + Locations.MAX_AIR_EXTRA"
+            ],
+            [
+              "CONTROL_BYTES",
+              "9216"
+            ]
+          ],
+          "int_constants_removed": [
+            [
+              "CONTROL_BYTES",
+              "8192"
+            ]
+          ],
+          "classes": {
+            "Request": [
+              [
+                [
+                  "count",
+                  "int"
+                ],
+                [
+                  "face",
+                  "int"
+                ],
+                [
+                  "gateway",
+                  "Vector2i"
+                ],
+                [
+                  "points",
+                  "PackedInt32Array"
+                ],
+                [
+                  "profiles",
+                  "PackedInt64Array"
+                ],
+                [
+                  "sections",
+                  "PackedInt32Array"
+                ],
+                [
+                  "work_profile",
+                  "int"
+                ],
+                [
+                  "work_revision",
+                  "int"
+                ],
+                [
+                  "yaw",
+                  "int"
+                ]
+              ],
+              [
+                [
+                  "air",
+                  "PackedInt32Array"
+                ],
+                [
+                  "air_counts",
+                  "PackedInt32Array"
+                ],
+                [
+                  "count",
+                  "int"
+                ],
+                [
+                  "face",
+                  "int"
+                ],
+                [
+                  "gateway",
+                  "Vector2i"
+                ],
+                [
+                  "points",
+                  "PackedInt32Array"
+                ],
+                [
+                  "profiles",
+                  "PackedInt64Array"
+                ],
+                [
+                  "sections",
+                  "PackedInt32Array"
+                ],
+                [
+                  "work_profile",
+                  "int"
+                ],
+                [
+                  "work_revision",
+                  "int"
+                ],
+                [
+                  "yaw",
+                  "int"
+                ]
+              ]
+            ]
+          },
+          "allocation_sites": {
+            "PackedInt32Array(": 3,
+            "in[": 2
+          }
+        }
+      },
+      "godot/scripts/core/underground_room_itinerary.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "one range() iterator in a cold path; no retained storage"
+          }
+        ],
+        "delta": {
+          "allocation_sites": {
+            "range(": 1
+          }
+        }
+      },
+      "godot/scripts/core/underground_room_world_bindings.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "no retained-storage change"
+          }
+        ],
+        "delta": {}
+      },
+      "godot/scripts/core/underground_route_composition.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "bundle constants; 15 ground-pace rows inside the Catalog's fixed MAX_PACES = 256 bank"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1217 step 5: the claw bundle's 24 ground caps (GROUND_PACE_COUNT 15 -> 24); the structure catalog is unchanged in size"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR1229: GROUND_PACE_COUNT 24 -> 29 inside the Catalog fixed MAX_PACES bank; one StairMotion per route composition, lent to Routes, charged in the census claw_stair_tables row (9,580 B)"
+          }
+        ],
+        "delta": {
+          "int_constants_added": [
+            [
+              "CATALOG_DIGEST_0",
+              "Bundle.CATALOG_DIGEST_0"
+            ],
+            [
+              "CATALOG_DIGEST_1",
+              "Bundle.CATALOG_DIGEST_1"
+            ],
+            [
+              "CATALOG_DIGEST_2",
+              "Bundle.CATALOG_DIGEST_2"
+            ],
+            [
+              "CATALOG_DIGEST_3",
+              "Bundle.CATALOG_DIGEST_3"
+            ],
+            [
+              "CATALOG_REVISION",
+              "Bundle.CATALOG_REVISION"
+            ],
+            [
+              "GROUND_PACE_COUNT",
+              "29"
+            ],
+            [
+              "PROFILE_CONTENT_REVISION",
+              "Bundle.CONTENT_REVISION"
+            ]
+          ],
+          "int_constants_removed": [
+            [
+              "CATALOG_DIGEST_0",
+              "-6187198552126894523"
+            ],
+            [
+              "CATALOG_DIGEST_1",
+              "-3743869169456484174"
+            ],
+            [
+              "CATALOG_DIGEST_2",
+              "-8277596517807541495"
+            ],
+            [
+              "CATALOG_DIGEST_3",
+              "2607509635061225895"
+            ],
+            [
+              "CATALOG_REVISION",
+              "1"
+            ],
+            [
+              "PROFILE_CONTENT_REVISION",
+              "3"
+            ]
+          ],
+          "allocation_sites": {
+            ".new(": 1,
+            "range(": -1
+          }
+        }
+      },
+      "godot/scripts/core/underground_routes.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1219: UNREGISTERED_REACH_U is a compile-time constant of the unregistered-resident occupancy rule; no retained storage"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "Budget.COLD_BYTES shared cold lease",
+            "store": "ADR 1221: Routes wire schema 1 capture/restore image (320,608 B at the composed capacities) is the caller's leased cold image; restore decodes into the existing stage and load banks. No retained storage"
+          },
+          {
+            "bytes": 8,
+            "carried_by": "Routes HEADER_RESERVE (fixed numeric controls)",
+            "store": "ADR 1229 increment 3: MotionStep.stair_key (one int in the single step packet) and the borrowed `_stair_motion` reference (native header, uncounted like every reference); the claw stair tables themselves are charged when the Session mounts them (increment 6)"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_stair_motion",
+              "StairMotion"
+            ]
+          ],
+          "resizes_added": [
+            "out.resize(wire_bytes()"
+          ],
+          "int_constants_added": [
+            [
+              "UNREGISTERED_REACH_U",
+              "2 * 2611"
+            ],
+            [
+              "WIRE_HEADER_FIELDS",
+              "12"
+            ],
+            [
+              "WIRE_MAGIC",
+              "0x54524755"
+            ],
+            [
+              "WIRE_SCHEMA",
+              "1"
+            ]
+          ],
+          "classes": {
+            "MotionStep": [
+              [
+                [
+                  "consumed",
+                  "int"
+                ],
+                [
+                  "cursor",
+                  "int"
+                ],
+                [
+                  "denominator",
+                  "int"
+                ],
+                [
+                  "edge",
+                  "Vector2i"
+                ],
+                [
+                  "finished",
+                  "bool"
+                ],
+                [
+                  "level",
+                  "int"
+                ],
+                [
+                  "numerator",
+                  "int"
+                ],
+                [
+                  "pace",
+                  "int"
+                ],
+                [
+                  "point",
+                  "Vector3i"
+                ],
+                [
+                  "progress",
+                  "int"
+                ],
+                [
+                  "remainder",
+                  "int"
+                ],
+                [
+                  "room",
+                  "Vector2i"
+                ],
+                [
+                  "section",
+                  "Vector2i"
+                ],
+                [
+                  "segment",
+                  "int"
+                ],
+                [
+                  "yaw",
+                  "int"
+                ]
+              ],
+              [
+                [
+                  "consumed",
+                  "int"
+                ],
+                [
+                  "cursor",
+                  "int"
+                ],
+                [
+                  "denominator",
+                  "int"
+                ],
+                [
+                  "edge",
+                  "Vector2i"
+                ],
+                [
+                  "finished",
+                  "bool"
+                ],
+                [
+                  "level",
+                  "int"
+                ],
+                [
+                  "numerator",
+                  "int"
+                ],
+                [
+                  "pace",
+                  "int"
+                ],
+                [
+                  "point",
+                  "Vector3i"
+                ],
+                [
+                  "progress",
+                  "int"
+                ],
+                [
+                  "remainder",
+                  "int"
+                ],
+                [
+                  "room",
+                  "Vector2i"
+                ],
+                [
+                  "section",
+                  "Vector2i"
+                ],
+                [
+                  "segment",
+                  "int"
+                ],
+                [
+                  "stair_key",
+                  "int"
+                ],
+                [
+                  "yaw",
+                  "int"
+                ]
+              ]
+            ]
+          },
+          "allocation_sites": {
+            "=[": 2,
+            "PackedInt64Array(": 2,
+            "range(": 3
+          }
+        }
+      },
+      "godot/scripts/core/underground_session.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "presentation (outside the REQ-SET-163 simulation gate)",
+            "store": "presentation reservation constants (ADR 1201); profile source count 4 is in the Profile joint"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1217 step 5: presentation constants for the claw and paw images and the v10 haul images (presentation memory, outside the simulation-owned gate); no simulation member, packet or resize"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "presentation (outside the REQ-SET-163 simulation gate)",
+            "store": "ADR1229: presentation constants for the v2 claw and paw images; no simulation member, packet or resize"
+          }
+        ],
+        "delta": {
+          "int_constants_added": [
+            [
+              "CLAW_PRESENTATION_BYTES",
+              "7551924"
+            ],
+            [
+              "HANDLING_PRESENTATION_BYTES",
+              "6628488"
+            ],
+            [
+              "HAUL_PRESENTATION_BYTES",
+              "7486168"
+            ],
+            [
+              "PAW_PRESENTATION_BYTES",
+              "6641672"
+            ],
+            [
+              "PRESENTATION_SET_BYTES",
+              "PRESENTATION_BYTES + HANDLING_PRESENTATION_BYTES + HAUL_PRESENTATION_BYTES \\"
+            ],
+            [
+              "PROFILE_SOURCE_COUNT",
+              "Catalog.SOURCE_COUNT"
+            ],
+            [
+              "STONE_PRESENTATION_BYTES",
+              "7285004"
+            ]
+          ],
+          "int_constants_removed": [
+            [
+              "PROFILE_SOURCE_COUNT",
+              "1"
+            ]
+          ]
+        }
+      },
+      "godot/scripts/core/underground_space_owner.gd": {
+        "charges": [
+          {
+            "bytes": 4322,
+            "carried_by": "new contribution",
+            "store": "two geometry journals (ADR 1205 route view, ADR 1207 full view), 64 sides each"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_journal",
+              "Journal"
+            ],
+            [
+              "_location_journal",
+              "Journal"
+            ]
+          ],
+          "allocation_sites": {
+            ".new(": 2
+          }
+        }
+      },
+      "godot/scripts/core/underground_surface_anchor.gd": {
+        "charges": [
+          {
+            "bytes": 8,
+            "carried_by": "SurfaceAnchor RESERVED_BYTES (asserted by the pack)",
+            "store": "_last_checks int"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_last_checks",
+              "int"
+            ]
+          ]
+        }
+      },
+      "godot/scripts/core/underground_world_retirement.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "entry structure reservation (decision1122, 384 B)",
+            "store": "ADR 1224: two Owners packet references (structure Scope and entry structure) retaining the providers decision1122 already reserves; object headers are native overhead, unmeasured as in every row"
+          }
+        ],
+        "delta": {
+          "classes": {
+            "Owners": [
+              [
+                [
+                  "authority",
+                  "Authority"
+                ],
+                [
+                  "budget",
+                  "Budget"
+                ],
+                [
+                  "buildings",
+                  "Buildings"
+                ],
+                [
+                  "carry",
+                  "Carry"
+                ],
+                [
+                  "connector",
+                  "ConnectorWork"
+                ],
+                [
+                  "construction",
+                  "Construction"
+                ],
+                [
+                  "contacts",
+                  "Contacts"
+                ],
+                [
+                  "content",
+                  "RefCounted"
+                ],
+                [
+                  "delivery",
+                  "Delivery"
+                ],
+                [
+                  "directory",
+                  "Directory"
+                ],
+                [
+                  "furniture",
+                  "Furniture"
+                ],
+                [
+                  "gear",
+                  "Gear"
+                ],
+                [
+                  "inventory",
+                  "Inventory"
+                ],
+                [
+                  "inventory_locations",
+                  "Locations.InventoryLocations"
+                ],
+                [
+                  "items",
+                  "Items"
+                ],
+                [
+                  "jobs",
+                  "Jobs"
+                ],
+                [
+                  "levels",
+                  "Levels"
+                ],
+                [
+                  "locations",
+                  "Locations"
+                ],
+                [
+                  "piles",
+                  "Piles"
+                ],
+                [
+                  "placements",
+                  "Placements"
+                ],
+                [
+                  "profiles",
+                  "Profiles"
+                ],
+                [
+                  "reservations",
+                  "Reservations"
+                ],
+                [
+                  "residents",
+                  "Residents"
+                ],
+                [
+                  "room_bindings",
+                  "RoomBindings"
+                ],
+                [
+                  "rooms",
+                  "Orders"
+                ],
+                [
+                  "router",
+                  "Router"
+                ],
+                [
+                  "routes",
+                  "Routes"
+                ],
+                [
+                  "sites",
+                  "Sites"
+                ],
+                [
+                  "sources",
+                  "Owner.CoreSources"
+                ],
+                [
+                  "space",
+                  "Owner"
+                ],
+                [
+                  "surface_anchor",
+                  "SurfaceAnchor"
+                ],
+                [
+                  "terrain",
+                  "Terrain"
+                ],
+                [
+                  "tips",
+                  "Tips"
+                ],
+                [
+                  "transforms",
+                  "Transforms"
+                ],
+                [
+                  "work",
+                  "Work"
+                ],
+                [
+                  "workpieces",
+                  "Workpieces"
+                ],
+                [
+                  "world",
+                  "World"
+                ],
+                [
+                  "world_bindings",
+                  "WorldBindings"
+                ],
+                [
+                  "world_ref",
+                  "Vector2i"
+                ],
+                [
+                  "world_routes",
+                  "WorldRoutes"
+                ]
+              ],
+              [
+                [
+                  "authority",
+                  "Authority"
+                ],
+                [
+                  "budget",
+                  "Budget"
+                ],
+                [
+                  "buildings",
+                  "Buildings"
+                ],
+                [
+                  "carry",
+                  "Carry"
+                ],
+                [
+                  "connector",
+                  "ConnectorWork"
+                ],
+                [
+                  "construction",
+                  "Construction"
+                ],
+                [
+                  "contacts",
+                  "Contacts"
+                ],
+                [
+                  "content",
+                  "RefCounted"
+                ],
+                [
+                  "delivery",
+                  "Delivery"
+                ],
+                [
+                  "directory",
+                  "Directory"
+                ],
+                [
+                  "entry_structure",
+                  "EntryStructure"
+                ],
+                [
+                  "furniture",
+                  "Furniture"
+                ],
+                [
+                  "gear",
+                  "Gear"
+                ],
+                [
+                  "inventory",
+                  "Inventory"
+                ],
+                [
+                  "inventory_locations",
+                  "Locations.InventoryLocations"
+                ],
+                [
+                  "items",
+                  "Items"
+                ],
+                [
+                  "jobs",
+                  "Jobs"
+                ],
+                [
+                  "levels",
+                  "Levels"
+                ],
+                [
+                  "locations",
+                  "Locations"
+                ],
+                [
+                  "piles",
+                  "Piles"
+                ],
+                [
+                  "placements",
+                  "Placements"
+                ],
+                [
+                  "profiles",
+                  "Profiles"
+                ],
+                [
+                  "reservations",
+                  "Reservations"
+                ],
+                [
+                  "residents",
+                  "Residents"
+                ],
+                [
+                  "room_bindings",
+                  "RoomBindings"
+                ],
+                [
+                  "rooms",
+                  "Orders"
+                ],
+                [
+                  "router",
+                  "Router"
+                ],
+                [
+                  "routes",
+                  "Routes"
+                ],
+                [
+                  "sites",
+                  "Sites"
+                ],
+                [
+                  "sources",
+                  "Owner.CoreSources"
+                ],
+                [
+                  "space",
+                  "Owner"
+                ],
+                [
+                  "structure_scope",
+                  "StructureScope"
+                ],
+                [
+                  "surface_anchor",
+                  "SurfaceAnchor"
+                ],
+                [
+                  "terrain",
+                  "Terrain"
+                ],
+                [
+                  "tips",
+                  "Tips"
+                ],
+                [
+                  "transforms",
+                  "Transforms"
+                ],
+                [
+                  "work",
+                  "Work"
+                ],
+                [
+                  "workpieces",
+                  "Workpieces"
+                ],
+                [
+                  "world",
+                  "World"
+                ],
+                [
+                  "world_bindings",
+                  "WorldBindings"
+                ],
+                [
+                  "world_ref",
+                  "Vector2i"
+                ],
+                [
+                  "world_routes",
+                  "WorldRoutes"
+                ]
+              ]
+            ]
+          }
+        }
+      },
+      "godot/scripts/core/underground_world_routes.gd": {
+        "charges": [
+          {
+            "bytes": 58,
+            "carried_by": "WorldRoutes CONTROL_RESERVE (recounted)",
+            "store": "_envelope (6 x i32) and six numeric carry controls"
+          },
+          {
+            "bytes": 1792,
+            "carried_by": "Budget.COLD_BYTES shared cold lease",
+            "store": "Clearance.changes staged sides (7 x 64 x i32)"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "Budget.COLD_BYTES shared cold lease",
+            "store": "ADR 1221: certificate and journal image (84,184 B) is the caller's leased cold image; restore decodes into the existing stage bank. No retained storage"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_carried",
+              "bool"
+            ],
+            [
+              "_carried_edges",
+              "int"
+            ],
+            [
+              "_carry_edge",
+              "bool"
+            ],
+            [
+              "_envelope",
+              "PackedInt32Array"
+            ],
+            [
+              "_proof_checks",
+              "int"
+            ],
+            [
+              "_relevant",
+              "int"
+            ],
+            [
+              "_since",
+              "int"
+            ]
+          ],
+          "resizes_added": [
+            "_envelope.resize(6)",
+            "changes.resize(Journal.STAGED_STRIDE * CHANGE_CAPACITY)",
+            "out.resize(CERT_WIRE_BYTES)"
+          ],
+          "int_constants_added": [
+            [
+              "CERT_WIRE_BYTES",
+              "8 * CERT_WIRE_HEADER + EDGE_CAPACITY * (MASK_BYTES + 4 + 16) + 2 * Journal.WIRE_BYTES"
+            ],
+            [
+              "CERT_WIRE_HEADER",
+              "5"
+            ],
+            [
+              "CERT_WIRE_MAGIC",
+              "0x52574755"
+            ],
+            [
+              "CERT_WIRE_SCHEMA",
+              "1"
+            ],
+            [
+              "CHANGE_CAPACITY",
+              "Journal.CAPACITY"
+            ],
+            [
+              "CLEARANCE_INERT_ROLE",
+              "Space.FLOOR_DATUM"
+            ],
+            [
+              "COLD_BYTES",
+              "SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 28 * CHANGE_CAPACITY + 1024"
+            ]
+          ],
+          "int_constants_removed": [
+            [
+              "COLD_BYTES",
+              "SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 1024"
+            ]
+          ],
+          "classes": {
+            "Clearance": [
+              [
+                [
+                  "box",
+                  "PackedInt32Array"
+                ],
+                [
+                  "core",
+                  "PackedInt32Array"
+                ],
+                [
+                  "count",
+                  "int"
+                ],
+                [
+                  "cover",
+                  "PackedInt32Array"
+                ],
+                [
+                  "cut",
+                  "PackedInt32Array"
+                ],
+                [
+                  "error",
+                  "StringName"
+                ],
+                [
+                  "fragments",
+                  "PackedInt32Array"
+                ],
+                [
+                  "image",
+                  "Space.Snapshot"
+                ],
+                [
+                  "next_count",
+                  "int"
+                ],
+                [
+                  "next_fragments",
+                  "PackedInt32Array"
+                ],
+                [
+                  "remaining",
+                  "int"
+                ]
+              ],
+              [
+                [
+                  "box",
+                  "PackedInt32Array"
+                ],
+                [
+                  "change_count",
+                  "int"
+                ],
+                [
+                  "changes",
+                  "PackedInt32Array"
+                ],
+                [
+                  "core",
+                  "PackedInt32Array"
+                ],
+                [
+                  "count",
+                  "int"
+                ],
+                [
+                  "cover",
+                  "PackedInt32Array"
+                ],
+                [
+                  "cut",
+                  "PackedInt32Array"
+                ],
+                [
+                  "error",
+                  "StringName"
+                ],
+                [
+                  "fragments",
+                  "PackedInt32Array"
+                ],
+                [
+                  "image",
+                  "Space.Snapshot"
+                ],
+                [
+                  "next_count",
+                  "int"
+                ],
+                [
+                  "next_fragments",
+                  "PackedInt32Array"
+                ],
+                [
+                  "remaining",
+                  "int"
+                ]
+              ]
+            ]
+          },
+          "allocation_sites": {
+            "PackedInt32Array(": 2,
+            "PackedInt64Array(": 1,
+            "range(": 1
+          }
+        }
+      },
+      "godot/scripts/core/work.gd": {
+        "charges": [
+          {
+            "bytes": 78848,
+            "carried_by": "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "section-4 capture/apply: one Columns image plus one FramedOwner of 39,424 value bytes each"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1226: REQ-SET-034's SAFE_SEGMENT_MWU constant and one cap function; no member, packet or resize"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_last_column_refusal",
+              "StringName"
+            ]
+          ],
+          "resizes_added": [
+            "memory_total.resize(RESIDENT_CAPACITY)",
+            "potential_remainder.resize(RESIDENT_CAPACITY)",
+            "tool_broken.resize(RESIDENT_CAPACITY)",
+            "tool_job_generation.resize(RESIDENT_CAPACITY)",
+            "tool_job_slot.resize(RESIDENT_CAPACITY)",
+            "tool_lot_generation.resize(RESIDENT_CAPACITY)",
+            "tool_lot_slot.resize(RESIDENT_CAPACITY)",
+            "wear_remainder.resize(RESIDENT_CAPACITY)",
+            "xp_remainder.resize(RESIDENT_CAPACITY * SKILL_COUNT)"
+          ],
+          "int_constants_added": [
+            [
+              "SAFE_SEGMENT_MWU",
+              "30000"
+            ]
+          ],
+          "classes": {
+            "Columns": [
+              null,
+              [
+                [
+                  "memory_total",
+                  "PackedInt32Array"
+                ],
+                [
+                  "potential_remainder",
+                  "PackedInt32Array"
+                ],
+                [
+                  "tool_broken",
+                  "PackedByteArray"
+                ],
+                [
+                  "tool_job_generation",
+                  "PackedInt32Array"
+                ],
+                [
+                  "tool_job_slot",
+                  "PackedInt32Array"
+                ],
+                [
+                  "tool_lot_generation",
+                  "PackedInt32Array"
+                ],
+                [
+                  "tool_lot_slot",
+                  "PackedInt32Array"
+                ],
+                [
+                  "wear_remainder",
+                  "PackedInt32Array"
+                ],
+                [
+                  "xp_remainder",
+                  "PackedInt32Array"
+                ]
+              ]
+            ]
+          },
+          "allocation_sites": {
+            ".duplicate(": 9,
+            "PackedByteArray(": 1,
+            "PackedInt32Array(": 8
+          }
+        }
+      },
+      "godot/scripts/core/world_init.gd": {
+        "charges": [
+          {
+            "bytes": 30720,
+            "carried_by": "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)",
+            "store": "section-4 capture/apply: one FaunaColumns image plus one FramedOwner of 15,360 value bytes each"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_last_fauna_column_refusal",
+              "StringName"
+            ]
+          ],
+          "resizes_added": [
+            "birth_remainder.resize(FAUNA_STOCK_ROWS)",
+            "capacity.resize(FAUNA_STOCK_ROWS)",
+            "harvest_today.resize(FAUNA_STOCK_ROWS)",
+            "migration_link.resize(FAUNA_STOCK_ROWS)",
+            "population.resize(FAUNA_STOCK_ROWS)",
+            "species_id.resize(FAUNA_STOCK_ROWS)",
+            "tracks.resize(FAUNA_STOCK_ROWS)",
+            "zone_generation.resize(FAUNA_STOCK_ROWS)",
+            "zone_slot.resize(FAUNA_STOCK_ROWS)"
+          ],
+          "classes": {
+            "FaunaColumns": [
+              null,
+              [
+                [
+                  "birth_remainder",
+                  "PackedInt64Array"
+                ],
+                [
+                  "capacity",
+                  "PackedInt32Array"
+                ],
+                [
+                  "harvest_today",
+                  "PackedInt32Array"
+                ],
+                [
+                  "migration_link",
+                  "PackedInt32Array"
+                ],
+                [
+                  "population",
+                  "PackedInt32Array"
+                ],
+                [
+                  "species_id",
+                  "PackedInt32Array"
+                ],
+                [
+                  "tracks",
+                  "PackedInt32Array"
+                ],
+                [
+                  "zone_generation",
+                  "PackedInt32Array"
+                ],
+                [
+                  "zone_slot",
+                  "PackedInt32Array"
+                ]
+              ]
+            ]
+          },
+          "allocation_sites": {
+            ".duplicate(": 9,
+            "PackedInt32Array(": 8,
+            "PackedInt64Array(": 1
+          }
+        }
+      },
+      "godot/scripts/systems/settlement_system.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "base ledger (decisions 1023, 1031)",
+            "store": "HaulPlanner and StorePolicy host instances"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "first-entry runtime reference; the chain is counted in first_entry_runtime"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "ADR 1228 restore_underground_entry(): a load's entry runtime, adopted in place of the one the first request would create; counted in first_entry_runtime"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_haul_planner",
+              "HaulPlannerScript"
+            ],
+            [
+              "_store_policy",
+              "StorePolicyScript"
+            ],
+            [
+              "_underground_entry",
+              "UndergroundEntryRuntime"
+            ]
+          ],
+          "allocation_sites": {
+            ".new(": 4
+          }
+        }
+      },
+      "godot/scripts/core/excavation_contract.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "DEC-059 (P3): BRACE/CUT/FINISH_WORK_MWU 2,000/4,000/3,000 -> 940/1,880/1,410 milli-WU (x 0.47); constants only, no member, packed column or allocation"
+          }
+        ],
+        "delta": {
+          "int_constants_added": [
+            [
+              "BRACE_WORK_MWU",
+              "940"
+            ],
+            [
+              "CUT_WORK_MWU",
+              "1880"
+            ],
+            [
+              "FINISH_WORK_MWU",
+              "1410"
+            ]
+          ],
+          "int_constants_removed": [
+            [
+              "BRACE_WORK_MWU",
+              "2000"
+            ],
+            [
+              "CUT_WORK_MWU",
+              "4000"
+            ],
+            [
+              "FINISH_WORK_MWU",
+              "3000"
+            ]
+          ]
+        }
+      }
+    },
+    "charged_by_carrier": {
+      "PROFILE_BYTES joint (motion census, 257,308 of 262,144)": 8676,
+      "Profiles CONTROL_RESERVE (load-time, released)": 432,
+      "none": 0,
+      "PROFILE_BYTES joint (motion census)": 0,
+      "ADR 1222 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)": 43566080,
+      "ADR 1235 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)": 15065088,
+      "ADR 1228 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)": 12801861,
+      "joint pack (the reserve is a pack contribution)": 256,
+      "BINDINGS_AND_GROWTH_BYTES (fully assigned, 524,544)": 256,
+      "none (new)": 74,
+      "new contribution": 10684,
+      "LOCATION_AND_TOPOLOGY_BYTES unassigned remainder (recounted)": 5376,
+      "Room publication CONTROL_BYTES (8,970 of 9,216) inside Budget.COLD_BYTES": 920,
+      "Budget.COLD_BYTES shared cold lease": 1792,
+      "Routes HEADER_RESERVE (fixed numeric controls)": 8,
+      "presentation (outside the REQ-SET-163 simulation gate)": 0,
+      "SurfaceAnchor RESERVED_BYTES (asserted by the pack)": 8,
+      "entry structure reservation (decision1122, 384 B)": 0,
+      "WorldRoutes CONTROL_RESERVE (recounted)": 58,
+      "base ledger (decisions 1023, 1031)": 0
+    },
+    "geometry_journals": {
+      "packed_bytes_per_instance": 2136,
+      "numeric_bytes_per_instance": 25,
+      "instances": 2,
+      "bytes": 4322
+    },
+    "locations_controls": {
+      "carry_and_air_controls_bytes": 6250,
+      "contact_retirement_context_numeric_bytes": 112,
+      "bytes": 6362,
+      "scope": "The context exists only during one cold retirement; it is charged as retained, conservatively."
+    },
+    "first_entry_runtime": {
+      "rows": {
+        "runtime_numeric": 81,
+        "work_area_published": 160,
+        "crew": 40,
+        "foreman_numeric": 365,
+        "foreman_tasks": 3600,
+        "installer_numeric": 229,
+        "installer_plan": 136,
+        "installer_stair_legs": 384,
+        "installer_quote": 184,
+        "haulers": 760,
+        "progress_record": 9192
+      },
+      "bytes": 15131,
+      "frontier_counts": {
+        "INSTALL": 8,
+        "STATION": 22,
+        "CUT": 6,
+        "BEARING": 38,
+        "ENDPOINT": 44,
+        "EPISODE": 14
+      },
+      "planned_task_bound": 50,
+      "work_area_endpoints": 19,
+      "scope": "Numeric and packed payload only. Object, Array and Variant headers (about 30 RefCounted packets and the task and endpoint arrays) are native overhead, unmeasured, as in every other row."
+    },
+    "world_routes_controls": {
+      "numeric_bytes": 239,
+      "small_packed_bytes": 120,
+      "packet_numeric_bytes": {
+        "Profiles.Descriptor": 184,
+        "Profiles.Box": 64,
+        "Locations.Record": 196,
+        "Owner.Region": 72,
+        "Routes.Edge": 120,
+        "IntMath.IntResult": 9
+      },
+      "fixed_bytes": 1004,
+      "control_reserve_bytes": 4096,
+      "added_by_adr_1205_bytes": 58
+    },
+    "world_routes_cold": {
+      "staged_change_bytes": 1792,
+      "world_routes_cold_bytes": 379648,
+      "shared_cold_bytes": 1048960
+    },
+    "contact_retirement_cold": {
+      "private_packet_bytes": 13684,
+      "lease_bytes": 1048960,
+      "scope": "Cold, exclusive and released; the graph/Locations candidate images it publishes through are the owners' existing paired banks. Coexistence inside one lease is runtime-enforced, not re-proved here."
+    },
+    "location_air_pool": {
+      "slots": 64,
+      "bank_bytes": 3584,
+      "wire_bytes": 1792,
+      "routes_admission_bytes": 1045312,
+      "reserve_bytes": 1048576,
+      "remaining_bytes": 1472
+    },
+    "room_publication_controls": {
+      "reviewed_controls": 8050,
+      "request_air_bytes": 300,
+      "record_air_bytes": 80,
+      "controls": 8970,
+      "control_bytes": 9216
+    },
+    "room_planner_cold": {
+      "control_bytes": 45752,
+      "lease_bytes": 1048960,
+      "scope": "Cold and released before publish_into admits its own lifetime in the same lease."
+    },
+    "cold_load_images": {
+      "rows": {
+        "contact_scope": 74,
+        "haul_admissions": 196620
+      },
+      "bytes": 196694
+    },
+    "claw_stair_tables": {
+      "rows": {
+        "tables": 9548,
+        "profile_digest": 32
+      },
+      "bytes": 9580
+    },
+    "new_retained_bytes": {
+      "geometry_journals": 4322,
+      "locations_carry_and_retirement_controls": 6362,
+      "first_entry_runtime_chain": 15131,
+      "cold_load_images": 196694,
+      "claw_stair_tables": 9580
+    },
+    "new_contribution_bytes": 232089,
+    "runtime_qualified": false,
+    "native_measured": false
+  },
   "contributions": {
     "excavation_start_controls": 4,
     "entry_structure_bindings": 384,
@@ -41547,6 +44349,7 @@
     "connector_workpieces": 29928,
     "guarded_haul_transfers": 3072,
     "connector_delivery": 4096,
+    "current_census_new_retained": 232089,
     "space_banks_and_indexes": 1104160,
     "phase_proof_cache_and_candidate": 17724,
     "shared_geometry_cold_peak": 1048960,
@@ -41556,71 +44359,72 @@
     "shared_router_and_funding_increment": 275099,
     "LOCATION_AND_TOPOLOGY_BYTES": 1048576,
     "INVENTORY_EXTENSION_BYTES": 131072,
-    "PROFILE_BYTES": 262144,
+    "PROFILE_BYTES": 278528,
     "TERRAIN_BYTES": 131072,
     "LAYOUT_COLD_BYTES": 262144,
-    "BINDINGS_AND_GROWTH_BYTES": 524288
+    "BINDINGS_AND_GROWTH_BYTES": 524544
   },
-  "new_mutable_and_reserved_bytes": 5007041,
-  "declaration_bytes": 23573,
-  "declaration_delta_bytes": 2388,
-  "live_with_reserve_bytes": 99999806,
-  "headroom_bytes": 194,
+  "new_mutable_and_reserved_bytes": 5255770,
+  "declaration_bytes": 25645,
+  "declaration_delta_bytes": 4460,
+  "live_with_reserve_bytes": 100250607,
+  "gate_bytes": 150000000,
+  "headroom_bytes": 49749393,
   "source_sha256": {
-    "godot/scripts/core/construction.gd": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a",
+    "godot/scripts/core/construction.gd": "48a6d74a8e1e26e7959ac9af9046ca6dce014f0cfe3ab177de383bc34b980fa4",
     "godot/scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
-    "godot/scripts/core/excavation_inventory.gd": "e69e83b0fa3851f7408b574fec44b0978d048fb759eb90b458492ac81d15c001",
-    "godot/scripts/core/excavation_sites.gd": "69797b79377bf5b5b3a055126d065304668c3415460863ef958fbef72385eb74",
-    "godot/scripts/core/haul_planner.gd": "44d3497ab27088ab0af061b79e8b12c20befc538fd4295c75ce37877eb708f59",
+    "godot/scripts/core/excavation_inventory.gd": "79c603c39b4b0cd9e1bba3243b5dd21d4a397d65f71d64baedf21bd86e4d0c68",
+    "godot/scripts/core/excavation_sites.gd": "e552c220f04460c61f40ec17bf79e474be667d29353d8a92ce27321e2f3f2a10",
+    "godot/scripts/core/haul_planner.gd": "ff125c7c0a1a9ab3c23be832ceec77b54354e4b87c0b7fe8ebc482fee0a400e4",
     "godot/scripts/core/haul_transfer_contract.gd": "dad5b6beb6d215fa9e71e7c31ab4b10e505393116374249eb8efc1bf58fcb60d",
     "godot/scripts/core/int_math.gd": "fbc9c291059dc65cef91bf0ed1496b95532c5d8bc8f9a2876871c64f0545adc1",
-    "godot/scripts/core/inventory.gd": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
-    "godot/scripts/core/modular_project_contract.gd": "9e8b9ed5f3778b959ed54385999a9c1b1713dc3b46e6829d2bd553760b140849",
-    "godot/scripts/core/modular_projects.gd": "c6bd313698bee47685f7404c347a94852cee18efd2557109c8c673dc3467ada8",
-    "godot/data/underground/mole-worker/mole_profile_catalog.gd": "941b1bf32076fbec2a2d321f97852b4ec1ca608e24dfe9cd95449c3c35c25908",
+    "godot/scripts/core/inventory.gd": "7e93fe28fd7e15e5ee0d401af47b06e91939ec4cd86c0195b5dfac8a3ecdff77",
+    "godot/scripts/core/modular_project_contract.gd": "b008e397952a9eeffeefa805d1f70e586a4e580e261ef29682187b6df537b437",
+    "godot/scripts/core/modular_projects.gd": "4a705b8c18f21d3f7c7aba0768298d89c610fc5eddf7b273702f49c9d1e0180c",
+    "godot/data/underground/mole-worker/mole_profile_catalog.gd": "40e5cf8d0709e0c31cb01a56a4a7a4b1ff3920ad24a2e819a71ec7853d0e577b",
     "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
     "godot/scripts/core/reservations.gd": "2a2ce0b41cde10974f480184d0da53a7d27e1930030f80fee8c16dd1a9b74534",
     "godot/scripts/core/room_connectors.gd": "010a73355679d8b9f04a941b84520a0c0a904e622e7335562dbe35bcd0e7d067",
     "godot/scripts/core/room_layout.gd": "ef3d922da5eb324bbca8523b31a51b3d2b9cd90a310b3e6422f7f0700171b6b2",
     "godot/scripts/core/room_space.gd": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624",
-    "godot/scripts/systems/settlement_system.gd": "66e8eda0c6de0fef72d7139229c31b76d8df73803e098e1b7312e0167f43dd50",
-    "godot/data/underground/mole-worker/work-step-v1/source_program.gd": "f566f5caaf49e1da47f7f3f2020750a29f4ce3e858b313b5c3eb8d0c0ca59524",
+    "godot/scripts/systems/settlement_system.gd": "c1a6b14bdb229de0a5de4baa81c347f266daba04f845c452d77c9669f7cfe8bf",
+    "godot/data/underground/mole-worker/work-step-v1/source_program.gd": "7134c58f0a48c8eb1184484f1caf41089696cc90083c5cd7038fafeb3fce7879",
     "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
     "godot/scripts/core/spoil_tips.gd": "3915c888d9a37defe3ddc859d8b99beac91d94075cfe0db4ded78fb0dc1050b8",
-    "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
-    "godot/scripts/core/underground_connector_assemblies.gd": "62144588bea85df8eae608a821b5f62e62dde8427574805d815673ab146354a4",
-    "godot/scripts/core/underground_connector_catalog.gd": "4b98b9dc46841ea8b140134279b6706cfeb9ec31a7abaa968e276cd504f892b8",
-    "godot/scripts/core/underground_connector_contacts.gd": "8dcde4f27ec783319332748e6c71a3b996be842601338e2c667c1346c96a3dd3",
-    "godot/scripts/core/underground_connector_delivery.gd": "e1d05e0d12980322b4710fd3b2710056da0efa51f882134397204969ca7c3bee",
-    "godot/scripts/core/underground_connector_placements.gd": "9f34160f99949eca875bcc6d9f663324e7250193a5217dc83288f05015340aae",
-    "godot/scripts/core/underground_connector_recipes.gd": "64df84440250d7b64524a76e9c3ab2b31adb018edc18f056c08f93b4604fd2a2",
-    "godot/scripts/core/underground_connector_work.gd": "53e813a3b97c601e2b8648df2bae4df8cf315e8720dbebe61d76c2320214b0de",
-    "godot/scripts/core/underground_connector_workpieces.gd": "7a462a41d5e5632c8f9708244a449de4e19228b8e7c0856593c09fe3dfaf7e7d",
-    "godot/scripts/core/underground_entry_bindings.gd": "7d53f82aeb5ba4e3b97feaa242cf839dbcd38dc953b619d8cd2cb7b4fd1a5c55",
-    "godot/scripts/core/underground_entry_frontier.gd": "a13de97fa8c528739db9e9ce73322f0d3ba580e7f6f6555aba44a68684b3886c",
+    "godot/scripts/core/underground_budget.gd": "7319d3e2479436bb1bcdb28b1d70d094b9f820b378f9167cd32f2c0a024b8641",
+    "godot/scripts/core/underground_connector_assemblies.gd": "3199049decf5b6ca95da09bb416196d82a96e89af194166b196df29f1cf7b73c",
+    "godot/scripts/core/underground_connector_catalog.gd": "bab9c370eb6253d65c12cb330ee90e06f4fb7f02493a47ef27784ad2fdd1cbdb",
+    "godot/scripts/core/underground_connector_contacts.gd": "4d1aff362f9eb60c5e9c10788fce98e65a2226c64d41c17b72de4cc38a3a035e",
+    "godot/scripts/core/underground_connector_delivery.gd": "7cbdb906be067d3d45473c2fabfb414f7ca5f0c358bc58b1fabe04947b0b12ea",
+    "godot/scripts/core/underground_connector_placements.gd": "401ad48c51225a514876bc9e1017d78a6dda96ac34ff2717e25742d1a3f7db30",
+    "godot/scripts/core/underground_connector_recipes.gd": "a23c0f6087597b1c3bee978f9008824af86856dca6ddaba1b6bc41d1d03cba1a",
+    "godot/scripts/core/underground_connector_work.gd": "491db9b077295a1dc4c028817d7fcf86e4cfa95544e9377e83fb7082b4fdf647",
+    "godot/scripts/core/underground_connector_workpieces.gd": "4932c58d3530ece356ac7f45df624c76f536e6ebab11cecac20ddf5a0660d9bc",
+    "godot/scripts/core/underground_entry_bindings.gd": "fcdedc1072568dae50d3c3e69cfedde2ecaf60c016433bd64c717f5ecc4e08eb",
+    "godot/scripts/core/underground_entry_frontier.gd": "964240d5f87f9f116a644c6f15c516e7b28d8b4390f454dcba0070e4a4b6148b",
     "godot/scripts/core/underground_entry_plan.gd": "2103c7a93431b3bc6acfe4dc7934aaaabe557c1d978e5d2db5152ea2816aac7e",
     "godot/scripts/core/underground_entry_structure.gd": "4965b8e314171f5c1445d816b3b2c18d87f35dee0f5129371d15a1b1d2a7cefa",
-    "godot/scripts/core/underground_entry_world_bindings.gd": "dcc07743ea142f4665e939387726fdcbf2a4db609f1f9047c606d3e405550c0b",
+    "godot/scripts/core/underground_entry_world_bindings.gd": "f7c89ea91adbaba9e2091ad12446019848977d4af6789be3eb9f14fb4351783c",
     "godot/scripts/core/underground_level_catalog.gd": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
-    "godot/scripts/core/underground_locations.gd": "78c10afd1fb0d737ae7ccd63727c5c18b1cc599097e40b44e9992fd32a7a1d58",
-    "godot/scripts/core/underground_motion_catalog.gd": "199bb60bfc6e62ac3f5e365d6d0b4247f82393511bc0eefaeedb31a93aefe8cd",
-    "godot/scripts/core/underground_motion_clock.gd": "a76b16440bbffe3751bfdc361e3e4195f80a3cd895e17af65d8d7773be6e4141",
-    "godot/scripts/core/underground_phase_structure.gd": "4c53a400e420306be6c8bee9082858e5a86cdd54279058223cc314e0582fe0f8",
-    "godot/scripts/core/underground_profiles.gd": "2dd505f98fe55b640fd96d254d155093a3f88baf42315ffe95baebcc6f0234ec",
-    "godot/scripts/core/underground_room_world_bindings.gd": "95d13b1d36daec7d6a5993d2aa5d6d673618a25020acb6b949b6cccc51d4bb68",
-    "godot/scripts/core/underground_route_composition.gd": "1f70c75b46005b6ba8f37adc4f585511dab7f9de975edfb3f3e7bac15b39bc4f",
-    "godot/scripts/core/underground_routes.gd": "27d4f2e92472803235129159dd9fd92291b75aa09057bbf58f5417783f4eea1f",
-    "godot/scripts/core/underground_session.gd": "f3026b276973c9992f92d910a64fd1a225cedcae8ca4c9ef748de8e9ddfce712",
+    "godot/scripts/core/underground_locations.gd": "a83a17fe5c8eac8f362a8a4ecbef71c2c6b118396c05eecabad53b7f205332e0",
+    "godot/scripts/core/underground_motion_catalog.gd": "8b9fb7a07770a7ad670cc47872046f9df01e24c17298903fbd3ee9ad7c7ff9d8",
+    "godot/scripts/core/underground_motion_clock.gd": "ffe6340027f5d6adf0d0b416539423102a586f0e402091af3dcbfab70be1d0ed",
+    "godot/scripts/core/underground_phase_structure.gd": "8ca9a827a4002f5ceaf73869548ea5cb61bcc39d0cc618deab33773aca4e2a7c",
+    "godot/scripts/core/underground_profiles.gd": "4adcdc2be52254d7c9ca73f7790b64cdd58e62f35d512dbd6f47a9f573d17d28",
+    "godot/scripts/core/underground_room_world_bindings.gd": "d012c526a267fc7aecb365e7a6afa40d00d931f2b710b1122fc19705f556f8b1",
+    "godot/scripts/core/underground_route_composition.gd": "d4599f84ce86f95d4d54dee4193c27d6f85ad59e6be000d05419017b04bf811a",
+    "godot/scripts/core/underground_routes.gd": "e16a8392a9d469af43d3adf2410db5a7cdc41cb51c3b5d590c572fd1bd9c2146",
+    "godot/scripts/core/underground_session.gd": "054e63c7b16b10c6f929c81c62c0fd0124c21cd7e83b491cb6d1be68f5588e06",
     "godot/scripts/core/underground_space_authority.gd": "3377e00f509e833e618330237c65fa7a18aaf20a4876b5b16322bbdab7d4ec5b",
-    "godot/scripts/core/underground_space_owner.gd": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158",
-    "godot/scripts/core/underground_surface_anchor.gd": "ac38160fbfd6f64adfda8d4ea7fcde61df635af560774e4f60cb4d2505b27b12",
+    "godot/scripts/core/underground_space_owner.gd": "c5aea1c3904c621552f67537f303799d51c7ab1adbe2478cef2fbdfd81e955d5",
+    "godot/scripts/core/underground_surface_anchor.gd": "00f2ba73e64a50e4d6236a9c0c99a11391f192255c309d554d8b4a976ddfe2f5",
     "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
     "godot/scripts/core/underground_work_face.gd": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
-    "godot/scripts/core/underground_world_retirement.gd": "d44232dfaa9581d82e5887bafc36664602ed830716a92d069a87dfd6aa2da889",
-    "godot/scripts/core/underground_world_routes.gd": "45fd127a49ca04133fc9fb4ddeed275fa5700fc9f41fdf7914c22206b81b2b66",
-    "godot/scripts/core/work.gd": "a79363ab3e6a116e89b32fc89ded50aa32a0849a81e34b6737043a3362255338"
+    "godot/scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
+    "godot/scripts/core/underground_world_routes.gd": "602f20d30812f4da61d624d3d42ade7eb1fe44729b751942b9d64dee1b4ee531",
+    "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310"
   },
-  "registry_sha256": "ba12eff2b55cad43d90b42e6e262665d16d60b9720566483328031053f614f03",
+  "registry_sha256": "a4190ded1406f501a7b4851f53f667f00a13031bba3063c62b639d46aec4d8fa",
   "limitations": [
     "Constructor limits alone are not joint runtime admission.",
     "Actual consumers must share the exact cold arena and charge nested coexistence before allocating.",

@@ -3,6 +3,10 @@ const Owner := preload("res://scripts/core/field_policy.gd")
 const Bridge := preload("res://scripts/core/save_owner_field_policy.gd")
 const Section := preload("res://scripts/core/save_section_component_columns.gd")
 const Schema := preload("res://scripts/core/save_component_columns_schema.gd")
+const FarmingScript := preload("res://scripts/core/farming.gd")
+const ForageScript := preload("res://scripts/core/forage.gd")
+const ZONE_FARM: int = 3
+const LOAM: int = 0
 const FIELDS: Array[String] = ["field_present", "zone_slot", "zone_generation", "rotation_ids", "rotation_cursor", "auto_rotation", "seed_reserve", "cycle_ordinal", "participants", "resolved", "withdrawn", "completed_cycles", "cancelled_cycles", "requested_crop", "cycle_state", "close_reason", "request_state", "plot_field_slot", "plot_cycle", "plot_outcome"]
 const TYPES: Array[int] = [0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 2, 2, 0]
 const FIXTURES: Dictionary = {
@@ -445,3 +449,106 @@ func test_closed_reason_gate_has_an_independent_abandoned_shape_witness() -> voi
 	var c: Owner.Columns = _image("abandoned")
 	c.close_reason[127] = 0
 	_expect(c,&"COLUMN_STATE","closed NONE cannot fall through as abandoned")
+
+
+# --- ADR 1222 step 2: bulk capture and apply ------------------------------------------------------
+
+func _zoned_owner() -> Owner:
+	"""A fresh owner over its own farm/zone stores, with one FARM zone designated at row 0."""
+	var farm: FarmingScript = FarmingScript.new()
+	var zones: ForageScript = ForageScript.new(farm.directory())
+	var owner: Owner = Owner.new(farm, zones)
+	var stale: ForageScript.OpResult = zones.create_zone(ZONE_FARM, 0, 0, false, true)
+	assert_true(stale.ok, "a scratch zone designates to advance the free list")
+	assert_true(zones.destroy_zone(stale.ref).ok, "the scratch zone is destroyed")
+	var live: ForageScript.OpResult = zones.create_zone(ZONE_FARM, 0, 0, false, true)
+	assert_true(live.ok, "the live zone reuses the freed row")
+	return owner
+
+
+func _live_owner() -> Owner:
+	"""A store with a freed-and-reused field row, a live open cycle and a withdrawn plot."""
+	var owner: Owner = _zoned_owner()
+	var live: Vector2i = owner.forage().zone_ref_of(0)
+	assert_true(owner.create_policy(live).ok, "live policy binds the reused zone row")
+	assert_true(owner.open_cycle(live).ok, "cycle opens")
+	var plot: FarmingScript.OpResult = owner.farming().create_plot_at_tile(5, LOAM, 1)
+	assert_true(plot.ok, "plot creates (error: %s)" % plot.error)
+	assert_true(owner.enrol_plot(live, plot.value).ok, "plot enrols")
+	assert_true(owner.withdraw_plot(live, plot.value, 1).ok, "plot withdrawn")
+	return owner
+
+
+func _bulk_image(owner: Owner) -> Owner.Columns:
+	"""The owner's twenty columns through the bulk reader."""
+	var columns: Owner.Columns = Owner.Columns.new()
+	assert_true(owner.copy_columns_into(columns), "bulk copy succeeds")
+	return columns
+
+
+func _bulk_equal(a: Owner.Columns, b: Owner.Columns) -> bool:
+	"""True when every one of the twenty columns is byte-identical between two images."""
+	for key: String in FIELDS:
+		if a.get(key) != b.get(key):
+			return false
+	return true
+
+
+func test_capture_then_apply_into_a_fresh_store_is_exact_and_continues_identically() -> void:
+	"""The restored store holds the same columns and answers the next edit the same way."""
+	var source: Owner = _live_owner()
+	var frame: Section.FramedOwner = Section.FramedOwner.new(3)
+	assert_true(Bridge.capture_into(source, frame).is_ok(), "capture succeeds")
+	var target: Owner = _zoned_owner()
+	assert_true(Bridge.apply(frame, target).is_ok(), "apply succeeds")
+	assert_true(_bulk_equal(_bulk_image(target), _bulk_image(source)), "columns are byte-identical")
+	# `policy_count()` is category 3 (docs/persistence_state_registry.md) and is deliberately NOT
+	# rebuilt by `restore_columns()`; a fresh target legitimately starts it at 0.
+	assert_equal(target.policy_count(), 0, "a fresh target's category-3 counter starts at 0")
+	var live_ref: Vector2i = source.zone_ref_of(0)
+	assert_equal(target.zone_ref_of(0), live_ref, "the restored row names the same zone")
+	for store: Owner in [source, target]:
+		assert_true(store.set_auto_rotation(live_ref, false).ok, "a later edit succeeds the same way")
+	assert_true(_bulk_equal(_bulk_image(target), _bulk_image(source)), "both stayed identical")
+
+
+func test_every_column_refusal_leaves_the_target_byte_identical() -> void:
+	"""Each exact column code refuses through apply with nothing written to the live target."""
+	var target: Owner = _live_owner()
+	var before: Owner.Columns = _bulk_image(target)
+	var cases: Array = [
+		["clear", [[0, 127, 2]], "COLUMN_FLAGS"],
+		["idle", [[1, 127, -1]], "COLUMN_ZONE_REF"],
+		["clear", [[3, 383, -2]], "COLUMN_ROTATION"],
+		["clear", [[7, 127, -1]], "COLUMN_COUNTERS"],
+		["clear", [[14, 127, 1]], "COLUMN_STATE"],
+		["completed", [[13, 127, 0]], "COLUMN_REQUEST"],
+		["idle", [[17, 4095, -2]], "COLUMN_PLOT_LEDGER"],
+		["open", [[8, 127, 4]], "COLUMN_OPEN_COUNTS"],
+	]
+	for entry: Array in cases:
+		var image: Owner.Columns = _image(String(entry[0]))
+		for change: Array in entry[1]: _put(image, int(change[0]), int(change[1]), int(change[2]))
+		var refusal: Variant = Bridge.apply(_frame(image), target)
+		assert_equal(refusal.code, StringName(entry[2]), "exact code for %s" % String(entry[0]))
+	assert_true(_bulk_equal(_bulk_image(target), before), "no refusal wrote a column")
+
+
+func test_null_and_misshaped_inputs_refuse_without_writing() -> void:
+	"""Null stores, null records, a wrong owner and a short bulk buffer all refuse."""
+	var target: Owner = _live_owner()
+	var before: Owner.Columns = _bulk_image(target)
+	assert_equal(Bridge.apply(_frame(Owner.Columns.new()), null).code, Bridge.REFUSE_NULL_STORE,
+		"null store")
+	assert_equal(Bridge.capture_into(null, Section.FramedOwner.new(3)).code,
+		Bridge.REFUSE_NULL_STORE, "capture from no store")
+	assert_equal(Bridge.capture_into(target, null).code, &"SAVE_COMPONENT_SHAPE", "null record")
+	assert_equal(Bridge.capture_into(target, Section.FramedOwner.new(2)).code,
+		&"SAVE_COMPONENT_OWNER", "wrong owner")
+	var short: Owner.Columns = Owner.Columns.new()
+	short.field_present.resize(3)
+	assert_false(target.restore_columns(short), "a short column refuses")
+	assert_equal(target.last_column_refusal(), Owner.REFUSE_COLUMN_SHAPE, "shape code")
+	assert_false(target.copy_columns_into(short), "a short output buffer refuses")
+	assert_false(target.restore_columns(null), "null columns refuse")
+	assert_true(_bulk_equal(_bulk_image(target), before), "nothing was written")

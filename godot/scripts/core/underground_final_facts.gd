@@ -385,7 +385,8 @@ static func record_matches(actual: Locations, location: Vector2i, expected: Loca
 		if expected.envelope[axis] != actual._get32(actual._live, Locations.ENVELOPE + axis, row) \
 				or expected.support[axis] != actual._get32(actual._live, Locations.SUPPORT + axis, row):
 			return false
-	return owner._region_live(expected.section, false) and (expected.room == NULL_REF or actual._buildings.is_live_room(expected.room))
+	return Locations.air_record_matches(actual, actual._live, row, expected) and owner._region_live(expected.section, false) \
+		and (expected.room == NULL_REF or actual._buildings.is_live_room(expected.room))
 
 
 static func _resident_into(actual: Routes, locations: Locations, worker: Vector2i, out: Owner.Facts) -> StringName:

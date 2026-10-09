@@ -17,10 +17,13 @@ const PROOF_BYTES: int = 69 * PROOF_CAPACITY + 60
 const COLD_BYTES: int = 120 * PHASE_VOLUME_CAPACITY + 32 * SOURCE_CAPACITY + 384
 const LOCATION_AND_TOPOLOGY_BYTES: int = 1048576
 const INVENTORY_EXTENSION_BYTES: int = 131072
-const PROFILE_BYTES: int = 262144
+## ADR1217 step 5: +16,384 so content 9's paired profile bank (+11,496 B over content 6) keeps the Motion/Profile/
+## Level joint, the Session slice (1,536) and the retirement slice (8,192) inside one assigned reserve.
+const PROFILE_BYTES: int = 278528
 const TERRAIN_BYTES: int = 131072
 const LAYOUT_COLD_BYTES: int = 262144
-const BINDINGS_AND_GROWTH_BYTES: int = 524288
+## ADR1212: +256 so the enlarged Contacts control (ADR1215 Record air) stays inside a fully assigned reserve.
+const BINDINGS_AND_GROWTH_BYTES: int = 524544
 const I64_MAX: int = 9223372036854775807
 const REFUSE_BUSY: StringName = &"UNDERGROUND_COLD_BUSY"
 const REFUSE_BYTES: StringName = &"UNDERGROUND_COLD_CAPACITY"

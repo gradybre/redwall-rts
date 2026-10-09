@@ -1,0 +1,117 @@
+{
+  "active_tool": null,
+  "body_sha256": "29f8d3218fddfaa6f2369c1c1c7dfd9b0a429b3df5cbefa38c6bf6ab9364fe14",
+  "clips": [
+    {
+      "duration_q16": 3932160,
+      "frames": 61,
+      "id": "haul_handling_v1.approach",
+      "loop": 0,
+      "part_visibility_mask": 3,
+      "source_sha256": "213e4f9ca9e77b791795c0596424d05f2ebc2edd88431850588fecebe2f922f4"
+    },
+    {
+      "duration_q16": 3932160,
+      "frames": 61,
+      "id": "haul_handling_v1.lift",
+      "loop": 0,
+      "part_visibility_mask": 3,
+      "source_sha256": "0a18b5f1198a2cf9c6cc9344960a3b26b59c358c1e18153adc59999aab506c7b"
+    },
+    {
+      "duration_q16": 3932160,
+      "frames": 61,
+      "id": "haul_handling_v1.place",
+      "loop": 0,
+      "part_visibility_mask": 3,
+      "source_sha256": "7b628bf3960a1dcfa8797c5dd8cc9bb412f09822ed980cc0cdf449ffcbc86960"
+    },
+    {
+      "duration_q16": 3932160,
+      "frames": 61,
+      "id": "haul_handling_v1.recovery",
+      "loop": 0,
+      "part_visibility_mask": 3,
+      "source_sha256": "d6add16d6f559ed8f3a1cb015aeec78e3ead24f7878169d9467bee7e7a7b9034"
+    },
+    {
+      "duration_q16": 65536,
+      "frames": 2,
+      "id": "haul_handling_v1.hold",
+      "loop": 0,
+      "part_visibility_mask": 3,
+      "source_sha256": "778fee6b52ccdb154f667d169cd620cce13e6c887ab136ae3b22d68bf9b3f20f"
+    },
+    {
+      "duration_q16": 4194304,
+      "frames": 65,
+      "id": "haul_handling_v1.enter",
+      "loop": 0,
+      "part_visibility_mask": 3,
+      "source_sha256": "48a1f87eda9c4f8e73dd6283deb11dd7c9cbe881169b88dd6d4111c6f5a716a9"
+    },
+    {
+      "duration_q16": 14286848,
+      "frames": 219,
+      "id": "haul_handling_v1.carry",
+      "loop": 1,
+      "part_visibility_mask": 3,
+      "source_sha256": "c3ced322b3c67fcd287daca9b5bc91dc259d11115f18c9e60b0e503f91e37a56"
+    },
+    {
+      "duration_q16": 4194304,
+      "frames": 65,
+      "id": "haul_handling_v1.exit",
+      "loop": 0,
+      "part_visibility_mask": 3,
+      "source_sha256": "d36a340761a9e8351c1ec7ef8a30a8ff41f5b7d228251245536db7ab0a8cbe6b"
+    },
+    {
+      "duration_q16": 7929856,
+      "frames": 122,
+      "id": "haul_handling_v1.stand",
+      "loop": 1,
+      "part_visibility_mask": 1,
+      "source_sha256": "7086ef2a3aab64537d7822393c04ece86d67879e59e1c7e54d333a5c7f974c7d"
+    },
+    {
+      "duration_q16": 2883584,
+      "frames": 45,
+      "id": "haul_handling_v1.walk",
+      "loop": 1,
+      "part_visibility_mask": 1,
+      "source_sha256": "046ef4a7f4855b7f5243e66066bc8d27373689471e055f628e94c357cfa1b06e"
+    },
+    {
+      "duration_q16": 1966080,
+      "frames": 31,
+      "id": "haul_handling_v1.enter_haul",
+      "loop": 0,
+      "part_visibility_mask": 3,
+      "source_sha256": "739a59754a85d74b753814d400893cb3a5485f72cacfe8ca5b1fc033289111b0"
+    },
+    {
+      "duration_q16": 1966080,
+      "frames": 31,
+      "id": "haul_handling_v1.leave_haul",
+      "loop": 0,
+      "part_visibility_mask": 3,
+      "source_sha256": "e02e66a32ec7e815d596cee7ed3e0ea69eae4c2b6c749740fbabc6c6f3d5109c"
+    }
+  ],
+  "empty_stock": "approach/recovery/join stock is an existing World fixture, never carried cargo permission",
+  "item": "wood",
+  "mass_g": 5000,
+  "native_wrapper_sha256": "a392927be5738063a4d4f98f9289c439cab83b2e47d9946f8d10d39a87c51d7c",
+  "part_visibility": "Actor.set_parts_visible(mask) on clip selection; the wire has no per-clip part presence. Hidden stand/walk stock keeps the exact S fixture coefficient.",
+  "parts": [
+    "body",
+    "stock"
+  ],
+  "production_qualified": false,
+  "quantity_milli": 1000,
+  "schema": 1,
+  "source_clock": "presentation sampling only; no hauling speed or work rate",
+  "wood_array_mesh_sha256": "cb0bf551f5439b0bea4609952c0ba43ff16d8c1bc5641743e1081e2412919cc5",
+  "wood_source_sha256": "e897ab9a5683d9a79e64fcd0c41286a19114d233e2ec0ceeac0f639e15e22c80"
+}

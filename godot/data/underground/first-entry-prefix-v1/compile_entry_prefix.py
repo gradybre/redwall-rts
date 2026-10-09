@@ -4,6 +4,12 @@
 The current source is deliberately a structural subset. It does not emit a
 Frontier, a Workpieces image, a stair pace, or an activated runtime source.
 Those require their own complete worker/contact/handling proof.
+
+structural-v1 is a historical publication: it binds profile content 3, which
+content 5 superseded (ADR 1200). Its manifest records the producer and owner
+scripts as they were at PUBLISHED_AT, so those digests are read from git at that
+commit, never from the live tree. Every output byte is still rebuilt from the
+pinned inputs and compared with the committed packet.
 """
 from __future__ import annotations
 
@@ -12,6 +18,7 @@ import hashlib
 import json
 from pathlib import Path
 import struct
+import subprocess
 
 ROOT = Path(__file__).resolve().parents[4]
 SPEC = "docs/design/underground-planning/first-entry-prefix-v1.json"
@@ -23,6 +30,7 @@ GROUND_SHA = "454eaab1b2a722aab2700285d31a0bcc093312dad211208da7993baa32bc2f24"
 LEVELS = "godot/data/underground/initial_level_pack.uglvl"
 LEVELS_SHA = "c5deb094b335bf6e5db018eeed591a115086b79bd909f829ed6e34166db81f94"
 OUTPUT = "godot/data/underground/first-entry-prefix-v1/structural-v1"
+PUBLISHED_AT = "c975e1bdb3883be4acf0767873b34d9ff22eb07b"
 PRODUCER = "godot/data/underground/first-entry-prefix-v1/compile_entry_prefix.py"
 OWNERS = (
     "godot/scripts/core/underground_connector_catalog.gd",
@@ -50,6 +58,13 @@ def read(root, name, expected, maximum):
     raw = path.read_bytes()
     require(len(raw) <= maximum and sha(raw) == expected, "INPUT_SHA:" + name)
     return raw
+
+
+def published(root, name, commit):
+    """Exact bytes of a script as the historical publication at `commit` recorded it."""
+    shown = subprocess.run(["git", "-C", str(root), "show", f"{commit}:{name}"], capture_output=True)
+    require(shown.returncode == 0 and shown.stdout, "HISTORICAL_SOURCE:" + name)
+    return shown.stdout
 
 
 def words(values, revision=None):
@@ -179,9 +194,7 @@ def build(root=ROOT):
     group = grouping(cat)
     outputs = {"structure.ugconn": cat, "assemblies.ugasmb": group, "recipes.ugrecp": recipes(spec, cat, group)}
     for name in (PRODUCER, *OWNERS):
-        path = root / name
-        require(path.is_file() and not path.is_symlink(), "PRODUCER_PATH")
-        inputs[name] = sha(path.read_bytes())
+        inputs[name] = sha(published(root, name, PUBLISHED_AT))
     manifest = {"schema": 1, "scope": "Exact authored L0/T0 structural source and approved wood-only bills",
                 "source_geometry_only": True, "entry_workflow_qualified": False,
                 "world_activation_qualified": False, "traversal_qualified": False,

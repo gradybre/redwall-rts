@@ -1,0 +1,53 @@
+{
+  "adr": [
+    "1217",
+    "1209"
+  ],
+  "clip_frames": [
+    122,
+    45,
+    31,
+    33,
+    31,
+    31,
+    33,
+    31,
+    31,
+    33,
+    31,
+    5,
+    5,
+    91,
+    91,
+    271
+  ],
+  "clips": [
+    "stand",
+    "walk",
+    "dig_entry",
+    "dig_stroke",
+    "dig_recovery",
+    "tap_entry",
+    "tap_work",
+    "tap_recovery",
+    "tread_tap_entry",
+    "tread_tap_work",
+    "tread_tap_recovery",
+    "step_back",
+    "step_forward",
+    "descent",
+    "ascent",
+    "turn"
+  ],
+  "coefficient_mismatches": 0,
+  "exact_joins": 66,
+  "floor_rule": "every body vertex, except paw vertices in the dig clips; the rooted clips (descent, ascent, turn) are proved on their terrain, flight and handoff fixtures instead",
+  "image": "claw",
+  "max_source_to_native_input_vertex_error_u": 0.000285631152564747,
+  "minimum_floor_gap_u": 0.0013546068610139628,
+  "native_capture_sha256": "a311be8eef1b57517081ea39a824d9662ad565e200bd48500b688ccf96d09de9",
+  "production_qualified": false,
+  "rows": 10836,
+  "runtime_admitted": false,
+  "schema": 1
+}

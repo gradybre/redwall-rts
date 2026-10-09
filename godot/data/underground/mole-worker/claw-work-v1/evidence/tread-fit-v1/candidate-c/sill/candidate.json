@@ -1,0 +1,157 @@
+{
+  "schema": 1,
+  "decision": [
+    "1217",
+    "1209"
+  ],
+  "recipe": {
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90,
+    "work_y_u": 160,
+    "contact_z_u": -300,
+    "paw_x_u": 224
+  },
+  "bearer_top_u": 64,
+  "work_plane_u": 160,
+  "contact_targets_u": {
+    "right": [
+      224.0,
+      160.0,
+      -300.0
+    ],
+    "left": [
+      -224.0,
+      160.0,
+      -300.0
+    ]
+  },
+  "station_from_far_edge_u": 310,
+  "fixture": {
+    "assembly": 1,
+    "solids_u": [
+      [
+        -1024,
+        -64,
+        -310,
+        1024,
+        0,
+        202
+      ],
+      [
+        -896,
+        -896,
+        -310,
+        -768,
+        -64,
+        202
+      ],
+      [
+        768,
+        -896,
+        -310,
+        896,
+        -64,
+        202
+      ],
+      [
+        -1024,
+        64,
+        202,
+        1024,
+        128,
+        2250
+      ],
+      [
+        -896,
+        -896,
+        202,
+        -768,
+        64,
+        2250
+      ],
+      [
+        768,
+        -896,
+        202,
+        896,
+        64,
+        2250
+      ],
+      [
+        -256,
+        0,
+        -310,
+        256,
+        64,
+        -182
+      ],
+      [
+        -2048,
+        -896,
+        -822,
+        -1024,
+        768,
+        2250
+      ],
+      [
+        1024,
+        -896,
+        -822,
+        2048,
+        768,
+        2250
+      ]
+    ],
+    "source_labels": [
+      "support deck T_{k-1}",
+      "T_{k-1} left bearer and posts (superset)",
+      "T_{k-1} right bearer and posts (superset)",
+      "deck behind (L0, or T_{k-2})",
+      "behind left bearer and posts (superset)",
+      "behind right bearer and posts (superset)",
+      "paid WIP candidate: T_k left bearer, quarter-turned",
+      "trench side wall, -x",
+      "trench side wall, +x"
+    ],
+    "support_solid": 0,
+    "workpiece_solid": 6,
+    "workpiece_support": false
+  },
+  "clips": {
+    "seat_work": {
+      "id": "mole_worker.paw_seat.work_v1",
+      "frames": 2,
+      "sha256": "fe3712bc5056ef4bd1c2bfd0b6f098bbd6e88636652042fb8c581f2a67ae3c7a"
+    },
+    "seat_entry": {
+      "id": "mole_worker.paw_seat.entry_v1",
+      "frames": 31,
+      "sha256": "a74f24a1ddb45fc6ec64e3efb58762c10e5e6d549a3f189f413683b0ba6910cf"
+    },
+    "seat_recovery": {
+      "id": "mole_worker.paw_seat.recovery_v1",
+      "frames": 31,
+      "sha256": "74cd3bab3854900035151025bd37b81eb5db11215c135e618533989f761df129"
+    },
+    "tap_work": {
+      "id": "mole_worker.paw_tap.work_v1",
+      "frames": 33,
+      "sha256": "5b3738c04b9efd320ace4786c8a938b6a6570524c82232a5a2c209b3d50c30a8"
+    },
+    "tap_entry": {
+      "id": "mole_worker.paw_tap.entry_v1",
+      "frames": 31,
+      "sha256": "fce86bd8e412e2d7925fe94a2a65489fde272a8d3c451119e079afb6342f9a06"
+    },
+    "tap_recovery": {
+      "id": "mole_worker.paw_tap.recovery_v1",
+      "frames": 31,
+      "sha256": "07e373cdc5f6a605f0a2f3b5924222680c3d75343d1059cd641ea4be4541c451"
+    }
+  },
+  "exact_bearer_contact_required": false,
+  "production_qualified": false
+}

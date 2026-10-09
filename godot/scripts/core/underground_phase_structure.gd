@@ -407,7 +407,9 @@ func _claim_level_refusal() -> StringName:
 	code = _level_for(_row, _other_level)
 	if code != &"":
 		return code
-	if _claim.box[1] != _other_level.floor_y_u or _claim.box[4] != _other_level.clear_roof_y_u:
+	var top: int = _claim.box[4]
+	if _claim.box[1] != _other_level.floor_y_u or (top != _other_level.clear_roof_y_u # DEC-054: or whole cubes below it.
+			and (top <= _claim.box[1] or top > _other_level.clear_roof_y_u or (top - _claim.box[1]) % Space.QUANTUM_U != 0)):
 		return REFUSE_SECTION
 	return _fast_refusal()
 
@@ -442,7 +444,7 @@ func _own_claim_refusal(at: int) -> StringName:
 			return REFUSE_CLAIM
 	code = _one_band(_level.required_footing_low_u, _level.required_footing_high_u)
 	if code == &"" and _level.has_roof:
-		code = _one_band(_level.protected_above_low_u, _level.protected_above_high_u)
+		code = _one_band(_claim.box[4], _level.protected_above_high_u) # DEC-054: from the Room's own top.
 	return code
 
 
@@ -454,7 +456,7 @@ func _neighbor_refusal() -> StringName:
 	if Space.overlaps(_band, _cube):
 		return REFUSE_PROTECTED
 	if _other_level.has_roof:
-		_band_from_claim(_other_level.protected_above_low_u, _other_level.protected_above_high_u)
+		_band_from_claim(_claim.box[4], _other_level.protected_above_high_u)
 		if Space.overlaps(_band, _cube):
 			return REFUSE_PROTECTED
 	return &""

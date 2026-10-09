@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "images_sha256": {
+    "grip.png": "ac8adf1fc024b8385fe1a8bdb965d17839c4c965d189999950880455f344eb58",
+    "paw-alone.png": "635c62f5bb7827b96d817475dedfe0d853f0f4d91cd6777b55c0af129aa6b39a"
+  },
+  "renderer_sha256": "07ff26a2be3987464757969b291062e2c6ff732ebd8b1c331d54a0dc2478af45"
+}

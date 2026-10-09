@@ -8,7 +8,8 @@ with a record of what each made beside them (`art_pass2_models.json`, `art_pass2
 
   * runs a pass's tool only when its record is missing (each needs Blender; a re-run of staging reuses what is there);
   * measures every staged model the demo now draws and writes its `world` row, as stage_demo_assets.py does its own;
-  * writes pass 3's nine icons into the `icons` section (by key, as pass 1's are);
+  * writes make_art_pass3.py's icons into the `icons` section (by key, as pass 1's are): pass 3's nine, 0972's flax,
+    linen and wax, and 1831's eleven dishes; the icon record is remade when it lacks a key the tool now cuts;
   * writes the UI art (portraits, the tapestry's ground and emblems, the chronicle page) into a `ui` section.
 
 What the demo draws from it (decision 0903): the evergreens, the stone Great Hall, the four homes' window-glow models,
@@ -32,6 +33,7 @@ import subprocess
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import make_art_pass3  # noqa: E402
 from repair_meshy_rig import read_glb  # noqa: E402
 from rig_meshy_tail import node_worlds, transform_point  # noqa: E402
 
@@ -61,6 +63,9 @@ PASS3_WORLD = ["tunnel_set", "tunnel_post", "tunnel_lintel", "rock_face", "jar_s
 ## Each pass's records: if one is missing, its tool is run (arguments after the script).
 PASS2_RECORDS = ["art_pass2_models.json", "art_pass2_post.json", "ui/art_pass2_ui.json"]
 PASS3_RECORDS = {"art_pass3_models.json": [], "art_pass3_icons.json": ["--icons"]}
+## Pass 3's icon record, remade when it lacks a key make_art_pass3.py now cuts (a later sheet: decision 1831's dishes),
+## so a restage brings new icons without the record being deleted by hand. Cutting needs no Blender.
+ICON_RECORD = "art_pass3_icons.json"
 
 
 def bounds(path: pathlib.Path) -> tuple[list[float], list[float]]:
@@ -81,6 +86,21 @@ def bounds(path: pathlib.Path) -> tuple[list[float], list[float]]:
 	return [round(v, 4) for v in lo], [round(v, 4) for v in hi]
 
 
+def record_stale(out: pathlib.Path, record: str) -> bool:
+	"""Whether a pass-3 record must be (re)made: it is missing or unreadable, or it is the icon record and lacks a key
+	of make_art_pass3.ICONS."""
+	path = out / record
+	if not path.is_file():
+		return True
+	if record != ICON_RECORD:
+		return False
+	try:
+		made = json.loads(path.read_text())
+	except (OSError, ValueError):
+		return True
+	return not isinstance(made, dict) or not set(make_art_pass3.ICONS) <= set(made)
+
+
 def run_tools(out: pathlib.Path) -> list[str]:
 	"""Run a pass's tool when one of its records is missing (only for the project's own folder: the tools write there).
 	Returns what could not be made."""
@@ -91,7 +111,7 @@ def run_tools(out: pathlib.Path) -> list[str]:
 		if subprocess.run([sys.executable, str(TOOLS / "make_art_pass2.py"), "all"], check=False).returncode != 0:
 			failed.append("art pass 2")
 	for record, arguments in PASS3_RECORDS.items():
-		if not (out / record).is_file():
+		if record_stale(out, record):
 			done = subprocess.run([sys.executable, str(TOOLS / "make_art_pass3.py"), *arguments], check=False)
 			if done.returncode != 0:
 				failed.append(f"art pass 3 ({record})")
@@ -136,7 +156,7 @@ def flax_row(out: pathlib.Path) -> dict:
 
 
 def icon_rows(out: pathlib.Path) -> dict:
-	"""Pass 3's nine icons, by key."""
+	"""make_art_pass3.py's icons (pass 3's nine, 0972's and 1831's), by key."""
 	record = out / "art_pass3_icons.json"
 	made = json.loads(record.read_text()) if record.is_file() else {}
 	return {key: row for key, row in made.items() if (out / row["icon"][len(RES) + 1:]).is_file()}

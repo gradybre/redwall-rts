@@ -7,20 +7,27 @@ NEGATIVE TESTS COME FIRST:
   N01  a folder that is not the project's never runs a pass's tool (they write only to the project's folder).
   N02  a record row whose staged file is missing writes no manifest row (the demo then draws its stand-in).
   N03  an empty folder stages nothing: no world, icon or UI rows.
+  N04  an icon record lacking a key make_art_pass3.py cuts is stale, as is an unreadable one or one that is not a map
+       (decision 1831: a restage then recuts it); a models record is never stale for that reason.
 
 Then: a pass-2 model's row is measured through its node's placement and names its window mask; a pass-3 row is
 copied from its record with its category; flax gets a plant row with its cards and soil line; icons are keyed; the
-UI rows carry the nine-patch margins and the page's text area, and only files that exist.
+UI rows carry the nine-patch margins and the page's text area, and only files that exist. Every dish in dish_book.gd has
+a `dish_<key>` icon that pass 1's cutter or make_art_pass3.py cuts (decision 1831), and 1831's eleven are on their
+sheets' cells, marked 1831.
 """
 
 from __future__ import annotations
 
 import json
 import pathlib
+import re
 import sys
 import tempfile
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import make_art_pass3  # noqa: E402
+import make_demo_food_art  # noqa: E402
 import stage_art_passes as passes  # noqa: E402
 from repair_meshy_rig import append_accessor, write_glb  # noqa: E402
 
@@ -64,6 +71,43 @@ def test_negatives(tmp: pathlib.Path) -> None:
 	empty.mkdir()
 	made = passes.stage(empty)
 	check("N03 nothing staged", made["world"] == {} and made["icons"] == {} and made["ui"] == {})
+
+
+def test_icon_record_staleness(tmp: pathlib.Path) -> None:
+	"""N04: which records a restage remakes."""
+	record = tmp / passes.ICON_RECORD
+	check("N04 a missing icon record is stale", passes.record_stale(tmp, passes.ICON_RECORD))
+	every = {key: {"icon": f"res://demo/assets/icons/{key}.png"} for key in make_art_pass3.ICONS}
+	record.write_text(json.dumps(every))
+	check("N04 a record with every key is not stale", not passes.record_stale(tmp, passes.ICON_RECORD))
+	record.write_text(json.dumps({key: row for key, row in every.items() if key != "dish_vole_stew"}))
+	check("N04 a record lacking one key is stale", passes.record_stale(tmp, passes.ICON_RECORD))
+	record.write_text("{not json")
+	check("N04 an unreadable record is stale", passes.record_stale(tmp, passes.ICON_RECORD))
+	record.write_text(json.dumps(sorted(every)))
+	check("N04 a record that is not a map is stale", passes.record_stale(tmp, passes.ICON_RECORD))
+	(tmp / "art_pass3_models.json").write_text("{}")
+	check("N04 a models record is not judged by icon keys", not passes.record_stale(tmp, "art_pass3_models.json"))
+
+
+def test_dish_icons() -> None:
+	"""Every dish has an icon key a cutter cuts; 1831's eleven on their cells."""
+	book = (passes.ROOT / "godot/demo/kitchen/dish_book.gd").read_text()
+	dishes = re.findall(r'\{"key": &"(\w+)"', book)
+	cut = set(make_demo_food_art.ICONS) | set(make_art_pass3.ICONS)
+	check("dishes: the book was read", len(dishes) >= 24)
+	check("dishes: every one has an icon", [key for key in dishes if f"dish_{key}" not in cut] == [])
+	feasts, suppers = make_art_pass3.DISH_SHEET_FEASTS, make_art_pass3.DISH_SHEET_SUPPERS
+	want = {"dish_feast_fish": (feasts, 0, 0), "dish_berry_tart": (feasts, 1, 0), "dish_nut_roast": (feasts, 2, 0),
+		"dish_orchard_crumble": (feasts, 0, 1), "dish_porridge": (feasts, 1, 1), "dish_barleymeal": (feasts, 2, 1),
+		"dish_soup": (suppers, 0, 0), "dish_beetroot_soup": (suppers, 1, 0), "dish_vole_stew": (suppers, 2, 0),
+		"dish_fish_stew": (suppers, 0, 1), "dish_poached_dace": (suppers, 1, 1)}
+	check("1831: the eleven on their cells", {key: make_art_pass3.ICONS.get(key) for key in want} == want)
+	check("1831: no spare cell is keyed", sum(1 for sheet, _, _ in make_art_pass3.ICONS.values()
+		if sheet in (feasts, suppers)) == 11)
+	check("1831: both sheets marked 1831", make_art_pass3.SHEET_DECISIONS[feasts] == "1831"
+		and make_art_pass3.SHEET_DECISIONS[suppers] == "1831")
+	check("1831: no key cut twice", not set(make_demo_food_art.ICONS) & set(make_art_pass3.ICONS))
 
 
 def test_world(tmp: pathlib.Path) -> None:
@@ -124,9 +168,11 @@ def main() -> int:
 	"""Run every test; print each failure and the tally."""
 	with tempfile.TemporaryDirectory() as folder:
 		tmp = pathlib.Path(folder)
-		for part in ("n", "w", "u"):
+		for part in ("n", "r", "w", "u"):
 			(tmp / part).mkdir()
 		test_negatives(tmp / "n")
+		test_icon_record_staleness(tmp / "r")
+		test_dish_icons()
 		test_world(tmp / "w")
 		test_icons_and_ui(tmp / "u")
 	for name in FAILURES:

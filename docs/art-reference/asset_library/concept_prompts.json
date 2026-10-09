@@ -2092,6 +2092,28 @@
         "assets/library/icon/sheet_foods_a/sheet.png"
       ],
       "prompt": "Icons in exactly the reference's style: painted stylized-realistic 3D, soft light from upper left, three-quarter view from above. 3x3 grid, nine separate items centred in cells, wide margins. Row 1 flax: a tied sheaf of ripe flax stalks with seed bolls; a bundle of combed pale flax fibre; a heap of brown flax seed. Row 2 linen: a folded stack of undyed linen cloth; a bolt of linen tied with cord; a wooden spool of linen thread. Row 3 beeswax: a golden block of beeswax; three beeswax candles; a piece of empty honeycomb wax. Flat light grey background, no shadows, no text."
+    },
+    {
+      "family": "icon",
+      "key": "sheet_dishes_feasts_breakfasts",
+      "task_id": "01a121b3-a6d1-736d-a23c-8d5b0b8008c4",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/icon/sheet_foods_a/sheet.png"
+      ],
+      "prompt": "Icons in exactly the reference's style: painted stylized-realistic 3D, soft light from upper left, three-quarter view from above. 3x3 grid, nine separate items centred in cells, wide margins. Row 1 feasts: whole fish on an oval platter with roast roots and herbs; three small berry tarts glazed with honey; sliced loaf of bean, root and nut roast, hazelnuts on top. Row 2: apple and pear crumble in a clay dish; wooden bowl of creamy oat porridge; clay bowl of coarse golden barley porridge. Row 3, empty: wooden bowl; clay dish; wooden spoon. Flat light grey background, no shadows, no text."
+    },
+    {
+      "family": "icon",
+      "key": "sheet_dishes_suppers",
+      "task_id": "01a121b4-1c00-7232-9bb7-94c58cdd265e",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/icon/sheet_foods_a/sheet.png"
+      ],
+      "prompt": "Icons in exactly the reference's style: painted stylized-realistic 3D, soft light from upper left, three-quarter view from above. 3x3 grid, nine separate items centred in cells, wide margins. Row 1, vegetables only, no meat: clay bowl of vegetable soup, carrot, turnip, herbs; bowl of deep red beetroot soup, onion; iron pot of thick carrot, onion and turnip stew. Row 2: trout fillet poached in broth, carrots, deep bowl; two whole dace poached in a shallow pan, sliced roots; empty wooden bowl. Row 3, empty: clay pot; wooden ladle; pewter plate. Flat light grey background, no shadows, no text."
     }
   ]
 }

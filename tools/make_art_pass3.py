@@ -337,7 +337,8 @@ def cuttable_keys(lib: pathlib.Path) -> list[str]:
 
 def make_icons(lib: pathlib.Path) -> int:
 	"""Cut every icon whose sheet is in the library into OUT/icons/; write their rows to OUT/art_pass3_icons.json.
-	A key whose sheet is missing is named and skipped (its panel keeps its stand-in); 1 when nothing could be cut."""
+	A key whose sheet is missing is named and skipped (its panel keeps its stand-in); 1, and the record left as it was,
+	when nothing could be cut."""
 	from PIL import Image
 	sheets = {}
 	(OUT / "icons").mkdir(parents=True, exist_ok=True)
@@ -355,8 +356,10 @@ def make_icons(lib: pathlib.Path) -> int:
 			"sheet_sha256": sha256(lib / sheet_path), "sha256": sha256(target), "tool": "tools/make_art_pass3.py",
 			"decision": decision_of(sheet_path)}
 		print(f"  {key:20} {sheet_path} {column},{row}", flush=True)
+	if not rows:
+		return 1
 	(OUT / "art_pass3_icons.json").write_text(json.dumps(rows, indent=1, sort_keys=True) + "\n")
-	return 0 if rows else 1
+	return 0
 
 
 def check_ice() -> int:

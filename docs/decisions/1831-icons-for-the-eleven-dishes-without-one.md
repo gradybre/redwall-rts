@@ -94,7 +94,7 @@ before this decision therefore kept a record without the eleven, and a restage w
 - **The icon record is remade when it lacks a key the library can supply,** or cannot be read. Cutting needs Pillow
   and the library, not Blender.
 - **A key whose sheet the library lacks is skipped, not fatal.** `make_icons` names it, cuts the rest and writes the
-  record; it fails only when it can cut nothing. Staleness asks only for keys whose sheet is in the library. A library
+  record; it fails only when it can cut nothing, and then leaves the old record as it was. Staleness asks only for keys whose sheet is in the library. A library
   mirror without these two sheets therefore stages as before, with the eleven left to the panels' stand-ins, and is
   not recut on every restage. The code reviewer found this case (MEDIUM 1): before the fix, such a mirror failed
   every restage.
@@ -104,7 +104,11 @@ before this decision therefore kept a record without the eleven, and a restage w
     rather than run.
   - It checks that every `dish_book.gd` row has a `dish_<key>` icon a cutter cuts, the eleven on their cells.
   - It checks that each sheet keeps its decision.
-  - Mutating the staleness wiring, the decision map or the partial-library filter fails it.
+  - Where Pillow is installed, it runs `make_icons` through the cutter on a synthetic sheet. The cutter must cut
+    only the keys whose sheet is there, mark each row with its sheet's decision, and leave the record alone when it
+    can cut nothing.
+  - These mutations each fail it: dropping the staleness wiring, the decision map or the partial-library filter, and
+    dropping the cutter's skip, its decision or its empty-library guard. The second review checked them.
 
 ## Seen in the game
 

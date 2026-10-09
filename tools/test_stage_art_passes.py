@@ -21,6 +21,8 @@ sheets' cells, marked 1831.
 
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import pathlib
 import re
@@ -170,6 +172,44 @@ def test_dish_icons(tmp: pathlib.Path) -> None:
 	check("1831: no key cut twice", not set(make_demo_food_art.ICONS) & set(make_art_pass3.ICONS))
 
 
+def test_make_icons_cuts_what_the_library_has(tmp: pathlib.Path) -> None:
+	"""make_art_pass3.make_icons through the cutter, on a synthetic sheet (only where Pillow is installed): it cuts the
+	keys whose sheet is there, marks each row with its sheet's decision, skips the rest; with no sheet it fails and
+	leaves the record as it was."""
+	try:
+		from PIL import Image, ImageDraw
+	except ImportError:
+		print("make_icons: Pillow is not installed; its checks are skipped")
+		return
+	lib = tmp / "library"
+	sheet = Image.new("RGB", (300, 300), (200, 200, 200))
+	draw = ImageDraw.Draw(sheet)
+	for cell in range(9):
+		x, y = cell % 3 * 100, cell // 3 * 100
+		draw.ellipse((x + 25, y + 25, x + 75, y + 75), fill=(150, 40 + cell * 20, 30))
+	(lib / make_art_pass3.FLAX_SHEET).parent.mkdir(parents=True)
+	sheet.save(lib / make_art_pass3.FLAX_SHEET)
+	real = make_art_pass3.OUT
+	try:
+		make_art_pass3.OUT = tmp / "out"
+		with contextlib.redirect_stdout(io.StringIO()):
+			code = make_art_pass3.make_icons(lib)
+		record = json.loads((tmp / "out" / passes.ICON_RECORD).read_text())
+		check("make_icons: cuts what the library has", code == 0
+			and sorted(record) == sorted(make_art_pass3.cuttable_keys(lib)) and len(record) == 9)
+		check("make_icons: each row's decision is its sheet's", {row["decision"] for row in record.values()} == {"0972"})
+		check("make_icons: an icon is a 128 px square", Image.open(tmp / "out/icons/item_flax.png").size == (128, 128))
+		before = (tmp / "out" / passes.ICON_RECORD).read_text()
+		empty = tmp / "empty"
+		empty.mkdir()
+		with contextlib.redirect_stdout(io.StringIO()):
+			code = make_art_pass3.make_icons(empty)
+		check("make_icons: nothing to cut fails and keeps the record", code == 1
+			and (tmp / "out" / passes.ICON_RECORD).read_text() == before)
+	finally:
+		make_art_pass3.OUT = real
+
+
 def test_world(tmp: pathlib.Path) -> None:
 	"""Pass 2 measured, pass 3 copied, flax's plant row."""
 	glb(tmp / "world/hall_windows.glb", [-1.0, 0.0, -0.5], [1.0, 1.2, 0.5], {"translation": [0.0, 0.5, 0.0]})
@@ -228,12 +268,13 @@ def main() -> int:
 	"""Run every test; print each failure and the tally."""
 	with tempfile.TemporaryDirectory() as folder:
 		tmp = pathlib.Path(folder)
-		for part in ("n", "r", "t", "d", "w", "u"):
+		for part in ("n", "r", "t", "d", "m", "w", "u"):
 			(tmp / part).mkdir()
 		test_negatives(tmp / "n")
 		test_icon_record_staleness(tmp / "r")
 		test_run_tools_recuts_a_stale_record(tmp / "t")
 		test_dish_icons(tmp / "d")
+		test_make_icons_cuts_what_the_library_has(tmp / "m")
 		test_world(tmp / "w")
 		test_icons_and_ui(tmp / "u")
 	for name in FAILURES:

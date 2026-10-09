@@ -109,8 +109,8 @@ def record_stale(out: pathlib.Path, record: str) -> bool:
 
 
 def run_tools(out: pathlib.Path) -> list[str]:
-	"""Run a pass's tool when one of its records is missing (only for the project's own folder: the tools write there).
-	Returns what could not be made."""
+	"""Run a pass's tool when one of its records is missing, or pass 3's icon record is stale (`record_stale`); only for
+	the project's own folder, as the tools write there. Returns what could not be made."""
 	failed = []
 	if out.resolve() != OUT.resolve():
 		return failed

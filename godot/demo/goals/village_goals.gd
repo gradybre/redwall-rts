@@ -11,7 +11,8 @@ extends RefCounted
 ##
 ## Then the VILLAGE GOALS (approved as built by Brendan, 2026-10-01; decision 0781): small aims over systems
 ## the demo has today -- the pantry, the kitchen, the stores, the bridges, the tunnels, the seasonal planner's record and
-## the calendar.
+## the calendar -- and, after Brendan's ruling on decision 0901's question (option (b), 2026-10-01; decision 1651), the
+## ferry's first crossing and the first regatta day, read off their own latched counts (`ferry`, `regatta`).
 ##
 ## A row: [id, group, title, why, what the news says, parts]; a part: [key, label, target, unit, measure kind (M_*)].
 
@@ -21,6 +22,8 @@ const WorldScript := preload("res://demo/guide/guide_world.gd")
 const RecordScript := preload("res://demo/farm/farm_record.gd")
 const Rules := preload("res://demo/kitchen/meal_rules.gd")
 const OpeningPantry := preload("res://demo/farm/opening_pantry.gd")
+const FerryScript := preload("res://demo/ferry/ferry.gd")
+const RegattaScript := preload("res://demo/regatta/regatta.gd")
 
 ## Not modelled in the demo: the part is declared without a measure.
 const M_NONE: int = -1
@@ -43,6 +46,11 @@ const M_TUNNELS: int = 12
 ## Ready food the village cooked or brought in: the Ready food less what the opening stock still in the pantry cooks
 ## (opening_pantry.gd `portions_left`; Brendan's ruling on decision 0902's question 2, 2026-10-02).
 const M_OWN_FOOD_DAYS: int = 13
+## Crossings the ferry has rowed home (ferry.gd `crossings_done`, latched; decision 1651).
+const M_CROSSINGS: int = 14
+## Regattas whose feast's main course at least one resident ate (regatta.gd `feasts_served`; Brendan's rulings of
+## 2026-10-07, decision 1651): a regatta skipped past, or one whose supper closed with no hotpot eaten, does not count.
+const M_REGATTAS: int = 15
 
 const MILESTONE: int = BookScript.GROUP_MILESTONE
 const VILLAGE: int = BookScript.GROUP_VILLAGE
@@ -105,6 +113,14 @@ const GOALS: Array = [
 		"The stream cuts the village in two. A bridge is the dry way to the far bank, in flood and in ice.",
 		"a bridge stands open over the stream.",
 		[[&"bridges", "Bridges open", 1, COUNT, M_BRIDGES]]],
+	[&"first_crossing", VILLAGE, "First crossing",
+		"The ferry rows the far copse's windfall wood across the run, and anyone for whom it is the quicker way. One crossing rowed home means the crew, the boat and the timetable all work.",
+		"the ferry has rowed its first crossing home.",
+		[[&"crossings", "Ferry crossings rowed home", 1, COUNT, M_CROSSINGS]]],
+	[&"regatta_day", VILLAGE, "Regatta day",
+		"Once a season the village races its two rowboats on the pond and sits down to the Hearth feast at supper: a day kept together, and one the chronicle remembers.",
+		"the village has held its first regatta and sat down to its feast.",
+		[[&"regattas", "Regatta feasts eaten", 1, COUNT, M_REGATTAS]]],
 	[&"way_below", VILLAGE, "A way below",
 		"Tunnels join homes and stores under frost and rain; three open stretches make a passage rather than a hole.",
 		"three stretches of tunnel are dug open.",
@@ -122,6 +138,10 @@ const GOALS: Array = [
 var world: WorldScript = null
 var ledger: LedgerScript = null
 var record: RecordScript = null
+## The ferry and the regatta whose latched counts the "First crossing" and "Regatta day" goals read; bound by the village
+## once both are built (demo_village.gd `_bind_goal_measures`). Unbound, their goals read 0 and wait.
+var ferry: FerryScript = null
+var regatta: RegattaScript = null
 
 
 func _init(p_world: WorldScript = null, p_ledger: LedgerScript = null, p_record: RecordScript = null) -> void:
@@ -160,6 +180,8 @@ func value(kind: int) -> int:
 		M_WOOD: return world.stores.wood_milli_u if world != null and world.stores != null else 0
 		M_BRIDGES: return world.open_bridges() if world != null else 0
 		M_TUNNELS: return world.open_tunnels() if world != null else 0
+		M_CROSSINGS: return ferry.crossings_done if ferry != null else 0
+		M_REGATTAS: return regatta.feasts_served if regatta != null else 0
 	return _ledger_value(kind)
 
 

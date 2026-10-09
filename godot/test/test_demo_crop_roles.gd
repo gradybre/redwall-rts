@@ -80,7 +80,7 @@ func test_the_words_for_days_and_seasons() -> void:
 
 func test_uses_are_read_from_the_kitchen_and_the_mill() -> void:
 	"""Carrots: the soup and the fish stew, raw in a pinch; wheat: porridge and the mill; lettuce the dishes that take
-	greens, then raw; peas the bean hotpot -- each from meal_rules.gd's own tables, so a dish added there shows here (the
+	greens, then raw; peas the bean hotpot and the feasts' nut roast -- each from meal_rules.gd's own tables, so a dish added there shows here (the
 	recipe book's twenty since the batch 7 integration, decision 0902)."""
 	var radish: PackedStringArray = Roles.uses_of(RADISH)
 	assert_true(radish.has(MealRules.DISH_NAMES[MealRules.DISH_SOUP]), "radish feeds the soup")
@@ -95,9 +95,10 @@ func test_uses_are_read_from_the_kitchen_and_the_mill() -> void:
 	assert_true(lettuce.has(MealRules.DISH_NAMES[MealRules.DISH_SALAD]) and lettuce[lettuce.size() - 1] == Roles.RAW_USE,
 		"lettuce: the salad and the other greens' dishes, then raw: %s" % ", ".join(lettuce))
 	assert_equal(Roles.uses_of(CABBAGE), lettuce, "cabbage the same")
-	assert_equal(Roles.uses_of(PEA), PackedStringArray([MealRules.DISH_NAMES[MealRules.DISH_BEAN_HOTPOT]]),
-		"peas: the bean hotpot alone")
-	assert_equal(Roles.uses_text(PEA), "Uses: " + MealRules.DISH_NAMES[MealRules.DISH_BEAN_HOTPOT], "said so")
+	var roast: String = MealRules.DISH_NAMES[MealRules.DISH_KEYS.find(&"nut_roast")]
+	assert_equal(Roles.uses_of(PEA), PackedStringArray([MealRules.DISH_NAMES[MealRules.DISH_BEAN_HOTPOT], roast]),
+		"peas: the bean hotpot, and the Orchard feast's nut roast (decision 1701)")
+	assert_equal(Roles.uses_text(PEA), "Uses: %s, %s" % [MealRules.DISH_NAMES[MealRules.DISH_BEAN_HOTPOT], roast], "said so")
 	assert_true(Roles.uses_of(TROUT).is_empty(), "not a crop")
 	for dish: int in MealRules.DISH_COUNT:
 		var any: bool = false

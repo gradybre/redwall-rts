@@ -381,12 +381,14 @@ func room_milli() -> int:
 
 func daily_use_milli(crop: int) -> int:
 	"""What the kitchen eats of a §5.6 row in a day, milli-U: each meal's dish (meal_rules.gd `dish_for_meal`) takes
-	its input or second input of the row for the batches the residents need."""
+	its input or second input of the row for the batches the residents need (a portion and a half each, decision
+	1732)."""
 	var mouths: int = int(_residents.call()) if _residents.is_valid() else 0
 	var use: int = 0
 	for meal: int in MealRules.MEAL_NAMES.size():
 		var dish: int = MealRules.dish_for_meal(meal)
-		@warning_ignore("integer_division") var batches: int = (mouths + MealRules.PORTIONS_PER_BATCH[dish] - 1) / MealRules.PORTIONS_PER_BATCH[dish]
+		var per_batch: int = MealRules.PORTIONS_PER_BATCH[dish]
+		@warning_ignore("integer_division") var batches: int = (MealRules.portions_for(mouths) + per_batch - 1) / per_batch
 		if MealRules.INPUT_CROP[dish] == crop:
 			use += batches * MealRules.INPUT_MILLI[dish]
 		if MealRules.SIDE_CROP[dish] == crop:

@@ -1009,7 +1009,7 @@ func _profile_refusal() -> StringName:
 
 
 func _install_contact_kind(kind: int) -> bool:
-	"""The exact anchor-and-patch contact; at a tread station (ADR1229, DEC-058) the tread fitting motion, whose
+	"""The exact anchor-and-patch contact; at a tread station (ADR1229, DEC-060) the tread fitting motion, whose
 	paws make no certified contact: its whole motion was proved against the bearer at the station instead."""
 	return kind == Profiles.CONTACT_ANCHOR_AND_PATCH or (kind == Profiles.CONTACT_TREAD_FIT and _tread_station())
 

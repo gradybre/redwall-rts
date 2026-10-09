@@ -200,11 +200,21 @@ func _in_hand(rig: Rig, item: int) -> int:
 
 
 func _no_holds(rig: Rig, label: String) -> void:
-	"""No room is held anywhere, and no reservation row is left live (a spent hold still takes a row)."""
+	"""No room is held anywhere and no reservation row is left live (a spent hold still takes a row) -- but by a job
+	still on the board that is not a harvest or a haul -- the routine's other work (the apiary's service, decision 1601,
+	or a berry picking) may hold its own room while the run ends; a harvest's or a haul's never outlives it."""
+	var live_holds := PackedInt32Array()
+	for j: int in JobsScript.MAX_JOBS:
+		var other: bool = rig.jobs.kind[j] != JobsScript.K_HARVEST and rig.jobs.kind[j] != JobsScript.K_HAUL
+		if rig.jobs.is_live(j) and other and rig.pantry.is_hold(rig.jobs.hold[j]):
+			live_holds.append(rig.jobs.hold[j])
 	for at: int in rig.pantry.storage.count():
-		assert_equal(rig.pantry.reserved_milli_of(at), 0, "%s: no room held at store %d" % [label, at])
+		var own: int = 0
+		for hold: int in live_holds:
+			own += rig.pantry.hold_milli(hold) if rig.pantry.hold_location_into(hold, _read) and _read.value == at else 0
+		assert_equal(rig.pantry.reserved_milli_of(at), own, "%s: no room held at store %d" % [label, at])
 	for hold: int in PantryScript.MAX_HOLDS:
-		assert_false(rig.pantry.is_hold(hold), "%s: hold row %d released" % [label, hold])
+		assert_false(rig.pantry.is_hold(hold) and not live_holds.has(hold), "%s: hold row %d released" % [label, hold])
 
 
 # --- the numbers -----------------------------------------------------------------------------------------------------------
@@ -311,7 +321,7 @@ func test_the_old_orchard_is_real_rows() -> void:
 	assert_equal(model.stage_of(0), Rules.STAGE_OLD, "old")
 	assert_equal(model.stage_of(2), ModelScript.NONE, "no tree, no stage")
 	assert_equal(model.saplings, PackedInt32Array([2, 2]), "the grant")
-	assert_true(model.grove_protected, "the grove starts protected")
+	assert_equal(model.grove_protected, PackedByteArray([1, 1]), "both groves start protected")
 	assert_equal(model.species_of(2), ModelScript.NONE, "no species on an empty site")
 	assert_equal(model.age_of(2), 0, "no age")
 	assert_equal(model.health_of(3), 0, "no health")
@@ -343,8 +353,9 @@ func test_the_old_trees_bear_once_in_their_window() -> void:
 	assert_equal(model.harvest_refusal(0, APPLE_DAY), "", "Autumn 1")
 	assert_equal(model.harvest_refusal(1, APPLE_DAY), String(Hive.REFUSE_OUTSIDE_HARVEST_WINDOW), "not the pear's yet")
 	assert_equal(model.harvest_refusal(1, PEAR_DAY), "", "the pear's Autumn 3")
-	@warning_ignore("integer_division") var expected: int = 80000 * Rules.OLD_HEALTH / 10000
-	assert_equal(model.expected_yield_milli(0), expected, "80 U at 35% health")
+	@warning_ignore("integer_division") var expected: int = 80000 * Rules.OLD_HEALTH / 10000 \
+		* Hive.POLLINATION_FACTOR_ONE_HIVE / Hive.POLLINATION_FACTOR_DENOMINATOR
+	assert_equal(model.expected_yield_milli(0), expected, "80 U at 35% health, x1.10 by the apiary 10.3 m off (decision 1601)")
 	assert_equal(model.pick_tree(0, APPLE_DAY), expected, "picked")
 	assert_equal(model.fruit_picked_milli[Rules.APPLE], expected, "tallied")
 	assert_equal(model.harvest_refusal(0, APPLE_DAY + 1), String(Hive.REFUSE_ALREADY_HARVESTED_THIS_YEAR), "once")
@@ -457,13 +468,17 @@ func test_the_hedge_fruits_in_summer_and_keeps_its_floor() -> void:
 func test_the_grove_record_keeps_the_newest() -> void:
 	"""ECO-015: protection toggles; a season's observation noted, newest first, MAX_RECORDS kept."""
 	var model := ModelScript.new()
-	model.set_grove_protected(false)
-	assert_false(model.grove_protected, "lifted")
+	model.set_grove_protected(0, false)
+	assert_false(model.is_grove_protected(0), "lifted")
+	assert_true(model.is_grove_protected(1), "the other grove kept")
+	assert_false(model.is_grove_protected(Rules.GROVE_COUNT), "no such grove")
 	for k: int in Rules.MAX_RECORDS + 3:
-		model.record_observation(k, "line %d" % k)
-	assert_equal(model.grove_record.size(), Rules.MAX_RECORDS, "bounded")
-	assert_equal(model.grove_record[0], "line %d" % (Rules.MAX_RECORDS + 2), "newest first")
-	assert_equal(model.grove_seen_season, Rules.MAX_RECORDS + 2, "the season seen")
+		model.record_observation(1, k, "line %d" % k)
+	assert_equal(model.grove_record[1].size(), Rules.MAX_RECORDS, "bounded")
+	assert_equal(model.grove_record[1][0], "line %d" % (Rules.MAX_RECORDS + 2), "newest first")
+	assert_equal(model.grove_seen_season[1], Rules.MAX_RECORDS + 2, "the season seen")
+	assert_equal(model.grove_record[0].size(), 0, "each grove its own record")
+	assert_equal(model.grove_seen_season[0], -1, "the North hollow not yet seen")
 	assert_equal(ModelScript.season_index_of_day(1), 0, "Y1 spring")
 	assert_equal(ModelScript.season_index_of_day(13), 1, "Y1 summer")
 	assert_equal(ModelScript.season_index_of_day(49), 4, "Y2 spring")
@@ -707,13 +722,17 @@ func test_a_plan_is_propagated_grown_and_planted() -> void:
 func test_the_grove_is_observed_once_a_season() -> void:
 	"""ECO-015: the routine's observation walks to the grove's stone and notes the season, the trees standing counted."""
 	var rig := _rig(2)
-	rig.jobs.grove_trees = func() -> int: return 2
+	rig.jobs.grove_trees = func(grove: int) -> int: return 2 + grove
 	rig.jobs.plan_work()
-	assert_true(_run(rig, func() -> bool: return rig.model.grove_record.size() == 1), "observed")
-	assert_true(rig.model.grove_record[0].contains("2 trees standing"), rig.model.grove_record[0])
-	assert_true(rig.model.grove_record[0].contains("bees"), "spring's sighting")
+	assert_true(_run(rig, func() -> bool: return rig.model.grove_record[0].size() == 1 \
+		and rig.model.grove_record[1].size() == 1), "both groves observed")
+	assert_true(rig.model.grove_record[0][0].contains("2 trees standing"), rig.model.grove_record[0][0])
+	assert_true(rig.model.grove_record[0][0].contains("bees"), "spring's sighting")
+	assert_true(rig.model.grove_record[1][0].contains("The beech hollow") and rig.model.grove_record[1][0].contains(
+		"3 trees standing"), rig.model.grove_record[1][0])
 	rig.jobs.plan_work()
 	assert_equal(rig.jobs.find(JobsScript.K_OBSERVE, 0), JobsScript.NONE, "once a season")
+	assert_equal(rig.jobs.find(JobsScript.K_OBSERVE, 1), JobsScript.NONE, "each grove")
 
 
 func test_a_drought_tending_pays_two_units_of_water() -> void:
@@ -778,7 +797,7 @@ func test_the_kitchen_policy_sends_the_baskets_to_the_kitchen_and_the_keep_stays
 	the nursery's share (4 U) stays at the stand."""
 	var rig := _rig(APPLE_DAY)
 	var stand: int = _stand(rig, 0)
-	rig.model.group_dest[0] = Rules.DEST_KITCHEN
+	rig.model.group_fresh_pct[0] = 100
 	rig.model.group_keep[0] = Rules.KEEP_STEPS[1]
 	assert_true(rig.pantry.add_into(Catalog.ITEM_APPLE, 9000, stand, _read), "apples at the baskets")
 	rig.jobs.plan_work()
@@ -902,7 +921,7 @@ func test_a_haul_follows_its_store_when_the_stores_move() -> void:
 	var rig := _rig(APPLE_DAY)
 	var stand: int = _stand(rig, 0)
 	rig.model.group_keep[0] = 0
-	rig.model.group_dest[0] = Rules.DEST_KITCHEN
+	rig.model.group_fresh_pct[0] = 100
 	assert_true(rig.pantry.add_into(Catalog.ITEM_APPLE, 6000, stand, _read), "apples at the baskets")
 	assert_equal(rig.jobs.order(JobsScript.K_HAUL, 0, -1, PackedInt32Array([2])), "", "ordered")
 	var j: int = rig.jobs.find(JobsScript.K_HAUL, 0)

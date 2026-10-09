@@ -38,7 +38,7 @@ The runtime cannot use any of it yet:
    **POLICY_STAIR = 8** (descent, ascent) and **POLICY_STAIR_TURN = 9** (the half-turn, which would otherwise share
    the descent's key and heading). Profiles admits them only on YAW_EXACT WALK rows, with no tool or cargo, whose
    family mask names a connector family. The tread fitting row uses a new contact kind, **CONTACT_TREAD_FIT = 5**
-   (DEC-058): a source-work BUILD row with five roles and no point or patch, as CONTACT_HAUL_GRIP has none.
+   (DEC-060): a source-work BUILD row with five roles and no point or patch, as CONTACT_HAUL_GRIP has none.
    This is a Profiles format extension with a negative test.
 
 ## Content 10 (create-only)
@@ -52,7 +52,7 @@ The runtime cannot use any of it yet:
       prover's exact interval enclosures.
   - **short steps on source 4:** step back as POLICY_SHORT_BACKWARD and step forward as POLICY_SHORT_FORWARD, yaw 0,
     ground (family −1). Their 141 u span is checked by the step program, as ADR 1164's 232 u was.
-  - **tread fitting:** a WORK row on source 4 (yaw 0, INSTALL, `CONTACT_NONE` per DEC-058, roles from the
+  - **tread fitting:** a WORK row on source 4 (yaw 0, INSTALL, `CONTACT_NONE` per DEC-060, roles from the
     approved clips) and a handling row on source 5.
   - Content 9's rows otherwise keep their words and boxes.
 - **Ground paces:** content 9's, plus the step rows' ground caps.
@@ -184,10 +184,10 @@ the yaw-0 seating tap 52 is the step forward. So the layer now reads every row u
 - **Tread stations** are proved against their own fixture: the station body may meet the station Room's own installed
   SUPPORT (the timber the tread fitting proof stood among: the deck behind, the bearers and posts) besides void, the
   certified pending bearer and exterior air; the stance must lie in the station's footing. Tap 64 is certified at a
-  tread station over its derived prism (DEC-058: the bearer was hard for every triangle, tread and sill).
+  tread station over its derived prism (DEC-060: the bearer was hard for every triangle, tread and sill).
 - **The claw endpoint certificate successor** (`qualified-claw-certificate-v2/`) serves L0 and T0 on content 10
   (rows 43/47/57/65); `endpoint_certificates.gd` routes content 10 to it.
-- **The Frontier** admits a station whose WORK row is the tread fitting motion (`CONTACT_TREAD_FIT`, DEC-058) beside
+- **The Frontier** admits a station whose WORK row is the tread fitting motion (`CONTACT_TREAD_FIT`, DEC-060) beside
   the exact anchor-and-patch contact, and an episode with no bearing under it (the seventh row, D2).
 - Tests: `test_claw_tread_programs.gd` (5). The routes, world routes, contacts, first prefix, haul grip and hauled
   assembly suites pass unchanged on content 9.
@@ -300,7 +300,7 @@ installs T1-T6, each from the tread above. On the flexible schedule the live `ru
   - It asks the runtime for station paths before each installation. The descent cuts' paths close once the crew
     has left them, so the stair edges take their place in every later requalification.
 - **Contacts.**
-  - A tread station admits the tread fitting row (`CONTACT_TREAD_FIT`, DEC-058).
+  - A tread station admits the tread fitting row (`CONTACT_TREAD_FIT`, DEC-060).
   - Its body is proved against the actual Regions: void, the station Room's own timber, the order's own piece
     and exterior air.
   - It is reached by a static per-leg edge certificate check down and back up the stair. A graph search per leg

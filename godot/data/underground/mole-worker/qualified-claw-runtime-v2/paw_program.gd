@@ -1,6 +1,6 @@
 extends RefCounted
 ## ADR 1229 increment 4: the paw handling programs of content 10 on the paw v2 image (source 5): row 65, content 9's
-## row 59 moved (the L0/T0 bearers), and row 66, the tread handling seat (T1-T5 and the T6 sill, DEC-058). Both keep
+## row 59 moved (the L0/T0 bearers), and row 66, the tread handling seat (T1-T5 and the T6 sill, DEC-060). Both keep
 ## runtime-v1's handling word, roles, clock and state machine (`paw_clock.gd`); only the boxes, the first box and the
 ## presented clips differ: row 65 plays the seat clips 0-2 of the paw v2 image, row 66 the tread seat clips 3-5. It
 ## supplies source identity only, never paid or World permission. Stateless.

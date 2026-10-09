@@ -59,7 +59,7 @@ func _initialize() -> void:
 		_hide_guide_by_click, _the_menu_row_says_hidden, _click_reopen, _reopened_nothing_granted,
 		_o_opens_the_village_guide, _open_the_help_tab, _type_into_the_help, _the_help_found_it, _open_the_field_guide_tab, _search_the_field_guide,
 		_open_a_field_guide_entry, _open_the_practice_tab, _start_a_story, _choose_in_the_story,
-		_practice_left_the_village_alone, _open_the_projects_tab, _name_and_pin_a_project, _open_the_goals_tab, _the_goals_tab_shows_the_book,
+		_practice_left_the_village_alone, _open_the_projects_tab, _name_and_pin_a_project, _open_the_goals_tab, _the_goals_tab_shows_the_book, _scroll_to_the_occasion_goals, _the_occasion_goals_are_in_view,
 		_scroll_to_the_last_goal, _the_last_goal_is_in_view, _esc_closes_the_guide,
 		_the_card_clears_the_side_columns, _scale_up_with_a_legend, _the_card_keeps_above_the_picker, _back_to_100,
 		_dig_tool_then_the_guide, _enter_in_the_search_never_digs, _close_both, _the_lab_s_practice_stories,
@@ -436,9 +436,50 @@ func _the_goals_tab_shows_the_book() -> void:
 		"%d in the cast; %s" % [residents, m1.replace("\n", " | ")])
 	_check("the village goals' heading", String(page.call(&"heading_text", 1)).begins_with("Village goals:"))
 	_check("an unmodelled part says so", String(page.call(&"goal_text", &"m4_hearth_charter")).contains("not in this demo yet"))
+	_the_occasion_goals_read_the_real_counts(page)
 	var frame: Rect2 = (_window().call(&"frame") as Control).get_global_rect()
 	_check("the guide window is on screen", Rect2(Vector2.ZERO, Vector2(_size)).encloses(frame), str(frame))
 	_capture("guide_goals")
+
+
+func _the_occasion_goals_read_the_real_counts(page: Control) -> void:
+	"""Decision 1651: "First crossing" and "Regatta day" are listed, and the goals' evaluator holds the scene's own ferry
+	and regatta models (their latched counts are what the goals read)."""
+	var village: RefCounted = _guide().get("goals").get("village")
+	var crossing: String = page.call(&"goal_text", &"first_crossing")
+	var regatta: String = page.call(&"goal_text", &"regatta_day")
+	_check("First crossing reads the scene's ferry", village.get("ferry") == _village.call(&"ferry").get("ferry")
+		and crossing.contains("Ferry crossings rowed home:"), crossing.replace("\n", " | "))
+	_check("Regatta day reads the scene's regatta", village.get("regatta") == _village.call(&"regatta").get("regatta")
+		and regatta.contains("Regatta feasts eaten:"), regatta.replace("\n", " | "))
+
+
+func _occasion_title() -> Label:
+	"""The "First crossing" goal's title row on the goals page (null: none)."""
+	for title: Label in _window().get("goals").get("_titles") as Array:
+		if StringName(title.get_meta(&"goal")) == &"first_crossing":
+			return title
+	return null
+
+
+func _scroll_to_the_occasion_goals() -> void:
+	"""Scroll the page so the "First crossing" goal's title is at the top of the scrolling area."""
+	var scroll: ScrollContainer = _window().get("_scroll")
+	var title: Label = _occasion_title()
+	_check("First crossing has a title row", title != null)
+	if title != null:
+		scroll.scroll_vertical += int(title.get_global_rect().position.y - scroll.get_global_rect().position.y)
+
+
+func _the_occasion_goals_are_in_view() -> void:
+	"""After the scroll, the "First crossing" title is inside the scrolling area (decision 1651's frame)."""
+	var scroll: ScrollContainer = _window().get("_scroll")
+	var title: Label = _occasion_title()
+	_check("First crossing is in view", title != null and scroll.get_global_rect().encloses(title.get_global_rect()),
+		"%s / %s" % [title.get_global_rect() if title != null else Rect2(), scroll.get_global_rect()])
+	_check("the page was scrolled to it", scroll.scroll_vertical > 0 and title != null
+		and absf(title.get_global_rect().position.y - scroll.get_global_rect().position.y) < 4.0, str(scroll.scroll_vertical))
+	_capture("guide_goals_occasions")
 
 
 func _scroll_to_the_last_goal() -> void:

@@ -30,8 +30,10 @@ const KIND_TAKE_DOWN: int = 3     # take a cured batch down and carry it to the 
 const KIND_MILL: int = 4          # carry grain to the mill, grind it, carry the flour to the stores
 const KIND_MAKE: int = 5          # make a piece of gear at the workbench, carry it to the locker
 const KIND_MEND: int = 6          # mend a piece of gear at the locker, or a boat at the jetty
+const KIND_BATCH: int = 7         # a station batch with no passive wait (decision 1611: rations at the preserving table)
+## The kinds' words (a recipe row's own words come first: fishery.gd `job_words`).
 const KIND_WORDS: Array[String] = ["Fish", "Collect the trap", "Dry fish", "Take down dried fish", "Mill grain",
-	"Make gear", "Mend gear"]
+	"Make gear", "Mend gear", "Pack rations"]
 
 ## Rack slot states.
 const SLOT_EMPTY: int = 0
@@ -62,6 +64,16 @@ var t_overdue: PackedByteArray = PackedByteArray()
 var t_seat_job: PackedInt32Array = PackedInt32Array()
 var t_cycle: Array = []
 var t_words: PackedStringArray = PackedStringArray()
+## The fishing revamp (decisions 1711-1712): 1 for a BEST CATCH trip (catch_plan.gd: its species is chosen again at the
+## water), the trap's collection policy (catch_plan.gd COLLECT_*), and the EXCELLENT share of its catch (milli-U).
+var t_auto: PackedByteArray = PackedByteArray()
+var t_collect: PackedByteArray = PackedByteArray()
+var t_excellent: PackedInt64Array = PackedInt64Array()
+## The FISHING stream's two draws for the trip's open cycle, taken when it departed (fishing_rolls.gd; -1: none yet).
+var t_hazard_roll: PackedInt32Array = PackedInt32Array()
+var t_rare_roll: PackedInt32Array = PackedInt32Array()
+## The tick a soaked trap's collection goes on the board (-1: not worked out yet; catch_plan.gd COLLECTION).
+var t_collect_at: PackedInt64Array = PackedInt64Array()
 
 # --- jobs -----------------------------------------------------------------------------------
 var j_live: PackedByteArray = PackedByteArray()
@@ -71,6 +83,8 @@ var j_worker: PackedInt32Array = PackedInt32Array()
 var j_trip: PackedInt32Array = PackedInt32Array()
 var j_seat: PackedInt32Array = PackedInt32Array()
 var j_slot: PackedInt32Array = PackedInt32Array()
+## A station batch's recipe row (demo/preserve/preserve_rules.gd R_*; NONE for any other job).
+var j_recipe: PackedInt32Array = PackedInt32Array()
 var j_prog: PackedInt32Array = PackedInt32Array()
 var j_pos: PackedInt32Array = PackedInt32Array()
 var j_goal: PackedVector2Array = PackedVector2Array()
@@ -95,6 +109,8 @@ var j_words: PackedStringArray = PackedStringArray()
 var s_state: PackedInt32Array = PackedInt32Array()
 var s_ready_tick: PackedInt64Array = PackedInt64Array()
 var s_hold: PackedInt32Array = PackedInt32Array()
+## Each slot's batch's recipe row (preserve_rules.gd: the Dryer dries fish or fruit).
+var s_recipe: PackedInt32Array = PackedInt32Array()
 
 var _next_serial: int = 1
 
@@ -107,16 +123,17 @@ func _init(rack_slots: int) -> void:
 	s_ready_tick.resize(rack_slots)
 	s_hold.resize(rack_slots)
 	s_hold.fill(NONE)
+	s_recipe.resize(rack_slots)
 
 
 func _size_trips() -> void:
 	"""Every trip column, MAX_TRIPS long."""
-	for column: PackedByteArray in [t_live, t_called_off, t_overdue]:
+	for column: PackedByteArray in [t_live, t_called_off, t_overdue, t_auto, t_collect]:
 		column.resize(MAX_TRIPS)
 	for column: PackedInt32Array in [t_serial, t_method, t_site, t_species, t_boat, t_gear, t_outfit, t_state, t_hold,
-			t_item]:
+			t_item, t_hazard_roll, t_rare_roll]:
 		column.resize(MAX_TRIPS)
-	for column: PackedInt64Array in [t_expected, t_caught, t_due, t_soak_until, t_work_mwu]:
+	for column: PackedInt64Array in [t_expected, t_caught, t_due, t_soak_until, t_work_mwu, t_excellent, t_collect_at]:
 		column.resize(MAX_TRIPS)
 	t_seat_job.resize(MAX_TRIPS * 2)
 	t_seat_job.fill(NONE)
@@ -128,8 +145,8 @@ func _size_jobs() -> void:
 	"""Every job column, MAX_JOBS long."""
 	for column: PackedByteArray in [j_live, j_issued, j_paused, j_started, j_at]:
 		column.resize(MAX_JOBS)
-	for column: PackedInt32Array in [j_serial, j_kind, j_worker, j_trip, j_seat, j_slot, j_prog, j_pos, j_load_item,
-			j_take, j_hold, j_tries]:
+	for column: PackedInt32Array in [j_serial, j_kind, j_worker, j_trip, j_seat, j_slot, j_recipe, j_prog, j_pos,
+			j_load_item, j_take, j_hold, j_tries]:
 		column.resize(MAX_JOBS)
 	for column: PackedInt64Array in [j_mwu, j_num, j_need, j_load_milli, j_wait_usec]:
 		column.resize(MAX_JOBS)
@@ -154,13 +171,16 @@ func open_trip(method: int, site: int, species: int) -> int:
 	t_method[t] = method
 	t_site[t] = site
 	t_species[t] = species
-	for column: PackedInt32Array in [t_boat, t_gear, t_outfit, t_hold, t_item]:
+	for column: PackedInt32Array in [t_boat, t_gear, t_outfit, t_hold, t_item, t_hazard_roll, t_rare_roll]:
 		column[t] = NONE
-	for column: PackedInt64Array in [t_expected, t_caught, t_due, t_soak_until, t_work_mwu]:
+	for column: PackedInt64Array in [t_expected, t_caught, t_due, t_soak_until, t_work_mwu, t_excellent]:
 		column[t] = 0
 	t_state[t] = TRIP_QUEUED
 	t_called_off[t] = 0
 	t_overdue[t] = 0
+	t_auto[t] = 0
+	t_collect[t] = 0
+	t_collect_at[t] = NONE
 	t_seat_job[t * 2] = NONE
 	t_seat_job[t * 2 + 1] = NONE
 	t_cycle[t] = null
@@ -192,7 +212,7 @@ func open_job(kind: int, prog: int, trip: int) -> int:
 	j_kind[j] = kind
 	j_prog[j] = prog
 	j_trip[j] = trip
-	for column: PackedInt32Array in [j_worker, j_seat, j_slot, j_load_item, j_take, j_hold]:
+	for column: PackedInt32Array in [j_worker, j_seat, j_slot, j_recipe, j_load_item, j_take, j_hold]:
 		column[j] = NONE
 	j_pos[j] = 0
 	j_tries[j] = 0

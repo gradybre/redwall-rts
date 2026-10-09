@@ -14,6 +14,7 @@ const CardsScript := preload("res://demo/orchard/orchard_cards.gd")
 const PanelScript := preload("res://demo/orchard/orchard_panel.gd")
 const ViewScript := preload("res://demo/orchard/orchard_view.gd")
 const OrchardNode := preload("res://demo/orchard/demo_orchard.gd")
+const HiveRules := preload("res://demo/hives/hive_rules.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 const PantryScript := preload("res://demo/farm/farm_pantry.gd")
@@ -255,7 +256,7 @@ func test_the_woods_never_fell_a_tree_in_the_protected_grove() -> void:
 	assert_equal(forestry.crew.refusal_for(JobsForest.KIND_FELL, inside, 0), ForestCrew.REFUSE_GROVE, "refused")
 	assert_true(forestry.crew.reason_text(ForestCrew.REFUSE_GROVE, inside).contains("protected grove"), "in words")
 	assert_true(forestry.crew.refusal_for(JobsForest.KIND_FELL, outside, 0) != ForestCrew.REFUSE_GROVE, "not outside it")
-	node.model.set_grove_protected(false)
+	node.model.set_grove_protected(0, false)
 	assert_true(forestry.crew.refusal_for(JobsForest.KIND_FELL, inside, 0) != ForestCrew.REFUSE_GROVE, "lifted")
 	node.free()
 
@@ -401,7 +402,7 @@ func test_the_panel_shows_what_it_is_told() -> void:
 	panel.show_group("The old orchard", "text", "staggered", "kitchen", "4.0 U")
 	assert_true((panel.get("_group_box") as Control).visible, "a group: shown")
 	assert_equal(panel.button(&"timing").text, "Timing: staggered", "timing")
-	assert_equal(panel.button(&"dest").text, "To: kitchen", "destination")
+	assert_equal(panel.button(&"dest").text, "Share: kitchen", "the fresh-table share")
 	assert_equal(panel.button(&"keep").text, "Keep: 4.0 U", "keep")
 	panel.show_nursery("The nursery", "plans")
 	panel.show_grove("The North hollow", "record", false)
@@ -428,7 +429,7 @@ func test_each_selection_shows_its_verbs_and_its_most_pressing() -> void:
 	"""A tree: tend and harvest (harvest pressing in its window, tend in spring); an empty site: plant and plan (drop once
 	planned); a bush: pick; the baskets: send on; the grove: observe; the nursery: none."""
 	var spring := _cards(1)
-	assert_equal(spring.shown_actions(CardsScript.SEL_SITE, 0), [&"tend", &"harvest"] as Array[StringName], "a tree")
+	assert_equal(spring.shown_actions(CardsScript.SEL_SITE, 0), [&"tend", &"harvest", &"move"] as Array[StringName], "a tree")
 	assert_equal(spring.pressing(CardsScript.SEL_SITE, 0), &"tend", "spring: tend")
 	assert_equal(spring.shown_actions(CardsScript.SEL_SITE, 2), [&"plant_apple", &"plant_pear", &"plan_apple", &"plan_pear"]
 		as Array[StringName], "an empty site")
@@ -436,7 +437,7 @@ func test_each_selection_shows_its_verbs_and_its_most_pressing() -> void:
 	assert_equal(spring.shown_actions(CardsScript.SEL_BUSH, 1), [&"pick"] as Array[StringName], "a bush")
 	assert_equal(spring.pressing(CardsScript.SEL_BUSH, 1), &"", "nothing to pick in spring")
 	assert_true(spring.nothing_to_do(CardsScript.SEL_BUSH, 1).contains("no berries"), "says why")
-	assert_equal(spring.shown_actions(CardsScript.SEL_STAND, 0), [&"haul"] as Array[StringName], "the baskets")
+	assert_equal(spring.shown_actions(CardsScript.SEL_STAND, 0), [&"haul", &"cart"] as Array[StringName], "the baskets")
 	assert_equal(spring.shown_actions(CardsScript.SEL_GROVE, 0), [&"observe"] as Array[StringName], "the grove")
 	assert_true(spring.shown_actions(CardsScript.SEL_NURSERY, 0).is_empty(), "the nursery: none")
 	assert_true(spring.nothing_to_do(CardsScript.SEL_NURSERY, 0).contains("Nothing"), "nothing to do")
@@ -451,11 +452,14 @@ func test_each_selection_shows_its_verbs_and_its_most_pressing() -> void:
 
 
 func test_the_job_an_action_orders() -> void:
-	"""orchard_cards.gd `job_of`: each verb's kind, target and species; the grove's target 0; a policy orders none."""
+	"""orchard_cards.gd `job_of`: each verb's kind, target and species; a grove's target its own (decision 1721: two); a
+	policy orders none."""
 	var cards := _cards(1)
 	assert_equal(cards.job_of(&"tend", CardsScript.SEL_SITE, 1), Vector3i(Rules.K_TEND, 1, -1), "tend")
 	assert_equal(cards.job_of(&"plant_pear", CardsScript.SEL_SITE, 3), Vector3i(Rules.K_PLANT, 3, Rules.PEAR), "plant a pear")
-	assert_equal(cards.job_of(&"observe", CardsScript.SEL_GROVE, 7), Vector3i(Rules.K_OBSERVE, 0, -1), "the grove")
+	assert_equal(cards.job_of(&"observe", CardsScript.SEL_GROVE, 1), Vector3i(Rules.K_OBSERVE, 1, -1), "the beech hollow")
+	assert_equal(cards.job_of(&"move", CardsScript.SEL_SITE, 2), Vector3i(Rules.K_MOVE, 2, -1), "a move")
+	assert_equal(cards.job_of(&"cart", CardsScript.SEL_STAND, 1), Vector3i(Rules.K_CART, 1, -1), "a cart")
 	assert_equal(cards.job_of(&"timing", CardsScript.SEL_SITE, 0).x, -1, "a policy: no job")
 
 
@@ -485,12 +489,19 @@ func test_a_card_says_the_verb_the_refusal_the_cost_and_the_work() -> void:
 	assert_true(cards.status_line().contains("Y1 Spring 1"), cards.status_line())
 	assert_true(cards.jobs_line().contains("0"), cards.jobs_line())
 	assert_true(cards.nursery_text().contains("2 apple, 2 pear"), "the grant")
-	assert_true(cards.grove_text().contains("never felled"), "protected")
+	assert_true(cards.grove_text(0).contains("never felled"), "protected")
 	assert_true(cards.policy_tip(&"timing", 0).contains("As each ripens"), "the timing's card")
 	assert_true(cards.policy_tip(&"protect", -1).contains("firewood"), "the grove's card")
 	assert_equal(cards.keep_word(0), "4.0 U", "the old orchard keeps one sapling's fruit")
-	assert_equal(cards.dest_word(1), "keeping store", "the east orchard's destination")
+	assert_equal(cards.dest_word(1), "fresh 0%", "the east orchard's fresh-table share")
 	assert_equal(cards.timing_word(-1), "", "no group")
+
+
+func test_each_grove_says_its_forage_reserve() -> void:
+	"""Decision 1721: each grove's readout names the kind its foraging trips leave a reserve of."""
+	var cards := _cards(1)
+	assert_true(cards.grove_text(0).contains("leave its nuts a reserve"), cards.grove_text(0))
+	assert_true(cards.grove_text(1).contains("leave its mushrooms a reserve"), cards.grove_text(1))
 
 
 # --- the drawing -------------------------------------------------------------------------------------------------------------
@@ -526,7 +537,7 @@ func test_the_trees_are_drawn_by_age_and_offered_to_the_seasons() -> void:
 	assert_true(view.season_trees_revision() > revision, "the seasons are told")
 	assert_almost_equal(view.tree_size(2), ViewScript.SAPLING_SIZES.x, "a sapling's size")
 	assert_true(view.ring_shown(), "the grove's ring while protected")
-	model.set_grove_protected(false)
+	model.set_grove_protected(0, false)
 	view.refresh(true)
 	assert_false(view.ring_shown(), "no ring when not")
 
@@ -561,14 +572,15 @@ func _node() -> OrchardNode:
 
 func test_the_stands_and_obstacles_it_hands_the_village() -> void:
 	"""`stand_provider`: two gathering stores at the covered store's factor; `land_obstacles`: four trunks, two bushes,
-	two stands, the nursery and the grove's stone."""
+	two stands, the nursery, the groves' two stones (decision 1721) and the apiary's skep (decision 1601)."""
 	var rows: Array = OrchardNode.stand_provider().call()
 	assert_equal(rows.size(), Rules.GROUP_COUNT, "a stand a group")
 	for row: Dictionary in rows:
 		assert_true(row[StorageScript.KEY_STAGING], "a gathering place")
 		assert_equal(row[StorageScript.KEY_PERMILLE], 1000, "§5.8 covered store")
 		assert_equal(row[StorageScript.KEY_CAPACITY_U], Rules.STAND_CAPACITY_U, "its capacity")
-	assert_equal(OrchardNode.land_obstacles().size(), Rules.SITE_COUNT + 2 + Rules.GROUP_COUNT + 2, "ten circles")
+	assert_equal(OrchardNode.land_obstacles().size(), Rules.SITE_COUNT + 2 + Rules.GROUP_COUNT + 1 + Rules.GROVE_COUNT \
+		+ HiveRules.APIARY_COUNT, "twelve circles")
 
 
 func test_a_click_picks_the_nearest_orchard_thing() -> void:
@@ -584,7 +596,33 @@ func test_a_click_picks_the_nearest_orchard_thing() -> void:
 	assert_equal(node.pick_at(Vector2.INF).x, OrchardNode.SEL_NONE, "off the ground")
 	assert_true(node.grove_protects(Rules.GROVE_AT + Vector2(3.0, 0.0)), "in the grove")
 	assert_false(node.grove_protects(Rules.GROVE_AT + Vector2(9.0, 0.0)), "outside it")
-	assert_equal(node.grove_trees_standing(), 0, "no woods: none counted")
+	assert_equal(node.grove_trees_standing(0), 0, "no woods: none counted")
+	assert_equal(node.pick_at(Rules.GROVE_STONES[1]), Vector2i(OrchardNode.SEL_GROVE, 1), "the beech hollow's stone")
+	assert_true(node.grove_protects(Rules.GROVE_CENTRES[1]), "in the beech hollow")
+	assert_equal(node.grove_reserve_permille(Rules.GROVE_CENTRES[1]), Rules.GROVE_RESERVE_PERMILLE, "its reserve")
+	node.model.set_grove_protected(1, false)
+	assert_false(node.grove_protects(Rules.GROVE_CENTRES[1]), "lifted: felled as any")
+	assert_equal(node.grove_reserve_permille(Rules.GROVE_CENTRES[1]), 0, "lifted: no reserve")
+	assert_equal(node.grove_reserve_permille(Vector2.ZERO), 0, "no grove: no reserve")
+
+
+func test_the_share_steps_round_and_each_grove_toggles() -> void:
+	"""Decision 1721: the share steps 0-25-50-75-100 and round; the toggle sets the selected grove (the North hollow
+	when none is), and the grove section shows it."""
+	var node := _node()
+	node.select(OrchardNode.SEL_SITE, 0)
+	for k: int in 4:
+		node.on_action(&"dest")
+	assert_equal(node.model.group_fresh_pct[0], 100, "all to the kitchen")
+	node.on_action(&"dest")
+	assert_equal(node.model.group_fresh_pct[0], 0, "and round to none")
+	node.on_action(&"protect")
+	assert_false(node.model.is_grove_protected(0), "the North hollow's lifted")
+	assert_true(node.model.is_grove_protected(1), "the beech hollow's kept")
+	node.select(OrchardNode.SEL_GROVE, 1)
+	node.on_action(&"protect")
+	assert_false(node.model.is_grove_protected(1), "the selected grove's toggled")
+	assert_equal(node.panel.line(&"grove_title"), "The beech hollow", "the grove section shows the selected grove")
 
 
 func test_the_panel_buttons_step_the_policies_and_the_plans() -> void:
@@ -598,13 +636,13 @@ func test_the_panel_buttons_step_the_policies_and_the_plans() -> void:
 	node.on_action(&"timing")
 	assert_equal(node.model.group_timing[0], Rules.TIMING_STAGGERED, "and back")
 	node.on_action(&"dest")
-	assert_equal(node.model.group_dest[0], Rules.DEST_KITCHEN, "to the kitchen")
+	assert_equal(node.model.group_fresh_pct[0], 25, "a quarter to the fresh table")
 	node.on_action(&"keep")
 	assert_equal(node.model.group_keep[0], Rules.KEEP_STEPS[2], "8 U kept")
 	node.on_action(&"keep")
 	assert_equal(node.model.group_keep[0], Rules.KEEP_STEPS[0], "none kept")
 	node.on_action(&"protect")
-	assert_false(node.model.grove_protected, "the grove's protection lifted")
+	assert_false(node.model.is_grove_protected(0), "the North hollow's protection lifted (no grove selected)")
 	node.select(OrchardNode.SEL_SITE, 2)
 	node.on_action(&"plan_pear")
 	assert_equal(node.model.plan_species[node.model.plan_for_site(2)], Rules.PEAR, "a pear planned")

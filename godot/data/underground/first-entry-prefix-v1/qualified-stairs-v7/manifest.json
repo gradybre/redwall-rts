@@ -3,7 +3,7 @@
   "decision": [
     "1229",
     "1209",
-    "DEC-058"
+    "DEC-060"
   ],
   "predecessor": "qualified-claw-v6 (ADR 1217 step 4e)",
   "content_revision": 10,

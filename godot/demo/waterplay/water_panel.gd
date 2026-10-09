@@ -27,6 +27,9 @@ extends CanvasLayer
 ##   BOATS: each boat, where it is and its wear, the jetty, and the pond's ice.
 ##   DRYING RACK AND MILL: the rack's four slots, the mill, the pantry's fish, dried fish and flour; Dry fish and
 ##   Mill grain.
+##   PRESERVES: the preserving table's rows; then THE RATION RESERVE (decision 1742): what it keeps and holds, its
+##   target stepped (◀ Keep fewer / Keep more ▶, UI-SET-099) and Release food reserves (§5.10's emergency action, its
+##   card saying what it frees).
 ##
 ## Buttons emit `action(name)` (ACTION_*); nothing here decides anything. Text is at least 14 px (UI §2.1)
 ## and every button at least 32 px tall (UX-T03); a caption cut by the column ends in an ellipsis and is whole
@@ -65,12 +68,33 @@ const ACTION_FISH_SPECIES: StringName = &"fish_species"
 const ACTION_AUTHORISE: StringName = &"fish_authorise"
 const ACTION_NEXT_TRIP: StringName = &"fish_next_trip"
 const ACTION_CANCEL_TRIP: StringName = &"fish_cancel"
+## The fishing revamp (decisions 1712-1713): the traps' collection policy and the chosen water's intensive harvest.
+const ACTION_FISH_COLLECT: StringName = &"fish_collect"
+const ACTION_FISH_INTENSIVE: StringName = &"fish_intensive"
 const ACTION_MAKE_NET: StringName = &"make_net"
 const ACTION_MAKE_TRAP: StringName = &"make_trap"
 const ACTION_MAKE_ICE_KIT: StringName = &"make_ice_kit"
 const ACTION_MEND: StringName = &"mend"
 const ACTION_DRY: StringName = &"dry_fish"
 const ACTION_MILL: StringName = &"mill_grain"
+## The preserves (decision 1611): fruit onto the rack, rations packed at the preserving table.
+const ACTION_DRY_FRUIT: StringName = &"dry_fruit"
+const ACTION_RATIONS: StringName = &"pack_rations"
+## Brewing (decision 1621): mead into a vat, the cordial at the brewery's bench.
+const ACTION_MEAD: StringName = &"brew_mead"
+const ACTION_CORDIAL: StringName = &"make_cordial"
+## The new recipes (decision 1625): jam, cheese and pickles at the preserving table; ale, cider and vinegar at the brewery.
+const ACTION_JAM: StringName = &"make_jam"
+const ACTION_CHEESE: StringName = &"make_cheese"
+const ACTION_ALE: StringName = &"brew_ale"
+const ACTION_CIDER: StringName = &"make_cider"
+## The vinegar pickle (decision 1625): apple vinegar, then pickles in it.
+const ACTION_VINEGAR: StringName = &"make_vinegar"
+const ACTION_PICKLES: StringName = &"make_pickles"
+## The ration reserve (decision 1742; Brendan's R5): its target stepped (UI-SET-099), and §5.10's emergency release.
+const ACTION_RESERVE_FEWER: StringName = &"reserve_fewer"
+const ACTION_RESERVE_MORE: StringName = &"reserve_more"
+const ACTION_RESERVE_RELEASE: StringName = &"reserve_release"
 ## The Ferry section (decision 0437) and the Regatta section (decision 0438).
 const ACTION_FERRY_GATHER: StringName = &"ferry_gather"
 const ACTION_FERRY_SEND: StringName = &"ferry_send"
@@ -87,8 +111,12 @@ const BUTTON_TEXT: Dictionary = {
 	&"dive": "Dive in the pond", &"consent": "Swim shortcuts: on",
 	&"fish_site": "Site ▸", &"fish_method": "Method ▸", &"fish_species": "Fish ▸",
 	&"fish_authorise": "Authorise trip", &"fish_next_trip": "Next trip ▸", &"fish_cancel": "Cancel trip",
+	&"fish_collect": "Traps: when soaked", &"fish_intensive": "Intensive: off",
 	&"make_net": "Make net", &"make_trap": "Make trap", &"make_ice_kit": "Make ice kit", &"mend": "Mend gear",
-	&"dry_fish": "Dry fish", &"mill_grain": "Mill grain",
+	&"dry_fish": "Dry fish", &"mill_grain": "Mill grain", &"dry_fruit": "Dry fruit", &"pack_rations": "Pack rations",
+	&"brew_mead": "Brew mead", &"make_cordial": "Make cordial", &"make_jam": "Make jam", &"make_cheese": "Make cheese",
+	&"brew_ale": "Brew ale", &"make_cider": "Make cider", &"make_vinegar": "Make vinegar", &"make_pickles": "Make pickles",
+	&"reserve_fewer": "◀ Keep fewer", &"reserve_more": "Keep more ▶", &"reserve_release": "Release food reserves",
 	&"ferry_gather": "Gather the far copse", &"ferry_send": "Send the ferry", &"ferry_cancel": "Cancel crossing",
 	&"regatta_prev_day": "◀ Day", &"regatta_next_day": "Day ▶", &"regatta_host": "Host ▸",
 	&"regatta_hold": "Hold the regatta", &"regatta_override": "Override reserves", &"regatta_skip": "Skip this season",
@@ -100,16 +128,29 @@ const BUTTON_TIPS: Dictionary = {
 	&"consent": "Swim shortcuts: whether the selected residents (everyone, with nobody selected) may swim across instead of walking round",
 	&"fish_site": "The next fishing water: the run, the ford, the pond",
 	&"fish_method": "The next method there: hand net, trap, boat, ice fishing",
-	&"fish_species": "The next fish of that water",
+	&"fish_species": "The next fish of that water, then Best catch (the fishery picks the best legal fish at the water)",
+	&"fish_collect": "When new traps are collected: as soon as soaked, or on the morning run (06:00-10:00)",
 	&"fish_next_trip": "Choose the next trip out (Cancel trip acts on it)",
 	&"regatta_prev_day": "An earlier day for the regatta, this season", &"regatta_next_day": "A later day for the regatta, this season",
 	&"regatta_host": "The next resident to host the regatta",
+	&"reserve_fewer": "Keep one batch (3 U) fewer rations in reserve (UI-SET-099)",
+	&"reserve_more": "Keep one batch (3 U) more rations in reserve: one batch's food is held back until they are packed",
 }
 ## The Fishing, Boats and rack-and-mill sections' button rows (decision 0431).
 const CHOICE_ACTIONS: Array[StringName] = [&"fish_site", &"fish_method", &"fish_species"]
 const TRIP_ACTIONS: Array[StringName] = [&"fish_authorise", &"fish_next_trip", &"fish_cancel"]
 const GEAR_ACTIONS: Array[StringName] = [&"make_net", &"make_trap", &"make_ice_kit", &"mend"]
+const STEWARD_ACTIONS: Array[StringName] = [&"fish_collect", &"fish_intensive"]
 const STATION_ACTIONS: Array[StringName] = [&"dry_fish", &"mill_grain"]
+const PRESERVE_ACTIONS: Array[StringName] = [&"dry_fruit", &"pack_rations"]
+const BREW_ACTIONS: Array[StringName] = [&"brew_mead", &"make_cordial"]
+const PRESERVE_ACTIONS_2: Array[StringName] = [&"make_jam", &"make_cheese"]
+const PRESERVE_ACTIONS_3: Array[StringName] = [&"make_vinegar", &"make_pickles"]
+const RESERVE_ACTIONS: Array[StringName] = [&"reserve_fewer", &"reserve_more", &"reserve_release"]
+## The reserve's line is at least this many lines tall -- its head, and what it holds (two lines at most) or that it
+## is released (one) -- so its row does not jump when the reserve is released or kept again (the review of 72817b34).
+const RESERVE_LINES: int = 3
+const BREW_ACTIONS_2: Array[StringName] = [&"brew_ale", &"make_cider"]
 const FERRY_ACTIONS: Array[StringName] = [&"ferry_gather", &"ferry_send", &"ferry_cancel"]
 const REGATTA_CHOICE_ACTIONS: Array[StringName] = [&"regatta_prev_day", &"regatta_next_day", &"regatta_host"]
 const REGATTA_ACTIONS: Array[StringName] = [&"regatta_hold", &"regatta_override", &"regatta_skip"]
@@ -118,7 +159,7 @@ const FERRY_LINES: Array[StringName] = [&"ferry_status", &"ferry_cargo", &"ferry
 const REGATTA_LINES: Array[StringName] = [&"regatta_status", &"regatta_choice", &"regatta_preview"]
 ## Their lines, in order: what fishery.gd's panel text fills.
 const FISHERY_LINES: Array[StringName] = [&"fish_choice", &"fish_preview", &"fish_trips", &"fish_gear", &"boats",
-	&"stations"]
+	&"stations", &"preserves", &"reserve", &"brewing", &"fish_record"]
 const SITE_ACTIONS: Array[StringName] = [&"prev_site", &"next_site", &"span_tool", &"build_plank", &"build_log"]
 ## The two Build buttons, side by side under their kinds' costs.
 const BUILD_ACTIONS: Array[StringName] = [&"build_plank", &"build_log"]
@@ -293,6 +334,8 @@ func _build_fishery() -> void:
 	_add_line(_column, &"fish_trips", SMALL_PX, Palette.INK, null)
 	_add_line(_column, &"fish_gear", SMALL_PX, Palette.UMBER, null)
 	_column.add_child(_row(GEAR_ACTIONS))
+	_add_line(_column, &"fish_record", SMALL_PX, Palette.UMBER, null)
+	_column.add_child(_row(STEWARD_ACTIONS))
 	_add_line(_column, &"boats_title", HEADING_PX, Palette.INK, Styles.heading_font())
 	_set_line(&"boats_title", "Boats")
 	_add_line(_column, &"boats", SMALL_PX, Palette.INK, null)
@@ -300,6 +343,19 @@ func _build_fishery() -> void:
 	_set_line(&"stations_title", "Drying rack and mill")
 	_add_line(_column, &"stations", SMALL_PX, Palette.INK, null)
 	_column.add_child(_row(STATION_ACTIONS))
+	_add_line(_column, &"preserves_title", HEADING_PX, Palette.INK, Styles.heading_font())
+	_set_line(&"preserves_title", "Preserves")
+	_add_line(_column, &"preserves", SMALL_PX, Palette.INK, null)
+	_column.add_child(_row(PRESERVE_ACTIONS))
+	_column.add_child(_row(PRESERVE_ACTIONS_2))
+	_column.add_child(_row(PRESERVE_ACTIONS_3))
+	_add_line(_column, &"reserve", SMALL_PX, Palette.INK, null)
+	_column.add_child(_row(RESERVE_ACTIONS))
+	_add_line(_column, &"brewing_title", HEADING_PX, Palette.INK, Styles.heading_font())
+	_set_line(&"brewing_title", "Brewing")
+	_add_line(_column, &"brewing", SMALL_PX, Palette.INK, null)
+	_column.add_child(_row(BREW_ACTIONS))
+	_column.add_child(_row(BREW_ACTIONS_2))
 
 
 func _build_ferry() -> void:
@@ -691,6 +747,7 @@ func _place() -> void:
 	if not is_inside_tree():
 		_frame.visible = _zone_shown and not _detail_open
 		return
+	_hold_lines(&"reserve", RESERVE_LINES)
 	var size_px := get_viewport().get_visible_rect().size
 	var rect := DetailZone.panel_placement(int(size_px.x), int(size_px.y), FRAME_EXPAND, _zone_inset, _layout, _geometry)
 	_frame.scale = Vector2(_geometry.scale, _geometry.scale)
@@ -704,6 +761,14 @@ func _place() -> void:
 	_body.custom_minimum_size.y = clampf(_column.get_combined_minimum_size().y, 0.0, maxf(room, MIN_BODY_H))
 	_frame.size = Vector2(rect.size.x, 0.0)
 	_frame.visible = _zone_shown and not _detail_open
+
+
+func _hold_lines(key: StringName, lines: int) -> void:
+	"""Line `key` is at least `lines` lines of its own type tall (measured in the tree, where its font is known)."""
+	var label := _lines[key] as Label
+	var tall: float = float(label.get_line_height() * lines + label.get_theme_constant(&"line_spacing") * (lines - 1))
+	if not is_equal_approx(label.custom_minimum_size.y, tall):
+		label.custom_minimum_size.y = tall
 
 
 func _pinned_bare_height() -> float:

@@ -8,6 +8,8 @@ extends Node3D
 ## decision, decision 0332):
 ##   Gather ▸        nuts, mushrooms, herbs or berries (a kind out of season is still shown, its order refused with when it comes)
 ##   Party ▸         one to three foragers
+##   Kit ▸           take the village's one carry kit (its carrier two baskets; decision 1721)
+##   Lead ▸          the first selected resident leads it (named in the news and the place's note; decision 1721)
 ##   Authorise trip  its seats on the work board (the Woods crew's work), to the selected residents first
 ##   Cancel trip     the earliest trip out called off: its seats not yet carrying end; a haul in hand comes home
 ##
@@ -37,6 +39,9 @@ var services: ServicesScript = null
 ## The section's choices: the kind (index into Rules.KINDS) and the party.
 var choice_kind: int = 0
 var choice_party: int = Rules.PARTY_DEFAULT
+## Decision 1721's prepared outing: take the carry kit, name a lead.
+var choice_kit: bool = false
+var choice_lead: bool = false
 ## What the last frame's trips and drawing cost on the main thread, microseconds (the performance check).
 var last_usec: int = 0
 
@@ -159,8 +164,12 @@ func on_action(action_name: StringName) -> void:
 			choice_kind = posmod(choice_kind + 1, Rules.KIND_COUNT)
 		SectionScript.ACTION_PARTY:
 			choice_party = Rules.PARTY_MIN + posmod(choice_party - Rules.PARTY_MIN + 1, Rules.PARTY_MAX - Rules.PARTY_MIN + 1)
+		SectionScript.ACTION_KIT:
+			choice_kit = not choice_kit
+		SectionScript.ACTION_LEAD:
+			choice_lead = not choice_lead
 		SectionScript.ACTION_AUTHORISE:
-			_answer(_ordered(trips.order_trip(choice_kind, choice_party, members),
+			_answer(_ordered(trips.order_outing(choice_kind, choice_party, members, choice_kit, choice_lead),
 				"A foraging trip for %s: on the work board" % Rules.KIND_WORDS[choice_kind]))
 		SectionScript.ACTION_CANCEL:
 			_answer(_ordered(trips.cancel_trip(trips.first_trip()), "The foraging trip is called off"))
@@ -185,6 +194,7 @@ func _answer(said: String) -> void:
 func refresh_section() -> void:
 	"""Fill the Foraging section and set its orders' cards."""
 	section.show_lines(woods_line(), trip_preview(), trips_out_line(), Rules.KIND_WORDS[choice_kind], choice_party)
+	section.show_outing(trips.note_line(choice_kind), choice_kit, choice_lead)
 	var members: PackedInt32Array = _command.selected() if _command != null else PackedInt32Array()
 	var card: CardScript = trip_card(members)
 	section.set_card(SectionScript.ACTION_AUTHORISE, card.text(), card.is_ok())
@@ -197,21 +207,30 @@ func woods_line() -> String:
 	var d: DriverScript = trips.driver
 	var kind: int = Rules.KINDS[choice_kind]
 	var season: String = "in season now" if d.availability(kind) > 0 else "out of season now"
+	var reserve: int = trips.reserve_milli(choice_kind)
+	var keeps: String = Rules.units_text(d.floor_milli(kind))
+	if reserve > 0:
+		keeps += ", and %s in the protected grove" % Rules.units_text(reserve)
 	return "The woods' %s: %s of %s (keeps %s) · %s (%s) · today's quota %s of %s left" % [Rules.KIND_WORDS[choice_kind],
-		Rules.units_text(d.stock_milli(kind)), Rules.units_text(d.capacity_milli(kind)), Rules.units_text(d.floor_milli(kind)),
+		Rules.units_text(d.stock_milli(kind)), Rules.units_text(d.capacity_milli(kind)), keeps,
 		season, trips.season_words(choice_kind), Rules.units_text(d.quota_left_milli()), Rules.units_text(d.quota_today_milli())]
 
 
 func trip_preview() -> String:
 	"""What the chosen trip would do: where, how much, the work and the risk -- or why it can't."""
-	var why: String = trips.trip_refusal(choice_kind, choice_party)
+	var why: String = trips.outing_refusal(choice_kind, choice_party, _members(), choice_kit, choice_lead)
 	if not why.is_empty():
 		return "Can't now: %s" % why
 	var kind: int = Rules.KINDS[choice_kind]
-	var milli: int = trips.trip_milli(choice_kind, choice_party)
-	return "A trip to %s: about %s home, %d WU a unit gathering · injury risk %d in 10000 each hour's work (shown, not rolled)" % [
-		Rules.SPOT_NAMES[choice_kind], Rules.units_text(milli), trips.driver.work_per_u_wu(kind, 0),
-		trips.driver.injury_per_10000(0)]
+	var milli: int = trips.trip_milli(choice_kind, choice_party, choice_kit)
+	return "A trip to %s: about %s home, %s · %d WU a unit gathering · injury risk %d in 10000 each hour's work (shown, not rolled)" % [
+		Rules.SPOT_NAMES[choice_kind], Rules.units_text(milli), trips.home_by_text(choice_kind, choice_party, choice_kit),
+		trips.driver.work_per_u_wu(kind, 0), trips.driver.injury_per_10000(0)]
+
+
+func _members() -> PackedInt32Array:
+	"""The selected residents (none without the command)."""
+	return _command.selected() if _command != null else PackedInt32Array()
 
 
 func trips_out_line() -> String:
@@ -228,12 +247,15 @@ func trips_out_line() -> String:
 func trip_card(members: PackedInt32Array) -> CardScript:
 	"""Authorise trip's card: `trips.trip_refusal`, the haul, the work, who goes."""
 	_card.reset("Forage %s at %s" % [Rules.KIND_WORDS[choice_kind], Rules.SPOT_NAMES[choice_kind]])
-	var milli: int = trips.trip_milli(choice_kind, choice_party)
-	_card.result = "%d foragers bring about %s of %s home to the stores, hours later (a basket each, at most %s)" % [
-		choice_party, Rules.units_text(milli), Rules.KIND_WORDS[choice_kind], Rules.units_text(Rules.BASKET_MILLI)]
+	var milli: int = trips.trip_milli(choice_kind, choice_party, choice_kit)
+	_card.result = "%d foragers bring about %s of %s home to the stores, %s (a basket each, at most %s%s)" % [
+		choice_party, Rules.units_text(milli), Rules.KIND_WORDS[choice_kind],
+		trips.home_by_text(choice_kind, choice_party, choice_kit), Rules.units_text(Rules.BASKET_MILLI),
+		"; the kit's carrier %s" % Rules.units_text(Rules.KIT_BASKET_MILLI) if choice_kit else ""]
 	_card.prerequisites.append("%s in season (%s); the woods' daily quota and their stock above the sustainable floor" % [
 		Rules.KIND_WORDS[choice_kind].capitalize(), trips.season_words(choice_kind)])
-	var why: String = trips.trip_refusal(choice_kind, choice_party)
+	_card.prerequisites.append(outing_prerequisites())
+	var why: String = trips.outing_refusal(choice_kind, choice_party, members, choice_kit, choice_lead)
 	if not why.is_empty():
 		_card.refuse("CANT_FORAGE", why, "another kind, a smaller party, or tomorrow")
 		return _card
@@ -243,6 +265,20 @@ func trip_card(members: PackedInt32Array) -> CardScript:
 	_card.work_note = " gathering each, plus the walks to the woods and home"
 	_who_for(members)
 	return _card
+
+
+func outing_prerequisites() -> String:
+	"""Decision 1721's outing on the card: home before dusk, turning back for the dark, the kit, the lead, and REQ-SET-067's
+	permission (not asked at the woods' danger 1)."""
+	var parts := PackedStringArray(["Home by dusk (%02d:00): each forager gathers only what lets it walk home in time, " \
+		% Rules.DUSK_HOUR + "and turns back when that is too little"])
+	if choice_kit:
+		parts.append("the carry kit (one in the village)")
+	if choice_lead:
+		parts.append("a lead: the first selected resident")
+	parts.append("danger %d: %s" % [Rules.NATURAL_DANGER, "the residents' dangerous-work permission (REQ-SET-067)"
+		if Rules.needs_permission(Rules.NATURAL_DANGER) else "no dangerous-work permission asked (REQ-SET-067: from danger 2)"])
+	return "; ".join(parts)
 
 
 func cancel_card() -> CardScript:

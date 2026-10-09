@@ -344,7 +344,9 @@ func _add_fuel() -> void:
 func _fuel_rule() -> String:
 	"""The season's hearth rule, in words (§5.8)."""
 	if season == WeatherScript.SEASON_WINTER:
-		return "every hearth burns %s a day (1 U heats a hearth 6 hours)" % WinterText.units(WinterRules.WINTER_DAY_MILLI)
+		return "every hearth burns %s a day, a great hall's %s (1 U heats a hearth 6 hours)" % [
+			WinterText.units(WinterRules.WINTER_DAY_MILLI), WinterText.units(WinterRules.day_demand_milli(
+			WeatherScript.SEASON_WINTER, 0, WinterRules.TIER2_FUEL_PERMILLE))]
 	if season == WeatherScript.SEASON_SUMMER:
 		return "no hearth is lit for heat in summer"
 	return "a hearth burns %s a day on a day whose mean is under %s, else nothing" % [

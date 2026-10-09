@@ -1,6 +1,7 @@
 # Open questions for Brendan
 
-Everything here waits on Brendan. None has been ruled; each recommendation is the handoff's, not his. Ask them in
+Everything here waits on Brendan unless marked **CLOSED** (with where its ruling is recorded). Each recommendation is the
+handoff's, not his. Ask them in
 groups (README §4): the settlement group before HAUL-H3 or DEMO-D7 starts, and each demo group before its packet
 starts. When he answers, record the ruling verbatim in the lane's decision record (and a `DEC-nnn` for a creative or
 policy ruling), then delete the question from this file.
@@ -134,8 +135,10 @@ P5 left this alone. [MEAS-2]
 
 Recommendation: (c).
 
-**Q-D7. Orchard remainders.** Moving a sapling needs its own ruling (0673); harvest groups have baskets but no carts
-(0674). [RG-Y]
+**Q-D7. Orchard remainders.** **CLOSED: ruled (a) by Brendan on 2026-10-07**, "Both, agent proposes numbers": a
+sapling can be moved once, with a delay of some days; carts are a haul tool for harvest groups (decision 1721, which
+built both and puts its numbers to him as proposals). Moving a sapling needs its own ruling (0673); harvest groups
+have baskets but no carts (0674). [RG-Y]
 - (a) Saplings can be moved once, with a delay of days; carts as a haul tool.
 - (b) Neither.
 
@@ -161,8 +164,9 @@ Recommendation: (a), as approved, with the lesson cost set at 15% unless you pre
 
 Recommendation: (a).
 
-**Q-D11. The hour of a called feast.** The GDD starts feasts at 18:00 (REQ-SET-103); the regatta feast is served at the
-17:00 supper (kept, 2026-10-01). [FEAST]
+**Q-D11. The hour of a called feast.** **CLOSED: ruled (b) by Brendan on 2026-10-07**, "All at 17:00 supper" (decision
+1701, DEC-058; `RULINGS.md`): every feast, called or regatta, at the 17:00 supper; REQ-SET-103 amended by DEC-058. Before it the GDD
+started feasts at 18:00; the regatta feast was served at the 17:00 supper (kept, 2026-10-01). [FEAST]
 - (a) Called feasts at 18:00, the regatta unchanged.
 - (b) Every feast at the 17:00 supper.
 
@@ -183,13 +187,15 @@ fixed pool of six bridges and no removal. [RG-AK]
 Recommendation: (a), confirming the return.
 
 **Q-D14. Darkness and meal hours.** The demo applies no darkness penalty, so residents work outdoors in the dark in
-winter; supper is at 17:00 against the GDD's SOCIAL 18–20. [DAYPLAN]
+winter; supper is at 17:00 against the GDD's SOCIAL 18–20. Since DEC-058 every feast also starts at 17:00, inside the
+default schedule's last WORK hour (13:00–18:00): settle how a feast's first wave meets it here too. [DAYPLAN]
 - (a) Apply the GDD's unlit outdoor work ×0.75 and its schedule hours.
 - (b) Keep the demo's hours and no penalty.
 
 Recommendation: (a), with candles from HIVES as the remedy.
 
-**Q-D15. Lightning and fire.** The GDD says release 1 has no structure fire or random disaster; the fire effect exists.
+**Q-D15. Lightning and fire.** **CLOSED: ruled (a) by Brendan on 2026-10-07** (decision 1632, P1, approved as built;
+`RULINGS.md`). The GDD says release 1 has no structure fire or random disaster; the fire effect exists.
 [WEATHER]
 - (a) Lightning strikes trees or open ground only, never a building; no fire spreads.
 - (b) Lightning may start a fire.

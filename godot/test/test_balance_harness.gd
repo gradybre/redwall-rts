@@ -23,6 +23,19 @@ const FarmSimScript := preload("res://demo/farm/farm_sim.gd")
 const IncidentsScript := preload("res://demo/demo_incidents.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const ThreatsScript := preload("res://demo/events/demo_events.gd")
+const SuppliesScript := preload("res://tools/balance/balance_supplies.gd")
+const ProvisioningScript := preload("res://tools/balance/provisioning_policy.gd")
+const FuelScript := preload("res://demo/winter/hearth_fuel.gd")
+const OrchardModel := preload("res://demo/orchard/orchard_model.gd")
+const HallProjectsScript := preload("res://demo/hall/hall_projects.gd")
+const FisheryTables := preload("res://demo/fishery/fishery_tables.gd")
+const Recipes := preload("res://demo/preserve/preserve_rules.gd")
+const Catalog := preload("res://demo/farm/farm_catalog.gd")
+const PantryScript := preload("res://demo/farm/farm_pantry.gd")
+const StorageScript := preload("res://demo/farm/farm_storage.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
+const ForageRules := preload("res://demo/forage/forage_rules.gd")
+const TakesScript := preload("res://demo/kitchen/ingredient_takes.gd")
 
 const RUNNER: String = "res://tools/balance/year_runner.gd"
 const SLOW_ENV: String = "REDWALL_SLOW_TESTS"
@@ -57,6 +70,51 @@ class FakeSource extends "res://demo/work/work_source.gd":
 	func waiting(row: int) -> bool:
 		"""As set."""
 		return waiting_rows[row] == 1
+
+
+## A fishery whose refusals the test sets, recording what it is asked to order (never configured: no village).
+class FakeFishery extends "res://demo/fishery/fishery.gd":
+	var refusals: Dictionary = {}
+	var mill_why: String = ""
+	var ordered: Array[int] = []
+
+	func batch_refusal(recipe: int) -> String:
+		"""As set ("" unless the test refused it)."""
+		return String(refusals.get(recipe, ""))
+
+	func order_batch(recipe: int, _members: PackedInt32Array) -> String:
+		"""Recorded; ordered."""
+		ordered.append(recipe)
+		return ""
+
+	func mill_refusal() -> String:
+		"""As set."""
+		return mill_why
+
+	func order_mill(_members: PackedInt32Array) -> String:
+		"""Recorded as -1; ordered."""
+		ordered.append(-1)
+		return ""
+
+
+## Foraging trips whose refusal and trips out the test sets, recording each trip asked for as [kind, party].
+class FakeTrips extends "res://demo/forage/forage_trips.gd":
+	var why: String = ""
+	var out: int = 0
+	var asked: Array[Vector2i] = []
+
+	func trip_refusal(_kind_index: int, _party: int) -> String:
+		"""As set."""
+		return why
+
+	func trip_count() -> int:
+		"""As set."""
+		return out
+
+	func order_trip(kind_index: int, party: int, _members: PackedInt32Array) -> String:
+		"""Recorded; authorised."""
+		asked.append(Vector2i(kind_index, party))
+		return ""
 
 
 func _board_with(count: int, source: FakeSource) -> BoardScript:
@@ -445,3 +503,341 @@ func test_one_season_of_the_real_village_is_deterministic() -> void:
 	var days: Array = (runs[0] as Dictionary)["days"]
 	assert_equal(days.size(), SEASON_DAYS, "a season of days")
 	assert_true(days == (runs[1] as Dictionary)["days"], "the two runs' days are identical")
+
+
+func _primed_supplies(fuel: FuelScript, orchard: OrchardModel, hall: HallProjectsScript) -> SuppliesScript:
+	"""A supplies watch bound over every counter already non-zero, so a movement and a running total differ."""
+	fuel.burned_milli = 500
+	fuel.heated_hours = 3
+	fuel.cold_hours = 7
+	var apiary := orchard.apiary
+	apiary.honey_made_milli = 900
+	apiary.released_milli = 800
+	apiary.fed_from_hive_milli = 700
+	apiary.fed_from_pantry_milli = 600
+	apiary.eaten_milli = 500
+	apiary.lost_milli = 400
+	apiary.wax_made_milli = 300
+	apiary.missed_days = 2
+	var watch := SuppliesScript.new()
+	watch.bind(fuel, apiary, hall)
+	return watch
+
+
+func test_the_supplies_watch_books_each_counter_s_movement_and_rebases() -> void:
+	"""Decision 1731: every cumulative counter booked as the day's movement, not its running total; rebased at the
+	close."""
+	var fuel := FuelScript.new()
+	var orchard := OrchardModel.new()
+	var hall := HallProjectsScript.new(StoresScript.new())
+	var watch := _primed_supplies(fuel, orchard, hall)
+	fuel.burned_milli += 4000
+	fuel.heated_hours += 24
+	fuel.cold_hours += 2
+	var a := orchard.apiary
+	var moves: PackedInt32Array = [11, 12, 13, 14, 15, 16, 17]
+	a.honey_made_milli += moves[0]
+	a.released_milli += moves[1]
+	a.fed_from_hive_milli += moves[2]
+	a.fed_from_pantry_milli += moves[3]
+	a.eaten_milli += moves[4]
+	a.lost_milli += moves[5]
+	a.wax_made_milli += moves[6]
+	a.missed_days += 1
+	var day: Dictionary = watch.close_day()
+	var h: Dictionary = day["hearths"]
+	assert_equal([h["burned_milli"], h["heated_hours"], h["cold_hours"]], [4000, 24, 2], "the hearths' movements")
+	var ap: Dictionary = day["apiary"]
+	assert_equal([ap["honey_made_milli"], ap["released_milli"], ap["fed_from_hive_milli"], ap["fed_from_pantry_milli"],
+		ap["eaten_milli"], ap["lost_milli"], ap["wax_made_milli"], ap["missed_days"]],
+		[11, 12, 13, 14, 15, 16, 17, 1], "the apiary's movements, fed from the hive among them")
+	var next: Dictionary = watch.close_day()
+	assert_equal((next["hearths"] as Dictionary)["cold_hours"], 0, "rebased at the close")
+	assert_equal((next["apiary"] as Dictionary)["fed_from_hive_milli"], 0, "rebased at the close")
+
+
+func test_the_supplies_watch_reads_levels_tier_and_abandonment_at_the_close() -> void:
+	"""The hives' strength, honey and feed and the hall's tier as they stand; an abandoned hive flagged."""
+	var fuel := FuelScript.new()
+	var orchard := OrchardModel.new()
+	var hall := HallProjectsScript.new(StoresScript.new())
+	var watch := _primed_supplies(fuel, orchard, hall)
+	var a := orchard.apiary
+	assert_true(a.store.restore_hive_state(a.hive_ref[0], 6100, 2500, 1700, 0,
+		a.store.hive_serviced_day_of(a.slot_of(0)).value).ok, "the hive's state written")
+	hall.tier = 2
+	var day: Dictionary = watch.close_day()
+	var ap: Dictionary = day["apiary"]
+	assert_equal([ap["strength_min"], ap["strength_end"], ap["honey_in_hives_end"], ap["feed_in_hives_end"]],
+		[6100, 6100, 1700, 2500], "the hive's levels")
+	assert_equal(ap["abandoned"], false, "a living hive")
+	assert_equal((day["hearths"] as Dictionary)["hall_tier_end"], 2, "the hall raised")
+	assert_true(a.store.restore_hive_state(a.hive_ref[0], 400, 0, 0, 0,
+		a.store.hive_serviced_day_of(a.slot_of(0)).value).ok, "a weak hive with no feed")
+	orchard.close_day(3, 120)
+	orchard.close_day(4, 120)
+	assert_true(a.is_abandoned(0), "the hive has died")
+	assert_equal((watch.close_day()["apiary"] as Dictionary)["abandoned"], true, "abandoned, flagged")
+
+
+func test_fuel_days_are_written_only_while_heat_is_demanded() -> void:
+	"""Fuel-days with no demand (NO_DEMAND) are left out, so a season rolls up its heated days only; with demand,
+	`_min` and `_end` carry the HUD's figure."""
+	var fuel := FuelScript.new()
+	var watch := SuppliesScript.new()
+	watch.bind(fuel, null, null)
+	assert_equal(fuel.fuel_days_hundredths(), -1, "a fresh hearth table has no demand")
+	var idle: Dictionary = watch.close_day()["hearths"]
+	assert_false(idle.has("fuel_days_hundredths_end") or idle.has("fuel_days_hundredths_min"), "no demand: left out")
+	var stores := StoresScript.new()
+	fuel.bind_stores(stores)
+	fuel.set_hearth(FuelScript.HALL, true)
+	fuel.pass_hour(0, 3, -50, -50)
+	var cold: Dictionary = watch.close_day()["hearths"]
+	assert_true(fuel.fuel_days_hundredths() >= 0, "a winter hour demands heat")
+	assert_equal(cold.get("fuel_days_hundredths_end", -2), fuel.fuel_days_hundredths(), "the HUD's figure")
+	assert_equal(cold.get("fuel_days_hundredths_min", -2), fuel.fuel_days_hundredths(), "and as the day's minimum")
+	stores.wood_milli_u = 0
+	fuel.pass_hour(1, 3, -50, -50)
+	assert_equal(fuel.fuel_days_hundredths(), 0, "demand and no wood: no fuel-days left")
+	var out: Dictionary = watch.close_day()["hearths"]
+	assert_equal(out.get("fuel_days_hundredths_min", -2), 0, "out of wood is written as 0, not left out")
+	var season: Dictionary = Rollup.roll([{"hearths": idle}, {"hearths": cold}, {"hearths": idle}])
+	assert_equal((season["hearths"] as Dictionary)["fuel_days_hundredths_end"], cold["fuel_days_hundredths_end"],
+		"a season ending on an unheated day keeps its last heated figure")
+
+
+func test_the_supplies_watch_reads_nothing_from_missing_parts() -> void:
+	"""A village without a winter, an apiary or a hall: zeros, -1 for the weakest hive (none), no fuel-days."""
+	var watch := SuppliesScript.new()
+	watch.bind(null, null, null)
+	var day: Dictionary = watch.close_day()
+	assert_equal((day["hearths"] as Dictionary)["burned_milli"], 0, "no hearths")
+	assert_equal((day["hearths"] as Dictionary)["hall_tier_end"], 0, "no hall")
+	assert_false((day["hearths"] as Dictionary).has("fuel_days_hundredths_end"), "no fuel-days")
+	assert_equal((day["apiary"] as Dictionary)["strength_end"], -1, "no hive")
+	assert_equal((day["apiary"] as Dictionary)["feed_in_hives_end"], 0, "no feed")
+
+
+func _provisioner(fishery: FakeFishery) -> ProvisioningScript:
+	"""A provisioning player ordering through `fishery` over a fresh pantry and takes (no farm, woods or stores)."""
+	fishery.pantry = PantryScript.new(StorageScript.new())
+	fishery.takes = TakesScript.new()
+	var policy := ProvisioningScript.new()
+	policy._fishery = fishery
+	return policy
+
+
+func _ration_need(category: int) -> int:
+	"""What a batch of rations takes of `category` (0: not an input)."""
+	for k: int in Recipes.IN_COUNT[Recipes.R_RATION]:
+		var input: int = Recipes.IN_FIRST[Recipes.R_RATION] + k
+		if Recipes.IN_CATEGORY[input] == category:
+			return Recipes.IN_MILLI[input]
+	return 0
+
+
+func _stock(fishery: FakeFishery, item: int, milli: int) -> void:
+	"""Put `milli` of `item` in the pantry."""
+	assert_true(fishery.pantry.add_into(item, milli, 0, IntMath.IntResult.new()), "%s stocked" % Catalog.ITEM_KEYS[item])
+
+
+func test_the_stores_round_orders_every_recipe_the_stations_take_and_counts_the_rest() -> void:
+	"""Decision 1731: each recipe row the fishery would take gets a batch, in the table's order; a refused row is counted
+	under "Not ordered" with the fishery's code; nothing is milled without dried fish; one forager goes for the cheese."""
+	var fishery := FakeFishery.new()
+	var policy := _provisioner(fishery)
+	var trips := FakeTrips.new()
+	policy.bind_forage(trips)
+	fishery.refusals[Recipes.R_MEAD] = "Can't: no honey"
+	fishery.refused_code = "NO_HONEY"
+	policy._stores_round()
+	var expected: Array[int] = []
+	for recipe: int in Recipes.RECIPE_COUNT:
+		if recipe != Recipes.R_MEAD:
+			expected.append(recipe)
+	assert_equal(fishery.ordered, expected, "every row but the refused one, in order; no mill without dried fish")
+	assert_equal(trips.asked.size(), 1, "one forager: the nut cheese waits on nuts alone")
+	var orders: Dictionary = policy.take_orders()
+	assert_equal(orders.get(Recipes.VERB[Recipes.R_CORDIAL], 0), 1, "a batch counted under its verb")
+	assert_equal(orders.get("Not ordered: %s (NO_HONEY)" % Recipes.VERB[Recipes.R_MEAD], 0), 1, "the refusal counted")
+	assert_false(orders.has(Recipes.VERB[Recipes.R_MEAD]), "the refused row was not ordered")
+
+
+func test_a_recipe_with_a_batch_waiting_is_not_ordered_again() -> void:
+	"""A live rack batch (KIND_DRY) or station batch (KIND_BATCH) of a row counts as open; a take-down of a cured batch
+	(which carries its recipe) does not, nor a closed row; no fishery counts none."""
+	var fishery := FakeFishery.new()
+	var policy := _provisioner(fishery)
+	var t: FisheryTables = fishery.tables
+	t.j_live[0] = 1
+	t.j_kind[0] = FisheryTables.KIND_BATCH
+	t.j_recipe[0] = Recipes.R_RATION
+	t.j_live[1] = 1
+	t.j_kind[1] = FisheryTables.KIND_DRY
+	t.j_recipe[1] = Recipes.R_DRY_FRUIT
+	t.j_live[2] = 1
+	t.j_kind[2] = FisheryTables.KIND_TAKE_DOWN
+	t.j_recipe[2] = Recipes.R_DRY_FISH
+	t.j_kind[3] = FisheryTables.KIND_DRY
+	t.j_recipe[3] = Recipes.R_MEAD
+	assert_equal(policy.open_batches(Recipes.R_RATION), 1, "a live station batch")
+	assert_equal(policy.open_batches(Recipes.R_DRY_FRUIT), 1, "a live rack batch")
+	assert_equal(policy.open_batches(Recipes.R_DRY_FISH), 0, "a take-down is not a new batch")
+	assert_equal(policy.open_batches(Recipes.R_MEAD), 0, "a closed row is not open")
+	policy._stores_round()
+	assert_false(Recipes.R_RATION in fishery.ordered or Recipes.R_DRY_FRUIT in fishery.ordered, "waiting: not again")
+	assert_true(Recipes.R_DRY_FISH in fishery.ordered and Recipes.R_MEAD in fishery.ordered, "the others ordered")
+	assert_equal(ProvisioningScript.new().open_batches(Recipes.R_RATION), 0, "no fishery: none")
+
+
+func test_the_runner_accepts_the_provisioning_policy() -> void:
+	"""The third policy is on the command line's list."""
+	var run := RunScript.new()
+	run._read_args(PackedStringArray(["--policy", "provisioning", "--out", "/tmp/x.json"]))
+	assert_equal(run._error, "", "accepted")
+	assert_true("provisioning" in RunScript.POLICIES, "listed")
+
+
+func test_a_row_waits_on_one_input_only_when_every_other_is_free() -> void:
+	"""Decision 1731: `waits_only_on` -- the category short and every other input free (one milli-U either side)."""
+	var fishery := FakeFishery.new()
+	var policy := _provisioner(fishery)
+	assert_true(policy.waits_only_on(Recipes.R_CHEESE, Catalog.CAT_NUTS), "nut cheese with no nuts: waits on nuts alone")
+	_stock(fishery, Catalog.ITEM_HONEY, 10000)
+	assert_false(policy.waits_only_on(Recipes.R_MEAD, Catalog.CAT_NUTS), "mead, its honey there, takes no nuts")
+	assert_false(policy.waits_only_on(Recipes.R_RATION, Catalog.CAT_NUTS), "rations lack their flour and dried fish too")
+	_stock(fishery, Catalog.ITEM_FLOUR, _ration_need(Catalog.CAT_FLOUR))
+	_stock(fishery, Catalog.ITEM_DRIED_FISH, _ration_need(Catalog.CAT_DRIED_FISH) - 1)
+	assert_false(policy.waits_only_on(Recipes.R_RATION, Catalog.CAT_NUTS), "dried fish one milli-U short: not nuts alone")
+	_stock(fishery, Catalog.ITEM_DRIED_FISH, 1)
+	assert_true(policy.waits_only_on(Recipes.R_RATION, Catalog.CAT_NUTS), "flour and dried fish there: nuts alone")
+	var take: int = fishery.takes.new_take()
+	assert_true(fishery.takes.reserve_into(fishery.pantry, take, Catalog.CAT_DRIED_FISH, 1, 0, IntMath.IntResult.new()),
+		"a meal holds one milli-U of the dried fish")
+	assert_false(policy.waits_only_on(Recipes.R_RATION, Catalog.CAT_NUTS), "held food is not free: not nuts alone")
+	assert_false(policy.ration_input_free(Catalog.CAT_DRIED_FISH), "nor is the dried fish free")
+	_stock(fishery, Catalog.ITEM_NUTS, _ration_need(Catalog.CAT_NUTS))
+	assert_false(policy.waits_only_on(Recipes.R_RATION, Catalog.CAT_NUTS), "nuts at the need: nothing waits")
+
+
+func test_the_ration_reserve_s_food_counts_as_the_rations() -> void:
+	"""Decision 1742: food the ration reserve holds is not free, but it is the rations' -- `ration_input_free` counts it,
+	so the chain's mill and nuts steps see a batch held for; with no reserve, held food is not counted."""
+	var fishery := FakeFishery.new()
+	var policy := _provisioner(fishery)
+	_stock(fishery, Catalog.ITEM_DRIED_FISH, _ration_need(Catalog.CAT_DRIED_FISH))
+	fishery.ration_reserve.configure(fishery.pantry, fishery.takes)
+	fishery.ration_reserve.target_milli = 6000
+	fishery.ration_reserve.top_up(0, 0)
+	assert_equal(fishery.takes.free_milli_of_crop(fishery.pantry, Catalog.CAT_DRIED_FISH), 0, "all of it held")
+	assert_true(policy.ration_input_free(Catalog.CAT_DRIED_FISH), "held for rations: theirs")
+	assert_true(policy.wants_nuts(), "so the rations wait on their nuts")
+	var other := FakeFishery.new()
+	var bare := _provisioner(other)
+	_stock(other, Catalog.ITEM_DRIED_FISH, _ration_need(Catalog.CAT_DRIED_FISH))
+	var take: int = other.takes.new_take()
+	assert_true(other.takes.reserve_into(other.pantry, take, Catalog.CAT_DRIED_FISH, 1, 0, IntMath.IntResult.new()),
+		"a meal holds one milli-U")
+	assert_false(bare.ration_input_free(Catalog.CAT_DRIED_FISH), "held by a meal: not the rations'")
+
+
+func test_one_forager_goes_for_nuts_while_a_batch_waits_on_them() -> void:
+	"""Nuts are wanted while some batch waits on them alone (the cheese takes the most); none once the largest need is
+	met; a trip out or the woods refusing sends nobody."""
+	var fishery := FakeFishery.new()
+	var policy := _provisioner(fishery)
+	var trips := FakeTrips.new()
+	policy.bind_forage(trips)
+	for recipe: int in Recipes.RECIPE_COUNT:
+		fishery.refusals[recipe] = "Can't"
+	assert_equal(ForageRules.KIND_WORDS[ProvisioningScript.NUTS_KIND], "nuts", "the kind sent for is nuts")
+	var cheese: int = Recipes.IN_MILLI[Recipes.IN_FIRST[Recipes.R_CHEESE]]
+	_stock(fishery, Catalog.ITEM_NUTS, cheese - 1)
+	assert_true(policy.wants_nuts(), "one milli-U short of a cheese batch: wanted")
+	trips.out = 1
+	policy._stores_round()
+	trips.out = 0
+	trips.why = "nuts are out of season now"
+	policy._stores_round()
+	assert_true(trips.asked.is_empty(), "a trip out, or the woods refusing: none sent")
+	trips.why = ""
+	policy._stores_round()
+	assert_equal(trips.asked, [Vector2i(ProvisioningScript.NUTS_KIND, ForageRules.PARTY_MIN)] as Array[Vector2i],
+		"one forager sent")
+	assert_equal(policy.take_orders().get("Forage (nuts)", 0), 1, "counted")
+	_stock(fishery, Catalog.ITEM_NUTS, 1)
+	assert_false(policy.wants_nuts(), "every batch's nuts there: not wanted")
+	policy._stores_round()
+	assert_equal(trips.asked.size(), 1, "none sent")
+	var take: int = fishery.takes.new_take()
+	assert_true(fishery.takes.reserve_into(fishery.pantry, take, Catalog.CAT_NUTS, 1, 0, IntMath.IntResult.new()),
+		"a meal holds one milli-U of the nuts")
+	assert_true(policy.wants_nuts(), "held nuts are not free: wanted again")
+
+
+func test_nuts_are_not_wanted_for_a_cheese_that_could_not_be_ordered() -> void:
+	"""A cheese batch already waiting, or every crock taken, is not a batch waiting on nuts (the review of beb3bb3b)."""
+	var fishery := FakeFishery.new()
+	var policy := _provisioner(fishery)
+	assert_true(policy.could_order(Recipes.R_CHEESE) and policy.wants_nuts(), "no nuts, a free crock: wanted")
+	var t: FisheryTables = fishery.tables
+	t.j_live[0] = 1
+	t.j_kind[0] = FisheryTables.KIND_DRY
+	t.j_recipe[0] = Recipes.R_CHEESE
+	assert_false(policy.could_order(Recipes.R_CHEESE), "a cheese batch waiting")
+	assert_false(policy.wants_nuts(), "so its nuts are not wanted (rations lack their dried fish)")
+	t.j_live[0] = 0
+	var first: int = Recipes.STATION_FIRST_SLOT[Recipes.STATION_TABLE]
+	for slot: int in range(first, first + Recipes.STATION_SLOTS[Recipes.STATION_TABLE]):
+		t.s_state[slot] = FisheryTables.SLOT_CURING
+	assert_false(policy.could_order(Recipes.R_CHEESE), "every crock taken")
+	assert_false(policy.wants_nuts(), "no crock: not wanted")
+	assert_true(policy.could_order(Recipes.R_RATION), "a batch row needs no slot")
+
+
+func test_flour_is_ground_only_once_rations_lack_nothing_else() -> void:
+	"""The mill grinds only when the free flour is short and a batch's dried fish and nuts are both free, and the mill
+	takes it -- never the kitchen's grain for a batch that cannot be made."""
+	var fishery := FakeFishery.new()
+	var policy := _provisioner(fishery)
+	for recipe: int in Recipes.RECIPE_COUNT:
+		fishery.refusals[recipe] = "Can't"
+	_stock(fishery, Catalog.ITEM_NUTS, _ration_need(Catalog.CAT_NUTS))
+	policy._stores_round()
+	assert_true(fishery.ordered.is_empty(), "no dried fish: nothing ground")
+	_stock(fishery, Catalog.ITEM_DRIED_FISH, _ration_need(Catalog.CAT_DRIED_FISH))
+	fishery.mill_why = "Can't: both mill slots are grinding"
+	policy._stores_round()
+	assert_true(fishery.ordered.is_empty(), "the mill refusing: nothing ground")
+	fishery.mill_why = ""
+	policy._stores_round()
+	assert_equal(fishery.ordered, [-1] as Array[int], "dried fish and nuts there, flour short: ground")
+	_stock(fishery, Catalog.ITEM_FLOUR, _ration_need(Catalog.CAT_FLOUR))
+	policy._stores_round()
+	assert_equal(fishery.ordered, [-1] as Array[int], "flour at the need: not ground again")
+	var short := FakeFishery.new()
+	var other := _provisioner(short)
+	for recipe: int in Recipes.RECIPE_COUNT:
+		short.refusals[recipe] = "Can't"
+	_stock(short, Catalog.ITEM_DRIED_FISH, _ration_need(Catalog.CAT_DRIED_FISH))
+	other._stores_round()
+	assert_true(short.ordered.is_empty(), "dried fish there but no nuts: nothing ground")
+
+
+func test_fish_high_sets_the_scripted_player_s_fishing_line() -> void:
+	"""--fish-high U (decision 1738, the balance rerun's P6): whole units for a policy that fishes; refused for
+	hands_off and for a non-integer; unset, the policy keeps FISH_STOCK_HIGH."""
+	var run := RunScript.new()
+	run._read_args(PackedStringArray(["--policy", "provisioning", "--fish-high", "12", "--out", "/tmp/x.json"]))
+	assert_equal([run._error, run._fish_high_milli], ["", 12000], "12 U")
+	run = RunScript.new()
+	run._read_args(PackedStringArray(["--policy", "hands_off", "--fish-high", "12", "--out", "/tmp/x.json"]))
+	assert_true(run._error.begins_with("--fish-high must be"), "hands_off does not fish: %s" % run._error)
+	run = RunScript.new()
+	run._read_args(PackedStringArray(["--policy", "light_touch", "--fish-high", "lots", "--out", "/tmp/x.json"]))
+	assert_true(run._error.begins_with("--fish-high must be"), "not a number: %s" % run._error)
+	run = RunScript.new()
+	run._read_args(PackedStringArray(["--policy", "light_touch", "--fish-high", "0", "--out", "/tmp/x.json"]))
+	assert_equal([run._error, run._fish_high_milli], ["", 0], "0 U: no trip ever")
+	assert_equal(PolicyScript.new().fish_stock_high, PolicyScript.FISH_STOCK_HIGH, "unset: the policy's 4 U")

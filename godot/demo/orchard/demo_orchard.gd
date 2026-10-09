@@ -5,8 +5,8 @@ extends Node3D
 ## (`land_obstacles`), its trees in the seasons (season_view.gd `add_trees`), its jobs on the work board
 ## (demo_work.gd `add_orchard`) and its grove in the woods' felling rule (forest_crew.gd `set_protected`).
 ##
-## THE PLAYER'S WAY IN: left-click an orchard tree, a site's pegs, a hedge bush, the baskets, the nursery or the grove's
-## stone -- it is selected and the Orchard panel opens in the right column (it has no tab: decision 0671). Right-click
+## THE PLAYER'S WAY IN: left-click an orchard tree, a site's pegs, a hedge bush, the baskets, the nursery, the grove's
+## stones (decision 1721: two groves) or the apiary's skep (decision 1601) -- it is selected and the Orchard panel opens in the right column (it has no tab: decision 0671). Right-click
 ## one with residents selected: the nearest does its most pressing work (a tree: harvest, else tend; an empty site:
 ## plant its ready sapling or a free one; a bush: pick; the baskets: send them on; the nursery: propagate the first
 ## waiting plan; the grove: observe). With nobody selected the panel's verbs queue the job for the board's Field crew.
@@ -32,6 +32,12 @@ const StandScript := preload("res://demo/forestry/forest_stand.gd")
 const DetailZone := preload("res://demo/ui/demo_detail_zone.gd")
 const Hive := preload("res://scripts/core/orchard_hive.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
+const HiveRules := preload("res://demo/hives/hive_rules.gd")
+const ApiaryViewScript := preload("res://demo/hives/apiary_view.gd")
+const FarmSimScript := preload("res://demo/farm/farm_sim.gd")
+const TakesScript := preload("res://demo/kitchen/ingredient_takes.gd")
+const Catalog := preload("res://demo/farm/farm_catalog.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
 
 const SEL_NONE: int = 0
 const SEL_SITE: int = 1
@@ -39,6 +45,8 @@ const SEL_BUSH: int = 2
 const SEL_STAND: int = 3
 const SEL_NURSERY: int = 4
 const SEL_GROVE: int = 5
+## The apiary's skep (decision 1601, demo/hives/): its panel section and the keeper's verbs.
+const SEL_APIARY: int = 6
 ## How near a click must land to pick each kind of thing (m): a tree's trunk, a bush, the baskets, the nursery, the
 ## grove's stone.
 const PICK_TREE_M: float = 2.6
@@ -51,6 +59,7 @@ const GROVE_STONE_SIZE: float = 0.4
 var model: ModelScript = ModelScript.new()
 var jobs: JobsScript = JobsScript.new()
 var view: ViewScript = null
+var apiary_view: ApiaryViewScript = null
 var panel: PanelScript = null
 var cards: Cards = Cards.new()
 var selected_kind: int = SEL_NONE
@@ -65,6 +74,8 @@ var _show_panel: Callable = Callable()
 var _day_seen: int = 0
 var _day_temperature: int = 0
 var _panel_s: float = 0.0
+var _takes: TakesScript = null
+var _pantry: PantryScript = null
 
 
 static func stand_provider() -> Callable:
@@ -91,7 +102,11 @@ static func land_obstacles() -> Array[Vector3]:
 	for at: Vector2 in Rules.STAND_AT:
 		out.append(Vector3(at.x, PLACE_RADIUS_M, at.y))
 	out.append(Vector3(Rules.NURSERY_AT.x, PLACE_RADIUS_M, Rules.NURSERY_AT.y))
-	out.append(Vector3(Rules.GROVE_AT.x, BUSH_RADIUS_M, Rules.GROVE_AT.y))
+	for stone: Vector2 in Rules.GROVE_STONES:
+		out.append(Vector3(stone.x, BUSH_RADIUS_M, stone.y))
+	for apiary: int in HiveRules.APIARY_COUNT:
+		var skep: Vector2 = HiveRules.centre_m(apiary)
+		out.append(Vector3(skep.x, HiveRules.SKEP_RADIUS_M, skep.y))
 	return out
 
 
@@ -119,6 +134,11 @@ func configure(world: DemoWorldScript, cast: DemoCastScript, command: DemoComman
 	view.configure(model, jobs, world.make_piece if world != null else Callable(), services.props, cast, pantry,
 		services.calendar, world.is_staged if world != null else Callable())
 	_place_grove_stone(world)
+	apiary_view = ApiaryViewScript.new()
+	add_child(apiary_view)
+	apiary_view.configure(model.apiary, world.make_piece if world != null else Callable(), services.calendar,
+		cast.clock if cast != null else null)
+	_pantry = pantry
 	panel = PanelScript.new()
 	panel.build()
 	add_child(panel)
@@ -129,18 +149,53 @@ func configure(world: DemoWorldScript, cast: DemoCastScript, command: DemoComman
 
 
 func _place_grove_stone(world: DemoWorldScript) -> void:
-	"""The grove's stone: its rest and observation spot (ECO-015), and what a click selects it by."""
+	"""Each grove's stone: its rest and observation spot (ECO-015), and what a click selects it by."""
 	if world == null:
 		return
-	var stone: Node3D = world.make_piece(GROVE_STONE_KEY, Rules.GROVE_AT, 0.4, GROVE_STONE_SIZE)
-	if stone != null:
-		add_child(stone)
+	for grove: int in Rules.GROVE_COUNT:
+		var stone: Node3D = world.make_piece(GROVE_STONE_KEY, Rules.GROVE_STONES[grove], 0.4 + 1.3 * grove, GROVE_STONE_SIZE)
+		if stone != null:
+			add_child(stone)
 
 
 func set_compost(left: Callable, take: Callable) -> void:
 	"""The farm's compost store (demo_village.gd `compost_left` / `take_compost`)."""
 	jobs.set_compost(left, take)
 	cards.compost_left = left
+
+
+func bind_farm(sim: FarmSimScript, takes: TakesScript) -> void:
+	"""The apiary's joins (decision 1601): the field beds' pollination (farm_sim.gd `pollinate`, REQ-SET-082 for the beans
+	within 12 m) and the pantry's free honey through the kitchen's reservations (`takes`: a winter feeding and a
+	recolonisation never take food the kitchen has set aside)."""
+	_takes = takes
+	if sim != null:
+		sim.pollinate = model.apiary.bed_factor
+	jobs.set_honey(free_honey, take_honey)
+
+
+func free_honey() -> int:
+	"""Honey in the pantry nobody has set aside, milli-U."""
+	return _takes.free_milli_of_crop(_pantry, Catalog.CAT_HONEY) if _takes != null and _pantry != null else 0
+
+
+func take_honey(milli: int) -> int:
+	"""Withdraw exactly `milli` of free honey, the lot that spoils first first, ALL OR NONE (reserved before anything is
+	withdrawn, so a short take moves nothing); how much was taken (`milli` or 0)."""
+	if _takes == null or _pantry == null or milli <= 0:
+		return 0
+	return take_all_or_none(_takes, _pantry, Catalog.CAT_HONEY, milli, _services.calendar.hour_index())
+
+
+static func take_all_or_none(takes: TakesScript, pantry: PantryScript, category: int, milli: int, hour_index: int) -> int:
+	"""Reserve `milli` of `category`'s free food in a take of its own, then withdraw exactly that (ingredient_takes.gd
+	`consume_into` is all or nothing: short, it moves nothing) and give the reservation back. `milli` or 0."""
+	var take: int = takes.new_take()
+	takes.reserve_into(pantry, take, category, milli, hour_index, IntMath.IntResult.new())
+	var taken: bool = takes.consume_into(pantry, take, milli, TakesScript.AT_STORE, hour_index, IntMath.IntResult.new(),
+		category)
+	takes.release(take)
+	return milli if taken else 0
 
 
 func set_woods(stand: StandScript) -> void:
@@ -156,19 +211,24 @@ func set_panel_shower(shower: Callable) -> void:
 # --- the grove's rule (forest_crew.gd's hook) -------------------------------------------------------------------------
 
 func grove_protects(at: Vector2) -> bool:
-	"""Whether a woods tree standing at `at` is in the protected grove (forestry may not fell it)."""
-	return model.grove_protected and at.distance_to(Rules.GROVE_AT) <= Rules.GROVE_RADIUS_M
+	"""Whether a woods tree standing at `at` is in a protected grove (forestry may not fell it)."""
+	return model.protected_grove_at(at) != Rules.NONE
 
 
-func grove_trees_standing() -> int:
-	"""The woods' trees standing (mature or young) in the grove."""
+func grove_reserve_permille(at: Vector2) -> int:
+	"""The foraging trips' reserve at a spot `at` (decision 1721, ECO-015): GROVE_RESERVE_PERMILLE of the kind's capacity
+	when `at` is in a protected grove, else 0 (forage_trips.gd `reserve_permille`)."""
+	return Rules.GROVE_RESERVE_PERMILLE if grove_protects(at) else 0
+
+
+func grove_trees_standing(grove: int) -> int:
+	"""The woods' trees standing (mature or young) in grove `grove`."""
 	if _stand == null:
 		return 0
 	var n: int = 0
 	for t: int in _stand.count():
 		var state: int = _stand.state_of(t)
-		if _stand.at[t].distance_to(Rules.GROVE_AT) <= Rules.GROVE_RADIUS_M \
-				and (state == StandScript.STATE_MATURE or state == StandScript.STATE_YOUNG):
+		if Rules.grove_of(_stand.at[t]) == grove and (state == StandScript.STATE_MATURE or state == StandScript.STATE_YOUNG):
 			n += 1
 	return n
 
@@ -197,6 +257,8 @@ func _follow_day() -> void:
 		_day_temperature = _services.weather.day_temperature_tenths()
 	while _day_seen < day:
 		model.close_day(_day_seen, _day_temperature)
+		for k: int in model.apiary.news.size():
+			_say(model.apiary.news[k], model.apiary.news_warning[k] == 1)
 		_day_seen += 1
 
 
@@ -224,8 +286,12 @@ func pick_at(ground: Vector2) -> Vector2i:
 			return Vector2i(SEL_STAND, group)
 	if ground.distance_to(Rules.NURSERY_AT) <= PICK_SMALL_M * 1.5:
 		return Vector2i(SEL_NURSERY, 0)
-	if ground.distance_to(Rules.GROVE_AT) <= PICK_SMALL_M:
-		return Vector2i(SEL_GROVE, 0)
+	for grove: int in Rules.GROVE_COUNT:
+		if ground.distance_to(Rules.GROVE_STONES[grove]) <= PICK_SMALL_M:
+			return Vector2i(SEL_GROVE, grove)
+	for apiary: int in HiveRules.APIARY_COUNT:
+		if ground.distance_to(HiveRules.centre_m(apiary)) <= PICK_SMALL_M:
+			return Vector2i(SEL_APIARY, apiary)
 	return Vector2i(SEL_NONE, -1)
 
 
@@ -269,7 +335,10 @@ func on_action(action: StringName) -> void:
 		&"timing", &"dest", &"keep":
 			_cycle_policy(action)
 		&"protect":
-			model.set_grove_protected(not model.grove_protected)
+			model.set_grove_protected(shown_grove(), not model.is_grove_protected(shown_grove()))
+		&"move":
+			if selected_kind == SEL_SITE:
+				_answer(jobs.order_move(selected_id, _command.selected() if _command != null else PackedInt32Array()))
 		&"plan_apple", &"plan_pear":
 			_answer(Text.plant_words(model.add_plan(Rules.APPLE if action == &"plan_apple" else Rules.PEAR, selected_id)))
 		&"drop_plan":
@@ -291,7 +360,8 @@ func _cycle_policy(action: StringName) -> void:
 		&"timing":
 			model.group_timing[group] = (model.group_timing[group] + 1) % Rules.TIMING_NAMES.size()
 		&"dest":
-			model.group_dest[group] = (model.group_dest[group] + 1) % Rules.DEST_NAMES.size()
+			var step: int = Rules.FRESH_STEPS.find(model.group_fresh_pct[group])
+			model.group_fresh_pct[group] = Rules.FRESH_STEPS[(step + 1) % Rules.FRESH_STEPS.size()]
 		&"keep":
 			var at: int = Array(Rules.KEEP_STEPS).find(model.group_keep[group])
 			model.group_keep[group] = Rules.KEEP_STEPS[(at + 1) % Rules.KEEP_STEPS.size()]
@@ -320,9 +390,15 @@ func refresh_panel() -> void:
 		cards.dest_word(group), cards.keep_word(group))
 	for action: StringName in PanelScript.GROUP_ACTIONS:
 		panel.set_card(action, cards.policy_tip(action, group), group >= 0)
-	panel.set_card(&"protect", cards.policy_tip(&"protect", -1), true)
+	panel.set_card(&"protect", cards.policy_tip(&"protect", shown_grove()), true)
 	panel.show_nursery("The nursery", cards.nursery_text())
-	panel.show_grove(Text.cap(Rules.GROVE_NAME), cards.grove_text(), model.grove_protected)
+	panel.show_grove(Text.cap(Rules.GROVE_NAMES[shown_grove()]), cards.grove_text(shown_grove()),
+		model.is_grove_protected(shown_grove()))
+
+
+func shown_grove() -> int:
+	"""The grove the panel's grove section shows and its toggle sets: the selected one, else the North hollow."""
+	return selected_id if selected_kind == SEL_GROVE and Rules.is_grove(selected_id) else 0
 
 
 func _ground_at(screen: Vector2) -> Vector2:

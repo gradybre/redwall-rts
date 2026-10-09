@@ -2,7 +2,7 @@
 
 Date: 2026-10-07 · Status: Accepted direction (DEC-052). Step 5 done: the runtime digs with claws and fits by
 paw (content 9 active); the pick content stays published and dormant. Step 2c, the side-on tread station, was refused;
-DEC-058 replaced it with a general working motion (step 2d), stopped for Brendan's review.
+DEC-060 replaced it with a general working motion (step 2d), stopped for Brendan's review.
 
 ## Decision
 
@@ -373,7 +373,7 @@ The bearer would have to run across the mole, but it runs along its forward axis
 **Note for ADR 1209 step 5.** The descent's end pose on T_{k−1} (root far + 169) reaches into the staged bearer.
 So the bearer is delivered after the fitter arrives, in any layout.
 
-### Brendan's answer to step 2c (2026-10-08, DEC-058)
+### Brendan's answer to step 2c (2026-10-08, DEC-060)
 
 Verbatim: **"General digging motion, does not need to line up perfectly."**
 
@@ -413,7 +413,7 @@ and re-posed at the tread station.
   hard for every triangle, paws included (the paw skin is the whole prism).
 - **Self-clearance**: each arm against everything without that arm's weight (legs included), and arm against arm.
 - Recovery is the exact reverse of the entry.
-- **Dropped per DEC-058:** the exact contact crossing and patch.
+- **Dropped per DEC-060:** the exact contact crossing and patch.
 
 **Why it now clears.** Step 2b required both paws on the bearer's centre line (z = −246), and there they meet the
 legs. Without the contact requirement, the paws work over the bearer's far half, wider apart, and the body stands

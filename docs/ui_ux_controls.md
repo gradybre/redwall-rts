@@ -507,7 +507,7 @@ No job matrix requires drag-only editing: arrow keys select cell,0–4 set prior
 
 **Manage an interior:**select hall→Interior tab→roof cutaway→Room tool→paint connected tiles→read capacity/invalidity→place beds/hearth→confirm→assignment updates. Occupants are not deleted when room validity changes. The keyboard tile picker can perform the same flow.
 
-**Hold a feast:**F→theme→attendee/capacity check→exact courses/beverage/fuel→post feast reserves→optional one-event reserve override→Confirm→preparation progress→ready 18:00 service→attendance/benefit report. A missing dessert, seat, or beverage is identified by name and quantity.
+**Hold a feast:**F→theme→attendee/capacity check→exact courses/beverage/fuel→post feast reserves→optional one-event reserve override→Confirm→preparation progress→ready 17:00 supper service (DEC-058, amended 2026-10-07; was 18:00)→attendance/benefit report. A missing dessert, seat, or beverage is identified by name and quantity.
 
 **Recover from winter shortage:**critical food card→ready food breakdown→disable feast reservations→enable eligible cooking/hauling→inspect fuel/heat→consolidate housing→watch forecast. UI offers actions; it does not quietly change forbidden jobs or intensive harvest policy.
 

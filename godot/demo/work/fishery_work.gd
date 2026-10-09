@@ -69,7 +69,7 @@ func fill(task: TaskScript, row: int) -> void:
 	var tables: Tables = _fishery.tables
 	task.reset(id, row)
 	task.key = tables.j_serial[row]
-	task.action = Tables.KIND_WORDS[tables.j_kind[row]]
+	task.action = _fishery.job_words(row)
 	task.target = _fishery.trip_name(tables.j_trip[row]) if tables.j_trip[row] >= 0 else _fishery.place_words(row)
 	task.worker = tables.j_worker[row]
 	task.activity = activity(row)

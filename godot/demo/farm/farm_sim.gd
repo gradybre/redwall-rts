@@ -67,6 +67,7 @@ const FarmingScript := preload("res://scripts/core/farming.gd")
 const CropWeatherScript := preload("res://scripts/core/crop_weather.gd")
 const EcologyScript := preload("res://scripts/core/ecology.gd")
 const RngScript := preload("res://scripts/core/rng.gd")
+const ResourceNodes := preload("res://scripts/core/resource_nodes.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
@@ -166,6 +167,10 @@ var days_run: int = 0
 ## Bumped by every change a reader could see (an hour, a day, a verb that took), so the view and
 ## the panels redraw only when something changed.
 var revision: int = 0
+## THE APIARY'S POLLINATION (decision 1601): `pollinate(farm_row, tile, crop) -> int` is REQ-SET-082's factor (per 1000)
+## for the crop on a bed's FarmPlot row and tile (Vector2i x, z) -- demo/hives/apiary_model.gd `bed_factor`, the join
+## ARCH-SYS-006 leaves to whoever owns both stores; §5.6's neutral 1000 without one (a check).
+var pollinate: Callable = Callable()
 
 var _crop_weather: CropWeatherScript = null
 var _farming: FarmingScript = null
@@ -574,12 +579,12 @@ func water(bed: int) -> FarmingScript.OpResult:
 
 
 func harvest(bed: int) -> FarmingScript.OpResult:
-	"""REQ-SET-074: `harvest()` at the neutral pollination factor (the demo has no hives). The value
-	is the yield in milli-U of the bed's item, which the caller reads with item_of() BEFORE this."""
+	"""REQ-SET-074: `harvest()` at the bed's pollination factor (`pollination_of`: x1100 for beans by a healthy hive,
+	decision 1601). The value is the yield in milli-U of the bed's item, which the caller reads with item_of() BEFORE
+	this."""
 	if not Catalog.is_bed(bed):
 		return _refuse(REFUSE_NOT_A_BED)
-	var cut: FarmingScript.OpResult = _farming.harvest(_slot[bed], _absolute_day, calendar.tick,
-		_farming.neutral_pollination_factor())
+	var cut: FarmingScript.OpResult = _farming.harvest(_slot[bed], _absolute_day, calendar.tick, pollination_of(bed))
 	if cut.ok:
 		_item[bed] = NO_ITEM
 		_chosen[bed] = NO_ITEM
@@ -895,10 +900,22 @@ func expected_yield_into(bed: int, out: IntMath.IntResult) -> bool:
 	"""What a harvest would bring now, milli-U: REQ-SET-074 after REQ-SET-075's decay when ripe,
 	the formula at today's health and fertility while growing."""
 	var slot: int = _slot[bed]
-	var pollination: int = _farming.neutral_pollination_factor()
+	var pollination: int = pollination_of(bed)
 	if _farming.is_ripe(slot):
 		return _farming.harvest_yield_milli_into(slot, pollination, calendar.tick, out)
 	return _farming.formula_yield_milli_into(slot, pollination, out)
+
+
+func pollination_of(bed: int) -> int:
+	"""REQ-SET-082's factor for the crop standing on `bed` (per 1000): the apiary's (`pollinate`), else §5.6's neutral
+	1000 -- for an empty bed, a crop other than beans, or no apiary."""
+	if not Catalog.is_bed(bed) or not pollinate.is_valid():
+		return _farming.neutral_pollination_factor()
+	var crop: IntMath.IntResult = _farming.crop_id_of(_slot[bed])
+	if not crop.ok:
+		return _farming.neutral_pollination_factor()
+	@warning_ignore("integer_division") var tile_z: int = _tile[bed] / ResourceNodes.MAP_TILES_X
+	return int(pollinate.call(_slot[bed], Vector2i(_tile[bed] % ResourceNodes.MAP_TILES_X, tile_z), crop.value))
 
 
 func rotation_preview(bed: int, item: int) -> int:

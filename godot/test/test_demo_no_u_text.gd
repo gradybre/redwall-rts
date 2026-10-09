@@ -88,7 +88,7 @@ func test_no_player_facing_u_amounts_outside_the_allowlist() -> void:
 	for path: String in files:
 		var found: PackedStringArray = findings(path)
 		var allowed: int = int(ALLOWLIST.get(path, 0))
-		if found.size() > allowed:
+		if over_allowance(found.size(), allowed):
 			fail("%s: %d player-facing U string(s), %d allowed:\n    %s" % [path, found.size(), allowed,
 				"\n    ".join(found)])
 		else:
@@ -101,7 +101,40 @@ func test_the_allowlist_names_only_files_that_still_need_it() -> void:
 	assert_true(ALLOWLIST.size() <= 44, "the allowlist only shrinks from slice 1's 44 files (%d)" % ALLOWLIST.size())
 	for path: String in ALLOWLIST:
 		assert_true(FileAccess.file_exists(path), "%s exists" % path)
-		assert_equal(findings(path).size(), int(ALLOWLIST[path]), "%s's allowlist count is exact" % path)
+		assert_true(allowance_exact(findings(path).size(), int(ALLOWLIST[path])), "%s's allowlist count is exact (%d)"
+			% [path, findings(path).size()])
+
+
+func test_the_walk_covers_the_demo_the_ui_and_the_text_tables() -> void:
+	"""The lint reads the demo's scripts and JSON tables, the UI's scripts and the UI manager, and never the staged art."""
+	var files: PackedStringArray = _files()
+	for path: String in ["res://demo/ui/demo_hud_model.gd", "res://demo/sound/sound_table.json", "res://scripts/ui/hud.gd",
+			"res://scripts/ui/goods_measures.gd", "res://scripts/systems/ui_manager.gd"]:
+		assert_true(files.has(path), "%s is linted" % path)
+	for path: String in files:
+		if path.begins_with("res://demo/assets/"):
+			fail("the staged art is not linted: %s" % path)
+	assert_true(not files.has("res://demo/demo_village.tscn"), "only .gd and .json")
+
+
+func test_a_file_over_its_allowance_fails() -> void:
+	"""The allowance is a ceiling: at it passes, one over fails; a file not on the list is allowed none."""
+	assert_false(over_allowance(2, 2), "at the allowance")
+	assert_true(over_allowance(3, 2), "one over")
+	assert_true(over_allowance(1, int(ALLOWLIST.get("res://no/such/file.gd", 0))), "not listed: none allowed")
+	assert_false(over_allowance(0, 0), "clean")
+	assert_true(allowance_exact(2, 2), "an exact entry")
+	assert_false(allowance_exact(1, 2), "a file converted below its entry must lower it")
+
+
+func allowance_exact(found: int, allowed: int) -> bool:
+	"""Whether an allowlist entry is exactly what its file still holds (see ALLOWLIST: it only ever shrinks)."""
+	return found == allowed
+
+
+func over_allowance(found: int, allowed: int) -> bool:
+	"""Whether a file holds more findings than its allowlist entry lets it."""
+	return found > allowed
 
 
 # --- the scanner, on synthetic text -------------------------------------------------------------------------------
@@ -131,6 +164,7 @@ func test_strings_with_escapes_and_hashes_are_read_whole() -> void:
 	assert_equal(scan_source('var a := "say \\"hi\\" # then 9 U"').size(), 1, "a # inside a string")
 	assert_equal(scan_source("var a := \"it's\" + '\\'s 9 U'").size(), 1, "an escaped single quote")
 	assert_equal(scan_source('var a := "#" # 9 U').size(), 0, "a real comment after a string")
+	assert_equal(scan_source('var a := "open\nvar b := 9 # 9 U"').size(), 0, "an unclosed string ends at its line")
 
 
 func test_a_triple_quoted_string_that_is_a_value_is_linted() -> void:

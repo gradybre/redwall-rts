@@ -238,12 +238,15 @@ func test_have_need_uses_the_needs_measure_and_reads_enough_at_the_edge() -> voi
 	assert_equal(M.have_need(&"barley", 31000, 45000), "1½ of 2½ sacks", "halves of the need's sack")
 	assert_equal(M.have_need(&"herb", 100, 250), "under 1 of 1 handful", "under one of the need's measure")
 	assert_equal(M.have_need(&"honey", 100, 500), "under ½ of ½ jar", "under half a jar")
+	assert_equal(M.have_need(&"barley", 190000, 200000), "9 of 10 sacks", "a need of ten measures: whole ones, both")
+	assert_equal(M.have_need(&"barley", 190000, 199999), "9½ of 10 sacks", "just under ten: halves")
 
 
 func test_weight_is_exact_in_grams() -> void:
 	"""milli × mass_g / 1000 in integer grams; kg from 1 kg, floored to 10 g, trailing zeros dropped; water in litres."""
 	assert_equal(M.grams(&"barley", 250000), 62500, "250 U of barley is 62,500 g")
 	assert_equal(M.grams(&"herb", 250), 62, "a handful of herbs floors to 62 g")
+	assert_equal(M.grams(&"barley", -4000), 0, "a negative amount weighs nothing")
 	assert_equal(M.weight(&"barley", 250000), "62.5 kg", "62.5 kg")
 	assert_equal(M.weight(&"wood", 950), "4.75 kg", "4.75 kg")
 	assert_equal(M.weight(&"stone", 1000), "5 kg", "5 kg")

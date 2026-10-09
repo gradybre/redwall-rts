@@ -1,5 +1,5 @@
 # 1821 — Boat crossing rows: the route planner waits for the boat at the time the walker reaches the landing
-Date: 2026-10-09 · Status: Accepted (built; PROPOSALS P1–P5 await Brendan)
+Date: 2026-10-09 · Status: Accepted (built; P1–P5 ruled by Brendan, 2026-10-09)
 
 Lane: boat crossings (branch `feat/boat-crossings`, decisions 1821–1829; `docs/handoff/LIVE_WORK.md` §2). It follows
 Brendan's ruling on the fishing revamp (decision 1711, 2026-10-07): "**Boats: (a)** -- fishing boats stay task-driven
@@ -259,6 +259,20 @@ Run on the branch at 667ec829 (the code as merged; later commits add tests only,
 - 2026-10-09: phase 2 built (13a6d8b2, ef41427c); reviewed four times; fixes 735e3a49, 6eb99f16, 52a6978b, f1bda8b4,
   f46472ba; tests from mutation testing 11cbf947, 6ea49148, 667ec829, 49d4597d. All gates passed (above). Done; not
   pushed (the coordinator pushes).
+
+## Brendan's rulings (2026-10-09)
+
+Relayed by the coordinator on PR #242 (no verbatim wording was passed on): Brendan **approved all five proposals, P1–P5,
+as recommended**:
+- **P1 (a):** boat rows 1–7 stay unused until something needs them; river trade's boats may become services on them only
+  once trade is scoped.
+- **P2 (a):** the fishing boats stay task-driven and are never crossing rows (as 1711 (a)).
+- **P3 (a):** no margin at the landing; a missed boat is the leg's refusal and a plan by land.
+- **P4 (a):** Q-D17 (river trade) keeps being held; it is not asked now.
+- **P5 (a):** the ferry keeps skipping a departure due while a crossing is out, and the planner errs late; keeping it
+  pending stays an option if playtests show passengers turned away at the stage.
+
+The ferry's fix (pricing the wait from the walker's arrival, "a fix inside an approved feature") stands as built.
 
 ## Source
 

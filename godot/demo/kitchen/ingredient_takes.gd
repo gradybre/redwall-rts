@@ -137,15 +137,17 @@ func _sum_per_lot(pantry: PantryScript, take: int, where: int) -> void:
 
 
 func reserve_into(pantry: PantryScript, take: int, crop: int, milli: int, hour_index: int,
-		out: IntMath.IntResult) -> bool:
-	"""Reserve up to `milli` of selector `crop`'s food under `take`, the lot that spoils first first (see RESERVE).
-	How much was reserved into `out` (0 when there was none, or no entry row was free); refuses a bad quantity."""
+		out: IntMath.IntResult, latest_first: bool = false) -> bool:
+	"""Reserve up to `milli` of selector `crop`'s food under `take`, the lot that spoils first first (see RESERVE) --
+	or, `latest_first`, the lot that spoils last first (a reserve held back for later: the ration reserve, decision
+	1742). How much was reserved into `out` (0 when there was none, or no entry row was free); refuses a bad
+	quantity."""
 	if milli <= 0:
 		return out.refuse(PantryScript.REFUSE_BAD_QUANTITY)
 	_candidates(pantry, crop, hour_index)
 	var left: int = milli
 	while left > 0:
-		var k: int = _soonest()
+		var k: int = _latest_candidate() if latest_first else _soonest()
 		if k < 0:
 			break
 		var lot: int = _rows[k]
@@ -183,6 +185,17 @@ func _soonest() -> int:
 		if _rows[k] == FREE:
 			continue
 		if best < 0 or _hours[k] < _hours[best] or (_hours[k] == _hours[best] and _rows[k] < _rows[best]):
+			best = k
+	return best
+
+
+func _latest_candidate() -> int:
+	"""The candidate that spoils last (the lowest row on a tie); -1 when none is left."""
+	var best: int = -1
+	for k: int in _rows.size():
+		if _rows[k] == FREE:
+			continue
+		if best < 0 or _hours[k] > _hours[best] or (_hours[k] == _hours[best] and _rows[k] < _rows[best]):
 			best = k
 	return best
 
@@ -327,12 +340,14 @@ func release_at_store(pantry: PantryScript, take: int, location: int) -> int:
 	return freed
 
 
-func release_milli(pantry: PantryScript, take: int, milli: int, hour_index: int, crop: int = -1) -> int:
+func release_milli(pantry: PantryScript, take: int, milli: int, hour_index: int, crop: int = -1,
+		where: int = -1) -> int:
 	"""Give back `milli` of `take`'s reservation (of category `crop`; -1: any) it no longer needs, the latest-spoiling
-	food first (still at its store first); returns how much was given back."""
+	food first (still at its store first) -- only food at `where` (AT_STORE, IN_HAND, AT_KITCHEN; -1: anywhere);
+	returns how much was given back."""
 	var left: int = milli
 	while left > 0:
-		var e: int = _latest(pantry, take, hour_index, crop)
+		var e: int = _latest(pantry, take, hour_index, crop, where)
 		if e < 0:
 			break
 		var part: int = mini(left, _milli[e])
@@ -343,13 +358,14 @@ func release_milli(pantry: PantryScript, take: int, milli: int, hour_index: int,
 	return milli - left
 
 
-func _latest(pantry: PantryScript, take: int, hour_index: int, crop: int = -1) -> int:
-	"""`take`'s entry (of category `crop`; -1: any) to give back first: at its store before in hand or at the kitchen,
-	then the latest to spoil."""
+func _latest(pantry: PantryScript, take: int, hour_index: int, crop: int = -1, where: int = -1) -> int:
+	"""`take`'s entry (of category `crop`; -1: any; at `where`; -1: anywhere) to give back first: at its store before in
+	hand or at the kitchen, then the latest to spoil."""
 	var best: int = -1
 	var best_hours: int = 0
 	for e: int in MAX_ENTRIES:
-		if _take[e] != take or (crop >= 0 and not (_live(pantry, e) and _is_of(pantry, e, crop))):
+		if _take[e] != take or (where >= 0 and _where[e] != where) \
+				or (crop >= 0 and not (_live(pantry, e) and _is_of(pantry, e, crop))):
 			continue
 		var hours: int = pantry.lot_spoil_hours(_lot[e], hour_index) if _live(pantry, e) else 1 << 30
 		if best < 0 or _where[e] < _where[best] or (_where[e] == _where[best] and hours > best_hours):

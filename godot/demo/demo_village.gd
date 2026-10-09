@@ -172,6 +172,12 @@ extends Node3D
 ## season" brings winter. `_build_winter()` wires it after the woods (its firewood) and the kitchen (its cooking wood);
 ## `_build_work()` hands it the work board.
 ##
+## THE CALLED FEASTS (decision 1701, demo/feast/; feature #9, review SOC-023): the GDD's Hearth, Harvest and Orchard
+## feasts called by the player for one of the next suppers (Brendan's ruling on Q-D11: every feast at the 17:00 supper),
+## refused truthfully under REQ-SET-101, cooked as the kitchen's occasion, tallied, their buffs reaching the winter's cold
+## and the work pace. `_build_feasts()` wires it last, over the kitchen, the regatta, the winter, the hall and the people;
+## the HUD's Feast command opens its panel, and M4's "12 completed feasts" reads its count.
+##
 ## THE HALL (decision 0771, demo/hall/): the community hall grows in Brendan's adopted two stages -- the hall the village
 ## starts with, then its one tier-2 upgrade (REQ-SET-136) -- and up to four banners, each carried in and built by the
 ## residents through the work board; clicking the hall opens its panel, and from it the village tapestry, whose
@@ -188,6 +194,8 @@ extends Node3D
 ## bridge, tunnel mouth and room, and the rings that show them (village_targets.gd); the focus hints.
 
 const DemoManifestScript := preload("res://demo/demo_manifest.gd")
+const FarmingScript := preload("res://scripts/core/farming.gd")
+const RationReserveScript := preload("res://demo/preserve/ration_reserve.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoCameraScript := preload("res://demo/camera/demo_camera.gd")
@@ -308,9 +316,13 @@ const ModularDemoMode := preload("res://demo/burrow/modular_demo_mode.gd")
 const DaylightCurves := preload("res://demo/world/daylight_curves.gd")
 const HearthFuelScript := preload("res://demo/winter/hearth_fuel.gd")
 const HallScript := preload("res://demo/hall/demo_hall.gd")
+const WildlifeScript := preload("res://demo/wildlife/wildlife_view.gd")
+const WeatherFxScript := preload("res://demo/weather/weather_fx.gd")
+const FeastsScript := preload("res://demo/feast/demo_feasts.gd")
 const TapestryScript := preload("res://demo/hall/tapestry.gd")
 const CareScript := preload("res://demo/infirmary/demo_care.gd")
 const OrchardScript := preload("res://demo/orchard/demo_orchard.gd")
+const PreserveRules := preload("res://demo/preserve/preserve_rules.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -419,6 +431,12 @@ var _fuel_panel: FuelPanelScript = FuelPanelScript.new()
 var _day_night: DayNightScript = null
 var _night_lights: NightLightsScript = null
 var _hall: HallScript = null
+## The ambient wildlife (demo/wildlife/, decision 1631): presentation only, no simulation rows.
+var _wildlife: WildlifeScript = null
+## The livelier weather (demo/weather/weather_fx.gd, decision 1632): lightning, the storm's work factor, event notices.
+var _weather_fx: WeatherFxScript = null
+## The called feasts (demo/feast/, decision 1701).
+var _feasts: FeastsScript = null
 var _care: CareScript = null
 ## Feature #22 (decision 0681): the foraging trips.
 var _forage: ForageNodeScript = null
@@ -480,6 +498,9 @@ func _ready() -> void:
 	_build_camera_modes()
 	_build_chronicle()
 	_build_hall()
+	_build_wildlife()
+	_build_weather_fx()
+	_build_feasts()
 	_skin_hud.call_deferred()
 	add_child(WindowKeysScript.new())
 	_hold_restart_open()
@@ -488,6 +509,42 @@ func _ready() -> void:
 	_build_modular_room_mode()
 	PlaytestTaps.wire(self, _gate, _zone, _farm.lenses, _command as DemoCommandScript, _services.notices,
 		_services.calendar)
+
+
+func _build_wildlife() -> void:
+	"""The ambient wildlife (demo/wildlife/, decision 1631): on the village's weather and the cast's clock, flushed by
+	its residents; it registers its own boot-prewarm frame step."""
+	_wildlife = WildlifeScript.new()
+	add_child(_wildlife)
+	_wildlife.wire(_services, _cast as DemoCastScript, _prewarm)
+
+
+func _build_feasts() -> void:
+	"""THE CALLED FEASTS (see the header): over the kitchen, the regatta, the winter, the hall's seats and the people;
+	the Feast command opens its panel, which the selection's cards, the guide and the people card give way to (as the
+	hall's); M4's "12 completed feasts" reads its count (goal_book.gd `bind_measure`)."""
+	_feasts = FeastsScript.new()
+	add_child(_feasts)
+	_feasts.wire(_services, _cast as DemoCastScript, _kitchen.kitchen, _regatta, _winter, _hall.gathering_seats)
+	_feasts.bind_people(_people.share_feast)
+	_feasts.take_feast_command(_shell())
+	_cards.hide_while(_feasts.panel.is_open)
+	_guide.card.hide_while(_feasts.panel.is_open)
+	_people_card.hide_while(_feasts.panel.is_open)
+	_guide.goals.book.bind_measure(&"m4_hearth_charter", &"feasts", _feasts.feasts_completed)
+
+
+func feasts() -> FeastsScript:
+	"""The village's called feasts (demo/feast/demo_feasts.gd)."""
+	return _feasts
+
+
+func _build_weather_fx() -> void:
+	"""The livelier weather (demo/weather/weather_fx.gd, decision 1632): the storm's lightning over the world's trees and
+	open ground, its factor on the village's work pace, and the §5.10 events' notices."""
+	_weather_fx = WeatherFxScript.new()
+	add_child(_weather_fx)
+	_weather_fx.wire(_services, _cast as DemoCastScript, _world as DemoWorldScript, _forestry.stand.state_of)
 
 
 func _warm_and_open() -> void:
@@ -604,6 +661,7 @@ func _build_cast(manifest: Dictionary) -> void:
 	obstacles.append_array(WaterplayScript.land_obstacles())
 	obstacles.append_array(WeirViewScript.land_obstacles())
 	obstacles.append_array(OrchardScript.land_obstacles())
+	obstacles.append_array(PreserveRules.land_obstacles())
 	obstacles.append_array(EvergreensScript.land_obstacles((_world as DemoWorldScript).trees()))
 	_links = WaterplayScript.make_links(_water.map(), obstacles)
 	obstacles.append_array(_links.band)
@@ -705,6 +763,7 @@ func _build_orchard() -> void:
 	_orchard.configure(_world as DemoWorldScript, _cast as DemoCastScript, _command as DemoCommandScript,
 		_camera.camera(), _services, _farm.pantry)
 	_orchard.set_compost(compost_left, take_compost)
+	_orchard.bind_farm(_farm.sim, _kitchen.kitchen.takes)
 	_orchard.panel.watch_hud(_game.get_node_or_null(GAME_HUD_ROOT) as Control)
 
 
@@ -860,6 +919,13 @@ func _build_fishery() -> void:
 	add_child(_fishery)
 	_fishery.configure(_cast as DemoCastScript, _command as DemoCommandScript, _services, _waterplay, _water,
 		_farm.pantry, _kitchen.kitchen.takes, _water.map())
+	_fishery.fishery.bind_spare_fish(_kitchen.kitchen.fish_beyond_next_meal_milli,
+		_kitchen.kitchen.release_fish_beyond_next_meal)
+	_fishery.fishery.bind_spare_grain(_kitchen.kitchen.beyond_next_meal_milli.bind(FarmingScript.CROP_GRAIN),
+		_kitchen.kitchen.release_beyond_next_meal.bind(FarmingScript.CROP_GRAIN))
+	_kitchen.kitchen.raw_keep = _fishery.fishery.ration_keep_milli
+	_fishery.fishery.ration_reserve.kitchen_give = _kitchen.kitchen.release_beyond_next_meal
+	_fishery.fishery.ration_reserve.target_milli = RationReserveScript.DEMO_TARGET_MILLI
 
 
 func fishery() -> FisheryNodeScript:
@@ -906,6 +972,8 @@ func _build_care() -> void:
 	if world.is_staged(HERB_PATCH_KEY):
 		_care.patch_view.use_model(world.make_piece(HERB_PATCH_KEY, Vector2.ZERO, 0.4, 1.0))
 	_winter.bind_infirmary(_care.building.project.is_done, _care.building.project.has_patients)
+	_fishery.fishery.hurt = func(who: int, kind: int, severity: int, loss: int) -> bool:
+		return _care.desk.hurt(who, kind, severity, loss, NoticesScript.SOURCE_WATER)
 
 
 func _cast_key_of(who: int) -> StringName:
@@ -929,10 +997,12 @@ func care() -> CareScript:
 
 func _build_forage() -> void:
 	"""FORAGING TRIPS (see the header), after the ferry: the woods' forage basin, the trips into the farm's pantry, the
-	Woods panel's Foraging section; its seats on the work board (`_build_work`)."""
+	Woods panel's Foraging section; its seats on the work board (`_build_work`); the orchard's protected groves' forage
+	reserve (decision 1721)."""
 	_forage = ForageNodeScript.new()
 	add_child(_forage)
 	_forage.configure(_cast as DemoCastScript, _command as DemoCommandScript, _services, _farm.pantry, _forestry.panel)
+	_forage.trips.reserve_permille = _orchard.grove_reserve_permille
 	var world := _world as DemoWorldScript
 	if _forage.place_spots(world.make_piece, world.is_staged) > 0:
 		_seasons.add_trees(_forage.view)
@@ -1069,6 +1139,7 @@ func _build_hall() -> void:
 	if _people_card != null:
 		_people_card.hide_while(_hall.is_open)
 	_hall.set_hearth(_hall_hearth_words, _winter.stamp)
+	_winter.bind_hall_tier(_hall.tier)
 	_weave_history()
 
 
@@ -1137,8 +1208,11 @@ func _show_routes(on: bool) -> void:
 
 func _bind_goal_measures() -> void:
 	"""The goals' parts a later feature measures (goal_book.gd `bind_measure`; decision 0781 left them declared): M4's
-	"fuel >= 18 winter days" from the winter's stores and hearths (decision 0902)."""
+	"fuel >= 18 winter days" from the winter's stores and hearths (decision 0902); "First crossing" and "Regatta day" read
+	the ferry's and the regatta's own counts (decision 1651)."""
 	_guide.goals.book.bind_measure(&"m4_hearth_charter", &"fuel", _winter.fuel_winter_days_milli)
+	_guide.goals.village.ferry = _ferry.ferry
+	_guide.goals.village.regatta = _regatta.regatta
 
 
 func _build_guide() -> void:
@@ -1849,6 +1923,12 @@ func _build_session() -> void:
 	_card.avoid = _top_card_rect
 	_card.keep_clear = func() -> Rect2: return _lens_picker.frame_rect() if _lens_picker.visible else Rect2()
 	_card.hud_cards_shown = _hud_cards_shown
+	_build_run_menu(manager)
+
+
+func _build_run_menu(manager: GameManagerScript) -> void:
+	"""The run's button and menu over the time controls, and the season skip it offers (decision 1653: the Demo Lab's
+	own `skip_to_next_season`)."""
 	add_child(_run_menu)
 	add_child(_run_menu.button_layer())
 	_run_menu.configure(_time.run, _hud_rect.bind(UiShell.ID_TIME_CLUSTER), _hud_rect.bind(UiShell.ID_SPEED_4))
@@ -1857,6 +1937,8 @@ func _build_session() -> void:
 	_run_menu.on_speed = manager.set_speed
 	_run_menu.speed = manager.get_speed
 	_run_menu.before_open = func() -> void: VillageTargets.project_into(_time.run, _tunnel_tool(), _waterplay)
+	_run_menu.calendar = _services.calendar
+	_run_menu.on_skip = skip_to_next_season
 	_time.run_menu = _run_menu
 
 
@@ -1885,6 +1967,7 @@ func _add_planning() -> void:
 	_time.add_planning("the Residents list", _workspace_open)
 	_time.add_planning("the heating fuel breakdown", func() -> bool: return _fuel_panel.visible)
 	_time.add_planning("the hall", _hall.is_open)
+	_time.add_planning("the feasts", _feasts.panel.is_open)
 
 
 func _workspace_open() -> bool:

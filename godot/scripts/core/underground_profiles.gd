@@ -36,7 +36,7 @@ const CONTACT_ANCHOR_ONLY: int = 1
 const CONTACT_ANCHOR_AND_PATCH: int = 2
 const CONTACT_ASSEMBLY_PALM: int = 3
 const CONTACT_HAUL_GRIP: int = 4 # ADR1198: certified two-hand grip on the stock at S; no point/patch boxes.
-## ADR1229 / DEC-058: a tread is fitted by a general paw working motion; no certified point or patch is claimed.
+## ADR1229 / DEC-060: a tread is fitted by a general paw working motion; no certified point or patch is claimed.
 const CONTACT_TREAD_FIT: int = 5
 const MODE_STAND: int = 0
 const MODE_WALK: int = 1
@@ -504,7 +504,7 @@ func _roles_refusal(profile: int, first: int, count: int) -> StringName:
 
 
 func _tread_fit_roles_refusal(profile: int, working: bool, mask: int, contact_boxes: int) -> StringName:
-	"""DEC-058: a source-work BUILD row with body, stance, recovery, approach and the paw stroke, and no planar
+	"""DEC-060: a source-work BUILD row with body, stance, recovery, approach and the paw stroke, and no planar
 	point or patch: the paws need not meet the bearer, so no contact is certified."""
 	return &"" if working and mask == 31 and contact_boxes == 0 \
 		and _stage.flags[_profile_capacity + profile] == POLICY_SOURCE_WORK \

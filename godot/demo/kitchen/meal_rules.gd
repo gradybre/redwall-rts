@@ -133,6 +133,11 @@ static var INPUT_N: PackedInt32Array = PackedInt32Array()
 ## Per input (all dishes' inputs, in dish order).
 static var IN_SELECTOR: PackedInt64Array = PackedInt64Array()
 static var IN_CATEGORY: PackedInt32Array = PackedInt32Array()
+## Per input: the categories its items span, one bit a category (decision 1735: the hotpot's greens or roots span two);
+## and 1 when it takes whole categories: a category input, or items that are a union of two or more whole categories (an
+## item list within one category -- the nuts, the berries -- stays as it was: not whole).
+static var IN_CATEGORIES: PackedInt64Array = PackedInt64Array()
+static var IN_WHOLE: PackedByteArray = PackedByteArray()
 static var IN_MILLI: PackedInt32Array = PackedInt32Array()
 ## Per input: its items in words ("beetroot or onion"), what a recipe calls it ("roots", "honey"), and what it waits for
 ## ("" when it can be had: `_waits_for`).
@@ -142,8 +147,9 @@ static var IN_WAITS: Array[String] = []
 ## Per dish: what it WAITS for -- its inputs' reasons, "; "-joined ("" when every input can be had: decision 0603).
 static var DISH_WAITS: Array[String] = []
 ## Per dish: the shortest base shelf life among its inputs' categories (`fresher_first`).
-## Per dish: 1 when every input is a whole category (the meal's plain dish of its §5.7 row: porridge, Togget's soup,
-## the perch-or-trout stew, the hotpot) -- the Ready food estimate counts these (kitchen.gd THE READY-FOOD ESTIMATE).
+## Per dish: 1 when every input is a whole category, or a union of whole categories (the meal's plain dish of its §5.7
+## row: porridge, Togget's soup, the perch-or-trout stew, the hotpot's beans and its greens or roots) -- the Ready food
+## estimate counts these (kitchen.gd THE READY-FOOD ESTIMATE).
 static var PLAIN: PackedByteArray = PackedByteArray()
 static var FRESHEST_HOURS: PackedInt32Array = PackedInt32Array()
 ## VIEWS OF THE FIRST TWO INPUTS for the readers written before inputs were a list (the guide's practice stories, the
@@ -157,7 +163,8 @@ static var SIDE_MILLI: PackedInt32Array = PackedInt32Array()
 ## fish, flour, honey, and the woods' forage: nuts, mushrooms, herbs, berries). §5.7's `cabbage` input is the cabbage
 ## row -- cabbage, lettuce, spinach, leek and celery -- so it is "greens" to the player.
 const CATEGORY_WORDS: Array[String] = ["beans", "greens", "flax", "grain", "roots", "fresh fish", "dried fish", "flour",
-	"honey", "nuts", "mushrooms", "herbs", "berries", "fruit"]
+	"honey", "nuts", "mushrooms", "herbs", "berries", "fruit", "dried fruit", "rations", "mead", "cordial",
+	"jam", "cheese", "ale", "cider", "vinegar", "pickles"]
 ## BAL-SUPPLY-004: "wood 100 milli-U/batch".
 const WOOD_MILLI_PER_BATCH: int = 100
 ## A portion's mass and spoiled food's (§5.7: 500 g and 250 g a unit): a spoiled portion is twice its milli-U.
@@ -183,6 +190,17 @@ const END_HOUR: Array[int] = [9, 19]
 const COOK_RISE_HOUR: int = 5
 ## The hour of its day each meal may be cooked from: breakfast at the cook's rising, supper from 15:00.
 const COOK_FROM_HOUR: Array[int] = [COOK_RISE_HOUR, 15]
+
+## A PORTION AND A HALF A DINER (decision 1732; Brendan's ruling of 2026-10-07 on the balance rerun's P1 (b): "1.5
+## portions per diner at each meal", not a third meal). Two meals of one 1800 NP portion are 3600 NP against §5.2's
+## 6000 NP day, so residents were HUNGRY 86-89% of their hours whatever the player did. The kitchen now plans
+## ceil(3 x residents / 2) portions a meal (`portions_for`), and every diner eats a portion; then HALF the diners take
+## a second -- a PROPOSAL of how "1.5 a diner" is met in whole portions (the meal store counts whole portions): resident
+## i has SECONDS at meal key k when (i + k) is even (`entitled_to_seconds`), so each resident has them at one of the
+## day's two meals and eats three portions a day (5400 NP). A second helping is food only: its NP, never a second
+## entry in the meal's event, the variety history or the tally. It is taken only while every resident still waiting
+## for a first portion of that meal can have one. An occasion's meal (the feast's courses) has no seconds.
+const PORTIONS_PER_DINER_HALVES: int = 3
 
 ## §5.2's hunger need and its thresholds.
 const NEED_MAX: int = 10000
@@ -214,10 +232,15 @@ const RAW_NP_CAP: int = 3000
 ## the village's reserve, eaten this way or in the biscuit soup (decision 0603) -- §5.7's `fish` selector names the nine species, not their dried form.
 ## Honey is §5.7's "Honey | 1200 | Yes" (decision 0603's item; no source yet). Nuts and berries are §5.7's "Nuts | 1600
 ## | Yes" and "Berries | 700 | Yes" (decision 0681): raw edible, so a hungry resident may eat them when nobody has set
-## them aside. The orchard's fruit is §5.7's "Fruit | 900 | Yes" (decision 0671).
+## them aside. The orchard's fruit is §5.7's "Fruit | 900 | Yes" (decision 0671). The preserves (decision 1611) are §5.7's
+## directly edible outputs at their own NP: dried fruit 1400 a unit and rations 2400 -- the reserve a missed meal falls
+## back on (ECO-028: fresh food is cooked; preserved food keeps), after anything spoiling sooner. The berry jam (850) and
+## the nut cheese (1600) and the vinegar pickles (800) of decision 1625 are eaten as they are too; their NP are PROVISIONAL
+## there. Apple vinegar is an ingredient only.
 const RAW_NP_PER_U: Dictionary = {FarmingScript.CROP_ROOTS: 800, FarmingScript.CROP_CABBAGE: 600,
 	Catalog.CAT_DRIED_FISH: 1800, Catalog.CAT_HONEY: 1200, Catalog.CAT_NUTS: 1600, Catalog.CAT_BERRIES: 700,
-	Catalog.CAT_FRUIT: 900}
+	Catalog.CAT_FRUIT: 900, Catalog.CAT_DRIED_FRUIT: 1400, Catalog.CAT_RATION: 2400,
+	Catalog.CAT_JAM: 850, Catalog.CAT_CHEESE: 1600, Catalog.CAT_PICKLES: 800}
 
 
 static func _static_init() -> void:
@@ -270,7 +293,7 @@ static func _add_inputs(inputs: Array) -> void:
 	for input: Variant in inputs:
 		_add_input(input)
 		var k: int = IN_SELECTOR.size() - 1
-		plain = plain if (input[2] as Array).is_empty() else 0
+		plain = plain if IN_WHOLE[k] == 1 else 0
 		if IN_CATEGORY[k] >= 0:
 			freshest = mini(freshest, category_shelf_hours(IN_CATEGORY[k]))
 		if not IN_WAITS[k].is_empty():
@@ -296,12 +319,49 @@ static func _add_input(input: Array) -> void:
 		category = Catalog.category_of(items[0])
 	IN_SELECTOR.append(category if keys.is_empty() else TakesScript.items_selector(items))
 	IN_CATEGORY.append(category)
+	IN_CATEGORIES.append(categories_mask(items) if not keys.is_empty() else (1 << category if category >= 0 else 0))
+	IN_WHOLE.append(1 if keys.is_empty() or (not categories_words(items).is_empty() and whole_categories(items)) else 0)
 	IN_MILLI.append(int(input[1]))
 	IN_ITEMS_TEXT.append(items_text(IN_SELECTOR[IN_SELECTOR.size() - 1]) if not items.is_empty() or keys.is_empty() \
 		else " or ".join(PackedStringArray(keys)))
-	IN_WORDS.append(CATEGORY_WORDS[category] if category >= 0 and category < CATEGORY_WORDS.size() \
-		else IN_ITEMS_TEXT[IN_ITEMS_TEXT.size() - 1])
+	var across: String = categories_words(items)
+	IN_WORDS.append(across if not across.is_empty() else CATEGORY_WORDS[category] if category >= 0 \
+		and category < CATEGORY_WORDS.size() else IN_ITEMS_TEXT[IN_ITEMS_TEXT.size() - 1])
 	IN_WAITS.append(_waits_for(category, keys))
+
+
+static func categories_mask(items: PackedInt32Array) -> int:
+	"""The categories `items` span, one bit a category."""
+	var mask: int = 0
+	for item: int in items:
+		mask |= 1 << Catalog.category_of(item)
+	return mask
+
+
+static func whole_categories(items: PackedInt32Array) -> bool:
+	"""Whether `items` are every pantry item of the categories they span (a union of whole categories)."""
+	var mask: int = categories_mask(items)
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
+		if mask & (1 << Catalog.category_of(item)) != 0 and not items.has(item):
+			return false
+	return true
+
+
+static func input_categories(dish: int, k: int) -> int:
+	"""`dish`'s input `k`'s categories, one bit a category (IN_CATEGORIES)."""
+	return IN_CATEGORIES[INPUT_FIRST[dish] + k]
+
+
+static func categories_words(items: PackedInt32Array) -> String:
+	"""Items from more than one category in their categories' words, in the items' order ("greens or roots": the bean
+	hotpot's second input, decision 1735); "" when the items are of one category or none."""
+	var words := PackedStringArray()
+	for item: int in items:
+		var category: int = Catalog.category_of(item)
+		var word: String = CATEGORY_WORDS[category] if category >= 0 and category < CATEGORY_WORDS.size() else ""
+		if not word.is_empty() and not words.has(word):
+			words.append(word)
+	return " or ".join(words) if words.size() > 1 else ""
 
 
 static func _waits_for(category: int, keys: Array) -> String:
@@ -381,6 +441,17 @@ static func serves(dish: int, meal: int, own: bool) -> bool:
 	"""Whether the cook may pick `dish` for `meal`: one of that meal's dishes (`own`) or of the other meal's (not `own`)
 	-- never a drink, nor a dish still waiting for an ingredient (its label is the cook's rule too; decision 0603)."""
 	return is_meal_dish(dish) and not waits(dish) and (DISH_MEAL[dish] == meal) == own
+
+
+static func portions_for(diners: int, halves: int = PORTIONS_PER_DINER_HALVES) -> int:
+	"""Portions a meal plans for `diners` at `halves` half-portions a diner (see A PORTION AND A HALF A DINER):
+	ceil(diners x halves / 2) -- 1.5 a diner by the ruling; 2 halves is the one portion a diner of before."""
+	@warning_ignore("integer_division") return (maxi(diners, 0) * maxi(halves, 0) + 1) / 2
+
+
+static func entitled_to_seconds(resident: int, key: int) -> bool:
+	"""Whether resident `resident` has seconds at meal key `key` (see A PORTION AND A HALF A DINER): (i + k) even."""
+	return resident >= 0 and key >= 0 and (resident + key) % 2 == 0
 
 
 static func is_meal_dish(dish: int) -> bool:

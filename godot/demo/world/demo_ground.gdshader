@@ -14,6 +14,10 @@
 // `leaf_fall_color` over the grass and the woods' litter through autumn and into winter -- thickest toward the
 // woods, in drifts at the scale of a few leaves, fewest on the worn paths (trodden) and under any snow. The
 // season view also moves `grass_color`, `grass_sun_color` and `litter_color` with the season.
+//
+// A DROUGHT (decision 1632, demo/weather/event_look.gd): `dryness` (0..1) parches the clearing's grass toward
+// `dry_color` in patches -- the sunny, bare patches first, the moss last -- and leaves the woods' litter alone. 0 draws
+// exactly what it drew before.
 shader_type spatial;
 render_mode diffuse_burley, specular_schlick_ggx;
 
@@ -38,6 +42,8 @@ uniform float south_opening = 15.0;
 uniform float forest_blend = 9.0;
 uniform float leaf_fall = 0.0;
 uniform vec3 leaf_fall_color : source_color = vec3(0.55, 0.32, 0.13);
+uniform float dryness = 0.0;
+uniform vec3 dry_color : source_color = vec3(0.6, 0.53, 0.3);
 
 #include "res://demo/weather/cover.gdshaderinc"
 
@@ -107,6 +113,10 @@ void fragment() {
 	grass *= mix(0.9, 1.06, fine) * mix(0.96, 1.03, detail);
 	float bare = smoothstep(0.7, 0.86, mid * 0.6 + fine * 0.5);
 	grass = mix(grass, earth_color, bare * 0.4);
+	if (dryness > 0.0) {
+		float parched = smoothstep(0.2, 0.7, macro * 0.6 + fine * 0.4 + bare * 0.3 - smoothstep(0.55, 0.8, mid) * 0.3);
+		grass = mix(grass, dry_color * mix(0.85, 1.1, fine), clamp(dryness * (0.45 + parched * 0.55), 0.0, 0.9));
+	}
 
 	float r = length(world_xz) + (macro - 0.5) * 10.0;
 	float forest = smoothstep(clearing_edge(world_xz) - 3.0, clearing_edge(world_xz) + forest_blend, r);

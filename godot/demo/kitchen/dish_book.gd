@@ -30,7 +30,10 @@ extends RefCounted
 ##   beetroot_soup  Wild-beetroot soup         triss           root_stew   beetroot or onion
 ##   vole_stew      Vole vegetable stew        taggerung       root_stew   carrot, onion or turnip
 ##   poached_dace   Poached dace               taggerung       fish_stew   dace + any roots
-##   bean_hotpot    Bean hotpot                (the GDD's)     bean_hotpot any beans + any greens
+##   bean_hotpot    Bean hotpot                (the GDD's)     bean_hotpot any beans + any greens or roots
+## The hotpot's second input is "greens or roots" (GREENS_OR_ROOTS), not §5.7's cabbage alone: Brendan's ruling of
+## 2026-10-07 on the balance rerun's P5 (a), as E2 opened the fish stew -- the default rotation sows peas and nothing
+## sows greens, so its beans were never cooked (decision 1735).
 ## The fish-stew rows' roots are §5.7's second input, which the library's poached fish do not name (as decision 0436).
 ## bean_hotpot's §5.7 unlock is M1; the demo runs no milestones, so unlocks are not evaluated (as the fishing driver's).
 ## Rows 0-2 keep their indices: the meal store, the logs and the guide's ids refer to them.
@@ -51,17 +54,25 @@ extends RefCounted
 ##                  beetroot pie                                                  root, potato, nuts      potato
 ##   woodland_pie   Woodland pie               (the GDD's)    woodland_pie         flour, mushrooms, roots cookable
 ##   scones         Hazelnut scones            martin_warrior scones (new)         flour + nuts            cookable
-##   cordial        Raspberry cordial          lord_brocktree cordial (new)        berries + honey         waits: honey
+##   cordial        Raspberry cordial          lord_brocktree cordial (new)        berries + honey         cookable
 ## A dish whose ingredient the demo cannot yet produce WAITS: it is listed, never hidden, with its reason
 ## (PENDING_SOURCES). An input of category NEEDS names items by their pantry key -- items another lane owns -- and takes
 ## its category from them. The library's hazelnut, mushroom and raspberry are the foraging lane's `nuts`, `mushrooms` and
 ## `berries` (farm_catalog.gd THE WOODS' FORAGE, decision 0681): the batch 7 integration mapped them so and struck them
-## from PENDING_SOURCES (decision 0902). Potato and honey still wait.
-## The cordial is a DRINK: never chosen for a meal (the feasts lane serves drinks); it is listed with its recipe.
+## from PENDING_SOURCES (decision 0902). Honey is the apiary's since decision 1601 (demo/hives/); potato still waits.
+## The cordial is a DRINK: never chosen for a meal; it is listed with its recipe, made at the brewery's bench from this
+## row's numbers and poured at the regatta's feast (decision 1621).
 ##
 ## THE FEAST'S SECOND COURSE (decision 0682): nut_loaf, the library's Nutbread cooked as §5.7's own `nut_loaf` row
 ## (flour 2 + nuts 2, the GDD's numbers), is an OCCASION dish -- never a meal's choice, cooked only as the Hearth feast's
 ## second course (meal_rules.gd DISH_NUT_LOAF; added to the book at the batch 7 integration, decision 0902).
+##
+## THE FEASTS' OTHER COURSES (decision 1701, feasts #9): GDD §5.7's Harvest and Orchard rows -- the Harvest feast's
+## `feast_fish` and `berry_tart`, the Orchard feast's `nut_roast` (SET-AMEND-001 §4.1, replacing the retired game roast)
+## and `orchard_crumble` -- each §5.7's own row exactly, appended after the nut loaf (never renumbering a row) as OCCASION
+## dishes: cooked only as a called feast's course (demo/feast/), never the cook's choice. The tart is the library's
+## "Feast tarts" (triss, berries for its redcurrants) and the crumble its "Banquet crumbles" (rakkety_tam, the orchard's
+## apples and pears); the feast fish and the nut roast are the GDD's own dishes, as the hotpot is.
 
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
@@ -82,8 +93,14 @@ const BEANS: int = FarmingScript.CROP_BEANS
 const GREENS: int = FarmingScript.CROP_CABBAGE
 const GRAIN: int = FarmingScript.CROP_GRAIN
 const ROOTS: int = FarmingScript.CROP_ROOTS
+## The bean hotpot's second input (decision 1735): every greens item (§5.6's cabbage row) and every root, by pantry key.
+const GREENS_OR_ROOTS: Array[StringName] = [&"cabbage", &"lettuce", &"spinach", &"leek", &"celery", &"radish",
+	&"turnip", &"carrot", &"beetroot", &"parsnip", &"onion", &"potato"]
 const FISH: int = Catalog.CAT_FISH
 const NUTS: int = Catalog.CAT_NUTS
+const HERB: int = Catalog.CAT_HERB
+const BERRIES: int = Catalog.CAT_BERRIES
+const FRUIT: int = Catalog.CAT_FRUIT
 
 const DISHES: Array[Dictionary] = [
 	{"key": &"porridge", "name": "Wild oat porridge", "short": "porridge",
@@ -117,7 +134,7 @@ const DISHES: Array[Dictionary] = [
 	{"key": &"bean_hotpot", "name": "Bean hotpot", "short": "bean hotpot",
 		"library": "", "gdd_row": "bean_hotpot", "meal": SUPPER,
 		"portions": 3, "np": 2100, "work_mwu": 20000, "shelf_hours": 36, "water_milli": 2000,
-		"inputs": [[BEANS, 2000, []], [GREENS, 2000, []]]},
+		"inputs": [[BEANS, 2000, []], [GREENS, 2000, GREENS_OR_ROOTS]]},
 	{"key": &"oatcake", "name": "Breakfast oatcake", "short": "oatcakes",
 		"library": "rakkety_tam::RAK_recipe_breakfast_oatcake", "gdd_row": "oatcake", "meal": BREAKFAST,
 		"portions": 2, "np": 1800, "work_mwu": 14000, "shelf_hours": 72, "water_milli": 1000,
@@ -161,21 +178,37 @@ const DISHES: Array[Dictionary] = [
 		"inputs": [[FLOUR, 2000, []], [NEEDS, 500, [&"nuts"]]]},
 	{"key": &"cordial", "name": "Raspberry cordial", "short": "cordial",
 		"library": "lord_brocktree::LB-RECIPE-raspberry-cordial", "gdd_row": "cordial", "meal": DRINK,
-		"portions": 4, "np": 500, "work_mwu": 10000, "shelf_hours": 72, "water_milli": 2000,
+		"portions": 4, "np": 500, "work_mwu": 10000, "shelf_hours": 240, "water_milli": 2000,
 		"inputs": [[NEEDS, 2000, [&"berries"]], [HONEY, 500, []]]},
 	{"key": &"nut_loaf", "name": "Nutbread", "short": "nut loaf",
 		"library": "redwall::RW-RECIPE-nutbread", "gdd_row": "nut_loaf", "meal": OCCASION,
 		"portions": 3, "np": 2600, "work_mwu": 24000, "shelf_hours": 72, "water_milli": 1000,
 		"inputs": [[FLOUR, 2000, []], [NUTS, 2000, []]]},
+	{"key": &"feast_fish", "name": "Feast fish", "short": "feast fish",
+		"library": "", "gdd_row": "feast_fish", "meal": OCCASION,
+		"portions": 6, "np": 2500, "work_mwu": 48000, "shelf_hours": 36, "water_milli": 2000,
+		"inputs": [[FISH, 4000, []], [ROOTS, 2000, []], [HERB, 500, []]]},
+	{"key": &"berry_tart", "name": "Feast tarts", "short": "berry tart",
+		"library": "triss::TRI_recipe_feast_tarts", "gdd_row": "berry_tart", "meal": OCCASION,
+		"portions": 3, "np": 2200, "work_mwu": 28000, "shelf_hours": 48, "water_milli": 1000,
+		"inputs": [[FLOUR, 2000, []], [BERRIES, 2000, []], [HONEY, 500, []]]},
+	{"key": &"nut_roast", "name": "Bean, root and nut roast", "short": "nut roast",
+		"library": "", "gdd_row": "nut_roast", "meal": OCCASION,
+		"portions": 4, "np": 2400, "work_mwu": 30000, "shelf_hours": 36, "water_milli": 0,
+		"inputs": [[BEANS, 3000, []], [ROOTS, 2000, []], [NUTS, 1000, []], [HERB, 250, []]]},
+	{"key": &"orchard_crumble", "name": "Banquet crumble", "short": "orchard crumble",
+		"library": "rakkety_tam::RAK_recipe_banquet_crumbles", "gdd_row": "orchard_crumble", "meal": OCCASION,
+		"portions": 3, "np": 2300, "work_mwu": 28000, "shelf_hours": 48, "water_milli": 0,
+		"inputs": [[FRUIT, 3000, []], [FLOUR, 2000, []], [HONEY, 500, []]]},
 ]
 
 ## The §5.7 recipe rows the GDD adopts; every other `gdd_row` here is one of Brendan's DEC-045 rows (decision 0603).
-const ADOPTED_ROWS: Array[String] = ["porridge", "root_stew", "fish_stew", "bean_hotpot", "woodland_pie", "nut_loaf"]
+const ADOPTED_ROWS: Array[String] = ["porridge", "root_stew", "fish_stew", "bean_hotpot", "woodland_pie", "nut_loaf",
+	"feast_fish", "berry_tart", "nut_roast", "orchard_crumble"]
 
 ## WHERE A MISSING INGREDIENT WILL COME FROM, by item key: a dish taking one waits, saying so ("needs potato: grown in
 ## the fields, not yet planted in the demo"). The lane that lands a source deletes its key here (and a NEEDS key resolves itself once its
 ## item exists).
 const PENDING_SOURCES: Dictionary = {
 	&"potato": "grown in the fields, not yet planted in the demo",
-	&"honey": "made in beehives, not yet in the demo",
 }

@@ -140,7 +140,7 @@ static func tap_certified(profiles: Profiles, profile: int, revision: int, conte
 		root: Vector3i, bearer: PackedInt32Array) -> bool:
 	"""The claw seating tap 52 (content 9) at the exact canonical root of the L0 or T0 bearer: its entry, work and
 	recovery were proved clear of both whole bearer prisms by triangles (ADR 1217 step 2, `paw-seat-v1/candidate-a`).
-	Content 10: the same tap as row 57, and the tread fitting tap 64 at a tread station (DEC-058, tread-fit-v1)."""
+	Content 10: the same tap as row 57, and the tread fitting tap 64 at a tread station (DEC-060, tread-fit-v1)."""
 	if content == Paw10.CONTENT: return PawPhysical10.tap_certified(profiles, profile, revision, assembly, root, bearer)
 	return profile == PawPhysical.TAP and revision == 1 and content == ClawEndpoint.CONTENT \
 		and ClawEndpoint._source_row_refusal(profiles, profile, content) == &"" \

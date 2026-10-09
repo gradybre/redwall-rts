@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Create-only T1-T6 successor of the claw first-entry bundle (`qualified-claw-v6`), bound to content 10 (ADR 1229).
 
-ADR 1209's descent past T0 (D1 the sill, D2 the seventh row, D3 T0's bill per tread), fitted by paw (DEC-058), on
+ADR 1209's descent past T0 (D1 the sill, D2 the seventh row, D3 T0's bill per tread), fitted by paw (DEC-060), on
 content 10's rows. Nothing is chosen: every number below is read from a pinned input or derived by ADR 1209's
 rules (`TreadGeometry` mirrors them at runtime).
 
@@ -436,7 +436,7 @@ def accessor(files: dict, linked: dict, profile: bytes) -> bytes:
 
 def manifest(files: dict, linked: dict) -> dict:
     """What was derived, from what."""
-    return {"schema": 1, "decision": ["1229", "1209", "DEC-058", "DEC-059"], "predecessor": "qualified-claw-v6 (ADR 1217 step 4e)",
+    return {"schema": 1, "decision": ["1229", "1209", "DEC-060", "DEC-059"], "predecessor": "qualified-claw-v6 (ADR 1217 step 4e)",
             "content_revision": CONTENT, "frontier_revision": FRONTIER_REVISION, "frontier_source": CLAW_SOURCE,
             "workpieces_source": PAW_SOURCE, "assemblies": 8, "parts": 52,
             "stair_paces_u_per_s": {str(row): rate for row, rate in STAIR_PACES},

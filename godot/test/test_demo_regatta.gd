@@ -1,6 +1,6 @@
 extends "res://test/framework/test_case.gd"
 ## The regatta (decision 0438; review SOC-023, SOC-025, UX-028; water part B lane 3): the GDD's Hearth feast numbers for
-## the village, the preview's refusals (a host who cooks, the main course's beans and cabbage, REQ-SET-101's reserves and
+## the village, the preview's refusals (a host who cooks, the main course's beans and greens, REQ-SET-101's reserves and
 ## their override), holding it (the food reserved, the wood set aside, the kitchen's occasion), once a season and the
 ## graceful skip (everything given back untouched), the first in summer, the deterministic race on the real pond (the
 ## faster crew home first; a dead heat; called off in a storm), and the feast at the day's supper -- bean hotpot cooked
@@ -41,6 +41,7 @@ const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 const Layout := preload("res://demo/world/world_layout.gd")
 const Ledger := preload("res://demo/people/people_ledger.gd")
 const PeopleText := preload("res://demo/people/people_text.gd")
+const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 
 const DT: float = 0.1
 const SUMMER_1: int = 12
@@ -280,7 +281,7 @@ func test_the_preview_refuses_what_is_invalid_and_names_what_is_missing() -> voi
 	assert_equal(r.refused_code, "NO_BEANS", "no beans: %s" % r.refusal(day, 2, true))
 	_stock(rig, PEA, 8000)
 	r.refusal(day, 2, true)
-	assert_equal(r.refused_code, "NO_CABBAGE", "no cabbage")
+	assert_equal(r.refused_code, "NO_GREENS", "no greens or roots")
 	_stock(rig, CABBAGE, 8000)
 	r.refusal(day, 2, false)
 	assert_equal(r.refused_code, "RESERVES", "no ready food: the reserves are under 3 days")
@@ -301,7 +302,7 @@ func test_the_preview_refuses_what_is_invalid_and_names_what_is_missing() -> voi
 
 
 func test_holding_reserves_the_food_and_wood_and_skipping_gives_them_back() -> void:
-	"""Held: the main course's beans and cabbage reserved (no longer free), the service wood out of the stores, the
+	"""Held: the main course's beans and greens reserved (no longer free), the service wood out of the stores, the
 	kitchen's supper of that day the occasion's; skipped before the feast: every unit back, nothing lost; once a season."""
 	var rig: Rig = _rig()
 	var r: RegattaScript = rig.regatta
@@ -312,7 +313,7 @@ func test_holding_reserves_the_food_and_wood_and_skipping_gives_them_back() -> v
 	var need: int = r.main_food_milli(r.residents())
 	assert_equal(need, Rules.main_batches(r.residents()) * 2000, "2 U of each a batch")
 	assert_equal(r.free_beans(), 8000 - need, "the main course's beans set aside")
-	assert_equal(r.free_cabbage(), 8000 - need, "its cabbage set aside")
+	assert_equal(r.free_greens(), 8000 - need, "its greens set aside")
 	assert_equal(_services.stores.wood_milli_u, wood - 1000, "1 U of service wood set aside")
 	assert_equal(rig.kitchen.occasion_key, Rules.feast_key(day), "the kitchen's supper of that day")
 	assert_equal(rig.kitchen.plan_of(Rules.feast_key(day))[0], MealRules.DISH_BEAN_HOTPOT, "planned as bean hotpot")
@@ -325,13 +326,13 @@ func test_holding_reserves_the_food_and_wood_and_skipping_gives_them_back() -> v
 	var plan: PackedInt32Array = rig.kitchen.plan_of(Rules.feast_key(day))
 	var own: int = plan[3] * 2000 if plan[0] == MealRules.DISH_BEAN_HOTPOT else 0
 	assert_equal(r.free_beans(), 8000 - own, "the beans back, but the everyday supper's own")
-	assert_equal(r.free_cabbage(), 8000 - own, "the cabbage back, but the everyday supper's own")
+	assert_equal(r.free_greens(), 8000 - own, "the greens back, but the everyday supper's own")
 	assert_true(r.skip().contains("skipped"), "skipped already")
 	assert_true(r.target_season() > Rules.FIRST_SEASON, "this season is done: the next one's is next")
 
 
 func test_food_is_reserved_at_once_for_a_day_beyond_the_kitchens_plans() -> void:
-	"""Held for a day the kitchen has not planned yet, the main course's beans and cabbage are set aside at once (the
+	"""Held for a day the kitchen has not planned yet, the main course's beans and greens are set aside at once (the
 	regatta's own reservation), and the kitchen adopts it when it plans that supper."""
 	var rig: Rig = _rig()
 	var r: RegattaScript = rig.regatta
@@ -340,7 +341,7 @@ func test_food_is_reserved_at_once_for_a_day_beyond_the_kitchens_plans() -> void
 	assert_equal(r.hold(day, 2, true), "", "held")
 	assert_false(rig.kitchen.occasion_adopted(), "the kitchen has not planned that supper yet")
 	assert_equal(r.free_beans(), 8000 - r.main_food_milli(r.residents()), "the beans set aside all the same")
-	assert_equal(r.free_cabbage(), 8000 - r.main_food_milli(r.residents()), "and the cabbage")
+	assert_equal(r.free_greens(), 8000 - r.main_food_milli(r.residents()), "and the greens")
 
 
 func test_the_kitchen_cooks_an_occasion_as_set_whatever_its_count_or_food() -> void:
@@ -386,6 +387,50 @@ func test_the_tally_counts_only_those_who_ate_the_main_course() -> void:
 	r._tally(final)
 	assert_equal(r.attendees, PackedInt32Array([1, 3]), "the two diners who ate the hotpot, in resident order -- not 5, whom the event does not carry")
 	assert_equal(r.state, RegattaScript.ST_DONE, "the day over")
+	assert_equal(r.feasts_served, 1, "someone ate the main course: a Regatta day (decision 1651)")
+
+
+func test_one_resident_eating_the_main_course_is_a_regatta_day() -> void:
+	"""The boundary of Brendan's ruling (decision 1651): "at least one" -- of the supper's two diners, one ate the bean
+	hotpot and one ate soup: one attendee, and the day counts; with one alone there is no pair to share the feast's
+	company (REQ-SET-036 needs two)."""
+	var rig: Rig = _rig()
+	var r: RegattaScript = rig.regatta
+	_stock_feast(rig)
+	var day: int = SUMMER_1 + 1
+	assert_equal(r.hold(day, 2, true), "", "held")
+	var key: int = Rules.feast_key(day)
+	var hour: int = day * SimClock.HOURS_PER_DAY + 17
+	rig.kitchen.fed.ate_meal(1, key, MealRules.DISH_BEAN_HOTPOT, hour)
+	rig.kitchen.note_course(1, key, MealRules.DISH_BEAN_HOTPOT)
+	rig.kitchen.fed.ate_meal(2, key, MealRules.DISH_SOUP, hour)
+	rig.kitchen.note_course(2, key, MealRules.DISH_SOUP)
+	var final := KitchenScript.MealFinal.new()
+	final.key = key
+	final.diners = PackedInt32Array([1, 2])
+	r._tally(final)
+	assert_equal(r.attendees, PackedInt32Array([1]), "one ate the main course")
+	assert_equal(r.feasts_served, 1, "one is enough: a Regatta day")
+	assert_true(rig.shared.is_empty(), "no company shared by the tally itself")
+
+
+func test_a_supper_closed_with_no_hotpot_eaten_is_not_a_regatta_day() -> void:
+	"""Brendan's ruling of 2026-10-07 (decision 1651): the supper's serving closed (a meal-finalized event), but its only
+	diner ate soup -- nobody ate the feast's main course, so the day is held and NOT counted for "Regatta day"."""
+	var rig: Rig = _rig()
+	var r: RegattaScript = rig.regatta
+	_stock_feast(rig)
+	var day: int = SUMMER_1 + 1
+	assert_equal(r.hold(day, 2, true), "", "held")
+	var key: int = Rules.feast_key(day)
+	rig.kitchen.fed.ate_meal(2, key, MealRules.DISH_SOUP, day * SimClock.HOURS_PER_DAY + 17)
+	rig.kitchen.note_course(2, key, MealRules.DISH_SOUP)
+	var final := KitchenScript.MealFinal.new()
+	final.key = key
+	final.diners = PackedInt32Array([2])
+	r._tally(final)
+	assert_equal(r.attendees.size(), 0, "nobody ate the hotpot")
+	assert_equal([r.state, r.feasts_held, r.feasts_served], [RegattaScript.ST_DONE, 1, 0], "held, not a Regatta day")
 
 
 func test_called_off_while_crews_walk_the_boats_stay_the_boathouses() -> void:
@@ -422,10 +467,27 @@ func test_a_race_under_way_cannot_be_skipped() -> void:
 	assert_equal(r.state, RegattaScript.ST_CREWING, "the day goes on")
 
 
+func test_a_plan_whose_feast_is_cooking_cannot_be_skipped() -> void:
+	"""Cook now can start the regatta's supper before the race: with a batch of it at the cauldron, or one cooked, the
+	planned regatta is no longer skipped (the review of ae137794; decision 1733's fix)."""
+	var rig: Rig = _rig()
+	var r: RegattaScript = rig.regatta
+	_stock_feast(rig)
+	var day: int = SUMMER_1 + 1
+	assert_equal(r.hold(day, 2, true), "", "held")
+	assert_equal(r.skip_refusal(), "", "planned, nothing cooking: it may be skipped")
+	rig.kitchen._wip_key = Rules.feast_key(day)
+	assert_equal(r.skip(), "the kitchen is cooking its feast", "a batch at the cauldron: held")
+	rig.kitchen._wip_key = KitchenScript.FREE
+	rig.kitchen.cooked_keys.append(Rules.feast_key(day))
+	assert_equal(r.skip_refusal(), "the kitchen is cooking its feast", "a batch cooked: held")
+	assert_equal(r.state, RegattaScript.ST_PLANNED, "still planned")
+
+
 func test_a_feast_never_served_gives_its_food_and_wood_back() -> void:
 	"""A season skip past the regatta's supper before it was served (the kitchen never planned it, never ended it: no
 	meal-finalized event will come -- `meal_lapsed`): the tally, with nobody, gives the service wood and the reserved
-	beans and cabbage back -- nothing stays held for good."""
+	beans and greens back -- nothing stays held for good."""
 	var rig: Rig = _rig()
 	var r: RegattaScript = rig.regatta
 	_stock_feast(rig)
@@ -442,6 +504,7 @@ func test_a_feast_never_served_gives_its_food_and_wood_back() -> void:
 	r.update()
 	assert_equal(r.state, RegattaScript.ST_DONE, "the day is over")
 	assert_equal(r.attendees.size(), 0, "nobody shared it")
+	assert_equal([r.feasts_held, r.feasts_served], [1, 0], "a day held, no feast served: not a Regatta day (decision 1651)")
 	assert_equal(_services.stores.wood_milli_u, wood, "the unserved wood back")
 	for crop: int in [FarmingScript.CROP_BEANS, FarmingScript.CROP_CABBAGE]:
 		assert_equal(rig.kitchen.takes.live_milli(rig.pantry, take, -1, crop), 0, "the feast's category %d let go" % crop)
@@ -457,7 +520,7 @@ func test_skipping_a_plan_the_kitchen_has_not_planned_gives_the_food_back() -> v
 	assert_false(rig.kitchen.occasion_adopted(), "not planned by the kitchen")
 	assert_equal(r.skip(), "", "skipped")
 	assert_equal(r.free_beans(), 8000, "the beans back")
-	assert_equal(r.free_cabbage(), 8000, "the cabbage back")
+	assert_equal(r.free_greens(), 8000, "the greens back")
 
 
 func test_a_skip_costs_nothing() -> void:
@@ -542,7 +605,7 @@ func test_a_storm_calls_the_race_off_and_the_feast_goes_on() -> void:
 
 
 func test_the_feast_is_cooked_from_the_reserved_food_eaten_and_remembered() -> void:
-	"""The day's supper is the occasion: three batches of bean hotpot cooked from the reserved beans and cabbage (exactly
+	"""The day's supper is the occasion: three batches of bean hotpot cooked from the reserved beans and greens (exactly
 	6 U of each gone), eaten at the hall's tables; at the supper's end the tally, the chronicle with its one moment, the
 	winners' deed, and the feast's company shared; the season held."""
 	var rig: Rig = _rig()
@@ -561,7 +624,7 @@ func test_the_feast_is_cooked_from_the_reserved_food_eaten_and_remembered() -> v
 	assert_equal(rig.pantry.milli_of(PEA), 8000 - batches * 2000, "the main course's beans eaten, no more")
 	assert_equal(rig.pantry.milli_of(CABBAGE), 8000 - batches * 2000, "its cabbage eaten, no more")
 	assert_true(r.attendees.size() * 2 > r.eligible, "most shared the feast (%d of %d)" % [r.attendees.size(), r.eligible])
-	assert_equal(r.feasts_held, 1, "a feast held")
+	assert_equal([r.feasts_held, r.feasts_served], [1, 1], "a feast held and served")
 	assert_equal(rig.posted.size(), 1, "one chronicle line")
 	assert_true(rig.posted[0].contains("regatta") and rig.posted[0].contains("The moment:"), "with its moment: %s" % rig.posted[0])
 	assert_equal(rig.deeds.size(), 1, "the winners' deed recorded")
@@ -712,7 +775,7 @@ func test_shared_warmth_is_granted_once_and_neither_stacks_nor_extends() -> void
 
 func test_a_two_course_occasion_holds_each_courses_food_and_no_more() -> void:
 	"""The kitchen's AN OCCASION with a second course, set with nothing reserved on a supper the kitchen has planned: it
-	holds the main course's beans and cabbage for its batches and the second's flour and nuts for its own -- never the
+	holds the main course's beans and greens for its batches and the second's flour and nuts for its own -- never the
 	main course's inputs for every batch."""
 	var rig: Rig = _rig()
 	var key: int = Rules.feast_key(SUMMER_1)
@@ -870,3 +933,53 @@ func test_a_guest_giving_back_its_second_course_after_the_end_still_ate_the_feas
 	var at: int = rig.kitchen.meal_keys.rfind(key)
 	assert_equal(rig.kitchen.meal_ate[at] + rig.kitchen.meal_raw[at] + rig.kitchen.meal_without[at],
 		rig.kitchen.fed.count(), "and so is the kitchen's own tally")
+
+
+func test_the_regatta_counts_the_food_its_supper_already_holds() -> void:
+	"""Brendan's ruling on decision 1701 P6 (b): the kitchen has planned the regatta day's supper (its slots run four
+	meals ahead) and holds beans and greens for it; the regatta counts them as its feast's (the feast replaces that
+	meal), is held, and the kitchen tops the feast's courses up from them at adoption."""
+	var rig: Rig = _rig()
+	var r: RegattaScript = rig.regatta
+	_stock(rig, PEA, 18000)
+	_stock(rig, CABBAGE, 18000)
+	_services.stores.add_water(40000)
+	rig.calendar.tick = tick_at(SUMMER_1, 10)
+	rig.kitchen.update()
+	var day: int = SUMMER_1 + 1
+	var key: int = Rules.feast_key(day)
+	var held: int = rig.kitchen.held_for_meal_milli(key, FarmingScript.CROP_BEANS)
+	var free: int = rig.kitchen.takes.free_milli_of_crop(rig.pantry, FarmingScript.CROP_BEANS)
+	var need: int = r.main_food_milli(r.residents())
+	assert_true(held > 0 and free < need and free + held >= need, "the day's supper holds the rest (free %d, held %d, need %d)" % [free, held, need])
+	var lines: String = "\n".join(r.preview_lines(day, 2))
+	assert_true(lines.contains("beans %s (free %s)" % [ForestRules.units_text(need), ForestRules.units_text(free + held)]),
+		"the preview counts the day's supper: %s" % lines)
+	lines = "\n".join(r.preview_lines(day + 1, 2))
+	assert_false(lines.contains("(free %s)" % ForestRules.units_text(free + held)), "not another day's preview")
+	r.count_supper(day)
+	assert_equal(r.free_beans(), free + held, "counted for that day's feast")
+	r.count_supper(day + 1)
+	assert_true(r.free_beans() < need, "not for another day's")
+	assert_equal(r.hold(day, 2, true), "", "held")
+	assert_true(rig.kitchen.occasion_adopted(), "the supper is the regatta's feast now")
+	assert_equal(rig.kitchen.takes.live_milli(rig.pantry, r.take, -1, FarmingScript.CROP_BEANS), need, "its beans all held, topped up")
+	assert_equal(r.menu.supper_key, -1, "held: nothing more counted")
+
+
+func test_the_regattas_hotpot_takes_roots_when_there_are_no_greens() -> void:
+	"""Decision 1735: the regatta's main course reserves and checks the recipe book's own selector -- greens or roots --
+	so beans and carrots alone hold it, reserved at confirmation (a day beyond the kitchen's plans: nothing tops it up)."""
+	var rig: Rig = _rig()
+	var r: RegattaScript = rig.regatta
+	_stock(rig, PEA, 8000)
+	_stock(rig, CARROT, 8000)
+	_services.stores.add_water(40000)
+	var day: int = SUMMER_1 + 5
+	assert_equal(RegattaScript.main_greens_words(), "greens or roots", "the book's words")
+	assert_equal(r.free_greens(), 8000, "the carrots count")
+	assert_equal(r.hold(day, 2, true), "", "held on beans and roots")
+	var need: int = r.main_food_milli(r.eligible)
+	assert_equal(rig.kitchen.takes.live_milli(rig.pantry, r.take, -1, RegattaScript.main_greens()), need, "the roots reserved")
+	assert_true("\n".join(r.preview_lines(day, 2)).contains("greens or roots"), "and named so")
+

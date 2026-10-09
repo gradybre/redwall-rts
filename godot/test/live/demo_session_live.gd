@@ -55,6 +55,8 @@ var _ids: Dictionary = {}
 var _waiting: Callable = Callable()
 var _deadline_msec: int = 0
 var _run_started_tick: int = 0
+## Where the season skip should land (a calendar tick), read before it is asked.
+var _skip_landing: int = 0
 
 
 func _initialize() -> void:
@@ -81,7 +83,9 @@ func _initialize() -> void:
 		_wait_for_the_meal, _resume_after_the_meal, _jump_to_before_dawn, _run_until_dawn, _wait_for_dawn,
 		_space_resumes_after_dawn, _f6_opens_the_object_list, _enter_selects_and_centres, _open_the_settings,
 		_click_reduced_motion, _click_large_readable, _click_keyboard_planner, _see_the_keyboard_planner,
-		_reopen_the_settings, _reveal_restore, _restore_asks, _restore_confirmed]
+		_reopen_the_settings, _reveal_restore, _restore_asks, _restore_confirmed, _f3_and_f1_set_the_speed,
+		_g_and_the_skip_asks_first, _cancel_leaves_the_calendar, _largest_scale_and_ask_by_keyboard,
+		_the_question_fits_and_enter_cancels, _the_scale_back, _ask_again, _skip_lands_on_the_next_season]
 
 
 func _process(_delta: float) -> bool:
@@ -593,6 +597,109 @@ func _restore_confirmed() -> void:
 	_check("defaults restored", Access.flags == Access.DEFAULTS and DemoUiScale.percent == 100 and not Motion.reduced,
 		"%s %d" % [Access.flags, DemoUiScale.percent])
 	_menu().close()
+
+
+# --- the speed keys and the season skip in the speed area (decision 1653) ---------------------------------------
+
+func _f3_and_f1_set_the_speed() -> void:
+	"""F3 then F1 by real input: the game's requested speed 4, then 1 (UI §5's time_speed_4 / time_speed_1)."""
+	_key(KEY_F3)
+	_check("F3 requests 4x", int(_manager().call(&"get_speed")) == 4, str(_manager().call(&"get_speed")))
+	_key(KEY_F1)
+	_check("F1 requests 1x", int(_manager().call(&"get_speed")) == 1, str(_manager().call(&"get_speed")))
+
+
+func _skip_menu() -> CanvasLayer:
+	"""The run menu (G), which holds the skip."""
+	return _village.call(&"run_menu")
+
+
+func _g_and_the_skip_asks_first() -> void:
+	"""G, then the skip clicked: it names where it lands and asks first."""
+	_key(KEY_G)
+	var skip: Button = _skip_menu().call(&"skip_button")
+	var season_days: int = SimClock.DAYS_PER_SEASON * SimClock.TICKS_PER_DAY
+	@warning_ignore("integer_division")
+	var next_season: int = (_calendar().tick + SimClock.CALENDAR_OFFSET_TICKS) / season_days + 1
+	_skip_landing = next_season * season_days + SimClock.TICKS_PER_HOUR * 6 - SimClock.CALENDAR_OFFSET_TICKS
+	_check("the skip is in the run menu", skip.visible and not skip.disabled, skip.text)
+	_check("its tooltip names where it lands", skip.tooltip_text.contains("Summer 1, 06:00"), skip.tooltip_text)
+	_click(_centre(skip))
+	_check("it asks first", bool(_skip_menu().call(&"skip_asked")), String(_skip_menu().call(&"skip_question")))
+	_check("naming where it lands", String(_skip_menu().call(&"skip_question")).contains("Summer 1, 06:00"))
+	_check_menu_on_screen("asked")
+	_capture("skip_asks")
+
+
+func _cancel_leaves_the_calendar() -> void:
+	"""Cancel: the question gone, the calendar where it was."""
+	var before: int = _calendar().tick
+	_click(_centre(_skip_menu().call(&"skip_no_button")))
+	_check("Cancel withdraws the question", not bool(_skip_menu().call(&"skip_asked")))
+	_check("and skips nothing", _calendar().tick - before < SimClock.TICKS_PER_HOUR, "%d ticks" % (_calendar().tick - before))
+
+
+func _check_menu_on_screen(when: String) -> void:
+	"""The run menu's frame inside the window (review H1: the question once ran off the bottom at 125 %)."""
+	var frame: Rect2 = (_skip_menu().call(&"frame") as Control).get_global_rect()
+	_check("the menu on screen, %s, at %d %%" % [when, DemoUiScale.percent],
+		Rect2(Vector2.ZERO, Vector2(_size)).encloses(frame), str(frame))
+
+
+func _largest_scale_and_ask_by_keyboard() -> void:
+	"""The menu still open after Cancel; the largest interface scale this window offers (125 % at 1280x720, as Large
+	readable picks); the skip by its keyboard focus and Enter."""
+	_check("Cancel left the menu open", bool(_skip_menu().call(&"is_open")))
+	var percent: int = 150 if bool(_village.call(&"ui_scale_fits", 150)) else 125
+	_village.call(&"set_ui_scale", percent)
+	_check_menu_on_screen("unasked")
+	(_skip_menu().call(&"skip_button") as Button).grab_focus()
+	_key(KEY_ENTER)
+	_check("Enter on the skip asks", bool(_skip_menu().call(&"skip_asked")))
+	_capture("skip_asks_large")
+
+
+func _the_question_fits_and_enter_cancels() -> void:
+	"""The question on screen at that scale, the keyboard's focus on Cancel (the default answer): Enter cancels, the
+	calendar where it was."""
+	_check_menu_on_screen("asked")
+	var no: Button = _skip_menu().call(&"skip_no_button")
+	_check("the focus on Cancel", no.has_focus())
+	var before: int = _calendar().tick
+	_key(KEY_ENTER)
+	_check("Enter cancels", not bool(_skip_menu().call(&"skip_asked")) and bool(_skip_menu().call(&"is_open")))
+	_check("nothing skipped", _calendar().tick - before < SimClock.TICKS_PER_HOUR)
+
+
+func _the_scale_back() -> void:
+	"""The menu closed by G, and the interface back at 100 %."""
+	_key(KEY_G)
+	_check("G closed the menu", not bool(_skip_menu().call(&"is_open")))
+	_village.call(&"set_ui_scale", 100)
+
+
+func _ask_again() -> void:
+	"""G, and the skip asked again (laid out by the next step)."""
+	_key(KEY_G)
+	_check("G opened the menu again", bool(_skip_menu().call(&"is_open")))
+	_click(_centre(_skip_menu().call(&"skip_button")))
+	_check("asked again", bool(_skip_menu().call(&"skip_asked")))
+
+
+func _skip_lands_on_the_next_season() -> void:
+	"""Skip clicked: the calendar on day 1 of the next season at 06:00 to the tick, as the Lab's
+	trigger lands (the same function), the menu closed and the news saying what ran and what did not."""
+	_click(_centre(_skip_menu().call(&"skip_yes_button")))
+	_forgive()
+	_check("landed on the next season, 06:00", _calendar().tick == _skip_landing,
+		"tick %d, wanted %d (%s)" % [_calendar().tick, _skip_landing, _calendar().date_text()])
+	_check("the menu closed", not bool(_skip_menu().call(&"is_open")))
+	var notices: Object = _village.get("_services").get("notices")
+	var said: bool = false
+	for k: int in int(notices.call(&"count")):
+		said = said or String(notices.call(&"text", k)).begins_with("Skipped to Y1 Summer 1, 06:00")
+	_check("the news says what was skipped", said)
+	_capture("skip_landed")
 
 
 func _restore_settings() -> void:

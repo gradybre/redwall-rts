@@ -30,6 +30,12 @@ extends RefCounted
 ## again, standing on the jetty, before anyone boards (`entry_refusal`); refused, nobody boards and the trip waits on
 ## the board, its reason shown -- and it is checked again each time. The same recheck runs at a bank before a net is
 ## cast and at the ice's edge before anyone steps out.
+##
+## THE FISHING REVAMP (#49, decisions 1711-1713). A completed cycle rolls §5.4's hazard and rare-quality rolls on the
+## FISHING stream (fishing_rolls.gd): a hazard hurts the trip's first fisher -- a boat's helm -- through the infirmary
+## (`hurt`, wired by the village), and a rare success books 25% of the catch EXCELLENT. A BEST CATCH trip (catch_plan.gd,
+## §5.4's auto mode) has its species chosen again at the water. A trap's collection follows its policy (when soaked, or
+## the morning run). Each water's record and the intensive policy are fishery_stewardship.gd's.
 
 const Rules := preload("res://demo/fishery/fishery_rules.gd")
 const Tables := preload("res://demo/fishery/fishery_tables.gd")
@@ -58,6 +64,11 @@ const DemoWeatherScript := preload("res://demo/weather/demo_weather.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const Text := preload("res://demo/fishery/fishery_text.gd")
+const Recipes := preload("res://demo/preserve/preserve_rules.gd")
+const RationReserveScript := preload("res://demo/preserve/ration_reserve.gd")
+const RollsScript := preload("res://demo/fishery/fishing_rolls.gd")
+const PlanScript := preload("res://demo/fishery/catch_plan.gd")
+const StewardScript := preload("res://demo/fishery/fishery_stewardship.gd")
 
 const NONE: int = -1
 ## A job's steps (see each program below).
@@ -123,6 +134,10 @@ const MILL_FACE: Vector2 = Vector2(27.9, -19.5)
 const WORKBENCH_AT: Vector2 = Vector2(8.6, 11.6)
 const WORKBENCH_FACE: Vector2 = Vector2(8.6, 12.6)
 const ICE_HOLE: Vector2 = Vector2(27.4, 34.6)
+## Each recipe station's spot name and the point its worker faces (preserve_rules.gd STATION_*): the rack, the
+## preserving table (decision 1611), the brewery (decision 1621).
+const STATION_SPOTS: Array[StringName] = [&"rack", &"table", &"brewery"]
+const STATION_FACES: Array[Vector2] = [RACK_FACE, Recipes.TABLE_FACE, Recipes.BREWERY_FACE]
 ## Where an ice fisher steps onto the ice: the pond's south bank, a straight 3 m walk from the hole, clear of the
 ## jetty, the berths and the raft.
 const ICE_EDGE: Vector2 = Vector2(27.5, 37.6)
@@ -147,7 +162,7 @@ const CLIP_WAIT: StringName = &"idle"
 const REFUSE_NONE: String = ""
 
 ## The village's parts, and the fishery's own.
-var tables: Tables = Tables.new(Rules.RACK_SLOTS)
+var tables: Tables = Tables.new(Recipes.SLOT_COUNT)
 var locker: LockerScript = LockerScript.new()
 var skills: SkillsScript = SkillsScript.new()
 var ice: IceScript = IceScript.new()
@@ -156,11 +171,29 @@ var driver: Driver = null
 var pantry: PantryScript = null
 var takes: TakesScript = null
 var stores: StoresScript = null
+## FISH FOR THE RACK (decision 1739): () -> int, the fish the kitchen holds for meals beyond its next one, and
+## (milli) -> int, giving that much of it back; unbound, a fish input counts only the free fish.
+var spare_fish: Callable = Callable()
+var free_spare_fish: Callable = Callable()
+## GRAIN FOR THE MILL (decision 1741): the same pair for the grain the kitchen holds beyond its next meal; unbound, a
+## mill batch counts only the free grain.
+var spare_grain: Callable = Callable()
+var free_spare_grain: Callable = Callable()
+## THE RATION RESERVE (decision 1742; preserve/ration_reserve.gd): one batch of rations' inputs held back while the
+## rations owned are below its target -- 0 unless the village sets one.
+var ration_reserve: RationReserveScript = RationReserveScript.new()
 var calendar: CalendarScript = null
 var weather: DemoWeatherScript = null
 var map: WaterMapScript = null
 ## `say(text, warning)`: the notice feed (the Water source).
 var say: Callable = Callable()
+## The fishing revamp (see the header): the rolls, each water's record, `hurt(who, kind, severity, loss) -> bool` (the
+## infirmary's; unbound: a hazard is said and counted, nobody is hurt), and the policy new traps are authorised with.
+var rolls: RollsScript = RollsScript.new()
+var steward: StewardScript = StewardScript.new()
+var hurt: Callable = Callable()
+var collect_policy: int = PlanScript.COLLECT_SOAKED
+var _outcome: RollsScript.Outcome = RollsScript.Outcome.new()
 ## Bumped whenever anything a panel shows changes.
 var revision: int = 0
 ## THE BOOKS (see THE CATCH FEEDS THE PANTRY), milli-U: everything caught, stored, dried and milled.
@@ -171,6 +204,11 @@ var dried_out_milli: int = 0
 var milled_in_milli: int = 0
 var milled_out_milli: int = 0
 var spoiled_by_cancel_milli: int = 0
+## THE STATIONS' RECIPES' BOOKS (decision 1611; preserve_rules.gd rows), milli-U: food a row's batches took, what they
+## made, and the preserves (dried fruit, rations) stored. The fish row is booked here and in `dried_in/out_milli` too.
+var batch_in_milli: PackedInt64Array = _zeros(Recipes.RECIPE_COUNT)
+var batch_out_milli: PackedInt64Array = _zeros(Recipes.RECIPE_COUNT)
+var preserves_stored_milli: int = 0
 ## The decision's answer (`trip_refusal` and the stations'): its code and its fix, for the card.
 var refused_code: String = ""
 var refused_fix: String = ""
@@ -192,6 +230,13 @@ var _preview: Driver.Preview = Driver.Preview.new()
 var _tasks: Array = []
 
 
+static func _zeros(count: int) -> PackedInt64Array:
+	"""A column of `count` zeros (a recipe row's books)."""
+	var column := PackedInt64Array()
+	column.resize(count)
+	return column
+
+
 func configure(p_cast: DemoCastScript, water_driver: Driver, p_pantry: PantryScript, p_takes: TakesScript,
 		p_stores: StoresScript, p_calendar: CalendarScript, p_weather: DemoWeatherScript, water_map: WaterMapScript) -> void:
 	"""Wire the fishery into the village: its cast, the fishing driver (none: nobody fishes), the pantry and the
@@ -201,6 +246,7 @@ func configure(p_cast: DemoCastScript, water_driver: Driver, p_pantry: PantryScr
 	pantry = p_pantry
 	takes = p_takes
 	stores = p_stores
+	ration_reserve.configure(p_pantry, p_takes)
 	calendar = p_calendar
 	weather = p_weather
 	map = water_map
@@ -220,6 +266,8 @@ func _find_places() -> void:
 	_spots[&"locker"] = _standable(LOCKER_AT)
 	_spots[&"rack"] = _standable(RACK_FACE)
 	_spots[&"mill"] = _standable(MILL_AT)
+	_spots[&"table"] = _standable(Recipes.TABLE_AT)
+	_spots[&"brewery"] = _standable(Recipes.BREWERY_AT)
 	_spots[&"workbench"] = _poi_or(&"workbench", WORKBENCH_FACE)
 	_spots[&"jetty"] = _standable(Routes.m_of(Routes.JETTY_LAND_U))
 	_jetty_waits.clear()
@@ -273,6 +321,7 @@ func update(usec: int) -> void:
 	"""Advance the fishery by `usec` demo microseconds: the boats, the ice's hour, the traps' soak, the rack's curing,
 	the retries and the deadlines."""
 	_follow_hours()
+	steward.follow(driver)
 	_row_boats(usec)
 	_follow_traps()
 	_follow_rack()
@@ -286,10 +335,13 @@ func _follow_hours() -> void:
 	if calendar == null or weather == null:
 		return
 	var hour: int = calendar.hour_index()
+	if _hour_seen >= hour:
+		return
 	while _hour_seen < hour:
 		_hour_seen += 1
 		if ice.advance_hour(weather.day_temperature_tenths()):
 			_on_ice_changed()
+	top_up_ration_reserve()
 
 
 func _on_ice_changed() -> void:
@@ -351,6 +403,9 @@ func trip_refusal(method: int, site: int, species: int, members: PackedInt32Arra
 	may), its code and fix in `refused_code` / `refused_fix`. The Authorise button and its card both run this."""
 	refused_code = ""
 	refused_fix = ""
+	species = planned_species(method, site, species, members)
+	if species == NONE:
+		return _no_fish_refusal(method, site)
 	var why: String = _water_refusal(method, site, species)
 	if why.is_empty():
 		why = _kit_refusal(method)
@@ -363,6 +418,21 @@ func trip_refusal(method: int, site: int, species: int, members: PackedInt32Arra
 	if why.is_empty() and tables.MAX_JOBS - tables.job_count() < Rules.METHOD_CREW[method]:
 		why = _refuse("JOBS", "the fishery's job list is full", "wait for a job to finish")
 	return why
+
+
+## The refusals that are about one species (BEST CATCH tries the next); any other is the water's or the method's.
+const SPECIES_CODES: Array[String] = ["SPECIES_CLOSED", "SPECIES_UNAVAILABLE", "RESTOCKING", "BELOW_STOCK_FLOOR",
+	"GEAR_CANNOT_TAKE_SPECIES", "NOT_FOOD", "NO_CATCH"]
+
+
+func _no_fish_refusal(method: int, site: int) -> String:
+	"""BEST CATCH found nothing: the water's or the method's own reason when there is one (ice, the quota, the places,
+	the weather), else that no fish there may be fished."""
+	var why: String = _water_refusal(method, site, 0)
+	if not why.is_empty() and not SPECIES_CODES.has(refused_code):
+		return why
+	return _refuse("NO_LEGAL_FISH", "no fish there may be fished now (each is closed, out of season or restocking)",
+		"◀ ▶ another site or method")
 
 
 func _refuse(code: String, words: String, fix: String) -> String:
@@ -385,12 +455,24 @@ func _water_refusal(method: int, site: int, species: int) -> String:
 		return iced
 	var code: StringName = driver.refusal(site, species, Rules.METHOD_GEAR[method])
 	if code != Driver.REFUSE_NONE:
-		return _refuse(String(code), Text.driver_words(code, driver.species_key_of(site, species)), _driver_fix(code))
+		return _refuse(String(code), Text.driver_words(code, driver.species_key_of(site, species)) + _reopens(site, species,
+			method, code), _driver_fix(code))
 	if Rules.pantry_item_of(driver.species_row_of(site, species)) == Catalog.NO_ITEM:
 		return _refuse("NOT_FOOD", "%s is not caught here" % driver.species_key_of(site, species), "")
 	if method == Rules.METHOD_BOAT:
 		return _weather_refusal()
 	return ""
+
+
+func _reopens(site: int, species: int, method: int, code: StringName) -> String:
+	"""REQ-SET-046: a closed or out-of-season species' refusal names its reopening day (' — reopens summer 1')."""
+	if code != Fishing.REFUSE_SPECIES_CLOSED and code != Fishing.REFUSE_SPECIES_UNAVAILABLE:
+		return ""
+	if not driver.preview_into(site, species, Rules.METHOD_GEAR[method], 0, _preview):
+		return ""
+	if _preview.availability_per_1000 > 0 and driver.days_to_closure(site, species) != 0:
+		return " — closed by an event: reopening not known"
+	return " — reopens %s" % Text.date_text(_preview.reopen_season, _preview.reopen_day)
 
 
 func _driver_fix(code: StringName) -> String:
@@ -513,10 +595,20 @@ func expected_catch(method: int, site: int, species: int, level: int) -> int:
 
 
 func preview_of(method: int, site: int, species: int, level: int) -> Driver.Preview:
-	"""REQ-SET-055's figures for the card (reused: read it before the next call); null without a fishery."""
-	if driver == null or not driver.preview_into(site, species, Rules.METHOD_GEAR[method], level, _preview):
+	"""REQ-SET-055's figures for the card, for the method's whole crew (reused: read it before the next call); null
+	without a fishery."""
+	if driver == null or not driver.preview_into(site, species, Rules.METHOD_GEAR[method], level, _preview,
+			Rules.METHOD_CREW[method] - 1):
 		return null
 	return _preview
+
+
+func planned_species(method: int, site: int, species: int, members: PackedInt32Array) -> int:
+	"""The species index a trip's choice fishes: a chosen fish as it is; BEST CATCH (catch_plan.gd PLAN_AUTO) §5.4's
+	auto pick at the crew's likely level, NONE when nothing may be fished."""
+	if not PlanScript.is_auto(species):
+		return species
+	return PlanScript.best_species(driver, site, method, _likely_level(method, members), _preview)
 
 
 func _crew_refusal(method: int) -> String:
@@ -566,8 +658,10 @@ func authorise(method: int, site: int, species: int, members: PackedInt32Array) 
 	var why: String = trip_refusal(method, site, species, members)
 	if not why.is_empty():
 		return why
-	var t: int = tables.open_trip(method, site, species)
-	tables.t_item[t] = Rules.pantry_item_of(driver.species_row_of(site, species))
+	var t: int = tables.open_trip(method, site, planned_species(method, site, species, members))
+	tables.t_auto[t] = 1 if PlanScript.is_auto(species) else 0
+	tables.t_collect[t] = collect_policy
+	tables.t_item[t] = Rules.pantry_item_of(driver.species_row_of(site, tables.t_species[t]))
 	tables.t_due[t] = now_tick() + estimate_ticks(method) + Rules.OVERDUE_MARGIN_TICKS
 	_set_aside_kit(t)
 	for seat: int in Rules.METHOD_CREW[method]:
@@ -937,8 +1031,8 @@ func _goal_of(j: int) -> Vector2:
 func _station_spot(j: int) -> Vector2:
 	"""A station job's place: the rack, the mill, the workbench, the locker, or the jetty (a boat's mending)."""
 	match tables.j_kind[j]:
-		Tables.KIND_DRY, Tables.KIND_TAKE_DOWN:
-			return spot(&"rack")
+		Tables.KIND_DRY, Tables.KIND_TAKE_DOWN, Tables.KIND_BATCH:
+			return spot(STATION_SPOTS[_station_of_job(j)])
 		Tables.KIND_MILL:
 			return spot(&"mill")
 		Tables.KIND_MAKE:
@@ -946,6 +1040,16 @@ func _station_spot(j: int) -> Vector2:
 		Tables.KIND_MEND:
 			return spot(&"jetty") if tables.j_slot[j] >= BOAT_SLOT else spot(&"locker")
 	return spot(&"locker")
+
+
+func _station_of_job(j: int) -> int:
+	"""The recipe station job `j` works at: its recipe's, or -- a station job with no recipe, a programming error said
+	once -- the rack (a negative index would wrap to another station)."""
+	var recipe: int = tables.j_recipe[j]
+	if Recipes.is_recipe(recipe):
+		return Recipes.STATION[recipe]
+	push_error("fishery: station job %d has no recipe" % j)
+	return Recipes.STATION_RACK
 
 
 func _store_goal(j: int) -> Vector2:
@@ -1020,7 +1124,8 @@ func _carries(j: int) -> bool:
 	the ford or takes a bridge."""
 	if tables.j_load_milli[j] > 0:
 		return not tables.j_load_at[j].is_finite()
-	if step_of(j) == S_TO_STATION and (tables.j_kind[j] == Tables.KIND_DRY or tables.j_kind[j] == Tables.KIND_MILL):
+	if step_of(j) == S_TO_STATION and (tables.j_kind[j] == Tables.KIND_DRY or tables.j_kind[j] == Tables.KIND_MILL
+			or tables.j_kind[j] == Tables.KIND_BATCH):
 		return true
 	return tables.j_started[j] == 1 and tables.j_kind[j] <= Tables.KIND_COLLECT
 
@@ -1176,8 +1281,12 @@ func _book_stored(item: int, milli: int) -> void:
 			landed_milli += milli
 		Catalog.CAT_DRIED_FISH:
 			dried_stored_milli += milli
+			top_up_ration_reserve()
 		Catalog.CAT_FLOUR:
 			milled_stored_milli += milli
+			top_up_ration_reserve()
+		Catalog.CAT_DRIED_FRUIT, Catalog.CAT_RATION, Catalog.CAT_JAM, Catalog.CAT_CHEESE, Catalog.CAT_PICKLES:
+			preserves_stored_milli += milli
 	revision += 1
 
 
@@ -1193,8 +1302,8 @@ func _need_of(j: int) -> int:
 			@warning_ignore("integer_division") return Rules.METHOD_WORK_MWU[method] / Rules.METHOD_CREW[method]
 		Tables.KIND_COLLECT:
 			return Rules.TRAP_COLLECT_MWU
-		Tables.KIND_DRY:
-			return Rules.DRY_WORK_MWU
+		Tables.KIND_DRY, Tables.KIND_BATCH:
+			return Recipes.WORK_MWU[tables.j_recipe[j]]
 		Tables.KIND_MILL:
 			return Rules.MILL_WORK_MWU
 		Tables.KIND_MAKE:
@@ -1228,8 +1337,8 @@ func _face_of(j: int) -> Vector2:
 	if t >= 0:
 		return _bank_water.get(tables.t_site[t], spot(&"locker")) if not _on_ice(j) else ICE_HOLE + Vector2(1.0, 0.0)
 	match tables.j_kind[j]:
-		Tables.KIND_DRY, Tables.KIND_TAKE_DOWN:
-			return RACK_FACE
+		Tables.KIND_DRY, Tables.KIND_TAKE_DOWN, Tables.KIND_BATCH:
+			return STATION_FACES[_station_of_job(j)]
 		Tables.KIND_MILL:
 			return MILL_FACE
 		Tables.KIND_MAKE:
@@ -1354,6 +1463,7 @@ func begin_cycle(t: int, levels: PackedInt32Array) -> String:
 	"""Open trip `t`'s fishing cycle at the water (REQ-SET-044), after the recheck: the effort slots (fishing_driver.gd
 	`begin_cycle`), the gear's durability claimed by the cycle's Job (gear.gd), and room held in a store for the
 	expected catch at the crew's FISH (decision 0222). All or nothing: "" when begun, else why not (nothing taken)."""
+	_replan(t, levels)
 	var why: String = entry_refusal(t)
 	if not why.is_empty():
 		return why
@@ -1364,6 +1474,7 @@ func begin_cycle(t: int, levels: PackedInt32Array) -> String:
 	if not why.is_empty():
 		return why
 	tables.t_cycle[t] = cycle
+	_draw(t, cycle.expedition)
 	tables.t_state[t] = Tables.TRIP_FISHING
 	if tables.t_method[t] != Rules.METHOD_BOAT:
 		_splash(ICE_HOLE if tables.t_method[t] == Rules.METHOD_ICE else _bank_water.get(tables.t_site[t], Vector2.ZERO))
@@ -1404,8 +1515,60 @@ func complete_cycle(t: int, levels: PackedInt32Array) -> int:
 	caught_milli += result.quantity_milli
 	tables.t_state[t] = Tables.TRIP_LANDING
 	_note("%s: caught %s" % [trip_name(t), Text.catch_text(result.quantity_milli, tables.t_item[t])], false)
+	_roll(t, levels, result.quantity_milli)
 	revision += 1
 	return result.quantity_milli
+
+
+func _replan(t: int, levels: PackedInt32Array) -> void:
+	"""A BEST CATCH trip at the water: §5.4's auto pick again for this crew (REQ-SET-046's legal fallback), its catch's
+	item following; kept as it is when nothing may be fished (the recheck then says why)."""
+	if tables.t_auto[t] == 0 or driver == null:
+		return
+	var s: int = PlanScript.best_species(driver, tables.t_site[t], tables.t_method[t], SkillsScript.group_level(levels),
+		_preview)
+	if s == NONE or s == tables.t_species[t]:
+		return
+	tables.t_species[t] = s
+	tables.t_item[t] = Rules.pantry_item_of(driver.species_row_of(tables.t_site[t], s))
+	_note("%s: the best catch here now" % trip_name(t), false)
+
+
+func _draw(t: int, expedition: Vector2i) -> void:
+	"""The departing cycle's two FISHING draws (fishing_rolls.gd `draw_into`), kept on the trip: spent now, whether it
+	completes or is called off (ARCH-RNG-002)."""
+	if rolls.draw_into(expedition, _outcome):
+		tables.t_hazard_roll[t] = _outcome.hazard_roll
+		tables.t_rare_roll[t] = _outcome.rare_roll
+
+
+func _roll(t: int, levels: PackedInt32Array, milli: int) -> void:
+	"""A completed cycle's rolls resolved (fishing_rolls.gd `resolve_into`, on the draws taken at departure): the
+	EXCELLENT share booked, the water's record kept, and a hazard said and given to the trip's first fisher -- a boat's
+	helm -- through the infirmary."""
+	var site: int = tables.t_site[t]
+	var gear: int = Rules.METHOD_GEAR[tables.t_method[t]]
+	steward.record(site, milli)
+	if tables.t_hazard_roll[t] < 0:
+		return
+	_outcome.hazard_roll = tables.t_hazard_roll[t]
+	_outcome.rare_roll = tables.t_rare_roll[t]
+	tables.t_hazard_roll[t] = NONE
+	rolls.resolve_into(gear, driver.danger_of_site(site), SkillsScript.group_level(levels), maxi(levels.size(), 1), milli,
+		_outcome)
+	tables.t_excellent[t] += _outcome.excellent_milli
+	if _outcome.excellent_milli > 0:
+		_note("%s: a fine catch — %s of it excellent" % [trip_name(t), Text.units(_outcome.excellent_milli)], false)
+	if not _outcome.hurt:
+		return
+	_outcome.encounter = RollsScript.encounter_of(driver.habitat_type_of_site(site), SimClock.day_index_at(now_tick()))
+	var j: int = tables.t_seat_job[t * 2]
+	var who: int = tables.j_worker[j] if j >= 0 and tables.j_live[j] == 1 else NONE
+	if who == NONE or not hurt.is_valid() \
+			or not bool(hurt.call(who, _outcome.injury_kind, _outcome.injury_severity, _outcome.injury_loss)):
+		return
+	_note("%s: %s %s" % [trip_name(t), name_of(who),
+		RollsScript.hazard_words(gear, _outcome.encounter)], true)
 
 
 func _take_load(j: int, item: int, milli: int) -> void:
@@ -1582,12 +1745,29 @@ func _follow_traps() -> void:
 	for t: int in Tables.MAX_TRIPS:
 		if tables.t_live[t] == 0 or tables.t_state[t] != Tables.TRIP_SOAKING or now_tick() < tables.t_soak_until[t]:
 			continue
+		if tables.t_collect_at[t] < 0:
+			tables.t_collect_at[t] = _collect_tick(t)
+		if now_tick() < tables.t_collect_at[t]:
+			continue
 		if _collect_of(t) == NONE:
 			var j: int = tables.open_job(Tables.KIND_COLLECT, PROG_COLLECT, t)
 			if j != NONE:
 				tables.j_seat[j] = 0
 				tables.t_seat_job[t * 2] = j
 				revision += 1
+
+
+func _collect_tick(t: int) -> int:
+	"""When a trap that has just soaked is collected, worked out once (catch_plan.gd COLLECTION): now, or under the
+	morning run the next 06:00 -- now when it is the morning already or its fish closes tomorrow."""
+	var now: int = now_tick()
+	if tables.t_collect[t] == PlanScript.COLLECT_SOAKED or driver == null:
+		return now
+	if PlanScript.in_morning(posmod(CalendarScript.hour_index_at(now), SimClock.HOURS_PER_DAY)):
+		return now
+	if PlanScript.closes_soon(driver.days_to_closure(tables.t_site[t], tables.t_species[t])):
+		return now
+	return PlanScript.next_morning_tick(now)
 
 
 func _collect_of(t: int) -> int:
@@ -1622,6 +1802,7 @@ func _follow_rack() -> void:
 		var j: int = tables.open_job(Tables.KIND_TAKE_DOWN, PROG_TAKE_DOWN, NONE)
 		if j != NONE:
 			tables.j_slot[j] = slot
+			tables.j_recipe[j] = tables.s_recipe[slot]
 			tables.s_state[slot] = Tables.SLOT_TAKING
 			revision += 1
 
@@ -1643,19 +1824,233 @@ func _follow_safety() -> void:
 # --- the stations: the rack, the mill, the workbench ----------------------------------------------------
 
 func dry_refusal() -> String:
-	"""Why a rack batch may not be ordered now ("" when it may): a free slot, 4 U of fresh fish nobody has reserved,
-	room for the 3 U it makes (REQ-SET-112), and a free job row."""
+	"""Why a rack batch of fish may not be ordered now (`batch_refusal` of §5.7's `dry_fish`)."""
+	return batch_refusal(Recipes.R_DRY_FISH)
+
+
+func batch_refusal(recipe: int) -> String:
+	"""Why a batch of `recipe` (preserve_rules.gd) may not be ordered now ("" when it may): a free rack slot for a passive
+	row, each input's food nobody has reserved, the butt's water, room for what it makes (REQ-SET-112), a free job row."""
 	refused_code = ""
 	refused_fix = ""
-	if tables.s_state.find(Tables.SLOT_EMPTY) < 0:
-		return _refuse("RACK_FULL", "all %d rack slots are taken" % Rules.RACK_SLOTS, "wait for a batch to cure")
-	var fish: int = takes.free_milli_of_crop(pantry, Catalog.CAT_FISH)
-	if fish < Rules.DRY_IN_MILLI:
-		return _refuse("NO_FISH", "the stores hold %s of fresh fish nobody has set aside; a batch takes %s" % [Text.units(fish),
-			Text.units(Rules.DRY_IN_MILLI)], "Fishing ▸ Authorise a trip")
-	if not pantry.location_for_item_into(Catalog.ITEM_DRIED_FISH, Rules.DRY_OUT_MILLI, _read):
-		return _refuse("NO_ROOM", "no store has room for %s of dried fish" % Text.units(Rules.DRY_OUT_MILLI), "Pantry (K): make room")
+	if not Recipes.is_recipe(recipe):
+		return _refuse("NO_RECIPE", "there is no such recipe", "")
+	if Recipes.is_passive(recipe) and free_slot(Recipes.STATION[recipe]) < 0:
+		return _slots_full(Recipes.STATION[recipe])
+	var short: String = _inputs_refusal(recipe)
+	if not short.is_empty():
+		return short
+	var water: int = Recipes.WATER_MILLI[recipe]
+	if water > 0 and (stores == null or stores.water_milli_u - water_held_milli() < water):
+		return _refuse("NO_WATER", _water_words(water), "Pantry (K) ▸ Kitchen: Draw water")
+	var item: int = Recipes.OUT_ITEM[recipe]
+	if not pantry.location_for_item_into(item, Recipes.OUT_MILLI[recipe], _read):
+		return _refuse("NO_ROOM", "no store has room for %s of %s" % [Text.units(Recipes.OUT_MILLI[recipe]),
+			Catalog.ITEM_LABELS[item].to_lower()], "Pantry (K): make room")
 	return _job_room_refusal()
+
+
+func drink_stock_warning(recipe: int) -> String:
+	"""THE DRINKS' STOCK WARNING (preserve_rules.gd DRINK_STOCK_WARN_MILLI, decision 1734): words when `recipe` makes a
+	drink the stores already hold two feasts' worth of; "" otherwise. A warning only: the order is never refused."""
+	if not Recipes.is_drink(recipe) or pantry == null:
+		return ""
+	var item: int = Recipes.OUT_ITEM[recipe]
+	var held: int = pantry.milli_of(item)
+	if held < Recipes.DRINK_STOCK_WARN_MILLI:
+		return ""
+	return "the stores already hold %s of %s, two feasts' worth (%s): more will wait for a feast to pour it" % [
+		Text.units(held), Catalog.ITEM_LABELS[item].to_lower(), Text.units(Recipes.DRINK_STOCK_WARN_MILLI)]
+
+
+func water_held_milli() -> int:
+	"""THE BATCHES' WATER (decision 1737): what the butt holds for batches ordered but not yet started -- each live rack
+	or station job's recipe water, until the work starts and takes it (or the job is cancelled). Computed from the jobs,
+	so nothing can drift. Only the fishery's own orders see it: the kitchen and the feast draw on the butt by their own
+	rules (the butt is the digging lane's tunnel_stores.gd, which keeps no reservations)."""
+	var held: int = 0
+	for j: int in Tables.MAX_JOBS:
+		if tables.j_live[j] == 1 and tables.j_started[j] == 0 and Recipes.is_recipe(tables.j_recipe[j]) \
+				and (tables.j_kind[j] == Tables.KIND_DRY or tables.j_kind[j] == Tables.KIND_BATCH):
+			held += Recipes.WATER_MILLI[tables.j_recipe[j]]
+	return held
+
+
+func _water_words(water: int) -> String:
+	"""A batch's water refusal: what it needs, and what is set aside for batches already ordered."""
+	var held: int = water_held_milli()
+	if held <= 0:
+		return "it needs %s of water in the butt" % Text.units(water)
+	return "it needs %s of water in the butt, and %s of it is set aside for batches already ordered" % [
+		Text.units(water), Text.units(held)]
+
+
+func free_slot(station: int) -> int:
+	"""The first empty passive slot of `station` (the rack's, the brewery's vats or the preserving table's crocks), NONE
+	when every one is taken."""
+	var first: int = Recipes.STATION_FIRST_SLOT[station]
+	for slot: int in range(first, first + Recipes.STATION_SLOTS[station]):
+		if tables.s_state[slot] == Tables.SLOT_EMPTY:
+			return slot
+	return NONE
+
+
+func _slots_full(station: int) -> String:
+	"""Every passive slot of `station` taken, in words."""
+	if station == Recipes.STATION_BREWERY:
+		return _refuse("VATS_FULL", "all %d vats are brewing" % Recipes.VAT_SLOTS, "wait for a batch to be drawn off")
+	if station == Recipes.STATION_TABLE:
+		return _refuse("CROCKS_FULL", "all %d crocks are in use" % Recipes.CROCK_SLOTS, "wait for one to be emptied")
+	return _refuse("RACK_FULL", "all %d rack slots are taken" % Rules.RACK_SLOTS, "wait for a batch to cure")
+
+
+func bind_spare_fish(spare: Callable, give: Callable) -> void:
+	"""The kitchen's fish beyond its next meal, and its giving back (kitchen.gd FISH FOR THE RACK, decision 1739)."""
+	spare_fish = spare
+	free_spare_fish = give
+
+
+func bind_spare_grain(spare: Callable, give: Callable) -> void:
+	"""The kitchen's grain beyond its next meal, and its giving back (kitchen.gd GRAIN FOR THE MILL, decision 1741)."""
+	spare_grain = spare
+	free_spare_grain = give
+
+
+func top_up_ration_reserve() -> void:
+	"""THE RATION RESERVE gathers or lets go (preserve/ration_reserve.gd `top_up`): each game hour, and whenever flour
+	or dried fish is stored, so that the kitchen's next hour does not plan it first."""
+	if pantry != null:
+		ration_reserve.top_up(rations_owned_milli(), _hour_seen, _jobs_of_kind(Tables.KIND_MILL) > 0)
+
+
+func rations_owned_milli() -> int:
+	"""The rations the village owns, milli-U: those in store and those a live batch is packing (THE RATION RESERVE
+	counts both against its target, so a batch on the board does not draw a second batch's inputs early)."""
+	var being_packed: int = 0
+	for j: int in Tables.MAX_JOBS:
+		if tables.j_live[j] == 1 and tables.j_kind[j] == Tables.KIND_BATCH and tables.j_recipe[j] == Recipes.R_RATION:
+			being_packed += Recipes.OUT_MILLI[Recipes.R_RATION]
+	return pantry.milli_of(Catalog.ITEM_RATION) + being_packed
+
+
+func set_ration_reserve_target(milli: int) -> int:
+	"""UI-SET-099 ("Keep N rations in reserve"): the ration reserve's target, clamped to the stepper's range; it gathers
+	or lets go at once. The target set."""
+	ration_reserve.target_milli = RationReserveScript.clamped_target(milli)
+	top_up_ration_reserve()
+	revision += 1
+	return ration_reserve.target_milli
+
+
+func release_ration_reserve(on: bool) -> void:
+	"""§5.10's emergency action "release ordinary production food reserves" (REQ-SET-146: offered, never taken by
+	itself): `on` lets everything the ration reserve holds go free at once; off, it gathers again."""
+	ration_reserve.released = on
+	top_up_ration_reserve()
+	revision += 1
+
+
+func _take_from_reserve(recipe: int) -> void:
+	"""Before a batch of rations sets its food aside: what the ration reserve holds for it, let go so the batch takes it
+	(THE RATION RESERVE)."""
+	for k: int in Recipes.IN_COUNT[recipe]:
+		var input: int = Recipes.IN_FIRST[recipe] + k
+		ration_reserve.give(Recipes.IN_CATEGORY[input], Recipes.IN_MILLI[input], _hour_seen)
+
+
+func ration_keep_milli(category: int) -> int:
+	"""THE RATIONS' DRIED FISH (decision 1740; Brendan's ruling of 2026-10-08 on 1739's F5 (a)): what raw eaters must
+	leave of `category` -- for dried fish, the dried fish one batch of rations takes (§5.7 `ration`), and only while a
+	batch lacks nothing else it can get (`rations_wait_on_dried_fish`: a PROPOSAL, 1740); 0 for every other category
+	(kitchen.gd FOOD KEPT FROM RAW EATING). 0 too while a ration reserve has a target (it holds the dried fish itself:
+	decision 1742) or is released (§5.10's release frees this keep with it)."""
+	if category != Catalog.CAT_DRIED_FISH or ration_reserve.target_milli > 0 or ration_reserve.released \
+			or not rations_wait_on_dried_fish():
+		return 0
+	return Recipes.input_milli(Recipes.R_RATION, category)
+
+
+func rations_wait_on_dried_fish() -> bool:
+	"""Whether a batch of rations could be made but for its dried fish (1740's PROPOSAL, the coordinator's of
+	2026-10-08): none queued (a queued batch holds its own), its nuts free, and its flour free or on its way -- a mill
+	batch grinding, or grain enough for one (free, or the kitchen's beyond its next meal: decision 1741)."""
+	if _queued_batches(Recipes.R_RATION) > 0:
+		return false
+	if takes.free_milli_of_crop(pantry, Catalog.CAT_NUTS) < Recipes.input_milli(Recipes.R_RATION, Catalog.CAT_NUTS):
+		return false
+	var flour: int = takes.free_milli_of_crop(pantry, Catalog.CAT_FLOUR)
+	return flour >= Recipes.input_milli(Recipes.R_RATION, Catalog.CAT_FLOUR) or _jobs_of_kind(Tables.KIND_MILL) > 0 \
+		or grain_available_milli() >= Rules.MILL_IN_MILLI
+
+
+func _queued_batches(recipe: int) -> int:
+	"""Live batches of `recipe` not yet started: each holds its food set aside."""
+	var n: int = 0
+	for j: int in Tables.MAX_JOBS:
+		if tables.j_live[j] == 1 and tables.j_started[j] == 0 and tables.j_recipe[j] == recipe \
+				and (tables.j_kind[j] == Tables.KIND_DRY or tables.j_kind[j] == Tables.KIND_BATCH):
+			n += 1
+	return n
+
+
+func grain_available_milli() -> int:
+	"""What a mill batch may take: the grain nobody has set aside, and what the kitchen holds for meals beyond its next
+	one (decision 1741)."""
+	var free: int = takes.free_milli_of_crop(pantry, FarmingScript.CROP_GRAIN)
+	var reserved: int = ration_reserve.held_milli(FarmingScript.CROP_GRAIN)
+	return free + reserved + (int(spare_grain.call()) if spare_grain.is_valid() else 0)
+
+
+func input_available_milli(input: int) -> int:
+	"""What a batch may take of recipe input `input`: the food nobody has set aside, and for fish also what the kitchen
+	holds for meals beyond its next one (decision 1739)."""
+	var category: int = Recipes.IN_CATEGORY[input]
+	var free: int = takes.free_milli_of_crop(pantry, category)
+	var reserved: int = ration_reserve.held_milli(category) if _is_ration_input(input) else 0
+	return free + reserved + (int(spare_fish.call()) if category == Catalog.CAT_FISH and spare_fish.is_valid() else 0)
+
+
+func _is_ration_input(input: int) -> bool:
+	"""Whether recipe input `input` is one of the rations' (THE RATION RESERVE holds those for them)."""
+	return input >= Recipes.IN_FIRST[Recipes.R_RATION] and input < Recipes.IN_FIRST[Recipes.R_RATION] \
+		+ Recipes.IN_COUNT[Recipes.R_RATION]
+
+
+func _take_spare_fish(recipe: int) -> String:
+	"""Before a batch sets its food aside: the fish it lacks beyond the free fish, given back by the kitchen's meals
+	beyond the next (decision 1739). "" when the fish is there; else the refusal (NO_FISH) -- what the kitchen gave back
+	stays free, and its meals take it again at the kitchen's next hour."""
+	for k: int in Recipes.IN_COUNT[recipe]:
+		var input: int = Recipes.IN_FIRST[recipe] + k
+		if Recipes.IN_CATEGORY[input] != Catalog.CAT_FISH or not free_spare_fish.is_valid():
+			continue
+		if not _ask_kitchen(Catalog.CAT_FISH, Recipes.IN_MILLI[input], free_spare_fish):
+			return _refuse(Recipes.IN_CODE[input], "the kitchen could not give the fish it held beyond its next meal",
+				Recipes.IN_FIX[input])
+	return ""
+
+
+func _ask_kitchen(category: int, need: int, give: Callable) -> bool:
+	"""Ask the kitchen (`give`) for what the free food of `category` lacks of `need`; whether `need` is free now."""
+	var short: int = need - takes.free_milli_of_crop(pantry, category)
+	if short > 0:
+		give.call(short)
+	return takes.free_milli_of_crop(pantry, category) >= need
+
+
+func _inputs_refusal(recipe: int) -> String:
+	"""The first of `recipe`'s inputs the stores lack, nobody's reservation counted -- for fish, the kitchen's beyond its
+	next meal counted as there (decision 1739) -- ("" when all are there)."""
+	for k: int in Recipes.IN_COUNT[recipe]:
+		var input: int = Recipes.IN_FIRST[recipe] + k
+		var free: int = input_available_milli(input)
+		if free < Recipes.IN_MILLI[input]:
+			var whose: String = " or the kitchen holds beyond its next meal" if Recipes.IN_CATEGORY[input] == Catalog.CAT_FISH \
+				and spare_fish.is_valid() else ""
+			return _refuse(Recipes.IN_CODE[input], "the stores hold %s of %s nobody has set aside%s; a batch takes %s" % [
+				Text.units(free), Recipes.category_words(Recipes.IN_CATEGORY[input]), whose,
+				Text.units(Recipes.IN_MILLI[input])], Recipes.IN_FIX[input])
+	return ""
 
 
 func _job_room_refusal() -> String:
@@ -1666,31 +2061,52 @@ func _job_room_refusal() -> String:
 
 
 func order_dry(members: PackedInt32Array) -> String:
-	"""Hang a batch of fresh fish on the rack (§5.7 `dry_fish`): the 4 U that spoil first set aside in the pantry (the
-	kitchen's takes, so nobody else counts them), room held for the 3 U it makes; the job on the board, the selected
-	first. "" when ordered."""
-	var why: String = dry_refusal()
+	"""Hang a batch of fresh fish on the rack (§5.7 `dry_fish`: `order_batch`)."""
+	return order_batch(Recipes.R_DRY_FISH, members)
+
+
+func order_batch(recipe: int, members: PackedInt32Array) -> String:
+	"""A batch of `recipe`: each input's food that spoils first set aside in the pantry (the kitchen's takes, so nobody
+	else counts it), room held for what it makes; a passive row takes a rack slot (its room held by the slot); the job on
+	the board, the selected first. "" when ordered."""
+	var why: String = batch_refusal(recipe)
 	if not why.is_empty():
 		return why
-	var slot: int = tables.s_state.find(Tables.SLOT_EMPTY)
-	var j: int = tables.open_job(Tables.KIND_DRY, PROG_DRY, NONE)
-	tables.j_slot[j] = slot
-	tables.j_goal[j] = _pickup_point(Catalog.CAT_FISH)
+	var short: String = _take_spare_fish(recipe)
+	if not short.is_empty():
+		return short
+	if recipe == Recipes.R_RATION:
+		_take_from_reserve(recipe)
+	var passive: bool = Recipes.is_passive(recipe)
+	var j: int = tables.open_job(Tables.KIND_DRY if passive else Tables.KIND_BATCH, PROG_DRY if passive else PROG_MILL,
+		NONE)
+	tables.j_recipe[j] = recipe
+	tables.j_goal[j] = _pickup_point(Recipes.IN_CATEGORY[Recipes.IN_FIRST[recipe]])
 	tables.j_take[j] = takes.new_take()
-	takes.reserve_into(pantry, tables.j_take[j], Catalog.CAT_FISH, Rules.DRY_IN_MILLI, _hour_seen, _read)
-	tables.s_state[slot] = Tables.SLOT_LOADING
-	tables.s_hold[slot] = _hold_for(Catalog.ITEM_DRIED_FISH, Rules.DRY_OUT_MILLI, spot(&"rack"))
+	for k: int in Recipes.IN_COUNT[recipe]:
+		var input: int = Recipes.IN_FIRST[recipe] + k
+		takes.reserve_into(pantry, tables.j_take[j], Recipes.IN_CATEGORY[input], Recipes.IN_MILLI[input], _hour_seen, _read)
+	var hold: int = _hold_for(Recipes.OUT_ITEM[recipe], Recipes.OUT_MILLI[recipe], _station_spot(j))
+	if passive:
+		var slot: int = free_slot(Recipes.STATION[recipe])
+		tables.j_slot[j] = slot
+		tables.s_state[slot] = Tables.SLOT_LOADING
+		tables.s_hold[slot] = hold
+		tables.s_recipe[slot] = recipe
+	else:
+		tables.j_hold[j] = hold
 	_assign_station(j, members)
 	revision += 1
 	return ""
 
 
 func _pickup_point(category: int) -> Vector2:
-	"""Where the unreserved food of `category` that spoils first is kept (the store a fetch walks to)."""
+	"""Where the unreserved food of selector `category` (a category, or an item mask) that spoils first is kept (the store
+	a fetch walks to)."""
 	var best: int = NONE
 	for lot: int in PantryScript.MAX_LOTS:
 		var item: int = pantry.lot_item(lot)
-		if item == PantryScript.FREE or Catalog.category_of(item) != category or takes.free_milli(pantry, lot) <= 0:
+		if item == PantryScript.FREE or not TakesScript.matches(category, item) or takes.free_milli(pantry, lot) <= 0:
 			continue
 		if best == NONE or pantry.lot_spoil_hours(lot, _hour_seen) < pantry.lot_spoil_hours(best, _hour_seen):
 			best = lot
@@ -1704,21 +2120,30 @@ func mill_refusal() -> String:
 	refused_fix = ""
 	if _jobs_of_kind(Tables.KIND_MILL) >= Rules.MILL_SLOTS:
 		return _refuse("MILL_BUSY", "both mill slots are grinding", "wait for a batch to finish")
-	var grain: int = takes.free_milli_of_crop(pantry, FarmingScript.CROP_GRAIN)
+	var grain: int = grain_available_milli()
 	if grain < Rules.MILL_IN_MILLI:
-		return _refuse("NO_GRAIN", "the stores hold %s of grain nobody has set aside; a batch takes %s" % [Text.units(grain),
-			Text.units(Rules.MILL_IN_MILLI)], "Farm ▸ Harvest wheat, barley or oats")
+		var whose: String = " or the kitchen holds beyond its next meal" if spare_grain.is_valid() else ""
+		return _refuse("NO_GRAIN", "the stores hold %s of grain nobody has set aside%s; a batch takes %s" % [
+			Text.units(grain), whose, Text.units(Rules.MILL_IN_MILLI)], "Farm ▸ Harvest wheat, barley or oats")
 	if not pantry.location_for_item_into(Catalog.ITEM_FLOUR, Rules.MILL_OUT_MILLI, _read):
 		return _refuse("NO_ROOM", "no store has room for %s of flour" % Text.units(Rules.MILL_OUT_MILLI), "Pantry (K): make room")
 	return _job_room_refusal()
 
 
 func order_mill(members: PackedInt32Array) -> String:
-	"""Grind a batch of grain at the mill (§5.7 `flour`: grain 3 -> flour 3, 12 WU): the grain that spoils first set
-	aside, room held for the flour (REQ-SET-112, as the rack's), the job on the board. "" when ordered."""
+	"""Grind a batch of grain at the mill (§5.7 `flour`: grain 3 -> flour 3, 12 WU): what the free grain lacks given
+	back first by the kitchen's meals beyond the next (decision 1741; refused NO_GRAIN, nothing opened, when it is still
+	short), the grain that spoils first set aside, room held for the flour (REQ-SET-112, as the rack's), the job on the
+	board. "" when ordered."""
 	var why: String = mill_refusal()
 	if not why.is_empty():
 		return why
+	var grain_free: int = takes.free_milli_of_crop(pantry, FarmingScript.CROP_GRAIN)
+	if grain_free < Rules.MILL_IN_MILLI:
+		ration_reserve.give(FarmingScript.CROP_GRAIN, Rules.MILL_IN_MILLI - grain_free, _hour_seen)
+	if free_spare_grain.is_valid() and not _ask_kitchen(FarmingScript.CROP_GRAIN, Rules.MILL_IN_MILLI, free_spare_grain):
+		return _refuse("NO_GRAIN", "the kitchen could not give the grain it held beyond its next meal",
+			"Farm ▸ Harvest wheat, barley or oats")
 	var j: int = tables.open_job(Tables.KIND_MILL, PROG_MILL, NONE)
 	tables.j_goal[j] = _pickup_point(FarmingScript.CROP_GRAIN)
 	tables.j_take[j] = takes.new_take()
@@ -1834,8 +2259,8 @@ func _at_station(j: int, brain: BrainScript) -> void:
 	"""At the rack or the mill a batch starts (REQ-SET-118: its inputs leave the pantry now, all or nothing, from the
 	lots set aside); at the locker or the jetty a mending is paid; a take-down just starts."""
 	match tables.j_kind[j]:
-		Tables.KIND_DRY:
-			_start_batch(j, brain, Rules.DRY_IN_MILLI)
+		Tables.KIND_DRY, Tables.KIND_BATCH:
+			_start_recipe(j, brain)
 		Tables.KIND_MILL:
 			_start_batch(j, brain, Rules.MILL_IN_MILLI)
 		Tables.KIND_MEND:
@@ -1862,6 +2287,44 @@ func _start_batch(j: int, brain: BrainScript, milli: int) -> void:
 	_advance(j, brain)
 
 
+func _start_recipe(j: int, brain: BrainScript) -> void:
+	"""A recipe's batch starts at its station (REQ-SET-118): every input withdrawn from the job's take, all or nothing,
+	and its water from the butt. Short (a lot spoiled while set aside, the butt drawn down), it is given up and says so."""
+	var recipe: int = tables.j_recipe[j]
+	var water: int = Recipes.WATER_MILLI[recipe]
+	if not _take_holds_inputs(j, recipe) or (water > 0 and (stores == null or stores.water_milli_u < water)):
+		_note("The food or water set aside for %s ran short before the work began: the batch is given up" %
+			Recipes.JOB_WORDS[recipe].to_lower(), true)
+		cancel_station_job(j)
+		return
+	for k: int in Recipes.IN_COUNT[recipe]:
+		var input: int = Recipes.IN_FIRST[recipe] + k
+		if not takes.consume_into(pantry, tables.j_take[j], Recipes.IN_MILLI[input], TakesScript.AT_STORE, _hour_seen,
+				_read, Recipes.IN_CATEGORY[input]):
+			push_error("fishery: %s's %s was checked and then refused" % [Recipes.GDD_ROW[recipe], input])
+	if water > 0:
+		stores.take_water(water)
+	takes.release(tables.j_take[j])
+	tables.j_take[j] = 0
+	tables.j_started[j] = 1
+	batch_in_milli[recipe] += Recipes.food_in_milli(recipe)
+	if recipe == Recipes.R_DRY_FISH:
+		dried_in_milli += Recipes.food_in_milli(recipe)
+	_advance(j, brain)
+
+
+func _take_holds_inputs(j: int, recipe: int) -> bool:
+	"""Whether job `j`'s take still holds every input of `recipe`: its entries first trimmed to what their lots still hold
+	(a lot that spoiled, or was drawn down by anything outside the takes, counts only what is left), so the withdrawal
+	that follows can take every input, all or nothing (kitchen.gd's own check before a batch)."""
+	takes.trim_to_lots(pantry, tables.j_take[j], TakesScript.AT_STORE)
+	for k: int in Recipes.IN_COUNT[recipe]:
+		var input: int = Recipes.IN_FIRST[recipe] + k
+		if takes.live_milli(pantry, tables.j_take[j], TakesScript.AT_STORE, Recipes.IN_CATEGORY[input]) < Recipes.IN_MILLI[input]:
+			return false
+	return true
+
+
 func _pay_and_start(j: int, brain: BrainScript) -> void:
 	"""Make or mend: its wood from the stores and its rope or iron from the locker, all or nothing, as the work starts
 	(the card checked them; the stores may have changed). Short, the job is given up and says so."""
@@ -1883,7 +2346,7 @@ func _pay_and_start(j: int, brain: BrainScript) -> void:
 
 
 const KIND_LABELS: Array[String] = ["Fishing", "Collecting the trap", "Drying fish", "Taking down dried fish",
-	"Milling", "Making gear", "Mending"]
+	"Milling", "Making gear", "Mending", "Packing rations"]
 
 
 func _station_done(j: int) -> void:
@@ -1893,8 +2356,10 @@ func _station_done(j: int) -> void:
 		Tables.KIND_DRY:
 			var slot: int = tables.j_slot[j]
 			tables.s_state[slot] = Tables.SLOT_CURING
-			tables.s_ready_tick[slot] = now_tick() + Rules.DRY_PASSIVE_HOURS * SimClock.TICKS_PER_HOUR
+			tables.s_ready_tick[slot] = now_tick() + Recipes.PASSIVE_HOURS[tables.j_recipe[j]] * SimClock.TICKS_PER_HOUR
 			tables.j_started[j] = 0
+		Tables.KIND_BATCH:
+			_batch_made(j)
 		Tables.KIND_TAKE_DOWN:
 			_take_down(j)
 		Tables.KIND_MILL:
@@ -1912,15 +2377,31 @@ func _station_done(j: int) -> void:
 
 
 func _take_down(j: int) -> void:
-	"""A cured batch off the rack: §5.7's 3 U of dried fish in hand, with the room held for it when it was hung."""
+	"""A cured batch off the rack: its row's output (§5.7: 3 U of dried fish or of dried fruit) in hand, with the room
+	held for it when it was hung."""
 	var slot: int = tables.j_slot[j]
-	dried_out_milli += Rules.DRY_OUT_MILLI
-	tables.j_load_item[j] = Catalog.ITEM_DRIED_FISH
-	tables.j_load_milli[j] = Rules.DRY_OUT_MILLI
+	var recipe: int = tables.s_recipe[slot]
+	_made(j, recipe)
 	tables.j_hold[j] = tables.s_hold[slot]
 	tables.s_hold[slot] = NONE
 	tables.s_state[slot] = Tables.SLOT_EMPTY
-	_note("A batch of dried fish is off the rack: %s" % Text.units(Rules.DRY_OUT_MILLI), false)
+	_note("A batch of %s is done at %s: %s" % [Catalog.ITEM_LABELS[Recipes.OUT_ITEM[recipe]].to_lower(),
+		Recipes.STATION_NAMES[Recipes.STATION[recipe]], Text.units(Recipes.OUT_MILLI[recipe])], false)
+
+
+func _batch_made(j: int) -> void:
+	"""A batch without a passive wait done at its station: its output in hand, to the room held at the order."""
+	_made(j, tables.j_recipe[j])
+	tables.j_started[j] = 0
+
+
+func _made(j: int, recipe: int) -> void:
+	"""`recipe`'s output in job `j`'s worker's hands, booked."""
+	tables.j_load_item[j] = Recipes.OUT_ITEM[recipe]
+	tables.j_load_milli[j] = Recipes.OUT_MILLI[recipe]
+	batch_out_milli[recipe] += Recipes.OUT_MILLI[recipe]
+	if recipe == Recipes.R_DRY_FISH:
+		dried_out_milli += Recipes.OUT_MILLI[recipe]
 
 
 func _mended(j: int) -> void:
@@ -1957,8 +2438,9 @@ func _unwind_station(j: int) -> void:
 		tables.s_state[slot] = Tables.SLOT_EMPTY
 		pantry.release(tables.s_hold[slot])
 		tables.s_hold[slot] = NONE
-	if (kind == Tables.KIND_DRY or kind == Tables.KIND_MILL) and tables.j_started[j] == 1:
-		@warning_ignore("integer_division") var spoil: int = (Rules.DRY_IN_MILLI if kind == Tables.KIND_DRY else Rules.MILL_IN_MILLI) * Rules.CANCEL_SPOIL_PERMILLE / 1000
+	if (kind == Tables.KIND_DRY or kind == Tables.KIND_MILL or kind == Tables.KIND_BATCH) and tables.j_started[j] == 1:
+		var food: int = Rules.MILL_IN_MILLI if kind == Tables.KIND_MILL else Recipes.food_in_milli(tables.j_recipe[j])
+		@warning_ignore("integer_division") var spoil: int = food * Rules.CANCEL_SPOIL_PERMILLE / 1000
 		pantry.spoiled_milli += spoil
 		spoiled_by_cancel_milli += spoil
 	if (kind == Tables.KIND_MAKE or kind == Tables.KIND_MEND) and tables.j_started[j] == 1:
@@ -2007,6 +2489,8 @@ func place_words(j: int) -> String:
 			return "the food set aside"
 		S_TO_WORKBENCH:
 			return "the workbench"
+	if Recipes.is_recipe(tables.j_recipe[j]):
+		return Recipes.STATION_NAMES[Recipes.STATION[tables.j_recipe[j]]]
 	return ["", "", "the rack", "the rack", "the mill", "the workbench", "the gear locker"][tables.j_kind[j]]
 
 
@@ -2017,9 +2501,9 @@ func doing_text(j: int, serial: int) -> String:
 	var step: int = step_of(j)
 	match step:
 		S_WORK:
-			return "%s at %s" % [KIND_LABELS[tables.j_kind[j]], place_words(j)]
+			return "%s at %s" % [job_label(j), place_words(j)]
 		S_STATION:
-			return "%s at %s" % [KIND_LABELS[tables.j_kind[j]], place_words(j)]
+			return "%s at %s" % [job_label(j), place_words(j)]
 		S_JETTY:
 			return "waiting at the jetty for the crew"
 		S_BOARD:
@@ -2032,7 +2516,23 @@ func doing_text(j: int, serial: int) -> String:
 			return "walking on the ice"
 		S_TO_STORE:
 			return "carrying %s to the stores" % Text.catch_text(tables.j_load_milli[j], tables.j_load_item[j])
-	return "%s: going to %s" % [KIND_LABELS[tables.j_kind[j]], place_words(j)]
+	return "%s: going to %s" % [job_label(j), place_words(j)]
+
+
+func job_label(j: int) -> String:
+	"""What job `j`'s worker is doing, in words: a recipe row's own ("Drying fruit"), else its kind's."""
+	var recipe: int = tables.j_recipe[j]
+	if not Recipes.is_recipe(recipe):
+		return KIND_LABELS[tables.j_kind[j]]
+	return Recipes.TAKE_DOWN_DOING[recipe] if tables.j_kind[j] == Tables.KIND_TAKE_DOWN else Recipes.DOING_WORDS[recipe]
+
+
+func job_words(j: int) -> String:
+	"""Job `j` on the Work screen: a recipe row's own ("Dry fruit"), else its kind's (fishery_tables.gd KIND_WORDS)."""
+	var recipe: int = tables.j_recipe[j]
+	if not Recipes.is_recipe(recipe):
+		return Tables.KIND_WORDS[tables.j_kind[j]]
+	return Recipes.TAKE_DOWN_WORDS[recipe] if tables.j_kind[j] == Tables.KIND_TAKE_DOWN else Recipes.JOB_WORDS[recipe]
 
 
 # --- the board's commands (work/fishery_work.gd) ----------------------------------------------------
@@ -2128,8 +2628,9 @@ func held_key_of_job(j: int) -> StringName:
 	if tables.j_started[j] == 1 and tables.j_kind[j] <= Tables.KIND_COLLECT and step != S_WORK:
 		var t: int = tables.j_trip[j]
 		return GEAR_PROPS[GEAR_OF_METHOD[tables.t_method[t]]] if t >= 0 and tables.t_gear[t] >= 0 else &""
-	if step == S_TO_STATION and (tables.j_kind[j] == Tables.KIND_DRY or tables.j_kind[j] == Tables.KIND_MILL):
-		return &"basket" if tables.j_kind[j] == Tables.KIND_DRY else &"sack_pile"
+	if step == S_TO_STATION and (tables.j_kind[j] == Tables.KIND_DRY or tables.j_kind[j] == Tables.KIND_MILL
+			or tables.j_kind[j] == Tables.KIND_BATCH):
+		return &"sack_pile" if tables.j_kind[j] == Tables.KIND_MILL else &"basket"
 	return &""
 
 
@@ -2166,6 +2667,29 @@ func ice_trip_out() -> bool:
 	"""Whether an ice trip has its cycle open (its hole cut)."""
 	for t: int in Tables.MAX_TRIPS:
 		if tables.t_live[t] == 1 and tables.t_method[t] == Rules.METHOD_ICE and tables.t_state[t] == Tables.TRIP_FISHING:
+			return true
+	return false
+
+
+func brewing() -> int:
+	"""How many of the brewery's vats hold a batch (loading, brewing or ready to draw off)."""
+	return slots_in_use(Recipes.STATION_BREWERY)
+
+
+func slots_in_use(station: int) -> int:
+	"""How many of `station`'s passive slots hold a batch (loading, waiting or ready to take down)."""
+	var n: int = 0
+	var first: int = Recipes.STATION_FIRST_SLOT[station]
+	for slot: int in range(first, first + Recipes.STATION_SLOTS[station]):
+		n += 0 if tables.s_state[slot] == Tables.SLOT_EMPTY else 1
+	return n
+
+
+func packing() -> bool:
+	"""Whether a batch is being worked at the preserving table now (its worker at the table: rations, jam, a cheese, pickles)."""
+	for j: int in Tables.MAX_JOBS:
+		var batch: bool = tables.j_kind[j] == Tables.KIND_BATCH or tables.j_kind[j] == Tables.KIND_DRY
+		if tables.j_live[j] == 1 and batch and tables.j_at[j] == 1 and _station_of_job(j) == Recipes.STATION_TABLE:
 			return true
 	return false
 

@@ -5,7 +5,7 @@ extends RefCounted
 ##   seating tap 57, the pick certificate's roots, bearer prisms and part transforms, and real air/footing for every
 ##   volume (the pick certificate's `_volume`).
 ## - **The treads** (assemblies 2-7, T1-T6): the station is `TreadGeometry.station_of` on the tread above, the bearer
-##   the derived staged prism, the handling row 66 and the fitting tap 64 (DEC-058). Their approved proofs stood on the
+##   the derived staged prism, the handling row 66 and the fitting tap 64 (DEC-060). Their approved proofs stood on the
 ##   tread fixture (tread-fit-v1 candidate b: the support deck, the deck behind, bearers, posts and trench walls), so a
 ##   volume may meet the station Room's own installed SUPPORT (that fixture's timber) as well as void, the certified
 ##   pending bearer while funded, and terrain-proved exterior air; any other matter or claim refuses.

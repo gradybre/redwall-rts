@@ -23,6 +23,10 @@ WHAT IS RESOLVED, exactly as the handoff's section 3 specifies:
   * the woods' forage (decision 0681: nuts, mushrooms, herb, berries) by the woodland leaves each stands for
     (FORAGE_LEAVES: the batch 7 integration's demo selection, decision 0902 -- never nutmeg, a spice);
   * the orchard's apple and pear (decision 0671) by their LEAF (batch 8 integration, decision 0903);
+  * the preserves (decision 1611): dried fruit as the library's dried forms of apple and pear (as dried fish is of the
+    fish); rations by a LEAF the library does not have, so with no targets and no dishes; likewise the drinks (decision
+    1621: mead and the cordial), which the library has as no leaf; the new recipes (decision 1625) by the library
+    components they are drafted from (NEW_RECIPE_TARGETS);
   * Salmon and carp have no pantry leaf (the library's fish leaves are dace, herring, mackerel,
     mussel, perch, trout and whitefish): they are listed with no targets and no dishes.
 
@@ -61,6 +65,10 @@ ITEM_KEYS = [
     "potato", "honey",
     "nuts", "mushrooms", "herb", "berries",
     "apple", "pear",
+    "dried_fruit", "ration",
+    "mead", "cordial",
+    "jam", "cheese", "ale", "cider",
+    "vinegar", "pickles",
 ]
 ## The woods' forage (farm_catalog.gd THE WOODS' FORAGE): each item's pantry leaves, the demo's own selection of the
 ## woodland's nuts, fungi, pot herbs and wild berries (decision 0902).
@@ -73,6 +81,19 @@ FORAGE_LEAVES = {
 }
 CATCH = ["trout", "dace", "salmon", "perch", "carp", "whitefish"]
 GRAIN_LEAVES = {"LEAF_wheat", "LEAF_barley", "LEAF_oats"}
+## The orchard's fruit (decision 0671): dried fruit (decision 1611) is the library's dried forms of them.
+FRUIT_LEAVES = {"LEAF_apple", "LEAF_pear"}
+## The new recipes (decision 1625): each the library components it is drafted from -- the honey berry jams, the
+## ale and the ciders. The salt-free nut cheese has no library component of its own (the cultured hazelnut cheese takes
+## salt), so it lists no dishes; nor do the salt-free pickles (every library pickle takes salt).
+NEW_RECIPE_TARGETS = {
+    "jam": ["COMPONENT_shared_blackberry_jam", "COMPONENT_shared_strawberry_jam"],
+    "cheese": [],
+    "ale": ["COMPONENT_shared_ale", "COMPONENT_shared_october_ale"],
+    "cider": ["COMPONENT_shared_pale_cider", "COMPONENT_shared_old_cider"],
+    "vinegar": ["COMPONENT_shared_apple_vinegar"],
+    "pickles": [],
+}
 ## At most this many dish names per ingredient are listed (direct uses first); the counts are whole.
 MAX_LISTED = 40
 
@@ -116,6 +137,10 @@ def targets_of(key: str, known: set, components: dict, memo: dict) -> list:
         return goods_targets(components, "dried", {f"LEAF_{k}" for k in CATCH}, memo)
     if key == "flour":
         return goods_targets(components, "flour", GRAIN_LEAVES, memo)
+    if key in NEW_RECIPE_TARGETS:
+        return [target for target in NEW_RECIPE_TARGETS[key] if target in components or target in known]
+    if key == "dried_fruit":
+        return goods_targets(components, "dried", FRUIT_LEAVES, memo)
     if key in FORAGE_LEAVES:
         return [leaf for leaf in FORAGE_LEAVES[key] if leaf in known]
     return [f"LEAF_{key}"] if f"LEAF_{key}" in known else []

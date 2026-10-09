@@ -6,10 +6,14 @@ extends RefCounted
 ##         --seed 1 --policy hands_off --days 48 --out /abs/run.json [--csv /abs/run.csv] [--hours N] [--fps 30]
 ##
 ## --policy hands_off     the default crews and the automatic work board; nobody orders anything;
-##          light_touch   the scripted player of light_touch_policy.gd queues sensible work each morning.
+##          light_touch   the scripted player of light_touch_policy.gd queues sensible work each morning;
+##          provisioning  light_touch's player plus its preserving, brewing and milling (provisioning_policy.gd,
+##                        decision 1731).
 ## --days N               run to the start of calendar day N (day 0 is Spring 1; the demo opens at 06:00 on it);
 ##                        48 is a year. --hours N instead runs N game hours from the start (a short check).
 ## --seed N               the run's seed (see SEEDS). The same seed and policy give the same numbers.
+## --fish-high U          the scripted player's fresh-fish stock over which it authorises no fishing trip (default
+##                        light_touch_policy.gd FISH_STOCK_HIGH, 4 U): the balance rerun's P6 measurement (decision 1738).
 ##
 ## TIME. `--fixed-fps 30` is REQUIRED (with --fps saying the same number, 30 by default): every frame is then exactly
 ## 1/30 s whatever it really took, so the village runs as fast as the machine allows and the run does not depend on
@@ -62,12 +66,18 @@ const LabourScript := preload("res://tools/balance/balance_labour.gd")
 const FarmWatchScript := preload("res://tools/balance/balance_farm_watch.gd")
 const EventsWatchScript := preload("res://tools/balance/balance_events.gd")
 const PolicyScript := preload("res://tools/balance/light_touch_policy.gd")
+const ProvisioningScript := preload("res://tools/balance/provisioning_policy.gd")
+const SuppliesScript := preload("res://tools/balance/balance_supplies.gd")
+const WinterScript := preload("res://demo/winter/demo_winter.gd")
+const OrchardScript := preload("res://demo/orchard/demo_orchard.gd")
+const HallScript := preload("res://demo/hall/demo_hall.gd")
+const ForageNodeScript := preload("res://demo/forage/demo_forage.gd")
 const Rollup := preload("res://tools/balance/balance_rollup.gd")
 const Csv := preload("res://tools/balance/balance_csv.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 
-const POLICIES: Array[String] = ["hands_off", "light_touch"]
-const FLAGS: Array[String] = ["--seed", "--policy", "--days", "--hours", "--out", "--csv", "--fps"]
+const POLICIES: Array[String] = ["hands_off", "light_touch", "provisioning"]
+const FLAGS: Array[String] = ["--seed", "--policy", "--days", "--hours", "--out", "--csv", "--fps", "--fish-high"]
 const SPEED: int = 4
 ## The run stops with an error when the demo has not opened by this frame, or stays paused this many frames.
 const OPEN_LIMIT_FRAMES: int = 900
@@ -92,6 +102,8 @@ var _out: String = ""
 var _csv: String = ""
 ## The engine's --fixed-fps, as the run's own --fps states it (see TIME): every frame's delta must be 1/_fps.
 var _fps: int = DEFAULT_FPS
+## --fish-high in milli-U (-1: the policy's own).
+var _fish_high_milli: int = -1
 var _error: String = ""
 ## Frames between freeing the village and quitting (THE END): the audio server lets go of a freed player's stream on a
 ## later mix, as the soak test found (soak_test.gd CLOSE_FRAMES) -- quitting with sounds still playing left the engine's
@@ -109,6 +121,7 @@ var _food: FoodScript = FoodScript.new()
 var _labour: LabourScript = LabourScript.new()
 var _farm_watch: FarmWatchScript = FarmWatchScript.new()
 var _events: EventsWatchScript = EventsWatchScript.new()
+var _supplies: SuppliesScript = SuppliesScript.new()
 var _policy: PolicyScript = null
 var _frame: int = 0
 var _started: bool = false
@@ -165,7 +178,8 @@ func _settle() -> void:
 
 
 func _read_args(args: PackedStringArray) -> void:
-	"""--seed, --policy, --days, --hours, --out, --csv (see the header); the first problem into `_error`."""
+	"""--seed, --policy, --days, --hours, --out, --csv, --fps, --fish-high (see the header); the first problem into
+	`_error`."""
 	for k: int in args.size():
 		var value: String = args[k + 1] if k + 1 < args.size() else ""
 		if args[k].begins_with("--") and not args[k] in FLAGS:
@@ -189,6 +203,13 @@ func _read_args(args: PackedStringArray) -> void:
 				_csv = value
 			"--fps":
 				_fps = value.to_int()
+			"--fish-high":
+				_fish_high_milli = value.to_int() * 1000 if value.is_valid_int() else -2
+	_check_args()
+
+
+func _check_args() -> void:
+	"""The arguments read, checked together: the first problem into `_error`."""
 	if not _policy_name in POLICIES:
 		_error = "unknown --policy %s (one of %s)" % [_policy_name, ", ".join(POLICIES)]
 	elif _out.is_empty() or not _out.is_absolute_path():
@@ -199,6 +220,8 @@ func _read_args(args: PackedStringArray) -> void:
 		_error = "--days or --hours must be positive"
 	elif _fps < 1:
 		_error = "--fps must be the engine's --fixed-fps (positive)"
+	elif _fish_high_milli < -1 or (_fish_high_milli >= 0 and _policy_name == "hands_off"):
+		_error = "--fish-high must be a whole number of units, for a policy that fishes (not hands_off)"
 
 
 static func quotient(a: int, b: int) -> int:
@@ -289,7 +312,7 @@ func _apply_seed(farm: DemoFarmScript) -> void:
 
 
 func _bind_watchers(farm: DemoFarmScript) -> void:
-	"""Every watcher on its subsystem, and the light-touch player when it is this run's policy."""
+	"""Every watcher on its subsystem, and the scripted player (light-touch or provisioning) when the policy has one."""
 	var services: ServicesScript = _village.call(&"services") as ServicesScript
 	var fishery: FisheryNodeScript = _village.call(&"fishery") as FisheryNodeScript
 	_food.bind(_kitchen, farm.pantry, fishery.fishery)
@@ -303,9 +326,26 @@ func _bind_watchers(farm: DemoFarmScript) -> void:
 	var works: WorksScript = command.tunnels().ext.works
 	var rescue: RefCounted = (_village.call(&"waterplay") as WaterplayScript).rescue
 	_events.bind(services.stores, services.incidents, works.events, rescue)
+	_bind_supplies()
 	if _policy_name == "light_touch":
 		_policy = PolicyScript.new()
+	elif _policy_name == "provisioning":
+		var provisioner: ProvisioningScript = ProvisioningScript.new()
+		var forage: ForageNodeScript = _village.call(&"forage") as ForageNodeScript
+		provisioner.bind_forage(forage.trips if forage != null else null)
+		_policy = provisioner
+	if _policy != null:
 		_policy.bind(farm, _village.call(&"forestry") as ForestryScript, fishery.fishery, services.stores)
+		_policy.fish_stock_high = _fish_high_milli if _fish_high_milli >= 0 else PolicyScript.FISH_STOCK_HIGH
+
+
+func _bind_supplies() -> void:
+	"""The supplies watch on the winter's hearths, the orchard's apiary and the hall's projects (decision 1731)."""
+	var winter: WinterScript = _village.call(&"winter") as WinterScript
+	var orchard: OrchardScript = _village.call(&"orchard") as OrchardScript
+	var hall: HallScript = _village.call(&"hall") as HallScript
+	_supplies.bind(winter.fuel if winter != null else null, orchard.model.apiary if orchard != null else null,
+		hall.projects if hall != null else null)
 
 
 func _time_control() -> TimeControlScript:
@@ -366,6 +406,7 @@ func _close_day(day: int, partial: bool) -> void:
 	record.merge(_labour.close_day())
 	record.merge(_farm_watch.close_day(season, season_day))
 	record.merge(_events.close_day())
+	record.merge(_supplies.close_day())
 	record["orders"] = _policy.take_orders() if _policy != null else {}
 	_days.append(record)
 	print("BALANCE-DAY %d closed (frame %d)" % [day, _frame - _start_frame])
@@ -411,5 +452,6 @@ func _meta(real_s: float) -> Dictionary:
 		"staged_assets": _staged, "engine": Engine.get_version_info().get("string", ""), "residents": names,
 		"frames": _frame - _start_frame, "ticks_before_start": _ticks_before_start,
 		"real_seconds": snappedf(real_s, 0.1), "ticks_per_hour": TICKS_PER_HOUR,
+		"fish_stock_high_milli": _policy.fish_stock_high if _policy != null else 0,
 		"harness_settings": ["route budget 0", "nav rebuilds finished inside each frame", "GameManager processing stopped",
 			"critical autopause lifted by the ledger's Resume", "weather and resident rngs re-seeded"]}

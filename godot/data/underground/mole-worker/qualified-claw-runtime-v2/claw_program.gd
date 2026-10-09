@@ -1,7 +1,7 @@
 extends RefCounted
 ## ADR 1229 increment 3: the claw work program of source 4 on content 10 (`qualified-claw-stairs-v11`), the successor
 ## of `qualified-claw-runtime-v1/claw_program.gd` (content 9). Content 10 inserts the stair and step WALK rows 51-55
-## before source 4's WORK rows, so the dig/tap rows move to 56-63 and the tread fitting tap is row 64 (DEC-058). This
+## before source 4's WORK rows, so the dig/tap rows move to 56-63 and the tread fitting tap is row 64 (DEC-060). This
 ## program owns the travel rows 42-50 and the work rows 56-64; the stair program (`stair_program.gd`) owns 51-55.
 ## Every equation is v1's: protocol 6's phase encoding, the claw image's clock domain (stand key 8, walk 45 keys,
 ## entry/recovery 31 keys, stroke and work 33; the tread tap's clips have the tap's lengths) and Brendan's fade rule

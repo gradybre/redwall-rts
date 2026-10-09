@@ -491,7 +491,7 @@ func _prior_bearing(target: int, prefix: int) -> StringName:
 
 
 static func _station_contact_kind(kind: int) -> bool:
-	"""A station's WORK row makes the exact anchor-and-patch contact, or (DEC-058, ADR 1229) is the tread fitting
+	"""A station's WORK row makes the exact anchor-and-patch contact, or (DEC-060, ADR 1229) is the tread fitting
 	motion, whose paws need not make an exact certified contact."""
 	return kind == Profiles.CONTACT_ANCHOR_AND_PATCH or kind == Profiles.CONTACT_TREAD_FIT
 

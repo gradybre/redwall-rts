@@ -413,7 +413,7 @@ the L0/T0 station-relative section, or two treads up) and the packet are in ADR 
 **For step 5 in any layout:** the descent's end pose on T_{k−1} (root far + 169) reaches far + 0.7 below 128 u,
 inside the staged bearer. The bearer must therefore arrive after the fitter.
 
-### Brendan's answer (2026-10-08, DEC-058): a general working motion from the 310 u station
+### Brendan's answer (2026-10-08, DEC-060): a general working motion from the 310 u station
 
 Verbatim: **"General digging motion, does not need to line up perfectly."**
 
@@ -468,7 +468,7 @@ without it. So for each tread k the foreman orders the work as follows:
 1. Descend onto T_{k−1}.
 2. Step back to the tread station.
 3. Only then deliver and stage T_k's bearer.
-4. Handle and fit it (DEC-058, candidate b).
+4. Handle and fit it (DEC-060, candidate b).
 5. Ascend.
 
 It is carried by the episode order of the T1–T6 Frontier successor and enforced by the foreman when it continues

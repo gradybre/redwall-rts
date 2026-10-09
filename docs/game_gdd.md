@@ -579,10 +579,12 @@ Meal variety uses last 6 recipe IDs: repeat count 0–1 no penalty;2–3 applies
 | REQ-SET-100 | When a feast is planned, the system shall calculate attendee count, complete ingredient/portion requirements, seating waves, staffing, and post-feast reserves before accepting the plan. |
 | REQ-SET-101 | If a feast would leave fewer than 3 food-days or 3 fuel-days, then the system shall block confirmation until the player explicitly overrides the reserve warning for that feast. |
 | REQ-SET-102 | While a feast is preparing, the system shall reserve only its declared portions and shall release them if cancelled before the serving event. |
-| REQ-SET-103 | When a ready feast begins at 18:00, the system shall serve eligible attendees over up to three one-hour waves and consume each resident's portions only on attendance. |
+| REQ-SET-103 | When a ready feast begins at 17:00, the system shall serve eligible attendees over up to three one-hour waves and consume each resident's portions only on attendance. |
 | REQ-SET-104 | When at least 80% of eligible residents attend all required courses, the system shall grant the theme's settlement buff; otherwise it shall grant attendee meals/social benefits without a settlement buff. |
 | REQ-SET-105 | While a feast buff is active, the system shall apply its declared magnitude/duration once and shall prevent a same-theme stack or duration extension. |
 | REQ-SET-106 | If a feast is interrupted by a critical emergency, then the system shall pause serving, retain unserved reserved portions, and cancel the remainder after 24 game hours if not resumed. |
+
+*Amended 2026-10-07 ([DEC-058](setting_decisions.md#dec-058--every-feast-is-served-at-the-1700-supper), Brendan: "All at 17:00 supper"): REQ-SET-103's feast start moved from 18:00 to 17:00; its up-to-three one-hour waves, attendance and consumption are unchanged, so a feast's waves run within 17:00–20:00. Not yet reconciled: 17:00 falls in the default schedule's last WORK hour (§5.3); the schedule's owner (handoff Q-D14) settles how a feast's first wave meets it.*
 
 Feast costs use actual portions; raw inputs follow the recipe table without a separate hidden fee. Eligible count E is all living residents present at confirmation, including incapacitated residents and excluding residents already in LEAVING or TRANSFERRED status. Incapacitated residents receive bedside service and remain part of the coverage denominator. Batch counts are rounded up; surplus portions remain ordinary inventory.
 

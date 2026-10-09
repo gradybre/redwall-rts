@@ -1493,29 +1493,26 @@ up handling it there and finishes the installation, and nothing is paid twice.
 Engineering record: [decision1225](decisions/1225-entry-crew-replacement.md) ("Amendment: installations").
 
 
-### DEC-058 — Treads are fitted with a general paw working motion; exact contact not required
+### DEC-058 — Every feast is served at the 17:00 supper
 
-On 2026-10-08 Brendan answered the tread question of [decision1217](decisions/1217-claw-digging.md) step 2c (the
-side-on station does not fit a 512 u tread): **"General digging motion, does not need to line up perfectly."**
+2026-10-07 · State: `USER_CONFIRMED`.
 
-As interpreted and relayed by the coordinator session:
+Brendan, 2026-10-07, ruling on handoff question Q-D11 ("the hour of a called feast"): **"All at 17:00 supper".** Every
+feast -- a feast the player calls and the regatta's -- is served at the 17:00 supper, not at 18:00. On decision 1701 the
+same day he approved its P9 (a) as recommended, relayed through the coordinator: record the ruling here and amend the
+specification to match.
 
-- The treads below T0 (T1…T5 and the T6 sill) are fitted with a general paw/claw working motion from ADR 1209's
-  planned tread station: 310 u behind T_{k−1}'s far edge, facing down the stair.
-- The paws need **not** make an exact, certified contact with the bearer. The exact paw-on-bearer contact and patch
-  requirement is dropped for tread fitting.
-- The work is accounted as fitting by the Job/Work model as usual.
-- The physical safety proofs stay:
-  - the feet are supported on the tread;
-  - no body or limb penetrates the deck, the riser, the bearer or the trench walls;
-  - arm-against-body and arm-against-leg self-clearance holds.
+- **GDD REQ-SET-103** now reads "When a ready feast begins at 17:00"; its up-to-three one-hour waves, attendance and
+  consumption are unchanged, so a feast's waves run within 17:00–20:00. `docs/gameplay_balance.md` BAL-RUN-004 and
+  `docs/ui_ux_controls.md`'s "Hold a feast" flow are amended to match.
+- **Not yet reconciled:** 17:00 falls in the GDD's default schedule's last WORK hour (§5.3: WORK 13:00–18:00, SOCIAL
+  18:00–20:00). How a feast's first wave meets that hour belongs to the schedule's owner (handoff Q-D14, the DAYPLAN
+  packet); this ruling does not move the schedule.
+- In the live demo the supper is called at 17:00 and served until 18:59 (decision 0421); with the hall's twelve seats a
+  feast of the demo's nine is one seating, inside it. The regatta was already served then (decision 0438).
 
-Unchanged: the bills (ADR 1209 D3), the tread geometry (D1, D2), and the exact contact still required at L0 and T0.
-
-**Brendan's review (2026-10-08): candidate b approved**, and "the same motion is fine at the sill": there is no separate, lower sill program. The work height stays 131 u at the sill (about 65 u above its bearer).
-
-Engineering records: [decision1217](decisions/1217-claw-digging.md) step 2d and
-[decision1209](decisions/1209-descent-past-t0.md).
+Scope: the settlement GDD and the live demo (`godot/demo/feast/`, `godot/demo/regatta/`). Engineering record:
+decision 1701.
 
 
 ### DEC-059 — The descent is built in one work period; the crew changes shift when tired or hungry
@@ -1546,3 +1543,30 @@ work block. The settlement's double tick of the entry's haul Jobs stays as it is
 
 Engineering records: [decision1229](decisions/1229-stair-travel-runtime.md) and
 [decision1225](decisions/1225-entry-crew-replacement.md).
+
+
+### DEC-060 — Treads are fitted with a general paw working motion; exact contact not required
+
+*Renumbered 2026-10-09: this entry was DEC-058 on branch `claude/ug-paid-start` until master was merged into it; master had already published DEC-058 (the feast supper), so its number stands and this one moved to the next free number. Records written before the merge that cite "DEC-058" for tread fitting mean DEC-060 ([decision 1241](decisions/1241-master-merge-renumbers-dec-058-to-dec-060.md)).*
+
+On 2026-10-08 Brendan answered the tread question of [decision1217](decisions/1217-claw-digging.md) step 2c (the
+side-on station does not fit a 512 u tread): **"General digging motion, does not need to line up perfectly."**
+
+As interpreted and relayed by the coordinator session:
+
+- The treads below T0 (T1…T5 and the T6 sill) are fitted with a general paw/claw working motion from ADR 1209's
+  planned tread station: 310 u behind T_{k−1}'s far edge, facing down the stair.
+- The paws need **not** make an exact, certified contact with the bearer. The exact paw-on-bearer contact and patch
+  requirement is dropped for tread fitting.
+- The work is accounted as fitting by the Job/Work model as usual.
+- The physical safety proofs stay:
+  - the feet are supported on the tread;
+  - no body or limb penetrates the deck, the riser, the bearer or the trench walls;
+  - arm-against-body and arm-against-leg self-clearance holds.
+
+Unchanged: the bills (ADR 1209 D3), the tread geometry (D1, D2), and the exact contact still required at L0 and T0.
+
+**Brendan's review (2026-10-08): candidate b approved**, and "the same motion is fine at the sill": there is no separate, lower sill program. The work height stays 131 u at the sill (about 65 u above its bearer).
+
+Engineering records: [decision1217](decisions/1217-claw-digging.md) step 2d and
+[decision1209](decisions/1209-descent-past-t0.md).

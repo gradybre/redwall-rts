@@ -188,6 +188,16 @@ Review UX-022 (`session/`). **Every pause says why, and there is one Resume.**
   capped, `demo_clock.gd limit_usec`): from 05:40 at 4x, Run until dawn stops at 06:00:00. Any pause or critical event
   first cancels the run, and the card says so ("Run until dawn cancelled: paused (you paused)"); the button reads
   "■ Dawn" while it runs, and the menu has **Stop the run**.
+- **Skip to next season** (decision 1653; Brendan's winter ruling 4, decision 0571, placed in the speed area): "Skip
+  to next season…" beside Close on the Run until… menu's last row (its tooltip names the landing). A click **asks
+  first**: the question, naming the landing, takes the targets' place, with Skip / Cancel (the keyboard on Cancel); Skip
+  calls the same `demo_village.gd skip_to_next_season` as the Demo Lab's trigger (F8, kept), so its effects are the
+  Lab's: the crops, the stores, the weather and the hearths run hour by hour to 06:00 on the next season's first day;
+  the residents' walking and work, the kitchen's meals and the cold they would have felt are not lived (its tooltip and
+  question say so, and the news after it). Not offered while a run is under way; a question answered after the season
+  turned asks again with the new date. F1–F3 do nothing while a pop-up's text field has the keyboard.
+- **F1 / F2 / F3** request 1x / 2x / 4x (UI §5's `time_speed_1/2/4`; decision 1653), as the HUD's speed toggles do:
+  the speed only, never clearing a pause.
 
 ## One village: one calendar, one weather, one water, one feed
 
@@ -396,7 +406,8 @@ into view in its own pixels at any interface scale (`ui/demo_scroll.gd`; decisio
 | Enter / Space | Press the focused button. Only the keyboard's focus takes them: after a click, Enter still digs the piece the Dig tool has laid, Space still pauses and the arrows still pan the camera |
 | Esc | With focus in a panel: back to the world. Otherwise the pop-up, tool or selection ladder below, then the game menu |
 | Space | Pause; paused, Resume (your pause, a planning pause, a critical pause; never the menu's or a stall's) |
-| G | "Run until…" (decision 0471): Tab and the arrows move through it, Enter chooses, G or Esc close it |
+| G | "Run until…" (decision 0471): Tab and the arrows move through it, Enter chooses, G or Esc close it; it also holds Skip to next season, which asks first (decision 1653) |
+| F1 / F2 / F3 | Speed 1x / 2x / 4x (UI §5; decision 1653). A pause stays a pause |
 | F6 | The object list (decision 0471): every resident, crop bed, tree, bridge, tunnel mouth and room; Enter on a row selects it and centres the view on it |
 
 **Accessibility** (decision 0471, review UX-023, `access/`): the game menu's Settings holds four **presets** -- pointing at
@@ -844,7 +855,7 @@ line) points at the tab.
 - **Village goals** (approved by Brendan as built, 2026-10-01; decision 0781): Harvest home (40.0 U into store), Every dish on the table (each of the
   kitchen's dishes cooked), A table for everyone (a supper where every resident ate cooked), A full larder (4.0 days of
   Ready food the village cooked or brought in: the opening wheat and carrots still held are left out, read off the
-  pantry's own lots, whose opening share follows every split, move, merge, meal and spoiling -- decision 0994), Wood for the cold (60.0 U), Over the water (a bridge open), A way below (3 tunnel stretches), A clean
+  pantry's own lots, whose opening share follows every split, move, merge, meal and spoiling -- decision 0994), Wood for the cold (60.0 U), Over the water (a bridge open), First crossing (the ferry has rowed a crossing home: `ferry.gd crossings_done`), Regatta day (a regatta whose feast's main course at least one resident ate: `regatta.gd feasts_served`, so neither a regatta skipped past nor a supper with no hotpot eaten counts, Brendan's rulings of 2026-10-07; both added on Brendan's ruling on decision 0901's question, option (b), decision 1651), A way below (3 tunnel stretches), A clean
   season (a whole season in the planner's record with food harvested and no crop lost), The first winter weathered.
 - **Milestones**: the GDD's M1-M4 (§5.11), every condition a part worded as the GDD states it. What the demo models is
   measured (day, residents, portions prepared, year, winters, Ready food); the rest -- mastery, feasts, specialists,
@@ -1488,8 +1499,8 @@ Review group X (ECO-001, ECO-003, ECO-004 with feature #48, ECO-006, ECO-007). E
 
 - **Crop roles** (0881, `farm/farm_crop_roles.gd`): a crop's role is its §5.6 row's -- Keeping root (keeps 10 days,
   ripens in 5), Fresh greens (sown summer and autumn, keeps 6 days), Soil restorer (gives the soil 800 fertility, keeps
-  20 days), Flour crop (10 U a bed, ripens in 8 days) -- with its uses read from the kitchen's dishes, the mill and the
-  raw-emergency table. Siblings of one row stay equal. Shown in the crop picker and the harvest plan.
+  20 days), Flour crop (10 U a bed, ripens in 8 days) -- with its uses read from the kitchen's dishes, the mill, the
+  stations' recipe rows (decision 1625: roots → pickles, barley → ale) and the raw-emergency table. Siblings of one row grow and keep alike; their uses can differ by item (barley alone makes ale). Shown in the crop picker and the harvest plan.
 - **Twelve field beds** (0886, Brendan's balance ruling E5): the six world beds and the **south field**'s six 2 m tiles,
   one 6 m x 4 m field on the grass south of the covered store, laid from the start, loam and clay.
 - **Sowing in season** (0886): the live village starts with the tending policy **Sow empty beds in season** on for the
@@ -1571,7 +1582,7 @@ supper, whenever the stores hold a batch's fresh fish and roots nobody has set a
 or trout** instead of the soup -- the GDD's `fish_stew` row: fresh fish 2 U (any of the six species) + roots 2 U + water
 2 U, 20 WU, 3 portions of 2200 NP that keep 24 h; both inputs reserved from real lots and withdrawn together. Dried fish is
 not the stew's `fish`: it is the village's reserve, eaten as it is by a hungry resident (1800 NP a unit, after anything
-spoiling sooner). **The feast's dish** (decision 0438): the GDD's `bean_hotpot` row (beans 2 U + cabbage 2 U + water 2 U,
+spoiling sooner). **The feast's dish** (decision 0438): the GDD's `bean_hotpot` row (beans 2 U + greens or roots 2 U since decision 1735 + water 2 U,
 20 WU, 3 portions of 2100 NP, keeping 36 h), cooked for an **occasion** -- the regatta's supper -- from the food the
 regatta reserved. Since the recipe book (decision 0601: Brendan's "the hotpot cooked from the start") it is an everyday
 supper dish as well; the batch 7 integration kept that ruling (decision 0902). Its **second course** (decision 0682), the
@@ -1654,6 +1665,12 @@ Brendan's rulings of 2026-10-01; `winter/`. Presentation only: the settlement si
   the outside air each hour (REQ-SET-131) until wood comes in -- then it burns again the next hour. A hearth glows and
   smokes while it burns (fuelled and demanded: `night_routine.gd hearth_lit(r)`, which the glow reads), and counts for
   its home's comfort while it is fuelled.
+- **The great hall's hearth** (decision 1652; Brendan's batch-7 ruling 5, decision 0902): every hearth burns at its
+  building's tier (`hearth_fuel.gd` THE TIER). Once the hall is raised to tier 2 its hearth burns **×0.75** (3 U a
+  winter day, 1.5 U a cold spring or autumn day; GDD §5.9, REQ-SET-136) and its room holds **20 °C** (REQ-SET-130).
+  The winter reads the hall's tier each game hour (`demo_winter.gd bind_hall_tier`). Today's demand, the fuel-days on
+  the top bar, the last heated hour, the twelve-day projection, the Firewood order's target and M4's fuel goal all sum
+  each hearth at its own rate, and the breakdown names it ("1 hearth at 4.0 U, the hall at 3.0 U").
 - **The day's mean** is the mean of its 24 hours' air, so a demo frost night's spring or autumn day (9.5 °C, 7.8 °C)
   demands heat and the hearths burn through the frost.
 - **Fuel-days** = the wood over today's heating demand plus the last three days' mean cooking wood; with no heating
@@ -2015,7 +2032,157 @@ seasons (`orchard/`). Presentation only; every number not the GDD's is named in 
 |---|---|
 | Left click an orchard tree, a site's pegs, a bush, the baskets, the nursery or the grove's stone | Select it: the **Orchard (demo)** panel takes the right column (it has no tab; any tab takes the column back) -- the thing's readout and verbs (each with its action card), its group's policy, the nursery's plans, the grove's record |
 | Right click one (residents selected) | The nearest does its most pressing work: a tree's harvest (else its tending), an empty site's planting, a bush's picking, the baskets' haul, the grove's observation |
-| Orchard panel | Tend, Harvest, Pick berries, Send baskets on, Plant apple/pear, Plan an apple/pear, Drop the plan, Observe now -- with nobody selected, queued for the Field crew; Timing, To, Keep (the group's policy); Protected (the grove) |
+| Orchard panel | Tend, Harvest, Pick berries, Send baskets on, Plant apple/pear, Plan an apple/pear, Drop the plan, Observe now -- with nobody selected, queued for the Field crew; Timing, Share (a fresh-table share since decision 1721), Keep (the group's policy); Protected (the grove) |
+
+## Hives, honey and wax (decision 1601)
+
+Review group Y's ECO-011 and ECO-012 (`hives/`, inside the orchard's panel and board). Presentation only; every number
+not the GDD's is named in `hives/hive_rules.gd`.
+
+- **The hive is a real Hive row** of `scripts/core/orchard_hive.gd` (GDD §5.6), in the orchard's own store, so its
+  pollination links reach the trees: strength starts 8000 (healthy from 5000); spring to autumn a hive tended that day
+  makes honey 2 U and wax 0.25 U × strength/10000, for 20 WU of service a day; a missed day costs 200 and makes
+  nothing; a tended spring day restores 300; winter makes nothing and eats 0.5 U of honey a day from the hive's feed,
+  a day without it costing 500; at 0 the hive is abandoned.
+- **The apiary** stands from the start north of the field, before the old orchard (one skep, tiles 57..59 × 73..75). Its keeper's work is
+  on the work board under **Orchard**: **Tend the bees** (the day's service, then the collection), **Feed the bees**
+  (winter, when the hive's feed falls short: the pantry's free honey), **Recolonise** (an abandoned hive in spring:
+  honey 4 U and wood 2 U, 60 WU, a 3-day wait).
+- **The winter feed first** (ECO-012): a collection tops the hive's feed up to a whole winter's 6 U before any honey
+  leaves it; the rest goes to the **old orchard's baskets**, and the Haulers send it on with the fruit. Honey is food
+  (the pantry's `honey`, 1440 h, raw-edible 1200 NP); the raspberry cordial no longer waits for it.
+- **Wax** is a material: until the village stores keep it, it waits on the apiary's own shelf (40 U), shown in its
+  readout.
+- **Pollination** (REQ-SET-082, ECO-011): a healthy hive within 12 m gives beans and orchard fruit ×1.10 (×1.15 with
+  two). The apiary reaches the old apple and pear and the four northern field beds (beds 3–6): beans sown there yield
+  ×1.10 (`farm/farm_sim.gd` `pollinate`); the cabbage beds and the east orchard are out of reach. The readout lists
+  what benefits.
+- **Wildlife** (§5.8): at midnight in summer and autumn a 2% roll takes min(2 U, the honey in the hive) -- news, never
+  an injury.
+- **The bees** are the free `fx/bee_swarm.gd` effect over the food art's `bee_skep` (or its placeholder box): out spring
+  to autumn, resting in winter and gone while the hive is abandoned; reduced motion slows and gathers them.
+
+| Input | Does |
+|---|---|
+| Left click the skep | Select the apiary: the **Orchard (demo)** panel -- its strength and season, REQ-SET-083's service and feed deficits, its honey, wax and winter feed, the crops it pollinates, and its verbs |
+| Right click it (residents selected) | The nearest does its most pressing work: the service, else a feeding, else a recolonisation |
+
+## Review group Y's remainders: a sapling moved, carts and shares, two groves, prepared outings (decision 1721)
+
+Brendan's ruling on open question Q-D7 (2026-10-07): "Both, agent proposes numbers". Every number below is a
+PROVISIONAL proposal of decision 1721, named in `orchard/orchard_rules.gd` or `forage/forage_rules.gd`.
+
+- **Moving a sapling** (ECO-009): a planted tree still a sapling (its first 24 days, never an inherited one) may be
+  moved **once** to a free site (empty, not promised to a plan or another move). The Orchard panel's **Move sapling**
+  orders it: a resident lifts it (20 WU), carries it in arms, and replants it (40 WU, compost 4 U taken at the end).
+  The tree keeps its age and health and then **settles 12 days** (its age stands still), so its early fruit and its
+  maturity come 12 days later. Let go before the replanting, the sapling is set back in its hole; the new site is
+  spoken for from the order until the move is over.
+- **Carts** (ECO-010): **Build a cart** at a group's baskets (wood 4 U, 60 WU): its hauls then carry up to **40 U** a
+  trip instead of a basket's 10 U (a basket's load when no store has room for 40). The cart stands beside its baskets
+  and goes ahead of its hauler above ground.
+- **The fresh-table share** (ECO-010): the group's **Share** button steps 0, 25, 50, 75 or 100% to the kitchen pantry,
+  the rest to the best keeping store. Each haul goes where the share is furthest behind, and to the other place when
+  that has no room; the baskets' readout says what share went where this year.
+- **The beech hollow** (ECO-015): a second protected grove, round the foraging trips' mushroom spot, with its own mossy
+  stone, ring, toggle and seasonal record. While a grove is protected, **foraging trips leave its kind a reserve**:
+  10% of the woods' capacity above §5.5's floor (the hazel brake's nuts in the North hollow, the beech hollow's
+  mushrooms).
+- **Prepared outings** (ECO-014), in the Woods panel's Foraging section: a trip is planned to be **home by dusk**
+  (20:00, at the slowest resident's 18 m a game hour): it is refused at night or too late, and a forager at its spot
+  claims only what it can gather and still walk home, **turning back** when that is too little. **Kit ▸** lends the
+  village's one carry kit (its carrier brings two baskets, 8 U); **Lead ▸** names the first selected resident the
+  trip's lead. Each spot **remembers** its latest trip home (when, what, how long, who led) -- shown under the trip,
+  never a bonus. The card says REQ-SET-067's permission is not asked at the woods' danger 1.
+- **Not built**: a rest stop on an outing and rest at a grove wait on a rest need (review group AE's leisure model, as
+  decision 0675 said).
+- Checked by `test_demo_orchard_remainders.gd`, `test_demo_forage_outings.gd` and, on the real scene with real input
+  at 1280x720 and 1920x1080, `test/live/demo_orchard_remainders_live.gd`.
+
+| Input | Does |
+|---|---|
+| Orchard panel, a sapling selected: **Move sapling** | Lift it, carry it and replant it on the first free site (to the nearest selected resident, else the Field crew) |
+| Orchard panel, the baskets selected: **Build a cart** / **Share** | Build the group's handcart; step its fresh-table share |
+| Click the beech hollow's stone | Select the second grove (its section, Protected and Observe now) |
+| Woods panel ▸ Foraging: **Kit ▸**, **Lead ▸** | Take the carry kit; name the first selected resident the lead |
+
+## Preserving: dried fruit and rations (decision 1611)
+
+Feature #18 and the review's ECO-028 (`preserve/`, through the fishery's station jobs). §5.7's preserving rows the demo
+can make; every number not the GDD's is named in `preserve/preserve_rules.gd`.
+
+- **Dry fruit** on the smoking rack, which is §5.9's Dryer (decision 0434): fruit 4 → **dried fruit** 3 (1400 NP a
+  unit), 20 WU to hang, then 12 game hours in its slot with the worker free, then taken down. Fish and fruit share the
+  rack's four slots.
+- **Pack rations** at **the preserving table** west of the kitchen (art pass 3's shelf of jars and salt-glazed crock):
+  flour 2 + dried fish 1 + nuts 1 + water 1 → **rations** 3 (2400 NP a unit), 24 WU, carried to the stores.
+- Both are **pantry items** (dried fruit 720 h, rations 1440 h), aged by where they are kept (a cellar keeps them about
+  three times as long as the covered store) and **eaten as they are** by a hungry resident when a meal is missed --
+  the village's reserve; the kitchen still cooks fresh food first (ECO-028).
+- The inputs that spoil first are set aside when a batch is ordered and taken only when its work starts; cancelled
+  after that, half its food is spoiled (REQ-SET-094). Each button's card says what is short and where to get it.
+- **Not built**: salt fish (salt is coastal brine only, and the village has no coast). Jam, nut cheese and the
+  vinegar pickle came later (decision 1625; "New recipes" below); the salted pickle waits on salt.
+
+| Input | Does |
+|---|---|
+| Water panel ▸ Preserves ▸ **Dry fruit** | 4 U of the fruit that spoils first onto the rack (selected residents first, else the board) |
+| Water panel ▸ Preserves ▸ **Pack rations** | A batch of rations at the preserving table |
+
+## Brewing: mead and the cordial (decision 1621)
+
+Feature #19 and the review's ECO-031, a modest drink culture (`preserve/preserve_rules.gd`'s brewing rows, through the
+fishery's station jobs). Nothing models what drink does: mead is "a feast ingredient only; no intoxication subsystem".
+
+- **The brewery** stands east of the kitchen: art pass 3's mash vat (steam rises over its rim while a batch brews) and
+  conditioning cask. Its **four vats** are §5.9's Brewery's passive slots.
+- **Brew mead** (§5.7 `mead`): honey 3 + water 3 → **mead** 4, 20 WU, then 72 game hours in a vat with the brewer
+  free, then drawn off to the stores (1440 h).
+- **Make cordial**: the raspberry cordial of the recipe book (Brendan's DEC-045, decision 0603: berries 2 + honey 0.5
+  + water 2 → 4, 10 WU, 72 h) at the brewery's bench, kept as a drink. Its honey is the apiary's (decision 1601).
+- **At the feast**: the regatta's supper pours what the brewery has made -- mead and the cordial, a unit each for
+  every four guests, for those who came -- beside the Hearth feast's warm infusion. A drink never decides Shared
+  Warmth, and the preview says which will be poured.
+- **Later**: ale and cider were built by decision 1625 (Brendan's DEC-007 ruling: they follow the mead rule); see
+  "New recipes" below.
+
+| Input | Does |
+|---|---|
+| Water panel ▸ Brewing ▸ **Brew mead** | A batch of mead into a free vat (selected residents first, else the board) |
+| Water panel ▸ Brewing ▸ **Make cordial** | A batch of the raspberry cordial at the brewery's bench |
+
+## New recipes: jam, nut cheese, ale, cider, vinegar and pickles (decision 1625)
+
+Brendan's "Approve and build Q-d5 and dec-007" (2026-10-07): four content-library dishes drafted as station rows in
+`preserve/preserve_rules.gd`, **every number provisional** (decision 1625 names each one's source).
+
+- **Make jam** at the preserving table: berries 2 + honey 1 + water 1 → **berry jam** 3 (850 NP a unit, eaten as it
+  is), 16 WU, keeps 720 h -- the library's honey-sweetened fruit jams.
+- **Make cheese** at the preserving table: nuts 2 + water 1 → **nut cheese** 2 (1600 NP a unit), 16 WU, then 24 h
+  setting in one of the table's **two crocks**, keeps 1440 h -- the library's one salt-free plant cheese.
+- **Brew ale** at the brewery: barley 3 (barley only) + water 3 → **ale** 4, 20 WU + 72 h in a vat, keeps 1440 h.
+- **Make cider** at the brewery: apples 4 (apples only) + water 1 → **cider** 4, 16 WU + 72 h in a vat, keeps 1440 h.
+- **How drink is depicted** (Brendan's ruling on DEC-007's open point): ale and cider follow the mead rule -- a feast
+  or table drink only, never eaten, no intoxication, no effect on Shared Warmth. The regatta's supper pours them with
+  the mead and the cordial, a unit for every four guests.
+- **Make vinegar** at the brewery: apples 4 + water 1 → **apple vinegar** 4, 16 WU + 96 h in a vat, keeps 1440 h --
+  the library's apple vinegar. An ingredient only: never eaten, never poured.
+- **Make pickles** at the preserving table: roots 3 (onions or any farmed root, never potato: Brendan's ruling)
+  + vinegar 1 → **pickles** 3 (800 NP a unit, eaten as they are), 12 WU, then 24 h in a crock, keeps 720 h -- **no salt**: a pickle beyond the library's formulas, by Brendan's
+  approval ("both vinegar and salt", 2026-10-07).
+- **Every ingredient says what the stations make of it**, read from the recipe rows (`preserve_rules.gd`
+  `rows_taking`), so a new row shows without an edit: the crop picker's Uses (roots: the preserving table's pickles;
+  barley: the brewery's ale) and the field guide's Uses (apples: dried fruit, cider, apple vinegar; pears: dried
+  fruit; honey: mead, cordial, berry jam; nuts: rations, nut cheese; berries: cordial, berry jam; flour and dried
+  fish: rations; vinegar: pickles), each linked to the good it makes.
+- **The salted pickle waits on salt**: approved, but the village has no salt path (no coast, no trader), so it is not
+  built; it becomes one more row when salt exists.
+
+| Input | Does |
+|---|---|
+| Water panel ▸ Preserves ▸ **Make jam** / **Make cheese** | A batch at the preserving table (the cheese then sets in a crock) |
+| Water panel ▸ Preserves ▸ **Make vinegar** / **Make pickles** | Vinegar into a free vat at the brewery; pickles packed into a crock at the preserving table |
+| Water panel ▸ Brewing ▸ **Brew ale** / **Make cider** | A batch into a free vat |
 
 ## Water
 
@@ -2167,6 +2334,31 @@ Fishing trips feed the pantry through the real fishery (`fishery/`, `boats/`): t
   (decision 0602). The sound: a splash where a net
   or trap goes in, a boat pushes off or a hole is cut, and the oars' knock as a boat rows.
 
+## The fishing revamp: hazards, catch plans, collection and stewardship (#49; decisions 1711-1713)
+
+- **Hazards** (REQ-SET-053): every completed fishing cycle rolls §5.4's injury chance -- net 12, trap 8, boat 20, ice 24
+  in 10000, less 2 for each level of the crew's fishing skill and 4 for a boat's second crew, never below 1 -- on the
+  core RNG's FISHING stream (`fishery/fishing_rolls.gd`). A hit on a net or trap is a bite from a pike or a territorial
+  eel (which, by the habitat and the day): severity 1, −20 health. On a boat or the ice it is cold-water exposure:
+  severity 2, −35. The trip's first fisher (a boat's helm) is hurt through the infirmary, which says so in the news and
+  takes the patient to a bed once the catch is landed. The demo stays non-fatal (the infirmary's health floor).
+- **A fine catch**: the same cycle rolls §5.4's rare bonus, `100 + 30 x skill` in 10000 (at most 1000); a success books a
+  quarter of the catch as excellent, said in the feed and totalled on the trips line. The pantry keeps no quality yet, so
+  it is stored as plain fish. Both rolls are drawn when the cycle opens at the water and kept if the trip is then called
+  off.
+- **Catch plans** (Water panel ▸ Fishing ▸ **Fish ▸**): after the water's three fish comes **Best catch**, the GDD's auto
+  mode -- the legal fish with the most expected nourishment for the work, then the one closing soonest, then the table
+  order. It is chosen again at the water, so a fish that closed on the way is replaced. A chosen fish that is closed
+  waits instead, and the refusal names the day it reopens.
+- **Traps: when soaked / morning run** (Fishing ▸ the stewardship row): new traps are collected as soon as their 6 h soak
+  is done, or on the morning run (06:00-10:00) -- unless their fish closes tomorrow, when they are collected at once.
+- **Each water's record** (under the gear): the catch landed over the last 12 days, the stock and its change today, the
+  fishing places in use, the intensive policy, and for any fish restocking (below 30% until back above 40%) the days
+  until it is back above 40% with no fishing.
+- **Intensive: off / on** for the chosen water: its card, and the first press, show the 10% hard floor it allows and
+  each fish's days from that floor back above 40%; a second press accepts it ("Intensive: press to accept"). One press
+  turns it off. Never during a closure; never reset by itself.
+
 ## The ferry and the regatta (water part B lane 3; decisions 0437-0439)
 
 Brendan approved ferries and the regatta feast with the rest of water part B (decision 0493, group K), though the review
@@ -2206,16 +2398,16 @@ rated the ferry "Stretch" and moving vessels lie outside the adopted movement sc
 **The regatta** (`regatta/regatta.gd`; numbers in `regatta_rules.gd`; decision 0438) -- a once-a-season occasion, the
 first in summer:
 
-- **Water panel ▸ Regatta** (or the HUD's **Feast** command, unlocked for it): **◀ Day / Day ▶** (the season's days from
+- **Water panel ▸ Regatta** (or the Feasts panel's **The regatta…**, from the HUD's **Feast** command; decision 1701): **◀ Day / Day ▶** (the season's days from
   tomorrow; before summer, summer's), **Host ▸** (anyone but the village cook), and the **preview** -- the GDD's Hearth
-  feast for every resident: bean hotpot ×ceil(E/3) (beans and cabbage, free in the pantry), the second course -- **nut
+  feast for every resident: bean hotpot ×ceil(E/3) (beans and greens or roots, free in the pantry -- the book's selector, decisions 1735 and 1701), the second course -- **nut
   loaf** ×ceil(E/3) (flour from the mill, nuts from a foraging trip) -- and the **warm infusion** (water and herb), each
   read from the pantry's real stock and, when short, named with its shortfall and fix (decision 0682, Brendan's ruling
   "add nuts & herbs now"); the **Shared Warmth** line (cold exposure −25%, mood +400 for 48 h if 80% eat every course);
   seats, staffing,
   the 1 U of service wood, the reserves after it, and the race's crews and paces. **Hold the regatta** refuses what is
   invalid with its fix; under 3 days of ready food or wood it needs **Override reserves** (REQ-SET-101). Held, the feast's
-  beans and cabbage are reserved at once and its wood set aside. **Skip this season** costs nothing and gives everything
+  beans and greens or roots are reserved at once and its wood set aside. **Skip this season** costs nothing and gives everything
   back. Once a season: held or skipped, the season is done.
 - **The day**: crews called at 13:00 to the boathouse jetty; at 15:00 both rowboats race out to a floating barrel and
   home, each at its crew's fishing-skill pace (deterministic; equal paces a dead heat); the otters sing their work songs
@@ -2519,6 +2711,133 @@ ruled). No illness is modelled: the family illnesses (CHILL) are a draft.
   so a hurt, Chilled resident works at 68% (decision 0902). HEAL work reads it, and the winter writes it into each
   resident's `work_permille`, which the outdoor crews credit their work by -- once, never twice.
 
+## Wildlife (decision 1631; feature #11)
+
+Robins hop and peck about the lawn and paths and fly from spot to spot; peacock butterflies flutter over the beds and
+settle on the plants; common frogs sit on the pond's bank and hop along it; brown trout leap in the pond and the
+stream's run (`wildlife/`). They are the rigged art pass 2 models (decision 0951) at DEC-047's sizes: robin 0.45 m,
+butterfly 0.36 m across, frog 0.40 m, trout 0.80 m. **Ambient, never simulated**: what shows is a function of the
+season, the hour and the weather (`wildlife_rules.gd`), and nothing is written anywhere (REQ-SET-059/065, the fauna
+contract's "no active fauna"). Nobody can select, feed or hunt them (REQ-ADM-001).
+
+| | When | Does |
+|---|---|---|
+| Robin | all year (fewer in winter), in daylight; half in rain or snow | rests, pecks, hops, flies to another spot; **takes wing when a resident on the surface comes within 1.6 m** (not in rain or snow) |
+| Butterfly | spring to autumn, dry daylight at 10 °C or more | flutters round its spot, settles on a plant top, rises again |
+| Frog | spring to autumn, day and night, above freezing | sits facing the water, hops along the bank and back |
+| Trout | spring to autumn, in daylight | leaps every 6-16 s, along the run's flow or round the pond |
+
+- **Reduced motion** stills them: no hops, flights, flutters or leaps; each still breathes in its idle clip.
+- **Paused**, they hold, clips and all; at 2x and 4x they run faster.
+- **Pooled**: 14 animals and 4 robin flight bodies are built once; a hidden body's AnimationPlayer is off; every mesh is
+  culled past 55 m. The boot prewarm draws them all once.
+- **Not staged** (CI), each is a rounded stand-in of its size and colour, so the suites test the same logic.
+- The live harness: `godot --path godot --script res://test/live/demo_wildlife_live.gd -- --size 1920x1080 --capture <dir>`.
+
+## Livelier weather (decision 1632; feature #34)
+
+Each of GDD §5.10's seven events is shown and felt by its numbers (`weather/weather_fx.gd`, `event_look.gd`,
+`weather_events.gd`, `storm_pace.gd`). The forecast says the event, its first day, its length and what it does
+(REQ-SET-142); the village is told when it begins and when it is over.
+
+| Event | Applied | Shown |
+|---|---|---|
+| Storm (heavy rain) | rain +2000, 3 °C colder; boats stay at the jetty; **outdoor work at 80%** | driven rain, a dark sky, **lightning** over the trees and open ground |
+| Drought | 30 °C, no rain, beds dry faster; orchards want water | the grass parched straw-brown, a heat haze |
+| Blight | crops lose 400 health a day | the farm's blighted beds |
+| Early frost | -3 °C, frost on the beds | a rime lying all its days |
+| Hard freeze | -12 °C; outdoor cold twice as fast; no boat leaves | a heavy hoar frost, a freezing mist, a low cold sun |
+| Calm days | nothing (an announced safe interval) | the notice |
+| Ideal spell | 18 °C, crops grow 20% faster, gentle rain | a little brighter |
+
+- **The storm's 80%** is one factor, "storm", on the village's work pace: residents outdoors on a storm day, not those
+  inside a building or below ground. The woods' and the bridge builders' own storm slowdowns are gone (they counted it
+  for themselves only).
+- **Lightning** strikes a standing tree or open ground near where the camera looks -- never a building (the village's,
+  the mill, the boathouse, the shelter, the weir, anything the player has built), the water or within 6 m of a resident
+  -- every 5-12 demo seconds while a storm day rains. A struck tree's foot smoulders briefly and the rain puts
+  it out; nothing burns down (GDD §5.9: no structure fire in release 1).
+- **Photosensitivity**: the flash runs in real time at any game speed, strikes are at least 3 real seconds apart, and
+  with **reduced motion** each strike is one soft swell.
+- **Paused**, a strike holds still and nothing new strikes.
+- The live harness: `godot --path godot --script res://test/live/demo_weather_live.gd -- --size 1920x1080 --capture <dir>`.
+
+## Called feasts (decision 1701; feature #9)
+
+The HUD's **Feast** command opens the **Feasts** panel: call one of GDD §5.7's three feasts for one of the next three
+suppers (today's before 15:00), with a keeper who does not cook it (`feast/`).
+
+| Theme | Main course | Second course | Beverage | Buff (48 h) |
+|---|---|---|---|---|
+| Hearth | ceil(E/3) bean hotpot | ceil(E/3) nut loaf | warm infusion (water ceil(E/4), herb 0.25 x ceil(E/12)) | Shared Warmth: cold exposure −25% (applied to the winter's cold), mood +400 (shown) |
+| Harvest | ceil(E/6) feast fish | ceil(E/3) berry tart | mead ceil(E/4) (and cider, if there) | Abundant Tables: work +5% (on the work pace), purpose +20% (shown) |
+| Orchard | ceil(E/4) nut roast (SET-AMEND-001 §4.2) | ceil(E/3) orchard crumble | mead ceil(E/4) (and cider, if there) | Rooted Community: social decay −20%, +2 newcomers (shown) |
+
+- **Every feast is served at the 17:00 supper** (Brendan's ruling on Q-D11, 2026-10-07: "All at 17:00 supper";
+  REQ-SET-103 amended by DEC-058); the kitchen seats the guests in turns at the hall's seats.
+- **Refused truthfully**, with the fix: a keeper who cooks, too few hands (2 cooks + 1 keeper), another feast planned
+  (the regatta's included: one at a time) or begun within 72 game hours, any course's or the beverage's input short
+  ("needs mead: 2.0 U (0.0 U free) — the brewery's mead"), the service wood, the seats (ceil(E/3)), and REQ-SET-101's
+  reserves after it -- ready food without the feast's reservation and §5.8's fuel-days over the hearths and the
+  kitchen -- unless **Override reserves** is on for this feast.
+- **Its own supper's food counts**: a feast called (or a regatta planned) for a supper the kitchen has already planned
+  counts the food that meal holds, since the feast replaces it (Brendan's ruling on 1701 P6).
+- **Called**, everything is reserved (both courses in the kitchen's occasion, the beverage, the service wood); **Cancel**
+  before 17:00 gives it all back. At 17:00 it is served; once the kitchen finalizes the supper it is tallied: who came,
+  the beverage poured for them, the buff when 80% ate every course, +5 friendship a pair, one chronicle line.
+- A feast at least one resident ate is **completed**: M4's "12 completed feasts" counts these and the regatta's.
+- **Cider beside the mead** at the Harvest and Orchard feasts (Brendan's ruling, 2026-10-07): ceil(E/4) U when the
+  brewery has it all, poured for those who came under the mead rule -- never required, no intoxication, no buff.
+- The four new courses are recipe-book rows (`kitchen/dish_book.gd`, OCCASION dishes, never the cook's choice); their
+  icons fall back to swatches (no dish art yet).
+- The live harness: `godot --path godot --script res://test/live/demo_feast_live.gd -- --size 1920x1080 --capture <dir>`.
+
+## The balance rerun's tuning (decisions 1732-1737)
+
+Brendan's rulings of 2026-10-07 on the balance rerun's proposals (decision 1731;
+`docs/balance/2026-10-07-year-matrix-rerun.md`):
+
+- **A portion and a half a diner** (1732, P1 (b)).
+  - **Planning.** The kitchen plans ceil(1.5 × residents) portions a meal (`meal_rules.gd portions_for`).
+  - **Eating.** Every diner eats a portion, then half of them take a second, by turns: resident i at meal key k when
+    i + k is even, so three portions (5400 NP) a resident a day. The turns rule is a PROPOSAL.
+  - **A second helping is food only.** It is never a second entry in the meal's event, tally or variety history, and it
+    is never taken while someone still waits for a first.
+  - **Occasions.** An occasion's meal has no seconds.
+  - **The setting.** `kitchen.portion_halves` (3) is per kitchen. Suites about other mechanics set 2.
+- **The cordial** (1733, P2 (a) + (c)).
+  - **Shelf.** It keeps 240 h.
+  - **Pouring.** `kitchen/table_drink.gd` pours ceil(diners/4) U of free cordial at every ordinary supper somebody ate,
+    reading the kitchen's published meal events. A feast pours its own. A feast cancelled (or a regatta skipped) before
+    its supper cooked is an ordinary supper again, and pours (`kitchen.meal_under_way`; 1733's fix of 2026-10-08).
+- **Ordering a drink** (mead, the cordial, ale, cider) **warns** when the stores already hold two feasts' worth, 6 U (1734,
+  P3 (b)). The warning goes on the card and in the order's answer, and the order is never refused.
+- **The bean hotpot** takes beans and greens **or roots** (1735, P5 (a)), so the rotation's peas are eaten. Ready food
+  counts it, pooling the two categories.
+- **"Eaten raw: N days" beside Ready food** (1736, P7 (a)).
+  - **What it counts.** `kitchen/raw_reserve.gd` counts the free raw-edible food Ready food does not count, at its NP,
+    over a day of portions.
+  - **Where it shows.** On the ledger's food line ("Ready food: 2.5 days · raw 0.4 days") and in the cell's tooltip.
+  - **How often.** It is worked out at most once a game hour.
+- **Fish for the rack** (1739, F3 (a) and F5 (b)). Dry fish may take fish the kitchen planned for meals beyond the next
+  one, in store or already fetched to the kitchen, store first (`kitchen.gd` FISH FOR THE RACK) -- never the next
+  meal's, an occasion's, a meal cooked or cooking, or fish in the cook's hand.
+- **Grain for the mill** (1741, F6). The mill may take grain planned for meals beyond the next under the same rule
+  (`kitchen.gd beyond_next_meal_milli` / `release_beyond_next_meal` by category; `fishery.gd grain_available_milli`).
+- **The ration reserve** (1742, F7 (b)). While the rations owned are below the target (the GDD's WorldPolicy
+  `ration_reserve_milli`; the demo sets a PROVISIONAL 6 U), `preserve/ration_reserve.gd` holds one batch's dried fish,
+  nuts and flour (or a mill batch's grain) back from the kitchen and raw eating. The Water panel's Preserves section
+  shows what it holds, steps its target (◀ Keep fewer / Keep more ▶, 3 U a press up to 30 U) and offers §5.10's
+  emergency release (Release food reserves, its card saying what it frees).
+- **The rations' dried fish** (1740, F5 (a)). A raw meal leaves the dried fish one batch of rations takes, 1 U
+  (`kitchen.gd` FOOD KEPT FROM RAW EATING, bound to `fishery.gd ration_keep_milli`), only while a batch could be made
+  but for it (`rations_wait_on_dried_fish`, a PROPOSAL). The kitchen may still cook it.
+- **A batch holds its water** (1737). `fishery.gd water_held_milli` is the water of batches ordered but not yet started,
+  and a batch's refusal and card see the butt less that hold. Only the fishery's own orders see it: the butt
+  (`tunnel_stores.gd`) keeps no reservations.
+
+No key is added.
+
 ## Layout
 
 | Folder | Owns |
@@ -2539,10 +2858,11 @@ ruled). No illness is modelled: the family illnesses (CHILL) are a draft.
 | `fishery/` | Water part B: the trips, jobs and stations (`fishery.gd`, its rows `fishery_tables.gd`, its task), the numbers (`fishery_rules.gd`), the real gear locker over gear.gd, the FISH skill, the pond's ice, the words, the drawing and the node wiring it into the village (`demo_fishery.gd`) |
 | `boats/` | The boat core: the jetties, berths and fixed routes (`boat_routes.gd`; the ferry's stages and third boat, decision 0437), the boats as integer rows (`boat_fleet.gd`), their drawing, and the boat as a rescue rank (`boat_rescue.gd`) |
 | `ferry/` | The ferry (decision 0437): its rules, the crossings, the far copse, the stacks, the passengers and the books (`ferry.gd`), its task, its drawing, and the node wiring it into the village, the Water panel and the incidents (`demo_ferry.gd`) |
-| `regatta/` | The regatta (decision 0438): its rules (the GDD's Hearth feast, the race), the occasion, race and tally (`regatta.gd`), the crews' task, and the node wiring it into the village, the Water panel and the HUD's Feast command (`demo_regatta.gd`) |
+| `regatta/` | The regatta (decision 0438): its rules (the GDD's Hearth feast, the race), the occasion, race and tally (`regatta.gd`), the crews' task, and the node wiring it into the village and the Water panel (`demo_regatta.gd`; the HUD's Feast command is the feasts' since decision 1701) |
+| `feast/` | The called feasts (decision 1701): the themes' numbers (`feast_rules.gd`), a theme's menu, shortfalls, reservation and pour (`feast_menu.gd`), the buffs (`feast_buffs.gd`), the plan, interval, reserves, day and tally (`called_feast.gd`), the words, the Feasts panel, and the node wiring it into the village, the regatta, the winter's cold, the work pace and the HUD's Feast command (`demo_feasts.gd`) |
 | `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel; whose water range the map layer paints (`water_range.gd`) |
 | `farm/` | The farm: real FarmPlot rows, the pantry (and its ledger) and its storage providers, the Pantry's Stocks table (`farm_pantry_rows.gd`), the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves; the seasonal planner -- its overview rows, season calendar and timeline, soil plans, the after-action record and its tables (`farm_planner*.gd`, `farm_plan_rows.gd`, `farm_season.gd`, `farm_timeline.gd`, `farm_soil_plan*.gd`, `farm_record*.gd`) -- and the bed panel's Compare view (`farm_compare_view.gd`); the crop plans -- crop roles (`farm_crop_roles.gd`), the kitchen garden (`farm_garden*.gd`), harvest plans (`farm_harvest_*.gd`), tending policies (`farm_tending*.gd`) and the tunnel outlet box (`farm_outlet_box.gd`) |
-| `kitchen/` | The meal loop: the recipe book (`dish_book.gd`) and each species' favourites (`dish_favourites.gd`), the dishes' columns and numbers (`meal_rules.gd`), the portions (`meal_store.gd`), the ingredient holds (`ingredient_takes.gd`), nourishment, the kitchen and its places, task and words, the steam, bowls and carrying (`kitchen_view.gd`), the Pantry's Kitchen tab and the node with the kitchen pantry (`demo_kitchen.gd`) |
+| `kitchen/` | The meal loop: the recipe book (`dish_book.gd`) and each species' favourites (`dish_favourites.gd`), the dishes' columns and numbers (`meal_rules.gd`), the portions (`meal_store.gd`), the ingredient holds (`ingredient_takes.gd`), nourishment, the kitchen and its places, task and words, the steam, bowls and carrying (`kitchen_view.gd`), the Pantry's Kitchen tab and the node with the kitchen pantry (`demo_kitchen.gd`); the supper's table drink (`table_drink.gd`) and the raw reserve beside Ready food (`raw_reserve.gd`) (decisions 1733, 1736) |
 | `orchard/` | The orchard (decisions 0671-0677): its numbers (`orchard_rules.gd`), the trees as real rows with the hedge, nursery plans, groups and the grove (`orchard_model.gd`), the jobs and their task (`orchard_jobs.gd`, `orchard_task.gd`), the words and cards (`orchard_text.gd`, `orchard_cards.gd`), the panel, the drawing, and the node wiring it into the village (`demo_orchard.gd`) |
 | `seasons/` | The seasons on the woods and ground (decision 0551): the sampling (`season_look.gd`), the view that writes it to every tree, the ground and the tufts (`season_view.gd`), the leaf shader include and the in-leaf tree shader, the bare boughs and the falling leaves |
 | `forestry/` | The woods: the trees as real ResourceNode rows, zones, deadfall, skills, the job board and crew, the yard, the drawings (falls, stumps, trunks, particles, zone marks), the pick, the zone tool and the Woods panel |

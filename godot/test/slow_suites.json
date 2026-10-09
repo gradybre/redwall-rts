@@ -1,10 +1,12 @@
 {
   "version": 1,
-  "note": "The slow test tier (decision 1240): suites measured over threshold_seconds in a full run, plus test_checkpoint_equivalence.gd, which replays every checkpoint recipe from tick 0 by design. ./tools/run_tests.sh --fast skips them, --slow runs only them; the default run and CI run everything. Values are whole seconds measured on Brendan's Mac in the full run at 6cc169f9 (test_settlement_save_underground.gd and test_checkpoint_equivalence.gd re-measured alone at 686b948c). Re-measure and edit this list when a suite crosses the threshold either way.",
+  "note": "The slow test tier (decision 1240): suites measured over threshold_seconds in a full run, plus test_checkpoint_equivalence.gd, which replays every checkpoint recipe from tick 0 by design. ./tools/run_tests.sh --fast skips them, --slow runs only them; the default run and CI run everything. Values are whole seconds measured on Brendan's Mac in the full run at 6cc169f9 (test_settlement_save_underground.gd and test_checkpoint_equivalence.gd re-measured alone at 686b948c). Re-measure and edit this list when a suite crosses the threshold either way. test_demo_feast_live.gd and test_demo_orchard_remainders_live.gd (from master) measured in the --fast run of the 2026-10-09 master merge (ADR 1241).",
   "threshold_seconds": 60,
   "slow": {
     "test_checkpoint_equivalence.gd": 39,
     "test_demo_care_live.gd": 165,
+    "test_demo_feast_live.gd": 80,
+    "test_demo_orchard_remainders_live.gd": 86,
     "test_settlement_save_parity.gd": 575,
     "test_settlement_save_underground.gd": 250,
     "test_underground_connector_delivery.gd": 74,

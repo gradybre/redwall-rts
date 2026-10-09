@@ -616,6 +616,34 @@ func test_rowing_home_lists_nothing_of_this_crossing_and_no_departure_before_it_
 	rig.ferry.x_serial = 0
 
 
+func test_each_state_of_a_crossing_under_way_boards_where_it_still_loads_and_is_home_when_its_rows_are_done() -> void:
+	"""At 09:00 (row 380; half the course 190), per state: when it next loads at home and at the far stage (-1: not
+	again) and how soon it can be home. Posted with no crew yet: from the 10:00 departure (750). Homeward and stepping
+	off, nowhere and now; at the far stage, there now and home a row on; none under way, nowhere and now."""
+	var rig: Rig = _rig(9)
+	_helm(rig, 4, 2)
+	var full: int = rig.fishery.fleet.course_len_u[Routes.FERRY_BOAT]
+	@warning_ignore("integer_division") var half: int = full / 2
+	var cases: Array = [
+		[FerryScript.NEAR, FerryScript.X_WAITING, FleetScript.PHASE_MOORED, 0, 750, 1130, 1510],
+		[FerryScript.NEAR, FerryScript.X_LOADING, FleetScript.PHASE_MOORED, 0, 0, 380, 760],
+		[FerryScript.NEAR, FerryScript.X_UNLOADING, FleetScript.PHASE_MOORED, 0, -1, -1, 0],
+		[FerryScript.NEAR, FerryScript.X_HOMING, FleetScript.PHASE_MOORED, 0, -1, -1, 0],
+		[FerryScript.FAR, FerryScript.X_ROWING, FleetScript.PHASE_OUT, half, -1, 190, 570],
+		[FerryScript.FAR, FerryScript.X_UNLOADING, FleetScript.PHASE_ON_STATION, full, -1, 0, 380],
+		[FerryScript.FAR, FerryScript.X_LOADING, FleetScript.PHASE_ON_STATION, full, -1, 0, 380],
+		[FerryScript.NEAR, FerryScript.X_ROWING, FleetScript.PHASE_BACK, half, -1, -1, 190]]
+	var now: int = rig.ferry.now_tick()
+	for c: Array in cases:
+		_underway(rig, c[0], c[1], c[2], c[3])
+		var got := [rig.ferry._underway_board(FerryScript.NEAR), rig.ferry._underway_board(FerryScript.FAR),
+			rig.ferry._home_again(now) - now]
+		assert_equal(got, [c[4], c[5], c[6]], "state %d at stage %d" % [c[1], c[0]])
+	_underway(rig, FerryScript.NEAR, FerryScript.X_NONE, FleetScript.PHASE_MOORED, 0)
+	rig.ferry.x_serial = 0
+	assert_equal([rig.ferry._underway_board(FerryScript.FAR), rig.ferry._home_again(now) - now], [-1, 0], "none under way")
+
+
 func test_rowing_home_the_boat_boards_nobody_at_home() -> void:
 	"""At home a crossing loads only setting out: loading there, a passenger boards now; rowing home (it only unloads
 	there), the wait at home is the next departure, not the row; rowing out to the far stage, the far stage waits a

@@ -660,6 +660,28 @@ func test_each_state_of_a_crossing_under_way_boards_where_it_still_loads_and_is_
 	assert_equal([rig.ferry._underway_board(FerryScript.FAR), rig.ferry._home_again(now) - now], [-1, 0], "none under way")
 
 
+func test_a_seat_booked_on_the_crossing_under_way_offers_the_first_departure_after_it() -> void:
+	"""Loading at home with resident 5 waiting there for its seat: resident 2 is offered not this crossing but the first
+	departure after it is surely home (12:00), and only one boarding is skipped."""
+	var rig: Rig = _rig(9)
+	_helm(rig, 4, 2)
+	rig.ferry.begin_passenger(rig.ferry.brain_of(5), false)
+	_underway(rig, FerryScript.NEAR, FerryScript.X_LOADING, FleetScript.PHASE_MOORED, 0)
+	assert_equal(_boardings(_filled(rig, 2), FerryScript.NEAR)[0], 3 * SimClock.TICKS_PER_HOUR, "12:00")
+	_underway(rig, FerryScript.NEAR, FerryScript.X_NONE, FleetScript.PHASE_MOORED, 0)
+	rig.ferry.x_serial = 0
+	rig.ferry.abandon_passenger(rig.ferry.brain_of(5))
+
+
+func test_the_scheduled_boardings_follow_the_timetables_own_next_departure() -> void:
+	"""With nothing under way the first scheduled boarding is the timetable's next departure (`next_departure`), which
+	the timetable moves on as departures pass: set to 12:00 at 09:00, the listing starts there, not at 10:00."""
+	var rig: Rig = _rig(9)
+	_helm(rig, 4, 2)
+	rig.ferry.next_departure = rig.ferry.now_tick() + 3 * SimClock.TICKS_PER_HOUR
+	assert_equal(_boardings(_filled(rig, 2), FerryScript.NEAR)[0], 3 * SimClock.TICKS_PER_HOUR, "12:00")
+
+
 func test_rowing_home_the_boat_boards_nobody_at_home() -> void:
 	"""At home a crossing loads only setting out: loading there, a passenger boards now; rowing home, all but moored (it
 	only unloads there), the wait at home is the next departure it is surely home for (10:00), not the row; rowing out

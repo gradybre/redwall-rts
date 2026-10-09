@@ -125,7 +125,7 @@ func test_the_ledger_shows_the_stock_behind_the_days() -> void:
 	var model := ModelScript.new()
 	model.bind_meals(kitchen)
 	var line: String = model.ledger_line(ModelScript.CELL_FOOD, kitchen.days_of_meals_milli())
-	assert_equal(line, "Ready food: 1.1 days · raw 0 days\n0 portions · 20 scoops of grain · no roots", "the ledger")
+	assert_equal(line, "Ready food: 1.1 days · raw 0 days\n0 portions · 4 baskets to cook", "the ledger: 20 U of grain, in baskets of food")
 	assert_true(("Ready food: %s · raw %s" % [Words.days_value(12500), Words.days_value(12500)]).length() <= 37,
 		"the longest line keeps to the ledger's width")
 	assert_equal(model.tooltip(ModelScript.CELL_FOOD, kitchen.days_of_meals_milli()), "Ready food: 1.1 days of meals "

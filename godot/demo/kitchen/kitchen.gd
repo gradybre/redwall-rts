@@ -2786,18 +2786,13 @@ func held_for_meal_milli(key: int, selector: int) -> int:
 
 
 func ledger_lines() -> PackedStringArray:
-	"""What is behind the Ready food figure, for the ledger -- one line, as the shell's ledger is a fixed size: the
-	portions held and the raw grain and roots ("5 portions · 18 scoops of grain · 2½ baskets of roots"; the water, wood
-	and cook are the Kitchen tab's)."""
-	var line: String = "%d portions · %s · %s" % [store.portions(), _crop_words(Rules.INPUT_CROP[Rules.DISH_PORRIDGE]),
-		_crop_words(Rules.INPUT_CROP[Rules.DISH_SOUP])]
-	var fish: int = Rules.INPUT_CROP[Rules.DISH_FISH_STEW]
-	return PackedStringArray([line if _crop_milli(fish) == 0 else "%s · %s" % [line, _crop_words(fish)]])
-
-
-func _crop_words(crop: int) -> String:
-	"""Every milli-U of crop row `crop` in the pantry, in its category's measure ("18 scoops of grain")."""
-	return Measures.amount(Rules.selector_good(crop), _crop_milli(crop))
+	"""What is behind the Ready food figure, for the ledger -- one line, as the shell's ledger is a fixed size (eight
+	lines at 296 px, about 37 characters): the portions held and the raw grain, roots and fish the kitchen could cook,
+	together in baskets of food ("5 portions · 18 baskets to cook"; decision 1801: naming each in its own measure ran
+	to two lines and pushed the ledger's last line out; the Pantry's Stocks and the Kitchen tab name them)."""
+	var raw: int = _crop_milli(Rules.INPUT_CROP[Rules.DISH_PORRIDGE]) + _crop_milli(Rules.INPUT_CROP[Rules.DISH_SOUP]) \
+		+ _crop_milli(Rules.INPUT_CROP[Rules.DISH_FISH_STEW])
+	return PackedStringArray(["%d portions · %s to cook" % [store.portions(), Measures.amount_cell(&"food", raw)]])
 
 
 func stock_rows() -> Array[PackedStringArray]:

@@ -457,6 +457,8 @@ func _ready_food_says_eaten_raw() -> void:
 	_check("the ledger is open", ledger.visible)
 	_check("the food line says raw", line.contains("Ready food: ") and line.contains(" · raw "), line.replace("\n", " / "))
 	_check("the ledger keeps its eight lines", line.split("\n").size() == 8, str(line.split("\n").size()))
+	var shown: int = (shell.call(&"ledger_label") as Label).get_line_count()
+	_check("no ledger line wraps (decision 1801: natural measures are longer)", shown == 8, str(shown))
 	var tip: String = (shell.call(&"control_for", ID_FOOD) as Control).tooltip_text
 	_check("the tooltip says eaten raw", tip.contains("Eaten raw: "), tip)
 	_check("the ledger fits the window", _fits(ledger.get_global_rect()), str(ledger.get_global_rect()))

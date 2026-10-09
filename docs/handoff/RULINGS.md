@@ -141,6 +141,7 @@ Every row was checked against the record named.
 
 | Topic | Ruling | Recorded in |
 |---|---|---|
+| Boat crossing rows (1821's P1–P5, PR #242) | All five approved as recommended: P1 (a) boat rows 1–7 unused until needed, river trade's boats only once trade is scoped; P2 (a) fishing boats stay task-driven, never crossing rows; P3 (a) no margin at the landing; P4 (a) Q-D17 (river trade) still held, not asked; P5 (a) the ferry keeps skipping a departure due while a crossing is out. The ferry's wait priced from the walker's arrival stands as a fix inside the approved ferry. (Relayed by the coordinator) | 1821 |
 | 1801's blocker B1 (the settlement HUD's `ui_manager.gd`, pinned by the underground memory pack) | **(a), "Update the pin"**: the established ADR 1212 projection update for `godot/scripts/systems/ui_manager.gd` (master's bytes archived, a reviewed-delta row with no storage change, `PROJECTION_SHA` / `REVIEWED_SHA` bumped, the pack regenerated) is authorised. (Relayed by the coordinator) | 1801 |
 | 1801's proposals (P-M1–P-M8) | P-M1 **(a)**, the new goods' measures as built, with P-M3 **(b)**: the cask shows halves. P-M2, P-M5, P-M7, P-M8 **(a)**, as recommended. P-M4 **(b)** and P-M6 **(b)**, as recommended, **as follow-ups, not on the MEAS-2 branch** (BACKLOG MEAS-FOLLOWUPS). (Relayed by the coordinator) | 1801; `docs/handoff/BACKLOG.md` MEAS-FOLLOWUPS |
 

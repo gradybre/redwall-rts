@@ -2640,6 +2640,12 @@ func interrupt_to_task(new_task: TaskScript) -> void:
 	new_task.arrived(self)
 
 
+func base_speed(loaded: bool) -> float:
+	"""Its pace on dry ground before the weather (m/s): the carry's own when `loaded` and it has one, else the walk's --
+	the pace a planned route's metres are walked at (a boat row's arrival: decision 1821)."""
+	return _carry_speed if loaded and _carry_speed > 0.0 else walk_speed
+
+
 func leg_speed() -> float:
 	"""The pace a crossing is walked at on land or a deck: the carry's own with a load, else the walk's,
 	times the weather's surface speed (m/s)."""

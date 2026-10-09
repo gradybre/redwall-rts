@@ -265,3 +265,28 @@ is in the same 3D-render style and the same cut as the nine above, and `make_art
 | `item_wax_comb` | 2,2 | Alternate: empty comb, as wax comes from the skep |
 
 Add the rows to the manifest's top-level `icons` section, as for the nine above.
+
+## The eleven dishes' icons (decision 1831)
+
+Two sheets in the same style and cut: `assets/library/icon/sheet_dishes_feasts_breakfasts/sheet.png` (task
+`01a121b3-a6d1-736d-a23c-8d5b0b8008c4`) and `assets/library/icon/sheet_dishes_suppers/sheet.png` (task
+`01a121b4-1c00-7232-9bb7-94c58cdd265e`). Unlike the sheets above, these keys are final: each is the `dish_<key>` that
+`meal_rules.gd` DISH_ICON_KEYS builds from `dish_book.gd`, so the Pantry's kitchen rows and the Kitchen tab draw them
+with no wiring (the field guide draws no icons). The spare cells hold empty vessels and are not cut.
+
+| Key | Sheet | Cell | Dish |
+|---|---|---|---|
+| `dish_feast_fish` | feasts and breakfasts | 0,0 | Feast fish |
+| `dish_berry_tart` | feasts and breakfasts | 1,0 | Feast tarts |
+| `dish_nut_roast` | feasts and breakfasts | 2,0 | Bean, root and nut roast |
+| `dish_orchard_crumble` | feasts and breakfasts | 0,1 | Banquet crumble |
+| `dish_porridge` | feasts and breakfasts | 1,1 | Wild oat porridge |
+| `dish_barleymeal` | feasts and breakfasts | 2,1 | Barleymeal porridge |
+| `dish_soup` | suppers | 0,0 | Togget's vegetable soup |
+| `dish_beetroot_soup` | suppers | 1,0 | Wild-beetroot soup |
+| `dish_vole_stew` | suppers | 2,0 | Vole vegetable stew (roots only) |
+| `dish_fish_stew` | suppers | 0,1 | Poached perch or trout |
+| `dish_poached_dace` | suppers | 1,1 | Poached dace |
+
+`tools/stage_art_passes.py` writes them into the manifest's `icons` section, and recuts the icon record when it lacks a
+key, so a restage brings them.

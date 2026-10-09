@@ -2413,9 +2413,11 @@ rated the ferry "Stretch" and moving vessels lie outside the adopted movement sc
   bring it home (none can reach it: the job stays on the board, never ended with the boat out; Cancel is refused).
   Wood stranded at the far stage or aboard while closed is the incident **"The ferry is closed: …"** (Village news ▸
   Needs attention). The Routes layer and the Water panel say it.
-- **Passengers**: the router offers the ferry to any trip across the water while it is open, staffed and boardable
-  within 2 game hours, costed as its decks, its row and **the wait for its next boarding** -- so it is chosen only when it
-  is quicker. A passenger waits at the stage ("waiting for the ferry" on the Routes layer), boards the second seat, rides
+- **Passengers**: the ferry is the route planner's **boat row 0** (decision 1821, `routes/boat_rows.gd`). For any trip
+  across the water it lists each stage's next boardings with the seat free (none while closed or unstaffed) and its ride
+  (both decks and the row), in integer ticks; the router prices **the wait for the boat from when the walker reaches the
+  stage**, at most 2 game hours, then the ride -- so it is chosen only when it is quicker, and never for a boat that will
+  have gone. (Before 1821 the wait was counted from the moment of planning.) A passenger waits at the stage ("waiting for the ferry" on the Routes layer), boards the second seat, rides
   (held: no order takes it off; its panel says "aboard a boat") and steps off at the other stage. Any refusal while it waits -- closed, too long a wait,
   the seat taken, another order -- ends the leg where it stands, and it goes by land.
 - **The books**: every unit that fell in the copse is lying there, in a hand (or set down for the next), on a stack,

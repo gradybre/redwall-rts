@@ -7,20 +7,31 @@ NEGATIVE TESTS COME FIRST:
   N01  a folder that is not the project's never runs a pass's tool (they write only to the project's folder).
   N02  a record row whose staged file is missing writes no manifest row (the demo then draws its stand-in).
   N03  an empty folder stages nothing: no world, icon or UI rows.
+  N04  an icon record lacking a key make_art_pass3.py can cut from the library is stale, as is an unreadable one or one
+       that is not a map (decision 1831: a restage then recuts it); a key whose sheet the library lacks is not asked
+       for, and with no library a record is not judged by keys; a models record is never stale for that reason.
+  N05  run_tools runs `make_art_pass3.py --icons` for a stale icon record, and runs nothing for a complete one.
 
 Then: a pass-2 model's row is measured through its node's placement and names its window mask; a pass-3 row is
 copied from its record with its category; flax gets a plant row with its cards and soil line; icons are keyed; the
-UI rows carry the nine-patch margins and the page's text area, and only files that exist.
+UI rows carry the nine-patch margins and the page's text area, and only files that exist. Every dish in dish_book.gd has
+a `dish_<key>` icon that pass 1's cutter or make_art_pass3.py cuts (decision 1831), and 1831's eleven are on their
+sheets' cells, marked 1831.
 """
 
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import pathlib
+import re
 import sys
 import tempfile
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import make_art_pass3  # noqa: E402
+import make_demo_food_art  # noqa: E402
 import stage_art_passes as passes  # noqa: E402
 from repair_meshy_rig import append_accessor, write_glb  # noqa: E402
 
@@ -64,6 +75,139 @@ def test_negatives(tmp: pathlib.Path) -> None:
 	empty.mkdir()
 	made = passes.stage(empty)
 	check("N03 nothing staged", made["world"] == {} and made["icons"] == {} and made["ui"] == {})
+
+
+def no_library() -> pathlib.Path:
+	"""A checkout with no library, as make_art_pass3.library() reports one."""
+	raise SystemExit("no library")
+
+
+def fake_library(tmp: pathlib.Path, sheets: set[str]) -> pathlib.Path:
+	"""A library holding only `sheets` (empty files: staleness reads only whether a sheet is there)."""
+	lib = tmp / "library"
+	for sheet in sheets:
+		touch(lib / sheet)
+	return lib
+
+
+def test_icon_record_staleness(tmp: pathlib.Path) -> None:
+	"""N04: which records a restage remakes."""
+	real_library = make_art_pass3.library
+	every_sheet = {sheet for sheet, _, _ in make_art_pass3.ICONS.values()}
+	try:
+		lib = fake_library(tmp, every_sheet)
+		make_art_pass3.library = lambda: lib
+		record = tmp / passes.ICON_RECORD
+		check("N04 a missing icon record is stale", passes.record_stale(tmp, passes.ICON_RECORD))
+		every = {key: {"icon": f"res://demo/assets/icons/{key}.png"} for key in make_art_pass3.ICONS}
+		record.write_text(json.dumps(every))
+		check("N04 a record with every key is not stale", not passes.record_stale(tmp, passes.ICON_RECORD))
+		record.write_text(json.dumps({key: row for key, row in every.items() if key != "dish_vole_stew"}))
+		check("N04 a record lacking one key is stale", passes.record_stale(tmp, passes.ICON_RECORD))
+		partial = fake_library(tmp / "partial", every_sheet - {make_art_pass3.DISH_SHEET_SUPPERS})
+		make_art_pass3.library = lambda: partial
+		check("N04 a key whose sheet the library lacks is not asked for", not passes.record_stale(tmp, passes.ICON_RECORD))
+		make_art_pass3.library = no_library
+		check("N04 with no library a record is not judged by keys", not passes.record_stale(tmp, passes.ICON_RECORD))
+		record.write_text("{not json")
+		check("N04 an unreadable record is stale", passes.record_stale(tmp, passes.ICON_RECORD))
+		record.write_text(json.dumps(sorted(every)))
+		check("N04 a record that is not a map is stale", passes.record_stale(tmp, passes.ICON_RECORD))
+		(tmp / "art_pass3_models.json").write_text("{}")
+		check("N04 a models record is not judged by icon keys", not passes.record_stale(tmp, "art_pass3_models.json"))
+	finally:
+		make_art_pass3.library = real_library
+
+
+def test_run_tools_recuts_a_stale_record(tmp: pathlib.Path) -> None:
+	"""N05: run_tools' wiring of record_stale, on a stand-in project folder whose tools are recorded, not run."""
+	real = (passes.OUT, passes.subprocess.run, make_art_pass3.library)
+	calls: list[list[str]] = []
+
+	class Done:
+		returncode = 0
+
+	def record_call(command: list[str], check: bool = False) -> Done:
+		calls.append([str(part) for part in command])
+		return Done()
+
+	lib = fake_library(tmp, {sheet for sheet, _, _ in make_art_pass3.ICONS.values()})
+	try:
+		passes.OUT, passes.subprocess.run, make_art_pass3.library = tmp, record_call, lambda: lib
+		for name in passes.PASS2_RECORDS + ["art_pass3_models.json"]:
+			touch(tmp / name)
+		every = {key: {"icon": f"res://demo/assets/icons/{key}.png"} for key in make_art_pass3.ICONS}
+		(tmp / passes.ICON_RECORD).write_text(json.dumps({k: v for k, v in every.items() if k != "dish_vole_stew"}))
+		check("N05 a stale icon record is recut", passes.run_tools(tmp) == [] and len(calls) == 1
+			and calls[0][-2:] == [str(passes.TOOLS / "make_art_pass3.py"), "--icons"])
+		calls.clear()
+		(tmp / passes.ICON_RECORD).write_text(json.dumps(every))
+		check("N05 a complete record runs nothing", passes.run_tools(tmp) == [] and calls == [])
+	finally:
+		passes.OUT, passes.subprocess.run, make_art_pass3.library = real
+
+
+def test_dish_icons(tmp: pathlib.Path) -> None:
+	"""Every dish has an icon key a cutter cuts; 1831's eleven on their cells."""
+	book = (passes.ROOT / "godot/demo/kitchen/dish_book.gd").read_text()
+	dishes = re.findall(r'\{"key": &"(\w+)"', book)
+	cut = set(make_demo_food_art.ICONS) | set(make_art_pass3.ICONS)
+	check("dishes: the book was read, every row", len(dishes) >= 24 and len(dishes) == book.count('"key":'))
+	check("dishes: every one has an icon", [key for key in dishes if f"dish_{key}" not in cut] == [])
+	feasts, suppers = make_art_pass3.DISH_SHEET_FEASTS, make_art_pass3.DISH_SHEET_SUPPERS
+	want = {"dish_feast_fish": (feasts, 0, 0), "dish_berry_tart": (feasts, 1, 0), "dish_nut_roast": (feasts, 2, 0),
+		"dish_orchard_crumble": (feasts, 0, 1), "dish_porridge": (feasts, 1, 1), "dish_barleymeal": (feasts, 2, 1),
+		"dish_soup": (suppers, 0, 0), "dish_beetroot_soup": (suppers, 1, 0), "dish_vole_stew": (suppers, 2, 0),
+		"dish_fish_stew": (suppers, 0, 1), "dish_poached_dace": (suppers, 1, 1)}
+	check("1831: the eleven on their cells", {key: make_art_pass3.ICONS.get(key) for key in want} == want)
+	check("1831: no spare cell is keyed", sum(1 for sheet, _, _ in make_art_pass3.ICONS.values()
+		if sheet in (feasts, suppers)) == 11)
+	check("1831: both sheets marked 1831", make_art_pass3.decision_of(feasts) == "1831"
+		and make_art_pass3.decision_of(suppers) == "1831")
+	check("0972's and 0971's sheets keep their decisions", make_art_pass3.decision_of(make_art_pass3.FLAX_SHEET) == "0972"
+		and make_art_pass3.decision_of(make_art_pass3.ICON_SHEET) == "0971")
+	lib = fake_library(tmp, {make_art_pass3.FLAX_SHEET})
+	check("a library lacking a sheet cuts only what it has", make_art_pass3.cuttable_keys(lib)
+		== [key for key, (sheet, _, _) in make_art_pass3.ICONS.items() if sheet == make_art_pass3.FLAX_SHEET])
+	check("1831: no key cut twice", not set(make_demo_food_art.ICONS) & set(make_art_pass3.ICONS))
+
+
+def test_make_icons_cuts_what_the_library_has(tmp: pathlib.Path) -> None:
+	"""make_art_pass3.make_icons through the cutter, on a synthetic sheet (only where Pillow is installed): it cuts the
+	keys whose sheet is there, marks each row with its sheet's decision, skips the rest; with no sheet it fails and
+	leaves the record as it was."""
+	try:
+		from PIL import Image, ImageDraw
+	except ImportError:
+		print("make_icons: Pillow is not installed; its checks are skipped")
+		return
+	lib = tmp / "library"
+	sheet = Image.new("RGB", (300, 300), (200, 200, 200))
+	draw = ImageDraw.Draw(sheet)
+	for cell in range(9):
+		x, y = cell % 3 * 100, cell // 3 * 100
+		draw.ellipse((x + 25, y + 25, x + 75, y + 75), fill=(150, 40 + cell * 20, 30))
+	(lib / make_art_pass3.FLAX_SHEET).parent.mkdir(parents=True)
+	sheet.save(lib / make_art_pass3.FLAX_SHEET)
+	real = make_art_pass3.OUT
+	try:
+		make_art_pass3.OUT = tmp / "out"
+		with contextlib.redirect_stdout(io.StringIO()):
+			code = make_art_pass3.make_icons(lib)
+		record = json.loads((tmp / "out" / passes.ICON_RECORD).read_text())
+		check("make_icons: cuts what the library has", code == 0
+			and sorted(record) == sorted(make_art_pass3.cuttable_keys(lib)) and len(record) == 9)
+		check("make_icons: each row's decision is its sheet's", {row["decision"] for row in record.values()} == {"0972"})
+		check("make_icons: an icon is a 128 px square", Image.open(tmp / "out/icons/item_flax.png").size == (128, 128))
+		before = (tmp / "out" / passes.ICON_RECORD).read_text()
+		empty = tmp / "empty"
+		empty.mkdir()
+		with contextlib.redirect_stdout(io.StringIO()):
+			code = make_art_pass3.make_icons(empty)
+		check("make_icons: nothing to cut fails and keeps the record", code == 1
+			and (tmp / "out" / passes.ICON_RECORD).read_text() == before)
+	finally:
+		make_art_pass3.OUT = real
 
 
 def test_world(tmp: pathlib.Path) -> None:
@@ -124,9 +268,13 @@ def main() -> int:
 	"""Run every test; print each failure and the tally."""
 	with tempfile.TemporaryDirectory() as folder:
 		tmp = pathlib.Path(folder)
-		for part in ("n", "w", "u"):
+		for part in ("n", "r", "t", "d", "m", "w", "u"):
 			(tmp / part).mkdir()
 		test_negatives(tmp / "n")
+		test_icon_record_staleness(tmp / "r")
+		test_run_tools_recuts_a_stale_record(tmp / "t")
+		test_dish_icons(tmp / "d")
+		test_make_icons_cuts_what_the_library_has(tmp / "m")
 		test_world(tmp / "w")
 		test_icons_and_ui(tmp / "u")
 	for name in FAILURES:
